@@ -1,0 +1,4 @@
+Flask
+Flask_SocketIO
+lnd-grpc-client
+python-socketio
