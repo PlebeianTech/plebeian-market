@@ -9,4 +9,6 @@ WORKDIR /app
 
 ENV PYTHONPATH=/app
 
+EXPOSE 80
+
 CMD ["./gunicorn.sh"]
