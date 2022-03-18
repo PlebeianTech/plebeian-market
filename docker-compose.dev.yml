@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  db:
+    volumes:
+      - "./dbdata/data:/var/lib/postgresql/data"
+  api:
+    environment:
+      - FLASK_APP=main
+      - FLASK_ENV=development
+      - DEBUG=1
+    ports:
+      - "5000:5000"
+    volumes:
+      - "./plebbid:/app/plebbid"
+    command: python3 ./plebbid/main.py
+
+networks:
+  proxy:
+    driver: bridge

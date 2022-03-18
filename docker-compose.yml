@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:14-bullseye
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=plebbid
+      - POSTGRES_USER=pleb
+      - POSTGRES_PASSWORD=plebpass
+    volumes:
+      - "/home/www/plebbid-dbdata:/var/lib/postgresql/data"
+    networks:
+      - db_network
+  api:
+    build: .
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      - VIRTUAL_HOST=plebbid.21art.gallery
+    networks:
+      - db_network
+      - proxy
+
+networks:
+  db_network:
+    driver: bridge
+  proxy:
+    external: true

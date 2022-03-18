@@ -1,4 +1,6 @@
 Flask
-Flask_SocketIO
+Flask-SqlAlchemy
+gunicorn
 lnd-grpc-client
-python-socketio
+psycopg2
+python-dateutil
