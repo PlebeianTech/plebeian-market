@@ -1,6 +1,10 @@
+ecdsa
 Flask
 Flask-SqlAlchemy
 gunicorn
 lnd-grpc-client
+lnurl
 psycopg2
+pyjwt
+pyqrcode
 python-dateutil

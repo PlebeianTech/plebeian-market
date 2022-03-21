@@ -1,9 +1,11 @@
 from datetime import datetime
+from functools import wraps
 
-from flask import Flask
+from flask import Flask, jsonify, request
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
 
+import jwt
 import logging
 
 class MyFlask(Flask):
@@ -29,6 +31,22 @@ from plebbid import models as m
 @with_appcontext
 def create_db():
     db.create_all()
+
+def token_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        token = None
+        if 'x-access-tokens' in request.headers:
+            token = request.headers['x-access-tokens']
+        if not token:
+            return jsonify({'success': False, 'message': "Missing token."}), 400
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = m.Buyer.query.filter_by(key=data['user_key']).first()
+        except Exception:
+           return jsonify({'success': False, 'message': "Invalid token."})
+        return f(current_user, *args, **kwargs)
+    return decorator
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

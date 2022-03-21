@@ -1,11 +1,20 @@
+from datetime import datetime, timedelta
+from io import BytesIO
 import os
+import secrets
 
 import dateutil.parser
+import ecdsa
 from flask import Blueprint, jsonify, request
+import jwt
+import lnurl
+import pyqrcode
 from sqlalchemy.exc import IntegrityError
 
 from plebbid import models as m
-from plebbid.main import app, db
+from plebbid.main import app, db, token_required
+
+import config
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -14,42 +23,104 @@ def add_seller():
     try:
         db.session.add(m.Seller(key=request.form['key']))
         db.session.commit()
-        return jsonify({'ok': True})
+        return jsonify({'success': True})
     except IntegrityError:
-        return jsonify({'message': "Seller already registered."}), 400
+        return jsonify({'success': False, 'message': "Seller already registered."}), 400
 
 @api_blueprint.route('/sellers/<string:key>/auctions', methods=['GET', 'POST'])
 def auctions(key):
     seller = m.Seller.query.filter_by(key=key).first_or_404()
     if request.method == 'GET':
-        auctions = m.Auction.query.filter_by(seller_id=seller.id).all()
-        return jsonify({'ok': True, 'auctions': [a.to_dict() for a in auctions]})
+        return jsonify({'success': True, 'auctions': [a.to_dict() for a in seller.auctions]})
     else:
+        # TODO: prevent seller from creating too many auctions?
+
         for k in ['starts_at', 'ends_at', 'minimum_bid']:
             if k not in request.form:
-                return jsonify({'message': "Missing key %s" % k}), 400
+                return jsonify({'success': False, 'message': f"Missing key: {k}."}), 400
+        dates = {}
+        for k in ['starts_at', 'ends_at']:
+            try:
+                dates[k] = dateutil.parser.isoparse(request.form[k])
+            except ValueError:
+                return jsonify({'success': False, 'message': f"Invalid date: {k}."}), 400
+            if dates[k] < datetime.utcnow():
+                return jsonify({'success': False, 'message': f"Date must be in the future: {k}."}), 400
+        try:
+            minimum_bid = int(request.form['minimum_bid'])
+        except ValueError:
+            return jsonify({'success': False, 'message': "Invalid minimum_bid."}), 400
 
-        max_short_id = db.session.query(db.func.max(m.Auction.short_id)).filter(m.Auction.seller_id == seller.id).scalar()
-
-        short_id = max_short_id + 1 if max_short_id else 1
-        auction = m.Auction(key=os.urandom(12).hex(),
-            seller_id=seller.id,
-            short_id=short_id,
-            starts_at=dateutil.parser.isoparse(request.form['starts_at']),
-            ends_at=dateutil.parser.isoparse(request.form['ends_at']),
-            minimum_bid=request.form['minimum_bid'])
+        key = m.Auction.generate_key()
+        max_short_id = db.session.query(db.func.max(m.Auction.short_id)).filter(m.Auction.seller == seller).scalar()
+        new_short_id = max_short_id + 1 if max_short_id else 1
+        auction = m.Auction(key=key, seller=seller, short_id=new_short_id,
+            minimum_bid=minimum_bid, **dates)
         db.session.add(auction)
         db.session.commit()
-        return jsonify({'ok': True, 'short_id': short_id})
+        return jsonify({'success': True, 'key': key, 'short_id': new_short_id})
 
-@api_blueprint.route('/sellers/<string:key>/auctions/<int:short_id>', methods=['DELETE'])
-def delete_auction(key, short_id):
+@api_blueprint.route('/sellers/<string:key>/auctions/<int:short_id>', methods=['GET', 'DELETE'])
+def auction_by_short_id(key, short_id):
     seller = m.Seller.query.filter_by(key=key).first_or_404()
-    auction = m.Auction.query.filter_by(seller_id=seller.id, short_id=short_id).first_or_404()
-    db.session.delete(auction)
-    db.session.commit()
-    return jsonify({'ok': True})
+    auction = m.Auction.query.filter_by(seller=seller, short_id=short_id).first_or_404()
+    if request.method == 'GET':
+        return jsonify({'success': True, 'auction': auction.to_dict()})
+    else:
+        db.session.delete(auction)
+        db.session.commit()
+        return jsonify({'success': True})
 
-@api_blueprint.route('/auctions/<string:key>/bids', methods=['GET', 'POST'])
-def bids(key):
-    pass
+@api_blueprint.route('/auctions/<string:key>', methods=['GET'])
+def auction_by_key(key):
+    auction = m.Auction.query.filter_by(key=key).first_or_404()
+    return jsonify({'success': True, 'auction': auction.to_dict()})
+
+@api_blueprint.route('/login', methods=['GET'])
+def login():
+    if 'k1' not in request.args:
+        k1 = secrets.token_hex(32)
+        url = config.BASE_URL + "/login?k1=" + k1
+        qr = BytesIO()
+        pyqrcode.create(lnurl.encode(url).bech32).svg(qr, scale=1)
+        return jsonify({'qr': qr.getvalue().decode('utf-8')})
+
+    for k in ['k1', 'key', 'sig']:
+        if k not in request.args:
+            return jsonify({'success': False, 'message': f"Missing key: {k}."}), 400
+    k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
+
+    vk = ecdsa.VerifyingKey.from_string(key_bytes, curve=ecdsa.SECP256k1)
+    if not vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der):
+        return jsonify({'success': False, 'message': "Verification failed."})
+
+    key = request.args['key']
+
+    buyer = m.Buyer.query.filter_by(key=key).first()
+    if not buyer:
+        buyer = m.Buyer(key=key)
+        db.session.add(buyer)
+        db.session.commit()
+
+    token = jwt.encode({'user_key' : key, 'exp' : datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
+
+    return jsonify({'success': True, 'token' : token})
+
+@api_blueprint.route('/auctions/<string:key>/bids', methods=['POST'])
+@token_required
+def bid(buyer, key):
+    auction = m.Auction.query.filter_by(key=key).first_or_404()
+    amount = request.form['amount']
+
+    # TODO: validate amount!
+
+    # TODO: generate a real invoice in LN!
+    import random
+    import string
+    payment_request = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
+
+    bid = m.Bid(auction=auction, buyer=buyer, amount=amount, payment_request=payment_request)
+    db.session.add(bid)
+    db.session.commit()
+
+    return jsonify({'success': True, 'payment_request': payment_request})
