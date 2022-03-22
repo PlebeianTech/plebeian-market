@@ -1,0 +1,20 @@
+version: '3.6'
+
+services:
+  test:
+    build: .
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - FLASK_APP=plebbid.main
+      - BASE_URL=http://api:5000
+    volumes:
+      - "./plebbid:/app/plebbid"
+    networks:
+      - proxy
+    command: flask run-tests
+
+networks:
+  proxy:
+    driver: bridge

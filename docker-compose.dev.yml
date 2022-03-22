@@ -1,19 +1,25 @@
-version: '3'
+version: '3.6'
 
 services:
   db:
     volumes:
-      - "./dbdata/data:/var/lib/postgresql/data"
+      - target: /var/lib/postgresql/data
+        type: tmpfs
   api:
     environment:
-      - FLASK_APP=main
+      - FLASK_APP=plebbid.main
       - FLASK_ENV=development
       - DEBUG=1
     ports:
       - "5000:5000"
     volumes:
       - "./plebbid:/app/plebbid"
-    command: python3 ./plebbid/main.py
+    command: bash -c "flask create-db && python3 ./plebbid/main.py"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck" ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
 networks:
   proxy:

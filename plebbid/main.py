@@ -15,7 +15,7 @@ class MyFlask(Flask):
 
     def __call__(self, environ, start_response):
         if not self.initialized:
-            from plebbid.controllers import api_blueprint
+            from plebbid.api import api_blueprint
             app.register_blueprint(api_blueprint)
             self.initialized = True
         return super().__call__(environ, start_response)
@@ -31,6 +31,14 @@ from plebbid import models as m
 @with_appcontext
 def create_db():
     db.create_all()
+
+@app.cli.command("run-tests")
+@with_appcontext
+def run_tests():
+    import unittest
+    from plebbid import api_tests
+    suite = unittest.TestLoader().loadTestsFromModule(api_tests)
+    unittest.TextTestRunner().run(suite)
 
 def token_required(f):
     @wraps(f)

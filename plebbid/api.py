@@ -5,6 +5,7 @@ import secrets
 
 import dateutil.parser
 import ecdsa
+from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
 import jwt
 import lnurl
@@ -18,6 +19,10 @@ import config
 
 api_blueprint = Blueprint('api', __name__)
 
+@api_blueprint.route('/healthcheck', methods=['GET'])
+def healthcheck():
+    return jsonify({'success': True})
+
 @api_blueprint.route('/sellers', methods=['POST'])
 def add_seller():
     try:
@@ -29,7 +34,9 @@ def add_seller():
 
 @api_blueprint.route('/sellers/<string:key>/auctions', methods=['GET', 'POST'])
 def auctions(key):
-    seller = m.Seller.query.filter_by(key=key).first_or_404()
+    seller = m.Seller.query.filter_by(key=key).first()
+    if not seller:
+        return jsonify({'success': False, 'message': "Not found."}), 404
     if request.method == 'GET':
         return jsonify({'success': True, 'auctions': [a.to_dict() for a in seller.auctions]})
     else:
@@ -62,8 +69,12 @@ def auctions(key):
 
 @api_blueprint.route('/sellers/<string:key>/auctions/<int:short_id>', methods=['GET', 'DELETE'])
 def auction_by_short_id(key, short_id):
-    seller = m.Seller.query.filter_by(key=key).first_or_404()
-    auction = m.Auction.query.filter_by(seller=seller, short_id=short_id).first_or_404()
+    seller = m.Seller.query.filter_by(key=key).first()
+    if not seller:
+        return jsonify({'success': False, 'message': "Not found."}), 404
+    auction = m.Auction.query.filter_by(seller=seller, short_id=short_id).first()
+    if not auction:
+        return jsonify({'success': False, 'message': "Not found."}), 404
     if request.method == 'GET':
         return jsonify({'success': True, 'auction': auction.to_dict()})
     else:
@@ -73,7 +84,9 @@ def auction_by_short_id(key, short_id):
 
 @api_blueprint.route('/auctions/<string:key>', methods=['GET'])
 def auction_by_key(key):
-    auction = m.Auction.query.filter_by(key=key).first_or_404()
+    auction = m.Auction.query.filter_by(key=key).first()
+    if not auction:
+        return jsonify({'success': False, 'message': "Not found."}), 404
     return jsonify({'success': True, 'auction': auction.to_dict()})
 
 @api_blueprint.route('/login', methods=['GET'])
@@ -88,11 +101,19 @@ def login():
     for k in ['k1', 'key', 'sig']:
         if k not in request.args:
             return jsonify({'success': False, 'message': f"Missing key: {k}."}), 400
-    k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
+    try:
+        app.logger.warn(request.args['k1'])
+        app.logger.warn(request.args['key'])
+        app.logger.warn(request.args['sig'])
+        k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
+    except ValueError:
+        return jsonify({'success': False, 'message': f"Invalid parameter."}), 400
 
     vk = ecdsa.VerifyingKey.from_string(key_bytes, curve=ecdsa.SECP256k1)
-    if not vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der):
-        return jsonify({'success': False, 'message': "Verification failed."})
+    try:
+        vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der)
+    except BadSignatureError:
+        return jsonify({'success': False, 'message': "Verification failed."}), 400
 
     key = request.args['key']
 
@@ -102,9 +123,9 @@ def login():
         db.session.add(buyer)
         db.session.commit()
 
-    token = jwt.encode({'user_key' : key, 'exp' : datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
+    token = jwt.encode({'user_key': key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
 
-    return jsonify({'success': True, 'token' : token})
+    return jsonify({'success': True, 'token': token})
 
 @api_blueprint.route('/auctions/<string:key>/bids', methods=['POST'])
 @token_required
