@@ -91,7 +91,7 @@ def auction_by_key(key):
 def login():
     if 'k1' not in request.args:
         k1 = secrets.token_hex(32)
-        url = app.config['BASE_URL'] + "/login?k1=" + k1
+        url = app.config['BASE_URL'] + f"/login?tag=login&k1={k1}"
         qr = BytesIO()
         pyqrcode.create(lnurl.encode(url).bech32).svg(qr, scale=1)
         return jsonify({'qr': qr.getvalue().decode('utf-8')})

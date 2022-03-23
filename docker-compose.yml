@@ -20,6 +20,7 @@ services:
     stop_grace_period: 1m
     environment:
       - VIRTUAL_HOST=plebbid.21art.gallery
+      - LETSENCRYPT_HOST=plebbid.21art.gallery
     networks:
       - db_network
       - proxy
