@@ -1,6 +1,7 @@
 ecdsa
-Flask
-Flask-SqlAlchemy
+flask
+flask-cors
+flask-sqlalchemy
 gunicorn
 lnd-grpc-client
 lnurl

@@ -3,6 +3,7 @@ from functools import wraps
 
 from flask import Flask, jsonify, request
 from flask.cli import with_appcontext
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import jwt
 from lndgrpc import LNDClient
@@ -22,6 +23,8 @@ class MyFlask(Flask):
 
 app = MyFlask(__name__)
 app.config.from_object('plebbid.config')
+
+CORS(app)
 
 db = SQLAlchemy(app)
 
