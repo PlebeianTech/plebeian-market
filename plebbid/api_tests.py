@@ -6,16 +6,16 @@ import requests
 from plebbid.main import app
 
 class TestApi(unittest.TestCase):
-    def do(self, f, path, params=None, data=None):
+    def do(self, f, path, params=None, data=None, headers=None):
         BASE_URL = app.config['BASE_URL']
-        response = f(f"{BASE_URL}{path}", params=params, data=data)
+        response = f(f"{BASE_URL}{path}", params=params, data=data, headers=headers)
         return response.status_code, response.json() if response.status_code in (200, 400, 404) else None
 
     def get(self, path, params=None):
         return self.do(requests.get, path, params=params)
 
-    def post(self, path, data):
-        return self.do(requests.post, path, data=data)
+    def post(self, path, data, headers=None):
+        return self.do(requests.post, path, data=data, headers=headers)
 
     def delete(self, path):
         return self.do(requests.delete, path)
@@ -100,7 +100,7 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/sellers/SELLER_KEY_1/auctions/{auction_short_id_2}")
         self.assertEqual(code, 404)
 
-    def test_21_login(self):
+        # log in with Lightning
         code, response = self.get("/login")
         self.assertEqual(code, 200)
         self.assertTrue('svg' in response['qr'])
@@ -118,3 +118,16 @@ class TestApi(unittest.TestCase):
              'sig': "3045022100a23fbcaf3f24aff085d8c86a744764be8390e8511eca675ae2af037f33ff1a92022035f00465fbcad73e3175d7dc2e891322fa9dcce7bbd19409866f855e6da1f51e"})
         self.assertEqual(code, 200)
         self.assertTrue('token' in response)
+
+        token = response['token']
+
+        # anonymous users can't place a bid
+        code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 100})
+        self.assertEqual(code, 400)
+        self.assertTrue('missing token' in response['message'].lower())
+
+        # users can place a bid
+        code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 888}, {'x-access-tokens': token})
+        self.assertEqual(code, 200)
+        self.assertTrue('payment_request' in response)
+

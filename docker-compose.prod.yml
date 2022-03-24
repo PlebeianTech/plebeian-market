@@ -1,0 +1,19 @@
+version: '3.6'
+
+services:
+  db:
+    volumes:
+      - "/home/www/plebbid-dbdata:/var/lib/postgresql/data"
+  api:
+    environment:
+      - VIRTUAL_HOST=plebbid.21art.gallery
+      - LETSENCRYPT_HOST=plebbid.21art.gallery
+      - LND_GRPC=plebeian.m.voltageapp.io:10009
+    volumes:
+      - "/home/www/plebbid-secrets:/secrets"
+
+networks:
+  db_network:
+    driver: bridge
+  proxy:
+    external: true

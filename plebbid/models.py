@@ -82,7 +82,7 @@ class Bid(db.Model):
     amount = db.Column(db.Integer, nullable=False)
 
     # payment_request identifies the Lightning invoice
-    payment_request = db.Column(db.String(100), nullable=False, unique=True, index=True)
+    payment_request = db.Column(db.String(512), nullable=False, unique=True, index=True)
 
     def to_dict(self):
         return {

@@ -13,7 +13,7 @@ import pyqrcode
 from sqlalchemy.exc import IntegrityError
 
 from plebbid import models as m
-from plebbid.main import app, db, token_required
+from plebbid.main import app, db, token_required, get_lnd_client
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -100,9 +100,6 @@ def login():
         if k not in request.args:
             return jsonify({'success': False, 'message': f"Missing key: {k}."}), 400
     try:
-        app.logger.warn(request.args['k1'])
-        app.logger.warn(request.args['key'])
-        app.logger.warn(request.args['sig'])
         k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
     except ValueError:
         return jsonify({'success': False, 'message': f"Invalid parameter."}), 400
@@ -128,15 +125,17 @@ def login():
 @api_blueprint.route('/auctions/<string:key>/bids', methods=['POST'])
 @token_required
 def bid(buyer, key):
-    auction = m.Auction.query.filter_by(key=key).first_or_404()
-    amount = request.form['amount']
+    auction = m.Auction.query.filter_by(key=key).first()
+    if not auction:
+        return jsonify({'success': False, 'message': "Not found."}), 404
+
+    amount = int(request.form['amount'])
 
     # TODO: validate amount!
 
-    # TODO: generate a real invoice in LN!
-    import random
-    import string
-    payment_request = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
+    response = get_lnd_client().add_invoice(value=amount)
+
+    payment_request = response.payment_request
 
     bid = m.Bid(auction=auction, buyer=buyer, amount=amount, payment_request=payment_request)
     db.session.add(bid)
