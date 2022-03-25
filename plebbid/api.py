@@ -91,34 +91,51 @@ def auction_by_key(key):
 def login():
     if 'k1' not in request.args:
         k1 = secrets.token_hex(32)
+
+        db.session.add(m.LnAuth(k1=k1))
+        db.session.commit()
+
         url = app.config['BASE_URL'] + f"/login?tag=login&k1={k1}"
         qr = BytesIO()
         pyqrcode.create(lnurl.encode(url).bech32).svg(qr, scale=1)
-        return jsonify({'qr': qr.getvalue().decode('utf-8')})
 
-    for k in ['k1', 'key', 'sig']:
-        if k not in request.args:
-            return jsonify({'success': False, 'message': f"Missing key: {k}."}), 400
-    try:
-        k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
-    except ValueError:
-        return jsonify({'success': False, 'message': f"Invalid parameter."}), 400
+        return jsonify({'k1': k1, 'qr': qr.getvalue().decode('utf-8')})
 
-    vk = ecdsa.VerifyingKey.from_string(key_bytes, curve=ecdsa.SECP256k1)
-    try:
-        vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der)
-    except BadSignatureError:
-        return jsonify({'success': False, 'message': "Verification failed."}), 400
+    lnauth = m.LnAuth.query.filter_by(k1=request.args['k1']).first()
 
-    key = request.args['key']
+    if not lnauth: # TODO: check age of the lnauth as well!
+        return jsonify({'success': False, 'message': "Invalid challenge."}), 400
 
-    buyer = m.Buyer.query.filter_by(key=key).first()
+    # TODO: check the key in request against the key in lnauth (if it is already there)?
+
+    if 'key' in request.args and 'sig' in request.args and not lnauth.key:
+        try:
+            k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
+        except ValueError:
+            return jsonify({'success': False, 'message': "Invalid parameter."}), 400
+
+        vk = ecdsa.VerifyingKey.from_string(key_bytes, curve=ecdsa.SECP256k1)
+        try:
+            vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der)
+        except BadSignatureError:
+            return jsonify({'success': False, 'message': "Verification failed."}), 400
+
+        lnauth.key = request.args['key']
+
+        db.session.commit()
+
+    if not lnauth.key:
+        return jsonify({'success': False}), 400
+
+    buyer = m.Buyer.query.filter_by(key=lnauth.key).first()
+
+    # TODO: delete lnauth here or on first successful request with this user?
     if not buyer:
-        buyer = m.Buyer(key=key)
+        buyer = m.Buyer(key=lnauth.key)
         db.session.add(buyer)
         db.session.commit()
 
-    token = jwt.encode({'user_key': key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
+    token = jwt.encode({'user_key': buyer.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
 
     return jsonify({'success': True, 'token': token})
 

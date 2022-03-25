@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import ecdsa
 import unittest
 import requests
 
@@ -103,23 +104,42 @@ class TestApi(unittest.TestCase):
         # log in with Lightning
         code, response = self.get("/login")
         self.assertEqual(code, 200)
-        self.assertTrue('svg' in response['qr'])
+        self.assertTrue('k1' in response and 'svg' in response['qr'])
 
-        code, response = self.get("/login",
-            {'k1': "b29fa5994dc9da9906a36f996e6ac4faa2b0e2601ef13b0fab9d4b4287c57e1f",
-             'key': "030f12794ae14407b8e1bfa1cbc297bb68ce6b24455ceab52c02da7a92782b6b14",
-             'sig': "4045022100a23fbcaf3f24aff085d8c86a744764be8390e8511eca675ae2af037f33ff1a92022035f00465fbcad73e3175d7dc2e891322fa9dcce7bbd19409866f855e6da1f51e"})
+        k1 = response['k1']
+
+        sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
+        sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
+
+        # not logged in yet...
+        code, response = self.get("/login", {'k1': k1})
         self.assertEqual(code, 400)
-        self.assertTrue("verification failed" in response['message'].lower())
 
-        code, response = self.get("/login",
-            {'k1': "b29fa5994dc9da9906a36f996e6ac4faa2b0e2601ef13b0fab9d4b4287c57e1f",
-             'key': "030f12794ae14407b8e1bfa1cbc297bb68ce6b24455ceab52c02da7a92782b6b14",
-             'sig': "3045022100a23fbcaf3f24aff085d8c86a744764be8390e8511eca675ae2af037f33ff1a92022035f00465fbcad73e3175d7dc2e891322fa9dcce7bbd19409866f855e6da1f51e"})
+        # try sending another k1 (but properly signed)...
+        another_k1 = list(bytes.fromhex(k1))
+        another_k1[0] = (another_k1[0] + 1) % 255
+        another_k1 = bytes(another_k1)
+        another_sig = sk.sign_digest(another_k1, sigencode=ecdsa.util.sigencode_der)
+        code, response = self.get("/login", {'k1': another_k1.hex(), 'key': sk.verifying_key.to_string().hex(), 'sig': another_sig.hex()})
+        self.assertEqual(code, 400)
+        self.assertTrue('invalid challenge' in response['message'].lower())
+
+        # try sending a wrong signature
+        code, response = self.get("/login", {'k1': k1, 'key': sk.verifying_key.to_string().hex(), 'sig': another_sig.hex()})
+        self.assertEqual(code, 400)
+        self.assertTrue('verification failed' in response['message'].lower())
+
+        code, response = self.get("/login", {'k1': k1, 'key': sk.verifying_key.to_string().hex(), 'sig': sig.hex()})
         self.assertEqual(code, 200)
         self.assertTrue('token' in response)
 
         token = response['token']
+
+        # since we are signed in, no we can get a token even without providing a key,
+        # but we should eventually delete the lnauth from the DB, maybe after 1st successful authenticated request?
+        code, response = self.get("/login", {'k1': k1})
+        self.assertEqual(code, 200)
+        self.assertEqual(response['token'], token)
 
         # anonymous users can't place a bid
         code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 100})

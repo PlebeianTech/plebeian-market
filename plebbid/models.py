@@ -4,6 +4,14 @@ import string
 
 from plebbid.main import app, db
 
+class LnAuth(db.Model):
+    __tablename__ = 'lnauth'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    k1 = db.Column(db.String(128), nullable=False, unique=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    key = db.Column(db.String(128))
+
 class Seller(db.Model):
     __tablename__ = 'sellers'
 
@@ -25,7 +33,7 @@ class Buyer(db.Model):
     registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     # This key comes from the user's Lightning wallet when performing a Lightning log in.
-    key = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
     bids = db.relationship('Bid', backref='buyer')
 
