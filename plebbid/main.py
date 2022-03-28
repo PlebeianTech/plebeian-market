@@ -6,7 +6,7 @@ from flask.cli import with_appcontext
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import jwt
-from lndgrpc import LNDClient
+import lndgrpc
 import logging
 
 class MyFlask(Flask):
@@ -34,6 +34,8 @@ from plebbid import models as m
 @with_appcontext
 def create_db():
     db.create_all()
+    db.session.add(m.State(last_settle_index=0))
+    db.session.commit()
 
 @app.cli.command("run-tests")
 @with_appcontext
@@ -42,6 +44,21 @@ def run_tests():
     from plebbid import api_tests
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
     unittest.TextTestRunner().run(suite)
+
+@app.cli.command("settle-bids")
+@with_appcontext
+def settle_bids():
+    lnd = get_lnd_client()
+    last_settle_index = db.session.query(m.State).first().last_settle_index
+    for invoice in lnd.subscribe_invoices(): # TODO: use settle_index after merged in lnd-grpc-client
+        if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
+            bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
+            if bid:
+                state = db.session.query(m.State).first()
+                state.last_settle_index = invoice.settle_index
+                bid.settled_at = datetime.utcnow()
+                db.session.commit()
+                app.logger.info(f"Settled bid {bid.id} amount {bid.amount}.")
 
 def token_required(f):
     @wraps(f)
@@ -71,7 +88,7 @@ def get_lnd_client():
     if app.config['MOCK_LND']:
         return MockLNDClient()
     else:
-        return LNDClient(app.config['LND_GRPC'], macaroon_filepath=app.config['LND_MACAROON'], cert_filepath=app.config['LND_TLS_CERT'])
+        return lndgrpc.LNDClient(app.config['LND_GRPC'], macaroon_filepath=app.config['LND_MACAROON'], cert_filepath=app.config['LND_TLS_CERT'])
 
 if __name__ == '__main__':
     import lnurl

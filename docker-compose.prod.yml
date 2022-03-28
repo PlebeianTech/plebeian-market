@@ -11,6 +11,19 @@ services:
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebbid-secrets:/secrets"
+  settle-bids:
+    build: .
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      - FLASK_APP=plebbid.main
+      - JOB=SETTLE_BIDS
+      - LND_GRPC=plebeian.m.voltageapp.io:10009
+    networks:
+      - db_network
+    volumes:
+      - "/home/www/plebbid-secrets:/secrets"
 
 networks:
   db_network:

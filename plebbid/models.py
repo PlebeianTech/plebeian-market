@@ -4,6 +4,12 @@ import string
 
 from plebbid.main import app, db
 
+class State(db.Model):
+    __tablename__ = 'state'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    last_settle_index = db.Column(db.Integer, nullable=False)
+
 class LnAuth(db.Model):
     __tablename__ = 'lnauth'
 
