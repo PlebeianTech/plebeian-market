@@ -125,7 +125,7 @@ def login():
         db.session.commit()
 
     if not lnauth.key:
-        return jsonify({'success': False}), 400
+        return jsonify({'success': False}), 200
 
     buyer = m.Buyer.query.filter_by(key=lnauth.key).first()
 

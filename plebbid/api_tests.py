@@ -113,7 +113,8 @@ class TestApi(unittest.TestCase):
 
         # not logged in yet...
         code, response = self.get("/login", {'k1': k1})
-        self.assertEqual(code, 400)
+        self.assertEqual(code, 200)
+        self.assertFalse(response['success'])
 
         # try sending another k1 (but properly signed)...
         another_k1 = list(bytes.fromhex(k1))
