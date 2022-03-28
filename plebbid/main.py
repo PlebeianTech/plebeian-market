@@ -47,8 +47,8 @@ def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
         token = None
-        if 'x-access-tokens' in request.headers:
-            token = request.headers['x-access-tokens']
+        if 'X-Access-Token' in request.headers:
+            token = request.headers['X-Access-Token']
         if not token:
             return jsonify({'success': False, 'message': "Missing token."}), 400
         try:

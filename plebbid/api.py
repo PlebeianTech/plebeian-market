@@ -97,7 +97,7 @@ def login():
 
         url = app.config['BASE_URL'] + f"/login?tag=login&k1={k1}"
         qr = BytesIO()
-        pyqrcode.create(lnurl.encode(url).bech32).svg(qr, scale=1)
+        pyqrcode.create(lnurl.encode(url).bech32).svg(qr, scale=4)
 
         return jsonify({'k1': k1, 'qr': qr.getvalue().decode('utf-8')})
 
@@ -158,4 +158,7 @@ def bid(buyer, key):
     db.session.add(bid)
     db.session.commit()
 
-    return jsonify({'success': True, 'payment_request': payment_request})
+    qr = BytesIO()
+    pyqrcode.create(payment_request).svg(qr, scale=4)
+
+    return jsonify({'success': True, 'payment_request': payment_request, 'qr': qr.getvalue().decode('utf-8')})

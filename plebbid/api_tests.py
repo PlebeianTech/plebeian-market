@@ -148,7 +148,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue('missing token' in response['message'].lower())
 
         # users can place a bid
-        code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 888}, {'x-access-tokens': token})
+        code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 888}, {'X-Access-Token': token})
         self.assertEqual(code, 200)
         self.assertTrue('payment_request' in response)
-
+        self.assertTrue('svg' in response['qr'])
