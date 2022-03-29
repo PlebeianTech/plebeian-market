@@ -13,7 +13,8 @@ import pyqrcode
 from sqlalchemy.exc import IntegrityError
 
 from plebbid import models as m
-from plebbid.main import app, db, token_required, get_lnd_client
+from plebbid.main import app, db, get_lnd_client
+from plebbid.main import buyer_required, get_buyer_from_token, get_token_from_request
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -36,7 +37,8 @@ def auctions(key):
     if not seller:
         return jsonify({'success': False, 'message': "Not found."}), 404
     if request.method == 'GET':
-        return jsonify({'success': True, 'auctions': [a.to_dict() for a in seller.auctions]})
+        auctions = [a.to_dict(for_seller=seller.id) for a in seller.auctions]
+        return jsonify({'success': True, 'auctions': auctions})
     else:
         # TODO: prevent seller from creating too many auctions?
 
@@ -74,7 +76,7 @@ def auction_by_short_id(key, short_id):
     if not auction:
         return jsonify({'success': False, 'message': "Not found."}), 404
     if request.method == 'GET':
-        return jsonify({'success': True, 'auction': auction.to_dict()})
+        return jsonify({'success': True, 'auction': auction.to_dict(for_seller=seller.id)})
     else:
         db.session.delete(auction)
         db.session.commit()
@@ -85,7 +87,10 @@ def auction_by_key(key):
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
         return jsonify({'success': False, 'message': "Not found."}), 404
-    return jsonify({'success': True, 'auction': auction.to_dict()})
+
+    buyer = get_buyer_from_token(get_token_from_request())
+
+    return jsonify({'success': True, 'auction': auction.to_dict(for_buyer=(buyer.id if buyer else None))})
 
 @api_blueprint.route('/login', methods=['GET'])
 def login():
@@ -140,7 +145,7 @@ def login():
     return jsonify({'success': True, 'token': token})
 
 @api_blueprint.route('/auctions/<string:key>/bids', methods=['POST'])
-@token_required
+@buyer_required
 def bid(buyer, key):
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:

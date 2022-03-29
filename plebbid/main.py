@@ -60,20 +60,30 @@ def settle_bids():
                 db.session.commit()
                 app.logger.info(f"Settled bid {bid.id} amount {bid.amount}.")
 
-def token_required(f):
+def get_token_from_request():
+    return request.headers.get('X-Access-Token')
+
+def get_buyer_from_token(token):
+    if not token:
+        return None
+
+    try:
+        data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+    except Exception:
+        return None
+
+    return m.Buyer.query.filter_by(key=data['user_key']).first()
+
+def buyer_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        token = None
-        if 'X-Access-Token' in request.headers:
-            token = request.headers['X-Access-Token']
+        token = get_token_from_request()
         if not token:
             return jsonify({'success': False, 'message': "Missing token."}), 400
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user = m.Buyer.query.filter_by(key=data['user_key']).first()
-        except Exception:
-           return jsonify({'success': False, 'message': "Invalid token."})
-        return f(current_user, *args, **kwargs)
+        buyer = get_buyer_from_token(token)
+        if not buyer:
+            return jsonify({'success': False, 'message': "Invalid token."})
+        return f(buyer, *args, **kwargs)
     return decorator
 
 class MockLNDClient():

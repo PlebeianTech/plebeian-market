@@ -1,4 +1,5 @@
 from datetime import datetime
+import hashlib
 import random
 import string
 
@@ -41,6 +42,20 @@ class Buyer(db.Model):
     # This key comes from the user's Lightning wallet when performing a Lightning log in.
     key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
+    @property
+    def public_key(self):
+        """
+        This is the user's Lightning (public) key, salted (with the site key) and hashed and shortened.
+        It is shared with everyone looking at an auction's bidders and can be used to uniquely identify the bidders on the client.
+        The salt makes it impossible to identify the same buyer on different sites.
+        """
+
+        # TODO: do we want the auction key also part of this? ie. such that the same buyer cannot be identified between different auctions?
+
+        sha = hashlib.sha512()
+        sha.update((self.key + app.config['SECRET_KEY']).encode('utf-8'))
+        return sha.digest().hex()[:16]
+
     bids = db.relationship('Bid', backref='buyer')
 
 class Auction(db.Model):
@@ -71,16 +86,16 @@ class Auction(db.Model):
     def generate_key(cls):
         return ''.join(random.choice(string.ascii_lowercase) for i in range(12))
 
-    def to_dict(self):
-        include_bids = self.starts_at <= datetime.utcnow() <= self.ends_at
+    def to_dict(self, for_seller=None, for_buyer=None):
         auction = {
-            'short_id': self.short_id,
             'key': self.key,
             'starts_at': self.starts_at.isoformat(),
             'ends_at': self.ends_at.isoformat(),
             'minimum_bid': self.minimum_bid}
-        if include_bids:
-            auction['bids'] = [bid.to_dict() for bid in self.bids if bid.settled_at]
+        if for_seller == self.seller_id:
+            auction['short_id'] = self.short_id
+        if for_seller == self.seller_id or self.starts_at <= datetime.utcnow() <= self.ends_at:
+            auction['bids'] = [bid.to_dict(for_buyer=for_buyer) for bid in self.bids if bid.settled_at]
         return auction
 
 class Bid(db.Model):
@@ -98,7 +113,11 @@ class Bid(db.Model):
     # payment_request identifies the Lightning invoice
     payment_request = db.Column(db.String(512), nullable=False, unique=True, index=True)
 
-    def to_dict(self):
-        return {
+    def to_dict(self, for_buyer=None):
+        bid = {
             'amount': self.amount,
-            'bidder': self.buyer.key} # TODO: do not return the actual key here, but rather hash & salt it
+            'bidder': self.buyer.public_key}
+        if for_buyer == self.buyer_id:
+            # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
+            bid['payment_request'] = self.payment_request
+        return bid

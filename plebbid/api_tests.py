@@ -76,7 +76,7 @@ class TestApi(unittest.TestCase):
         # GET the newly created auction by key
         code, response = self.get(f"/auctions/{auction_key}")
         self.assertEqual(code, 200)
-        self.assertEqual(response['auction'].get('short_id'), auction_short_id)
+        self.assertIsNone(response['auction'].get('short_id')) # not returning the short_id unless looking using seller key
         self.assertEqual(response['auction'].get('key'), auction_key)
 
         # create a 2nd auction
