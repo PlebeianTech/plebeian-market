@@ -1,5 +1,8 @@
 from datetime import datetime
 from functools import wraps
+import random
+import string
+import time
 
 from flask import Flask, jsonify, request
 from flask.cli import with_appcontext
@@ -88,11 +91,24 @@ def buyer_required(f):
 
 class MockLNDClient():
     class InvoiceResponse():
-        def __init__(self):
-            self.payment_request = 'MOCK_REQUEST'
+        def __init__(self, payment_request=None, state=None, settle_index=None):
+            if payment_request:
+                self.payment_request = payment_request
+            else:
+                self.payment_request = "MOCK_" + ''.join(random.choice(string.ascii_lowercase) for i in range(8))
+            self.state = state
+            self.settle_index = settle_index
 
     def add_invoice(self, value):
         return MockLNDClient.InvoiceResponse()
+
+    def subscribe_invoices(self):
+        last_settle_index = db.session.query(m.State).first().last_settle_index
+        while True:
+            time.sleep(3)
+            for unsettled_bid in db.session.query(m.Bid).filter(m.Bid.settled_at == None):
+                last_settle_index += 1
+                yield MockLNDClient.InvoiceResponse(unsettled_bid.payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
 
 def get_lnd_client():
     if app.config['MOCK_LND']:

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import time
 
 import ecdsa
 import unittest
@@ -12,8 +13,8 @@ class TestApi(unittest.TestCase):
         response = f(f"{BASE_URL}{path}", params=params, data=data, headers=headers)
         return response.status_code, response.json() if response.status_code in (200, 400, 404) else None
 
-    def get(self, path, params=None):
-        return self.do(requests.get, path, params=params)
+    def get(self, path, params=None, headers=None):
+        return self.do(requests.get, path, params=params, headers=headers)
 
     def post(self, path, data, headers=None):
         return self.do(requests.post, path, data=data, headers=headers)
@@ -151,4 +152,21 @@ class TestApi(unittest.TestCase):
         code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 888}, {'X-Access-Token': token})
         self.assertEqual(code, 200)
         self.assertTrue('payment_request' in response)
+        self.assertTrue(response['payment_request'].startswith('MOCK'))
         self.assertTrue('svg' in response['qr'])
+
+        bid_payment_request = response['payment_request']
+
+        # auction has no (settled) bids... yet
+        code, response = self.get(f"/auctions/{auction_key}", headers={'X-Access-Token': token})
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 0)
+
+        # waiting for the invoice to settle...
+        time.sleep(4)
+
+        # auction has our settled bid!
+        code, response = self.get(f"/auctions/{auction_key}", headers={'X-Access-Token': token})
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)

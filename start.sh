@@ -10,5 +10,5 @@ do_job_settle_bids () {
 
 case "$JOB" in
   "SETTLE_BIDS") do_job_settle_bids ;;
-  *) do_job_web ;;
+  "WEB") do_job_web ;;
 esac

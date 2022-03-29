@@ -1,12 +1,6 @@
 version: '3.6'
 
 services:
-  api:
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck" ]
-      interval: 3s
-      timeout: 3s
-      retries: 5
   test:
     build: .
     depends_on:

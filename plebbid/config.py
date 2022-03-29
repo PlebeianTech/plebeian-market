@@ -8,6 +8,10 @@ SECRET_KEY = "TODO"
 
 SQLALCHEMY_DATABASE_URI = 'postgresql://pleb:plebpass@db:5432/plebbid'
 
+if bool(int(os.environ.get("SQLALCHEMY_DISABLE_POOLING", 0))):
+    from sqlalchemy.pool import NullPool
+    SQLALCHEMY_ENGINE_OPTIONS = {'poolclass': NullPool}
+
 BASE_URL = os.environ.get('BASE_URL')
 if not BASE_URL:
     VIRTUAL_HOST = os.environ.get('VIRTUAL_HOST')

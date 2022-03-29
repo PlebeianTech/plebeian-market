@@ -95,7 +95,17 @@ class Auction(db.Model):
         if for_seller == self.seller_id:
             auction['short_id'] = self.short_id
         if for_seller == self.seller_id or self.starts_at <= datetime.utcnow() <= self.ends_at:
-            auction['bids'] = [bid.to_dict(for_buyer=for_buyer) for bid in self.bids if bid.settled_at]
+            # showing all bids only to the seller, or during the auction's lifetime
+            bids = [bid for bid in self.bids if bid.settled_at]
+        elif for_buyer:
+            # otherwise, we show only the buyer's bids
+            bids = [bid for bid in self.bids if bid.settled_at and bid.buyer_id == for_buyer]
+        else:
+            # if you're not the seller, you have no bids, or you came after the auction ended
+            #  => no soup for you!
+            bids = []
+        auction['bids'] = [bid.to_dict(for_buyer=for_buyer) for bid in bids]
+
         return auction
 
 class Bid(db.Model):

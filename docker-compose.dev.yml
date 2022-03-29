@@ -6,17 +6,36 @@ services:
       - target: /var/lib/postgresql/data
         type: tmpfs
   api:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck" ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
     environment:
       - BASE_URL=http://localhost:5000
       - FLASK_APP=plebbid.main
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1
+      - SQLALCHEMY_DISABLE_POOLING=1
     ports:
       - "5000:5000"
     volumes:
       - "./plebbid:/app/plebbid"
     command: bash -c "flask create-db && python3 ./plebbid/main.py"
+  settle-bids:
+    depends_on:
+      api: # this is because in ded & test mode, the API is the one initializing the database, on start
+        condition: service_healthy
+    environment:
+      - FLASK_APP=plebbid.main
+      - FLASK_ENV=development
+      - DEBUG=1
+      - MOCK_LND=1
+      - SQLALCHEMY_DISABLE_POOLING=1
+    volumes:
+      - "./plebbid:/app/plebbid"
+    command: flask settle-bids
 
 networks:
   db_network:

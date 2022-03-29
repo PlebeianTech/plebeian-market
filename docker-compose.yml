@@ -19,3 +19,10 @@ services:
     networks:
       - db_network
       - proxy
+  settle-bids:
+    build: .
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 1m
+    networks:
+      - db_network
