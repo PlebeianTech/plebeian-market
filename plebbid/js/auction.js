@@ -67,6 +67,9 @@ function bid(button) {
             payment.textContent = "";
             payment.dataset['paymentRequest'] = response.payment_request;
             payment.appendChild(document.importNode(doc.rootElement, true));
+            var paymentRequestEl = document.createElement('div');
+            paymentRequestEl.textContent = response.payment_request;
+            payment.appendChild(paymentRequestEl);
             payment.style.display = 'block';
             auction.querySelector("#bid").style.display = 'none';
         });
