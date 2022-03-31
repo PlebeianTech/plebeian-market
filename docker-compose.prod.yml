@@ -3,22 +3,22 @@ version: '3.6'
 services:
   db:
     volumes:
-      - "/home/www/plebbid-dbdata:/var/lib/postgresql/data"
+      - "/home/www/plebeianmarket-dbdata:/var/lib/postgresql/data"
   api:
     environment:
       - JOB=WEB
-      - VIRTUAL_HOST=plebbid.21art.gallery
-      - LETSENCRYPT_HOST=plebbid.21art.gallery
+      - VIRTUAL_HOST=api.plebeian.market
+      - LETSENCRYPT_HOST=api.plebeian.market
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
-      - "/home/www/plebbid-secrets:/secrets"
+      - "/home/www/plebeianmarket-secrets:/secrets"
   settle-bids:
     environment:
       - JOB=SETTLE_BIDS
-      - FLASK_APP=plebbid.main
+      - FLASK_APP=plebeianmarket.main
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
-      - "/home/www/plebbid-secrets:/secrets"
+      - "/home/www/plebeianmarket-secrets:/secrets"
 
 networks:
   db_network:

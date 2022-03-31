@@ -6,7 +6,7 @@ PROPAGATE_EXCEPTIONS = False
 
 SECRET_KEY = "TODO"
 
-SQLALCHEMY_DATABASE_URI = 'postgresql://pleb:plebpass@db:5432/plebbid'
+SQLALCHEMY_DATABASE_URI = 'postgresql://pleb:plebpass@db:5432/market'
 
 if bool(int(os.environ.get("SQLALCHEMY_DISABLE_POOLING", 0))):
     from sqlalchemy.pool import NullPool

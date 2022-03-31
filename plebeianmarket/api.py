@@ -13,9 +13,9 @@ import pyqrcode
 import rjsmin
 from sqlalchemy.exc import IntegrityError
 
-from plebbid import models as m
-from plebbid.main import app, db, get_lnd_client
-from plebbid.main import buyer_required, get_buyer_from_token, get_token_from_request
+from plebeianmarket import models as m
+from plebeianmarket.main import app, db, get_lnd_client
+from plebeianmarket.main import buyer_required, get_buyer_from_token, get_token_from_request
 
 api_blueprint = Blueprint('api', __name__)
 

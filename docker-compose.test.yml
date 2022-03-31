@@ -7,10 +7,10 @@ services:
       api:
         condition: service_healthy
     environment:
-      - FLASK_APP=plebbid.main
+      - FLASK_APP=plebeianmarket.main
       - BASE_URL=http://api:5000
     volumes:
-      - "./plebbid:/app/plebbid"
+      - "./plebeianmarket:/app/plebeianmarket"
     networks:
       - proxy
     command: flask run-tests

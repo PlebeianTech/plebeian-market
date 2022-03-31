@@ -19,19 +19,19 @@ class MyFlask(Flask):
 
     def __call__(self, environ, start_response):
         if not self.initialized:
-            from plebbid.api import api_blueprint
+            from plebeianmarket.api import api_blueprint
             app.register_blueprint(api_blueprint)
             self.initialized = True
         return super().__call__(environ, start_response)
 
 app = MyFlask(__name__)
-app.config.from_object('plebbid.config')
+app.config.from_object('plebeianmarket.config')
 
 CORS(app)
 
 db = SQLAlchemy(app)
 
-from plebbid import models as m
+from plebeianmarket import models as m
 
 @app.cli.command("create-db")
 @with_appcontext
@@ -44,7 +44,7 @@ def create_db():
 @with_appcontext
 def run_tests():
     import unittest
-    from plebbid import api_tests
+    from plebeianmarket import api_tests
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
     unittest.TextTestRunner().run(suite)
 

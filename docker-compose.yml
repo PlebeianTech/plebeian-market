@@ -6,7 +6,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=plebbid
+      - POSTGRES_DB=market
       - POSTGRES_USER=pleb
       - POSTGRES_PASSWORD=plebpass
     networks:
