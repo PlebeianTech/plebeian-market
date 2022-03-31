@@ -5,11 +5,7 @@ RUN apt-get update && apt-get install -y curl \
  && pip3 install -r /requirements.txt
 
 COPY ./plebeianmarket /app/plebeianmarket
-COPY ./start.sh /app/
 WORKDIR /app
 
-ENV PYTHONPATH=/app
-
-EXPOSE 80
-
-CMD ["./start.sh"]
+ENV PYTHONPATH /app
+ENV PYTHONUNBUFFERED 1

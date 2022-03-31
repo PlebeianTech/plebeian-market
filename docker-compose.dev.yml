@@ -5,7 +5,7 @@ services:
     volumes:
       - target: /var/lib/postgresql/data
         type: tmpfs
-  api:
+  web:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/healthcheck" ]
       interval: 3s
@@ -25,7 +25,7 @@ services:
     command: bash -c "flask create-db && python3 ./plebeianmarket/main.py"
   settle-bids:
     depends_on:
-      api: # this is because in ded & test mode, the API is the one initializing the database, on start
+      web: # this is because in dev & test mode, the API is the one initializing the database, on start
         condition: service_healthy
     environment:
       - FLASK_APP=plebeianmarket.main

@@ -6,11 +6,10 @@ import secrets
 import dateutil.parser
 import ecdsa
 from ecdsa.keys import BadSignatureError
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, request
 import jwt
 import lnurl
 import pyqrcode
-import rjsmin
 from sqlalchemy.exc import IntegrityError
 
 from plebeianmarket import models as m
@@ -22,19 +21,6 @@ api_blueprint = Blueprint('api', __name__)
 @api_blueprint.route('/healthcheck', methods=['GET'])
 def healthcheck():
     return jsonify({'success': True})
-
-SCRIPTS = None
-@api_blueprint.route('/scripts', methods=['GET'])
-def scripts():
-    global SCRIPTS
-    if not SCRIPTS:
-        scripts = f"var BASE_URL = '{app.config['BASE_URL']}';\n"
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'js')
-        for filename in ['utils.js', 'auction.js']:
-            with open(os.path.join(path, filename)) as f:
-                scripts += f.read() + "\n"
-        SCRIPTS = rjsmin.jsmin(scripts)
-    return Response(SCRIPTS, mimetype="application/javascript")
 
 @api_blueprint.route('/sellers', methods=['POST'])
 def add_seller():

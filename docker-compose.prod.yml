@@ -4,21 +4,30 @@ services:
   db:
     volumes:
       - "/home/www/plebeianmarket-dbdata:/var/lib/postgresql/data"
-  api:
+  web:
     environment:
-      - JOB=WEB
-      - VIRTUAL_HOST=api.plebeian.market
-      - LETSENCRYPT_HOST=api.plebeian.market
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeianmarket-secrets:/secrets"
+    command: gunicorn --chdir /app plebeianmarket.main:app -w 2 --threads 2 -b 0.0.0.0:8080
+  nginx:
+    build: ./services/nginx
+    environment:
+      - VIRTUAL_HOST=plebeian.market
+      - LETSENCRYPT_HOST=plebeian.market
+    volumes:
+      - ./plebeianmarket/static:/usr/share/nginx/html/static
+    depends_on:
+      - web
+    networks:
+      - proxy
   settle-bids:
     environment:
-      - JOB=SETTLE_BIDS
       - FLASK_APP=plebeianmarket.main
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeianmarket-secrets:/secrets"
+    command: flask settle-bids
 
 networks:
   proxy:

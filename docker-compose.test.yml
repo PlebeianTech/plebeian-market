@@ -2,13 +2,13 @@ version: '3.6'
 
 services:
   test:
-    build: .
+    image: plebeianmarket
     depends_on:
-      api:
+      web:
         condition: service_healthy
     environment:
       - FLASK_APP=plebeianmarket.main
-      - BASE_URL=http://api:5000
+      - BASE_URL=http://web:5000
     volumes:
       - "./plebeianmarket:/app/plebeianmarket"
     networks:

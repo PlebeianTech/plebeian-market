@@ -3,16 +3,15 @@ version: '3.6'
 services:
   db:
     image: postgres:14-bullseye
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_DB=market
       - POSTGRES_USER=pleb
       - POSTGRES_PASSWORD=plebpass
     networks:
       - db_network
-  api:
+  web:
     build: .
+    image: plebeianmarket
     depends_on: [db]
     restart: on-failure
     stop_grace_period: 1m
@@ -20,7 +19,7 @@ services:
       - db_network
       - proxy
   settle-bids:
-    build: .
+    image: plebeianmarket
     depends_on: [db]
     restart: on-failure
     stop_grace_period: 1m

@@ -10,4 +10,3 @@ pyjwt
 pyqrcode
 python-dateutil
 requests
-rjsmin

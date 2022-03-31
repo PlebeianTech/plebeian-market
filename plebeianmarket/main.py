@@ -1,7 +1,9 @@
 from datetime import datetime
 from functools import wraps
 import random
+import signal
 import string
+import sys
 import time
 
 from flask import Flask, jsonify, request
@@ -51,6 +53,7 @@ def run_tests():
 @app.cli.command("settle-bids")
 @with_appcontext
 def settle_bids():
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
     lnd = get_lnd_client()
     last_settle_index = db.session.query(m.State).first().last_settle_index
     for invoice in lnd.subscribe_invoices(): # TODO: use settle_index after merged in lnd-grpc-client
