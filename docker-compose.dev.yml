@@ -36,9 +36,3 @@ services:
     volumes:
       - "./plebeianmarket:/app/plebeianmarket"
     command: flask settle-bids
-
-networks:
-  db_network:
-    driver: bridge
-  proxy:
-    driver: bridge

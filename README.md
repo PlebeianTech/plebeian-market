@@ -1,8 +1,8 @@
-# plebeian auctions
+# plebeian.market auctions
 
 ```docker-compose build```
 
-```./start.sh``` (for production)
+```./restart_prod.sh``` (for production)
 
 ```./run_dev.sh``` (for development)
 

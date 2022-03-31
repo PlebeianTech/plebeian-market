@@ -14,7 +14,3 @@ services:
     networks:
       - proxy
     command: flask run-tests
-
-networks:
-  proxy:
-    driver: bridge

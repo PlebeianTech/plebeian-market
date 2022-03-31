@@ -21,7 +21,5 @@ services:
       - "/home/www/plebeianmarket-secrets:/secrets"
 
 networks:
-  db_network:
-    driver: bridge
   proxy:
     external: true
