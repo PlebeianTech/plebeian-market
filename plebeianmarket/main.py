@@ -23,6 +23,8 @@ class MyFlask(Flask):
         if not self.initialized:
             from plebeianmarket.controllers.api import api_blueprint
             app.register_blueprint(api_blueprint)
+            from plebeianmarket.controllers.web import web_blueprint
+            app.register_blueprint(web_blueprint)
             self.initialized = True
         return super().__call__(environ, start_response)
 
