@@ -21,7 +21,7 @@ class MyFlask(Flask):
 
     def __call__(self, environ, start_response):
         if not self.initialized:
-            from plebeianmarket.api import api_blueprint
+            from plebeianmarket.controllers.api import api_blueprint
             app.register_blueprint(api_blueprint)
             self.initialized = True
         return super().__call__(environ, start_response)
@@ -46,7 +46,7 @@ def create_db():
 @with_appcontext
 def run_tests():
     import unittest
-    from plebeianmarket import api_tests
+    from plebeianmarket.controllers import api_tests
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
     unittest.TextTestRunner().run(suite)
 
