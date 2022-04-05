@@ -71,7 +71,7 @@ def settle_bids():
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
 
-def get_buyer_from_token(token):
+def get_user_from_token(token):
     if not token:
         return None
 
@@ -80,18 +80,18 @@ def get_buyer_from_token(token):
     except Exception:
         return None
 
-    return m.Buyer.query.filter_by(key=data['user_key']).first()
+    return m.User.query.filter_by(key=data['user_key']).first()
 
-def buyer_required(f):
+def user_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
         token = get_token_from_request()
         if not token:
-            return jsonify({'success': False, 'message': "Missing token."}), 400
-        buyer = get_buyer_from_token(token)
-        if not buyer:
-            return jsonify({'success': False, 'message': "Invalid token."})
-        return f(buyer, *args, **kwargs)
+            return jsonify({'success': False, 'message': "Missing token."}), 401
+        user = get_user_from_token(token)
+        if not user:
+            return jsonify({'success': False, 'message': "Invalid token."}), 401
+        return f(user, *args, **kwargs)
     return decorator
 
 class MockLNDClient():

@@ -19,27 +19,13 @@ class LnAuth(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     key = db.Column(db.String(128))
 
-class Seller(db.Model):
-    __tablename__ = 'sellers'
+class User(db.Model):
+    __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    # Having access to this key would allow creating, modifying or deleting auctions for the seller using the API.
-    # Ideally it is something like a hash of the seller's domain name salted with a unique key known only by the seller (generated when the plugin is installed).
-    # A downside of this approach is that if the seller - for example - reinstalls the Wordpress plugin (thus losing access to the unique key),
-    # they would lose access to all auctions. This can be solved using a paper backup of this key.
-    key = db.Column(db.String(100), unique=True, nullable=False, index=True)
-
-    auctions = db.relationship('Auction', backref='seller', order_by="Auction.id")
-
-class Buyer(db.Model):
-    __tablename__ = 'buyers'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    # This key comes from the user's Lightning wallet when performing a Lightning log in.
+    # Lightning log in key
     key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
     @property
@@ -56,21 +42,15 @@ class Buyer(db.Model):
         sha.update((self.key + app.config['SECRET_KEY']).encode('utf-8'))
         return sha.digest().hex()[:16]
 
+    auctions = db.relationship('Auction', backref='seller', order_by="Auction.starts_at")
     bids = db.relationship('Bid', backref='buyer')
 
 class Auction(db.Model):
     __tablename__ = 'auctions'
-    __table_args__ = (db.Index('idx_auction_seller_id_short_id', 'seller_id', 'short_id'),)
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    seller_id = db.Column(db.Integer, db.ForeignKey(Seller.id))
-
-    # short_id is unique only within one seller's auctions
-    # the purpose of this field is to have a "nice" ID for the auction from the seller's point of view
-    # while it *may* be shared with the clients,
-    # it isn't of much use to them, since it only makes sense coupled with the seller key
-    short_id = db.Column(db.Integer, nullable=False)
+    seller_id = db.Column(db.Integer, db.ForeignKey(User.id))
 
     # this key uniquely identifies the auction. It is safe to be shared with anyone.
     key = db.Column(db.String(12), unique=True, nullable=False, index=True)
@@ -80,31 +60,29 @@ class Auction(db.Model):
     minimum_bid = db.Column(db.Integer, nullable=False)
     winning_bid_id = db.Column(db.Integer, db.ForeignKey('bids.id'), nullable=True)
 
-    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='Bid.amount')
+    def __init__(self, **kwargs):
+        key = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
+        super().__init__(key=key, **kwargs)
 
-    @classmethod
-    def generate_key(cls):
-        return ''.join(random.choice(string.ascii_lowercase) for i in range(12))
+    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='Bid.requested_at')
 
-    def to_dict(self, for_seller=None, for_buyer=None):
+    def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
             'starts_at': self.starts_at.isoformat(),
             'ends_at': self.ends_at.isoformat(),
             'minimum_bid': self.minimum_bid}
-        if for_seller == self.seller_id:
-            auction['short_id'] = self.short_id
-        if for_seller == self.seller_id or self.starts_at <= datetime.utcnow() <= self.ends_at:
+        if for_user == self.seller_id or self.starts_at <= datetime.utcnow() <= self.ends_at:
             # showing all bids only to the seller, or during the auction's lifetime
             bids = [bid for bid in self.bids if bid.settled_at]
-        elif for_buyer:
+        elif for_user:
             # otherwise, we show only the buyer's bids
-            bids = [bid for bid in self.bids if bid.settled_at and bid.buyer_id == for_buyer]
+            bids = [bid for bid in self.bids if bid.settled_at and bid.buyer_id == for_user]
         else:
             # if you're not the seller, you have no bids, or you came after the auction ended
             #  => no soup for you!
             bids = []
-        auction['bids'] = [bid.to_dict(for_buyer=for_buyer) for bid in bids]
+        auction['bids'] = [bid.to_dict(for_user=for_user) for bid in bids]
 
         return auction
 
@@ -113,7 +91,7 @@ class Bid(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id))
-    buyer_id = db.Column(db.Integer, db.ForeignKey(Buyer.id))
+    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id))
 
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     settled_at = db.Column(db.DateTime) # a bid is settled after the Lightning invoice has been paid
@@ -123,11 +101,11 @@ class Bid(db.Model):
     # payment_request identifies the Lightning invoice
     payment_request = db.Column(db.String(512), nullable=False, unique=True, index=True)
 
-    def to_dict(self, for_buyer=None):
+    def to_dict(self, for_user=None):
         bid = {
             'amount': self.amount,
             'bidder': self.buyer.public_key}
-        if for_buyer == self.buyer_id:
+        if for_user == self.buyer_id:
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
             bid['payment_request'] = self.payment_request
         return bid

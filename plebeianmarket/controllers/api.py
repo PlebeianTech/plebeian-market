@@ -14,30 +14,19 @@ from sqlalchemy.exc import IntegrityError
 
 from plebeianmarket import models as m
 from plebeianmarket.main import app, db, get_lnd_client
-from plebeianmarket.main import buyer_required, get_buyer_from_token, get_token_from_request
+from plebeianmarket.main import get_token_from_request, get_user_from_token, user_required
 
 api_blueprint = Blueprint('api', __name__)
 
-@api_blueprint.route('/healthcheck', methods=['GET'])
+@api_blueprint.route('/api/healthcheck', methods=['GET'])
 def healthcheck():
     return jsonify({'success': True})
 
-@api_blueprint.route('/sellers', methods=['POST'])
-def add_seller():
-    try:
-        db.session.add(m.Seller(key=request.form['key']))
-        db.session.commit()
-        return jsonify({'success': True})
-    except IntegrityError:
-        return jsonify({'success': False, 'message': "Seller already registered."}), 400
-
-@api_blueprint.route('/sellers/<string:key>/auctions', methods=['GET', 'POST'])
-def auctions(key):
-    seller = m.Seller.query.filter_by(key=key).first()
-    if not seller:
-        return jsonify({'success': False, 'message': "Not found."}), 404
+@api_blueprint.route('/api/auctions', methods=['GET', 'POST'])
+@user_required
+def auctions(user):
     if request.method == 'GET':
-        auctions = [a.to_dict(for_seller=seller.id) for a in seller.auctions]
+        auctions = [a.to_dict(for_user=user.id) for a in user.auctions]
         return jsonify({'success': True, 'auctions': auctions})
     else:
         # TODO: prevent seller from creating too many auctions?
@@ -58,41 +47,30 @@ def auctions(key):
         except ValueError:
             return jsonify({'success': False, 'message': "Invalid minimum_bid."}), 400
 
-        key = m.Auction.generate_key()
-        max_short_id = db.session.query(db.func.max(m.Auction.short_id)).filter(m.Auction.seller == seller).scalar()
-        new_short_id = max_short_id + 1 if max_short_id else 1
-        auction = m.Auction(key=key, seller=seller, short_id=new_short_id,
-            minimum_bid=minimum_bid, **dates)
+        auction = m.Auction(seller=user, minimum_bid=minimum_bid, **dates)
         db.session.add(auction)
         db.session.commit()
-        return jsonify({'success': True, 'key': key, 'short_id': new_short_id})
+        return jsonify({'success': True, 'auction': auction.to_dict(for_user=user)})
 
-@api_blueprint.route('/sellers/<string:key>/auctions/<int:short_id>', methods=['GET', 'DELETE'])
-def auction_by_short_id(key, short_id):
-    seller = m.Seller.query.filter_by(key=key).first()
-    if not seller:
-        return jsonify({'success': False, 'message': "Not found."}), 404
-    auction = m.Auction.query.filter_by(seller=seller, short_id=short_id).first()
-    if not auction:
-        return jsonify({'success': False, 'message': "Not found."}), 404
-    if request.method == 'GET':
-        return jsonify({'success': True, 'auction': auction.to_dict(for_seller=seller.id)})
-    else:
-        db.session.delete(auction)
-        db.session.commit()
-        return jsonify({'success': True})
-
-@api_blueprint.route('/auctions/<string:key>', methods=['GET'])
-def auction_by_key(key):
+@api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'DELETE'])
+def auction(key):
+    user = get_user_from_token(get_token_from_request())
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
         return jsonify({'success': False, 'message': "Not found."}), 404
 
-    buyer = get_buyer_from_token(get_token_from_request())
+    if request.method == 'GET':
+        return jsonify({'success': True, 'auction': auction.to_dict(for_user=(user.id if user else None))})
+    else:
+        if (not user) or (auction.seller_id != user.id):
+            return jsonify({'success': False, 'message': "Unauthorized"}), 401
 
-    return jsonify({'success': True, 'auction': auction.to_dict(for_buyer=(buyer.id if buyer else None))})
+        db.session.delete(auction)
+        db.session.commit()
 
-@api_blueprint.route('/login', methods=['GET'])
+        return jsonify({'success': True})
+
+@api_blueprint.route('/api/login', methods=['GET'])
 def login():
     if 'k1' not in request.args:
         k1 = secrets.token_hex(32)
@@ -132,21 +110,21 @@ def login():
     if not lnauth.key:
         return jsonify({'success': False}), 200
 
-    buyer = m.Buyer.query.filter_by(key=lnauth.key).first()
+    user = m.User.query.filter_by(key=lnauth.key).first()
 
     # TODO: delete lnauth here or on first successful request with this user?
-    if not buyer:
-        buyer = m.Buyer(key=lnauth.key)
-        db.session.add(buyer)
+    if not user:
+        user = m.User(key=lnauth.key)
+        db.session.add(user)
         db.session.commit()
 
-    token = jwt.encode({'user_key': buyer.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
+    token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
 
     return jsonify({'success': True, 'token': token})
 
-@api_blueprint.route('/auctions/<string:key>/bids', methods=['POST'])
-@buyer_required
-def bid(buyer, key):
+@api_blueprint.route('/api/auctions/<string:key>/bids', methods=['POST'])
+@user_required
+def bid(user, key):
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
         return jsonify({'success': False, 'message': "Not found."}), 404
@@ -159,7 +137,7 @@ def bid(buyer, key):
 
     payment_request = response.payment_request
 
-    bid = m.Bid(auction=auction, buyer=buyer, amount=amount, payment_request=payment_request)
+    bid = m.Bid(auction=auction, buyer=user, amount=amount, payment_request=payment_request)
     db.session.add(bid)
     db.session.commit()
 

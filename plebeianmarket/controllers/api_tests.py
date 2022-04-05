@@ -11,7 +11,7 @@ class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, data=None, headers=None):
         BASE_URL = app.config['BASE_URL']
         response = f(f"{BASE_URL}{path}", params=params, data=data, headers=headers)
-        return response.status_code, response.json() if response.status_code in (200, 400, 404) else None
+        return response.status_code, response.json() if response.status_code in (200, 400, 401, 404) else None
 
     def get(self, path, params=None, headers=None):
         return self.do(requests.get, path, params=params, headers=headers)
@@ -19,91 +19,14 @@ class TestApi(unittest.TestCase):
     def post(self, path, data, headers=None):
         return self.do(requests.post, path, data=data, headers=headers)
 
-    def delete(self, path):
-        return self.do(requests.delete, path)
+    def delete(self, path, headers=None):
+        return self.do(requests.delete, path, headers=headers)
 
-    def test_01_seller(self):
-        # create a seller
-        code, response = self.post("/sellers", {'key': 'SELLER_KEY_1'})
-        self.assertEqual(code, 200)
-        self.assertEqual(response.get('success'), True)
+    def get_auth_headers(self, token):
+        return {'X-Access-Token': token}
 
-        # create a dupe seller
-        code, response = self.post("/sellers", {'key': 'SELLER_KEY_1'})
-        self.assertEqual(code, 400)
-        self.assertEqual(response.get('success'), False)
-        self.assertTrue("already" in response.get('message'))
-
-    def test_11_seller_auctions(self):
-        # GET seller auctions to see there are none
-        code, response = self.get("/sellers/SELLER_KEY_1/auctions")
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['auctions']), 0)
-
-        # can't GET auctions for missing seller
-        code, response = self.get("/sellers/SELLER_KEY_MISSING/auctions")
-        self.assertEqual(code, 404)
-
-        # can't create an auction without dates
-        code, response = self.post("/sellers/SELLER_KEY_1/auctions", {'minimum_bid': 10})
-        self.assertEqual(code, 400)
-        self.assertTrue("missing" in response.get('message', '').lower())
-        self.assertTrue("starts_at" in response.get('message'))
-
-        # can't create an auction in the past
-        code, response = self.post("/sellers/SELLER_KEY_1/auctions", {'starts_at': "2020-10-10", 'ends_at': "2020-10-11", 'minimum_bid': 10})
-        self.assertEqual(code, 400)
-        self.assertTrue("must be in the future" in response.get('message', '').lower())
-
-        # create an auction
-        code, response = self.post("/sellers/SELLER_KEY_1/auctions", {'starts_at': (datetime.utcnow() + timedelta(days=1)).isoformat(), 'ends_at': (datetime.utcnow() + timedelta(days=2)).isoformat(), 'minimum_bid': 10})
-        self.assertEqual(code, 200)
-        auction_key = response.get('key')
-        auction_short_id = response.get('short_id')
-
-        # GET seller auctions to find our auction
-        code, response = self.get("/sellers/SELLER_KEY_1/auctions")
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['auctions']), 1)
-        self.assertEqual(response['auctions'][0].get('short_id'), auction_short_id)
-        self.assertEqual(response['auctions'][0].get('key'), auction_key)
-
-        # GET the newly created auction by short_id
-        code, response = self.get(f"/sellers/SELLER_KEY_1/auctions/{auction_short_id}")
-        self.assertEqual(code, 200)
-        self.assertEqual(response['auction'].get('short_id'), auction_short_id)
-        self.assertEqual(response['auction'].get('key'), auction_key)
-
-        # GET the newly created auction by key
-        code, response = self.get(f"/auctions/{auction_key}")
-        self.assertEqual(code, 200)
-        self.assertIsNone(response['auction'].get('short_id')) # not returning the short_id unless looking using seller key
-        self.assertEqual(response['auction'].get('key'), auction_key)
-
-        # create a 2nd auction
-        code, response = self.post("/sellers/SELLER_KEY_1/auctions", {'starts_at': (datetime.utcnow() + timedelta(days=1)).isoformat(), 'ends_at': (datetime.utcnow() + timedelta(days=2)).isoformat(), 'minimum_bid': 10})
-        self.assertEqual(code, 200)
-        auction_key_2 = response.get('key')
-        auction_short_id_2 = response.get('short_id')
-
-        # the two auctions differ indeed
-        self.assertNotEqual(auction_key, auction_key_2)
-        self.assertNotEqual(auction_short_id, auction_short_id_2)
-
-        # can't DELETE an auction using the auction key
-        code, response = self.delete(f"/auctions/{auction_key}")
-        self.assertEqual(code, 405)
-
-        # can DELETE an auction using the seller key and short ID
-        code, response = self.delete(f"/sellers/SELLER_KEY_1/auctions/{auction_short_id_2}")
-        self.assertEqual(code, 200)
-
-        # can't GET the deleted auction anymore
-        code, response = self.get(f"/sellers/SELLER_KEY_1/auctions/{auction_short_id_2}")
-        self.assertEqual(code, 404)
-
-        # log in with Lightning
-        code, response = self.get("/login")
+    def test_11_api(self):
+        code, response = self.get("/api/login")
         self.assertEqual(code, 200)
         self.assertTrue('k1' in response and 'svg' in response['qr'])
 
@@ -113,7 +36,7 @@ class TestApi(unittest.TestCase):
         sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
 
         # not logged in yet...
-        code, response = self.get("/login", {'k1': k1})
+        code, response = self.get("/api/login", {'k1': k1})
         self.assertEqual(code, 200)
         self.assertFalse(response['success'])
 
@@ -122,34 +45,166 @@ class TestApi(unittest.TestCase):
         another_k1[0] = (another_k1[0] + 1) % 255
         another_k1 = bytes(another_k1)
         another_sig = sk.sign_digest(another_k1, sigencode=ecdsa.util.sigencode_der)
-        code, response = self.get("/login", {'k1': another_k1.hex(), 'key': sk.verifying_key.to_string().hex(), 'sig': another_sig.hex()})
+        code, response = self.get("/api/login",
+            {'k1': another_k1.hex(),
+             'key': sk.verifying_key.to_string().hex(),
+             'sig': another_sig.hex()})
         self.assertEqual(code, 400)
         self.assertTrue('invalid challenge' in response['message'].lower())
 
         # try sending a wrong signature
-        code, response = self.get("/login", {'k1': k1, 'key': sk.verifying_key.to_string().hex(), 'sig': another_sig.hex()})
+        code, response = self.get("/api/login",
+            {'k1': k1,
+             'key': sk.verifying_key.to_string().hex(),
+             'sig': another_sig.hex()})
         self.assertEqual(code, 400)
         self.assertTrue('verification failed' in response['message'].lower())
 
-        code, response = self.get("/login", {'k1': k1, 'key': sk.verifying_key.to_string().hex(), 'sig': sig.hex()})
+        code, response = self.get("/api/login",
+            {'k1': k1,
+             'key': sk.verifying_key.to_string().hex(),
+             'sig': sig.hex()})
         self.assertEqual(code, 200)
         self.assertTrue('token' in response)
 
-        token = response['token']
+        token_1 = response['token']
 
-        # since we are signed in, no we can get a token even without providing a key,
+        # since we are signed in, now we can get a token even without providing a key,
         # but we should eventually delete the lnauth from the DB, maybe after 1st successful authenticated request?
-        code, response = self.get("/login", {'k1': k1})
+        code, response = self.get("/api/login", {'k1': k1},
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['token'], token)
+        self.assertEqual(response['token'], token_1)
+
+        # create another user
+        code, response = self.get("/api/login")
+        self.assertEqual(code, 200)
+        self.assertTrue('k1' in response and 'svg' in response['qr'])
+
+        k1_2 = response['k1']
+
+        self.assertNotEqual(k1, k1_2)
+
+        sk_2 = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
+        sig_2 = sk_2.sign_digest(bytes.fromhex(k1_2), sigencode=ecdsa.util.sigencode_der)
+
+        code, response = self.get("/api/login",
+            {'k1': k1_2,
+             'key': sk_2.verifying_key.to_string().hex(),
+             'sig': sig_2.hex()})
+        self.assertEqual(code, 200)
+        self.assertTrue('token' in response)
+
+        token_2 = response['token']
+
+        self.assertNotEqual(token_1, token_2)
+
+        # GET auctions requires log in
+        code, response = self.get("/api/auctions")
+        self.assertEqual(code, 401)
+        self.assertFalse(response['success'])
+        self.assertTrue("missing token" in response['message'].lower())
+
+        # creating auctions requires log in
+        code, response = self.post("/api/auctions",
+            {'minimum_bid': 10})
+        self.assertEqual(code, 401)
+        self.assertFalse(response['success'])
+        self.assertTrue("missing token" in response['message'].lower())
+
+        # GET auctions to see there are none there
+        code, response = self.get("/api/auctions",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 0)
+
+        # can't create an auction without dates
+        code, response = self.post("/api/auctions",
+            {'minimum_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 400)
+        self.assertTrue("missing" in response['message'].lower())
+        self.assertTrue("starts_at" in response['message'])
+
+        # can't create an auction in the past
+        code, response = self.post("/api/auctions",
+            {'starts_at': "2020-10-10",
+             'ends_at': "2020-10-11",
+             'minimum_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 400)
+        self.assertTrue("must be in the future" in response['message'].lower())
+
+        # finally create an auction
+        code, response = self.post("/api/auctions",
+            {'starts_at': (datetime.utcnow() + timedelta(days=1)).isoformat(),
+             'ends_at': (datetime.utcnow() + timedelta(days=2)).isoformat(),
+             'minimum_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+
+        auction_key = response['auction']['key']
+
+        # GET auctions to find our auction
+        code, response = self.get("/api/auctions",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        self.assertEqual(response['auctions'][0]['key'], auction_key)
+
+        # GET the newly created auction by key (even unauthenticated!)
+        code, response = self.get(f"/api/auctions/{auction_key}")
+        self.assertEqual(code, 200)
+        self.assertEqual(response['auction']['key'], auction_key)
+
+        # create a 2nd auction, this time for the 2nd user
+        code, response = self.post("/api/auctions",
+            {'starts_at': (datetime.utcnow() + timedelta(days=1)).isoformat(),
+             'ends_at': (datetime.utcnow() + timedelta(days=2)).isoformat(),
+             'minimum_bid': 10},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+
+        auction_key_2 = response['auction']['key']
+
+        # the two auctions differ indeed
+        self.assertNotEqual(auction_key, auction_key_2)
+
+        # listing one user's auctions does not return the other one
+        code, response = self.get("/api/auctions",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        self.assertEqual(response['auctions'][0]['key'], auction_key_2)
+
+        # can't DELETE an auction if not logged in
+        code, response = self.delete(f"/api/auctions/{auction_key_2}")
+        self.assertEqual(code, 401)
+
+        # also can't DELETE another user's auction
+        code, response = self.delete(f"/api/auctions/{auction_key_2}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 401)
+
+        # can DELETE the auction with the proper auth headers
+        code, response = self.delete(f"/api/auctions/{auction_key_2}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # can't GET the deleted auction anymore
+        code, response = self.get(f"/api/auctions/{auction_key_2}")
+        self.assertEqual(code, 404)
 
         # anonymous users can't place a bid
-        code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 100})
-        self.assertEqual(code, 400)
+        code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 100})
+        self.assertEqual(code, 401)
         self.assertTrue('missing token' in response['message'].lower())
 
         # users can place a bid
-        code, response = self.post(f"/auctions/{auction_key}/bids", {'amount': 888}, {'X-Access-Token': token})
+        code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertTrue('payment_request' in response)
         self.assertTrue(response['payment_request'].startswith('MOCK'))
@@ -158,7 +213,8 @@ class TestApi(unittest.TestCase):
         bid_payment_request = response['payment_request']
 
         # auction has no (settled) bids... yet
-        code, response = self.get(f"/auctions/{auction_key}", headers={'X-Access-Token': token})
+        code, response = self.get(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 0)
 
@@ -166,7 +222,8 @@ class TestApi(unittest.TestCase):
         time.sleep(4)
 
         # auction has our settled bid!
-        code, response = self.get(f"/auctions/{auction_key}", headers={'X-Access-Token': token})
+        code, response = self.get(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 1)
         self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)
