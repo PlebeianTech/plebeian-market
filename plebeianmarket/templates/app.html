@@ -12,6 +12,15 @@
 
         <link rel="stylesheet" href="/static/css/naringu.css">
         <link rel="stylesheet" href="/static/css/style.css">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+
+        <script>
+            var BASE_URL = "{{ config.BASE_URL }}";
+        </script>
+
+        <script defer src='/static/js/utils.js'></script>
+        <script defer src='/static/js/bundle.js'></script>
     </head>
 
 <body class="theme-6dd">
@@ -44,38 +53,9 @@
             </div>
         </div>
 
-        <div class="container content">
-        <h1>Start an auction now in just 3 steps</h1>
-        <h2>1. Register as a seller</h2>
-        <p>It's simple, completely anonymous, and free. We do not collect any data and we do not track you.</p>
-        <p>All you need to do is to scan a QR code using a supported Lightning wallet and you are registered as a seller. We know absolutely nothing about you.</p>
-        <h2>2. Create the auction</h2>
-        <p>Not only we don't know who you are, but we also don't know what you are selling. All we store is properties that we actually need to run the auction: a start date, and end date, a minimum bid, that sort of stuff.</p>
-        <h2>3. Paste the code into your website</h2>
-        <p>Whether you run Wordpress or just generate your site statically using tools like Jekyll, we've got you covered. We give you a short snippet you include on your listing's page.</p>
-        <h1>Coming soon</h1>
-        <li>Run it yourself on your Umbrel and Start9.</li>
-        <li>Coming soon on WordPress.</li>
+        <div id="svelte-app" class="container content">
+
         </div>
     </div>
-
-    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
-    <script>
-      (function(document) {
-        var toggle = document.querySelector('.sidebar-toggle');
-        var sidebar = document.querySelector('#sidebar');
-        var checkbox = document.querySelector('#sidebar-checkbox');
-
-        document.addEventListener('click', function(e) {
-          var target = e.target;
-
-          if(!checkbox.checked ||
-             sidebar.contains(target) ||
-             (target === checkbox || target === toggle)) return;
-
-          checkbox.checked = false;
-        }, false);
-      })(document);
-    </script>
 </body>
 </html>

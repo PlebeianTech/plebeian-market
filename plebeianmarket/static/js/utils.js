@@ -17,18 +17,29 @@ function doPost(path, data, successCB, errorCB) {
     var xhr = buildXhr(successCB, errorCB);
     xhr.open('POST', `${BASE_URL}${path}`);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    var token = cookie('auction-jwt-token');
+    var token = sessionStorage.getItem('token');
     if (token) {
         xhr.setRequestHeader("X-Access-Token", token);
     }
-    xhr.send(`${data}`);
+    xhr.send(data);
     return false;
 }
 
 function doGet(path, successCB, errorCB) {
     var xhr = buildXhr(successCB, errorCB);
     xhr.open('GET', `${BASE_URL}${path}`, true);
-    var token = cookie('auction-jwt-token');
+    var token = sessionStorage.getItem('token');
+    if (token) {
+        xhr.setRequestHeader("X-Access-Token", token);
+    }
+    xhr.send(null);
+    return false;
+}
+
+function doDelete(path, successCB, errorCB) {
+    var xhr = buildXhr(successCB, errorCB);
+    xhr.open('DELETE', `${BASE_URL}${path}`, true);
+    var token = sessionStorage.getItem('token');
     if (token) {
         xhr.setRequestHeader("X-Access-Token", token);
     }
@@ -42,26 +53,4 @@ function formatDate(d) {
 
 function formatTime(d) {
     return d.toLocaleString('default', { hour12: false, hour: 'numeric', minute: 'numeric' });
-}
-
-function cookie(name, value, seconds) {
-    if(arguments.length < 2) { // read cookie
-        var cookies = document.cookie.split(";")
-        for(var i=0; i < cookies.length; i++) {
-            var c = cookies[i].replace(/^\s+/, "");
-            if(c.indexOf(name + "=") == 0) {
-                return decodeURIComponent(c.substring(name.length + 1).split("+").join(" "));
-            }
-        }
-        return null;
-    }
-
-    // write cookie
-    var expiry = null;
-    if (seconds) {
-        var date = new Date();
-        date.setTime(date.getTime() + seconds * 1000);
-        expiry = date.toGMTString();
-    }
-    document.cookie = name + "=" + encodeURIComponent(value) + (seconds ? ";expires=" + expiry : "") + ";path=/";
 }

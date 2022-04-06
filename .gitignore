@@ -1,5 +1,6 @@
 __pycache__
 *.egg-info
 venv
-docker-compose.override.yml
-dbdata/data/
+node_modules
+bundle.js
+bundle.js.map

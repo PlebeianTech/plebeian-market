@@ -38,6 +38,9 @@ def auctions(user):
         for k in ['starts_at', 'ends_at']:
             try:
                 dates[k] = dateutil.parser.isoparse(request.form[k])
+                if dates[k].tzinfo != dateutil.tz.tzutc():
+                    return jsonify({'success': False, 'message': f"Date must be in UTC: {k}."}), 400
+                dates[k] = dates[k].replace(tzinfo=None)
             except ValueError:
                 return jsonify({'success': False, 'message': f"Invalid date: {k}."}), 400
             if dates[k] < datetime.utcnow():

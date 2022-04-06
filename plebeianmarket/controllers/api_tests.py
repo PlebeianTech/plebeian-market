@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import time
 
+import dateutil.parser
 import ecdsa
 import unittest
 import requests
@@ -126,10 +127,19 @@ class TestApi(unittest.TestCase):
         self.assertTrue("missing" in response['message'].lower())
         self.assertTrue("starts_at" in response['message'])
 
+        # dates must be UTC
+        code, response = self.post("/api/auctions",
+            {'starts_at': "2020-10-10T11:11:00",
+             'ends_at': "2020-10-11T11:11:00",
+             'minimum_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 400)
+        self.assertTrue("must be in utc" in response['message'].lower())
+
         # can't create an auction in the past
         code, response = self.post("/api/auctions",
-            {'starts_at': "2020-10-10",
-             'ends_at': "2020-10-11",
+            {'starts_at': "2020-10-10T11:11:00Z",
+             'ends_at': "2020-10-11T11:11:00Z",
              'minimum_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
@@ -137,8 +147,8 @@ class TestApi(unittest.TestCase):
 
         # finally create an auction
         code, response = self.post("/api/auctions",
-            {'starts_at': (datetime.utcnow() + timedelta(days=1)).isoformat(),
-             'ends_at': (datetime.utcnow() + timedelta(days=2)).isoformat(),
+            {'starts_at': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'ends_at': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
              'minimum_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
@@ -160,8 +170,8 @@ class TestApi(unittest.TestCase):
 
         # create a 2nd auction, this time for the 2nd user
         code, response = self.post("/api/auctions",
-            {'starts_at': (datetime.utcnow() + timedelta(days=1)).isoformat(),
-             'ends_at': (datetime.utcnow() + timedelta(days=2)).isoformat(),
+            {'starts_at': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'ends_at': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
              'minimum_bid': 10},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
