@@ -9,16 +9,16 @@ import requests
 from server.main import app
 
 class TestApi(unittest.TestCase):
-    def do(self, f, path, params=None, data=None, headers=None):
+    def do(self, f, path, params=None, json=None, headers=None):
         BASE_URL = app.config['BASE_URL']
-        response = f(f"{BASE_URL}{path}", params=params, data=data, headers=headers)
+        response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers)
         return response.status_code, response.json() if response.status_code in (200, 400, 401, 404) else None
 
     def get(self, path, params=None, headers=None):
         return self.do(requests.get, path, params=params, headers=headers)
 
-    def post(self, path, data, headers=None):
-        return self.do(requests.post, path, data=data, headers=headers)
+    def post(self, path, json, headers=None):
+        return self.do(requests.post, path, json=json, headers=headers)
 
     def delete(self, path, headers=None):
         return self.do(requests.delete, path, headers=headers)

@@ -1,17 +1,18 @@
 <script>
-    import { onDestroy } from 'svelte';
     import { token } from "./stores.js";
     import Auctions from './Auctions.svelte';
     import Login from './Login.svelte';
 
-    let tokenValue;
+    $token = sessionStorage.getItem('token');
 
-	const unsubscribe = token.subscribe(value => { tokenValue = value; });
-	onDestroy(unsubscribe);
+    function logout() {
+        $token = null;
+    }
 </script>
 
-{#if tokenValue }
+{#if $token}
+    <button on:click|preventDefault={logout}>Log out</button>
     <Auctions />
-{:else }
+{:else}
     <Login />
 {/if}

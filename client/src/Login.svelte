@@ -1,41 +1,45 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onDestroy } from 'svelte';
     import { token } from "./stores.js";
 
     let qr;
     let k1;
 
-    function refreshLogin() {
-        fetch(`./api/login?k1=${k1}`)
-            .then(r => r.json())
-            .then(r => {
-                if (r.success) {
-                    sessionStorage.setItem('token', r.token)
-                    token.set(r.token);
-                } else {
-                    setTimeout(refreshLogin, 1000);
-                }
-            })
-    }
-
     function getLogin() {
-        fetch("./api/login")
-            .then(r => r.json())
+        fetch("/api/login" + (k1 ? `?k1=${k1}` : ""))
             .then(r => {
-                k1 = r.k1;
-                qr = r.qr;
-                setTimeout(refreshLogin, 1000);
+                if (r.status === 200) {
+                    r.json().then(
+                        data => {
+                            if (data.success) {
+                                token.set(data.token);
+                            } else {
+                                if (data.k1) {
+                                    k1 = data.k1;
+                                    qr = data.qr;
+                                }
+
+                                setTimeout(getLogin, 1000);
+                            }
+                        }
+                    );
+                }
             });
     }
 
-    onMount(async () => {
-        token.set(sessionStorage.getItem('token'));
+    const unsubscribe = token.subscribe(value => {
+        if (value) {
+            sessionStorage.setItem('token', value);
+        } else {
+            sessionStorage.removeItem('token');
+            qr = k1 = null;
+        }
     });
-
+	onDestroy(unsubscribe);
 </script>
 
 {#if qr }
     <div id="qr">{@html qr}</div>
 {:else }
-    <button on:click={getLogin}>Enter</button>
+    <button on:click|preventDefault={getLogin}>Enter</button>
 {/if}

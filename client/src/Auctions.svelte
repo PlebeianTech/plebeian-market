@@ -2,8 +2,7 @@
     import { onMount } from 'svelte';
     import { DateInput } from 'date-picker-svelte';
     import Time from 'svelte-time';
-
-    let auctions = [];
+    import { token } from "./stores.js";
 
     function emptyAuction() {
         var defaultStartsAt = new Date();
@@ -14,47 +13,65 @@
         return { minimum_bid: 10000, starts_at: defaultStartsAt, ends_at: defaultEndsAt };
     }
 
-    let data = emptyAuction();
+    let auction = emptyAuction();
+    let auctions = [];
 
-    function createAuction () {
-        var formBody = [];
-        for (var property in data) {
-            var encodedKey = encodeURIComponent(property);
-            var encodedValue = encodeURIComponent((data[property] instanceof Date) ? data[property].toISOString() : data[property]);
-            formBody.push(encodedKey + "=" + encodedValue);
-        };
-        doPost("/auctions", formBody.join("&"),
-            (response) => {
-                if (response.success) {
-                    refreshAuctions();
+    function asJson() {
+        var json = {};
+        for (var k in auction) {
+            json[k] = (auction[k] instanceof Date) ? auction[k].toISOString() : auction[k];
+        }
+        return JSON.stringify(json);
+    }
+
+    function checkResponse(response) {
+        if (response.status === 200) {
+            auction = emptyAuction();
+            response.json().then(data => {
+                if (data.auctions) {
+                    auctions = data.auctions;
+                } else {
+                    fetchAPI("/auctions", 'GET');
                 }
-            },
-            (response) => { alert(`Error: ${response.message}`); }
-        );
-        data = emptyAuction();
-    };
+            });
+        } else if (response.status === 401) {
+            console.log("Error 401: Unauthorized");
+            $token = null;
+        } else {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.indexOf('application/json') !== -1) {
+                return response.json().then(data => { console.log(`Error ${response.status}: ${data.message}`); });
+            } else {
+                return response.text().then(text => { console.log(`Error ${response.status}: ${text}`); });
+            }
+        }
+    }
+
+    function fetchAPI(path, method, json) {
+        var API_BASE = "/api";
+        var headers = {};
+        if ($token) {
+            headers['X-Access-Token'] = $token;
+        }
+        if (json) {
+            headers['Content-Type'] = 'application/json';
+        }
+        var fetchOptions = {method, headers};
+        if (json) {
+            fetchOptions['body'] = json;
+        }
+        fetch(`${API_BASE}${path}`, fetchOptions).then(checkResponse);
+    }
+
+    function createAuction() {
+        fetchAPI("/auctions", 'POST', asJson());
+    }
 
     function deleteAuction(key) {
-        doDelete(`/auctions/${key}`,
-            (response) => {
-                if (response.success) {
-                    refreshAuctions();
-                }
-            },
-            (response) => { alert(`Error: ${response.message}`); }
-        );
+        fetchAPI(`/auctions/${key}`, 'DELETE');
     }
 
-    function refreshAuctions() {
-        doGet("/auctions",
-            (response) => {
-                auctions = response.auctions;
-        });
-    }
-
-    onMount(async () => {
-        refreshAuctions();
-    });
+    onMount(async () => { fetchAPI("/auctions", 'GET'); });
 </script>
 
 <section>
@@ -67,15 +84,15 @@
                         <form id="new-auction">
                             <div class="form-group">
                                 <label for="minimum-bid">Minimum bid</label>
-                                <input bind:value={data.minimum_bid} type="number" class="form-control" id="minimum-bid" />
+                                <input bind:value={auction.minimum_bid} type="number" class="form-control" id="minimum-bid" />
                             </div>
                             <div class="form-group">
                                 <label for="starts-at">Starts at</label>
-                                <DateInput bind:value={data.starts_at} format="yyyy/MM/dd HH:mm:ss" />
+                                <DateInput bind:value={auction.starts_at} format="yyyy/MM/dd HH:mm:ss" />
                             </div>
                             <div class="form-group">
                                 <label for="ends-at">Ends at</label>
-                                <DateInput bind:value={data.ends_at} format="yyyy/MM/dd HH:mm:ss" />
+                                <DateInput bind:value={auction.ends_at} format="yyyy/MM/dd HH:mm:ss" />
                             </div>
                             <button type="submit" class="btn btn-primary" on:click|preventDefault={createAuction}>Create</button>
                         </form>
@@ -83,15 +100,15 @@
                 </div>
             </div>
             <div class="col-md-6">
-                {#each auctions as auction }
+                {#each auctions as a }
                 <div class="card">
-                    <div class="card-header">Auction { auction.key }</div>
+                    <div class="card-header">Auction { a.key }</div>
                     <div class="card-body">
-                        <p class="card-text">Starts at: <Time timestamp={auction.starts_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
-                        <p class="card-text">Ends at: <Time timestamp={auction.ends_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
-                        <p class="card-text">Minimum bid: { auction.minimum_bid }</p>
-                        <p class="card-text">Bids: { auction.bids.length }</p>
-                        <button class="btn btn-danger" on:click|preventDefault={deleteAuction(auction.key)}>Delete</button>
+                        <p class="card-text">Starts at: <Time timestamp={a.starts_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
+                        <p class="card-text">Ends at: <Time timestamp={a.ends_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
+                        <p class="card-text">Minimum bid: { a.minimum_bid }</p>
+                        <p class="card-text">Bids: { a.bids.length }</p>
+                        <button class="btn btn-danger" on:click={deleteAuction(a.key)}>Delete</button>
                     </div>
                 </div>
                 {/each}

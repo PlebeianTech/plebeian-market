@@ -6,7 +6,7 @@ function buildXhr(successCB, errorCB) {
                 var resp = JSON.parse(xhr.responseText);
                 successCB(resp);
             } else if (errorCB) {
-                errorCB(resp);
+                errorCB(resp, xhr.status);
             }
         }
     }
@@ -28,17 +28,6 @@ function doPost(path, data, successCB, errorCB) {
 function doGet(path, successCB, errorCB) {
     var xhr = buildXhr(successCB, errorCB);
     xhr.open('GET', `${API_URL}${path}`, true);
-    var token = sessionStorage.getItem('token');
-    if (token) {
-        xhr.setRequestHeader("X-Access-Token", token);
-    }
-    xhr.send(null);
-    return false;
-}
-
-function doDelete(path, successCB, errorCB) {
-    var xhr = buildXhr(successCB, errorCB);
-    xhr.open('DELETE', `${API_URL}${path}`, true);
     var token = sessionStorage.getItem('token');
     if (token) {
         xhr.setRequestHeader("X-Access-Token", token);
