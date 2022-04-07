@@ -9,7 +9,7 @@ services:
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeianmarket-secrets:/secrets"
-    command: gunicorn --chdir /app plebeianmarket.main:app -w 2 --threads 2 -b 0.0.0.0:8080
+    command: gunicorn --chdir /app server.main:app -w 2 --threads 2 -b 0.0.0.0:8080
   nginx:
     build: ./services/nginx
     environment:
@@ -23,7 +23,7 @@ services:
       - proxy
   settle-bids:
     environment:
-      - FLASK_APP=plebeianmarket.main
+      - FLASK_APP=server.main
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeianmarket-secrets:/secrets"

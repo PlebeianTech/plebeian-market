@@ -3,7 +3,7 @@ import hashlib
 import random
 import string
 
-from plebeianmarket.main import app, db
+from server.main import app, db
 
 class State(db.Model):
     __tablename__ = 'state'

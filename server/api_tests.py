@@ -6,7 +6,7 @@ import ecdsa
 import unittest
 import requests
 
-from plebeianmarket.main import app
+from server.main import app
 
 class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, data=None, headers=None):

@@ -12,9 +12,9 @@ import lnurl
 import pyqrcode
 from sqlalchemy.exc import IntegrityError
 
-from plebeianmarket import models as m
-from plebeianmarket.main import app, db, get_lnd_client
-from plebeianmarket.main import get_token_from_request, get_user_from_token, user_required
+from server import models as m
+from server.main import app, db, get_lnd_client
+from server.main import get_token_from_request, get_user_from_token, user_required
 
 api_blueprint = Blueprint('api', __name__)
 

@@ -13,7 +13,7 @@ services:
       retries: 5
     environment:
       - BASE_URL=http://localhost:5000
-      - FLASK_APP=plebeianmarket.main
+      - FLASK_APP=server.main
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1
@@ -21,19 +21,19 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - "./plebeianmarket:/app/plebeianmarket"
+      - "./server:/app/server"
       - "./client:/app/client"
-    command: bash -c "flask create-db && python3 ./plebeianmarket/main.py"
+    command: bash -c "flask create-db && python3 ./server/main.py"
   settle-bids:
     depends_on:
       web: # this is because in dev & test mode, the web app is the one initializing the database, on start
         condition: service_healthy
     environment:
-      - FLASK_APP=plebeianmarket.main
+      - FLASK_APP=server.main
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1
       - SQLALCHEMY_DISABLE_POOLING=1
     volumes:
-      - "./plebeianmarket:/app/plebeianmarket"
+      - "./server:/app/server"
     command: flask settle-bids
