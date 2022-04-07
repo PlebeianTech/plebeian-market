@@ -20,6 +20,9 @@ class TestApi(unittest.TestCase):
     def post(self, path, json, headers=None):
         return self.do(requests.post, path, json=json, headers=headers)
 
+    def put(self, path, json, headers=None):
+        return self.do(requests.put, path, json=json, headers=headers)
+
     def delete(self, path, headers=None):
         return self.do(requests.delete, path, headers=headers)
 
@@ -197,6 +200,25 @@ class TestApi(unittest.TestCase):
         code, response = self.delete(f"/api/auctions/{auction_key_2}",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
+
+        # also can't EDIT another user's auction
+        code, response = self.put(f"/api/auctions/{auction_key_2}",
+            {'minimum_bid': 100},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 401)
+
+        # can EDIT the auction with the proper user
+        code, response = self.put(f"/api/auctions/{auction_key_2}",
+            {'minimum_bid': 888, 'key': 'NEW_KEY_WONT_WORK'},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # GET the newly edited auction to see the new minimum_bid
+        # (note that the key did not change, since we can't edit the key!)
+        code, response = self.get(f"/api/auctions/{auction_key_2}")
+        self.assertEqual(code, 200)
+        self.assertEqual(response['auction']['key'], auction_key_2)
+        self.assertEqual(response['auction']['minimum_bid'], 888)
 
         # can DELETE the auction with the proper auth headers
         code, response = self.delete(f"/api/auctions/{auction_key_2}",

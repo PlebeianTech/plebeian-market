@@ -14,6 +14,7 @@
     }
 
     let auction = emptyAuction();
+    let isEdit = false;
     let auctions = [];
 
     function asJson() {
@@ -24,12 +25,20 @@
         return JSON.stringify(json);
     }
 
+    function fromJson(json) {
+        var a = {};
+        for (var k in json) {
+            a[k] = (k === 'starts_at' || k === 'ends_at' ? new Date(json[k]) : json[k]);
+        }
+        return a;
+    }
+
     function checkResponse(response) {
         if (response.status === 200) {
             auction = emptyAuction();
             response.json().then(data => {
                 if (data.auctions) {
-                    auctions = data.auctions;
+                    auctions = data.auctions.map(fromJson);
                 } else {
                     fetchAPI("/auctions", 'GET');
                 }
@@ -71,6 +80,22 @@
         fetchAPI(`/auctions/${key}`, 'DELETE');
     }
 
+    function updateAuction () {
+        isEdit = false;
+
+        fetchAPI(`/auctions/${auction.key}`, 'PUT', asJson());
+    }
+
+    function startEdit(a) {
+        isEdit = true;
+        auction = a;
+    }
+
+    function cancelEdit() {
+        isEdit = false;
+        auction = emptyAuction();
+    }
+
     onMount(async () => { fetchAPI("/auctions", 'GET'); });
 </script>
 
@@ -80,7 +105,7 @@
             <div class="col-md-6">
                 <div class="card p-2 shadow">
                     <div class="card-body">
-                        <h5 class="card-title mb-4">Create a new Auction</h5>
+                        <h5 class="card-title mb-4">{#if isEdit}Edit auction {auction.key}{:else}Create a new auction{/if}</h5>
                         <form id="new-auction">
                             <div class="form-group">
                                 <label for="minimum-bid">Minimum bid</label>
@@ -94,7 +119,12 @@
                                 <label for="ends-at">Ends at</label>
                                 <DateInput bind:value={auction.ends_at} format="yyyy/MM/dd HH:mm:ss" />
                             </div>
-                            <button type="submit" class="btn btn-primary" on:click|preventDefault={createAuction}>Create</button>
+                            {#if isEdit}
+                                <button type="submit" class="btn btn-primary" on:click|preventDefault={updateAuction}>Save</button>
+                                <button class="btn btn-info" on:click|preventDefault={cancelEdit}>Cancel edit</button>
+                            {:else}
+                                <button type="submit" class="btn btn-primary" on:click|preventDefault={createAuction}>Create</button>
+                            {/if}
                         </form>
                     </div>
                 </div>
@@ -108,6 +138,7 @@
                         <p class="card-text">Ends at: <Time timestamp={a.ends_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
                         <p class="card-text">Minimum bid: { a.minimum_bid }</p>
                         <p class="card-text">Bids: { a.bids.length }</p>
+                        <button class="btn btn-info" on:click={startEdit(a)}>Edit</button>
                         <button class="btn btn-danger" on:click={deleteAuction(a.key)}>Delete</button>
                     </div>
                 </div>

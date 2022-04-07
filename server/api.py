@@ -3,7 +3,6 @@ from io import BytesIO
 import os
 import secrets
 
-import dateutil.parser
 import ecdsa
 from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
@@ -86,51 +85,53 @@ def auctions(user):
         for k in ['starts_at', 'ends_at', 'minimum_bid']:
             if k not in request.json:
                 return jsonify({'message': f"Missing key: {k}."}), 400
-        dates = {}
-        for k in ['starts_at', 'ends_at']:
-            try:
-                dates[k] = dateutil.parser.isoparse(request.json[k])
-                if dates[k].tzinfo != dateutil.tz.tzutc():
-                    return jsonify({'message': f"Date must be in UTC: {k}."}), 400
-                dates[k] = dates[k].replace(tzinfo=None)
-            except ValueError:
-                return jsonify({'message': f"Invalid date: {k}."}), 400
-            if dates[k] < datetime.utcnow():
-                return jsonify({'message': f"Date must be in the future: {k}."}), 400
-        try:
-            minimum_bid = int(request.json['minimum_bid'])
-        except ValueError:
-            return jsonify({'message': "Invalid minimum_bid."}), 400
 
-        auction = m.Auction(seller=user, minimum_bid=minimum_bid, **dates)
+        auction = m.Auction(seller=user)
+
+        try:
+            auction.update_from_dict(request.json)
+        except m.ValidationError as e:
+            return jsonify({'message': e.message}), 400
+
         db.session.add(auction)
         db.session.commit()
+
         return jsonify({'auction': auction.to_dict(for_user=user)})
 
-@api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'DELETE'])
+@api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def auction(key):
     user = get_user_from_token(get_token_from_request())
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
-        return jsonify({'success': False, 'message': "Not found."}), 404
+        return jsonify({'message': "Not found."}), 404
 
     if request.method == 'GET':
-        return jsonify({'success': True, 'auction': auction.to_dict(for_user=(user.id if user else None))})
+        return jsonify({'auction': auction.to_dict(for_user=(user.id if user else None))})
     else:
         if (not user) or (auction.seller_id != user.id):
-            return jsonify({'success': False, 'message': "Unauthorized"}), 401
+            return jsonify({'message': "Unauthorized"}), 401
 
-        db.session.delete(auction)
-        db.session.commit()
+        if request.method == 'PUT':
+            try:
+                auction.update_from_dict(request.json)
+            except m.ValidationError as e:
+                return jsonify({'message': e.message}), 400
 
-        return jsonify({'success': True})
+            db.session.commit()
+
+            return jsonify({})
+        elif request.method == 'DELETE':
+            db.session.delete(auction)
+            db.session.commit()
+
+            return jsonify({})
 
 @api_blueprint.route('/api/auctions/<string:key>/bids', methods=['POST'])
 @user_required
 def bid(user, key):
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
-        return jsonify({'success': False, 'message': "Not found."}), 404
+        return jsonify({'message': "Not found."}), 404
 
     amount = int(request.json['amount'])
 
@@ -147,4 +148,4 @@ def bid(user, key):
     qr = BytesIO()
     pyqrcode.create(payment_request).svg(qr, scale=4)
 
-    return jsonify({'success': True, 'payment_request': payment_request, 'qr': qr.getvalue().decode('utf-8')})
+    return jsonify({'payment_request': payment_request, 'qr': qr.getvalue().decode('utf-8')})

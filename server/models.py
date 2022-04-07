@@ -1,9 +1,15 @@
 from datetime import datetime
+import dateutil.parser
 import hashlib
 import random
 import string
 
 from server.main import app, db
+
+class ValidationError(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
 
 class State(db.Model):
     __tablename__ = 'state'
@@ -69,8 +75,8 @@ class Auction(db.Model):
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
-            'starts_at': self.starts_at.isoformat(),
-            'ends_at': self.ends_at.isoformat(),
+            'starts_at': self.starts_at.isoformat() + "Z",
+            'ends_at': self.ends_at.isoformat() + "Z",
             'minimum_bid': self.minimum_bid}
         if for_user == self.seller_id or self.starts_at <= datetime.utcnow() <= self.ends_at:
             # showing all bids only to the seller, or during the auction's lifetime
@@ -85,6 +91,27 @@ class Auction(db.Model):
         auction['bids'] = [bid.to_dict(for_user=for_user) for bid in bids]
 
         return auction
+
+    def update_from_dict(self, d):
+        for k in ['starts_at', 'ends_at']:
+            if k not in d:
+                continue
+            try:
+                date = dateutil.parser.isoparse(d[k])
+                if date.tzinfo != dateutil.tz.tzutc():
+                    raise ValidationError(f"Date must be in UTC: {k}.")
+                date = date.replace(tzinfo=None)
+            except ValueError:
+                raise ValidationError(f"Invalid date: {k}.")
+            if date < datetime.utcnow():
+                raise ValidationError(f"Date must be in the future: {k}.")
+            setattr(self, k, date)
+        if 'minimum_bid' in d:
+            try:
+                minimum_bid = int(d['minimum_bid'])
+            except ValueError:
+                raise ValidationError("Invalid minimum_bid.")
+            self.minimum_bid = minimum_bid
 
 class Bid(db.Model):
     __tablename__ = 'bids'
