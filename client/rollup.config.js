@@ -12,7 +12,7 @@ export default {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: '../plebeianmarket/static/js/bundle.js'
+		file: 'static/js/bundle.js'
 	},
 	plugins: [
 		svelte({

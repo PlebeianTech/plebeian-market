@@ -16,7 +16,7 @@ services:
       - VIRTUAL_HOST=plebeian.market
       - LETSENCRYPT_HOST=plebeian.market
     volumes:
-      - ./plebeianmarket/static:/usr/share/nginx/html/static
+      - ./client/static:/usr/share/nginx/html/static
     depends_on:
       - web
     networks:

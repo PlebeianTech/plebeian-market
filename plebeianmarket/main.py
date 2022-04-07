@@ -1,5 +1,6 @@
 from datetime import datetime
 from functools import wraps
+import os
 import random
 import signal
 import string
@@ -15,8 +16,8 @@ import lndgrpc
 import logging
 
 class MyFlask(Flask):
-    def __init__(self, import_name):
-        super().__init__(import_name)
+    def __init__(self, import_name, **kwargs):
+        super().__init__(import_name, **kwargs)
         self.initialized = False
 
     def __call__(self, environ, start_response):
@@ -28,7 +29,7 @@ class MyFlask(Flask):
             self.initialized = True
         return super().__call__(environ, start_response)
 
-app = MyFlask(__name__)
+app = MyFlask(__name__, static_folder="../client/static")
 app.config.from_object('plebeianmarket.config')
 
 CORS(app)
