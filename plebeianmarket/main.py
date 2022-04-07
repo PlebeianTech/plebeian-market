@@ -22,10 +22,8 @@ class MyFlask(Flask):
 
     def __call__(self, environ, start_response):
         if not self.initialized:
-            from plebeianmarket.controllers.api import api_blueprint
+            from plebeianmarket.api import api_blueprint
             app.register_blueprint(api_blueprint)
-            from plebeianmarket.controllers.web import web_blueprint
-            app.register_blueprint(web_blueprint)
             self.initialized = True
         return super().__call__(environ, start_response)
 
@@ -49,7 +47,7 @@ def create_db():
 @with_appcontext
 def run_tests():
     import unittest
-    from plebeianmarket.controllers import api_tests
+    from plebeianmarket import api_tests
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
     unittest.TextTestRunner().run(suite)
 
@@ -134,6 +132,11 @@ if __name__ == '__main__':
         app.logger.warning("Patching lnurl.types.ClearnetUrl!")
         lnurl.types.ClearnetUrl = ClearnetUrl
         lnurl.encode(app.config['BASE_URL']) # try parsing again to check that teh patch worked
+
+    @app.route('/app', methods=['GET'])
+    def index():
+        return app.send_static_file("index.html")
+
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:
     gunicorn_logger = logging.getLogger('gunicorn.error')

@@ -23,7 +23,7 @@
             var encodedValue = encodeURIComponent((data[property] instanceof Date) ? data[property].toISOString() : data[property]);
             formBody.push(encodedKey + "=" + encodedValue);
         };
-        doPost("/api/auctions", formBody.join("&"),
+        doPost("/auctions", formBody.join("&"),
             (response) => {
                 if (response.success) {
                     refreshAuctions();
@@ -35,7 +35,7 @@
     };
 
     function deleteAuction(key) {
-        doDelete(`/api/auctions/${key}`,
+        doDelete(`/auctions/${key}`,
             (response) => {
                 if (response.success) {
                     refreshAuctions();
@@ -46,7 +46,7 @@
     }
 
     function refreshAuctions() {
-        doGet("/api/auctions",
+        doGet("/auctions",
             (response) => {
                 auctions = response.auctions;
         });

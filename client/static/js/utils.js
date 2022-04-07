@@ -15,7 +15,7 @@ function buildXhr(successCB, errorCB) {
 
 function doPost(path, data, successCB, errorCB) {
     var xhr = buildXhr(successCB, errorCB);
-    xhr.open('POST', `${BASE_URL}${path}`);
+    xhr.open('POST', `${API_URL}${path}`);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     var token = sessionStorage.getItem('token');
     if (token) {
@@ -27,7 +27,7 @@ function doPost(path, data, successCB, errorCB) {
 
 function doGet(path, successCB, errorCB) {
     var xhr = buildXhr(successCB, errorCB);
-    xhr.open('GET', `${BASE_URL}${path}`, true);
+    xhr.open('GET', `${API_URL}${path}`, true);
     var token = sessionStorage.getItem('token');
     if (token) {
         xhr.setRequestHeader("X-Access-Token", token);
@@ -38,7 +38,7 @@ function doGet(path, successCB, errorCB) {
 
 function doDelete(path, successCB, errorCB) {
     var xhr = buildXhr(successCB, errorCB);
-    xhr.open('DELETE', `${BASE_URL}${path}`, true);
+    xhr.open('DELETE', `${API_URL}${path}`, true);
     var token = sessionStorage.getItem('token');
     if (token) {
         xhr.setRequestHeader("X-Access-Token", token);

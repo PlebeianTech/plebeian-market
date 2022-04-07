@@ -22,6 +22,7 @@ services:
       - "5000:5000"
     volumes:
       - "./plebeianmarket:/app/plebeianmarket"
+      - "./client:/app/client"
     command: bash -c "flask create-db && python3 ./plebeianmarket/main.py"
   settle-bids:
     depends_on:

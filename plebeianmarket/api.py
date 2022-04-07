@@ -81,7 +81,7 @@ def login():
         db.session.add(m.LnAuth(k1=k1))
         db.session.commit()
 
-        url = app.config['BASE_URL'] + f"/login?tag=login&k1={k1}"
+        url = app.config['BASE_URL'] + f"/api/login?tag=login&k1={k1}"
         qr = BytesIO()
         pyqrcode.create(lnurl.encode(url).bech32).svg(qr, scale=4)
 

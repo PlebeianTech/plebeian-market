@@ -10,17 +10,17 @@
 
         <title>Plebeian Market</title>
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/naringu.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+        <link rel="stylesheet" href="/static/css/naringu.css">
+        <link rel="stylesheet" href="/static/css/style.css">
 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
 
         <script>
-            var BASE_URL = "{{ config.BASE_URL }}";
+            var API_URL = "/api";
         </script>
 
-        <script defer src="{{ url_for('static', filename='js/utils.js') }}"></script>
-        <script defer src="{{ url_for('static', filename='js/bundle.js') }}"></script>
+        <script defer src="/static/js/utils.js"></script>
+        <script defer src="/static/js/bundle.js"></script>
     </head>
 
 <body class="theme-6dd">
@@ -28,7 +28,7 @@
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-item">
-            <img width="125" height="125" src="{{ url_for('static', filename='images/logo.jpg') }}">
+            <img width="125" height="125" src="/static/images/logo.jpg">
             <p>The market of the free people</p>
         </div>
 
