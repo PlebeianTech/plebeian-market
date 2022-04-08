@@ -3,12 +3,12 @@ version: '3.6'
 services:
   db:
     volumes:
-      - "/home/www/plebeianmarket-dbdata:/var/lib/postgresql/data"
+      - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
   web:
     environment:
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
-      - "/home/www/plebeianmarket-secrets:/secrets"
+      - "/home/www/plebeia-nmarket-secrets:/secrets"
     command: gunicorn --chdir /app server.main:app -w 2 --threads 2 -b 0.0.0.0:8080
   nginx:
     build: ./services/nginx
@@ -26,7 +26,7 @@ services:
       - FLASK_APP=server.main
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
-      - "/home/www/plebeianmarket-secrets:/secrets"
+      - "/home/www/plebeian-market-secrets:/secrets"
     command: flask settle-bids
 
 networks:
