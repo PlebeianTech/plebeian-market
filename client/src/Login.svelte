@@ -39,7 +39,7 @@
 </script>
 
 {#if qr }
-    <div id="qr">{@html qr}</div>
+    <div class="qr glow-box">{@html qr}</div>
 {:else }
-    <button on:click|preventDefault={getLogin}>Enter</button>
+    <div class="glowbutton glowbutton-enter" on:click|preventDefault={getLogin}></div>
 {/if}

@@ -11,7 +11,9 @@
 </script>
 
 {#if $token}
-    <button on:click|preventDefault={logout}>Log out</button>
+<div id="top-menu">
+    <button class="btn-white" on:click|preventDefault={logout}>Log out</button>
+</div>
     <Auctions />
 {:else}
     <Login />

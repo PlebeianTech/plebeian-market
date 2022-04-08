@@ -103,7 +103,7 @@
     <div class="container">
         <div class="row mt-5">
             <div class="col-md-6">
-                <div class="card p-2 shadow">
+                <div class="card p-2 glow-box">
                     <div class="card-body">
                         <h5 class="card-title mb-4">{#if isEdit}Edit auction {auction.key}{:else}Create a new auction{/if}</h5>
                         <form id="new-auction">
@@ -112,11 +112,11 @@
                                 <input bind:value={auction.minimum_bid} type="number" class="form-control" id="minimum-bid" />
                             </div>
                             <div class="form-group">
-                                <label for="starts-at">Starts at</label>
+                                <label for="starts-at">Starts</label>
                                 <DateInput bind:value={auction.starts_at} format="yyyy/MM/dd HH:mm:ss" />
                             </div>
                             <div class="form-group">
-                                <label for="ends-at">Ends at</label>
+                                <label for="ends-at">Ends</label>
                                 <DateInput bind:value={auction.ends_at} format="yyyy/MM/dd HH:mm:ss" />
                             </div>
                             {#if isEdit}
@@ -132,10 +132,10 @@
             <div class="col-md-6">
                 {#each auctions as a }
                 <div class="card">
-                    <div class="card-header">Auction { a.key }</div>
                     <div class="card-body">
-                        <p class="card-text">Starts at: <Time timestamp={a.starts_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
-                        <p class="card-text">Ends at: <Time timestamp={a.ends_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
+                        <p class="card-text">ID: { a.key }</p>
+                        <p class="card-text">Starts: <Time timestamp={a.starts_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
+                        <p class="card-text">Ends: <Time timestamp={a.ends_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
                         <p class="card-text">Minimum bid: { a.minimum_bid }</p>
                         <p class="card-text">Bids: { a.bids.length }</p>
                         <button class="btn btn-info" on:click={startEdit(a)}>Edit</button>
