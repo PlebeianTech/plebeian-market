@@ -2,7 +2,7 @@ FROM node:16-alpine AS builder
 
 COPY ./client /client
 
-RUN cd /client && npm run build
+RUN cd /client && npm install && npm run build
 
 FROM nginx:1.19-alpine
 
