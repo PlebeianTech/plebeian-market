@@ -7,7 +7,7 @@ import string
 import sys
 import time
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -131,11 +131,15 @@ if __name__ == '__main__':
             pass
         app.logger.warning("Patching lnurl.types.ClearnetUrl!")
         lnurl.types.ClearnetUrl = ClearnetUrl
-        lnurl.encode(app.config['BASE_URL']) # try parsing again to check that teh patch worked
+        lnurl.encode(app.config['BASE_URL']) # try parsing again to check that the patch worked
 
     @app.route('/app', methods=['GET'])
     def index():
-        return app.send_static_file("index.html")
+        return send_file("../client/app/index.html")
+
+    @app.route('/app/bundle.js', methods=['GET'])
+    def bundle():
+        return send_file("../client/app/bundle.js")
 
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:
