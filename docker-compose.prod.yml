@@ -11,13 +11,12 @@ services:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: gunicorn --chdir /app server.main:app -w 2 --threads 2 -b 0.0.0.0:8080
   nginx:
-    build: ./services/nginx
+    build:
+      context: ./
+      dockerfile: ./services/nginx/Dockerfile
     environment:
       - VIRTUAL_HOST=plebeian.market
       - LETSENCRYPT_HOST=plebeian.market
-    volumes:
-      - ./client/app:/usr/share/nginx/html/app
-      - ./client/static:/usr/share/nginx/html/static
     depends_on:
       - web
     networks:
