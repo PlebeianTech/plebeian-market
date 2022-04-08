@@ -1,8 +1,8 @@
 var k1;
 
 function refreshAuction(element) {
-    var auction_key = element.dataset['auctionKey'];
-    doGet(`/auctions/${auction_key}`,
+    var auction_key = window.location.hash.substr(1);
+    doGet(`/api/auctions/${auction_key}`,
         function(response) {
             var startsAt = new Date(response.auction.starts_at);
             element.querySelector("#starts-at").innerHTML = "Starts at: " + formatDate(startsAt) + " " + formatTime(startsAt);
@@ -33,7 +33,7 @@ function refreshAuction(element) {
 }
 
 function refreshLogin(element) {
-    if (cookie('auction-jwt-token')) {
+    if (sessionStorage.getItem('token')) {
         var payment = element.querySelector("#bid-payment");
         if (!payment.dataset['paymentRequest']) {
             element.querySelector("#bid").style.display = 'block';
@@ -41,10 +41,10 @@ function refreshLogin(element) {
     } else {
         element.querySelector("#bid").style.display = 'none';
         element.querySelector("#bid-payment").style.display = 'none';
-        doGet("/login" + (k1 ? `?k1=${k1}` : ""),
+        doGet("/api/login" + (k1 ? `?k1=${k1}` : ""),
             function(response) {
                 if (response.success) {
-                    cookie('auction-jwt-token', response.token, 1 * 60 * 60 * 24); // TODO: maybe just make it expire after the auction ends
+                    sessionStorage.setItem('token', response.token);
                     element.querySelector("#login").innerHTML = "";
                 } else if (response.k1) {
                     k1 = response.k1;
@@ -58,21 +58,27 @@ function refreshLogin(element) {
 
 function bid(button) {
     var auction = document.getElementById('auction'); // TODO: get relative to button
-    var auction_key = auction.dataset['auctionKey'];
+    var auction_key = window.location.hash.substr(1);
     var amount = auction.querySelector("#bid-amount").value;
-    doPost(`/auctions/${auction_key}/bids`, `amount=${amount}`,
-        function(response) {
-            var doc = new DOMParser().parseFromString(response.qr, "text/xml");
+    fetch(`/api/auctions/${auction_key}/bids`,
+        {method: 'POST',
+         headers: {'Content-Type': 'application/json', 'X-Access-Token': sessionStorage.getItem('token')},
+         body: JSON.stringify({amount: amount})
+        }
+    ).then(response => {
+        response.json().then(data => {
+            var doc = new DOMParser().parseFromString(data.qr, "text/xml");
             var payment = auction.querySelector("#bid-payment");
             payment.textContent = "";
-            payment.dataset['paymentRequest'] = response.payment_request;
+            payment.dataset['paymentRequest'] = data.payment_request;
             payment.appendChild(document.importNode(doc.rootElement, true));
             var paymentRequestEl = document.createElement('div');
-            paymentRequestEl.textContent = response.payment_request;
+            paymentRequestEl.textContent = data.payment_request;
             payment.appendChild(paymentRequestEl);
             payment.style.display = 'block';
             auction.querySelector("#bid").style.display = 'none';
-        });
+        })
+    });
 }
 
 function onLoadAuction(auction) {

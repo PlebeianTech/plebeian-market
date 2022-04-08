@@ -133,9 +133,13 @@ if __name__ == '__main__':
         lnurl.types.ClearnetUrl = ClearnetUrl
         lnurl.encode(app.config['BASE_URL']) # try parsing again to check that the patch worked
 
-    @app.route('/app', methods=['GET'])
+    @app.route('/app', strict_slashes=False, methods=['GET'])
     def index():
         return send_file("../client/app/index.html")
+
+    @app.route('/app/auction', strict_slashes=False, methods=['GET'])
+    def auction():
+        return send_file("../client/app/auction/index.html")
 
     @app.route('/app/bundle.js', methods=['GET'])
     def bundle():

@@ -138,6 +138,7 @@
                         <p class="card-text">Ends: <Time timestamp={a.ends_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
                         <p class="card-text">Minimum bid: { a.minimum_bid }</p>
                         <p class="card-text">Bids: { a.bids.length }</p>
+                        <a target="_blank" href="/app/auction#{ a.key }">See in browser</a>
                         <button class="btn btn-info" on:click={startEdit(a)}>Edit</button>
                         <button class="btn btn-danger" on:click={deleteAuction(a.key)}>Delete</button>
                     </div>

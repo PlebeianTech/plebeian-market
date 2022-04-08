@@ -13,21 +13,9 @@ function buildXhr(successCB, errorCB) {
     return xhr;
 }
 
-function doPost(path, data, successCB, errorCB) {
-    var xhr = buildXhr(successCB, errorCB);
-    xhr.open('POST', `${API_URL}${path}`);
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    var token = sessionStorage.getItem('token');
-    if (token) {
-        xhr.setRequestHeader("X-Access-Token", token);
-    }
-    xhr.send(data);
-    return false;
-}
-
 function doGet(path, successCB, errorCB) {
     var xhr = buildXhr(successCB, errorCB);
-    xhr.open('GET', `${API_URL}${path}`, true);
+    xhr.open('GET', `${path}`, true);
     var token = sessionStorage.getItem('token');
     if (token) {
         xhr.setRequestHeader("X-Access-Token", token);
