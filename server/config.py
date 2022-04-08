@@ -13,10 +13,6 @@ if bool(int(os.environ.get("SQLALCHEMY_DISABLE_POOLING", 0))):
     SQLALCHEMY_ENGINE_OPTIONS = {'poolclass': NullPool}
 
 BASE_URL = os.environ.get('BASE_URL')
-if not BASE_URL:
-    VIRTUAL_HOST = os.environ.get('VIRTUAL_HOST')
-    if VIRTUAL_HOST:
-        BASE_URL = f"https://{VIRTUAL_HOST}"
 
 MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
 LND_GRPC = os.environ.get('LND_GRPC')

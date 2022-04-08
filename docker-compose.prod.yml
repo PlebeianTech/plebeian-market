@@ -6,6 +6,7 @@ services:
       - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
   web:
     environment:
+      - BASE_URL=https://plebeian.market
       - LND_GRPC=plebeian.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
