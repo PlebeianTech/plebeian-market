@@ -137,13 +137,21 @@ if __name__ == '__main__':
     def index():
         return send_file("../client/app/index.html")
 
-    @app.route('/app/auction', strict_slashes=False, methods=['GET'])
-    def auction():
-        return send_file("../client/app/auction/index.html")
+    @app.route('/app/buyer', strict_slashes=False, methods=['GET'])
+    def buyer():
+        return send_file("../client/app/buyer/index.html")
 
-    @app.route('/app/bundle.js', methods=['GET'])
-    def bundle():
-        return send_file("../client/app/bundle.js")
+    @app.route('/app/seller', strict_slashes=False, methods=['GET'])
+    def seller():
+        return send_file("../client/app/seller/index.html")
+
+    @app.route('/app/buyer/bundle.js', methods=['GET'])
+    def buyer_bundle():
+        return send_file("../client/app/buyer/bundle.js")
+
+    @app.route('/app/seller/bundle.js', methods=['GET'])
+    def seller_bundle():
+        return send_file("../client/app/seller/bundle.js")
 
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:

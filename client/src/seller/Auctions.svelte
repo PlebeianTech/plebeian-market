@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import dayjs from 'dayjs';
     import Time from 'svelte-time';
-    import { token } from "./stores.js";
+    import { token, fromJson, fetchAPI } from "../common.js";
 
     function emptyAuction() {
         return {
@@ -28,18 +28,6 @@
         return JSON.stringify(json);
     }
 
-    function fromJson(json) {
-        var a = {};
-        for (var k in json) {
-            if (k === 'starts_at' || k === 'ends_at') {
-                a[k] = dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm");
-            } else {
-                a[k] = json[k];
-            }
-        }
-        return a;
-    }
-
     function checkResponse(response) {
         if (response.status === 200) {
             auction = null;
@@ -47,7 +35,7 @@
                 if (data.auctions) {
                     auctions = data.auctions.map(fromJson);
                 } else {
-                    fetchAPI("/auctions", 'GET');
+                    fetchAPI("/auctions", 'GET', $token, null, checkResponse);
                 }
             });
         } else if (response.status === 401) {
@@ -63,34 +51,18 @@
         }
     }
 
-    function fetchAPI(path, method, json) {
-        var API_BASE = "/api";
-        var headers = {};
-        if ($token) {
-            headers['X-Access-Token'] = $token;
-        }
-        if (json) {
-            headers['Content-Type'] = 'application/json';
-        }
-        var fetchOptions = {method, headers};
-        if (json) {
-            fetchOptions['body'] = json;
-        }
-        fetch(`${API_BASE}${path}`, fetchOptions).then(checkResponse);
-    }
-
     function createAuction() {
-        fetchAPI("/auctions", 'POST', asJson());
+        fetchAPI("/auctions", 'POST', $token, asJson(), checkResponse);
     }
 
     function deleteAuction(key) {
         if (confirm("Are you sure?")) {
-            fetchAPI(`/auctions/${key}`, 'DELETE');
+            fetchAPI(`/auctions/${key}`, 'DELETE', $token, null, checkResponse);
         }
     }
 
     function updateAuction () {
-        fetchAPI(`/auctions/${auction.key}`, 'PUT', asJson());
+        fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
     }
 
     function startEdit(a) {
@@ -107,15 +79,19 @@
         auction = emptyAuction();
     }
 
-    function copyAuction() {
-        
+    function copyAuction(key) {
+        const snippet = '<link rel="stylesheet" href="/static/css/common.css">'
+            + '<script src="/app/buyer/bundle.js">'
+            + "</" + "script>"
+            + `<div id="plebeian-auction" data-key="${key}"></div>`;
+        navigator.clipboard.writeText(snippet).then(() => alert("Snippet copied!"));
     }
 
     function openAuction(key) {
-        window.open(`/app/auction#${key}`, '_blank');
+        window.open(`/app/buyer#plebeian-auction-${key}`, '_blank');
     }
 
-    onMount(async () => { fetchAPI("/auctions", 'GET'); });
+    onMount(async () => { fetchAPI("/auctions", 'GET', $token, null, checkResponse); });
 </script>
 
 <style>
@@ -167,14 +143,14 @@
         <div class="glowbutton glowbutton-create" on:click|preventDefault={startCreate}></div>
         <div class="row mt-3">
             <div class="col-md-12">
-                {#each auctions as a }
+                {#each auctions as a}
                 <div class="card mb-2">
                     <div class="card-body">
                         <p class="card-text text-center"><code>{ a.key }</code></p>
-                        <p class="card-text">From <Time timestamp={a.starts_at} format="dddd @ H:mm · MMMM D, YYYY" /> to <Time timestamp={a.ends_at} format="dddd @ H:mm · MMMM D, YYYY" /></p>
+                        <p class="card-text">From <Time timestamp={ a.starts_at } format="dddd @ H:mm · MMMM D, YYYY" /> to <Time timestamp={ a.ends_at } format="dddd @ H:mm · MMMM D, YYYY" /></p>
                         <p class="card-text"><span>Minimum bid: { a.minimum_bid }</span><span class="right">Bids: { a.bids.length }</span></p>
                         <div class="left">
-                            <div class="glowbutton glowbutton-copy" on:click|preventDefault={copyAuction}></div>
+                            <div class="glowbutton glowbutton-copy" on:click|preventDefault={copyAuction(a.key)}></div>
                         </div>
                         <div class="right">
                             <button class="btn-white" on:click={openAuction(a.key)}>Open</button>

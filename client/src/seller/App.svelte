@@ -1,7 +1,7 @@
 <script>
-    import { token } from "./stores.js";
+    import { token } from "../common.js";
+    import Login from '../Login.svelte';
     import Auctions from './Auctions.svelte';
-    import Login from './Login.svelte';
 
     $token = sessionStorage.getItem('token');
 

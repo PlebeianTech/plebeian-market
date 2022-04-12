@@ -1,6 +1,6 @@
 <script>
     import { onDestroy } from 'svelte';
-    import { token } from "./stores.js";
+    import { token } from "./common.js";
 
     let qr;
     let k1;
