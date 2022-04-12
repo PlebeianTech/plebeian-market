@@ -1,26 +1,29 @@
 <script>
     import { onMount } from 'svelte';
-    import { DateInput } from 'date-picker-svelte';
+    import dayjs from 'dayjs';
     import Time from 'svelte-time';
     import { token } from "./stores.js";
 
     function emptyAuction() {
-        var defaultStartsAt = new Date();
-        defaultStartsAt.setHours(24, 0, 0, 0); // next midnight
-        var defaultEndsAt = new Date();
-        defaultEndsAt.setHours(48, 0, 0, 0); // 1 day after
-
-        return { minimum_bid: 10000, starts_at: defaultStartsAt, ends_at: defaultEndsAt };
+        return {
+            minimum_bid: 10000,
+            starts_at: dayjs(new Date()).startOf('day').add(1, 'day').format("YYYY-MM-DDTHH:mm"),
+            ends_at: dayjs(new Date()).startOf('day').add(2, 'days').format("YYYY-MM-DDTHH:mm")
+        };
     }
 
-    let auction = emptyAuction();
+    let auction = null;
     let isEdit = false;
     let auctions = [];
 
     function asJson() {
         var json = {};
         for (var k in auction) {
-            json[k] = (auction[k] instanceof Date) ? auction[k].toISOString() : auction[k];
+            if (k === 'starts_at' || k === 'ends_at') {
+                json[k] = dayjs(auction[k]).toISOString();
+            } else {
+                json[k] = auction[k];
+            }
         }
         return JSON.stringify(json);
     }
@@ -28,14 +31,18 @@
     function fromJson(json) {
         var a = {};
         for (var k in json) {
-            a[k] = (k === 'starts_at' || k === 'ends_at' ? new Date(json[k]) : json[k]);
+            if (k === 'starts_at' || k === 'ends_at') {
+                a[k] = dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm");
+            } else {
+                a[k] = json[k];
+            }
         }
         return a;
     }
 
     function checkResponse(response) {
         if (response.status === 200) {
-            auction = emptyAuction();
+            auction = null;
             response.json().then(data => {
                 if (data.auctions) {
                     auctions = data.auctions.map(fromJson);
@@ -49,7 +56,7 @@
         } else {
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.indexOf('application/json') !== -1) {
-                return response.json().then(data => { console.log(`Error ${response.status}: ${data.message}`); });
+                return response.json().then(data => { alert(`Error: ${data.message}`); });
             } else {
                 return response.text().then(text => { console.log(`Error ${response.status}: ${text}`); });
             }
@@ -77,12 +84,12 @@
     }
 
     function deleteAuction(key) {
-        fetchAPI(`/auctions/${key}`, 'DELETE');
+        if (confirm("Are you sure?")) {
+            fetchAPI(`/auctions/${key}`, 'DELETE');
+        }
     }
 
     function updateAuction () {
-        isEdit = false;
-
         fetchAPI(`/auctions/${auction.key}`, 'PUT', asJson());
     }
 
@@ -92,59 +99,93 @@
     }
 
     function cancelEdit() {
+        auction = null;
+    }
+
+    function startCreate() {
         isEdit = false;
         auction = emptyAuction();
+    }
+
+    function copyAuction() {
+        
+    }
+
+    function openAuction(key) {
+        window.open(`/app/auction#${key}`, '_blank');
     }
 
     onMount(async () => { fetchAPI("/auctions", 'GET'); });
 </script>
 
+<style>
+    .left {
+        float: left;
+    }
+    .right {
+        float: right;
+    }
+</style>
+
 <section>
     <div class="container">
+        {#if auction}
         <div class="row mt-5">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="card p-2 glow-box">
                     <div class="card-body">
-                        <h5 class="card-title mb-4">{#if isEdit}Edit auction {auction.key}{:else}Create a new auction{/if}</h5>
+                        <h3 class="card-title mb-4">{#if isEdit}Edit auction {auction.key}{:else}Create a new auction{/if}</h3>
                         <form id="new-auction">
                             <div class="form-group">
-                                <label for="minimum-bid">Minimum bid</label>
-                                <input bind:value={auction.minimum_bid} type="number" class="form-control" id="minimum-bid" />
+                                <input class="form-field" type="datetime-local" name="starts-at" bind:value={auction.starts_at} />
+                                <label class="form-label" for="starts-at">Starts</label>
                             </div>
                             <div class="form-group">
-                                <label for="starts-at">Starts</label>
-                                <DateInput bind:value={auction.starts_at} format="yyyy/MM/dd HH:mm:ss" />
+                                <input class="form-field" type="datetime-local" name="ends-at" bind:value={auction.ends_at} />
+                                <label class="form-label" for="ends-at">Ends</label>
                             </div>
                             <div class="form-group">
-                                <label for="ends-at">Ends</label>
-                                <DateInput bind:value={auction.ends_at} format="yyyy/MM/dd HH:mm:ss" />
+                                <input class="form-field" name="minimum-bid" bind:value={auction.minimum_bid} type="number" id="minimum-bid" />
+                                <label class="form-label" for="minimum-bid">Minimum bid</label>
                             </div>
-                            {#if isEdit}
-                                <button type="submit" class="btn btn-primary" on:click|preventDefault={updateAuction}>Save</button>
-                                <button class="btn btn-info" on:click|preventDefault={cancelEdit}>Cancel edit</button>
-                            {:else}
-                                <button type="submit" class="btn btn-primary" on:click|preventDefault={createAuction}>Create</button>
-                            {/if}
+                            <div class="left">
+                                {#if isEdit}
+                                    <div class="glowbutton glowbutton-save" on:click|preventDefault={updateAuction}></div>
+                                {:else}
+                                    <div class="glowbutton glowbutton-save" on:click|preventDefault={createAuction}></div>
+                                {/if}                                
+                            </div>
+                            <div class="right">
+                                <button class="btn-white" on:click|preventDefault={cancelEdit}>Cancel</button>
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+        </div>
+        {:else}
+        <div class="glowbutton glowbutton-create" on:click|preventDefault={startCreate}></div>
+        <div class="row mt-3">
+            <div class="col-md-12">
                 {#each auctions as a }
-                <div class="card">
+                <div class="card mb-2">
                     <div class="card-body">
-                        <p class="card-text">ID: { a.key }</p>
-                        <p class="card-text">Starts: <Time timestamp={a.starts_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
-                        <p class="card-text">Ends: <Time timestamp={a.ends_at} format="dddd @ H:mm UTC · MMMM D, YYYY" /></p>
-                        <p class="card-text">Minimum bid: { a.minimum_bid }</p>
-                        <p class="card-text">Bids: { a.bids.length }</p>
-                        <a target="_blank" href="/app/auction#{ a.key }">See in browser</a>
-                        <button class="btn btn-info" on:click={startEdit(a)}>Edit</button>
-                        <button class="btn btn-danger" on:click={deleteAuction(a.key)}>Delete</button>
+                        <p class="card-text text-center"><code>{ a.key }</code></p>
+                        <p class="card-text">From <Time timestamp={a.starts_at} format="dddd @ H:mm · MMMM D, YYYY" /> to <Time timestamp={a.ends_at} format="dddd @ H:mm · MMMM D, YYYY" /></p>
+                        <p class="card-text"><span>Minimum bid: { a.minimum_bid }</span><span class="right">Bids: { a.bids.length }</span></p>
+                        <div class="left">
+                            <div class="glowbutton glowbutton-copy" on:click|preventDefault={copyAuction}></div>
+                        </div>
+                        <div class="right">
+                            <button class="btn-white" on:click={openAuction(a.key)}>Open</button>
+                            <button class="btn-white" on:click={startEdit(a)}>Edit</button>
+                            <button class="btn-white" on:click={deleteAuction(a.key)}>Delete</button>
+                        </div>
                     </div>
                 </div>
                 {/each}
             </div>
         </div>
+        {/if}
     </div>
 </section>

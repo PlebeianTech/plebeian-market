@@ -86,13 +86,12 @@ def auctions(user):
             if k not in request.json:
                 return jsonify({'message': f"Missing key: {k}."}), 400
 
-        auction = m.Auction(seller=user)
-
         try:
-            auction.update_from_dict(request.json)
+            validated = m.Auction.validate_dict(request.json)
         except m.ValidationError as e:
             return jsonify({'message': e.message}), 400
 
+        auction = m.Auction(seller=user, **validated)
         db.session.add(auction)
         db.session.commit()
 
@@ -113,10 +112,12 @@ def auction(key):
 
         if request.method == 'PUT':
             try:
-                auction.update_from_dict(request.json)
+                validated = m.Auction.validate_dict(request.json)
             except m.ValidationError as e:
                 return jsonify({'message': e.message}), 400
 
+            for k, v in validated.items():
+                setattr(auction, k, v)
             db.session.commit()
 
             return jsonify({})

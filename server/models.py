@@ -92,7 +92,9 @@ class Auction(db.Model):
 
         return auction
 
-    def update_from_dict(self, d):
+    @classmethod
+    def validate_dict(cls, d):
+        validated = {}
         for k in ['starts_at', 'ends_at']:
             if k not in d:
                 continue
@@ -105,13 +107,13 @@ class Auction(db.Model):
                 raise ValidationError(f"Invalid date: {k}.")
             if date < datetime.utcnow():
                 raise ValidationError(f"Date must be in the future: {k}.")
-            setattr(self, k, date)
+            validated[k] = date
         if 'minimum_bid' in d:
             try:
-                minimum_bid = int(d['minimum_bid'])
-            except ValueError:
+                validated['minimum_bid'] = int(d['minimum_bid'])
+            except (ValueError, TypeError):
                 raise ValidationError("Invalid minimum_bid.")
-            self.minimum_bid = minimum_bid
+        return validated
 
 class Bid(db.Model):
     __tablename__ = 'bids'
