@@ -80,10 +80,9 @@
     }
 
     function copyAuction(key) {
-        const snippet = '<link rel="stylesheet" href="/static/css/common.css">'
-            + '<script src="/app/buyer/bundle.js">'
-            + "</" + "script>"
-            + `<div id="plebeian-auction" data-key="${key}"></div>`;
+        const snippet = '<link rel="stylesheet" href="https://plebeian.market/static/css/common.css">'
+            + `<div id="plebeian-auction" data-key="${key}"></div>`
+            + '<script src="https://plebeian.market/app/buyer/bundle.js">'+ "</" + "script>";
         navigator.clipboard.writeText(snippet).then(() => alert("Snippet copied!"));
     }
 

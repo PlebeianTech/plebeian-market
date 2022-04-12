@@ -1,13 +1,13 @@
 <script>
     import { onDestroy } from 'svelte';
-    import { token } from "./common.js";
+    import { token, fetchAPI } from "./common.js";
 
     let qr;
     let k1;
 
     function getLogin() {
-        fetch("/api/login" + (k1 ? `?k1=${k1}` : ""))
-            .then(r => {
+        fetchAPI("/login" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
+            (r) => {
                 if (r.status === 200) {
                     r.json().then(
                         data => {

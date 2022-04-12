@@ -16,7 +16,7 @@ export function fromJson(json) {
 }
 
 export function fetchAPI(path, method, token, json, checkResponse) {
-    var API_BASE = "/api";
+    var API_BASE = (window.location.href.indexOf("localhost") != -1 || window.location.href.indexOf("127.0.0.1") != -1) ? "/api" : "https://plebeian.market/api";
     var headers = {};
     if (token) {
         headers['X-Access-Token'] = token;
