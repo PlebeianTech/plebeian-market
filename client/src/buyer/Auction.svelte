@@ -69,8 +69,11 @@
             <button on:click|preventDefault={placeBid}>Place bid</button>
         </div>
     </div>
-    {#if paymentQr }
-        <div class="qr glow-box">{@html paymentQr}</div>
+    {#if paymentQr}
+        <div class="qr glow-box">
+            {@html paymentQr}
+            <code>{paymentRequest}</code>
+        </div>
     {/if}
 {:else}
     <Login />
