@@ -6,8 +6,12 @@ RUN cd /client && npm install && npm run build
 
 FROM nginx:1.19-alpine
 
+ARG BUILD_ID
+ENV BUILD_ID=$BUILD_ID
+
 RUN rm /etc/nginx/conf.d/default.conf
-COPY ./services/nginx/nginx.conf /etc/nginx/conf.d
+COPY ./services/nginx/nginx.conf.template /nginx.conf.template
+RUN envsubst '$BUILD_ID' < /nginx.conf.template > /etc/nginx/conf.d/nginx.conf
 
 COPY --from=builder /client/app /usr/share/nginx/html/app/
 COPY ./client/static /usr/share/nginx/html/static/

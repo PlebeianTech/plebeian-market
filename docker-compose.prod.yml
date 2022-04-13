@@ -15,6 +15,8 @@ services:
     build:
       context: ./
       dockerfile: ./services/nginx/Dockerfile
+      args:
+        BUILD_ID: ${BUILD_ID}
     environment:
       - VIRTUAL_HOST=plebeian.market
       - LETSENCRYPT_HOST=plebeian.market
