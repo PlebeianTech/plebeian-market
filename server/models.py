@@ -95,24 +95,24 @@ class Auction(db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['starts_at', 'ends_at']:
+        for k, what in [('starts_at', "start date"), ('ends_at', "end date")]:
             if k not in d:
                 continue
             try:
                 date = dateutil.parser.isoparse(d[k])
                 if date.tzinfo != dateutil.tz.tzutc():
-                    raise ValidationError(f"Date must be in UTC: {k}.")
+                    raise ValidationError(f"Date must be in UTC: {what}.")
                 date = date.replace(tzinfo=None)
             except ValueError:
-                raise ValidationError(f"Invalid date: {k}.")
-            if date < datetime.utcnow():
-                raise ValidationError(f"Date must be in the future: {k}.")
+                raise ValidationError(f"Invalid {what}.")
             validated[k] = date
+        if validated.get('starts_at') and validated.get('ends_at') and validated['starts_at'] > validated['ends_at']:
+            raise ValidationError("The end date must be after the start date.")
         if 'minimum_bid' in d:
             try:
                 validated['minimum_bid'] = int(d['minimum_bid'])
             except (ValueError, TypeError):
-                raise ValidationError("Invalid minimum_bid.")
+                raise ValidationError("Invalid minimum bid.")
         return validated
 
 class Bid(db.Model):

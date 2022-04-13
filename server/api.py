@@ -134,6 +134,9 @@ def bid(user, key):
     if not auction:
         return jsonify({'message': "Not found."}), 404
 
+    if auction.starts_at > datetime.utcnow() or auction.ends_at < datetime.utcnow():
+        return jsonify({'message': "Auction not running."}), 403
+
     amount = int(request.json['amount'])
 
     # TODO: validate amount!

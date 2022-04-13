@@ -12,7 +12,7 @@ class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, json=None, headers=None):
         BASE_URL = app.config['BASE_URL']
         response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers)
-        return response.status_code, response.json() if response.status_code in (200, 400, 401, 404) else None
+        return response.status_code, response.json() if response.status_code in (200, 400, 401, 403, 404) else None
 
     def get(self, path, params=None, headers=None):
         return self.do(requests.get, path, params=params, headers=headers)
@@ -139,14 +139,14 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 400)
         self.assertTrue("must be in utc" in response['message'].lower())
 
-        # can't create an auction in the past
+        # can't create an auction that ends before it starts
         code, response = self.post("/api/auctions",
-            {'starts_at': "2020-10-10T11:11:00Z",
-             'ends_at': "2020-10-11T11:11:00Z",
+            {'starts_at': "2020-10-11T11:11:00Z",
+             'ends_at': "2020-10-10T11:11:00Z",
              'minimum_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
-        self.assertTrue("must be in the future" in response['message'].lower())
+        self.assertTrue("must be after" in response['message'].lower())
 
         # finally create an auction
         code, response = self.post("/api/auctions",
@@ -233,6 +233,18 @@ class TestApi(unittest.TestCase):
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 100})
         self.assertEqual(code, 401)
         self.assertTrue('missing token' in response['message'].lower())
+
+        # can't place a bid because the auction has not started yet
+        code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 403)
+        app.logger.warning(response)
+        self.assertTrue('not running' in response['message'].lower())
+
+        code, response = self.put(f"/api/auctions/{auction_key}",
+            {'starts_at': (datetime.utcnow() - timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat()},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
 
         # users can place a bid
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
