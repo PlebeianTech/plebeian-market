@@ -170,7 +170,8 @@ def bid(user, key):
     if amount <= max_amount:
         return jsonify({'message': f"Amount needs to be at least {max_amount}."}), 400
 
-    # TODO: extend auction if bidding in the last few minutes?
+    if auction.ends_at < datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']):
+        auction.ends_at += timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND_BY'])
 
     response = get_lnd_client().add_invoice(value=app.config['LIGHTNING_INVOICE_AMOUNT'])
 
