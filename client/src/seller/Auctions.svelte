@@ -61,6 +61,12 @@
         }
     }
 
+    function cancelAuction(key) {
+        if (confirm("Are you sure?")) {
+            fetchAPI(`/auctions/${key}`, 'PUT', $token, JSON.stringify({'canceled': true}), checkResponse);
+        }
+    }
+
     function updateAuction () {
         fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
     }
@@ -154,8 +160,13 @@
                         <div class="right">
                             <button class="btn-white" on:click={openAuction(a.key)}>Open</button>
                             {#if !a.started}
-                            <button class="btn-white" on:click={startEdit(a)}>Edit</button>
-                            <button class="btn-white" on:click={deleteAuction(a.key)}>Delete</button>
+                                {#if !a.canceled}
+                                    <button class="btn-white" on:click={startEdit(a)}>Edit</button>
+                                {/if}
+                                <button class="btn-white" on:click={deleteAuction(a.key)}>Delete</button>
+                            {/if}
+                            {#if !a.canceled}
+                                <button class="btn-white" on:click={cancelAuction(a.key)}>Cancel</button>
                             {/if}
                         </div>
                     </div>

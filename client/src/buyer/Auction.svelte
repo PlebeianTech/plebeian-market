@@ -71,7 +71,9 @@
 
 {#if $token}
     {#if auction}
-        {#if !auction.started}
+        {#if auction.canceled}
+            <div>Auction was canceled.</div>
+        {:else if !auction.started}
             <div>Auction not started yet.</div>
         {:else if auction.ended}
             <div>Auction already ended.</div>

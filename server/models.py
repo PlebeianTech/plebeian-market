@@ -67,6 +67,7 @@ class Auction(db.Model):
     ends_at = db.Column(db.DateTime, nullable=False)
     minimum_bid = db.Column(db.Integer, nullable=False)
     winning_bid_id = db.Column(db.Integer, db.ForeignKey('bids.id'), nullable=True)
+    canceled = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
         key = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
@@ -79,6 +80,7 @@ class Auction(db.Model):
             'key': self.key,
             'starts_at': self.starts_at.isoformat() + "Z",
             'ends_at': self.ends_at.isoformat() + "Z",
+            'canceled': self.canceled,
             'minimum_bid': self.minimum_bid}
         if for_user == self.seller_id or self.starts_at <= datetime.utcnow() <= self.ends_at:
             # showing all bids only to the seller, or during the auction's lifetime
