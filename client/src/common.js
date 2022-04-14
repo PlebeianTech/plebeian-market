@@ -6,8 +6,12 @@ export const token = writable(null);
 export function fromJson(json) {
     var a = {};
     for (var k in json) {
-        if (k === 'starts_at' || k === 'ends_at') {
-            a[k] = dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm");
+        if (k === 'starts_at') {
+            a.starts_at = dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm");
+            a.started = dayjs(a.starts_at).isBefore(dayjs());
+        } else if (k === 'ends_at') {
+            a.ends_at = dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm");
+            a.ended = dayjs(a.ends_at).isBefore(dayjs());
         } else {
             a[k] = json[k];
         }

@@ -153,8 +153,10 @@
                         </div>
                         <div class="right">
                             <button class="btn-white" on:click={openAuction(a.key)}>Open</button>
+                            {#if !a.started}
                             <button class="btn-white" on:click={startEdit(a)}>Edit</button>
                             <button class="btn-white" on:click={deleteAuction(a.key)}>Delete</button>
+                            {/if}
                         </div>
                     </div>
                 </div>

@@ -13,8 +13,6 @@
     }
 
     let auction = null;
-    let auctionStarted = null;
-    let auctionEnded = null;
     let amount = null;
     let paymentRequest = null;
     let paymentQr = null;
@@ -46,8 +44,6 @@
                 if (response.status === 200) {
                     response.json().then(data => {
                         auction = fromJson(data.auction);
-                        auctionStarted = dayjs(auction.starts_at).isBefore(dayjs());
-                        auctionEnded = dayjs(auction.ends_at).isBefore(dayjs());
                         for (const bid of auction.bids) {
                             if (bid.payment_request === paymentRequest) {
                                 paymentQr = paymentRequest = null;
@@ -75,9 +71,9 @@
 
 {#if $token}
     {#if auction}
-        {#if !auctionStarted}
+        {#if !auction.started}
             <div>Auction not started yet.</div>
-        {:else if auctionEnded}
+        {:else if auction.ended}
             <div>Auction already ended.</div>
         {:else}
             <div id="bid">

@@ -111,6 +111,8 @@ def auction(key):
             return jsonify({'message': "Unauthorized"}), 401
 
         if request.method == 'PUT':
+            if auction.starts_at <= datetime.utcnow():
+                return jsonify({'message': "Cannot edit an auction once started."}), 403
             try:
                 validated = m.Auction.validate_dict(request.json)
             except m.ValidationError as e:
