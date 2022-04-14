@@ -238,13 +238,20 @@ class TestApi(unittest.TestCase):
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 403)
-        app.logger.warning(response)
         self.assertTrue('not running' in response['message'].lower())
 
+        # start the auction
         code, response = self.put(f"/api/auctions/{auction_key}",
             {'starts_at': (datetime.utcnow() - timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat()},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
+
+        # can't EDIT the auction once started
+        code, response = self.put(f"/api/auctions/{auction_key}",
+            {'minimum_bid': 101},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 403)
+        self.assertTrue('cannot edit an auction once started' in response['message'].lower())
 
         # users can place a bid
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
@@ -271,3 +278,9 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 1)
         self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)
+
+        # can't place a bid lower than the previous one now
+        code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 777},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 400)
+        self.assertTrue('amount needs to be at least' in response['message'].lower())

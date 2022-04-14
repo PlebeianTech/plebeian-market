@@ -141,7 +141,15 @@ def bid(user, key):
 
     amount = int(request.json['amount'])
 
-    # TODO: validate amount!
+    try:
+        max_amount = max(bid.amount for bid in auction.bids if bid.settled_at)
+    except ValueError:
+        max_amount = auction.minimum_bid
+
+    if amount <= max_amount:
+        return jsonify({'message': f"Amount needs to be at least {max_amount}."}), 400
+
+    # TODO: extend auction if bidding in the last few minutes?
 
     response = get_lnd_client().add_invoice(value=app.config['LIGHTNING_INVOICE_AMOUNT'])
 
