@@ -24,6 +24,7 @@ def healthcheck():
 @api_blueprint.route('/api/login', methods=['GET'])
 def login():
     if 'k1' not in request.args:
+        # first request to /login => we return a challenge (k1) and a QR code
         k1 = secrets.token_hex(32)
 
         db.session.add(m.LnAuth(k1=k1))
@@ -37,37 +38,47 @@ def login():
 
     lnauth = m.LnAuth.query.filter_by(k1=request.args['k1']).first()
 
-    if not lnauth: # TODO: check age of the lnauth as well!
-        return jsonify({'message': "Invalid challenge."}), 400
+    if not lnauth or lnauth.created_at < datetime.utcnow() - timedelta(minutes=m.LnAuth.EXPIRE_MINUTES):
+        return jsonify({'message': "Verification failed."}), 400
 
-    # TODO: check the key in request against the key in lnauth (if it is already there)?
+    if 'key' in request.args and 'sig' in request.args:
+        # request made by the Lightning wallet, includes a key and a signature
 
-    if 'key' in request.args and 'sig' in request.args and not lnauth.key:
-        try:
-            k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
-        except ValueError:
-            return jsonify({'message': "Invalid parameter."}), 400
-
-        vk = ecdsa.VerifyingKey.from_string(key_bytes, curve=ecdsa.SECP256k1)
-        try:
-            vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der)
-        except BadSignatureError:
+        if lnauth.key and request.args['key'] != lnauth.key:
+            # lnauth should not have a "key" here, unless the user scanned the QR code already
+            # but then the key in the request should match the key we saved on the previous scan
+            app.logger.warning(f"Dubious request with a key {request.args['key']} different from the existing key for k1 {lnauth.k1}.")
             return jsonify({'message': "Verification failed."}), 400
+        if not lnauth.key:
+            try:
+                k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
+            except ValueError:
+                return jsonify({'message': "Invalid parameter."}), 400
 
-        lnauth.key = request.args['key']
+            vk = ecdsa.VerifyingKey.from_string(key_bytes, curve=ecdsa.SECP256k1)
+            try:
+                vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der)
+            except BadSignatureError:
+                return jsonify({'message': "Verification failed."}), 400
 
-        db.session.commit()
+            lnauth.key = request.args['key']
+
+            db.session.commit()
 
     if not lnauth.key:
+        # this is the browser continuously checking whether log in happened by passing in the challenge (k1)
         return jsonify({'success': False})
+
+    # we are now logged in, so find the user, delete the lnauth and return the JWT token
 
     user = m.User.query.filter_by(key=lnauth.key).first()
 
-    # TODO: delete lnauth here or on first successful request with this user?
     if not user:
         user = m.User(key=lnauth.key)
         db.session.add(user)
-        db.session.commit()
+
+    db.session.delete(lnauth)
+    db.session.commit()
 
     token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
 

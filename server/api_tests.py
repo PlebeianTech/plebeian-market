@@ -54,7 +54,7 @@ class TestApi(unittest.TestCase):
              'key': sk.verifying_key.to_string().hex(),
              'sig': another_sig.hex()})
         self.assertEqual(code, 400)
-        self.assertTrue('invalid challenge' in response['message'].lower())
+        self.assertTrue('verification failed' in response['message'].lower())
 
         # try sending a wrong signature
         code, response = self.get("/api/login",
@@ -73,12 +73,13 @@ class TestApi(unittest.TestCase):
 
         token_1 = response['token']
 
-        # since we are signed in, now we can get a token even without providing a key,
-        # but we should eventually delete the lnauth from the DB, maybe after 1st successful authenticated request?
-        code, response = self.get("/api/login", {'k1': k1},
+        # can't request the token again if we already got it once
+        code, response = self.get("/api/login",
+            {'k1': k1,
+             'key': sk.verifying_key.to_string().hex(),
+             'sig': sig.hex()},
             headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-        self.assertEqual(response['token'], token_1)
+        self.assertEqual(code, 400)
 
         # create another user
         code, response = self.get("/api/login")
