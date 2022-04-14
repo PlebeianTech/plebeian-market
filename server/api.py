@@ -143,7 +143,7 @@ def bid(user, key):
 
     # TODO: validate amount!
 
-    response = get_lnd_client().add_invoice(value=amount)
+    response = get_lnd_client().add_invoice(value=app.config['LIGHTNING_INVOICE_AMOUNT'])
 
     payment_request = response.payment_request
 

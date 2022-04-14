@@ -4,6 +4,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 DEBUG = bool(int(os.environ.get("DEBUG", 0)))
 PROPAGATE_EXCEPTIONS = False
 
+LIGHTNING_INVOICE_AMOUNT = 21
+
 SECRET_KEY = "TODO"
 
 SQLALCHEMY_DATABASE_URI = 'postgresql://pleb:plebpass@db:5432/market'
