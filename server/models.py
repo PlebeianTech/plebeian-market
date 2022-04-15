@@ -115,8 +115,10 @@ class Auction(db.Model):
         if 'minimum_bid' in d:
             try:
                 validated['minimum_bid'] = int(d['minimum_bid'])
+                if validated['minimum_bid'] < 10:
+                    raise ValueError()
             except (ValueError, TypeError):
-                raise ValidationError("Invalid minimum bid.")
+                raise ValidationError("Minimum bid needs to be at least 10 sats.")
         return validated
 
 class Bid(db.Model):
