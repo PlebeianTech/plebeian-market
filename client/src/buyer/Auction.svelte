@@ -17,6 +17,35 @@
     let paymentRequest = null;
     let paymentQr = null;
 
+    function nextBid(lastBid) {
+        var head = String(lastBid).slice(0, 2);
+        var rest = String(lastBid).slice(2);
+
+        if (head[0] === "1") {
+            head = String(Number(head) + 1);
+        } else if (head[0] === "2") {
+            head = String(Number(head) + 2);
+        } else if (head[0] === "3" || head[0] === "4") {
+            if (head[1] === "0") {
+                head = head[0] + "2";
+            } else if (head[1] === "1" || head[1] === "2" || head[1] === "3") {
+                head = head[0] + "5";
+            } else if (head[1] === "4" || head[1] === "5" || head[1] === "6" ||  head[1] === "7") {
+                head = head[0] + "8";
+            } else {
+                head = String(Number(head[0]) + 1) + "0";
+            }
+        } else {
+            if (head[1] === "0" || head[1] === "1" || head[1] === "2" || head[1] === "3") {
+                head = head[0] + "5";
+            } else {
+                head = String(Number(head[0]) + 1) + "0";
+            }
+        }
+
+        return Number(head + rest);
+    }
+
     function placeBid() {
         fetchAPI(`/auctions/${key}/bids`, 'POST', $token,
             JSON.stringify({amount: amount}),
@@ -44,10 +73,15 @@
                 if (response.status === 200) {
                     response.json().then(data => {
                         auction = fromJson(data.auction);
+                        var lastBid = auction.minimum_bid;
                         for (const bid of auction.bids) {
                             if (bid.payment_request === paymentRequest) {
-                                paymentQr = paymentRequest = null;
+                                paymentQr = paymentRequest = amount = null;
                             }
+                            lastBid = bid.amount;
+                        }
+                        if (!amount) {
+                            amount = nextBid(lastBid);
                         }
                         setTimeout(refreshAuction, 1000);
                     });
