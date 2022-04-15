@@ -210,7 +210,7 @@
                                 {/if}
                                 <button class="btn-white" on:click={deleteAuction(a.key)}>Delete</button>
                             {/if}
-                            {#if !a.canceled}
+                            {#if !a.canceled && !a.ended}
                                 <button class="btn-white" on:click={cancelAuction(a.key)}>Cancel</button>
                             {/if}
                         </div>

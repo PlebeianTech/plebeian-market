@@ -50,7 +50,7 @@ class User(db.Model):
         sha.update((self.key + app.config['SECRET_KEY']).encode('utf-8'))
         return sha.digest().hex()[:16]
 
-    auctions = db.relationship('Auction', backref='seller', order_by="Auction.starts_at")
+    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.starts_at)")
     bids = db.relationship('Bid', backref='buyer')
 
 class Auction(db.Model):
