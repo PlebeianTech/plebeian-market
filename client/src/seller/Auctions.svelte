@@ -12,6 +12,7 @@
         };
     }
 
+    let confirmation = null;
     let auction = null;
     let isEdit = false;
     let auctions = [];
@@ -19,6 +20,9 @@
     function asJson() {
         var json = {};
         for (var k in auction) {
+            if (k === 'canceled') {
+                continue;
+            }
             if (k === 'starts_at' || k === 'ends_at') {
                 json[k] = dayjs(auction[k]).toISOString();
             } else {
@@ -30,6 +34,7 @@
 
     function checkResponse(response) {
         if (response.status === 200) {
+            confirmation = null;
             auction = null;
             response.json().then(data => {
                 if (data.auctions) {
@@ -56,15 +61,32 @@
     }
 
     function deleteAuction(key) {
-        if (confirm("Are you sure?")) {
-            fetchAPI(`/auctions/${key}`, 'DELETE', $token, null, checkResponse);
-        }
+        confirmation = {
+            message: "Type DELETE MY AUCTION below to continue...",
+            input: "",
+            continue: () => {
+                if (confirmation.input === "DELETE MY AUCTION") {
+                    fetchAPI(`/auctions/${key}`, 'DELETE', $token, null, checkResponse);
+                } else {
+                    console.log(`Wrong input: ${confirmation.input}...`)
+                }
+            },
+            close: () => {confirmation = null}};
     }
 
     function cancelAuction(key) {
-        if (confirm("Are you sure?")) {
-            fetchAPI(`/auctions/${key}`, 'PUT', $token, JSON.stringify({'canceled': true}), checkResponse);
-        }
+        confirmation = {
+            message: "Type CANCEL MY AUCTION below to continue...",
+            input: "",
+            continue: () => {
+                if (confirmation.input === "CANCEL MY AUCTION") {
+                    fetchAPI(`/auctions/${key}`, 'PUT', $token, JSON.stringify({'canceled': true}), checkResponse);
+                } else {
+                    console.log(`Wrong input: ${confirmation.input}...`)
+                }
+            },
+            close: () => {confirmation = null}
+        };
     }
 
     function updateAuction () {
@@ -106,11 +128,34 @@
     .right {
         float: right;
     }
+    .modal {
+        display: block;
+    }
 </style>
 
 <section>
     <div class="container">
-        {#if auction}
+        {#if confirmation}
+        <div class="modal" id="confirmation" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{confirmation.message}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" on:click={confirmation.close}>
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" bind:value={confirmation.input} />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" on:click={confirmation.close}>Close</button>
+                        <button type="button" class="btn btn-primary" on:click={confirmation.continue}>Continue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {:else if auction}
         <div class="row mt-5">
             <div class="col-md-12">
                 <div class="card p-2 glow-box">
@@ -151,7 +196,7 @@
                 {#each auctions as a}
                 <div class="card mb-2">
                     <div class="card-body">
-                        <p class="card-text text-center"><code>{ a.key }</code></p>
+                        <p class="card-text text-center"><code>{ a.key }</code> {#if a.ended}<span>(ended)</span>{:else if a.canceled}<span>(canceled)</span>{/if}</p>
                         <p class="card-text">From <Time timestamp={ a.starts_at } format="dddd @ H:mm · MMMM D, YYYY" /> to <Time timestamp={ a.ends_at } format="dddd @ H:mm · MMMM D, YYYY" /></p>
                         <p class="card-text"><span>Minimum bid: { a.minimum_bid }</span><span class="right">Bids: { a.bids.length }</span></p>
                         <div class="left">
