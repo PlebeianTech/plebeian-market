@@ -65,6 +65,8 @@ def login():
 
             db.session.commit()
 
+        return jsonify({})
+
     if not lnauth.key:
         # this is the browser continuously checking whether log in happened by passing in the challenge (k1)
         return jsonify({'success': False})

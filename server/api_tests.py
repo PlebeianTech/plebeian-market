@@ -69,6 +69,11 @@ class TestApi(unittest.TestCase):
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
+        self.assertTrue('token' not in response)
+
+        code, response = self.get("/api/login",
+            {'k1': k1})
+        self.assertEqual(code, 200)
         self.assertTrue('token' in response)
 
         token_1 = response['token']
@@ -97,6 +102,11 @@ class TestApi(unittest.TestCase):
             {'k1': k1_2,
              'key': sk_2.verifying_key.to_string().hex(),
              'sig': sig_2.hex()})
+        self.assertEqual(code, 200)
+        self.assertTrue('token' not in response)
+
+        code, response = self.get("/api/login",
+            {'k1': k1_2})
         self.assertEqual(code, 200)
         self.assertTrue('token' in response)
 
