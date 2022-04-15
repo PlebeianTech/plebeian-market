@@ -197,7 +197,7 @@
                 <div class="card mb-2">
                     <div class="card-body">
                         <p class="card-text text-center"><code>{ a.key }</code> {#if a.ended}<span>(ended)</span>{:else if a.canceled}<span>(canceled)</span>{/if}</p>
-                        <p class="card-text">From <Time timestamp={ a.starts_at } format="dddd @ H:mm · MMMM D, YYYY" /> to <Time timestamp={ a.ends_at } format="dddd @ H:mm · MMMM D, YYYY" /></p>
+                        <p class="card-text">From <Time timestamp={ a.starts_at } format="dddd MMMM D, H:mm" /> - <Time timestamp={ a.ends_at } format="dddd MMMM D, H:mm - YYYY" /></p>
                         <p class="card-text"><span>Minimum bid: { a.minimum_bid }</span><span class="right">Bids: { a.bids.length }</span></p>
                         <div class="left">
                             <div class="glowbutton glowbutton-copy" on:click|preventDefault={copyAuction(a.key)}></div>

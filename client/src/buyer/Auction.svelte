@@ -94,7 +94,7 @@
 </script>
 
 {#if auction}
-    <p>From <Time timestamp={ auction.starts_at } format="dddd @ H:mm · MMMM D, YYYY" /> to <Time timestamp={ auction.ends_at } format="dddd @ H:mm · MMMM D, YYYY" /></p>
+    <p>From <Time timestamp={ auction.starts_at } format="dddd MMMM D, H:mm" /> - <Time timestamp={ auction.ends_at } format="dddd MMMM D, H:mm - YYYY" /></p>
     <p><span>Minimum bid: { auction.minimum_bid }</span></p>
     <ul id="bids">
         {#each auction.bids as bid}
