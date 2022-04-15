@@ -50,7 +50,7 @@ class User(db.Model):
         sha.update((self.key + app.config['SECRET_KEY']).encode('utf-8'))
         return sha.digest().hex()[:16]
 
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.starts_at)")
+    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.start_date)")
     bids = db.relationship('Bid', backref='buyer')
 
 class Auction(db.Model):
@@ -63,9 +63,10 @@ class Auction(db.Model):
     # this key uniquely identifies the auction. It is safe to be shared with anyone.
     key = db.Column(db.String(12), unique=True, nullable=False, index=True)
 
-    starts_at = db.Column(db.DateTime, nullable=False)
-    ends_at = db.Column(db.DateTime, nullable=False)
-    minimum_bid = db.Column(db.Integer, nullable=False)
+    start_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=False)
+    starting_bid = db.Column(db.Integer, nullable=False)
+    reserve_bid = db.Column(db.Integer, nullable=False)
     winning_bid_id = db.Column(db.Integer, db.ForeignKey('bids.id'), nullable=True)
     canceled = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -78,11 +79,13 @@ class Auction(db.Model):
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
-            'starts_at': self.starts_at.isoformat() + "Z",
-            'ends_at': self.ends_at.isoformat() + "Z",
+            'start_date': self.start_date.isoformat() + "Z",
+            'end_date': self.end_date.isoformat() + "Z",
             'canceled': self.canceled,
-            'minimum_bid': self.minimum_bid}
-        if for_user == self.seller_id or self.starts_at <= datetime.utcnow() <= self.ends_at:
+            'starting_bid': self.starting_bid}
+        if for_user == self.seller_id:
+            auction['reserve_bid'] = self.reserve_bid
+        if for_user == self.seller_id or self.start_date <= datetime.utcnow() <= self.end_date:
             # showing all bids only to the seller, or during the auction's lifetime
             bids = [bid for bid in self.bids if bid.settled_at]
         elif for_user:
@@ -99,26 +102,26 @@ class Auction(db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k, what in [('starts_at', "start date"), ('ends_at', "end date")]:
+        for k in ['start_date', 'end_date']:
             if k not in d:
                 continue
             try:
                 date = dateutil.parser.isoparse(d[k])
                 if date.tzinfo != dateutil.tz.tzutc():
-                    raise ValidationError(f"Date must be in UTC: {what}.")
+                    raise ValidationError(f"Date must be in UTC: {k.replace('_', ' ')}.")
                 date = date.replace(tzinfo=None)
             except ValueError:
-                raise ValidationError(f"Invalid {what}.")
+                raise ValidationError(f"Invalid {k.replace('_', ' ')}.")
             validated[k] = date
-        if validated.get('starts_at') and validated.get('ends_at') and validated['starts_at'] > validated['ends_at']:
+        if validated.get('start_date') and validated.get('end_date') and validated['start_date'] > validated['end_date']:
             raise ValidationError("The end date must be after the start date.")
-        if 'minimum_bid' in d:
+        for k in ['starting_bid', 'reserve_bid']:
+            if k not in d:
+                continue
             try:
-                validated['minimum_bid'] = int(d['minimum_bid'])
-                if validated['minimum_bid'] < 10:
-                    raise ValueError()
+                validated[k] = int(d[k])
             except (ValueError, TypeError):
-                raise ValidationError("Minimum bid needs to be at least 10 sats.")
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
 class Bid(db.Model):

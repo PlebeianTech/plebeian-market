@@ -1,5 +1,4 @@
 <script>
-    import dayjs from 'dayjs';
     import { onMount } from 'svelte';
     import Time from 'svelte-time';
     import { token, fromJson, fetchAPI } from "../common.js";
@@ -73,7 +72,7 @@
                 if (response.status === 200) {
                     response.json().then(data => {
                         auction = fromJson(data.auction);
-                        var lastBid = auction.minimum_bid;
+                        var lastBid = auction.starting_bid;
                         for (const bid of auction.bids) {
                             if (bid.payment_request === paymentRequest) {
                                 paymentQr = paymentRequest = amount = null;
@@ -94,8 +93,8 @@
 </script>
 
 {#if auction}
-    <p>From <Time timestamp={ auction.starts_at } format="dddd MMMM D, H:mm" /> - <Time timestamp={ auction.ends_at } format="dddd MMMM D, H:mm - YYYY" /></p>
-    <p><span>Minimum bid: { auction.minimum_bid }</span></p>
+    <p><Time timestamp={auction.start_date} format="dddd MMMM D, H:mm" /> - <Time timestamp={auction.end_date} format="dddd MMMM D, H:mm - YYYY" /></p>
+    <p><span>Starting bid: {auction.starting_bid}</span></p>
     <ul id="bids">
         {#each auction.bids as bid}
             <li>{bid.amount} (by {bid.bidder})</li>
@@ -108,9 +107,9 @@
         {#if auction.canceled}
             <div>Auction was canceled.</div>
         {:else if !auction.started}
-            <div>Auction not started yet.</div>
+            <div>Auction starts <Time live relative timestamp={auction.start_date} />.</div>
         {:else if auction.ended}
-            <div>Auction already ended.</div>
+            <div>Auction ended <Time live relative timestamp={auction.end_date} />.</div>
         {:else}
             <div id="bid">
                 <div>

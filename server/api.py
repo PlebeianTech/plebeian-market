@@ -95,7 +95,7 @@ def auctions(user):
     else:
         # TODO: prevent seller from creating too many auctions?
 
-        for k in ['starts_at', 'ends_at', 'minimum_bid']:
+        for k in ['start_date', 'end_date', 'starting_bid', 'reserve_bid']:
             if k not in request.json:
                 return jsonify({'message': f"Missing key: {k}."}), 400
 
@@ -134,7 +134,7 @@ def auction(key):
             else:
                 if auction.canceled:
                     return jsonify({'message': "Cannot edit a canceled auction."}), 403
-                if auction.starts_at <= datetime.utcnow():
+                if auction.start_date <= datetime.utcnow():
                     return jsonify({'message': "Cannot edit an auction once started."}), 403
                 try:
                     validated = m.Auction.validate_dict(request.json)
@@ -159,7 +159,7 @@ def bid(user, key):
     if not auction:
         return jsonify({'message': "Not found."}), 404
 
-    if auction.starts_at > datetime.utcnow() or auction.ends_at < datetime.utcnow():
+    if auction.start_date > datetime.utcnow() or auction.end_date < datetime.utcnow():
         return jsonify({'message': "Auction not running."}), 403
 
     amount = int(request.json['amount'])
@@ -167,13 +167,13 @@ def bid(user, key):
     try:
         max_amount = max(bid.amount for bid in auction.bids if bid.settled_at)
     except ValueError:
-        max_amount = auction.minimum_bid
+        max_amount = auction.starting_bid
 
     if amount <= max_amount:
         return jsonify({'message': f"Amount needs to be at least {max_amount}."}), 400
 
-    if auction.ends_at < datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']):
-        auction.ends_at += timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND_BY'])
+    if auction.end_date < datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']):
+        auction.end_date += timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND_BY'])
 
     response = get_lnd_client().add_invoice(value=app.config['LIGHTNING_INVOICE_AMOUNT'])
 

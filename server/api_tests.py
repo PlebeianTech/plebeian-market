@@ -122,7 +122,7 @@ class TestApi(unittest.TestCase):
 
         # creating auctions requires log in
         code, response = self.post("/api/auctions",
-            {'minimum_bid': 10})
+            {'starting_bid': 10})
         self.assertEqual(code, 401)
         self.assertFalse(response['success'])
         self.assertTrue("missing token" in response['message'].lower())
@@ -135,35 +135,38 @@ class TestApi(unittest.TestCase):
 
         # can't create an auction without dates
         code, response = self.post("/api/auctions",
-            {'minimum_bid': 10},
+            {'starting_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
         self.assertTrue("missing" in response['message'].lower())
-        self.assertTrue("starts_at" in response['message'])
+        self.assertTrue("start_date" in response['message'])
 
         # dates must be UTC
         code, response = self.post("/api/auctions",
-            {'starts_at': "2020-10-10T11:11:00",
-             'ends_at': "2020-10-11T11:11:00",
-             'minimum_bid': 10},
+            {'start_date': "2020-10-10T11:11:00",
+             'end_date': "2020-10-11T11:11:00",
+             'starting_bid': 10,
+             'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
         self.assertTrue("must be in utc" in response['message'].lower())
 
         # can't create an auction that ends before it starts
         code, response = self.post("/api/auctions",
-            {'starts_at': "2020-10-11T11:11:00Z",
-             'ends_at': "2020-10-10T11:11:00Z",
-             'minimum_bid': 10},
+            {'start_date': "2020-10-11T11:11:00Z",
+             'end_date': "2020-10-10T11:11:00Z",
+             'starting_bid': 10,
+             'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
         self.assertTrue("must be after" in response['message'].lower())
 
         # finally create an auction
         code, response = self.post("/api/auctions",
-            {'starts_at': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
-             'ends_at': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
-             'minimum_bid': 10},
+            {'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'end_date': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'starting_bid': 10,
+             'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
@@ -184,9 +187,10 @@ class TestApi(unittest.TestCase):
 
         # create a 2nd auction, this time for the 2nd user
         code, response = self.post("/api/auctions",
-            {'starts_at': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
-             'ends_at': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
-             'minimum_bid': 10},
+            {'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'end_date': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'starting_bid': 10,
+             'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
@@ -214,22 +218,22 @@ class TestApi(unittest.TestCase):
 
         # also can't EDIT another user's auction
         code, response = self.put(f"/api/auctions/{auction_key_2}",
-            {'minimum_bid': 100},
+            {'starting_bid': 100},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
 
         # can EDIT the auction with the proper user
         code, response = self.put(f"/api/auctions/{auction_key_2}",
-            {'minimum_bid': 888, 'key': 'NEW_KEY_WONT_WORK'},
+            {'starting_bid': 888, 'key': 'NEW_KEY_WONT_WORK'},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
 
-        # GET the newly edited auction to see the new minimum_bid
+        # GET the newly edited auction to see the new starting_bid
         # (note that the key did not change, since we can't edit the key!)
         code, response = self.get(f"/api/auctions/{auction_key_2}")
         self.assertEqual(code, 200)
         self.assertEqual(response['auction']['key'], auction_key_2)
-        self.assertEqual(response['auction']['minimum_bid'], 888)
+        self.assertEqual(response['auction']['starting_bid'], 888)
 
         # CANCEL an auction
         code, response = self.put(f"/api/auctions/{auction_key_2}",
@@ -246,7 +250,7 @@ class TestApi(unittest.TestCase):
 
         # can not EDIT a canceled auction
         code, response = self.put(f"/api/auctions/{auction_key_2}",
-            {'minimum_bid': 777},
+            {'starting_bid': 777},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 403)
         self.assertTrue("edit a canceled auction", response['message'].lower())
@@ -273,13 +277,13 @@ class TestApi(unittest.TestCase):
 
         # start the auction
         code, response = self.put(f"/api/auctions/{auction_key}",
-            {'starts_at': (datetime.utcnow() - timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat()},
+            {'start_date': (datetime.utcnow() - timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat()},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
         # can't EDIT the auction once started
         code, response = self.put(f"/api/auctions/{auction_key}",
-            {'minimum_bid': 101},
+            {'starting_bid': 101},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 403)
         self.assertTrue('cannot edit an auction once started' in response['message'].lower())

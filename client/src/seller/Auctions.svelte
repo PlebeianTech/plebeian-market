@@ -6,9 +6,10 @@
 
     function emptyAuction() {
         return {
-            minimum_bid: 10000,
-            starts_at: dayjs(new Date()).startOf('day').add(1, 'day').format("YYYY-MM-DDTHH:mm"),
-            ends_at: dayjs(new Date()).startOf('day').add(2, 'days').format("YYYY-MM-DDTHH:mm")
+            starting_bid: 10000,
+            reserve_bid: 10000,
+            start_date: dayjs(new Date()).startOf('day').add(1, 'day').format("YYYY-MM-DDTHH:mm"),
+            end_date: dayjs(new Date()).startOf('day').add(2, 'days').format("YYYY-MM-DDTHH:mm")
         };
     }
 
@@ -23,7 +24,7 @@
             if (k === 'canceled') {
                 continue;
             }
-            if (k === 'starts_at' || k === 'ends_at') {
+            if (k === 'start_date' || k === 'end_date') {
                 json[k] = dayjs(auction[k]).toISOString();
             } else {
                 json[k] = auction[k];
@@ -163,16 +164,20 @@
                         <h3 class="card-title mb-4">{#if isEdit}Edit auction {auction.key}{:else}Create a new auction{/if}</h3>
                         <form id="new-auction">
                             <div class="form-group">
-                                <input class="form-field" type="datetime-local" name="starts-at" bind:value={auction.starts_at} />
-                                <label class="form-label" for="starts-at">Starts</label>
+                                <input class="form-field" type="datetime-local" name="start-date" bind:value={auction.start_date} />
+                                <label class="form-label" for="start-date">Start</label>
                             </div>
                             <div class="form-group">
-                                <input class="form-field" type="datetime-local" name="ends-at" bind:value={auction.ends_at} />
-                                <label class="form-label" for="ends-at">Ends</label>
+                                <input class="form-field" type="datetime-local" name="end-date" bind:value={auction.end_date} />
+                                <label class="form-label" for="end-date">End</label>
                             </div>
                             <div class="form-group">
-                                <input class="form-field" name="minimum-bid" bind:value={auction.minimum_bid} type="number" id="minimum-bid" />
-                                <label class="form-label" for="minimum-bid">Minimum bid</label>
+                                <input class="form-field" name="starting-bid" bind:value={auction.starting_bid} type="number" id="starting-bid" />
+                                <label class="form-label" for="starting-bid">Starting bid</label>
+                            </div>
+                            <div class="form-group">
+                                <input class="form-field" name="reserve-bid" bind:value={auction.reserve_bid} type="number" id="reserve-bid" />
+                                <label class="form-label" for="reserve-bid">Reserve bid</label>
                             </div>
                             <div class="left">
                                 {#if isEdit}
@@ -197,8 +202,8 @@
                 <div class="card mb-2">
                     <div class="card-body">
                         <p class="card-text text-center"><code>{ a.key }</code> {#if a.ended}<span>(ended)</span>{:else if a.canceled}<span>(canceled)</span>{/if}</p>
-                        <p class="card-text">From <Time timestamp={ a.starts_at } format="dddd MMMM D, H:mm" /> - <Time timestamp={ a.ends_at } format="dddd MMMM D, H:mm - YYYY" /></p>
-                        <p class="card-text"><span>Minimum bid: { a.minimum_bid }</span><span class="right">Bids: { a.bids.length }</span></p>
+                        <p class="card-text">From <Time timestamp={ a.start_date } format="dddd MMMM D, H:mm" /> - <Time timestamp={ a.end_date } format="dddd MMMM D, H:mm - YYYY" /></p>
+                        <p class="card-text"><span>Starting bid: { a.starting_bid }</span> <span>Reserve bid: { a.reserve_bid }</span><span class="right">Bids: { a.bids.length }</span></p>
                         <div class="left">
                             <div class="glowbutton glowbutton-copy" on:click|preventDefault={copyAuction(a.key)}></div>
                         </div>
