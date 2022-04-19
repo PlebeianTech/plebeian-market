@@ -190,7 +190,18 @@
         </div>
             {#each auctions as a}
             <div class="max-w-full p-4 rounded overflow-hidden shadow-lg bg-gray-900 my-3">
-                <p class="text-center"><code class="bg-cyan-600 p-1 rounded">{ a.key }</code> {#if a.ended}<span class="text-zinc-300">(ended)</span>{:else if a.canceled}<span class="text-zinc-300">(canceled)</span>{/if}</p>
+                <p class="text-center">
+                    <code class="bg-cyan-600 p-1 rounded">{ a.key }</code>
+                    <span class="text-zinc-300">
+                        {#if a.started && !a.ended}
+                            (running)
+                        {:else if a.ended}
+                            (ended)
+                        {:else if a.canceled}
+                            (canceled)
+                        {/if}
+                    </span>
+                </p>
                 <p class="text-zinc-300 mt-2">From <Time timestamp={ a.start_date } format="dddd MMMM D, H:mm" /> - <Time timestamp={ a.end_date } format="dddd MMMM D, H:mm - YYYY" /></p>
                 <p class="text-zinc-300"><span>Starting bid: { a.starting_bid }</span> <span>Reserve bid: { a.reserve_bid }</span><span class="float-right">Bids: { a.bids.length }</span></p>
                 <div class="float-left pt-5">
