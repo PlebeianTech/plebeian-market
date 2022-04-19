@@ -113,7 +113,7 @@
                 {#if paymentQr}
                     <div class="qr glowbox">
                         {@html paymentQr}
-                        <code>{paymentRequest}</code>
+                        <span class="break-all text-xs">{paymentRequest}</span>
                     </div>
                 {:else}
                     <div id="bid" class="form-group">
