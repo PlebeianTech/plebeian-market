@@ -87,6 +87,10 @@
   content: 'Continue';
 }
 
+.glowbutton-bid:after {
+  content: 'Bid';
+}
+
 .glowbox {
     padding: 16px 24px;
     position: relative;

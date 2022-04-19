@@ -93,41 +93,42 @@
 </script>
 
 {#if auction}
-    <p><Time timestamp={auction.start_date} format="dddd MMMM D, H:mm" /> - <Time timestamp={auction.end_date} format="dddd MMMM D, H:mm - YYYY" /></p>
-    <p><span>Starting bid: {auction.starting_bid}</span></p>
-    <ul id="bids">
-        {#each auction.bids as bid}
-            <li>{bid.amount} (by {bid.bidder})</li>
-        {/each}
-    </ul>
-{/if}
-
-{#if $token}
-    {#if auction}
-        {#if auction.canceled}
-            <div>Auction was canceled.</div>
-        {:else if !auction.started}
-            <div>Auction starts <Time live relative timestamp={auction.start_date} />.</div>
-        {:else if auction.ended}
-            <div>Auction ended <Time live relative timestamp={auction.end_date} />.</div>
-        {:else}
-            <div id="bid">
-                <div>
-                    <input id="bid-amount" type="number" bind:value={amount} />
-                </div>
-                <div>
-                    <button on:click|preventDefault={placeBid}>Place bid</button>
-                </div>
-            </div>
-            {#if paymentQr}
-                <div class="qr glow-box">
-                    {@html paymentQr}
-                    <code>{paymentRequest}</code>
-                </div>
+<div class="flex justify-center items-center">
+    <div class="w-3/5 bg-gray-900 rounded p-4">
+        <p class="text-zinc-300"><Time timestamp={auction.start_date} format="dddd MMMM D, H:mm" /> - <Time timestamp={auction.end_date} format="dddd MMMM D, H:mm - YYYY" /></p>
+        <p class="text-zinc-300"><span>Starting bid: {auction.starting_bid}</span></p>
+        <ul id="bids" class="text-zinc-300">
+            {#each auction.bids as bid}
+                <li>{bid.amount} (by {bid.bidder})</li>
+            {/each}
+        </ul>
+        {#if $token}
+            {#if auction.canceled}
+                <div>Auction was canceled.</div>
+            {:else if !auction.started}
+                <div>Auction starts <Time live relative timestamp={auction.start_date} />.</div>
+            {:else if auction.ended}
+                <div>Auction ended <Time live relative timestamp={auction.end_date} />.</div>
+            {:else}
+                {#if paymentQr}
+                    <div class="qr glowbox">
+                        {@html paymentQr}
+                        <code>{paymentRequest}</code>
+                    </div>
+                {:else}
+                    <div id="bid" class="form-group">
+                        <input id="bid-amount" name="bid-amount" type="number" class="form-field" bind:value={amount} />
+                        <label class="form-label" for="bid-amount">Amount</label>
+                    </div>
+                    <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
+                {/if}
             {/if}
         {/if}
-    {/if}
-{:else}
+    </div>
+</div>
+{/if}
+
+{#if !$token}
     <Login />
 {/if}
 
