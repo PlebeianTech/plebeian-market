@@ -6,7 +6,7 @@ import ecdsa
 import unittest
 import requests
 
-from server.main import app
+from main import app
 
 class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, json=None, headers=None):

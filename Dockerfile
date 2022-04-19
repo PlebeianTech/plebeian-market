@@ -1,6 +1,6 @@
 FROM python:3.8-bullseye
 
-COPY requirements.txt /
+COPY ./server/requirements.txt /
 RUN apt-get update \
  && apt-get install -y curl \
  && pip3 install -r /requirements.txt
@@ -8,7 +8,7 @@ RUN apt-get update \
 COPY ./server /app/server
 COPY ./client /app/client
 
-WORKDIR /app
+WORKDIR /app/server
 
-ENV PYTHONPATH /app
+ENV PYTHONPATH /app/server
 ENV PYTHONUNBUFFERED 1

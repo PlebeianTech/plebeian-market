@@ -10,6 +10,7 @@ import time
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
 from flask_cors import CORS
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 import jwt
 import lndgrpc
@@ -22,32 +23,26 @@ class MyFlask(Flask):
 
     def __call__(self, environ, start_response):
         if not self.initialized:
-            from server.api import api_blueprint
+            from api import api_blueprint
             app.register_blueprint(api_blueprint)
             self.initialized = True
         return super().__call__(environ, start_response)
 
 app = MyFlask(__name__, static_folder="../client/static")
-app.config.from_object('server.config')
+app.config.from_object('config')
 
 CORS(app)
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-from server import models as m
-
-@app.cli.command("create-db")
-@with_appcontext
-def create_db():
-    db.create_all()
-    db.session.add(m.State(key=m.State.LAST_SETTLE_INDEX, value="0"))
-    db.session.commit()
+import models as m
 
 @app.cli.command("run-tests")
 @with_appcontext
 def run_tests():
     import unittest
-    from server import api_tests
+    import api_tests
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
     unittest.TextTestRunner().run(suite)
 

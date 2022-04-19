@@ -4,7 +4,7 @@ import hashlib
 import random
 import string
 
-from server.main import app, db
+from main import app, db
 
 class ValidationError(Exception):
     def __init__(self, message):

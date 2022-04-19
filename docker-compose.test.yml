@@ -7,7 +7,7 @@ services:
       web:
         condition: service_healthy
     environment:
-      - FLASK_APP=server.main
+      - FLASK_APP=main
       - BASE_URL=http://web:5000
     volumes:
       - "./server:/app/server"

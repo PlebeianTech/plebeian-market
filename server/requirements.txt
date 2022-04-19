@@ -1,6 +1,7 @@
 ecdsa
 flask
 flask-cors
+flask-migrate
 flask-sqlalchemy
 gunicorn
 lnd-grpc-client
