@@ -1,3 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.menu-item {
+  @apply text-gray-700 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700;
+  cursor: pointer;
+}
+
+.selected-menu-item {
+  @apply text-white md:bg-transparent md:text-blue-700 md:p-0 dark:text-white;
+  cursor: pointer;
+}
+
 .qr {
     width: 320px;
     margin: auto;
@@ -9,8 +23,6 @@
     height: 50px;
     border-radius: 180px;
     position: relative;
-    left: calc(50% - 75px);
-    top: calc(50% - 25px);
     background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8, #1098ad, #07b39b, #6fba82);
     cursor: pointer;
     line-height: 12px;
@@ -71,13 +83,17 @@
     content: 'Copy';
 }
 
-.glow-box {
+.glowbutton-continue:after {
+  content: 'Continue';
+}
+
+.glowbox {
     padding: 16px 24px;
     position: relative;
     border-radius: 8px;
 }
 
-.glow-box::after {
+.glowbox::after {
       position: absolute;
       content: "";
       top: 15px;
@@ -111,4 +127,73 @@
     100% {
       background-position: 200% 50%;
     }
+}
+
+.form-group {
+    position: relative;
+    padding: 15px 0 0;
+    margin-top: 10px;
+    width: 50%;
+  }
+  
+  .form-field {
+    font-family: inherit;
+    width: 100%;
+    border: 0;
+    border-bottom: 2px solid #9b9b9b;
+    outline: 0;
+    font-size: 1.3rem;
+    color: #fff;
+    padding: 7px 0;
+    background: transparent;
+    transition: border-color 0.2s;
+  }
+  
+  .form-field::placeholder {
+    color: transparent;
+  }
+  
+  .form-field:placeholder-shown ~ .form-label {
+    font-size: 1.3rem;
+    cursor: text;
+    top: 20px;
+  }
+  
+  .form-label {
+    position: absolute;
+    top: 0;
+    display: block;
+    transition: 0.2s;
+    font-size: 1rem;
+    color: #9b9b9b;
+  }
+  
+  .form-field:focus {
+    padding-bottom: 6px;  
+    font-weight: 700;
+    border-width: 3px;
+    border-image: linear-gradient(to right, #11998e,#38ef7d);
+    border-image-slice: 1;
+  }
+  
+  .form-field:focus ~ .form-label {
+    position: absolute;
+    top: 0;
+    display: block;
+    transition: 0.2s;
+    font-size: 1rem;
+    color: #11998e;
+    font-weight:700;    
+  }
+  
+  /* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
 }

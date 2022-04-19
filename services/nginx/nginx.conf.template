@@ -14,8 +14,7 @@ server {
 
     location /app {
         alias /usr/share/nginx/html/app;
-        sub_filter 'href="/static/css/common.css"' 'href="/static/css/common.css?$BUILD_ID"';
-        sub_filter 'href="/static/css/style.css"' 'href="/static/css/style.css?$BUILD_ID"';
+        sub_filter 'href="/static/style.css"' 'href="/static/style.css?$BUILD_ID"';
         sub_filter 'src="/app/buyer/bundle.js"' 'src="/app/buyer/bundle.js?$BUILD_ID"';
         sub_filter 'src="/app/seller/bundle.js"' 'src="/app/seller/bundle.js?$BUILD_ID"';
         sub_filter_once on;

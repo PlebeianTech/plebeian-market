@@ -4,3 +4,4 @@ venv
 node_modules
 bundle.js
 bundle.js.map
+style.css
