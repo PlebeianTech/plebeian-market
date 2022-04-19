@@ -40,7 +40,7 @@ from server import models as m
 @with_appcontext
 def create_db():
     db.create_all()
-    db.session.add(m.State(last_settle_index=0))
+    db.session.add(m.State(key=m.State.LAST_SETTLE_INDEX, value="0"))
     db.session.commit()
 
 @app.cli.command("run-tests")
@@ -56,13 +56,13 @@ def run_tests():
 def settle_bids():
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
     lnd = get_lnd_client()
-    last_settle_index = db.session.query(m.State).first().last_settle_index
+    last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
     for invoice in lnd.subscribe_invoices(): # TODO: use settle_index after merged in lnd-grpc-client
         if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
             bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
             if bid:
-                state = db.session.query(m.State).first()
-                state.last_settle_index = invoice.settle_index
+                state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
+                state.value = str(invoice.settle_index)
                 bid.settled_at = datetime.utcnow()
                 db.session.commit()
                 app.logger.info(f"Settled bid {bid.id} amount {bid.amount}.")
@@ -107,7 +107,7 @@ class MockLNDClient():
         return MockLNDClient.InvoiceResponse()
 
     def subscribe_invoices(self):
-        last_settle_index = db.session.query(m.State).first().last_settle_index
+        last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
         while True:
             time.sleep(3)
             for unsettled_bid in db.session.query(m.Bid).filter(m.Bid.settled_at == None):

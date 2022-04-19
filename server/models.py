@@ -14,8 +14,10 @@ class ValidationError(Exception):
 class State(db.Model):
     __tablename__ = 'state'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    last_settle_index = db.Column(db.Integer, nullable=False)
+    LAST_SETTLE_INDEX = 'LAST_SETTLE_INDEX'
+
+    key = db.Column(db.String(32), primary_key=True)
+    value = db.Column(db.String(256), nullable=True)
 
 class LnAuth(db.Model):
     __tablename__ = 'lnauth'
@@ -67,7 +69,7 @@ class Auction(db.Model):
     end_date = db.Column(db.DateTime, nullable=False)
     starting_bid = db.Column(db.Integer, nullable=False)
     reserve_bid = db.Column(db.Integer, nullable=False)
-    winning_bid_id = db.Column(db.Integer, db.ForeignKey('bids.id'), nullable=True)
+    winning_bid_id = db.Column(db.Integer, nullable=True)
     canceled = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
