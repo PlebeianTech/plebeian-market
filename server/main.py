@@ -9,12 +9,14 @@ import time
 
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
-from flask_cors import CORS
+
 from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
+
 import jwt
 import lndgrpc
 import logging
+
+from extensions import cors, db
 
 class MyFlask(Flask):
     def __init__(self, import_name, **kwargs):
@@ -28,15 +30,18 @@ class MyFlask(Flask):
             self.initialized = True
         return super().__call__(environ, start_response)
 
-app = MyFlask(__name__, static_folder="../client/static")
-app.config.from_object('config')
+def create_app():
+    app = MyFlask(__name__, static_folder="../client/static")
+    app.config.from_object('config')
+    cors.init_app(app)
+    db.init_app(app)
+    return app
 
-CORS(app)
-
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+app = create_app()
 
 import models as m
+
+migrate = Migrate(app, db)
 
 @app.cli.command("run-tests")
 @with_appcontext

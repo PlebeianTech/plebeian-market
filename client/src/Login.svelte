@@ -1,6 +1,6 @@
 <script>
     import { onDestroy } from 'svelte';
-    import { token, fetchAPI } from "./common.js";
+    import { token, ContributionPercent, Nym, TwitterUsername, TwitterUsernameVerified, fetchAPI } from "./common.js";
 
     let qr;
     let k1;
@@ -13,6 +13,10 @@
                         data => {
                             if (data.success) {
                                 token.set(data.token);
+                                ContributionPercent.set(data.user.contribution_percent);
+                                Nym.set(data.user.nym);
+                                TwitterUsername.set(data.user.twitter_username);
+                                TwitterUsernameVerified.set(data.user.twitter_username_verified);
                             } else {
                                 if (data.k1) {
                                     k1 = data.k1;
@@ -38,8 +42,10 @@
 	onDestroy(unsubscribe);
 </script>
 
-{#if qr }
-    <div class="qr glowbox">{@html qr}</div>
-{:else }
-    <div class="glowbutton glowbutton-enter" on:click|preventDefault={getLogin}></div>
-{/if}
+<div class="pt-10 flex justify-center items-center">
+    {#if qr}
+        <div class="qr glowbox">{@html qr}</div>
+    {:else}
+        <div class="glowbutton glowbutton-enter" on:click|preventDefault={getLogin}></div>
+    {/if}
+</div>

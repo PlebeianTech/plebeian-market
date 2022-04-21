@@ -4,7 +4,8 @@ import hashlib
 import random
 import string
 
-from main import app, db
+from extensions import db
+from main import app
 
 class ValidationError(Exception):
     def __init__(self, message):
@@ -38,6 +39,14 @@ class User(db.Model):
     # Lightning log in key
     key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
+    nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
+
+    twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
+    twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
+    twitter_username_challenge = db.Column(db.String(64), nullable=True)
+
+    contribution_percent = db.Column(db.Integer, nullable=True)
+
     @property
     def public_key(self):
         """
@@ -54,6 +63,14 @@ class User(db.Model):
 
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.start_date)")
     bids = db.relationship('Bid', backref='buyer')
+
+    def to_dict(self):
+        return {
+            'nym': self.nym,
+            'twitter_username': self.twitter_username,
+            'twitter_username_verified': self.twitter_username_verified,
+            'twitter_username_challenge': self.twitter_username_challenge,
+            'contribution_percent': self.contribution_percent}
 
 class Auction(db.Model):
     __tablename__ = 'auctions'

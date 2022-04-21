@@ -11,8 +11,9 @@ import lnurl
 import pyqrcode
 from sqlalchemy.exc import IntegrityError
 
+from extensions import db
 import models as m
-from main import app, db, get_lnd_client
+from main import app, get_lnd_client
 from main import get_token_from_request, get_user_from_token, user_required
 
 api_blueprint = Blueprint('api', __name__)
@@ -84,7 +85,23 @@ def login():
 
     token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
 
-    return jsonify({'success': True, 'token': token})
+    return jsonify({'success': True, 'token': token, 'user': user.to_dict()})
+
+@api_blueprint.route('/api/users/me', methods=['GET', 'POST'])
+@user_required
+def me(user):
+    if request.method == 'GET':
+        return jsonify({'user': user.to_dict()})
+    else:
+        if 'nym' in request.json:
+            user.nym = request.json['nym'] # TODO: validate
+        if 'twitter_username' in request.json and request.json['twitter_username'] != user.twitter_username:
+            user.twitter_username = request.json['twitter_username']
+            user.twitter_username_verified = False
+        if 'contribution_percent' in request.json:
+            user.contribution_percent = request.json['contribution_percent']
+        db.session.commit()
+        return jsonify({'user': user.to_dict()})
 
 @api_blueprint.route('/api/auctions', methods=['GET', 'POST'])
 @user_required
@@ -154,7 +171,7 @@ def auction(key):
 
 @api_blueprint.route('/api/auctions/<string:key>/bids', methods=['POST'])
 @user_required
-def bid(user, key):
+def bids(user, key):
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
         return jsonify({'message': "Not found."}), 404

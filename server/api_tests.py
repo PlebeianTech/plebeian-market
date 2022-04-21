@@ -75,6 +75,10 @@ class TestApi(unittest.TestCase):
             {'k1': k1})
         self.assertEqual(code, 200)
         self.assertTrue('token' in response)
+        self.assertTrue('user' in response)
+        self.assertIsNone(response['user']['nym'])
+        self.assertIsNone(response['user']['twitter_username'])
+        self.assertIsNone(response['user']['contribution_percent'])
 
         token_1 = response['token']
 
@@ -85,6 +89,28 @@ class TestApi(unittest.TestCase):
              'sig': sig.hex()},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
+
+        # no user details set yet
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertIsNone(response['user']['nym'])
+        self.assertIsNone(response['user']['twitter_username'])
+        self.assertIsNone(response['user']['contribution_percent'])
+
+        # set user details
+        code, response = self.post("/api/users/me",
+            {'nym': 'hello_kitty', 'twitter_username': 'hellokitty', 'contribution_percent': 1},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # check user details again
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['nym'], 'hello_kitty')
+        self.assertEqual(response['user']['twitter_username'], 'hellokitty')
+        self.assertEqual(response['user']['contribution_percent'], 1)
 
         # create another user
         code, response = self.get("/api/login")

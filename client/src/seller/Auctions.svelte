@@ -122,6 +122,7 @@
     onMount(async () => { fetchAPI("/auctions", 'GET', $token, null, checkResponse); });
 </script>
 
+<div class="pt-10 flex justify-center items-center">
 <section class="w-3/5">
         {#if confirmation}
         <div class="max-w-full p-4 rounded shadow-lg bg-red-700 my-3">
@@ -223,3 +224,4 @@
             {/each}
         {/if}
 </section>
+</div>
