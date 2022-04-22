@@ -4,7 +4,7 @@
     import { token, fromJson, fetchAPI, TwitterUsername, Nym } from "../common.js";
     import Loading from '../Loading.svelte';
     import Login from '../Login.svelte';
-    import Profile from './Profile.svelte';
+    import Profile from '../Profile.svelte';
 
     $token = sessionStorage.getItem('token');
 
@@ -161,7 +161,7 @@
                 {/if}
             {/if}
         {:else if selected === 'profile'}
-            <Profile onSave={() => selected = 'auction'} />
+            <Profile onSave={() => selected = 'auction'} updateContributionPercent={false} />
         {/if}
     </div>
 </div>
