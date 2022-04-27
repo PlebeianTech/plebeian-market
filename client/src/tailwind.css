@@ -137,7 +137,6 @@
     position: relative;
     padding: 15px 0 0;
     margin-top: 10px;
-    width: 50%;
   }
   
   .form-field {
@@ -187,7 +186,7 @@
     transition: 0.2s;
     font-size: 1rem;
     color: #11998e;
-    font-weight:700;    
+    font-weight: 700;    
   }
   
   /* Chrome, Safari, Edge, Opera */

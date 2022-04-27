@@ -1,33 +1,28 @@
 <script>
     import { onMount } from 'svelte';
-    import dayjs from 'dayjs';
     import Time from 'svelte-time';
     import { token, fromJson, fetchAPI } from "../common.js";
 
     function emptyAuction() {
         return {
-            starting_bid: 10000,
-            reserve_bid: 10000,
-            start_date: dayjs(new Date()).startOf('day').add(1, 'day').format("YYYY-MM-DDTHH:mm"),
-            end_date: dayjs(new Date()).startOf('day').add(2, 'days').format("YYYY-MM-DDTHH:mm")
+            title: "",
+            description: "",
+            starting_bid: 0,
+            reserve_bid: 0,
+            duration_hours: 24
         };
     }
 
     let confirmation = null;
-    let auction = null;
+    let currentAuction = null;
     let isEdit = false;
     let auctions = [];
 
     function asJson() {
-        var json = {};
-        for (var k in auction) {
-            if (k === 'canceled') {
-                continue;
-            }
-            if (k === 'start_date' || k === 'end_date') {
-                json[k] = dayjs(auction[k]).toISOString();
-            } else {
-                json[k] = auction[k];
+        var json = emptyAuction();
+        for (var k in currentAuction) {
+            if (k in json) {
+                json[k] = currentAuction[k];
             }
         }
         return JSON.stringify(json);
@@ -36,10 +31,13 @@
     function checkResponse(response) {
         if (response.status === 200) {
             confirmation = null;
-            auction = null;
+            currentAuction = null;
             response.json().then(data => {
                 if (data.auctions) {
                     auctions = data.auctions.map(fromJson);
+                    if (!auctions.length) {
+                        startCreate();
+                    }
                 } else {
                     fetchAPI("/auctions", 'GET', $token, null, checkResponse);
                 }
@@ -58,6 +56,12 @@
     }
 
     function createAuction() {
+        currentAuction.invalidTitle = currentAuction.title.length === 0;
+        currentAuction.invalidDescription = currentAuction.description.length === 0;
+        if (currentAuction.invalidTitle || currentAuction.invalidDescription) {
+            return;
+        }
+
         fetchAPI("/auctions", 'POST', $token, asJson(), checkResponse);
     }
 
@@ -91,40 +95,54 @@
     }
 
     function updateAuction () {
-        fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
+        fetchAPI(`/auctions/${currentAuction.key}`, 'PUT', $token, asJson(), checkResponse);
     }
 
     function startEdit(a) {
         isEdit = true;
-        auction = a;
+        currentAuction = a;
     }
 
     function cancelEdit() {
-        auction = null;
+        currentAuction = null;
     }
 
     function startCreate() {
         isEdit = false;
-        auction = emptyAuction();
+        currentAuction = emptyAuction();
     }
 
     function copyAuction(key) {
+        // TODO
         const snippet = '<link rel="stylesheet" href="https://plebeian.market/static/style.css">'
             + `<div id="plebeian-auction" data-key="${key}"></div>`
             + '<script src="https://plebeian.market/app/buyer/bundle.js">'+ "</" + "script>";
         navigator.clipboard.writeText(snippet).then(() => alert("Snippet copied!"));
     }
 
-    function openAuction(key) {
+    function viewAuction(key) {
         window.open(`/app/buyer#plebeian-auction-${key}`, '_blank');
+    }
+
+    function startAuction(key) {
+        // TODO
     }
 
     onMount(async () => { fetchAPI("/auctions", 'GET', $token, null, checkResponse); });
 </script>
 
+<style>
+    .invalid {
+        color: #991B1B;
+    }
+    .invalid-field {
+        border-bottom: 2px solid #991B1B;
+    }
+</style>
+
 <div class="pt-10 flex justify-center items-center">
 <section class="w-3/5">
-        {#if confirmation}
+    {#if confirmation}
         <div class="max-w-full p-4 rounded shadow-lg bg-red-700 my-3">
             <h3 class="mb-4 text-2xl text-center text-white">{confirmation.message}</h3>
             <div class="flex items-center justify-center">
@@ -137,91 +155,101 @@
         <div class="float-right pt-5">
             <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click|preventDefault={confirmation.close}>Cancel</button>
         </div>
-        {:else if auction}
-        <div class="max-w-full p-4 rounded shadow-lg bg-gray-900 my-3 glowbox">
-                <h3 class="mb-4 text-2xl text-center text-white">{#if isEdit}Edit auction <code class="bg-cyan-600 p-1 rounded">{auction.key}</code>{:else}Create a new auction{/if}</h3>
-                <form id="new-auction">
+    {:else if currentAuction}
+        <div class="w-full flex justify-center items-center">
+            <div class="w-4/6 p-4 rounded shadow-lg bg-gray-900 my-3 glowbox">
+                <h3 class="mb-4 text-2xl text-center text-white">{#if isEdit}Edit auction <code class="bg-cyan-600 p-1 rounded">{currentAuction.key}</code>{:else}Create a new auction{/if}</h3>
+                <form>
                     <div class="flex">
-                        <div class="form-group mr-2">
-                            <input class="form-field" type="datetime-local" name="start-date" bind:value={auction.start_date} />
-                            <label class="form-label" for="start-date">Start</label>
-                        </div>
-                        <div class="ml-2">
-                            <button class="mr-2 mt-5 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.start_date = dayjs(new Date()).format("YYYY-MM-DDTHH:mm")}>Now</button>
-                            <button class="mr-2 mt-5 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.start_date = dayjs(new Date()).add(5, 'minutes').format("YYYY-MM-DDTHH:mm")}>In 5 minutes</button>
-                            <button class="mr-2 mt-5 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.start_date = dayjs(new Date()).startOf('day').add(1, 'day').format("YYYY-MM-DDTHH:mm")}>At midnight</button>
-                        </div>
+                    <div class="form-group mr-2 w-full">
+                        <input class="form-field" class:invalid-field={currentAuction.invalidTitle && currentAuction.title.length === 0} name="title" bind:value={currentAuction.title} type="text" id="title" />
+                        <label class="form-label" class:invalid={currentAuction.invalidTitle && currentAuction.title.length === 0} for="title">Title *</label>
+                    </div>
                     </div>
                     <div class="flex">
-                        <div class="form-group mr-2">
-                            <input class="form-field" type="datetime-local" name="end-date" bind:value={auction.end_date} />
-                            <label class="form-label" for="end-date">End</label>
-                        </div>
-                        <div class="ml-2">
-                            <button class="mr-2 mt-5 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.end_date = dayjs(auction.start_date).add(1, 'hour').format("YYYY-MM-DDTHH:mm")}>An hour</button>
-                            <button class="mr-2 mt-5 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.end_date = dayjs(auction.start_date).add(1, 'day').format("YYYY-MM-DDTHH:mm")}>A day</button>
-                            <button class="mr-2 mt-5 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.end_date = dayjs(auction.start_date).add(1, 'week').format("YYYY-MM-DDTHH:mm")}>A week</button>
-                        </div>
+                    <div class="form-group mr-2 w-full">
+                        <textarea class="form-field" class:invalid-field={currentAuction.invalidDescription && currentAuction.description.length === 0} name="description" bind:value={currentAuction.description} id="description"></textarea>
+                        <label class="form-label" class:invalid={currentAuction.invalidDescription && currentAuction.description.length === 0} for="reserve-bid">Description *</label>
+                    </div>
                     </div>
                     <div class="flex">
-                        <div class="form-group mr-2">
-                            <input class="form-field" name="starting-bid" bind:value={auction.starting_bid} type="number" id="starting-bid" />
+                        <div class="form-group mr-2 w-1/2">
+                            <input class="form-field" name="starting-bid" bind:value={currentAuction.starting_bid} type="number" id="starting-bid" />
                             <label class="form-label" for="starting-bid">Starting bid</label>
                         </div>
-                        <div class="form-group ml-2">
-                            <input class="form-field" name="reserve-bid" bind:value={auction.reserve_bid} type="number" id="reserve-bid" />
+                        <div class="form-group ml-2 w-1/2">
+                            <input class="form-field" name="reserve-bid" bind:value={currentAuction.reserve_bid} type="number" id="reserve-bid" />
                             <label class="form-label" for="reserve-bid">Reserve bid</label>
                         </div>
                     </div>
+                    <div class="form-group mr-2 w-full">
+                        <input type="hidden" name="duration-hours" bind:value={currentAuction.duration_hours} />
+                        <div class="flex justify-center items-center">
+                            <div class="w-1/3 mt-5 text-center">
+                                <span class="text-indigo-200 mr-2 mt-5 p-2">Duration</span>
+                            </div>
+                            <div class="w-2/3 mt-5 flex justify-center items-center">
+                                <button class:bg-black={currentAuction.duration_hours === 1} class="mr-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => currentAuction.duration_hours = 1}>An hour</button>
+                                <button class:bg-black={currentAuction.duration_hours === 24} class="mr-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => currentAuction.duration_hours = 24}>A day</button>
+                                <button class:bg-black={currentAuction.duration_hours === 24 * 7} class="mr-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => currentAuction.duration_hours = 24 * 7}>A week</button>
+                            </div>
+                        </div>
+                    </div>
                 </form>
+            </div>
         </div>
-        <div class="float-left pt-5">
-            {#if isEdit}
-                <div class="glowbutton glowbutton-save" on:click|preventDefault={updateAuction}></div>
-            {:else}
-                <div class="glowbutton glowbutton-save" on:click|preventDefault={createAuction}></div>
-            {/if}                                
+        <div class="w-full flex justify-center items-center">
+            <div class="w-4/6">
+                <div class="float-left pt-5">
+                    {#if isEdit}
+                        <div class="glowbutton glowbutton-save" on:click|preventDefault={updateAuction}></div>
+                    {:else}
+                        <div class="glowbutton glowbutton-save" on:click|preventDefault={createAuction}></div>
+                    {/if}
+                </div>
+                <div class="float-right pt-5">
+                    <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click|preventDefault={cancelEdit}>Cancel</button>
+                </div>
+            </div>
         </div>
-        <div class="float-right pt-5">
-            <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click|preventDefault={cancelEdit}>Cancel</button>
-        </div>
-        {:else}
+    {:else}
         <div class="flex items-center justify-center">
             <div class="glowbutton glowbutton-create" on:click|preventDefault={startCreate}></div>
         </div>
-            {#each auctions as a}
+        {#each auctions as auction}
             <div class="max-w-full p-4 rounded overflow-hidden shadow-lg bg-gray-900 my-3">
-                <p class="text-center">
-                    <code class="bg-cyan-600 p-1 rounded">{ a.key }</code>
+                <div class="text-center">
+                    <h3 class="text-zinc-300 text-2xl">{auction.title}</h3>
                     <span class="text-zinc-300">
-                        {#if a.started && !a.ended}
+                        {#if auction.started && !auction.ended}
                             (running)
-                        {:else if a.ended}
+                        {:else if auction.ended}
                             (ended)
-                        {:else if a.canceled}
+                        {:else if auction.canceled}
                             (canceled)
                         {/if}
                     </span>
-                </p>
-                <p class="text-zinc-300 mt-2">From <Time timestamp={ a.start_date } format="dddd MMMM D, H:mm" /> - <Time timestamp={ a.end_date } format="dddd MMMM D, H:mm - YYYY" /></p>
-                <p class="text-zinc-300"><span>Starting bid: { a.starting_bid }</span> <span>Reserve bid: { a.reserve_bid }</span><span class="float-right">Bids: { a.bids.length }</span></p>
+                </div>
+                <p class="text-zinc-300 mt-2">Duration: {auction.duration_str} {#if auction.start_date}/ <Time timestamp={auction.start_date} format="dddd MMMM D, H:mm" /> - <Time timestamp={auction.end_date} format="dddd MMMM D, H:mm - YYYY" />{/if}</p>
+                <p class="text-zinc-300"><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
                 <div class="float-left pt-5">
-                    <div class="glowbutton glowbutton-copy" on:click|preventDefault={copyAuction(a.key)}></div>
+                    <div class="glowbutton glowbutton-copy" on:click|preventDefault={copyAuction(auction.key)}></div>
                 </div>
                 <div class="float-right pt-5">
-                    <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-green-800" on:click={openAuction(a.key)}>Open</button>
-                    {#if !a.started}
-                        {#if !a.canceled}
-                            <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click={startEdit(a)}>Edit</button>
+                    <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click={viewAuction(auction.key)}>View</button>
+                    {#if !auction.started}
+                        <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-green-800" on:click={startAuction(auction.key)}>Start</button>
+                        {#if !auction.canceled}
+                            <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click={startEdit(auction)}>Edit</button>
                         {/if}
-                        <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-red-800" on:click={deleteAuction(a.key)}>Delete</button>
+                        <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-red-800" on:click={deleteAuction(auction.key)}>Delete</button>
                     {/if}
-                    {#if !a.canceled && !a.ended}
-                        <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-red-800" on:click={cancelAuction(a.key)}>Cancel</button>
+                    {#if !auction.canceled && !auction.ended}
+                        <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-red-800" on:click={cancelAuction(auction.key)}>Cancel</button>
                     {/if}
                 </div>
             </div>
-            {/each}
-        {/if}
+        {/each}
+    {/if}
 </section>
 </div>

@@ -76,7 +76,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertTrue('token' in response)
         self.assertTrue('user' in response)
-        self.assertIsNone(response['user']['nym'])
         self.assertIsNone(response['user']['twitter_username'])
         self.assertIsNone(response['user']['contribution_percent'])
 
@@ -94,13 +93,12 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertIsNone(response['user']['nym'])
         self.assertIsNone(response['user']['twitter_username'])
         self.assertIsNone(response['user']['contribution_percent'])
 
         # set user details
         code, response = self.post("/api/users/me",
-            {'nym': 'hello_kitty', 'twitter_username': 'hellokitty', 'contribution_percent': 1},
+            {'twitter_username': 'hellokitty', 'contribution_percent': 1},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -108,7 +106,6 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['nym'], 'hello_kitty')
         self.assertEqual(response['user']['twitter_username'], 'hellokitty')
         self.assertEqual(response['user']['contribution_percent'], 1)
 
@@ -161,36 +158,33 @@ class TestApi(unittest.TestCase):
 
         # can't create an auction without dates
         code, response = self.post("/api/auctions",
-            {'starting_bid': 10},
+            {'title': "My 1st",
+             'description': "Selling something",
+             'starting_bid': 10,
+             'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
         self.assertTrue("missing" in response['message'].lower())
-        self.assertTrue("start_date" in response['message'])
+        self.assertTrue("duration" in response['message'].lower())
 
         # dates must be UTC
         code, response = self.post("/api/auctions",
-            {'start_date': "2020-10-10T11:11:00",
-             'end_date': "2020-10-11T11:11:00",
+            {'title': "My 1st",
+             'description': "Selling something",
+             'start_date': "2020-10-10T11:11:00",
+             'duration_hours': 24,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
         self.assertTrue("must be in utc" in response['message'].lower())
 
-        # can't create an auction that ends before it starts
-        code, response = self.post("/api/auctions",
-            {'start_date': "2020-10-11T11:11:00Z",
-             'end_date': "2020-10-10T11:11:00Z",
-             'starting_bid': 10,
-             'reserve_bid': 10},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 400)
-        self.assertTrue("must be after" in response['message'].lower())
-
         # finally create an auction
         code, response = self.post("/api/auctions",
-            {'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
-             'end_date': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+            {'title': "My 1st",
+             'description': "Selling something",
+             'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'duration_hours': 24,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
@@ -213,8 +207,10 @@ class TestApi(unittest.TestCase):
 
         # create a 2nd auction, this time for the 2nd user
         code, response = self.post("/api/auctions",
-            {'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
-             'end_date': (datetime.utcnow() + timedelta(days=2)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+            {'title': "His 2st",
+             'description': "Selling something else",
+             'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'duration_hours': 24,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
@@ -258,7 +254,7 @@ class TestApi(unittest.TestCase):
         # (note that the key did not change, since we can't edit the key!)
         code, response = self.get(f"/api/auctions/{auction_key_2}")
         self.assertEqual(code, 200)
-        self.assertEqual(response['auction']['key'], auction_key_2)
+        self.assertEqual(response['auction']['key'], auction_key_2) # didn't change
         self.assertEqual(response['auction']['starting_bid'], 888)
 
         # CANCEL an auction

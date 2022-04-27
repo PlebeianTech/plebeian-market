@@ -4,7 +4,7 @@
 
 <script>
     import { onMount } from 'svelte';
-    import { fetchAPI, token, ContributionPercent, Nym, TwitterUsername } from "../common.js";
+    import { fetchAPI, token, ContributionPercent, TwitterUsername } from "../common.js";
     import Loading from '../Loading.svelte';
     import Login from '../Login.svelte';
     import About from './About.svelte';
@@ -22,7 +22,6 @@
                 if (response.status === 200) {
                     response.json().then(data => {
                         ContributionPercent.set(data.user.contribution_percent);
-                        Nym.set(data.user.nym);
                         TwitterUsername.set(data.user.twitter_username);
                         isLoading = false;
                     });

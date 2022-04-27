@@ -1,6 +1,6 @@
 <script>
     import { onDestroy } from 'svelte';
-    import { token, ContributionPercent, Nym, TwitterUsername, TwitterUsernameVerified, fetchAPI } from "./common.js";
+    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified, fetchAPI } from "./common.js";
 
     let qr;
     let k1;
@@ -14,7 +14,6 @@
                             if (data.success) {
                                 token.set(data.token);
                                 ContributionPercent.set(data.user.contribution_percent);
-                                Nym.set(data.user.nym);
                                 TwitterUsername.set(data.user.twitter_username);
                                 TwitterUsernameVerified.set(data.user.twitter_username_verified);
                             } else {

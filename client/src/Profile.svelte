@@ -1,11 +1,10 @@
 <script>
     import Slider from '@bulatdashiev/svelte-slider';
 
-    import { fetchAPI, token, ContributionPercent, Nym, TwitterUsername } from "./common.js";
+    import { fetchAPI, token, ContributionPercent, TwitterUsername } from "./common.js";
 
     let value = $ContributionPercent !== null ? [$ContributionPercent, $ContributionPercent] : [10, 10];
 
-    let nymValue = $Nym;
     let twitterUsernameValue = $TwitterUsername;
 
     export let updateContributionPercent = true;
@@ -13,10 +12,10 @@
     export let onSave = () => {};
 
     function saveProfile() {
-        if (!nymValue || !twitterUsernameValue) {
+        if (!twitterUsernameValue) {
             return;
         }
-        const data = {nym: nymValue, twitter_username: twitterUsernameValue};
+        const data = {twitter_username: twitterUsernameValue};
         if (updateContributionPercent) {
             data.contribution_percent = value[0];
         }
@@ -25,7 +24,6 @@
                 if (response.status === 200) {
                     response.json().then(data => {
                         ContributionPercent.set(data.user.contribution_percent);
-                        Nym.set(data.user.nym);
                         TwitterUsername.set(data.user.twitter_username);
                         onSave();
                     });
@@ -46,11 +44,6 @@
 <div class="flex justify-center items-center">
 
     <div class="w-1/2">
-        <div class="form-group">
-            <input id="nym" name="nym" class:invalid-field={!nymValue || nymValue === ''} class="form-field" bind:value={nymValue} />
-            <label class:invalid={!nymValue || nymValue === ''} class="form-label" for="nym">Nym</label>
-        </div>
-        
         <div class="form-group">
             <input id="twitter-username" name="twitter-username" class:invalid-field={!twitterUsernameValue || twitterUsernameValue === ''} class="form-field" bind:value={twitterUsernameValue} />
             <label class:invalid={!twitterUsernameValue || twitterUsernameValue === ''} class="form-label" for="twitter-username">Twitter username</label>

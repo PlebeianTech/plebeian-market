@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import dateutil.parser
 import hashlib
 import random
@@ -39,29 +39,15 @@ class User(db.Model):
     # Lightning log in key
     key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
+    # can't set this for now, but should be useful in the future
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
-    twitter_username_challenge = db.Column(db.String(64), nullable=True)
 
     contribution_percent = db.Column(db.Integer, nullable=True)
 
-    @property
-    def public_key(self):
-        """
-        This is the user's Lightning (public) key, salted (with the site key) and hashed and shortened.
-        It is shared with everyone looking at an auction's bidders and can be used to uniquely identify the bidders on the client.
-        The salt makes it impossible to identify the same buyer on different sites.
-        """
-
-        # TODO: do we want the auction key also part of this? ie. such that the same buyer cannot be identified between different auctions?
-
-        sha = hashlib.sha512()
-        sha.update((self.key + app.config['SECRET_KEY']).encode('utf-8'))
-        return sha.digest().hex()[:16]
-
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.start_date)")
+    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.start_date), Auction.key")
     bids = db.relationship('Bid', backref='buyer')
 
     def to_dict(self):
@@ -69,7 +55,6 @@ class User(db.Model):
             'nym': self.nym,
             'twitter_username': self.twitter_username,
             'twitter_username_verified': self.twitter_username_verified,
-            'twitter_username_challenge': self.twitter_username_challenge,
             'contribution_percent': self.contribution_percent}
 
 class Auction(db.Model):
@@ -77,51 +62,73 @@ class Auction(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    seller_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
     # this key uniquely identifies the auction. It is safe to be shared with anyone.
     key = db.Column(db.String(12), unique=True, nullable=False, index=True)
 
-    start_date = db.Column(db.DateTime, nullable=False)
-    end_date = db.Column(db.DateTime, nullable=False)
+    # the title *might* eventually become nullable, for the case of WP auctions
+    # (the auction title in that case would be the post title)
+    title = db.Column(db.String(32), nullable=False)
+
+    description = db.Column(db.String(512), nullable=False)
+
+    # in the case of Twitter auctions, start_date is only set after the tweet is published and the auction starts
+    start_date = db.Column(db.DateTime, nullable=True)
+
+    # duration_hours reflects the initial duration,
+    # but the auction can be extended when bids come in close to the end - hence the end_date
+    duration_hours = db.Column(db.Integer, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=True)
+
     starting_bid = db.Column(db.Integer, nullable=False)
     reserve_bid = db.Column(db.Integer, nullable=False)
+
+    twitter_id = db.Column(db.String(32), nullable=True)
+
     winning_bid_id = db.Column(db.Integer, nullable=True)
+
     canceled = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
+
+        # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
+        # - perhaps some hash(user key + index), where index represents a User's Auction index (1, 2, 3...)
+        # The benefit (of that) would be that a user could then potentially have auctions which don't necessary have an underlying Auction record,
+        # in the same way in which an XPUB can derive "addresses" that don't represent an actual UTXO.
         key = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
+
         super().__init__(key=key, **kwargs)
 
-    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='Bid.requested_at')
+    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.requested_at)')
+    media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
 
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
-            'start_date': self.start_date.isoformat() + "Z",
-            'end_date': self.end_date.isoformat() + "Z",
+            'title': self.title,
+            'description': self.description,
+            'duration_hours': self.duration_hours,
+            'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
+            'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
             'canceled': self.canceled,
-            'starting_bid': self.starting_bid}
+            'starting_bid': self.starting_bid,
+            'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
+            'media': [{'url': media.url for media in self.media}]}
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
-        if for_user == self.seller_id or self.start_date <= datetime.utcnow() <= self.end_date:
-            # showing all bids only to the seller, or during the auction's lifetime
-            bids = [bid for bid in self.bids if bid.settled_at]
-        elif for_user:
-            # otherwise, we show only the buyer's bids
-            bids = [bid for bid in self.bids if bid.settled_at and bid.buyer_id == for_user]
-        else:
-            # if you're not the seller, you have no bids, or you came after the auction ended
-            #  => no soup for you!
-            bids = []
-        auction['bids'] = [bid.to_dict(for_user=for_user) for bid in bids]
 
         return auction
 
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['start_date', 'end_date']:
+        for k in ['title', 'description']:
+            if k not in d:
+                continue
+            # TODO: validate length?
+            validated[k] = d[k]
+        for k in ['start_date']:
             if k not in d:
                 continue
             try:
@@ -132,23 +139,31 @@ class Auction(db.Model):
             except ValueError:
                 raise ValidationError(f"Invalid {k.replace('_', ' ')}.")
             validated[k] = date
-        if validated.get('start_date') and validated.get('end_date') and validated['start_date'] > validated['end_date']:
-            raise ValidationError("The end date must be after the start date.")
-        for k in ['starting_bid', 'reserve_bid']:
+        for k in ['duration_hours', 'starting_bid', 'reserve_bid']:
             if k not in d:
                 continue
             try:
                 validated[k] = int(d[k])
             except (ValueError, TypeError):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        if 'start_date' in validated and 'duration_hours' in validated:
+            validated['end_date'] = validated['start_date'] + timedelta(hours=validated['duration_hours'])
         return validated
+
+class Media(db.Model):
+    __tablename__ = 'media'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
+    twitter_media_key = db.Column(db.String(50), nullable=False)
+    url = db.Column(db.String(256), nullable=False)
 
 class Bid(db.Model):
     __tablename__ = 'bids'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id))
-    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
+    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     settled_at = db.Column(db.DateTime) # a bid is settled after the Lightning invoice has been paid
@@ -161,7 +176,8 @@ class Bid(db.Model):
     def to_dict(self, for_user=None):
         bid = {
             'amount': self.amount,
-            'bidder': self.buyer.public_key}
+            'bidder': self.buyer.nym or (self.buyer.twitter_username_verified and self.buyer.twitter_username) or None,
+            'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None)}
         if for_user == self.buyer_id:
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
             bid['payment_request'] = self.payment_request

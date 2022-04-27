@@ -19,11 +19,16 @@ from main import get_token_from_request, get_user_from_token, user_required
 api_blueprint = Blueprint('api', __name__)
 
 @api_blueprint.route('/api/healthcheck', methods=['GET'])
-def healthcheck():
+def healthcheck(): # TODO: I don't really like this, for some reason, but it is used in "dev" mode by docker-compose
     return jsonify({'success': True})
 
+# TODO: It would be nice to extract this into a separate Python package that can be used by any (Flask?) project.
 @api_blueprint.route('/api/login', methods=['GET'])
 def login():
+    """
+    Log in with a Lightning wallet.
+    """
+
     if 'k1' not in request.args:
         # first request to /login => we return a challenge (k1) and a QR code
         k1 = secrets.token_hex(32)
@@ -94,7 +99,7 @@ def me(user):
         return jsonify({'user': user.to_dict()})
     else:
         if 'nym' in request.json:
-            user.nym = request.json['nym'] # TODO: validate
+            return jsonify({'message': "Can't edit nym."}), 400 # yet, I guess...
         if 'twitter_username' in request.json and request.json['twitter_username'] != user.twitter_username:
             user.twitter_username = request.json['twitter_username']
             user.twitter_username_verified = False
@@ -112,7 +117,7 @@ def auctions(user):
     else:
         # TODO: prevent seller from creating too many auctions?
 
-        for k in ['start_date', 'end_date', 'starting_bid', 'reserve_bid']:
+        for k in ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid']:
             if k not in request.json:
                 return jsonify({'message': f"Missing key: {k}."}), 400
 
@@ -151,7 +156,7 @@ def auction(key):
             else:
                 if auction.canceled:
                     return jsonify({'message': "Cannot edit a canceled auction."}), 403
-                if auction.start_date <= datetime.utcnow():
+                if auction.start_date and auction.start_date <= datetime.utcnow():
                     return jsonify({'message': "Cannot edit an auction once started."}), 403
                 try:
                     validated = m.Auction.validate_dict(request.json)
@@ -164,10 +169,15 @@ def auction(key):
 
             return jsonify({})
         elif request.method == 'DELETE':
+            # TODO: should we allow deletion of a started auction?
             db.session.delete(auction)
             db.session.commit()
 
             return jsonify({})
+
+@api_blueprint.route('/api/auctions/<string:key>/start-twitter', methods=['POST'])
+def start_twitter(key):
+    pass
 
 @api_blueprint.route('/api/auctions/<string:key>/bids', methods=['POST'])
 @user_required
@@ -176,7 +186,7 @@ def bids(user, key):
     if not auction:
         return jsonify({'message': "Not found."}), 404
 
-    if auction.start_date > datetime.utcnow() or auction.end_date < datetime.utcnow():
+    if auction.start_date is None or auction.start_date > datetime.utcnow() or auction.end_date < datetime.utcnow():
         return jsonify({'message': "Auction not running."}), 403
 
     amount = int(request.json['amount'])

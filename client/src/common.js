@@ -5,7 +5,6 @@ export const token = writable(null);
 
 export const ContributionPercent = writable(null);
 
-export const Nym = writable(null);
 export const TwitterUsername = writable(null);
 export const TwitterUsernameVerified = writable(null);
 
@@ -13,11 +12,26 @@ export function fromJson(json) {
     var a = {};
     for (var k in json) {
         if (k === 'start_date') {
-            a.start_date = dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm");
-            a.started = dayjs(a.start_date).isBefore(dayjs());
+            a.start_date = json[k] ? dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm") : null;
+            a.started = a.start_date && dayjs(a.start_date).isBefore(dayjs());
         } else if (k === 'end_date') {
-            a.end_date = dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm");
-            a.ended = dayjs(a.end_date).isBefore(dayjs());
+            a.end_date = json[k] ? dayjs(new Date(json[k])).format("YYYY-MM-DDTHH:mm") : null;
+            a.ended = a.end_date && dayjs(a.end_date).isBefore(dayjs());
+        } else if (k === 'duration_hours') {
+            a.duration_hours = json[k];
+            let days = 0, hours = a.duration_hours;
+            if (hours >= 24) {
+                days = Math.floor(hours / 24);
+                hours = hours % 24;
+            }
+            let durations = [];
+            if (days > 0) {
+                durations.push(`${days} day${ days > 1 ? "s" : ""}`);
+            }
+            if (hours > 0) {
+                durations.push(`${hours} hour${ hours > 1 ? "s" : ""}`);
+            }
+            a.duration_str = durations.join(" and ");
         } else {
             a[k] = json[k];
         }
