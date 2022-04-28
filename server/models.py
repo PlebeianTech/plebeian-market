@@ -114,7 +114,8 @@ class Auction(db.Model):
             'canceled': self.canceled,
             'starting_bid': self.starting_bid,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
-            'media': [{'url': media.url for media in self.media}]}
+            'media': [{'url': media.url} for media in self.media]
+        }
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
 

@@ -1,5 +1,6 @@
 <script>
     import Time from 'svelte-time';
+    import { token, fetchAPI, fromJson } from "../common.js";
 
     export let auction = null;
 
@@ -22,7 +23,21 @@
     }
 
     function start() {
-        // TODO
+        fetchAPI(`/auctions/${auction.key}/start-twitter`, 'PUT', $token, null,
+            (response) => {
+                if (response.status === 200) {
+                    fetchAPI(`/auctions/${auction.key}`, 'GET', $token, null,
+                        (auctionResponse) => {
+                            if (auctionResponse.status === 200) {
+                                auctionResponse.json().then(data => {
+                                    auction = fromJson(data.auction);
+                                });
+                            }
+                        }
+                    );
+                }
+            }
+        );
     }
 </script>
 

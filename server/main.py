@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
+import json
 import os
 import random
 import signal
@@ -15,6 +16,7 @@ from flask_migrate import Migrate
 import jwt
 import lndgrpc
 import logging
+from requests_oauthlib import OAuth1Session
 
 from extensions import cors, db
 
@@ -93,8 +95,8 @@ def user_required(f):
         return f(user, *args, **kwargs)
     return decorator
 
-class MockLNDClient():
-    class InvoiceResponse():
+class MockLNDClient:
+    class InvoiceResponse:
         def __init__(self, payment_request=None, state=None, settle_index=None):
             if payment_request:
                 self.payment_request = payment_request
@@ -119,6 +121,84 @@ def get_lnd_client():
         return MockLNDClient()
     else:
         return lndgrpc.LNDClient(app.config['LND_GRPC'], macaroon_filepath=app.config['LND_MACAROON'], cert_filepath=app.config['LND_TLS_CERT'])
+
+class MockTwitter:
+    class MockKey:
+        def __eq__(self, other):
+            return True
+
+    def __init__(self, **__):
+        pass
+
+    def get_auction_tweet(self, username):
+        return {
+            'id': "MOCK_TWEET_ID",
+            'text': "Hello Mocked Tweet",
+            'auction_key': MockTwitter.MockKey(),
+            'photos': [
+                {'media_key': "MOCK_PHOTO_1", 'url': "https://bitcoin.org/img/icons/logo_ios.png"},
+                {'media_key': "MOCK_PHOTO_2", 'url': "https://plebeian.market/static/images/logo.jpg"}
+            ]
+        }
+
+class Twitter:
+    BASE_URL = "https://api.twitter.com/2"
+
+    def __init__(self, api_key, api_key_secret, access_token, access_token_secret):
+        self.session = OAuth1Session(api_key, api_key_secret, access_token, access_token_secret)
+
+    def get(self, path, params=None):
+        if params is None:
+            params = {}
+        response = self.session.get(f"{Twitter.BASE_URL}{path}", params=params)
+        if response.status_code == 200:
+            return response.json()
+
+    def get_auction_tweet(self, username):
+        response_json = self.get(f"/users/by/username/{username}")
+        if not response_json:
+            return
+
+        user_id = response_json['data']['id']
+
+        ten_minutes_ago = (datetime.utcnow() - timedelta(minutes=10)).replace(microsecond=0).isoformat() + "Z"
+        response_json = self.get(f"/users/{user_id}/tweets",
+            params={
+                'expansions': "attachments.media_keys",
+                'media.fields': "url",
+                'tweet.fields': "id,text,entities",
+                'start_time': ten_minutes_ago})
+        if response_json and response_json.get('data'):
+            auction_tweet = {}
+            for tweet in response_json['data']:
+                auction_url = None
+                for url in tweet.get('entities', {}).get('urls', []):
+                    if "plebeian.market" in url['expanded_url'] and "#plebeian-auction-" in url['expanded_url']:
+                        auction_url = url['expanded_url']
+                        break
+                else:
+                    continue
+                media_keys = tweet.get('attachments', {}).get('media_keys', [])
+
+                auction_tweet['id'] = tweet['id']
+                auction_tweet['text'] = tweet['text']
+                key_index = auction_url.index("#plebeian-auction-") + len("#plebeian-auction-")
+                auction_tweet['auction_key'] = auction_url[key_index:]
+                auction_tweet['photos'] = [m for m in response_json['includes']['media'] if m['media_key'] in media_keys and m['type'] == 'photo']
+
+                return auction_tweet
+
+def get_twitter():
+    if app.config['MOCK_TWITTER']:
+        return MockTwitter()
+    else:
+        with open(app.config['TWITTER_SECRETS']) as f:
+            twitter_secrets = json.load(f)
+        api_key = twitter_secrets['API_KEY']
+        api_key_secret = twitter_secrets['API_KEY_SECRET']
+        access_token = twitter_secrets['ACCESS_TOKEN']
+        access_token_secret = twitter_secrets['ACCESS_TOKEN_SECRET']
+        return Twitter(api_key, api_key_secret, access_token, access_token_secret)
 
 if __name__ == '__main__':
     import lnurl

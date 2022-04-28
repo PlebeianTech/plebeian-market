@@ -1,5 +1,6 @@
 <script>
     import { onMount } from 'svelte';
+    import Carousel from 'svelte-carousel';
     import Time from 'svelte-time';
     import { token, fromJson, fetchAPI, TwitterUsername } from "../common.js";
     import Loading from '../Loading.svelte';
@@ -126,6 +127,13 @@
         {#if selected === 'auction'}
             <h2 class="text-zinc-300 text-3xl">{auction.title}</h2>
             <p class="text-zinc-300">{auction.description}</p>
+            <Carousel>
+                {#each auction.media as photo}
+                    <div class="flex justify-center">
+                        <img src={photo.url} alt="Auctioned object" />
+                    </div>
+                {/each}
+            </Carousel>
             {#if auction.canceled}
                 <p class="text-zinc-300">This auction was canceled.</p>
             {:else if auction.start_date}

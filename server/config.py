@@ -23,3 +23,6 @@ MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
 LND_GRPC = os.environ.get('LND_GRPC')
 LND_MACAROON = "/secrets/admin.macaroon"
 LND_TLS_CERT = "/secrets/tls.cert"
+
+MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
+TWITTER_SECRETS = "/secrets/twitter.json"

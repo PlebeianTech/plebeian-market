@@ -341,3 +341,37 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 400)
         self.assertTrue('amount needs to be at least' in response['message'].lower())
+
+        # create an auction without a start date
+        code, response = self.post("/api/auctions",
+            {'title': "Auction without start date",
+             'description': "Selling something on Twitter",
+             'duration_hours': 24,
+             'starting_bid': 10,
+             'reserve_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+
+        auction_key_3 = response['auction']['key']
+
+        # another user can't start my auction
+        code, response = self.put(f"/api/auctions/{auction_key_3}/start-twitter", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 401)
+
+        # start the auction by getting images from Twitter
+        code, response = self.put(f"/api/auctions/{auction_key_3}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        time.sleep(1) # this is not needed for the start to work, but we use it to make sure start_date is in the past
+
+        code, response = self.get(f"/api/auctions/{auction_key_3}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+        self.assertTrue(response['auction']['start_date'] < (datetime.utcnow().isoformat() + "Z"))
+        self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
+        self.assertEqual(len(response['auction']['media']), 2)
+        self.assertTrue("logo" in response['auction']['media'][0]['url']) # this one comes from MockTwitter

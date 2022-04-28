@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client
+from main import app, get_lnd_client, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 
 api_blueprint = Blueprint('api', __name__)
@@ -175,9 +175,28 @@ def auction(key):
 
             return jsonify({})
 
-@api_blueprint.route('/api/auctions/<string:key>/start-twitter', methods=['POST'])
-def start_twitter(key):
-    pass
+@api_blueprint.route('/api/auctions/<string:key>/start-twitter', methods=['PUT'])
+@user_required
+def start_twitter(user, key):
+    auction = m.Auction.query.filter_by(key=key).first()
+    if not auction:
+        return jsonify({'message': "Not found."}), 404
+    if auction.seller_id != user.id:
+        return jsonify({'message': "Unauthorized"}), 401
+    tweet = get_twitter().get_auction_tweet(user.twitter_username)
+    if not tweet or tweet['auction_key'] != auction.key:
+        return jsonify({'message': "No tweet found."}), 403 # TODO what status?
+
+    user.twitter_username_verified = True
+    auction.twitter_id = tweet['id']
+    auction.start_date = datetime.utcnow()
+    auction.end_date = auction.start_date + timedelta(hours=auction.duration_hours)
+    for photo in tweet['photos']:
+        media = m.Media(auction_id=auction.id, twitter_media_key=photo['media_key'], url=photo['url'])
+        db.session.add(media)
+    db.session.commit()
+
+    return jsonify({})
 
 @api_blueprint.route('/api/auctions/<string:key>/bids', methods=['POST'])
 @user_required

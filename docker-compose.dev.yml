@@ -17,6 +17,7 @@ services:
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1
+      - MOCK_TWITTER=1
       - SQLALCHEMY_DISABLE_POOLING=1
     ports:
       - "5000:5000"
@@ -33,6 +34,7 @@ services:
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1
+      - MOCK_TWITTER=1
       - SQLALCHEMY_DISABLE_POOLING=1
     volumes:
       - "./server:/app/server"
