@@ -6,13 +6,19 @@
     let value = $ContributionPercent !== null ? [$ContributionPercent, $ContributionPercent] : [10, 10];
 
     let twitterUsernameValue = $TwitterUsername;
+    let invalidTwitterUsername = false;
 
     export let updateContributionPercent = true;
 
     export let onSave = () => {};
 
+    function isTwitterUsernameValid() {
+        return !(twitterUsernameValue === null || twitterUsernameValue.length === 0);
+    }
+
     function saveProfile() {
-        if (!twitterUsernameValue) {
+        invalidTwitterUsername = !isTwitterUsernameValid();
+        if (invalidTwitterUsername) {
             return;
         }
         const data = {twitter_username: twitterUsernameValue};
@@ -45,8 +51,8 @@
 
     <div class="w-1/2">
         <div class="form-group">
-            <input id="twitter-username" name="twitter-username" class:invalid-field={!twitterUsernameValue || twitterUsernameValue === ''} class="form-field" bind:value={twitterUsernameValue} />
-            <label class:invalid={!twitterUsernameValue || twitterUsernameValue === ''} class="form-label" for="twitter-username">Twitter username</label>
+            <input id="twitter-username" name="twitter-username" class:invalid-field={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-field" bind:value={twitterUsernameValue} />
+            <label class:invalid={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-label" for="twitter-username">Twitter username *</label>
         </div>
 
         {#if updateContributionPercent}
