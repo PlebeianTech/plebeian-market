@@ -6,7 +6,7 @@ RUN apt-get update \
  && pip3 install -r /requirements.txt
 
 COPY ./server /app/server
-COPY ./client /app/client
+COPY ./web /app/web
 
 WORKDIR /app/server
 

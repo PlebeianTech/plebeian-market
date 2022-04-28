@@ -1,5 +1,5 @@
 {
-  "name": "plebeianmarket-client",
+  "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
     "@bulatdashiev/svelte-slider": "^1.0.3",

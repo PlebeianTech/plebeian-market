@@ -31,7 +31,7 @@ class MyFlask(Flask):
         return super().__call__(environ, start_response)
 
 def create_app():
-    app = MyFlask(__name__, static_folder="../client/static")
+    app = MyFlask(__name__, static_folder="../web/static")
     app.config.from_object('config')
     cors.init_app(app)
     db.init_app(app)
@@ -135,23 +135,23 @@ if __name__ == '__main__':
 
     @app.route('/app', strict_slashes=False, methods=['GET'])
     def index():
-        return send_file("../client/app/index.html")
+        return send_file("../web/app/index.html")
 
     @app.route('/app/buyer', strict_slashes=False, methods=['GET'])
     def buyer():
-        return send_file("../client/app/buyer/index.html")
+        return send_file("../web/app/buyer/index.html")
 
     @app.route('/app/seller', strict_slashes=False, methods=['GET'])
     def seller():
-        return send_file("../client/app/seller/index.html")
+        return send_file("../web/app/seller/index.html")
 
     @app.route('/app/buyer/bundle.js', methods=['GET'])
     def buyer_bundle():
-        return send_file("../client/app/buyer/bundle.js")
+        return send_file("../web/app/buyer/bundle.js")
 
     @app.route('/app/seller/bundle.js', methods=['GET'])
     def seller_bundle():
-        return send_file("../client/app/seller/bundle.js")
+        return send_file("../web/app/seller/bundle.js")
 
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:

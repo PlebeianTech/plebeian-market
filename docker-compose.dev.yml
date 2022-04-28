@@ -22,7 +22,7 @@ services:
       - "5000:5000"
     volumes:
       - "./server:/app/server"
-      - "./client:/app/client"
+      - "./web:/app/web"
     command: bash -c "flask db upgrade && python3 ./main.py"
   settle-bids:
     depends_on:
