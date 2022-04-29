@@ -19,23 +19,23 @@
             <div class="flex">
             <div class="form-group mr-2 w-full">
                 <input class="form-field" class:invalid-field={auction.invalidTitle && auction.title.length === 0} name="title" bind:value={auction.title} type="text" id="title" />
-                <label class="form-label" class:invalid={auction.invalidTitle && auction.title.length === 0} for="title">Title *</label>
+                <label class="form-label" class:invalid={auction.invalidTitle && auction.title.length === 0} for="title">Title</label>
             </div>
             </div>
             <div class="flex">
             <div class="form-group mr-2 w-full">
-                <textarea class="form-field" class:invalid-field={auction.invalidDescription && auction.description.length === 0} name="description" bind:value={auction.description} id="description"></textarea>
-                <label class="form-label" class:invalid={auction.invalidDescription && auction.description.length === 0} for="reserve-bid">Description *</label>
+                <textarea class="form-field" rows="4" class:invalid-field={auction.invalidDescription && auction.description.length === 0} name="description" bind:value={auction.description} id="description"></textarea>
+                <label class="form-label" class:invalid={auction.invalidDescription && auction.description.length === 0} for="reserve-bid">Description</label>
             </div>
             </div>
             <div class="flex">
                 <div class="form-group mr-2 w-1/2">
                     <input class="form-field" name="starting-bid" bind:value={auction.starting_bid} type="number" id="starting-bid" />
-                    <label class="form-label" for="starting-bid">Starting bid</label>
+                    <label class="form-label" for="starting-bid">Starting bid (optional)</label>
                 </div>
                 <div class="form-group ml-2 w-1/2">
                     <input class="form-field" name="reserve-bid" bind:value={auction.reserve_bid} type="number" id="reserve-bid" />
-                    <label class="form-label" for="reserve-bid">Reserve bid</label>
+                    <label class="form-label" for="reserve-bid">Reserve bid (optional)</label>
                 </div>
             </div>
             <div class="form-group mr-2 w-full">
@@ -57,7 +57,7 @@
 <div class="w-full flex justify-center items-center">
     <div class="w-4/6">
         <div class="float-left pt-5">
-            <div class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
+            <div class:disabled={auction.title.length === 0 || auction.description.length === 0} class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
         </div>
         <div class="float-right pt-5">
             <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click|preventDefault={() => auction = null}>Cancel</button>
