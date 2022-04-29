@@ -3,6 +3,7 @@
     import { token, fetchAPI, fromJson } from "../common.js";
 
     export let auction = null;
+    let twitterLinkCopied = false;
 
     export let onEdit = (auction) => {};
 
@@ -11,11 +12,7 @@
     export let onDelete = (key) => {};
 
     function copySnippet() {
-        // TODO
-        const snippet = '<link rel="stylesheet" href="https://plebeian.market/static/style.css">'
-            + `<div id="plebeian-auction" data-key="${auction.key}"></div>`
-            + '<script src="https://plebeian.market/app/buyer/bundle.js">'+ "</" + "script>";
-        navigator.clipboard.writeText(snippet).then(() => alert("Snippet copied!"));
+        navigator.clipboard.writeText(`/app/buyer#plebeian-auction-${auction.key}`).then(() => { twitterLinkCopied = true; alert("URL copied!"); });
     }
 
     function view() {
@@ -56,20 +53,36 @@
     </div>
     <p class="text-zinc-300 mt-2">Duration: {auction.duration_str} {#if auction.start_date}/ <Time timestamp={auction.start_date} format="dddd MMMM D, H:mm" /> - <Time timestamp={auction.end_date} format="dddd MMMM D, H:mm - YYYY" />{/if}</p>
     <p class="text-zinc-300"><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
-    <div class="float-left pt-5">
-        <div class="glowbutton glowbutton-copy" on:click|preventDefault={copySnippet}></div>
-    </div>
-    <div class="float-right pt-5">
-        <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click={view}>View</button>
-        {#if !auction.started}
-            <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-green-800" on:click={start}>Start</button>
-            {#if !auction.canceled}
-                <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click={() => onEdit(auction)}>Edit</button>
+    <div class="mt-2 float-root">
+        <div class="py-5 float-right">
+            <button class="btn" on:click={view}>View</button>
+            {#if !auction.started}
+                {#if !auction.canceled}
+                    <button class="btn" on:click={() => onEdit(auction)}>Edit</button>
+                {/if}
+                <button class="btn" on:click={() => onDelete(auction.key)}>Delete</button>
             {/if}
-            <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-red-800" on:click={() => onDelete(auction.key)}>Delete</button>
-        {/if}
-        {#if !auction.canceled && !auction.ended}
-            <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-red-800" on:click={() => onCancel(auction.key)}>Cancel</button>
-        {/if}
+            {#if !auction.canceled && !auction.ended}
+                <button class="btn" on:click={() => onCancel(auction.key)}>Cancel</button>
+            {/if}
+        </div>
+    </div>
+    <div class="mt-2">
+        <div class="py-5 w-full flex items-center justify-center bg-gray-800 rounded">
+            <p class="text-zinc-300 text-2xl mr-2">Twitter</p>
+            {#if !twitterLinkCopied && !auction.started}
+                <div class="glowbutton glowbutton-copy mx-2" on:click|preventDefault={copySnippet}></div>
+            {:else}
+                <button class="btn mx-2" on:click={copySnippet}>Copy</button>
+            {/if}
+            {#if !auction.started}
+                <p>the link, tweet it, then click</p>
+                {#if !twitterLinkCopied}
+                    <button class="btn ml-2" on:click={start}>Start</button>
+                {:else}
+                    <div class="glowbutton glowbutton-start" on:click|preventDefault={start}></div>
+                {/if}
+            {/if}
+        </div>
     </div>
 </div>

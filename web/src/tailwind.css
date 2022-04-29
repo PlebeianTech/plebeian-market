@@ -87,6 +87,10 @@
   content: 'Save';
 }
 
+.glowbutton-start:after {
+  content: 'Start';
+}
+
 .glowbutton-copy:after {
   content: 'Copy';
 }

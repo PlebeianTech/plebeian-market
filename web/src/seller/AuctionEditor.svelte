@@ -60,7 +60,7 @@
             <div class:disabled={auction.title.length === 0 || auction.description.length === 0} class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
         </div>
         <div class="float-right pt-5">
-            <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click|preventDefault={() => auction = null}>Cancel</button>
+            <button class="btn" on:click|preventDefault={() => auction = null}>Cancel</button>
         </div>
     </div>
 </div>

@@ -26,5 +26,5 @@
     <div class="glowbutton glowbutton-continue" on:click|preventDefault={checkInput}></div>
 </div>
 <div class="float-right pt-5">
-    <button class="m-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black" on:click|preventDefault={onCancel}>Cancel</button>
+    <button class="btn" on:click|preventDefault={onCancel}>Cancel</button>
 </div>
