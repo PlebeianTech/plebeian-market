@@ -18,6 +18,7 @@
     }
 
     let auction = null;
+    let bidCount = 0;
     let amount = null;
     let paymentRequest = null;
     let paymentQr = null;
@@ -78,16 +79,19 @@
                 if (response.status === 200) {
                     response.json().then(data => {
                         auction = fromJson(data.auction);
-                        var lastBid = auction.starting_bid;
+                        var maxBid = auction.starting_bid;
                         for (const bid of auction.bids) {
                             if (bid.payment_request === paymentRequest) {
                                 paymentQr = paymentRequest = amount = null;
                             }
-                            lastBid = bid.amount;
+                            if (bid.amount > maxBid) {
+                                maxBid = bid.amount;
+                            }
                         }
-                        if (!amount) {
-                            amount = nextBid(lastBid);
+                        if (!amount || auction.bids.length != bidCount) {
+                            amount = nextBid(maxBid);
                         }
+                        bidCount = auction.bids.length;
                         setTimeout(refreshAuction, 1000);
                     });
                 }
