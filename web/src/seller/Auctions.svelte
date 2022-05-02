@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
-    import { token, fromJson, fetchAPI } from "../common.js";
+    import { fromJson, fetchAPI } from "../common.js";
+    import { token } from "../stores.js";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Confirmation from "./Confirmation.svelte";
@@ -43,9 +44,6 @@
                     fetchAPI("/auctions", 'GET', $token, null, checkResponse);
                 }
             });
-        } else if (response.status === 401) {
-            console.log("Error 401: Unauthorized");
-            $token = null;
         } else {
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.indexOf('application/json') !== -1) {

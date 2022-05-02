@@ -1,35 +1,16 @@
 <script>
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import Carousel from 'svelte-carousel';
     import Time from 'svelte-time';
-    import { token, fromJson, fetchAPI, TwitterUsername } from "../common.js";
+    import { fromJson, fetchAPI } from "../common.js";
+    import { token, TwitterUsername } from '../stores.js';
     import Loading from '../Loading.svelte';
     import Login from '../Login.svelte';
     import Profile from '../Profile.svelte';
 
-    $token = sessionStorage.getItem('token');
-
     let isLoading = false;
 
-    let selected = null;
-
-    if ($token) {
-        isLoading = true;
-        fetchAPI("/users/me", 'GET', $token, null,
-            (response) => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        TwitterUsername.set(data.user.twitter_username);
-                        isLoading = false;
-                        if ($TwitterUsername === null) {
-                            selected = 'profile';
-                        }
-                    });
-                }
-            });
-    }
-
-    selected = 'auction';
+    let selected = 'auction';
 
     export let key;
     if (window.location.hash.substring(1).startsWith('plebeian-auction-')) {
@@ -115,6 +96,28 @@
     }
 
     onMount(async () => { refreshAuction() });
+
+    const unsubscribe = token.subscribe(tokenValue => {
+        if (!tokenValue) {
+            return;
+        }
+        isLoading = true;
+        fetchAPI("/users/me", 'GET', tokenValue, null,
+            (response) => {
+                isLoading = false;
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        TwitterUsername.set(data.user.twitter_username);
+                        if ($TwitterUsername === null) {
+                            selected = 'profile';
+                        }
+                    });
+                }
+            });
+    });
+	onDestroy(unsubscribe);
+
+    token.set(sessionStorage.getItem('token'));
 </script>
 
 {#if auction}

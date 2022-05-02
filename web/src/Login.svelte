@@ -1,6 +1,7 @@
 <script>
     import { onDestroy } from 'svelte';
-    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified, fetchAPI } from "./common.js";
+    import { fetchAPI } from "./common.js";
+    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from './stores.js';
 
     let qr;
     let k1;

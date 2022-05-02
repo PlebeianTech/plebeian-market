@@ -1,6 +1,7 @@
 <script>
     import Time from 'svelte-time';
-    import { token, fetchAPI, fromJson } from "../common.js";
+    import { fetchAPI, fromJson } from "../common.js";
+    import { token } from "../stores.js";
 
     export let auction = null;
     let twitterLinkCopied = false;

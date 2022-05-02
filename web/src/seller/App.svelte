@@ -3,36 +3,21 @@
 </svelte:head>
 
 <script>
-    import { onMount } from 'svelte';
-    import { fetchAPI, token, ContributionPercent, TwitterUsername } from "../common.js";
-    import Loading from '../Loading.svelte';
-    import Login from '../Login.svelte';
-    import About from './About.svelte';
-    import Auctions from './Auctions.svelte';
-    import Profile from '../Profile.svelte';
-
-    $token = sessionStorage.getItem('token');
+    import { onDestroy, onMount } from 'svelte';
+    import { fetchAPI } from "../common.js";
+    import { token, ContributionPercent, TwitterUsername } from "../stores.js";
+    import Loading from "../Loading.svelte";
+    import Login from "../Login.svelte";
+    import About from "./About.svelte";
+    import Auctions from "./Auctions.svelte";
+    import Profile from "../Profile.svelte";
 
     let isLoading = false;
-
-    if ($token) {
-        isLoading = true;
-        fetchAPI("/users/me", 'GET', $token, null,
-            (response) => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        ContributionPercent.set(data.user.contribution_percent);
-                        TwitterUsername.set(data.user.twitter_username);
-                        isLoading = false;
-                    });
-                }
-            });
-    }
 
     let selected = 'app';
 
     function logout() {
-        $token = null;
+        token.set(null);
         selected = 'app';
     }
 
@@ -42,14 +27,14 @@
 
     onMount(() => {
         mounted = true;
-        if (popperReady) {
+        if (popperReady && !popperInitialized) {
             initPopper();
         }
     });
 
     function popperLoaded() {
         popperReady = true;
-        if (mounted) {
+        if (mounted && !popperInitialized) {
             initPopper();
         }
     }
@@ -77,6 +62,26 @@
             document.getElementById('dropdown').style.display = 'none';
         }
     }
+
+    const unsubscribe = token.subscribe(tokenValue => {
+        if (!tokenValue) {
+            return;
+        }
+        isLoading = true;
+        fetchAPI("/users/me", 'GET', tokenValue, null,
+            (response) => {
+                isLoading = false;
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        ContributionPercent.set(data.user.contribution_percent);
+                        TwitterUsername.set(data.user.twitter_username);
+                    });
+                }
+            });
+    });
+	onDestroy(unsubscribe);
+
+    token.set(sessionStorage.getItem('token'));
 </script>
 
 <svelte:window on:click={click} />

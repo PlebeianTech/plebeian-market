@@ -1,7 +1,8 @@
 <script>
     import Slider from '@bulatdashiev/svelte-slider';
 
-    import { fetchAPI, token, ContributionPercent, TwitterUsername } from "./common.js";
+    import { fetchAPI } from "./common.js";
+    import { token, ContributionPercent, TwitterUsername } from "./stores.js";
 
     let value = $ContributionPercent !== null ? [$ContributionPercent, $ContributionPercent] : [10, 10];
 

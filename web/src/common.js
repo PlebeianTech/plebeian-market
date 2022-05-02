@@ -1,12 +1,6 @@
 import dayjs from 'dayjs';
-import { writable } from 'svelte/store';
 
-export const token = writable(null);
-
-export const ContributionPercent = writable(null);
-
-export const TwitterUsername = writable(null);
-export const TwitterUsernameVerified = writable(null);
+import { token } from "./stores.js";
 
 export function fromJson(json) {
     var a = {};
@@ -39,11 +33,12 @@ export function fromJson(json) {
     return a;
 }
 
-export function fetchAPI(path, method, token, json, checkResponse) {
-    var API_BASE = (window.location.href.indexOf("localhost") != -1 || window.location.href.indexOf("127.0.0.1") != -1) ? "/api" : "https://plebeian.market/api";
+export function fetchAPI(path, method, tokenValue, json, checkResponse) {
+    var isLocal = window.location.href.indexOf("localhost") != -1 || window.location.href.indexOf("127.0.0.1") != -1 || window.location.href.indexOf("0.0.0.0") != -1;
+    var API_BASE = (isLocal) ? "/api" : "https://plebeian.market/api";
     var headers = {};
-    if (token) {
-        headers['X-Access-Token'] = token;
+    if (tokenValue) {
+        headers['X-Access-Token'] = tokenValue;
     }
     if (json) {
         headers['Content-Type'] = 'application/json';
@@ -52,5 +47,14 @@ export function fetchAPI(path, method, token, json, checkResponse) {
     if (json) {
         fetchOptions['body'] = json;
     }
-    fetch(`${API_BASE}${path}`, fetchOptions).then(checkResponse);
+    fetch(`${API_BASE}${path}`, fetchOptions).then(
+        (response) => {
+            if (response.status === 401) {
+                console.log("Error 401: Unauthorized. Deleting the token.");
+                token.set(null);
+            } else {
+                checkResponse(response);
+            }
+        }
+    );
 }
