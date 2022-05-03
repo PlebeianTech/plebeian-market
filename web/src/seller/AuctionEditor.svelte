@@ -1,6 +1,32 @@
 <script>
+    import { onMount } from 'svelte';
+
     export let auction = null;
     export let onSave = () => {};
+
+    let duration = "";
+    let durationMultiplier = "1";
+
+    function twelveHours() {
+        auction.duration_hours = 12;
+        customDuration();
+    }
+
+    function customDuration() {
+        if (auction.duration_hours % 24 === 0) {
+            durationMultiplier = "24";
+            duration = auction.duration_hours / 24;
+        } else {
+            durationMultiplier = "1";
+            duration = auction.duration_hours;
+        }
+    }
+
+    function customChanged() {
+        auction.duration_hours = parseInt(duration) * parseInt(durationMultiplier);
+    }
+
+    onMount(async () => { customDuration() });
 </script>
 
 <style>
@@ -14,7 +40,7 @@
 
 <div class="w-full flex justify-center items-center">
     <div class="w-4/6 p-4 rounded shadow-lg bg-gray-900 my-3 glowbox">
-        <h3 class="mb-4 text-2xl text-center text-white">{#if auction.key}Edit auction <code class="bg-cyan-600 p-1 rounded">{auction.key}</code>{:else}Create a new auction{/if}</h3>
+        <h2 class="mb-4 text-2xl text-center text-white">{#if auction.key}Edit auction <code class="bg-cyan-600 p-1 rounded">{auction.key}</code>{:else}Create a new auction{/if}</h2>
         <form>
             <div class="flex">
             <div class="form-group mr-2 w-full">
@@ -39,15 +65,24 @@
                 </div>
             </div>
             <div class="form-group mr-2 w-full">
-                <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
                 <div class="flex justify-center items-center">
                     <div class="w-1/3 mt-5 text-center">
                         <span class="text-indigo-200 mr-2 mt-5 p-2">Duration</span>
                     </div>
-                    <div class="w-2/3 mt-5 flex justify-center items-center">
-                        <button class:bg-black={auction.duration_hours === 1} class="mr-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.duration_hours = 1}>An hour</button>
-                        <button class:bg-black={auction.duration_hours === 24} class="mr-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.duration_hours = 24}>A day</button>
-                        <button class:bg-black={auction.duration_hours === 24 * 7} class="mr-2 p-2 border-2 rounded text-indigo-200 border-pink-300 hover:bg-black float-left hidden md:inline-block" on:click|preventDefault={() => auction.duration_hours = 24 * 7}>A week</button>
+                    <div class="w-2/3 mt-5">
+                        <div class="flex justify-center items-center">
+                            <button class:btn-outline={auction.duration_hours !== 1} class:btn-active={auction.duration_hours === 1} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 1}>An hour</button>
+                            <button class:btn-outline={auction.duration_hours !== 24} class:btn-active={auction.duration_hours === 24} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 24}>A day</button>
+                            <button class:btn-outline={auction.duration_hours === 1 || auction.duration_hours === 24} class:btn-active={auction.duration_hours !== 1 && auction.duration_hours !== 24} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={twelveHours}>Custom</button>
+                            <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
+                        </div>
+                        <div class:invisible={auction.duration_hours === 1 || auction.duration_hours === 24} class="flex justify-center items-center">
+                            <input bind:value={duration} class="form-field leading-none pr-2 mr-2" name="duration" type="number" id="duration" on:change={customChanged} />
+                            <select bind:value={durationMultiplier} class="form-field leading-none" name="duration-multiplier" id="duration-multiplier" on:change={customChanged}>
+                                <option value="1">Hours</option>
+                                <option value="24">Days</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
