@@ -1,5 +1,6 @@
 <script>
     import { onMount } from 'svelte';
+    import { toasts, FlatToast, ToastContainer }  from "svelte-toasts";
     import { fromJson, fetchAPI } from "../common.js";
     import { token } from "../stores.js";
     import AuctionCard from "./AuctionCard.svelte";
@@ -65,6 +66,14 @@
             fetchAPI(`/auctions/${currentAuction.key}`, 'PUT', $token, asJson(), checkResponse);
         } else {
             fetchAPI("/auctions", 'POST', $token, asJson(), checkResponse);
+            const toast = toasts.add({
+                title: "Auction created",
+                description: "Your auction will start when we verify your tweet",
+                duration: 3000,
+                placement: 'bottom-right',
+                type: 'info',
+                showProgress: true
+            });
         }
     }
 
@@ -102,4 +111,7 @@
             {/each}
         {/if}
     </section>
+    <ToastContainer placement="bottom-right" let:data={data}>
+        <FlatToast {data} />
+      </ToastContainer>
 </div>
