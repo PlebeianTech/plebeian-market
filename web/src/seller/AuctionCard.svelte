@@ -13,7 +13,7 @@
     export let onDelete = (key) => {};
 
     function copySnippet() {
-        navigator.clipboard.writeText(`/app/buyer#plebeian-auction-${auction.key}`).then(() => { twitterLinkCopied = true; alert("URL copied!"); });
+        navigator.clipboard.writeText(`https://plebeian.market/app/buyer#plebeian-auction-${auction.key}`).then(() => { twitterLinkCopied = true; alert("URL copied!"); });
     }
 
     function view() {
