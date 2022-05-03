@@ -103,6 +103,10 @@
   content: 'Bid';
 }
 
+.glowbutton-tweet:after {
+  content: 'Tweet';
+}
+
 .glowbox {
   padding: 16px 24px;
   position: relative;
