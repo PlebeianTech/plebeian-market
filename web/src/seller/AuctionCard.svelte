@@ -2,6 +2,7 @@
     import Time from 'svelte-time';
     import { fetchAPI, fromJson } from "../common.js";
     import { token } from "../stores.js";
+    import { default as Countdown } from "../Countdown.svelte";
 
     export let auction = null;
     let twitterLinkCopied = false;
@@ -50,7 +51,7 @@
 <div class="max-w-full p-4 rounded overflow-hidden shadow-lg bg-gray-900 my-3">
     <div class="text-center">
         <h3 class="text-zinc-300 text-2xl">{auction.title}</h3>
-        <span class="text-zinc-300">
+        <span class="text-zinc-300 font-mono">
             {#if auction.started && !auction.ended}
                 (running)
             {:else if auction.ended}
@@ -63,6 +64,11 @@
     <p class="text-zinc-300 mt-2">Duration: {auction.duration_str} {#if auction.start_date}/ <Time timestamp={auction.start_date} format="dddd MMMM D, H:mm" /> - <Time timestamp={auction.end_date} format="dddd MMMM D, H:mm - YYYY" />{/if}</p>
     <p class="text-zinc-300"><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
     <div class="mt-2 float-root">
+        <div class="py-5 float-left">
+            {#if auction.started && !auction.ended}
+                <Countdown untilDate={new Date(auction.end_date)} />
+            {/if}
+        </div>
         <div class="py-5 float-right">
             <button class="btn" on:click={view}>View</button>
             {#if !auction.started}
