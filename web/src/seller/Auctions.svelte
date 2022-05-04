@@ -1,6 +1,6 @@
 <script>
     import { onMount } from 'svelte';
-    import { toasts, FlatToast, ToastContainer }  from "svelte-toasts";
+    import { toasts, ToastContainer }  from "svelte-toasts";
     import { fromJson, fetchAPI } from "../common.js";
     import { token } from "../stores.js";
     import AuctionCard from "./AuctionCard.svelte";
@@ -71,8 +71,7 @@
                 description: "Your auction will start when we verify your tweet",
                 duration: 3000,
                 placement: 'bottom-right',
-                type: 'info',
-                showProgress: true
+                type: 'info'
             });
         }
     }
@@ -112,6 +111,11 @@
         {/if}
     </section>
     <ToastContainer placement="bottom-right" let:data={data}>
-        <FlatToast {data} />
-      </ToastContainer>
+        <div class="alert alert-info shadow-lg">
+            <div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>{data.description}</span>
+            </div>
+          </div>
+    </ToastContainer>
 </div>
