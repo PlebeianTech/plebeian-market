@@ -95,8 +95,8 @@
   content: 'Copy';
 }
 
-.glowbutton-continue:after {
-  content: 'Continue';
+.glowbutton-confirm:after {
+  content: 'Confirm';
 }
 
 .glowbutton-bid:after {

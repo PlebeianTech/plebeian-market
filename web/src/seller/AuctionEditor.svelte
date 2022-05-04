@@ -92,10 +92,10 @@
 <div class="w-full flex justify-center items-center">
     <div class="w-4/6">
         <div class="float-left pt-5">
-            <div class:disabled={auction.title.length === 0 || auction.description.length === 0} class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
+            <button class="btn" on:click|preventDefault={() => auction = null}>Cancel</button>
         </div>
         <div class="float-right pt-5">
-            <button class="btn" on:click|preventDefault={() => auction = null}>Cancel</button>
+            <div class:disabled={auction.title.length === 0 || auction.description.length === 0} class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
         </div>
     </div>
 </div>

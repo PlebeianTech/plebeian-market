@@ -23,8 +23,8 @@
     </div>
 </div>
 <div class="float-left pt-5">
-    <div class="glowbutton glowbutton-continue" on:click|preventDefault={checkInput}></div>
+    <button class="btn" on:click|preventDefault={onCancel}>Cancel</button>
 </div>
 <div class="float-right pt-5">
-    <button class="btn" on:click|preventDefault={onCancel}>Cancel</button>
+    <div class="glowbutton glowbutton-confirm" on:click|preventDefault={checkInput}></div>
 </div>
