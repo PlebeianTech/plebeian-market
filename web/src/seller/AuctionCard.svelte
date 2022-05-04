@@ -79,21 +79,29 @@
     {#if !auction.started}
     <div class="mt-2">
         <div class="py-5 w-full flex items-center justify-center bg-gray-800 rounded">
-            {#if !twitterLinkCopied && !twitterOpened}
-                <div class="glowbutton glowbutton-copy mx-2" on:click|preventDefault={copySnippet}></div>
-            {:else}
-                <button class="btn mx-2" on:click={copySnippet}>Copy</button>
-            {/if}
-            {#if twitterLinkCopied && !twitterOpened}
-                <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
-            {:else}
-                <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
-            {/if}
-            {#if twitterLinkCopied && twitterOpened}
-                <div class="glowbutton glowbutton-start ml-2" on:click|preventDefault={start}></div>
-            {:else}
-                <button class="btn mx-2" on:click={start}>Start</button>
-            {/if}
+            <ul class="steps steps-vertical lg:steps-horizontal">
+                <li class="step" class:step-primary={twitterLinkCopied}>
+                    {#if !twitterLinkCopied && !twitterOpened}
+                        <div class="glowbutton glowbutton-copy mx-2" on:click|preventDefault={copySnippet}></div>
+                    {:else}
+                        <button class="btn mx-2" on:click={copySnippet}>Copy</button>
+                    {/if}
+                </li>
+                <li class="step" class:step-primary={twitterOpened}>
+                    {#if twitterLinkCopied && !twitterOpened}
+                        <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
+                    {:else}
+                        <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
+                    {/if}
+                </li>
+                <li class="step">
+                    {#if twitterLinkCopied && twitterOpened}
+                        <div class="glowbutton glowbutton-start ml-2" on:click|preventDefault={start}></div>
+                    {:else}
+                        <button class="btn mx-2" on:click={start}>Start</button>
+                    {/if}
+                </li>
+            </ul>
         </div>
     </div>
     {/if}
