@@ -14,7 +14,7 @@
     export let onDelete = (key) => {};
 
     function copySnippet() {
-        navigator.clipboard.writeText(`https://plebeian.market/app/buyer#plebeian-auction-${auction.key}`).then(() => { twitterLinkCopied = true; alert("URL copied!"); });
+        navigator.clipboard.writeText(`https://plebeian.market/app/buyer#plebeian-auction-${auction.key}`).then(() => { twitterLinkCopied = true; });
     }
 
     function openTwitter() {
@@ -84,7 +84,7 @@
                     {#if !twitterLinkCopied && !twitterOpened}
                         <div class="glowbutton glowbutton-copy mx-2" on:click|preventDefault={copySnippet}></div>
                     {:else}
-                        <button class="btn mx-2" on:click={copySnippet}>Copy</button>
+                        <button class="btn mx-2" on:click={copySnippet}>Copied!</button>
                     {/if}
                 </li>
                 <li class="step" class:step-primary={twitterOpened}>
