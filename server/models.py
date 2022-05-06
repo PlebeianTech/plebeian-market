@@ -114,7 +114,7 @@ class Auction(db.Model):
             'canceled': self.canceled,
             'starting_bid': self.starting_bid,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
-            'media': [{'url': media.url} for media in self.media]
+            'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media]
         }
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
@@ -177,7 +177,8 @@ class Bid(db.Model):
     def to_dict(self, for_user=None):
         bid = {
             'amount': self.amount,
-            'bidder': self.buyer.nym or (self.buyer.twitter_username_verified and self.buyer.twitter_username) or None,
+            'twitter_username': self.buyer.twitter_username,
+            'twitter_username_verified': self.buyer.twitter_username_verified,
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None)}
         if for_user == self.buyer_id:
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
