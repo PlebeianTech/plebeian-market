@@ -173,7 +173,7 @@ class Twitter:
             for tweet in response_json['data']:
                 auction_url = None
                 for url in tweet.get('entities', {}).get('urls', []):
-                    if "plebeian.market" in url['expanded_url'] and "#plebeian-auction-" in url['expanded_url']:
+                    if url['expanded_url'].startswith("https://plebeian.market/auctions/"):
                         auction_url = url['expanded_url']
                         break
                 else:
@@ -182,8 +182,7 @@ class Twitter:
 
                 auction_tweet['id'] = tweet['id']
                 auction_tweet['text'] = tweet['text']
-                key_index = auction_url.index("#plebeian-auction-") + len("#plebeian-auction-")
-                auction_tweet['auction_key'] = auction_url[key_index:]
+                auction_tweet['auction_key'] = auction_url[len("https://plebeian.market/auctions/"):]
                 auction_tweet['photos'] = [m for m in response_json['includes']['media'] if m['media_key'] in media_keys and m['type'] == 'photo']
 
                 return auction_tweet
