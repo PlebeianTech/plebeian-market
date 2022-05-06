@@ -1,7 +1,11 @@
 <script>
-    import { onDestroy } from 'svelte';
+    import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
     import { fetchAPI } from "./common.js";
     import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from './stores.js';
+    import Loading from "./Loading.svelte";
+
+    export let onLogin = () => {};
 
     let qr;
     let k1;
@@ -14,9 +18,11 @@
                         data => {
                             if (data.success) {
                                 token.set(data.token);
+                                localStorage.setItem('token', data.token);
                                 ContributionPercent.set(data.user.contribution_percent);
                                 TwitterUsername.set(data.user.twitter_username);
                                 TwitterUsernameVerified.set(data.user.twitter_username_verified);
+                                onLogin();
                             } else {
                                 if (data.k1) {
                                     k1 = data.k1;
@@ -31,21 +37,19 @@
             });
     }
 
-    const unsubscribe = token.subscribe(value => {
-        if (value) {
-            sessionStorage.setItem('token', value);
+    onMount(async () => {
+        if ($token) {
+            onLogin();
         } else {
-            sessionStorage.removeItem('token');
-            qr = k1 = null;
+            getLogin();
         }
     });
-	onDestroy(unsubscribe);
 </script>
 
 <div class="pt-10 flex justify-center items-center">
     {#if qr}
         <div class="qr glowbox">{@html qr}</div>
     {:else}
-        <div class="glowbutton glowbutton-enter" on:click|preventDefault={getLogin}></div>
+        <Loading />
     {/if}
 </div>

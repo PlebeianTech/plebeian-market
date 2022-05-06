@@ -213,26 +213,6 @@ if __name__ == '__main__':
         lnurl.types.ClearnetUrl = ClearnetUrl
         lnurl.encode(app.config['BASE_URL']) # try parsing again to check that the patch worked
 
-    @app.route('/app', strict_slashes=False, methods=['GET'])
-    def index():
-        return send_file("../web/app/index.html")
-
-    @app.route('/app/buyer', strict_slashes=False, methods=['GET'])
-    def buyer():
-        return send_file("../web/app/buyer/index.html")
-
-    @app.route('/app/seller', strict_slashes=False, methods=['GET'])
-    def seller():
-        return send_file("../web/app/seller/index.html")
-
-    @app.route('/app/buyer/bundle.js', methods=['GET'])
-    def buyer_bundle():
-        return send_file("../web/app/buyer/bundle.js")
-
-    @app.route('/app/seller/bundle.js', methods=['GET'])
-    def seller_bundle():
-        return send_file("../web/app/seller/bundle.js")
-
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:
     gunicorn_logger = logging.getLogger('gunicorn.error')

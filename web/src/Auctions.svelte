@@ -1,11 +1,12 @@
 <script>
     import { onMount } from 'svelte';
     import { toasts, ToastContainer }  from "svelte-toasts";
-    import { fromJson, fetchAPI } from "../common.js";
-    import { token } from "../stores.js";
+    import { fromJson, fetchAPI } from "./common.js";
+    import { token } from "./stores.js";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Confirmation from "./Confirmation.svelte";
+    import Loading from "./Loading.svelte";
 
     function emptyAuction() {
         return {
@@ -19,7 +20,7 @@
 
     let confirmation = null;
     let currentAuction = null;
-    let auctions = [];
+    let auctions = null;
 
     function asJson() {
         var json = emptyAuction();
@@ -101,6 +102,8 @@
             <Confirmation message={confirmation.message} expectedInput={confirmation.expectedInput} onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
         {:else if currentAuction}
             <AuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} />
+        {:else if auctions == null}
+            <Loading />
         {:else}
             <div class="flex items-center justify-center">
                 <div class="glowbutton glowbutton-create" on:click|preventDefault={() => currentAuction = emptyAuction()}></div>

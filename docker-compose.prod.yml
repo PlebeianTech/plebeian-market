@@ -4,24 +4,30 @@ services:
   db:
     volumes:
       - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
-  web:
+  api:
     environment:
       - BASE_URL=https://plebeian.market
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: gunicorn --chdir /app/server main:app -w 2 --threads 2 -b 0.0.0.0:8080
+  web:
+    build:
+      context: ./
+      dockerfile: ./web/Dockerfile
+    depends_on:
+      - api
+    networks:
+      - proxy
   nginx:
     build:
       context: ./
       dockerfile: ./services/nginx/Dockerfile
-      args:
-        BUILD_ID: ${BUILD_ID}
     environment:
       - VIRTUAL_HOST=plebeian.market
       - LETSENCRYPT_HOST=plebeian.market
     depends_on:
-      - web
+      - api
     networks:
       - proxy
   settle-bids:

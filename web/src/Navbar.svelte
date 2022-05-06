@@ -1,13 +1,12 @@
 <script>
+    import { goto } from '$app/navigation';
     import { token } from "./stores.js";
-
-    export let onSelect = (key) => {};
 </script>
 
-<div class="navbar bg-base-100">
+<div class="navbar bg-base-300">
     <div class="flex-1">
-        <a href={null} on:click|preventDefault={() => onSelect('app')} class="btn btn-ghost normal-case text-xl">Home</a>
-        <a href={null} on:click|preventDefault={() => onSelect('about')} class="btn btn-ghost normal-case text-xl">About</a>
+        <a href={null} on:click|preventDefault={() => goto("/")} class="btn btn-ghost normal-case text-xl">Home</a>
+        <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl">About</a>
     </div>
     <div class="flex-none gap-2">
         {#if $token}
@@ -18,8 +17,9 @@
                     </div>
                 </label>
                 <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
-                    <li><a href={null} on:click|preventDefault={() => onSelect('profile')}>Profile</a></li>
-                    <li><a href={null} on:click|preventDefault={() => onSelect('logout')}>Logout</a></li>
+                    <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
+                    <li><a href={null} on:click|preventDefault={() => goto("/profile")}>Profile</a></li>
+                    <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }}>Logout</a></li>
                 </ul>
             </div>
         {/if}

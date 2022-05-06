@@ -2,6 +2,5 @@ __pycache__
 *.egg-info
 venv
 node_modules
-bundle.js
-bundle.js.map
-style.css
+.svelte-kit
+web/build

@@ -9,7 +9,7 @@ services:
       - POSTGRES_PASSWORD=plebpass
     networks:
       - db_network
-  web:
+  api:
     build: .
     image: plebeianmarket-server
     depends_on: [db]
@@ -25,7 +25,6 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
-
 networks:
   db_network:
     driver: bridge

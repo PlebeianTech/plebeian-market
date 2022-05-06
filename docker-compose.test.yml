@@ -4,11 +4,11 @@ services:
   test:
     image: plebeianmarket-server
     depends_on:
-      web:
+      api:
         condition: service_healthy
     environment:
       - FLASK_APP=main
-      - BASE_URL=http://web:5000
+      - BASE_URL=http://api:5000
     volumes:
       - "./server:/app/server"
     networks:

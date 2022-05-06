@@ -1,8 +1,8 @@
 <script>
-    import Time from 'svelte-time';
-    import { fetchAPI, fromJson } from "../common.js";
-    import { token } from "../stores.js";
-    import { default as Countdown } from "../Countdown.svelte";
+    import { fetchAPI, fromJson } from "./common.js";
+    import { token } from "./stores.js";
+    import Countdown from "./Countdown.svelte";
+    import DateFormatter from "./DateFormatter.svelte";
 
     export let auction = null;
     let twitterLinkCopied = false;
@@ -14,19 +14,19 @@
     export let onCancel = (key) => {};
     export let onDelete = (key) => {};
 
+    function getUrl() {
+        return `https://plebeian.market/auctions/${auction.key}`;
+    }
+
     function copySnippet() {
-        navigator.clipboard.writeText(`https://plebeian.market/app/buyer#plebeian-auction-${auction.key}`).then(() => { twitterLinkCopied = true; });
+        navigator.clipboard.writeText(getUrl()).then(() => { twitterLinkCopied = true; });
     }
 
     function openTwitter() {
         twitterOpened = true;
-        let url = encodeURIComponent(`https://plebeian.market/app/buyer#plebeian-auction-${auction.key}`);
+        let url = encodeURIComponent(getUrl());
         let text = encodeURIComponent(`I am auctioning for sats: ${auction.title}`);
         window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
-    }
-
-    function view() {
-        window.open(`/app/buyer#plebeian-auction-${auction.key}`, '_blank');
     }
 
     function start() {
@@ -48,10 +48,10 @@
     }
 </script>
 
-<div class="max-w-full p-4 rounded overflow-hidden shadow-lg bg-gray-900 my-3">
+<div class="max-w-full p-4 rounded overflow-hidden shadow-lg my-3">
     <div class="text-center">
-        <h3 class="text-zinc-300 text-2xl">{auction.title}</h3>
-        <span class="text-zinc-300 font-mono">
+        <h3 class=" text-2xl">{auction.title}</h3>
+        <span class=" font-mono">
             {#if auction.started && !auction.ended}
                 (running)
             {:else if auction.ended}
@@ -61,8 +61,8 @@
             {/if}
         </span>
     </div>
-    <p class="text-zinc-300 mt-2">Duration: {auction.duration_str} {#if auction.start_date}/ <Time timestamp={auction.start_date} format="dddd MMMM D, H:mm" /> - <Time timestamp={auction.end_date} format="dddd MMMM D, H:mm - YYYY" />{/if}</p>
-    <p class="text-zinc-300"><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
+    <p class="mt-2">Duration: {auction.duration_str} {#if auction.start_date}/ <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />{/if}</p>
+    <p><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
     <div class="mt-2 float-root">
         <div class="py-5 float-left">
             {#if auction.started && !auction.ended}
@@ -70,7 +70,7 @@
             {/if}
         </div>
         <div class="py-5 float-right">
-            <button class="btn" on:click={view}>View</button>
+            <a class="btn" href="/auctions/{auction.key}">View</a>
             {#if !auction.started}
                 {#if !auction.canceled}
                     <button class="btn" on:click={() => onEdit(auction)}>Edit</button>
@@ -84,7 +84,7 @@
     </div>
     {#if !auction.started}
     <div class="mt-2">
-        <div class="py-5 w-full flex items-center justify-center bg-gray-800 rounded">
+        <div class="py-5 w-full flex items-center justify-center rounded">
             <ul class="steps steps-vertical lg:steps-horizontal">
                 <li class="step" class:step-primary={twitterLinkCopied}>
                     {#if !twitterLinkCopied && !twitterOpened}

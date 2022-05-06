@@ -5,7 +5,7 @@ services:
     volumes:
       - target: /var/lib/postgresql/data
         type: tmpfs
-  web:
+  api:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/healthcheck" ]
       interval: 3s
@@ -23,11 +23,10 @@ services:
       - "5000:5000"
     volumes:
       - "./server:/app/server"
-      - "./web:/app/web"
     command: bash -c "flask db upgrade && python3 ./main.py"
   settle-bids:
     depends_on:
-      web: # this is because in dev & test mode, the web app is the one initializing the database, on start
+      api: # this is because in dev & test mode, the api is the one initializing the database, on start
         condition: service_healthy
     environment:
       - FLASK_APP=main
