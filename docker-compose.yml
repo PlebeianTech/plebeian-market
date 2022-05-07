@@ -11,7 +11,7 @@ services:
       - db_network
   api:
     build: .
-    image: plebeianmarket-server
+    image: plebeianmarket-api
     depends_on: [db]
     restart: on-failure
     stop_grace_period: 1m
@@ -19,7 +19,7 @@ services:
       - db_network
       - proxy
   settle-bids:
-    image: plebeianmarket-server
+    image: plebeianmarket-api
     depends_on: [db]
     restart: on-failure
     stop_grace_period: 1m

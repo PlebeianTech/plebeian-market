@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
   test:
-    image: plebeianmarket-server
+    image: plebeianmarket-api
     depends_on:
       api:
         condition: service_healthy
@@ -10,7 +10,7 @@ services:
       - FLASK_APP=main
       - BASE_URL=http://api:5000
     volumes:
-      - "./server:/app/server"
+      - "./api:/app"
     networks:
       - proxy
     command: flask run-tests

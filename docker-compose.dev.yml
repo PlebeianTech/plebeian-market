@@ -22,7 +22,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - "./server:/app/server"
+      - "./api:/app"
     command: bash -c "flask db upgrade && python3 ./main.py"
   settle-bids:
     depends_on:
@@ -36,5 +36,5 @@ services:
       - MOCK_TWITTER=1
       - SQLALCHEMY_DISABLE_POOLING=1
     volumes:
-      - "./server:/app/server"
+      - "./api:/app"
     command: flask settle-bids

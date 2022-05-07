@@ -10,7 +10,7 @@ services:
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
-    command: gunicorn --chdir /app/server main:app -w 2 --threads 2 -b 0.0.0.0:8080
+    command: gunicorn --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
   web:
     build:
       context: ./
