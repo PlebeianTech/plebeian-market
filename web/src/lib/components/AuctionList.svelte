@@ -1,9 +1,9 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { toasts, ToastContainer }  from "svelte-toasts";
-    import { fetchAPI } from "./api";
-    import { type Auction, fromJson } from "./auction";
-    import { token } from "./stores";
+    import { fetchAPI } from "../services/api";
+    import { type Auction, fromJson } from "../types/auction";
+    import { token } from "../stores";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Confirmation from "./Confirmation.svelte";

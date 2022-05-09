@@ -6,8 +6,8 @@
 </script>
 
 <script lang="ts">
-    import Auction from "../../Auction.svelte";
-    import AuctionList from "../../AuctionList.svelte";
+    import Auction from "../../lib/components/Auction.svelte"
+    import AuctionList from "../../lib/components/AuctionList.svelte";
 
     export let auctionKey;
 </script>

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { fetchAPI } from "./api";
-    import { fromJson, type Auction } from "./auction";
-    import { token, TwitterUsername } from "./stores";
+    import { fetchAPI } from "../services/api";
+    import { fromJson, type Auction } from "../types/auction";
+    import { token, TwitterUsername } from "../stores";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 

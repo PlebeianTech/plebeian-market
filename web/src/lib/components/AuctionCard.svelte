@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { fetchAPI } from "./api";
-    import { type Auction, fromJson } from "./auction";
-    import { token } from "./stores";
+    import { fetchAPI } from "../services/api";
+    import { type Auction, fromJson } from "../types/auction";
+    import { token } from "../stores";
     import Countdown from "./Countdown.svelte";
     import DateFormatter from "./DateFormatter.svelte";
 

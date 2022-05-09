@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import type { Auction } from "./auction";
+    import type { Auction } from "../types/auction";
 
     export let auction: Auction;
     export let onSave = () => {};

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { fetchAPI } from "./api";
-    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "./stores";
+    import { fetchAPI } from "../services/api";
+    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "../stores";
     import Loading from "./Loading.svelte";
 
     export let onLogin = () => {};

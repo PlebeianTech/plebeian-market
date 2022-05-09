@@ -1,5 +1,5 @@
 import { goto } from "$app/navigation";
-import { token } from "./stores";
+import { token } from "../stores";
 
 export function fetchAPI(path, method, tokenValue, json, checkResponse) {
     var isLocal = window.location.href.indexOf("localhost") != -1 || window.location.href.indexOf("127.0.0.1") != -1 || window.location.href.indexOf("0.0.0.0") != -1;

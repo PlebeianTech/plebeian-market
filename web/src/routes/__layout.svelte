@@ -1,9 +1,8 @@
 <script lang="ts">
     import "../app.css";
-    import { onMount } from 'svelte';
-    import { fetchAPI } from "../api";
-    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "../stores";
-    import Navbar from "../Navbar.svelte";
+    import { fetchAPI } from "../lib/services/api";
+    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "../lib/stores";
+    import Navbar from "../lib/components/Navbar.svelte";
 
     function fetchProfile() {
         fetchAPI("/users/me", 'GET', $token, null,

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { fetchAPI } from "./api";
-    import { token, ContributionPercent, TwitterUsername } from "./stores";
+    import { fetchAPI } from "../services/api";
+    import { token, ContributionPercent, TwitterUsername } from "../stores";
 
     let value = $ContributionPercent || 3;
 
