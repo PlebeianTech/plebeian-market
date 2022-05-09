@@ -7,13 +7,13 @@
 
 <script lang="ts">
     import Auction from "../../Auction.svelte";
-    import Auctions from "../../Auctions.svelte";
+    import AuctionList from "../../AuctionList.svelte";
 
     export let auctionKey;
 </script>
 
 {#if auctionKey === ""}
-    <Auctions />
+    <AuctionList />
 {:else}
     <Auction auctionKey={auctionKey} />
 {/if}
