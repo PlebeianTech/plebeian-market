@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
     import { goto } from '$app/navigation';
-    import { token } from "./stores.js";
+    import { token } from "./stores";
 </script>
 
 <div class="navbar bg-base-300">

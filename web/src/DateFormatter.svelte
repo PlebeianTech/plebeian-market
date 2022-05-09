@@ -1,7 +1,11 @@
-<script>
+<script lang="ts">
     const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-    export let date = null;
+    export let date: Date | undefined;
 </script>
 
-<span>{weekdays[date.getDay()]} {date.toLocaleString('default', { month: 'long' })} {date.getDate()}, {date.getHours()}:{date.getMinutes()}</span>
+<span>
+    {#if date}
+        {weekdays[date.getDay()]} {date.toLocaleString('default', { month: 'long' })} {date.getDate()}, {date.getHours()}:{date.getMinutes()}
+    {/if}
+</span>

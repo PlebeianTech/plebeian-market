@@ -1,12 +1,15 @@
-<script>
+<script lang="ts">
     import { onDestroy, onMount } from 'svelte';
 
-    export let untilDate = null;
+    export let untilDate: Date | null = null;
 
-    let days = null, hours = null, minutes = null, seconds = null;
+    let days, hours, minutes, seconds;
 
     function refresh() {
-        var delta = Math.abs(untilDate - new Date()) / 1000;
+        if (!untilDate) {
+            return;
+        }
+        var delta = Math.abs(untilDate.valueOf() - new Date().valueOf()) / 1000;
         days = Math.floor(delta / 86400);
         delta -= days * 86400;
         hours = Math.floor(delta / 3600) % 24;
@@ -16,16 +19,18 @@
         seconds = delta % 60;
     }
 
-    let interval = null;
+    let interval: ReturnType<typeof setInterval> | undefined;
 
     onMount(async () => {
         refresh();
-        setInterval(refresh, 1000);
+        interval = setInterval(refresh, 1000);
     });
 
     onDestroy(() => {
-        clearInterval(interval);
-        interval = null;
+        if (interval) {
+            clearInterval(interval);
+            interval = undefined;
+        }
     });
 </script>
 

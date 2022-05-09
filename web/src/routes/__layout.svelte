@@ -1,17 +1,9 @@
-<script>
+<script lang="ts">
     import "../app.css";
     import { onMount } from 'svelte';
-    import { fetchAPI } from "../common.js";
-    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "../stores.js";
+    import { fetchAPI } from "../api";
+    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "../stores";
     import Navbar from "../Navbar.svelte";
-
-    onMount(async () => {
-        token.set(localStorage.getItem('token'));
-
-        if ($token && !$TwitterUsername) {
-            fetchProfile();
-        }
-    });
 
     function fetchProfile() {
         fetchAPI("/users/me", 'GET', $token, null,
@@ -24,6 +16,12 @@
                     });
                 }
             });
+    }
+
+    token.set(localStorage.getItem('token'));
+
+    if ($token && !$TwitterUsername) {
+        fetchProfile();
     }
 </script>
 

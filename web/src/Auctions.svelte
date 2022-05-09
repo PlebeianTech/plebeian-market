@@ -1,8 +1,9 @@
-<script>
+<script lang="ts">
     import { onMount } from 'svelte';
     import { toasts, ToastContainer }  from "svelte-toasts";
-    import { fromJson, fetchAPI } from "./common.js";
-    import { token } from "./stores.js";
+    import { fetchAPI } from "./api";
+    import { type Auction, fromJson } from "./auction";
+    import { token } from "./stores";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Confirmation from "./Confirmation.svelte";
@@ -10,22 +11,26 @@
 
     function emptyAuction() {
         return {
+            key: "",
             title: "",
             description: "",
             starting_bid: 0,
             reserve_bid: 0,
-            duration_hours: 24
+            duration_hours: 24,
+            canceled: false,
+            bids: [],
+            media: [],
         };
     }
 
-    let confirmation = null;
-    let currentAuction = null;
-    let auctions = null;
+    let confirmation: any = null;
+    let currentAuction: Auction | undefined;
+    let auctions: Auction[] = [];
 
     function asJson() {
-        var json = emptyAuction();
+        var json = {};
         for (var k in currentAuction) {
-            if (k in json) {
+            if (k !== "key" && k !== "canceled" && k !== "bids" && k !== "media" && k !== "start_date" && k !== "end_date") {
                 json[k] = currentAuction[k];
             }
         }
@@ -35,7 +40,7 @@
     function checkResponse(response) {
         if (response.status === 200) {
             confirmation = null;
-            currentAuction = null;
+            currentAuction = undefined;
             response.json().then(data => {
                 if (data.auctions) {
                     auctions = data.auctions.map(fromJson);
@@ -57,14 +62,15 @@
     }
 
     function saveCurrentAuction() {
-        currentAuction.invalidTitle = currentAuction.title.length === 0;
-        currentAuction.invalidDescription = currentAuction.description.length === 0;
-        if (currentAuction.invalidTitle || currentAuction.invalidDescription) {
+        let auction: Auction = currentAuction!;
+        auction.invalidTitle = auction.title.length === 0;
+        auction.invalidDescription = auction.description.length === 0;
+        if (auction.invalidTitle || auction.invalidDescription) {
             return;
         }
 
-        if (currentAuction.key) {
-            fetchAPI(`/auctions/${currentAuction.key}`, 'PUT', $token, asJson(), checkResponse);
+        if (auction.key !== "") {
+            fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
         } else {
             fetchAPI("/auctions", 'POST', $token, asJson(), checkResponse);
             const toast = toasts.add({
@@ -101,7 +107,7 @@
         {#if confirmation}
             <Confirmation message={confirmation.message} expectedInput={confirmation.expectedInput} onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
         {:else if currentAuction}
-            <AuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} />
+            <AuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} onCancel={() => currentAuction = undefined} />
         {:else if auctions == null}
             <Loading />
         {:else}

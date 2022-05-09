@@ -2,7 +2,6 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
-    "@bulatdashiev/svelte-slider": "^1.0.3",
     "@sveltejs/adapter-node": "^1.0.0-next.73",
     "@sveltejs/kit": "next",
     "autoprefixer": "^10.4.7",

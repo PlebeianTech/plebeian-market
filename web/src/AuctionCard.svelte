@@ -1,10 +1,11 @@
-<script>
-    import { fetchAPI, fromJson } from "./common.js";
-    import { token } from "./stores.js";
+<script lang="ts">
+    import { fetchAPI } from "./api";
+    import { type Auction, fromJson } from "./auction";
+    import { token } from "./stores";
     import Countdown from "./Countdown.svelte";
     import DateFormatter from "./DateFormatter.svelte";
 
-    export let auction = null;
+    export let auction : Auction;
     let twitterLinkCopied = false;
     let twitterOpened = false;
 
@@ -61,12 +62,12 @@
             {/if}
         </span>
     </div>
-    <p class="mt-2">Duration: {auction.duration_str} {#if auction.start_date}/ <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />{/if}</p>
+    <p class="mt-2">Duration: {auction.duration_str} {#if auction.start_date && auction.end_date}/ <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />{/if}</p>
     <p><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
     <div class="mt-2 float-root">
         <div class="py-5 float-left">
             {#if auction.started && !auction.ended}
-                <Countdown untilDate={new Date(auction.end_date)} />
+                <Countdown untilDate={auction.end_date} />
             {/if}
         </div>
         <div class="py-5 float-right">

@@ -1,15 +1,16 @@
-<script>
+<script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { fromJson, fetchAPI } from "./common.js";
-    import { token, TwitterUsername } from "./stores.js";
+    import { fetchAPI } from "./api";
+    import { fromJson, type Auction } from "./auction";
+    import { token, TwitterUsername } from "./stores";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 
     export let auctionKey = null;
 
-    let auction = null;
+    let auction: Auction | null = null;
     let bidCount = 0;
-    let amount = null;
+    let amount: number | null = null;
     let paymentRequest = null;
     let paymentQr = null;
 
@@ -88,7 +89,7 @@
         );
     }
 
-    let interval = null;
+    let interval: ReturnType<typeof setInterval> | undefined;
 
     onMount(async () => {
         refreshAuction();
@@ -96,8 +97,10 @@
     });
 
     onDestroy(() => {
-        clearInterval(interval);
-        interval = null;
+        if (interval) {
+            clearInterval(interval);
+            interval = undefined;
+        }
     });
 </script>
 
@@ -120,7 +123,7 @@
         </div>
         {#if auction.canceled}
             <p>This auction was canceled.</p>
-        {:else if auction.start_date}
+        {:else if auction.start_date && auction.end_date}
             {#if !auction.started}
                 <p>Auction starts <Countdown untilDate={new Date(auction.start_date)} />.</p>
             {:else if auction.ended}

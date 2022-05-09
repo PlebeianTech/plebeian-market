@@ -1,8 +1,10 @@
-<script>
+<script lang="ts">
     import { onMount } from 'svelte';
+    import type { Auction } from "./auction";
 
-    export let auction = null;
+    export let auction: Auction;
     export let onSave = () => {};
+    export let onCancel = () => {};
 
     let duration = "";
     let durationMultiplier = "1";
@@ -15,10 +17,10 @@
     function customDuration() {
         if (auction.duration_hours % 24 === 0) {
             durationMultiplier = "24";
-            duration = auction.duration_hours / 24;
+            duration = (auction.duration_hours / 24).toString();
         } else {
             durationMultiplier = "1";
-            duration = auction.duration_hours;
+            duration = auction.duration_hours.toString();
         }
     }
 
@@ -92,7 +94,7 @@
 <div class="w-full flex justify-center items-center">
     <div class="w-4/6">
         <div class="float-left pt-5">
-            <button class="btn" on:click|preventDefault={() => auction = null}>Cancel</button>
+            <button class="btn" on:click|preventDefault={onCancel}>Cancel</button>
         </div>
         <div class="float-right pt-5">
             <div class:disabled={auction.title.length === 0 || auction.description.length === 0} class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
