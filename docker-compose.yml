@@ -2,11 +2,9 @@ version: '3.6'
 
 services:
   db:
-    image: postgres:14-bullseye
-    environment:
-      - POSTGRES_DB=market
-      - POSTGRES_USER=pleb
-      - POSTGRES_PASSWORD=plebpass
+    build:
+      context: ./
+      dockerfile: ./services/postgres/Dockerfile
     networks:
       - db_network
   api:
