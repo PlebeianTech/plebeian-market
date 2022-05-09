@@ -1,30 +1,36 @@
 <script lang="ts">
+    import { onDestroy } from 'svelte';
+    import { toasts, ToastContainer }  from "svelte-toasts";
     import "../app.css";
-    import { fetchAPI } from "../lib/services/api";
-    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "../lib/stores";
+    import { token, Info } from "../lib/stores";
     import Navbar from "../lib/components/Navbar.svelte";
-
-    function fetchProfile() {
-        fetchAPI("/users/me", 'GET', $token, null,
-            (response) => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        ContributionPercent.set(data.user.contribution_percent);
-                        TwitterUsername.set(data.user.twitter_username);
-                        TwitterUsernameVerified.set(data.user.twitter_username_verified);
-                    });
-                }
-            });
-    }
 
     token.set(localStorage.getItem('token'));
 
-    if ($token && !$TwitterUsername) {
-        fetchProfile();
-    }
+	const unsubscribe = Info.subscribe(value => {
+        if (value) {
+            toasts.add({
+                description: value,
+                duration: 3000,
+                placement: 'bottom-right',
+                type: 'info'
+            });
+            Info.set(null);
+        }
+	});
+
+	onDestroy(unsubscribe);
 </script>
 
 <div class="flex flex-col">
-  <Navbar />
-  <slot />
+    <Navbar />
+    <slot />
+    <ToastContainer placement="bottom-right" let:data={data}>
+        <div class="alert alert-info shadow-lg">
+            <div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>{data.description}</span>
+            </div>
+          </div>
+    </ToastContainer>
 </div>

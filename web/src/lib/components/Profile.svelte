@@ -1,33 +1,64 @@
 <script lang="ts">
-    import { goto } from "$app/navigation";
     import { fetchAPI } from "../services/api";
-    import { token, ContributionPercent, TwitterUsername } from "../stores";
+    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified, Info } from "../stores";
 
-    let value = $ContributionPercent || 3;
+    let contributionPercentValue = $ContributionPercent || 3;
 
-    let twitterUsernameValue = $TwitterUsername;
     let invalidTwitterUsername = false;
 
     function isTwitterUsernameValid() {
-        return !(twitterUsernameValue === null || twitterUsernameValue.length === 0);
+        return !($TwitterUsername === null || $TwitterUsername.length === 0);
     }
 
-    function saveProfile() {
+    export function fetch() {
+        fetchAPI("/users/me", 'GET', $token, null,
+            (response) => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        ContributionPercent.set(data.user.contribution_percent);
+                        TwitterUsername.set(data.user.twitter_username);
+                        TwitterUsernameVerified.set(data.user.twitter_username_verified);
+
+                        if (!$TwitterUsername) {
+                            show();
+                        }
+                    });
+                }
+            });
+    }
+
+    function save() {
         invalidTwitterUsername = !isTwitterUsernameValid();
         if (invalidTwitterUsername) {
             return;
         }
-        const data = {twitter_username: twitterUsernameValue, contribution_percent: value};
+        const data = {twitter_username: $TwitterUsername, contribution_percent: contributionPercentValue};
         fetchAPI("/users/me", 'POST', $token, JSON.stringify(data),
             (response) => {
                 if (response.status === 200) {
                     response.json().then(data => {
                         ContributionPercent.set(data.user.contribution_percent);
                         TwitterUsername.set(data.user.twitter_username);
-                        goto("/auctions");
+                        Info.set("Your profile has been saved!");
+                        hide();
                     });
                 }
             });
+    }
+
+    export function show() {
+        let toggle = <HTMLInputElement>document.getElementById('profile-modal-toggle');
+        if (toggle) {
+            toggle.checked = true;
+        }
+    }
+
+    function hide() {
+        let toggle = <HTMLInputElement>document.getElementById('profile-modal-toggle');
+        if (toggle) {
+            toggle.checked = false;
+            fetch(); // re-fetch the profile because the stores have already been modified by binding
+        }
     }
 </script>
 
@@ -40,49 +71,52 @@
     }
 </style>
 
-<div class="flex justify-center items-center">
-
-    <div class="w-1/2">
-        <div class="form-group">
-            <input id="twitter-username" name="twitter-username" class:invalid-field={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-field" bind:value={twitterUsernameValue} />
-            <label class:invalid={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-label" for="twitter-username">Twitter username</label>
-        </div>
-
-        <h3 class="text-zinc-300 text-3xl text-center mt-10">Your Value4Value contribution (percent)</h3>
-        <div class="pt-5">
-            <input type="range" min="0" max="5" bind:value class="range" step="0.5" />
-            <div class="w-full flex justify-between text-xs px-2">
-              <span>|</span>
-              <span>|</span>
-              <span>|</span>
-              <span>|</span>
-              <span>|</span>
-              <span>|</span>
+<input type="checkbox" id="profile-modal-toggle" for="profile-modal" class="modal-toggle" />
+<div class="modal">
+    <div class="modal-box relative flex justify-center items-center w-10/12 max-w-5xl">
+        <label for="profile-modal" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide}>✕</label>
+        <div class="w-1/2">
+            <div class="form-group mt-3">
+                <input id="twitter-username" name="twitter-username" class:invalid-field={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-field" bind:value={$TwitterUsername} />
+                <label class:invalid={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-label" for="twitter-username">Twitter username</label>
             </div>
-        </div>
 
-        <div class="text-2xl text-zinc-300 text-center">
-            { value }
-        </div>
+            <h3 class="text-2xl text-center mt-10">Your Value4Value contribution (percent)</h3>
+            <div class="pt-5">
+                <input type="range" min="0" max="5" bind:value={contributionPercentValue} class="range" step="0.5" />
+                <div class="w-full flex justify-between text-xs px-2">
+                <span>|</span>
+                <span>|</span>
+                <span>|</span>
+                <span>|</span>
+                <span>|</span>
+                <span>|</span>
+                </div>
+            </div>
 
-        <div class="text-4xl text-center">
-            {#if value === 0}
-                {@html "&#x1F4A9;"}
-            {:else if value < 2}
-                {@html "&#x1F625;"}
-            {:else if value < 3}
-                {@html "&#x1F615;"}
-            {:else if value < 4}
-                {@html "&#x1F610;"}
-            {:else if value <= 4.5}
-                {@html "&#x1F642;"}
-            {:else if value <= 5}
-                {@html "&#x1F60D;"}
-            {/if}
-        </div>
+            <div class="text-2xl text-center">
+                { contributionPercentValue }%
+            </div>
 
-        <div class="flex justify-center items-center mt-4">
-            <div class="glowbutton glowbutton-save" on:click|preventDefault={saveProfile}></div>
+            <div class="text-4xl text-center">
+                {#if contributionPercentValue === 0}
+                    {@html "&#x1F4A9;"}
+                {:else if contributionPercentValue < 2}
+                    {@html "&#x1F625;"}
+                {:else if contributionPercentValue < 3}
+                    {@html "&#x1F615;"}
+                {:else if contributionPercentValue < 4}
+                    {@html "&#x1F610;"}
+                {:else if contributionPercentValue <= 4.5}
+                    {@html "&#x1F642;"}
+                {:else if contributionPercentValue <= 5}
+                    {@html "&#x1F60D;"}
+                {/if}
+            </div>
+
+            <div class="flex justify-center items-center mt-4">
+                <div class="glowbutton glowbutton-save" on:click|preventDefault={save}></div>
+            </div>
         </div>
     </div>
 </div>

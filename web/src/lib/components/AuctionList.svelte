@@ -1,9 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { toasts, ToastContainer }  from "svelte-toasts";
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
-    import { token } from "../stores";
+    import { token, Info } from "../stores";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Confirmation from "./Confirmation.svelte";
@@ -73,13 +72,7 @@
             fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
         } else {
             fetchAPI("/auctions", 'POST', $token, asJson(), checkResponse);
-            const toast = toasts.add({
-                title: "Auction created",
-                description: "Your auction will start when we verify your tweet",
-                duration: 3000,
-                placement: 'bottom-right',
-                type: 'info'
-            });
+            Info.set("Your auction will start when we verify your tweet!");
         }
     }
 
@@ -119,12 +112,4 @@
             {/each}
         {/if}
     </section>
-    <ToastContainer placement="bottom-right" let:data={data}>
-        <div class="alert alert-info shadow-lg">
-            <div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <span>{data.description}</span>
-            </div>
-          </div>
-    </ToastContainer>
 </div>

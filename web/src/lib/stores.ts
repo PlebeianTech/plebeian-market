@@ -6,3 +6,5 @@ export const ContributionPercent: Writable<number | null>  = writable(null);
 
 export const TwitterUsername: Writable<string | null> = writable(null);
 export const TwitterUsernameVerified: Writable<boolean | null>  = writable(null);
+
+export const Info: Writable<string | null> = writable(null);
