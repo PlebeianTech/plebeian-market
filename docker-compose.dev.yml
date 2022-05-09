@@ -7,7 +7,7 @@ services:
         type: tmpfs
   api:
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/healthcheck" ]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/healthcheck"]
       interval: 3s
       timeout: 3s
       retries: 5

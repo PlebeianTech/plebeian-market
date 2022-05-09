@@ -10,7 +10,9 @@ services:
     networks:
       - db_network
   api:
-    build: .
+    build:
+      context: ./
+      dockerfile: ./api/Dockerfile
     image: plebeianmarket-api
     depends_on: [db]
     restart: on-failure
