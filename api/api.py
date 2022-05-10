@@ -100,10 +100,19 @@ def me(user):
     else:
         if 'nym' in request.json:
             return jsonify({'message': "Can't edit nym."}), 400 # yet, I guess...
-        if 'twitter_username' in request.json and request.json['twitter_username'] != user.twitter_username:
-            user.twitter_username = request.json['twitter_username']
-            user.twitter_profile_image_url = get_twitter().get_user(user.twitter_username)['profile_image_url']
-            user.twitter_username_verified = False
+        if 'twitter_username' in request.json:
+            clean_username = request.json['twitter_username'] or ""
+            if clean_username.startswith("@"):
+                clean_username = clean_username[1:]
+            if not clean_username:
+                return jsonify({'message': "Invalid Twitter username!"}), 400
+            if clean_username != user.twitter_username:
+                user.twitter_username = clean_username
+                twitter_user = get_twitter().get_user(user.twitter_username)
+                if not twitter_user:
+                    return jsonify({'message': "Twitter username not found!"}), 400
+                user.twitter_profile_image_url = twitter_user['profile_image_url']
+                user.twitter_username_verified = False
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']
         db.session.commit()
@@ -186,7 +195,7 @@ def start_twitter(user, key):
         return jsonify({'message': "Unauthorized"}), 401
     tweet = get_twitter().get_auction_tweet(user.twitter_username)
     if not tweet or tweet['auction_key'] != auction.key:
-        return jsonify({'message': "No tweet found."}), 403 # TODO what status?
+        return jsonify({'message': "No tweet found."}), 400
 
     user.twitter_username_verified = True
     auction.twitter_id = tweet['id']

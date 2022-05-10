@@ -1,7 +1,7 @@
 <script lang="ts">
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
-    import { token, user } from "../stores";
+    import { token, user, Error } from "../stores";
     import Countdown from "./Countdown.svelte";
     import DateFormatter from "./DateFormatter.svelte";
 
@@ -49,6 +49,10 @@
                             }
                         }
                     );
+                }  else {
+                    response.json().then(data => {
+                        Error.set(data.message);
+                    });
                 }
             }
         );

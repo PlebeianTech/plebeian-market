@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy } from "svelte";
     import { fetchAPI } from "../services/api";
-    import { token, user, Info } from "../stores";
+    import { token, user, Info, Error } from "../stores";
     import { fromJson } from "../types/user";
 
     let twitterUsername;
@@ -29,6 +29,10 @@
                         user.set(fromJson(data.user));
                         Info.set("Your profile has been saved!");
                         hide();
+                    });
+                } else {
+                    response.json().then(data => {
+                        Error.set(data.message);
                     });
                 }
             });

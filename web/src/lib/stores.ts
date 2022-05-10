@@ -6,3 +6,4 @@ export const token: Writable<string | null> = writable(null);
 export const user: Writable<User | null> = writable(null);
 
 export const Info: Writable<string | null> = writable(null);
+export const Error: Writable<string | null> = writable(null);
