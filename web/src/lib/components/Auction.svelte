@@ -136,10 +136,17 @@
         {/if}
         <ul id="bids">
             {#each auction.bids as bid}
-            <li>{bid.amount} by {bid.twitter_username} {#if bid.twitter_username_verified}&#x2714;{/if}</li>
+            <li>
+                <div class="avatar">
+                    <div class="w-8 rounded-full">
+                        <img src={bid.twitter_profile_image_url} title={bid.twitter_username} alt={bid.twitter_username} />
+                    </div>
+                </div>
+                {#if bid.twitter_username_verified}&#x2714;{/if}
+                {bid.amount} sats
+            </li>
             {/each}
         </ul>
-        <p><span>Starting bid: {auction.starting_bid}</span></p>
         {#if $token}
             {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended && !auction.canceled}
                 {#if paymentQr}

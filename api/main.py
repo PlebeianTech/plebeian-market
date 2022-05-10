@@ -142,8 +142,8 @@ class MockTwitter:
             'text': "Hello Mocked Tweet",
             'auction_key': MockTwitter.MockKey(),
             'photos': [
-                {'media_key': "MOCK_PHOTO_1", 'url': "https://bitcoin.org/img/icons/logo_ios.png"},
-                {'media_key': "MOCK_PHOTO_2", 'url': "https://plebeian.market/static/images/logo.jpg"}
+                {'media_key': "MOCK_PHOTO_1", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(10000, 40000)}"},
+                {'media_key': "MOCK_PHOTO_2", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(10000, 40000)}"}
             ]
         }
 

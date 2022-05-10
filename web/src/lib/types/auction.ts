@@ -2,6 +2,7 @@
 export interface Bid {
     amount: number;
     twitter_username?: string;
+    twitter_profile_image_url?: string;
     twitter_username_verified?: boolean;
     payment_request?: string;
 }

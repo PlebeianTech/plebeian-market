@@ -382,4 +382,4 @@ class TestApi(unittest.TestCase):
         self.assertTrue(response['auction']['start_date'] < (datetime.utcnow().isoformat() + "Z"))
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
         self.assertEqual(len(response['auction']['media']), 2)
-        self.assertTrue("logo" in response['auction']['media'][0]['url']) # this one comes from MockTwitter
+        self.assertTrue("watch" in response['auction']['media'][0]['url']) # this one comes from MockTwitter

@@ -182,6 +182,7 @@ class Bid(db.Model):
         bid = {
             'amount': self.amount,
             'twitter_username': self.buyer.twitter_username,
+            'twitter_profile_image_url': self.buyer.twitter_profile_image_url,
             'twitter_username_verified': self.buyer.twitter_username_verified,
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None)}
         if for_user == self.buyer_id:
