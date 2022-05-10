@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
-    import { token, Info } from "../stores";
+    import { token, user, Info } from "../stores";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Confirmation from "./Confirmation.svelte";
@@ -72,6 +72,7 @@
             fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
         } else {
             fetchAPI("/auctions", 'POST', $token, asJson(), checkResponse);
+            user.update((u) => { u!.hasAuctions = true; return u; });
             Info.set("Your auction will start when we verify your tweet!");
         }
     }

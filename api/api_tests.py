@@ -108,6 +108,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['twitter_username'], 'hellokitty')
         self.assertEqual(response['user']['contribution_percent'], 1)
+        self.assertEqual(response['user']['has_auctions'], False)
 
         # create another user
         code, response = self.get("/api/login")
@@ -156,7 +157,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)
 
-        # can't create an auction without dates
+        # can't create an auction without dates or duration
         code, response = self.post("/api/auctions",
             {'title': "My 1st",
              'description': "Selling something",
@@ -192,6 +193,12 @@ class TestApi(unittest.TestCase):
         self.assertTrue('auction' in response)
 
         auction_key = response['auction']['key']
+
+        # the user now has_auctions
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['has_auctions'], True)
 
         # GET auctions to find our auction
         code, response = self.get("/api/auctions",

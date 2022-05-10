@@ -55,7 +55,9 @@ class User(db.Model):
             'nym': self.nym,
             'twitter_username': self.twitter_username,
             'twitter_username_verified': self.twitter_username_verified,
-            'contribution_percent': self.contribution_percent}
+            'contribution_percent': self.contribution_percent,
+            'has_auctions': len(self.auctions) > 0,
+            'has_bids': len(self.bids) > 0}
 
 class Auction(db.Model):
     __tablename__ = 'auctions'

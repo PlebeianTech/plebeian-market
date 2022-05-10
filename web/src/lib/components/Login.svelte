@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { fetchAPI } from "../services/api";
-    import { token, ContributionPercent, TwitterUsername, TwitterUsernameVerified } from "../stores";
+    import { token } from "../stores";
     import Loading from "./Loading.svelte";
 
     export let onLogin = () => {};
@@ -18,9 +18,6 @@
                             if (data.success) {
                                 token.set(data.token);
                                 localStorage.setItem('token', data.token);
-                                ContributionPercent.set(data.user.contribution_percent);
-                                TwitterUsername.set(data.user.twitter_username);
-                                TwitterUsernameVerified.set(data.user.twitter_username_verified);
                                 onLogin();
                             } else {
                                 if (data.k1) {

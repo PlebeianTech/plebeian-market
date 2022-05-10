@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { fetchAPI } from "../services/api";
     import { fromJson, type Auction } from "../types/auction";
-    import { token, TwitterUsername } from "../stores";
+    import { token, user } from "../stores";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 
@@ -141,7 +141,7 @@
         </ul>
         <p><span>Starting bid: {auction.starting_bid}</span></p>
         {#if $token}
-            {#if $TwitterUsername !== null && auction.started && !auction.ended && !auction.canceled}
+            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended && !auction.canceled}
                 {#if paymentQr}
                     <div class="qr glowbox">
                         {@html paymentQr}

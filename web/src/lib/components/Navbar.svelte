@@ -1,16 +1,42 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { token } from "../stores";
+    import { fetchAPI } from "../services/api";
+    import { token, user } from "../stores";
+    import { fromJson } from "../types/user";
     import Profile from "./Profile.svelte";
 
     let profile;
 
+    function fetchProfile(tokenValue) {
+        fetchAPI("/users/me", 'GET', tokenValue, null,
+            (response) => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        user.set(fromJson(data.user));
+                        profile.showIfIncomplete();
+                    });
+                }
+            });
+    }
+
     onMount(async () => {
         if ($token) {
-            profile.fetch();
+            fetchProfile($token);
         }
     });
+
+    const unsubscribe = token.subscribe(value => {
+        if (profile === undefined) {
+            return;
+        }
+        if (value) {
+            fetchProfile(value);
+        } else {
+            user.set(null);
+        }
+    });
+    onDestroy(unsubscribe);
 </script>
 
 <div class="navbar bg-base-300">
