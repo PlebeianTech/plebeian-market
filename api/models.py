@@ -43,6 +43,7 @@ class User(db.Model):
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
+    twitter_profile_image_url = db.Column(db.String(256), nullable=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
 
     contribution_percent = db.Column(db.Integer, nullable=True)
@@ -54,6 +55,7 @@ class User(db.Model):
         return {
             'nym': self.nym,
             'twitter_username': self.twitter_username,
+            'twitter_profile_image_url': self.twitter_profile_image_url,
             'twitter_username_verified': self.twitter_username_verified,
             'contribution_percent': self.contribution_percent,
             'has_auctions': len(self.auctions) > 0,

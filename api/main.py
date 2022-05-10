@@ -130,6 +130,12 @@ class MockTwitter:
     def __init__(self, **__):
         pass
 
+    def get_user(self, username):
+        return {
+            'id': "MOCK_USER_ID",
+            'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(10000, 40000)}",
+        }
+
     def get_auction_tweet(self, username):
         return {
             'id': "MOCK_TWEET_ID",
@@ -154,12 +160,21 @@ class Twitter:
         if response.status_code == 200:
             return response.json()
 
-    def get_auction_tweet(self, username):
-        response_json = self.get(f"/users/by/username/{username}")
+    def get_user(self, username):
+        response_json = self.get(f"/users/by/username/{username}",
+            params={
+                'user.fields': "location,name,profile_image_url",
+            })
         if not response_json:
             return
+        return response_json['data']
 
-        user_id = response_json['data']['id']
+    def get_auction_tweet(self, username):
+        user = self.get_user(username)
+        if not user:
+            return
+
+        user_id = user['id']
 
         ten_minutes_ago = (datetime.utcnow() - timedelta(minutes=10)).replace(microsecond=0).isoformat() + "Z"
         response_json = self.get(f"/users/{user_id}/tweets",

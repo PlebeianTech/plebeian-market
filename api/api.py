@@ -102,6 +102,7 @@ def me(user):
             return jsonify({'message': "Can't edit nym."}), 400 # yet, I guess...
         if 'twitter_username' in request.json and request.json['twitter_username'] != user.twitter_username:
             user.twitter_username = request.json['twitter_username']
+            user.twitter_profile_image_url = get_twitter().get_user(user.twitter_username)['profile_image_url']
             user.twitter_username_verified = False
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']

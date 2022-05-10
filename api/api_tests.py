@@ -107,6 +107,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['twitter_username'], 'hellokitty')
+        self.assertTrue("lorem.space" in response['user']['twitter_profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_auctions'], False)
 

@@ -21,6 +21,7 @@ export function fetchAPI(path, method, tokenValue, json, checkResponse) {
                 if (tokenValue) {
                     console.log("Error 401: Unauthorized. Deleting the token.");
                     token.set(null);
+                    localStorage.removeItem('token');
                     goto("/login");
                 }
             } else {

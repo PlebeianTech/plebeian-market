@@ -45,11 +45,11 @@
         <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl">About</a>
     </div>
     <div class="flex-none gap-2">
-        {#if $token}
+        {#if $token && $user}
             <div class="dropdown dropdown-end">
                 <label for={null} tabindex="0" class="btn btn-ghost btn-circle avatar">
                     <div class="w-10 rounded-full">
-                        <img src="https://api.lorem.space/image/face?hash=33791" alt="Avatar" />
+                        <img src={$user.twitterProfileImageUrl} alt="Avatar" />
                     </div>
                 </label>
                 <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
