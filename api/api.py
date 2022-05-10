@@ -115,7 +115,10 @@ def me(user):
                 user.twitter_username_verified = False
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
         return jsonify({'user': user.to_dict()})
 
 @api_blueprint.route('/api/auctions', methods=['GET', 'POST'])
