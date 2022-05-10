@@ -1,3 +1,7 @@
+<svelte:head>
+    <title>Plebeian Market</title>
+</svelte:head>
+
 <script>
 </script>
 

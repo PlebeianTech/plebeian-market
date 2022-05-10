@@ -79,6 +79,10 @@
   content: 'Enter!';
 }
 
+.glowbutton-view:after {
+  content: 'View';
+}
+
 .glowbutton-create:after {
   content: 'Create';
 }

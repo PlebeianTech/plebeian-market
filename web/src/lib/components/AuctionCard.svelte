@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
     import { token, user, Error } from "../stores";
@@ -14,6 +15,10 @@
     // TODO: perhaps move these functions inside here and have this component display the confirmation
     export let onCancel = (key) => {};
     export let onDelete = (key) => {};
+
+    function view() {
+        goto(`/auctions/${auction.key}`);
+    }
 
     function getUrl() {
         return `https://plebeian.market/auctions/${auction.key}`;
@@ -80,16 +85,24 @@
                 <Countdown untilDate={auction.end_date} />
             {/if}
         </div>
+        {#each auction.media as photo, i}
+            {#if i === 0}
+                <div id="{photo.twitter_media_key}" class="w-24 rounded">
+                    <img src={photo.url} alt="Auctioned object" />
+                </div>
+            {/if}
+        {/each}
         <div class="py-5 float-right">
-            <a class="btn" href="/auctions/{auction.key}">View</a>
+            {#if auction.started}
+                <div class="glowbutton glowbutton-view mx-2" on:click|preventDefault={view}></div>
+            {:else}
+                <a class="btn mx-2" href="/auctions/{auction.key}">View</a>
+            {/if}
             {#if !auction.started}
                 {#if !auction.canceled}
                     <button class="btn" on:click={() => onEdit(auction)}>Edit</button>
                 {/if}
                 <button class="btn" on:click={() => onDelete(auction.key)}>Delete</button>
-            {/if}
-            {#if !auction.canceled && !auction.ended}
-                <button class="btn" on:click={() => onCancel(auction.key)}>Cancel</button>
             {/if}
         </div>
     </div>
