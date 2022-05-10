@@ -1,7 +1,7 @@
 <script lang="ts">
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
-    import { token } from "../stores";
+    import { token, user } from "../stores";
     import Countdown from "./Countdown.svelte";
     import DateFormatter from "./DateFormatter.svelte";
 
@@ -39,6 +39,12 @@
                             if (auctionResponse.status === 200) {
                                 auctionResponse.json().then(data => {
                                     auction = fromJson(data.auction);
+                                    user.update((u) => {
+                                        if (u) {
+                                            u.twitterUsernameVerified = true;
+                                        }
+                                        return u;
+                                    });
                                 });
                             }
                         }
