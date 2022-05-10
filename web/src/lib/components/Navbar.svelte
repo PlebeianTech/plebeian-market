@@ -46,6 +46,11 @@
     </div>
     <div class="flex-none gap-2">
         {#if $token && $user}
+            <div class="flex justify-center items-center">
+                {#if $user.twitterUsernameVerified}
+                    <div class="badge badge-warning badge-sm">&#x2714;</div>
+                {/if}
+            </div>
             <div class="dropdown dropdown-end">
                 <label for={null} tabindex="0" class="btn btn-ghost btn-circle avatar">
                     <div class="w-10 rounded-full">

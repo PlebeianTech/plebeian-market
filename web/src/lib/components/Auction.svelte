@@ -137,12 +137,14 @@
         <ul id="bids">
             {#each auction.bids as bid}
             <li>
+                {#if bid.twitter_username_verified}
+                    <div class="badge badge-warning badge-sm">&#x2714;</div>
+                {/if}
                 <div class="avatar">
                     <div class="w-8 rounded-full">
                         <img src={bid.twitter_profile_image_url} title={bid.twitter_username} alt={bid.twitter_username} />
                     </div>
                 </div>
-                {#if bid.twitter_username_verified}&#x2714;{/if}
                 {bid.amount} sats
             </li>
             {/each}
