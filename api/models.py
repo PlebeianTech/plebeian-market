@@ -131,7 +131,10 @@ class Auction(db.Model):
         for k in ['title', 'description']:
             if k not in d:
                 continue
-            # TODO: validate length?
+            length = len(d[k])
+            max_length = getattr(Auction, k).property.columns[0].type.length
+            if length > max_length:
+                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = d[k]
         for k in ['start_date']:
             if k not in d:

@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
-    import { token, user, Info } from "../stores";
+    import { token, user, Info, Error } from "../stores";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Confirmation from "./Confirmation.svelte";
@@ -51,12 +51,9 @@
                 }
             });
         } else {
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.indexOf('application/json') !== -1) {
-                return response.json().then(data => { alert(`Error: ${data.message}`); });
-            } else {
-                return response.text().then(text => { console.log(`Error ${response.status}: ${text}`); });
-            }
+            response.json().then(data => {
+                Error.set(data.message);
+            });
         }
     }
 
