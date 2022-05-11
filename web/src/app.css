@@ -156,7 +156,6 @@
   border-bottom: 2px solid #9b9b9b;
   outline: 0;
   font-size: 1.3rem;
-  color: #fff;
   padding: 7px 0;
   background: transparent;
   transition: border-color 0.2s;
@@ -178,7 +177,6 @@
   display: block;
   transition: 0.2s;
   font-size: 1rem;
-  color: #9b9b9b;
 }
 
 .form-field:focus {

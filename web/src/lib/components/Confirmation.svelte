@@ -17,7 +17,7 @@
 </script>
 
 <div class="bg-warn flex items-center justify-center w-full">
-    <input type="text" placeholder="Type {expectedInput} here!" class="input input-bordered input-warning mx-1 w-full" bind:value={input} />
+    <input type="text" placeholder="Type {expectedInput} here!" class="input input-bordered input-error mx-1 w-full" bind:value={input} />
     <button class="btn mx-2" on:click|preventDefault={onCancel}>Cancel</button>
-    <button class="btn btn-warning mx-2" on:click|preventDefault={checkInput}>Delete</button>
+    <button class="btn btn-error mx-2" on:click|preventDefault={checkInput}>Delete</button>
 </div>

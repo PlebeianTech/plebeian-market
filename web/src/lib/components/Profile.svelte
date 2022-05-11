@@ -106,9 +106,9 @@
             </div>
             {#if $user && $user.hasAuctions}
                 <div class="divider"></div>
-                <h3 class="text-2xl text-center">Your value4value donation</h3>
-                <p class="text-center">Be a hero... save humanity</p>
-                <p class="text-center">Your v4v donation goes a looooong way... it enables us to develop this service further and create more free open source solutions... 100% of your donation goes to powering the Bitcoin movement!</p>
+                <h3 class="text-2xl text-center text-primary">Your value4value donation</h3>
+                <p class="text-center text-primary">Be a hero... save humanity</p>
+                <p class="text-center text-primary">Your v4v donation goes a looooong way... it enables us to develop this service further and create more free open source solutions... 100% of your donation goes to powering the Bitcoin movement!</p>
                 <div class="pt-5">
                     <input type="range" min="0" max="5" bind:value={contributionPercent} class="range" step="0.5" />
                     <div class="w-full flex justify-between text-xs px-2">

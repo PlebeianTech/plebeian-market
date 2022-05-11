@@ -34,7 +34,7 @@
     });
 </script>
 
-<div class="flex gap-5">
+<div class="flex gap-5 text-primary">
     <div>
         <span class="countdown font-mono text-3xl">
             <span style="--value:{days};"></span>

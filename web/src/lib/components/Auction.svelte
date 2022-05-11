@@ -116,7 +116,7 @@
                 </div>
             {/each}
         </div> 
-        <div class="flex justify-center w-full py-2 gap-2">
+        <div class="flex justify-center w-full py-2 gap-2 text-primary">
             {#each auction.media as photo, i}
                 <a href="#{photo.twitter_media_key}" class="btn btn-xs">{i + 1}</a>
             {/each}
@@ -132,7 +132,7 @@
         {:else}
             <p>Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.</p>
         {/if}
-        <ul id="bids">
+        <ul id="bids text-primary">
             {#each auction.bids as bid}
             <li>
                 {#if bid.twitter_username_verified}
