@@ -40,6 +40,9 @@
 </script>
 
 <div class="navbar bg-base-300">
+    <div>
+        <img src="images/logo.jpg" class="mr-3 h-6 sm:h-9 rounded" alt="Plebeian Technology" />
+    </div>
     <div class="flex-1">
         <a href={null} on:click|preventDefault={() => goto("/")} class="btn btn-ghost normal-case text-xl">Home</a>
         <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl">About</a>
