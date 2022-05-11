@@ -46,7 +46,7 @@ class User(db.Model):
     twitter_profile_image_url = db.Column(db.String(256), nullable=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
 
-    contribution_percent = db.Column(db.Integer, nullable=True)
+    contribution_percent = db.Column(db.Float, nullable=True)
 
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.start_date), Auction.key")
     bids = db.relationship('Bid', backref='buyer')
@@ -73,9 +73,9 @@ class Auction(db.Model):
 
     # the title *might* eventually become nullable, for the case of WP auctions
     # (the auction title in that case would be the post title)
-    title = db.Column(db.String(32), nullable=False)
+    title = db.Column(db.String(210), nullable=False)
 
-    description = db.Column(db.String(512), nullable=False)
+    description = db.Column(db.String(2100), nullable=False)
 
     # in the case of Twitter auctions, start_date is only set after the tweet is published and the auction starts
     start_date = db.Column(db.DateTime, nullable=True)
