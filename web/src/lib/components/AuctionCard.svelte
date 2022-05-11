@@ -12,8 +12,7 @@
 
     export let onEdit = (auction) => {};
 
-    // TODO: perhaps move these functions inside here and have this component display the confirmation
-    export let onCancel = (key) => {};
+    // TODO: perhaps this function inside here and have this component display the confirmation
     export let onDelete = (key) => {};
 
     function view() {
@@ -72,8 +71,6 @@
                 (running)
             {:else if auction.ended}
                 (ended)
-            {:else if auction.canceled}
-                (canceled)
             {/if}
         </span>
     </div>
@@ -99,9 +96,7 @@
                 <a class="btn mx-2" href="/auctions/{auction.key}">View</a>
             {/if}
             {#if !auction.started}
-                {#if !auction.canceled}
-                    <button class="btn" on:click={() => onEdit(auction)}>Edit</button>
-                {/if}
+                <button class="btn" on:click={() => onEdit(auction)}>Edit</button>
                 <button class="btn" on:click={() => onDelete(auction.key)}>Delete</button>
             {/if}
         </div>

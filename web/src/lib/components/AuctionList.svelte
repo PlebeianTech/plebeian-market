@@ -16,7 +16,6 @@
             starting_bid: 0,
             reserve_bid: 0,
             duration_hours: 24,
-            canceled: false,
             bids: [],
             media: [],
         };
@@ -29,7 +28,7 @@
     function asJson() {
         var json = {};
         for (var k in currentAuction) {
-            if (k !== "key" && k !== "canceled" && k !== "bids" && k !== "media" && k !== "start_date" && k !== "end_date") {
+            if (k !== "key" && k !== "bids" && k !== "media" && k !== "start_date" && k !== "end_date") {
                 json[k] = currentAuction[k];
             }
         }
@@ -68,9 +67,13 @@
         if (auction.key !== "") {
             fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
         } else {
-            fetchAPI("/auctions", 'POST', $token, asJson(), checkResponse);
-            user.update((u) => { u!.hasAuctions = true; return u; });
-            Info.set("Your auction will start when we verify your tweet!");
+            fetchAPI("/auctions", 'POST', $token, asJson(), (r) => {
+                if (r.status === 200) {
+                    user.update((u) => { u!.hasAuctions = true; return u; });
+                    Info.set("Your auction will start when we verify your tweet!");
+                }
+                checkResponse(r);
+            });
         }
     }
 
@@ -79,14 +82,6 @@
             message: "Type DELETE MY AUCTION below to continue...",
             expectedInput: "DELETE MY AUCTION",
             onContinue: () => { fetchAPI(`/auctions/${key}`, 'DELETE', $token, null, checkResponse); }
-        };
-    }
-
-    function cancelAuction(key) {
-        confirmation = {
-            message: "Type CANCEL MY AUCTION below to continue...",
-            expectedInput: "CANCEL MY AUCTION",
-            onContinue: () => { fetchAPI(`/auctions/${key}`, 'PUT', $token, JSON.stringify({'canceled': true}), checkResponse); }
         };
     }
 
@@ -106,7 +101,7 @@
                 <div class="glowbutton glowbutton-create" on:click|preventDefault={() => currentAuction = emptyAuction()}></div>
             </div>
             {#each auctions as auction}
-                <AuctionCard auction={auction} onEdit={(auction) => currentAuction = auction} onCancel={cancelAuction} onDelete={deleteAuction} />
+                <AuctionCard auction={auction} onEdit={(auction) => currentAuction = auction} onDelete={deleteAuction} />
             {/each}
         {/if}
     </section>

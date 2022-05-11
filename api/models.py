@@ -92,8 +92,6 @@ class Auction(db.Model):
 
     winning_bid_id = db.Column(db.Integer, nullable=True)
 
-    canceled = db.Column(db.Boolean, nullable=False, default=False)
-
     def __init__(self, **kwargs):
 
         # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
@@ -115,7 +113,6 @@ class Auction(db.Model):
             'duration_hours': self.duration_hours,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
-            'canceled': self.canceled,
             'starting_bid': self.starting_bid,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media]

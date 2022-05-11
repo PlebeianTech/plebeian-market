@@ -265,26 +265,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['auction']['key'], auction_key_2) # didn't change
         self.assertEqual(response['auction']['starting_bid'], 888)
 
-        # CANCEL an auction
-        code, response = self.put(f"/api/auctions/{auction_key_2}",
-            {'canceled': True},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-
-        # can not un-CANCEL an auction
-        code, response = self.put(f"/api/auctions/{auction_key_2}",
-            {'canceled': False},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 400)
-        self.assertTrue("can not un-cancel" in response['message'].lower())
-
-        # can not EDIT a canceled auction
-        code, response = self.put(f"/api/auctions/{auction_key_2}",
-            {'starting_bid': 777},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-        self.assertTrue("edit a canceled auction", response['message'].lower())
-
         # can DELETE the auction with the proper auth headers
         code, response = self.delete(f"/api/auctions/{auction_key_2}",
             headers=self.get_auth_headers(token_2))

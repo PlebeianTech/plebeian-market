@@ -121,9 +121,7 @@
                 <a href="#{photo.twitter_media_key}" class="btn btn-xs">{i + 1}</a>
             {/each}
         </div>
-        {#if auction.canceled}
-            <p>This auction was canceled.</p>
-        {:else if auction.start_date && auction.end_date}
+        {#if auction.start_date && auction.end_date}
             {#if !auction.started}
                 <p>Auction starts <Countdown untilDate={new Date(auction.start_date)} />.</p>
             {:else if auction.ended}
@@ -150,7 +148,7 @@
             {/each}
         </ul>
         {#if $token}
-            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended && !auction.canceled}
+            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
                 {#if paymentQr}
                     <div class="qr glowbox">
                         {@html paymentQr}

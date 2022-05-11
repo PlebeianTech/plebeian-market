@@ -19,7 +19,6 @@ export interface Auction {
     starting_bid: number;
     reserve_bid: number;
     duration_hours: number;
-    canceled: boolean;
     start_date?: Date | null;
     started?: boolean | null;
     end_date?: Date | null;
@@ -33,7 +32,7 @@ export interface Auction {
 }
 
 export function fromJson(json: Auction) {
-    var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, duration_hours: 0, canceled: false, bids: [], media: []};
+    var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, duration_hours: 0, bids: [], media: []};
     for (var k in json) {
         if (k === 'start_date') {
             a.start_date = json[k] ? new Date(json[k]!) : null;

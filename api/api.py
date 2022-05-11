@@ -159,25 +159,17 @@ def auction(key):
             return jsonify({'message': "Unauthorized"}), 401
 
         if request.method == 'PUT':
-            if 'canceled' in request.json:
-                if request.json['canceled']:
-                    auction.canceled = True
-                else:
-                    return jsonify({'message': "Can not un-cancel an auction."}), 400
-                if len(set(request.json) - {'canceled'}) != 0:
-                    return jsonify({'message': "Can't edit an auction while canceling."}), 400
-            else:
-                if auction.canceled:
-                    return jsonify({'message': "Cannot edit a canceled auction."}), 403
-                if auction.start_date and auction.start_date <= datetime.utcnow():
-                    return jsonify({'message': "Cannot edit an auction once started."}), 403
-                try:
-                    validated = m.Auction.validate_dict(request.json)
-                except m.ValidationError as e:
-                    return jsonify({'message': e.message}), 400
+            if auction.start_date and auction.start_date <= datetime.utcnow():
+                return jsonify({'message': "Cannot edit an auction once started."}), 403
 
-                for k, v in validated.items():
-                    setattr(auction, k, v)
+            try:
+                validated = m.Auction.validate_dict(request.json)
+            except m.ValidationError as e:
+                return jsonify({'message': e.message}), 400
+
+            for k, v in validated.items():
+                setattr(auction, k, v)
+
             db.session.commit()
 
             return jsonify({})
