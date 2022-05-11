@@ -100,13 +100,13 @@
             <label for="profile-modal" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide}>✕</label>
         {/if}
         <div class="w-1/2">
-            <div class="form-group mt-3">
+            <div class="form-group mt-3 mb-10">
                 <input id="twitter-username" name="twitter-username" class:invalid-field={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-field" bind:value={twitterUsername} />
                 <label class:invalid={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-label" for="twitter-username">Twitter username</label>
             </div>
-
             {#if $user && $user.hasAuctions}
-                <h3 class="text-2xl text-center mt-10">Your value4value donation</h3>
+                <div class="divider"></div>
+                <h3 class="text-2xl text-center">Your value4value donation</h3>
                 <p class="text-center">Be a hero... save humanity</p>
                 <p class="text-center">Your v4v donation goes a looooong way... it enables us to develop this service further and create more free open source solutions... 100% of your donation goes to powering the Bitcoin movement!</p>
                 <div class="pt-5">
