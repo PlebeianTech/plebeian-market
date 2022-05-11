@@ -39,6 +39,17 @@
     }
 
     export function show() {
+        if (!$user) {
+            return;
+        }
+
+        twitterUsername = $user.twitterUsername ? `${$user.twitterUsername}` : "";
+        contributionPercent = $user.contributionPercent;
+
+        if ($user.hasAuctions && contributionPercent === null) {
+            contributionPercent = 3; // default value
+        }
+
         let toggle = <HTMLInputElement>document.getElementById('profile-modal-toggle');
         if (toggle) {
             toggle.checked = true;
@@ -49,13 +60,12 @@
         if (!$user) {
             return;
         }
-        twitterUsername = $user.twitterUsername ? `${$user.twitterUsername}` : "";
-        contributionPercent = $user.contributionPercent;
-        if (!isTwitterUsernameValid()) {
+
+        if (!$user.twitterUsername === null) {
             show();
         }
-        if ($user.hasAuctions && contributionPercent === null) {
-            contributionPercent = 3; // default value
+
+        if ($user.hasAuctions && $user.contributionPercent === null) {
             show();
         }
     }
