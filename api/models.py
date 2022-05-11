@@ -48,7 +48,7 @@ class User(db.Model):
 
     contribution_percent = db.Column(db.Float, nullable=True)
 
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.start_date), Auction.key")
+    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
     bids = db.relationship('Bid', backref='buyer')
 
     def to_dict(self):
@@ -92,6 +92,8 @@ class Auction(db.Model):
 
     winning_bid_id = db.Column(db.Integer, nullable=True)
 
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
     def __init__(self, **kwargs):
 
         # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
@@ -115,7 +117,8 @@ class Auction(db.Model):
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
             'starting_bid': self.starting_bid,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
-            'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media]
+            'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
+            'created_at': self.created_at.isoformat() + "Z",
         }
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
@@ -134,6 +137,8 @@ class Auction(db.Model):
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = d[k]
         for k in ['start_date']:
+            # for now, only start_date can be edited
+            # the end_date is computed on auction start using duration_hours
             if k not in d:
                 continue
             try:
