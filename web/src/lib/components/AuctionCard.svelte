@@ -1,8 +1,10 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
     import { token, user, Error } from "../stores";
+    import Confirmation from "./Confirmation.svelte";
     import Countdown from "./Countdown.svelte";
     import DateFormatter from "./DateFormatter.svelte";
 
@@ -10,10 +12,11 @@
     let twitterLinkCopied = false;
     let twitterOpened = false;
 
+    let confirmation: any = null;
+
     export let onEdit = (auction) => {};
 
-    // TODO: perhaps this function inside here and have this component display the confirmation
-    export let onDelete = (key) => {};
+    export let onDelete = () => {};
 
     function view() {
         goto(`/auctions/${auction.key}`);
@@ -61,9 +64,26 @@
             }
         );
     }
+
+    function deleteAuction() {
+        confirmation = {
+            message: "Type DELETE AUCTION below to continue...",
+            expectedInput: "DELETE AUCTION",
+            onContinue: () => {
+                fetchAPI(`/auctions/${auction.key}`, 'DELETE', $token, null,
+                    (response) => {
+                        if (response.status === 200) {
+                            onDelete();
+                        }
+                    });
+                }
+        };
+    }
+
+    onMount(async () => { confirmation = null; });
 </script>
 
-<div class="max-w-full p-4 rounded overflow-hidden shadow-lg my-3">
+<div class="card bg-base-100 max-w-full p-4 rounded overflow-hidden shadow-lg my-3">
     <div class="text-center">
         <h3 class=" text-2xl">{auction.title}</h3>
         <span class=" font-mono">
@@ -76,58 +96,64 @@
     </div>
     <p class="mt-2">Duration: {auction.duration_str} {#if auction.start_date && auction.end_date}/ <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />{/if}</p>
     <p><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
-    <div class="mt-2 float-root">
-        <div class="py-5 float-left">
-            {#if auction.started && !auction.ended}
-                <Countdown untilDate={auction.end_date} />
-            {/if}
+    {#each auction.media as photo, i}
+        {#if i === 0}
+            <div id="{photo.twitter_media_key}" class="w-24 rounded">
+                <img src={photo.url} class="rounded" alt="Auctioned object" />
+            </div>
+        {/if}
+    {/each}
+    {#if confirmation}
+        <div class="mt-2 py-5">
+            <Confirmation message={confirmation.message} expectedInput={confirmation.expectedInput} onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
         </div>
-        {#each auction.media as photo, i}
-            {#if i === 0}
-                <div id="{photo.twitter_media_key}" class="w-24 rounded">
-                    <img src={photo.url} alt="Auctioned object" />
-                </div>
-            {/if}
-        {/each}
-        <div class="py-5 float-right">
-            {#if auction.started}
-                <div class="glowbutton glowbutton-view mx-2" on:click|preventDefault={view}></div>
-            {:else}
-                <a class="btn mx-2" href="/auctions/{auction.key}">View</a>
-            {/if}
-            {#if !auction.started}
-                <button class="btn" on:click={() => onEdit(auction)}>Edit</button>
-                <button class="btn" on:click={() => onDelete(auction.key)}>Delete</button>
-            {/if}
+    {:else}
+        <div class="mt-2 float-root">
+            <div class="py-5 float-left">
+                {#if auction.started && !auction.ended}
+                    <Countdown untilDate={auction.end_date} />
+                {/if}
+            </div>
+            <div class="py-5 float-right">
+                {#if auction.started}
+                    <div class="glowbutton glowbutton-view mx-2" on:click|preventDefault={view}></div>
+                {:else}
+                    <a class="btn mx-1" href="/auctions/{auction.key}">View</a>
+                {/if}
+                {#if !auction.started}
+                    <button class="btn mx-1" on:click={() => onEdit(auction)}>Edit</button>
+                    <button class="btn mx-1" on:click={deleteAuction}>Delete</button>
+                {/if}
+            </div>
         </div>
-    </div>
+    {/if}
     {#if !auction.started}
-    <div class="mt-2">
-        <div class="py-5 w-full flex items-center justify-center rounded">
-            <ul class="steps steps-vertical lg:steps-horizontal">
-                <li class="step" class:step-primary={twitterLinkCopied}>
-                    {#if !twitterLinkCopied && !twitterOpened}
-                        <div class="glowbutton glowbutton-copy mx-2" on:click|preventDefault={copySnippet}></div>
-                    {:else}
-                        <button class="btn mx-2" on:click={copySnippet}>Copied!</button>
-                    {/if}
-                </li>
-                <li class="step" class:step-primary={twitterOpened}>
-                    {#if twitterLinkCopied && !twitterOpened}
-                        <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
-                    {:else}
-                        <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
-                    {/if}
-                </li>
-                <li class="step">
-                    {#if twitterLinkCopied && twitterOpened}
-                        <div class="glowbutton glowbutton-start ml-2" on:click|preventDefault={start}></div>
-                    {:else}
-                        <button class="btn mx-2" on:click={start}>Start</button>
-                    {/if}
-                </li>
-            </ul>
+        <div class="mt-2">
+            <div class="py-5 w-full flex items-center justify-center rounded">
+                <ul class="steps steps-vertical lg:steps-horizontal">
+                    <li class="step" class:step-primary={twitterLinkCopied}>
+                        {#if !twitterLinkCopied && !twitterOpened}
+                            <div class="glowbutton glowbutton-copy mx-2" on:click|preventDefault={copySnippet}></div>
+                        {:else}
+                            <button class="btn mx-2" on:click={copySnippet}>Copied!</button>
+                        {/if}
+                    </li>
+                    <li class="step" class:step-primary={twitterOpened}>
+                        {#if twitterLinkCopied && !twitterOpened}
+                            <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
+                        {:else}
+                            <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
+                        {/if}
+                    </li>
+                    <li class="step">
+                        {#if twitterLinkCopied && twitterOpened}
+                            <div class="glowbutton glowbutton-start ml-2" on:click|preventDefault={start}></div>
+                        {:else}
+                            <button class="btn mx-2" on:click={start}>Start</button>
+                        {/if}
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
     {/if}
 </div>

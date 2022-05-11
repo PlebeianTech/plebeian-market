@@ -5,7 +5,6 @@
     import { token, user, Info, Error } from "../stores";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
-    import Confirmation from "./Confirmation.svelte";
     import Loading from "./Loading.svelte";
 
     function emptyAuction() {
@@ -21,9 +20,8 @@
         };
     }
 
-    let confirmation: any = null;
     let currentAuction: Auction | undefined;
-    let auctions: Auction[] = [];
+    let auctions: Auction[] | null = null;
 
     function asJson() {
         var json = {};
@@ -37,16 +35,15 @@
 
     function checkResponse(response) {
         if (response.status === 200) {
-            confirmation = null;
             currentAuction = undefined;
             response.json().then(data => {
                 if (data.auctions) {
                     auctions = data.auctions.map(fromJson);
-                    if (!auctions.length) {
+                    if (auctions === null || !auctions.length) {
                         currentAuction = emptyAuction();
                     }
                 } else {
-                    fetchAPI("/auctions", 'GET', $token, null, checkResponse);
+                    fetchAuctions();
                 }
             });
         } else {
@@ -54,6 +51,10 @@
                 Error.set(data.message);
             });
         }
+    }
+
+    function fetchAuctions() {
+        fetchAPI("/auctions", 'GET', $token, null, checkResponse);
     }
 
     function saveCurrentAuction() {
@@ -77,12 +78,9 @@
         }
     }
 
-    function deleteAuction(key) {
-        confirmation = {
-            message: "Type DELETE MY AUCTION below to continue...",
-            expectedInput: "DELETE MY AUCTION",
-            onContinue: () => { fetchAPI(`/auctions/${key}`, 'DELETE', $token, null, checkResponse); }
-        };
+    function onDelete() {
+        auctions = null;
+        fetchAuctions();
     }
 
     onMount(async () => { fetchAPI("/auctions", 'GET', $token, null, checkResponse); });
@@ -90,18 +88,19 @@
 
 <div class="pt-10 flex justify-center items-center">
     <section class="w-3/5">
-        {#if confirmation}
-            <Confirmation message={confirmation.message} expectedInput={confirmation.expectedInput} onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
-        {:else if currentAuction}
+        {#if currentAuction}
             <AuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} onCancel={() => currentAuction = undefined} />
         {:else if auctions == null}
             <Loading />
         {:else}
             <div class="flex items-center justify-center">
-                <div class="glowbutton glowbutton-create" on:click|preventDefault={() => currentAuction = emptyAuction()}></div>
+                <div class="glowbutton glowbutton-new" on:click|preventDefault={() => currentAuction = emptyAuction()}></div>
             </div>
-            {#each auctions as auction}
-                <AuctionCard auction={auction} onEdit={(auction) => currentAuction = auction} onDelete={deleteAuction} />
+            {#each auctions as auction, i}
+                {#if i !== 0}
+                    <div class="divider"></div> 
+                {/if}
+                <AuctionCard auction={auction} onEdit={(auction) => currentAuction = auction} onDelete={onDelete} />
             {/each}
         {/if}
     </section>

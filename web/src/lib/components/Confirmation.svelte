@@ -16,15 +16,8 @@
     }
 </script>
 
-<div class="max-w-full p-4 rounded shadow-lg bg-red-700 my-3">
-    <h3 class="mb-4 text-2xl text-center text-white">{message}</h3>
-    <div class="flex items-center justify-center">
-        <input type="text" class="form-control text-3xl rounded" bind:value={input} />
-    </div>
-</div>
-<div class="float-left pt-5">
-    <button class="btn" on:click|preventDefault={onCancel}>Cancel</button>
-</div>
-<div class="float-right pt-5">
-    <div class="glowbutton glowbutton-confirm" on:click|preventDefault={checkInput}></div>
+<div class="bg-warn flex items-center justify-center w-full">
+    <input type="text" placeholder="Type {expectedInput} here!" class="input input-bordered input-warning mx-1 w-full" bind:value={input} />
+    <button class="btn mx-2" on:click|preventDefault={onCancel}>Cancel</button>
+    <button class="btn btn-warning mx-2" on:click|preventDefault={checkInput}>Delete</button>
 </div>

@@ -41,8 +41,8 @@
 </style>
 
 <div class="w-full flex justify-center items-center">
-    <div class="w-4/6 p-4 rounded shadow-lg bg-gray-900 my-3 glowbox">
-        <h2 class="mb-4 text-2xl text-center text-white">{#if auction.key}Edit auction <code class="bg-cyan-600 p-1 rounded">{auction.key}</code>{:else}Create a new auction{/if}</h2>
+    <div class="card bg-base-100 w-4/6 p-4 rounded shadow-xl my-3 glowbox">
+        <h2 class="card-title mb-4 text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
         <form>
             <div class="flex">
             <div class="form-group mr-2 w-full">
