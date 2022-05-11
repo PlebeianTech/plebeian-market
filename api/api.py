@@ -110,7 +110,7 @@ def me(user):
                 user.twitter_username = clean_username
                 twitter_user = get_twitter().get_user(user.twitter_username)
                 if not twitter_user:
-                    return jsonify({'message': "Twitter username not found!"}), 400
+                    return jsonify({'message': "Twitter profile not found!"}), 400
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
                 user.twitter_username_verified = False
         if 'contribution_percent' in request.json:
@@ -196,9 +196,16 @@ def start_twitter(user, key):
         return jsonify({'message': "Not found."}), 404
     if auction.seller_id != user.id:
         return jsonify({'message': "Unauthorized"}), 401
-    tweet = get_twitter().get_auction_tweet(user.twitter_username)
-    if not tweet or tweet['auction_key'] != auction.key:
-        return jsonify({'message': "No tweet found."}), 400
+    twitter = get_twitter()
+    twitter_user = twitter.get_user(user.twitter_username)
+    if not twitter_user:
+        return jsonify({'message': "Twitter profile not found!"}), 400
+    user.twitter_profile_image_url = twitter_user['profile_image_url']
+    tweet = twitter.get_auction_tweet(twitter_user['id'])
+    if not tweet:
+        return jsonify({'message': "Tweet not found."}), 400
+    if tweet['auction_key'] != auction.key:
+        return jsonify({'message': "Link in tweet is for another auction."}), 400
 
     user.twitter_username_verified = True
     auction.twitter_id = tweet['id']

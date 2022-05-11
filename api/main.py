@@ -133,17 +133,19 @@ class MockTwitter:
     def get_user(self, username):
         return {
             'id': "MOCK_USER_ID",
-            'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(10000, 40000)}",
+            'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(1, 1000)}",
         }
 
-    def get_auction_tweet(self, username):
+    def get_auction_tweet(self, user_id):
+        if not user_id.startswith('MOCK_USER'):
+            return None
         return {
             'id': "MOCK_TWEET_ID",
             'text': "Hello Mocked Tweet",
             'auction_key': MockTwitter.MockKey(),
             'photos': [
-                {'media_key': "MOCK_PHOTO_1", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(10000, 40000)}"},
-                {'media_key': "MOCK_PHOTO_2", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(10000, 40000)}"}
+                {'media_key': "MOCK_PHOTO_1", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(1, 1000)}"},
+                {'media_key': "MOCK_PHOTO_2", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(1, 1000)}"}
             ]
         }
 
@@ -169,13 +171,7 @@ class Twitter:
             return
         return response_json['data']
 
-    def get_auction_tweet(self, username):
-        user = self.get_user(username)
-        if not user:
-            return
-
-        user_id = user['id']
-
+    def get_auction_tweet(self, user_id):
         ten_minutes_ago = (datetime.utcnow() - timedelta(minutes=10)).replace(microsecond=0).isoformat() + "Z"
         response_json = self.get(f"/users/{user_id}/tweets",
             params={
