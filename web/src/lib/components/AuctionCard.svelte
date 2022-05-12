@@ -67,8 +67,6 @@
 
     function deleteAuction() {
         confirmation = {
-            message: "Type DELETE AUCTION below to continue...",
-            expectedInput: "DELETE AUCTION",
             onContinue: () => {
                 fetchAPI(`/auctions/${auction.key}`, 'DELETE', $token, null,
                     (response) => {
@@ -85,7 +83,7 @@
 
 <div class="card bg-base-100 max-w-full p-4 rounded overflow-hidden shadow-lg my-3">
     <div class="text-center">
-        <h3 class="text-primary text-2xl">{auction.title}</h3>
+        <h3 class="text-2xl">{auction.title}</h3>
         <span class=" font-mono">
             {#if auction.started && !auction.ended}
                 (running)
@@ -94,8 +92,8 @@
             {/if}
         </span>
     </div>
-    <p class="mt-2 text-primary">Duration: {auction.duration_str} {#if auction.start_date && auction.end_date}/ <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />{/if}</p>
-    <p class="text-primary"><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
+    <p class="mt-2">Duration: {auction.duration_str} {#if auction.start_date && auction.end_date}/ <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />{/if}</p>
+    <p><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
     {#each auction.media as photo, i}
         {#if i === 0}
             <div id="{photo.twitter_media_key}" class="w-24 rounded">
@@ -105,7 +103,7 @@
     {/each}
     {#if confirmation}
         <div class="mt-2 py-5">
-            <Confirmation message={confirmation.message} expectedInput={confirmation.expectedInput} onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
+            <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
         </div>
     {:else}
         <div class="mt-2 float-root">

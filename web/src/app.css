@@ -8,6 +8,18 @@
   background-color: #EEE;
 }
 
+.avatar.verified::before {
+  content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="rgb(255,153,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>');
+  position: absolute;
+  z-index: 10;
+  display: block;
+  --tw-bg-opacity: 1;
+  width: 100%;
+  height: 100%;
+  top: 0%;
+  right: -60%;
+}
+
 .glowbutton {
   width: 150px;
   height: 50px;
@@ -16,10 +28,6 @@
   background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8, #1098ad, #07b39b, #6fba82);
   cursor: pointer;
   line-height: 12px;
-}
-
-.glowbutton.disabled {
-  background: linear-gradient(60deg, #708090, #778899, #a9a9a9, #696969, #c0c0c0, #dcdcdc, #808080, #f4f0ec);
 }
 
 .glowbutton:before {
@@ -34,10 +42,6 @@
   transition: 0.3s opacity ease-in-out;
   filter: blur(15px);
   opacity: 0;
-}
-
-.glowbutton.disabled:hover:before {
-  background: none;
 }
 
 .glowbutton:hover:before {
@@ -65,10 +69,6 @@
   background-color: rgb(19, 20, 22);
 }
 
-.glowbutton-enter:after {
-  content: 'Enter!';
-}
-
 .glowbutton-view:after {
   content: 'View';
 }
@@ -87,10 +87,6 @@
 
 .glowbutton-copy:after {
   content: 'Copy';
-}
-
-.glowbutton-confirm:after {
-  content: 'Confirm';
 }
 
 .glowbutton-bid:after {
@@ -143,59 +139,6 @@
   }
 }
 
-.form-group {
-  position: relative;
-  padding: 15px 0 0;
-  margin-top: 10px;
-}
-
-.form-field {
-  font-family: inherit;
-  width: 100%;
-  border: 0;
-  border-bottom: 2px solid #9b9b9b;
-  outline: 0;
-  font-size: 1.3rem;
-  padding: 7px 0;
-  background: transparent;
-  transition: border-color 0.2s;
-}
-
-.form-field::placeholder {
-  color: transparent;
-}
-
-.form-field:placeholder-shown ~ .form-label {
-  font-size: 1.3rem;
-  cursor: text;
-  top: 20px;
-}
-
-.form-label {
-  position: absolute;
-  top: 0;
-  display: block;
-  transition: 0.2s;
-  font-size: 1rem;
-}
-
-.form-field:focus {
-  padding-bottom: 6px;  
-  font-weight: 700;
-  border-width: 3px;
-  border-image: linear-gradient(to right, #11998e,#38ef7d);
-  border-image-slice: 1;
-}
-
-.form-field:focus ~ .form-label {
-  position: absolute;
-  top: 0;
-  display: block;
-  transition: 0.2s;
-  font-size: 1rem;
-  color: #11998e;
-  font-weight: 700;    
-}
 
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,

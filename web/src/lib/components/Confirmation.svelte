@@ -1,23 +1,23 @@
 <script lang="ts">
-    export let message = null;
-    export let expectedInput = null;
-
     export let onCancel = () => {};
     export let onContinue = () => {};
 
-    let input = null;
+    let confirm = false;
 
-    function checkInput() {
-        if (input === expectedInput) {
+    function check() {
+        if (confirm) {
             onContinue();
-        } else {
-            console.log(`Wrong input: ${input}...`)
         }
     }
 </script>
 
 <div class="bg-warn flex items-center justify-center w-full">
-    <input type="text" placeholder="Type {expectedInput} here!" class="input input-bordered input-error mx-1 w-full" bind:value={input} />
+    <div class="form-control w-full">
+        <label class="label cursor-pointer">
+            <span class="label-text w-full text-right text-error mr-2">I am sure I want to delete this auction</span> 
+            <input type="checkbox" class="toggle toggle-secondary toggle-lg" bind:value={confirm} />
+        </label>
+    </div>
     <button class="btn mx-2" on:click|preventDefault={onCancel}>Cancel</button>
-    <button class="btn btn-error mx-2" on:click|preventDefault={checkInput}>Delete</button>
+    <button class="btn btn-error mx-2" on:click|preventDefault={check}>Delete</button>
 </div>

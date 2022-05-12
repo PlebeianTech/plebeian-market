@@ -115,8 +115,8 @@
                     <img src={photo.url} alt="Auctioned object" />
                 </div>
             {/each}
-        </div> 
-        <div class="flex justify-center w-full py-2 gap-2 text-primary">
+        </div>
+        <div class="flex justify-center w-full py-2 gap-2">
             {#each auction.media as photo, i}
                 <a href="#{photo.twitter_media_key}" class="btn btn-xs">{i + 1}</a>
             {/each}
@@ -132,13 +132,10 @@
         {:else}
             <p>Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.</p>
         {/if}
-        <ul id="bids text-primary">
+        <ul id="bids">
             {#each auction.bids as bid}
             <li>
-                {#if bid.twitter_username_verified}
-                    <div class="badge badge-warning badge-sm">&#x2714;</div>
-                {/if}
-                <div class="avatar">
+                <div class="avatar" class:verified={bid.twitter_username_verified}>
                     <div class="w-8 rounded-full">
                         <img src={bid.twitter_profile_image_url} title={bid.twitter_username} alt={bid.twitter_username} />
                     </div>
@@ -155,9 +152,15 @@
                         <span class="break-all text-xs">{paymentRequest}</span>
                     </div>
                 {:else}
-                    <div id="bid" class="form-group">
-                        <input id="bid-amount" name="bid-amount" type="number" class="form-field" bind:value={amount} />
-                        <label class="form-label" for="bid-amount">Amount</label>
+                    <div class="form-control w-full max-w-xs">
+                        <label class="label" for="bid-amount">
+                            <span class="label-text">Amount</span>
+                        </label>
+                        <input bind:value={amount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
+                        <label class="label" for="bid-amount">
+                            <span class="label-text"></span>
+                            <span class="label-text">sats</span>
+                        </label>
                     </div>
                     <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
                 {/if}

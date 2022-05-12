@@ -84,66 +84,74 @@
     onDestroy(unsubscribe);
 </script>
 
-<style>
-    .invalid {
-        color: #991B1B;
-    }
-    .invalid-field {
-        border-bottom: 2px solid #991B1B;
-    }
-</style>
-
 <input type="checkbox" id="profile-modal-toggle" for="profile-modal" class="modal-toggle" />
 <div class="modal">
     <div class="modal-box relative flex justify-center items-center w-10/12 max-w-5xl">
         {#if $user && $user.twitterUsername && (!$user.hasAuctions || $user.contributionPercent !== null)}
             <label for="profile-modal" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide}>✕</label>
         {/if}
-        <div class="w-1/2">
-            <div class="form-group mt-3 mb-10">
-                <input id="twitter-username" name="twitter-username" class:invalid-field={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-field" bind:value={twitterUsername} />
-                <label class:invalid={invalidTwitterUsername && !isTwitterUsernameValid()} class="form-label" for="twitter-username">Twitter username</label>
+        <div class="w-full">
+            <div class="w-full flex items-center justify-center">
+                <div class="form-control w-full max-w-lg">
+                    <label class="label" for="twitter-username">
+                        <span class="label-text">Twitter username</span>
+                    </label>
+                    <input bind:value={twitterUsername} id="twitter-username" name="twitter-username" type="text" placeholder="@" class:input-error={invalidTwitterUsername && !isTwitterUsernameValid()} class="input input-bordered w-full max-w-xs" />
+                </div>
             </div>
             {#if $user && $user.hasAuctions}
-                <div class="divider"></div>
-                <h3 class="text-2xl text-center text-primary">Your value4value donation</h3>
-                <p class="text-center text-primary">Be a hero... save humanity</p>
-                <p class="text-center text-primary">Your v4v donation goes a looooong way... it enables us to develop this service further and create more free open source solutions... 100% of your donation goes to powering the Bitcoin movement!</p>
-                <div class="pt-5">
-                    <input type="range" min="0" max="5" bind:value={contributionPercent} class="range" step="0.5" />
-                    <div class="w-full flex justify-between text-xs px-2">
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
+            <div class="flex items-center justify-center mt-8">
+                <div>
+                    <div class="form-control w-full max-w-lg">
+                        <label class="label" for="contribution-percent">
+                            <span class="label-text">Value4Value contribution</span>
+                        </label>
+                        <div>
+                            <input type="range" min="0" max="5" bind:value={contributionPercent} class="range" step="0.5" />
+                            <div class="w-full flex justify-between text-xs px-2">
+                            <span>|</span>
+                            <span>|</span>
+                            <span>|</span>
+                            <span>|</span>
+                            <span>|</span>
+                            <span>|</span>
+                            </div>
+                        </div>
+                        <label class="label" for="contribution-percent">
+                            <span class="label-text w-2/4">Generosity enables us to continue creating free and open source solutions!</span>
+                            <span class="label-text text-right w-2/4">100% goes to powering the Bitcoin movement!</span>
+                        </label>
+                    </div>
+
+                    <div class="text-2xl text-center">
+                        { contributionPercent }%
+                    </div>
+
+                    <div class="text-4xl text-center">
+                        {#if contributionPercent === 0}
+                            {@html "&#x1F4A9;"}
+                        {:else if contributionPercent < 2}
+                            {@html "&#x1F625;"}
+                        {:else if contributionPercent < 3}
+                            {@html "&#x1F615;"}
+                        {:else if contributionPercent < 4}
+                            {@html "&#x1F610;"}
+                        {:else if contributionPercent <= 4.5}
+                            {@html "&#x1F642;"}
+                        {:else if contributionPercent <= 5}
+                            {@html "&#x1F60D;"}
+                        {/if}
                     </div>
                 </div>
-
-                <div class="text-2xl text-center">
-                    { contributionPercent }%
-                </div>
-
-                <div class="text-4xl text-center">
-                    {#if contributionPercent === 0}
-                        {@html "&#x1F4A9;"}
-                    {:else if contributionPercent < 2}
-                        {@html "&#x1F625;"}
-                    {:else if contributionPercent < 3}
-                        {@html "&#x1F615;"}
-                    {:else if contributionPercent < 4}
-                        {@html "&#x1F610;"}
-                    {:else if contributionPercent <= 4.5}
-                        {@html "&#x1F642;"}
-                    {:else if contributionPercent <= 5}
-                        {@html "&#x1F60D;"}
-                    {/if}
-                </div>
+            </div>
             {/if}
 
-            <div class="flex justify-center items-center mt-4">
-                <div id="save-profile" class:disabled={!$user || ((twitterUsername === $user.twitterUsername) && (contributionPercent === $user.contributionPercent))} class="glowbutton glowbutton-save" on:click|preventDefault={save}></div>
+            <div class="flex justify-center items-center mt-4 h-24">
+                {#if !$user || ((twitterUsername === $user.twitterUsername) && (contributionPercent === $user.contributionPercent))}
+                    <button class="btn" disabled>Save</button>
+                {:else}
+                    <div id="save-profile" class="glowbutton glowbutton-save" on:click|preventDefault={save}></div>
+                {/if}
             </div>
         </div>
     </div>
