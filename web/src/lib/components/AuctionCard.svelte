@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { goto } from "$app/navigation";
     import { fetchAPI } from "../services/api";
     import { type Auction, fromJson } from "../types/auction";
     import { token, user, Error } from "../stores";
@@ -21,7 +20,8 @@
         if (auction.started) {
             localStorage.setItem(`auction-viewed-${auction.key}`, "y");
         }
-        goto(`/auctions/${auction.key}`);
+
+        window.open(getUrl(), "_blank");
     }
 
     function getUrl() {
@@ -126,7 +126,7 @@
     <div class="mt-2">
         <p class="text-center">
             {#if !twitterOpened && !auction.started}
-            Create your tweet with at least four images
+            Create your tweet and don't forget to attach some pictures
             {:else if twitterOpened && !auction.started}
             Start your auction
             {:else if auction.started}

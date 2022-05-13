@@ -35,7 +35,7 @@
     });
 </script>
 
-<div class:blink={flashLastMinute && (days === 0) && (hours === 0) && (minutes === 0)} class="flex gap-5">
+<div class:blink={flashLastMinute && (days === 0) && (hours === 0) && (minutes === 0)} class="flex justify-center items-center gap-5">
     <div>
         <span class="countdown font-mono text-3xl">
             <span style="--value:{days};"></span>

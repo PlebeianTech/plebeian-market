@@ -4,6 +4,7 @@
     import { fromJson, type Auction, nextBid } from "../types/auction";
     import { token, user, Error } from "../stores";
     import BidList from "./BidList.svelte";
+    import Carousel from "./Carousel.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 
@@ -78,73 +79,66 @@
     <div class="mt-2 w-3/5 rounded p-4">
         <h2 class="text-3xl">{auction.title}</h2>
         <p class="mt-4">{auction.description}</p>
-        <div class="mt-4 carousel w-full">
-            {#each auction.media as photo, i}
-                <div id="{photo.twitter_media_key}" class="carousel-item relative w-full">
-                    <img src={photo.url} alt="Auctioned object" />
-                    <div class="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
-                        {#if i}
-                            <a href="#{auction.media[i - 1].twitter_media_key}" class="btn btn-circle">❮</a>
-                        {:else}
-                            <a href={null} class="">&nbsp;</a>
-                        {/if}
-                        {#if i < auction.media.length - 1}
-                            <a href="#{auction.media[i + 1].twitter_media_key}" class="btn btn-circle">❯</a>
-                        {:else}
-                            <a href={null} class="">&nbsp;</a>
-                        {/if}
-                    </div>
-                </div>
-            {/each}
-        </div>
-        <div class="mb-4 flex justify-center w-full py-2 gap-2">
-            {#each auction.media as photo, i}
-                <a href="#{photo.twitter_media_key}" class="btn btn-xs">{i + 1}</a>
-            {/each}
-        </div>
-        {#if auction.start_date && auction.end_date}
-            {#if !auction.started}
-                <p>Auction starts <Countdown untilDate={new Date(auction.start_date)} />.</p>
-            {:else if auction.ended}
-                <p>Auction ended.</p>
-            {:else}
-                <Countdown untilDate={new Date(auction.end_date)} />
-            {/if}
-        {:else}
-            <p>Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.</p>
-        {/if}
-        {#if auction.started && !auction.reserve_bid_reached}
-        <p class="text-error text-2xl">Reserve not met!</p>
-        {/if}
-        <div class="mt-4" />
-        {#if auction.bids.length}
-            <BidList auction={auction} />
-        {/if}
-        {#if $token}
-            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                {#if paymentQr}
-                    <div class="qr glowbox">
-                        {@html paymentQr}
-                        <span class="break-all text-xs">{paymentRequest}</span>
-                    </div>
+
+        <Carousel photos={auction.media} />
+
+        <p>
+            {#if auction.start_date && auction.end_date}
+                {#if !auction.started}
+                    Auction starts <Countdown untilDate={new Date(auction.start_date)} />.
+                {:else if auction.ended}
+                    Auction ended.
                 {:else}
-                    <div class="form-control w-full max-w-xs">
-                        <label class="label" for="bid-amount">
-                            <span class="label-text">Amount</span>
-                        </label>
-                        <input bind:value={amount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
-                        <label class="label" for="bid-amount">
-                            <span class="label-text"></span>
-                            <span class="label-text">sats</span>
-                        </label>
-                    </div>
-                    <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
+                    <Countdown untilDate={new Date(auction.end_date)} />
                 {/if}
+            {:else}
+                Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
             {/if}
-        {:else}
-            <span>To start bidding, log in by scanning the QR code with your Lightning wallet.</span>
-            <Login />
-        {/if}
+        </p>
+
+        <div class="mt-4 flex">
+
+            <div class=w-1/2>
+                {#if $token}
+                    {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
+                        {#if paymentQr}
+                            <div class="qr glowbox">
+                                {@html paymentQr}
+                                <span class="break-all text-xs">{paymentRequest}</span>
+                            </div>
+                        {:else}
+                            <div class="form-control w-full max-w-xs">
+                                <label class="label" for="bid-amount">
+                                    <span class="label-text">Amount</span>
+                                </label>
+                                <input bind:value={amount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
+                                <label class="label" for="bid-amount">
+                                    <span class="label-text"></span>
+                                    <span class="label-text">sats</span>
+                                </label>
+                            </div>
+                            <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
+                        {/if}
+                    {/if}
+                {:else}
+                    <span>To start bidding, log in by scanning the QR code with your Lightning wallet.</span>
+                    <Login />
+                {/if}
+            </div>
+
+            <div class="w-1/2">
+                {#if auction.started && !auction.reserve_bid_reached}
+                    <p class="text-error text-2xl">Reserve not met!</p>
+                {/if}
+
+                {#if auction.bids.length}
+                    <div class="mt-2">
+                        <BidList auction={auction} />
+                    </div>
+                {/if}
+            </div>
+
+        </div>
     </div>
 </div>
 {/if}
