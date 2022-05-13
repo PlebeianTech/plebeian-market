@@ -18,6 +18,9 @@
     export let onDelete = () => {};
 
     function view() {
+        if (auction.started) {
+            localStorage.setItem(`auction-viewed-${auction.key}`, "y");
+        }
         goto(`/auctions/${auction.key}`);
     }
 
@@ -112,9 +115,14 @@
                     <button class="btn mx-1" on:click={() => onEdit(auction)}>Edit</button>
                     <button class="btn mx-1" on:click={deleteAuction}>Delete</button>
             </div>
+            {:else if localStorage.getItem(`auction-viewed-${auction.key}`)}
+            <div class="py-5 float-right">
+                <button class="btn mx-1" on:click={view}>View</button>
+            </div>
             {/if}
         </div>
     {/if}
+    {#if !auction.ended && !localStorage.getItem(`auction-viewed-${auction.key}`)}
     <div class="mt-2">
         <p class="text-center">
             {#if !twitterOpened && !auction.started}
@@ -151,4 +159,5 @@
             </ul>
         </div>
     </div>
+    {/if}
 </div>
