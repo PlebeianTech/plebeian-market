@@ -5,6 +5,7 @@ export interface Bid {
     twitter_profile_image_url?: string;
     twitter_username_verified?: boolean;
     payment_request?: string;
+    settled_at?: Date;
 }
 
 export interface Media {
@@ -31,7 +32,7 @@ export interface Auction {
     invalidDescription?: boolean;
 }
 
-export function fromJson(json: Auction) {
+export function fromJson(json: any) {
     var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, duration_hours: 0, bids: [], media: []};
     for (var k in json) {
         if (k === 'start_date') {
@@ -55,9 +56,50 @@ export function fromJson(json: Auction) {
                 durations.push(`${hours} hour${ hours > 1 ? "s" : ""}`);
             }
             a.duration_str = durations.join(" and ");
+        } else if (k === 'bids') {
+            for (const bidjson of json[k]) {
+                var b: Bid = {amount: 0};
+                for (var kk in bidjson) {
+                    if (kk === 'settled_at') {
+                        b.settled_at = new Date(bidjson[kk]);
+                    } else {
+                        b[kk] = bidjson[kk];
+                    }
+                }
+                a.bids.push(b);
+            }
         } else {
             a[k] = json[k];
         }
     }
-    return a;
+   return a;
+}
+
+export function nextBid(lastBid) {
+    var head = String(lastBid).slice(0, 2);
+    var rest = String(lastBid).slice(2);
+
+    if (head[0] === "1") {
+        head = String(Number(head) + 1);
+    } else if (head[0] === "2") {
+        head = String(Number(head) + 2);
+    } else if (head[0] === "3" || head[0] === "4") {
+        if (head[1] === "0") {
+            head = head[0] + "2";
+        } else if (head[1] === "1" || head[1] === "2" || head[1] === "3") {
+            head = head[0] + "5";
+        } else if (head[1] === "4" || head[1] === "5" || head[1] === "6" ||  head[1] === "7") {
+            head = head[0] + "8";
+        } else {
+            head = String(Number(head[0]) + 1) + "0";
+        }
+    } else {
+        if (head[1] === "0" || head[1] === "1" || head[1] === "2" || head[1] === "3") {
+            head = head[0] + "5";
+        } else {
+            head = String(Number(head[0]) + 1) + "0";
+        }
+    }
+
+    return Number(head + rest);
 }

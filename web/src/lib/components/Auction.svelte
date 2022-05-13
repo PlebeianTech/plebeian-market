@@ -1,8 +1,9 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { fetchAPI } from "../services/api";
-    import { fromJson, type Auction } from "../types/auction";
-    import { token, user } from "../stores";
+    import { fromJson, type Auction, nextBid } from "../types/auction";
+    import { token, user, Error } from "../stores";
+    import BidList from "./BidList.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 
@@ -14,35 +15,6 @@
     let paymentRequest = null;
     let paymentQr = null;
 
-    function nextBid(lastBid) {
-        var head = String(lastBid).slice(0, 2);
-        var rest = String(lastBid).slice(2);
-
-        if (head[0] === "1") {
-            head = String(Number(head) + 1);
-        } else if (head[0] === "2") {
-            head = String(Number(head) + 2);
-        } else if (head[0] === "3" || head[0] === "4") {
-            if (head[1] === "0") {
-                head = head[0] + "2";
-            } else if (head[1] === "1" || head[1] === "2" || head[1] === "3") {
-                head = head[0] + "5";
-            } else if (head[1] === "4" || head[1] === "5" || head[1] === "6" ||  head[1] === "7") {
-                head = head[0] + "8";
-            } else {
-                head = String(Number(head[0]) + 1) + "0";
-            }
-        } else {
-            if (head[1] === "0" || head[1] === "1" || head[1] === "2" || head[1] === "3") {
-                head = head[0] + "5";
-            } else {
-                head = String(Number(head[0]) + 1) + "0";
-            }
-        }
-
-        return Number(head + rest);
-    }
-
     function placeBid() {
         fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', $token,
             JSON.stringify({amount: amount}),
@@ -53,12 +25,9 @@
                         paymentQr = data.qr;
                     });
                 } else {
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.indexOf('application/json') !== -1) {
-                        response.json().then(data => { alert(`Error: ${data.message}`); })
-                    } else {
-                        return response.text().then(text => { console.log(`Error ${response.status}: ${text}`); });
-                    }
+                    response.json().then(data => {
+                        Error.set(data.message);
+                    });
                 }
             });
     }
@@ -133,17 +102,8 @@
             <p>Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.</p>
         {/if}
         <ul id="bids">
-            {#each auction.bids as bid}
-            <li>
-                <div class="avatar" class:verified={bid.twitter_username_verified}>
-                    <div class="w-8 rounded-full">
-                        <img src={bid.twitter_profile_image_url} title={bid.twitter_username} alt={bid.twitter_username} />
-                    </div>
-                </div>
-                {bid.amount} sats
-            </li>
-            {/each}
-        </ul>
+            <BidList auction={auction} />
+        </ul>        
         {#if $token}
             {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
                 {#if paymentQr}
