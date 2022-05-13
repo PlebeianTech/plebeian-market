@@ -90,14 +90,15 @@
                     Auction ended.
                 {:else}
                     <Countdown untilDate={new Date(auction.end_date)} />
+                    {#if auction.started && !auction.reserve_bid_reached}
+                        <p class="mt-2 w-full text-xl text-center">Reserve not met!</p>
+                    {/if}
                 {/if}
             {:else}
                 Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
             {/if}
         </p>
-
         <div class="mt-4 flex">
-
             <div class=w-1/2>
                 {#if $token}
                     {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
@@ -127,10 +128,6 @@
             </div>
 
             <div class="w-1/2">
-                {#if auction.started && !auction.reserve_bid_reached}
-                    <p class="text-error text-2xl">Reserve not met!</p>
-                {/if}
-
                 {#if auction.bids.length}
                     <div class="mt-2">
                         <BidList auction={auction} />
