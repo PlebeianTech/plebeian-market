@@ -77,15 +77,27 @@
 <div class="flex justify-center items-center">
     <div class="mt-2 w-3/5 rounded p-4">
         <h2 class="text-3xl">{auction.title}</h2>
-        <p>{auction.description}</p>
-        <div class="carousel w-full">
+        <p class="mt-4">{auction.description}</p>
+        <div class="mt-4 carousel w-full">
             {#each auction.media as photo, i}
-                <div id="{photo.twitter_media_key}" class="carousel-item w-full">
+                <div id="{photo.twitter_media_key}" class="carousel-item relative w-full">
                     <img src={photo.url} alt="Auctioned object" />
+                    <div class="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
+                        {#if i}
+                            <a href="#{auction.media[i - 1].twitter_media_key}" class="btn btn-circle">❮</a>
+                        {:else}
+                            <a href={null} class="">&nbsp;</a>
+                        {/if}
+                        {#if i < auction.media.length - 1}
+                            <a href="#{auction.media[i + 1].twitter_media_key}" class="btn btn-circle">❯</a>
+                        {:else}
+                            <a href={null} class="">&nbsp;</a>
+                        {/if}
+                    </div>
                 </div>
             {/each}
         </div>
-        <div class="flex justify-center w-full py-2 gap-2">
+        <div class="mb-4 flex justify-center w-full py-2 gap-2">
             {#each auction.media as photo, i}
                 <a href="#{photo.twitter_media_key}" class="btn btn-xs">{i + 1}</a>
             {/each}
@@ -101,9 +113,10 @@
         {:else}
             <p>Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.</p>
         {/if}
-        {#if !auction.reserve_bid_reached}
+        {#if auction.started && !auction.reserve_bid_reached}
         <p class="text-error text-2xl">Reserve not met!</p>
         {/if}
+        <div class="mt-4" />
         {#if auction.bids.length}
             <BidList auction={auction} />
         {/if}

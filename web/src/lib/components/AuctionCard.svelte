@@ -9,7 +9,6 @@
     import DateFormatter from "./DateFormatter.svelte";
 
     export let auction : Auction;
-    let twitterLinkCopied = false;
     let twitterOpened = false;
 
     let confirmation: any = null;
@@ -24,10 +23,6 @@
 
     function getUrl() {
         return `https://plebeian.market/auctions/${auction.key}`;
-    }
-
-    function copySnippet() {
-        navigator.clipboard.writeText(getUrl()).then(() => { twitterLinkCopied = true; });
     }
 
     function openTwitter() {
@@ -112,46 +107,48 @@
                     <Countdown untilDate={auction.end_date} />
                 {/if}
             </div>
+            {#if !auction.started}
             <div class="py-5 float-right">
-                {#if auction.started}
-                    <div class="glowbutton glowbutton-view mx-2" on:click|preventDefault={view}></div>
-                {:else}
-                    <a class="btn mx-1" href="/auctions/{auction.key}">View</a>
-                {/if}
-                {#if !auction.started}
                     <button class="btn mx-1" on:click={() => onEdit(auction)}>Edit</button>
                     <button class="btn mx-1" on:click={deleteAuction}>Delete</button>
-                {/if}
             </div>
+            {/if}
         </div>
     {/if}
-    {#if !auction.started}
-        <div class="mt-2">
-            <div class="py-5 w-full flex items-center justify-center rounded">
-                <ul class="steps steps-vertical lg:steps-horizontal">
-                    <li class="step" class:step-primary={twitterLinkCopied}>
-                        {#if !twitterLinkCopied && !twitterOpened}
-                            <div class="glowbutton glowbutton-copy mx-2" on:click|preventDefault={copySnippet}></div>
-                        {:else}
-                            <button class="btn mx-2" on:click={copySnippet}>Copied!</button>
-                        {/if}
-                    </li>
-                    <li class="step" class:step-primary={twitterOpened}>
-                        {#if twitterLinkCopied && !twitterOpened}
-                            <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
-                        {:else}
-                            <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
-                        {/if}
-                    </li>
-                    <li class="step">
-                        {#if twitterLinkCopied && twitterOpened}
-                            <div class="glowbutton glowbutton-start ml-2" on:click|preventDefault={start}></div>
-                        {:else}
-                            <button class="btn mx-2" on:click={start}>Start</button>
-                        {/if}
-                    </li>
-                </ul>
-            </div>
+    <div class="mt-2">
+        <p class="text-center">
+            {#if !twitterOpened && !auction.started}
+            Create your tweet with at least four images
+            {:else if twitterOpened && !auction.started}
+            Start your auction
+            {:else if auction.started}
+            View your auction
+            {/if}
+        </p>
+        <div class="py-5 w-full flex items-center justify-center rounded">
+            <ul class="steps steps-vertical lg:steps-horizontal">
+                <li class="step" class:step-primary={twitterOpened || auction.started}>
+                    {#if !twitterOpened && !auction.started}
+                        <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
+                    {:else}
+                        <button class:btn-disabled={auction.started} class="btn mx-2" on:click={openTwitter}>Tweet</button>
+                    {/if}
+                </li>
+                <li class="step" class:step-primary={auction.started}>
+                    {#if twitterOpened && !auction.started}
+                        <div class="glowbutton glowbutton-start mx-2" on:click|preventDefault={start}></div>
+                    {:else}
+                        <button class="btn btn-disabled mx-2">Start</button>
+                    {/if}
+                </li>
+                <li class="step" class:step-primary={auction.started}>
+                    {#if auction.started}
+                        <div class="glowbutton glowbutton-view ml-2" on:click|preventDefault={view}></div>
+                    {:else}
+                        <button class="btn mx-2" on:click={view}>View</button>
+                    {/if}
+                </li>
+            </ul>
         </div>
-    {/if}
+    </div>
 </div>
