@@ -116,6 +116,7 @@ class Auction(db.Model):
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
             'starting_bid': self.starting_bid,
+            'reserve_bid_reached': max(bid.amount for bid in self.bids) >= self.reserve_bid if self.bids else False,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",

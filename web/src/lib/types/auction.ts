@@ -19,6 +19,7 @@ export interface Auction {
     description: string;
     starting_bid: number;
     reserve_bid: number;
+    reserve_bid_reached: boolean;
     duration_hours: number;
     start_date?: Date | null;
     started?: boolean | null;
@@ -33,7 +34,7 @@ export interface Auction {
 }
 
 export function fromJson(json: any) {
-    var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, duration_hours: 0, bids: [], media: []};
+    var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, reserve_bid_reached: false, duration_hours: 0, bids: [], media: []};
     for (var k in json) {
         if (k === 'start_date') {
             a.start_date = json[k] ? new Date(json[k]!) : null;
@@ -72,7 +73,7 @@ export function fromJson(json: any) {
             a[k] = json[k];
         }
     }
-   return a;
+    return a;
 }
 
 export function nextBid(lastBid) {

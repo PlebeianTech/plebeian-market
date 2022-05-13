@@ -101,9 +101,12 @@
         {:else}
             <p>Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.</p>
         {/if}
-        <ul id="bids">
+        {#if !auction.reserve_bid_reached}
+        <p class="text-error text-2xl">Reserve not met!</p>
+        {/if}
+        {#if auction.bids.length}
             <BidList auction={auction} />
-        </ul>        
+        {/if}
         {#if $token}
             {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
                 {#if paymentQr}
