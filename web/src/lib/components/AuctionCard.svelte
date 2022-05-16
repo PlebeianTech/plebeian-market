@@ -9,6 +9,7 @@
 
     export let auction : Auction;
     let twitterOpened = false;
+    let auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
 
     let confirmation: any = null;
 
@@ -18,14 +19,18 @@
 
     function view() {
         if (auction.started) {
-            localStorage.setItem(`auction-viewed-${auction.key}`, "y");
+            var viewedAuctions = (localStorage.getItem('auctions-viewed') || "").split(",");
+            viewedAuctions.push(auction.key);
+            viewedAuctions = viewedAuctions.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
+            localStorage.setItem('auctions-viewed', viewedAuctions.join(","));
+            auctionViewed = true;
         }
 
         window.open(getUrl(), "_blank");
     }
 
     function getUrl() {
-        return `https://plebeian.market/auctions/${auction.key}`;
+        return `${window.location.protocol}//${window.location.host}/auctions/${auction.key}`;
     }
 
     function openTwitter() {
@@ -115,14 +120,14 @@
                     <button class="btn mx-1" on:click={() => onEdit(auction)}>Edit</button>
                     <button class="btn mx-1" on:click={deleteAuction}>Delete</button>
             </div>
-            {:else if localStorage.getItem(`auction-viewed-${auction.key}`)}
+            {:else if auctionViewed}
             <div class="py-5 float-right">
                 <button class="btn mx-1" on:click={view}>View</button>
             </div>
             {/if}
         </div>
     {/if}
-    {#if !auction.ended && !localStorage.getItem(`auction-viewed-${auction.key}`)}
+    {#if !auction.ended && !auctionViewed}
     <div class="mt-2">
         <p class="text-center">
             {#if !twitterOpened && !auction.started}
@@ -139,7 +144,7 @@
                     {#if !twitterOpened && !auction.started}
                         <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
                     {:else}
-                        <button class:btn-disabled={auction.started} class="btn mx-2" on:click={openTwitter}>Tweet</button>
+                        <button class="btn btn-disabled mx-2" on:click={openTwitter}>Tweet</button>
                     {/if}
                 </li>
                 <li class="step" class:step-primary={auction.started}>

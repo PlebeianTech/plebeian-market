@@ -34,28 +34,24 @@
         return JSON.stringify(json);
     }
 
-    function checkResponse(response) {
-        if (response.status === 200) {
-            currentAuction = undefined;
-            response.json().then(data => {
-                if (data.auctions) {
-                    auctions = data.auctions.map(fromJson);
-                    if (auctions === null || !auctions.length) {
-                        currentAuction = emptyAuction();
-                    }
-                } else {
-                    fetchAuctions();
-                }
-            });
-        } else {
-            response.json().then(data => {
-                Error.set(data.message);
-            });
-        }
+    function handleError(r) {
+        r.json().then(data => Error.set(data.message));
     }
 
     function fetchAuctions() {
-        fetchAPI("/auctions", 'GET', $token, null, checkResponse);
+        fetchAPI("/auctions", 'GET', $token, null, r => {
+            if (r.status === 200) {
+                currentAuction = undefined;
+                r.json().then(data => {
+                    auctions = data.auctions.map(fromJson);
+                    if (!(auctions!.length)) {
+                        currentAuction = emptyAuction();
+                    }
+                });
+            } else {
+                handleError(r);
+            }
+        });
     }
 
     function saveCurrentAuction() {
@@ -66,15 +62,25 @@
             return;
         }
 
+        auctions = null;
+
         if (auction.key !== "") {
-            fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), checkResponse);
+            fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), r => {
+                if (r.status === 200) {
+                    fetchAuctions();
+                } else {
+                    handleError(r);
+                }
+            });
         } else {
-            fetchAPI("/auctions", 'POST', $token, asJson(), (r) => {
+            fetchAPI("/auctions", 'POST', $token, asJson(), r => {
                 if (r.status === 200) {
                     user.update((u) => { u!.hasAuctions = true; return u; });
                     Info.set("Your auction will start when we verify your tweet!");
+                    fetchAuctions();
+                } else {
+                    handleError(r);
                 }
-                checkResponse(r);
             });
         }
     }
@@ -84,7 +90,7 @@
         fetchAuctions();
     }
 
-    onMount(async () => { fetchAPI("/auctions", 'GET', $token, null, checkResponse); });
+    onMount(async () => fetchAuctions());
 </script>
 
 <div class="pt-10 flex justify-center items-center">
