@@ -37,10 +37,11 @@ def login():
         db.session.commit()
 
         url = app.config['BASE_URL'] + f"/api/login?tag=login&k1={k1}"
+        ln_url = lnurl.encode(url).bech32
         qr = BytesIO()
-        pyqrcode.create(lnurl.encode(url).bech32).svg(qr, omithw=True, scale=4)
+        pyqrcode.create(ln_url).svg(qr, omithw=True, scale=4)
 
-        return jsonify({'k1': k1, 'qr': qr.getvalue().decode('utf-8')})
+        return jsonify({'k1': k1, 'lnurl': str(ln_url), 'qr': qr.getvalue().decode('utf-8')})
 
     lnauth = m.LnAuth.query.filter_by(k1=request.args['k1']).first()
 
