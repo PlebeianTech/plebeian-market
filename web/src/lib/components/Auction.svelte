@@ -109,8 +109,11 @@
                             </div>
                         {:else}
                             <div class="form-control w-full max-w-xs">
+                                {#if auction.end_date_extended}
+                                    <h3 class="text-2xl text-warning">Time Extended</h3>
+                                {/if}
                                 <label class="label" for="bid-amount">
-                                    <span class="label-text">Amount</span>
+                                    <span class="label-text">Suggested bid</span>
                                 </label>
                                 <input bind:value={amount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
                                 <label class="label" for="bid-amount">

@@ -16,6 +16,7 @@
             reserve_bid: 0,
             reserve_bid_reached: false,
             duration_hours: 24,
+            end_date_extended: false,
             bids: [],
             media: [],
         };

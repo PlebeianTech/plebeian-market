@@ -115,6 +115,7 @@ class Auction(db.Model):
             'duration_hours': self.duration_hours,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
+            'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date else False,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': max(bid.amount for bid in self.bids) >= self.reserve_bid if self.bids else False,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],

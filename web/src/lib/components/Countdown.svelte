@@ -2,9 +2,10 @@
     import { onDestroy, onMount } from 'svelte';
 
     export let untilDate: Date | null = null;
-    let flashLastMinute = true;
 
     let days, hours, minutes, seconds;
+
+    $: lastMinute = (days === 0) && (hours === 0) && (minutes === 0);
 
     function refresh() {
         if (!untilDate) {
@@ -35,27 +36,29 @@
     });
 </script>
 
-<div class:blink={flashLastMinute && (days === 0) && (hours === 0) && (minutes === 0)} class="flex justify-center items-center gap-5">
+<div class:blink={lastMinute} class="flex justify-center items-center gap-5">
+    {#if !lastMinute}
+        <div>
+            <span class="countdown font-mono text-3xl">
+                <span style="--value:{days};"></span>
+            </span>
+            days
+        </div> 
+        <div>
+            <span class="countdown font-mono text-3xl">
+                <span style="--value:{hours};"></span>
+            </span>
+            hours
+        </div> 
+        <div>
+            <span class="countdown font-mono text-3xl">
+                <span style="--value:{minutes};"></span>
+            </span>
+            min
+        </div>
+    {/if}
     <div>
-        <span class="countdown font-mono text-3xl">
-            <span style="--value:{days};"></span>
-        </span>
-        days
-    </div> 
-    <div>
-        <span class="countdown font-mono text-3xl">
-            <span style="--value:{hours};"></span>
-        </span>
-        hours
-    </div> 
-    <div>
-        <span class="countdown font-mono text-3xl">
-            <span style="--value:{minutes};"></span>
-        </span>
-        min
-    </div>
-    <div>
-        <span class="countdown font-mono text-3xl">
+        <span class="countdown font-mono text-3xl" class:text-5xl={lastMinute}>
             <span style="--value:{seconds};"></span>
         </span>
         sec
