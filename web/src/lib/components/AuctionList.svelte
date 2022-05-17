@@ -94,6 +94,10 @@
     onMount(async () => fetchAuctions());
 </script>
 
+<svelte:head>
+    <title>My Auctions</title>
+</svelte:head>
+
 <div class="pt-10 flex justify-center items-center">
     <section class="w-3/5">
         {#if currentAuction}

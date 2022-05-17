@@ -53,6 +53,9 @@
                             amount = nextBid(maxBid);
                         }
                         bidCount = auction.bids.length;
+                        if (finalCountdown && finalCountdown.isLastMinute()) {
+                            document.title = "LAST MINUTE";
+                        }
                     });
                 }
             }
@@ -60,6 +63,8 @@
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;
+
+    let finalCountdown;
 
     onMount(async () => {
         refreshAuction();
@@ -73,6 +78,10 @@
         }
     });
 </script>
+
+<svelte:head>
+    <title>Auction</title>
+</svelte:head>
 
 {#if auction}
 <div class="flex justify-center items-center">
@@ -89,7 +98,7 @@
                 {:else if auction.ended}
                     Auction ended.
                 {:else}
-                    <Countdown untilDate={new Date(auction.end_date)} />
+                    <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
                     {#if auction.started && !auction.reserve_bid_reached}
                         <p class="mt-2 w-full text-xl text-center">Reserve not met!</p>
                     {/if}

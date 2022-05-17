@@ -12,10 +12,6 @@
     export let auctionKey;
 </script>
 
-<svelte:head>
-    <title>My Auctions</title>
-</svelte:head>
-
 {#if auctionKey === ""}
     <AuctionList />
 {:else}
