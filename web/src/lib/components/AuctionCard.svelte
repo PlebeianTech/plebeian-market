@@ -138,23 +138,23 @@
             View your auction
             {/if}
         </p>
-        <div class="py-5 w-full flex items-center justify-center rounded">
+        <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
             <ul class="steps steps-vertical lg:steps-horizontal">
-                <li class="step" class:step-primary={twitterOpened || auction.started}>
+                <li class="step mb-5 ml-5" class:step-primary={twitterOpened || auction.started}>
                     {#if !twitterOpened && !auction.started}
                         <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
                     {:else}
                         <button class="btn btn-disabled mx-2" on:click={openTwitter}>Tweet</button>
                     {/if}
                 </li>
-                <li class="step" class:step-primary={auction.started}>
+                <li class="step mb-5" class:step-primary={auction.started}>
                     {#if twitterOpened && !auction.started}
                         <div class="glowbutton glowbutton-start mx-2" on:click|preventDefault={start}></div>
                     {:else}
                         <button class="btn btn-disabled mx-2">Start</button>
                     {/if}
                 </li>
-                <li class="step" class:step-primary={auction.started}>
+                <li class="step mb-5 mr-5" class:step-primary={auction.started}>
                     {#if auction.started}
                         <div class="glowbutton glowbutton-view ml-2" on:click|preventDefault={view}></div>
                     {:else}

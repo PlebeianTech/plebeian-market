@@ -16,8 +16,8 @@
   --tw-bg-opacity: 1;
   width: 100%;
   height: 100%;
-  top: 0%;
-  right: -60%;
+  top: -15%;
+  right: 20%;
 }
 
 .glowbutton {
@@ -35,10 +35,10 @@
   z-index: 1;
   position :absolute;
   display: block;
-  width: 80%;
-  height: 70%;
-  top: 15%;
-  left: 10%;
+  width: 96%;
+  height: 90%;
+  top: 5%;
+  left: 2%;
   transition: 0.3s opacity ease-in-out;
   filter: blur(15px);
   opacity: 0;
@@ -47,9 +47,8 @@
 .glowbutton:hover:before {
   opacity: 1;
   transition: 0.3s opacity ease-in-out;
-  filter: blur(25px);
+  filter: blur(10px);
   background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8, #1098ad, #07b39b, #6fba82);  
-
 }
 
 .glowbutton:after {
@@ -62,10 +61,10 @@
   position: absolute;
   display: block;
   border-radius: 180px;
-  width: 92%;
-  height: 80%;
-  top: 10%;
-  left: 4%;  
+  width: 96%;
+  height: 90%;
+  top: 5%;
+  left: 2%;
   background-color: rgb(19, 20, 22);
 }
 
