@@ -199,6 +199,8 @@ def start_twitter(user, key):
         return jsonify({'message': "Tweet not found."}), 400
     if tweet['auction_key'] != auction.key:
         return jsonify({'message': "Link in tweet is for another auction."}), 400
+    if not tweet['photos']:
+        return jsonify({'message': "Tweet does not have any attached pictures."}), 400
 
     user.twitter_username_verified = True
     auction.twitter_id = tweet['id']
