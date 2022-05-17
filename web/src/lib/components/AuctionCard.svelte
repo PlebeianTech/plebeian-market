@@ -37,7 +37,7 @@
         twitterOpened = true;
         let url = encodeURIComponent(getUrl());
         let text = encodeURIComponent(`I am auctioning for sats: ${auction.title}`);
-        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', "width=500,height=500");
     }
 
     function start() {
