@@ -89,7 +89,11 @@
                     {/if}
                 {/if}
             {:else}
-                Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
+                {#if auction.is_mine}
+                    Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
+                {:else}
+                    Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
+                {/if}
             {/if}
         </p>
         <div class="mt-4 flex">

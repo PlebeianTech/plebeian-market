@@ -29,6 +29,7 @@ export interface Auction {
     duration_str?: string;
     bids: Bid[];
     media: Media[];
+    is_mine: boolean;
 
     invalidTitle?: boolean;
     invalidDescription?: boolean;
@@ -45,7 +46,7 @@ export function toJson(auction: Auction) {
 }
 
 export function fromJson(json: any) {
-    var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, reserve_bid_reached: false, end_date_extended: false, duration_hours: 0, bids: [], media: []};
+    var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, reserve_bid_reached: false, end_date_extended: false, duration_hours: 0, bids: [], media: [], is_mine: false};
     for (var k in json) {
         if (k === 'start_date') {
             a.start_date = json[k] ? new Date(json[k]!) : null;

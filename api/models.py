@@ -121,6 +121,7 @@ class Auction(db.Model):
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",
+            'is_mine': for_user == self.seller_id,
         }
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid

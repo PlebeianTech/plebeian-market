@@ -19,6 +19,7 @@
             end_date_extended: false,
             bids: [],
             media: [],
+            is_mine: true,
         };
     }
 
