@@ -1,9 +1,8 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import { fetchAPI } from "../services/api";
+    import { getProfile } from "../services/api";
     import { token, user } from "../stores";
-    import { fromJson } from "../types/user";
     import Profile from "./Profile.svelte";
 
     let profile;
@@ -11,14 +10,10 @@
     let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     function fetchProfile(tokenValue) {
-        fetchAPI("/users/me", 'GET', tokenValue, null,
-            (response) => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        user.set(fromJson(data.user));
-                        profile.showIfIncomplete();
-                    });
-                }
+        getProfile(tokenValue,
+            u => {
+                user.set(u);
+                profile.showIfIncomplete();
             });
     }
 

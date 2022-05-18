@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { fetchAPI } from "../services/api";
-    import { fromJson, type Auction, nextBid } from "../types/auction";
-    import { token, user, Error } from "../stores";
+    import { postBid, getAuction } from "../services/api";
+    import { type Auction, nextBid } from "../types/auction";
+    import { token, user } from "../stores";
     import BidList from "./BidList.svelte";
     import Carousel from "./Carousel.svelte";
     import Countdown from "./Countdown.svelte";
@@ -17,49 +17,34 @@
     let paymentQr = null;
 
     function placeBid() {
-        fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', $token,
-            JSON.stringify({amount: amount}),
-            (response) => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        paymentRequest = data.payment_request;
-                        paymentQr = data.qr;
-                    });
-                } else {
-                    response.json().then(data => {
-                        Error.set(data.message);
-                    });
-                }
+        postBid($token, auctionKey, amount,
+            (r, q) => {
+                paymentRequest = r;
+                paymentQr = q;
             });
     }
 
     function refreshAuction() {
-        fetchAPI(`/auctions/${auctionKey}`, 'GET', $token,
-            null,
-            (response) => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        auction = fromJson(data.auction);
-                        var maxBid = auction.starting_bid;
-                        for (const bid of auction.bids) {
-                            if (bid.payment_request === paymentRequest) {
-                                paymentQr = paymentRequest = amount = null;
-                            }
-                            if (bid.amount > maxBid) {
-                                maxBid = bid.amount;
-                            }
-                        }
-                        if (!amount || auction.bids.length != bidCount) {
-                            amount = nextBid(maxBid);
-                        }
-                        bidCount = auction.bids.length;
-                        if (finalCountdown && finalCountdown.isLastMinute()) {
-                            document.title = "LAST MINUTE";
-                        }
-                    });
+        getAuction($token, auctionKey,
+            a => {
+                auction = a;
+                var maxBid = auction!.starting_bid;
+                for (const bid of auction!.bids) {
+                    if (bid.payment_request === paymentRequest) {
+                        paymentQr = paymentRequest = amount = null;
+                    }
+                    if (bid.amount > maxBid) {
+                        maxBid = bid.amount;
+                    }
                 }
-            }
-        );
+                if (!amount || auction!.bids.length != bidCount) {
+                    amount = nextBid(maxBid);
+                }
+                bidCount = auction!.bids.length;
+                if (finalCountdown && finalCountdown.isLastMinute()) {
+                    document.title = "LAST MINUTE";
+                }
+            });
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;

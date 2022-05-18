@@ -1,7 +1,13 @@
 import { goto } from "$app/navigation";
-import { token } from "../stores";
+import { type Auction, fromJson as auctionFromJson, toJson } from "../types/auction";
+import { type User, fromJson as userFromJson } from "../types/user";
+import { token, Error } from "../stores";
 
-export function fetchAPI(path, method, tokenValue, json, checkResponse) {
+function setError(response) {
+    response.json().then(data => { Error.set(data.message); });
+}
+
+function fetchAPI(path, method, tokenValue, json, checkResponse) {
     var isLocal = window.location.href.indexOf("localhost") != -1 || window.location.href.indexOf("127.0.0.1") != -1 || window.location.href.indexOf("0.0.0.0") != -1;
     var API_BASE = (isLocal) ? "http://localhost:5000/api" : "https://plebeian.market/api";
     var headers = {};
@@ -29,4 +35,119 @@ export function fetchAPI(path, method, tokenValue, json, checkResponse) {
             }
         }
     );
+}
+
+export function getLogin(k1, cb: (data) => void) {
+    fetchAPI("/login" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(
+                    data => {
+                        cb(data);
+                    }
+                );
+            }
+        });
+}
+
+export function getProfile(tokenValue, successCB: (User) => void) {
+    fetchAPI("/users/me", 'GET', tokenValue, null,
+        (response) => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(userFromJson(data.user));
+                });
+            }
+        });
+}
+
+export function postProfile(tokenValue, profile: {twitterUsername: string, contributionPercent: string}, successCB: (User) => void) {
+    fetchAPI("/users/me", 'POST', tokenValue,
+        JSON.stringify({twitter_username: profile.twitterUsername, contribution_percent: profile.contributionPercent}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(userFromJson(data.user));
+                });
+            } else {
+                setError(response);
+            }
+        });
+}
+
+export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void) {
+    fetchAPI("/auctions", 'GET', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(data.auctions.map(auctionFromJson));
+                });
+            } else {
+                setError(response);
+            }
+        });
+}
+
+export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void) {
+    fetchAPI(`/auctions/${auctionKey}`, 'GET', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => { successCB(auctionFromJson(data.auction)); });
+            }
+        });
+}
+
+export function putAuction(tokenValue, auction: Auction, successCB: () => void) {
+    fetchAPI(`/auctions/${auction.key}`, 'PUT', tokenValue, toJson(auction),
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                setError(response);
+            }
+        });
+}
+
+export function postAuction(tokenValue, auction: Auction, successCB: () => void) {
+    fetchAPI("/auctions", 'POST', tokenValue, toJson(auction),
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                setError(response);
+            }
+        });
+}
+
+export function startAuction(tokenValue, auctionKey, successCB: () => void) {
+    fetchAPI(`/auctions/${auctionKey}/start-twitter`, 'PUT', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                setError(response);
+            }
+        }
+    );
+}
+
+export function deleteAuction(tokenValue, auctionKey, successCB: () => void) {
+    fetchAPI(`/auctions/${auctionKey}`, 'DELETE', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                successCB();
+            }
+    });
+}
+
+export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr) => void) {
+    fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
+        JSON.stringify({amount}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => { successCB(data.payment_request, data.qr); });
+            } else {
+                setError(response);
+            }
+        });
 }

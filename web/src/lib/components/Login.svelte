@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { fetchAPI } from "../services/api";
+    import { getLogin } from "../services/api";
     import { token } from "../stores";
     import Loading from "./Loading.svelte";
 
@@ -16,27 +16,21 @@
         copied = true;
     }
 
-    function getLogin() {
-        fetchAPI("/login" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
-            (r) => {
-                if (r.status === 200) {
-                    r.json().then(
-                        data => {
-                            if (data.success) {
-                                token.set(data.token);
-                                localStorage.setItem('token', data.token);
-                                onLogin();
-                            } else {
-                                if (data.k1) {
-                                    k1 = data.k1;
-                                    lnurl = data.lnurl;
-                                    qr = data.qr;
-                                }
+    function doLogin() {
+        getLogin(k1,
+            data => {
+                if (data.success) {
+                    token.set(data.token);
+                    localStorage.setItem('token', data.token);
+                    onLogin();
+                } else {
+                    if (data.k1) {
+                        k1 = data.k1;
+                        lnurl = data.lnurl;
+                        qr = data.qr;
+                    }
 
-                                setTimeout(getLogin, 1000);
-                            }
-                        }
-                    );
+                    setTimeout(doLogin, 1000);
                 }
             });
     }
@@ -45,7 +39,7 @@
         if ($token) {
             onLogin();
         } else {
-            getLogin();
+            doLogin();
         }
     });
 </script>

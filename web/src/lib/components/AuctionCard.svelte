@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { fetchAPI } from "../services/api";
-    import { type Auction, fromJson } from "../types/auction";
-    import { token, user, Error } from "../stores";
+    import { startAuction, getAuction, deleteAuction } from "../services/api";
+    import type { Auction } from "../types/auction";
+    import { token, user } from "../stores";
     import Confirmation from "./Confirmation.svelte";
     import Countdown from "./Countdown.svelte";
     import DateFormatter from "./DateFormatter.svelte";
@@ -41,43 +41,21 @@
     }
 
     function start() {
-        fetchAPI(`/auctions/${auction.key}/start-twitter`, 'PUT', $token, null,
-            (response) => {
-                if (response.status === 200) {
-                    fetchAPI(`/auctions/${auction.key}`, 'GET', $token, null,
-                        (auctionResponse) => {
-                            if (auctionResponse.status === 200) {
-                                auctionResponse.json().then(data => {
-                                    auction = fromJson(data.auction);
-                                    user.update((u) => {
-                                        if (u) {
-                                            u.twitterUsernameVerified = true;
-                                        }
-                                        return u;
-                                    });
-                                });
-                            }
-                        }
-                    );
-                }  else {
-                    response.json().then(data => {
-                        Error.set(data.message);
+        startAuction($token, auction.key,
+            () => {
+                getAuction($token, auction.key,
+                    a => {
+                        auction = a;
+                        user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
                     });
-                }
-            }
-        );
+                });
     }
 
-    function deleteAuction() {
+    function del() {
         confirmation = {
             onContinue: () => {
-                fetchAPI(`/auctions/${auction.key}`, 'DELETE', $token, null,
-                    (response) => {
-                        if (response.status === 200) {
-                            onDelete();
-                        }
-                    });
-                }
+                deleteAuction($token, auction.key, onDelete);
+            }
         };
     }
 
@@ -118,7 +96,7 @@
             {#if !auction.started}
             <div class="py-5 float-right">
                     <button class="btn mx-1" on:click={() => onEdit(auction)}>Edit</button>
-                    <button class="btn mx-1" on:click={deleteAuction}>Delete</button>
+                    <button class="btn mx-1" on:click={del}>Delete</button>
             </div>
             {:else if auctionViewed}
             <div class="py-5 float-right">

@@ -34,6 +34,16 @@ export interface Auction {
     invalidDescription?: boolean;
 }
 
+export function toJson(auction: Auction) {
+    var json = {};
+    for (var k in auction) {
+        if (k !== "key" && k !== "bids" && k !== "media" && k !== "start_date" && k !== "end_date") {
+            json[k] = auction[k];
+        }
+    }
+    return JSON.stringify(json);
+}
+
 export function fromJson(json: any) {
     var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, reserve_bid_reached: false, end_date_extended: false, duration_hours: 0, bids: [], media: []};
     for (var k in json) {

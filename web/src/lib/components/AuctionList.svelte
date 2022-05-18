@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { fetchAPI } from "../services/api";
-    import { type Auction, fromJson } from "../types/auction";
-    import { token, user, Info, Error } from "../stores";
+    import { getAuctions, putAuction, postAuction } from "../services/api";
+    import type { Auction } from "../types/auction";
+    import { token, user, Info } from "../stores";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Loading from "./Loading.svelte";
@@ -25,64 +25,35 @@
     let currentAuction: Auction | undefined;
     let auctions: Auction[] | null = null;
 
-    function asJson() {
-        var json = {};
-        for (var k in currentAuction) {
-            if (k !== "key" && k !== "bids" && k !== "media" && k !== "start_date" && k !== "end_date") {
-                json[k] = currentAuction[k];
-            }
-        }
-        return JSON.stringify(json);
-    }
-
-    function handleError(r) {
-        r.json().then(data => Error.set(data.message));
-    }
-
     function fetchAuctions() {
-        fetchAPI("/auctions", 'GET', $token, null, r => {
-            if (r.status === 200) {
-                currentAuction = undefined;
-                r.json().then(data => {
-                    auctions = data.auctions.map(fromJson);
-                    if (!(auctions!.length)) {
-                        currentAuction = emptyAuction();
-                    }
-                });
-            } else {
-                handleError(r);
-            }
-        });
+        getAuctions($token,
+            a => {
+                auctions = a;
+                currentAuction = auctions && auctions.length ? undefined : emptyAuction();
+            });
     }
 
     function saveCurrentAuction() {
-        let auction: Auction = currentAuction!;
-        auction.invalidTitle = auction.title.length === 0;
-        auction.invalidDescription = auction.description.length === 0;
-        if (auction.invalidTitle || auction.invalidDescription) {
+        if (!currentAuction) {
+            return;
+        }
+        currentAuction.invalidTitle = currentAuction.title.length === 0;
+        currentAuction.invalidDescription = currentAuction.description.length === 0;
+        if (currentAuction.invalidTitle || currentAuction.invalidDescription) {
             return;
         }
 
         auctions = null;
 
-        if (auction.key !== "") {
-            fetchAPI(`/auctions/${auction.key}`, 'PUT', $token, asJson(), r => {
-                if (r.status === 200) {
-                    fetchAuctions();
-                } else {
-                    handleError(r);
-                }
-            });
+        if (currentAuction.key !== "") {
+            putAuction($token, currentAuction, fetchAuctions);
         } else {
-            fetchAPI("/auctions", 'POST', $token, asJson(), r => {
-                if (r.status === 200) {
+            postAuction($token, currentAuction,
+                () => {
                     user.update((u) => { u!.hasAuctions = true; return u; });
                     Info.set("Your auction will start when we verify your tweet!");
                     fetchAuctions();
-                } else {
-                    handleError(r);
-                }
-            });
+                });
         }
     }
 

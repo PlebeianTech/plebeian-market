@@ -1,8 +1,7 @@
 <script lang="ts">
     import { onDestroy } from "svelte";
-    import { fetchAPI } from "../services/api";
-    import { token, user, Info, Error } from "../stores";
-    import { fromJson } from "../types/user";
+    import { postProfile } from "../services/api";
+    import { token, user, Info } from "../stores";
 
     let twitterUsername;
     let contributionPercent;
@@ -21,20 +20,12 @@
         if (invalidTwitterUsername) {
             return;
         }
-        const data = {twitter_username: twitterUsername, contribution_percent: contributionPercent};
-        fetchAPI("/users/me", 'POST', $token, JSON.stringify(data),
-            (response) => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        user.set(fromJson(data.user));
-                        Info.set("Your profile has been saved!");
-                        hide();
-                    });
-                } else {
-                    response.json().then(data => {
-                        Error.set(data.message);
-                    });
-                }
+
+        postProfile($token, {twitterUsername, contributionPercent},
+            u => {
+                user.set(u);
+                Info.set("Your profile has been saved!");
+                hide();
             });
     }
 
