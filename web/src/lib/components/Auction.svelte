@@ -1,37 +1,31 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { postBid, getAuction } from "../services/api";
+    import { getAuction } from "../services/api";
     import { type Auction, nextBid } from "../types/auction";
     import { token, user } from "../stores";
     import BidList from "./BidList.svelte";
+    import NewBid from "./NewBid.svelte";
     import Carousel from "./Carousel.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 
     export let auctionKey = null;
 
+    let newBid : NewBid;
+
     let auction: Auction | null = null;
     let bidCount = 0;
     let amount: number | null = null;
-    let paymentRequest = null;
-    let paymentQr = null;
-
-    function placeBid() {
-        postBid($token, auctionKey, amount,
-            (r, q) => {
-                paymentRequest = r;
-                paymentQr = q;
-            });
-    }
 
     function refreshAuction() {
         getAuction($token, auctionKey,
             a => {
                 auction = a;
+                // TODO: maybe maxBid and nextBid should go to an Auction class
                 var maxBid = auction!.starting_bid;
                 for (const bid of auction!.bids) {
-                    if (bid.payment_request === paymentRequest) {
-                        paymentQr = paymentRequest = amount = null;
+                    if (newBid && bid.payment_request !== undefined) {
+                        newBid.paymentConfirmed(bid.payment_request);
                     }
                     if (bid.amount > maxBid) {
                         maxBid = bid.amount;
@@ -70,7 +64,7 @@
 
 {#if auction}
 <div class="flex justify-center items-center">
-    <div class="mt-2 w-3/5 rounded p-4">
+    <div class="mt-2 w-4/5 rounded p-4">
         <h2 class="text-3xl">{auction.title}</h2>
         <p class="mt-4">{auction.description}</p>
 
@@ -96,38 +90,21 @@
                 {/if}
             {/if}
         </p>
+
         <div class="mt-4 flex">
             <div class=w-1/2>
+                {#if auction.end_date_extended}
+                    <h3 class="text-2xl text-warning mb-2">Time Extended</h3>
+                {/if}
                 {#if $token}
                     {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                        {#if paymentQr}
-                            <div class="qr glowbox">
-                                {@html paymentQr}
-                                <span class="break-all text-xs">{paymentRequest}</span>
-                            </div>
-                        {:else}
-                            <div class="form-control w-full max-w-xs">
-                                {#if auction.end_date_extended}
-                                    <h3 class="text-2xl text-warning">Time Extended</h3>
-                                {/if}
-                                <label class="label" for="bid-amount">
-                                    <span class="label-text">Suggested bid</span>
-                                </label>
-                                <input bind:value={amount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
-                                <label class="label" for="bid-amount">
-                                    <span class="label-text"></span>
-                                    <span class="label-text">sats</span>
-                                </label>
-                            </div>
-                            <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
-                        {/if}
+                        <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount={amount} />
                     {/if}
                 {:else}
                     <span>To start bidding, log in by scanning the QR code with your Lightning wallet.</span>
                     <Login />
                 {/if}
             </div>
-
             <div class="w-1/2">
                 {#if auction.bids.length}
                     <div class="mt-2">
@@ -135,7 +112,6 @@
                     </div>
                 {/if}
             </div>
-
         </div>
     </div>
 </div>
