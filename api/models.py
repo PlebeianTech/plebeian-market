@@ -85,7 +85,7 @@ class Auction(db.Model):
 
     # duration_hours reflects the initial duration,
     # but the auction can be extended when bids come in close to the end - hence the end_date
-    duration_hours = db.Column(db.Integer, nullable=False)
+    duration_hours = db.Column(db.Float, nullable=False)
     end_date = db.Column(db.DateTime, nullable=True)
 
     starting_bid = db.Column(db.Integer, nullable=False)
@@ -185,11 +185,18 @@ class Auction(db.Model):
             except ValueError:
                 raise ValidationError(f"Invalid {k.replace('_', ' ')}.")
             validated[k] = date
-        for k in ['duration_hours', 'starting_bid', 'reserve_bid']:
+        for k in ['starting_bid', 'reserve_bid']:
             if k not in d:
                 continue
             try:
                 validated[k] = int(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        for k in ['duration_hours']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = float(d[k])
             except (ValueError, TypeError):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         if 'start_date' in validated and 'duration_hours' in validated:

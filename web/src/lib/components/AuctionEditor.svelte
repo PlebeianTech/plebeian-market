@@ -74,12 +74,13 @@
                     <span class="label-text">Duration</span>
                 </label>
                 <div class="flex">
+                    <button class:btn-outline={auction.duration_hours !== 0.1} class:btn-active={auction.duration_hours === 0.1} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 0.1}>Six minutes</button>
                     <button class:btn-outline={auction.duration_hours !== 1} class:btn-active={auction.duration_hours === 1} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 1}>An hour</button>
                     <button class:btn-outline={auction.duration_hours !== 24} class:btn-active={auction.duration_hours === 24} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 24}>A day</button>
-                    <button class:btn-outline={auction.duration_hours === 1 || auction.duration_hours === 24} class:btn-active={auction.duration_hours !== 1 && auction.duration_hours !== 24} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={twelveHours}>Custom</button>
+                    <button class:btn-outline={auction.duration_hours === 0.1 || auction.duration_hours === 1 || auction.duration_hours === 24} class:btn-active={auction.duration_hours !== 0.1 && auction.duration_hours !== 1 && auction.duration_hours !== 24} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={twelveHours}>Custom</button>
                     <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
                 </div>
-                <div class:invisible={auction.duration_hours === 1 || auction.duration_hours === 24} class="flex ml-4 mt-2 w-full">
+                <div class:invisible={auction.duration_hours === 0.1 || auction.duration_hours === 1 || auction.duration_hours === 24} class="flex ml-4 mt-2 w-full">
                     <div class="form-control max-w-xs mr-1 w-1/4">
                         <input bind:value={duration} on:change={customChanged} type="number" name="duration" class="input input-bordered w-full max-w-xs" />
                     </div>
