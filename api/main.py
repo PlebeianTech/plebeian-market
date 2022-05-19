@@ -56,6 +56,7 @@ def run_tests():
 @app.cli.command("settle-bids")
 @with_appcontext
 def settle_bids():
+    app.logger.setLevel(logging.INFO)
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
     lnd = get_lnd_client()
     last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
@@ -68,6 +69,14 @@ def settle_bids():
                 bid.settled_at = datetime.utcnow()
                 db.session.commit()
                 app.logger.info(f"Settled bid {bid.id} amount {bid.amount}.")
+            auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
+            if auction:
+                state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
+                state.value = str(invoice.settle_index)
+                auction.contribution_settled_at = datetime.utcnow()
+                auction.winning_bid_id = auction.get_top_bid().id
+                db.session.commit()
+                app.logger.info(f"Settled contribution for {auction.id} amount {auction.contribution_amount}.")
 
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
@@ -115,6 +124,9 @@ class MockLNDClient:
             for unsettled_bid in db.session.query(m.Bid).filter(m.Bid.settled_at == None):
                 last_settle_index += 1
                 yield MockLNDClient.InvoiceResponse(unsettled_bid.payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
+            for unsettled_contribution in db.session.query(m.Auction).filter(m.Auction.contribution_settled_at == None):
+                last_settle_index += 1
+                yield MockLNDClient.InvoiceResponse(unsettled_contribution.contribution_payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
 
 def get_lnd_client():
     if app.config['MOCK_LND']:

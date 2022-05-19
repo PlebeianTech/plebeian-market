@@ -92,13 +92,43 @@
         </p>
 
         <div class="mt-4 flex">
-            <div class=w-1/2>
-                {#if auction.end_date_extended}
+            <div class="w-1/2 mr-10">
+                {#if !auction.ended && auction.end_date_extended}
                     <h3 class="text-2xl text-warning mb-2">Time Extended</h3>
                 {/if}
                 {#if $token}
                     {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
                         <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount={amount} />
+                    {/if}
+                    {#if auction.ended}
+                        {#if auction.is_lost}
+                            <p class="my-4">
+                                Unfortunately, you were outbid.
+                            </p>
+                        {:else}
+                            {#if auction.contribution_amount}
+                                <p class="my-4">
+                                    The seller has decided to donate {auction.contribution_amount} sats out of the winning bid to Plebeian Technology.
+                                    Please send the amount using the QR code below!
+                                </p>
+                                <div class="qr glowbox">
+                                    {@html auction.contribution_qr}
+                                    <span class="break-all text-xs">{auction.contribution_payment_request}</span>
+                                </div>
+                            {:else if auction.is_won}
+                                <p class="my-4">
+                                    Thank you for your contribution. Please keep in touch with the seller to arrange delivery.
+                                </p>
+                                <div class="flex items-center justify-center">
+                                    <div class="avatar">
+                                        <div class="w-24 rounded-xl">
+                                            <img src={auction.seller_twitter_profile_image_url} alt="Avatar" />
+                                        </div>
+                                    </div>
+                                    <p class="text-5xl ml-5"><a class="link" href="https://twitter.com/{auction.seller_twitter_username}" target="_blank">@{auction.seller_twitter_username}</a></p>
+                                </div>
+                            {/if}
+                        {/if}
                     {/if}
                 {:else}
                     <span>To start bidding, log in by scanning the QR code with your Lightning wallet.</span>

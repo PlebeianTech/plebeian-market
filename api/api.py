@@ -154,6 +154,17 @@ def auction(key):
         return jsonify({'message': "Not found."}), 404
 
     if request.method == 'GET':
+        if auction.end_date and auction.end_date < datetime.utcnow():
+            if auction.winning_bid_id is None and auction.contribution_payment_request is None:
+                # auction ended, but no winning bid has been picked
+                # => ask the user with the top bid to send the contribution
+                top_bid = auction.get_top_bid()
+                if top_bid:
+                    auction.contribution_amount = int(auction.seller.contribution_percent / 100 * top_bid.amount)
+                    response = get_lnd_client().add_invoice(value=auction.contribution_amount)
+                    auction.contribution_payment_request = response.payment_request
+                    auction.contribution_requested_at = datetime.utcnow()
+                    db.session.commit()
         return jsonify({'auction': auction.to_dict(for_user=(user.id if user else None))})
     else:
         if (not user) or (auction.seller_id != user.id):
@@ -225,13 +236,11 @@ def bids(user, key):
 
     amount = int(request.json['amount'])
 
-    try:
-        max_amount = max(bid.amount for bid in auction.bids if bid.settled_at)
-    except ValueError:
-        max_amount = auction.starting_bid
+    top_bid = auction.get_top_bid()
+    top_amount = top_bid.amount if top_bid else auction.starting_bid
 
-    if amount <= max_amount:
-        return jsonify({'message': f"Amount needs to be at least {max_amount}."}), 400
+    if amount <= top_amount:
+        return jsonify({'message': f"Amount needs to be at least {top_amount}."}), 400
 
     if auction.end_date < datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']):
         # NB: duration_hours should not be modified here. we use that to detect that the auction was extended!

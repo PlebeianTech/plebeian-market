@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
 import dateutil.parser
 import hashlib
+from io import BytesIO
 import random
 import string
+
+import pyqrcode
 
 from extensions import db
 from main import app
@@ -90,6 +93,13 @@ class Auction(db.Model):
 
     twitter_id = db.Column(db.String(32), nullable=True)
 
+    # this identifies the Lightning invoice of the contribution payment
+    contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
+
+    contribution_requested_at = db.Column(db.DateTime, nullable=True)
+    contribution_settled_at = db.Column(db.DateTime, nullable=True) # the contribution is settled after the Lightning invoice has been paid
+    contribution_amount = db.Column(db.Integer, nullable=True)
+
     winning_bid_id = db.Column(db.Integer, nullable=True)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -106,6 +116,9 @@ class Auction(db.Model):
 
     bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.requested_at)')
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
+
+    def get_top_bid(self):
+        return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
 
     def to_dict(self, for_user=None):
         auction = {
@@ -125,6 +138,26 @@ class Auction(db.Model):
         }
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
+        if self.winning_bid_id is not None:
+            winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
+            if winning_bid.buyer_id == for_user:
+                assert self.contribution_settled_at is not None # settle-bids should set both contribution_settled_at and winning_bid_id at the same time!
+                auction['is_won'] = True
+                auction['seller_twitter_username'] = self.seller.twitter_username
+                auction['seller_twitter_username_verified'] = self.seller.twitter_username_verified
+                auction['seller_twitter_profile_image_url'] = self.seller.twitter_profile_image_url
+            else:
+                auction['is_lost'] = True
+        elif self.end_date and self.end_date < datetime.utcnow():
+            top_bid = self.get_top_bid()
+            if top_bid and top_bid.buyer_id == for_user:
+                assert self.contribution_amount is not None and self.contribution_payment_request is not None # the API should set this when looking up an auction that should have ended
+                auction['contribution_amount'] = self.contribution_amount
+                auction['contribution_payment_request'] = self.contribution_payment_request
+                qr = BytesIO()
+                pyqrcode.create(self.contribution_payment_request).svg(qr, omithw=True, scale=4)
+                auction['contribution_qr'] = qr.getvalue().decode('utf-8')
+
 
         return auction
 

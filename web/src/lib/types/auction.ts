@@ -31,6 +31,15 @@ export interface Auction {
     media: Media[];
     is_mine: boolean;
 
+    contribution_amount?: number;
+    contribution_payment_request?: string;
+    contribution_qr?: string;
+    
+    is_won?: boolean;
+    seller_twitter_profile_image_url?: string;
+    seller_twitter_username?: string;
+    is_lost?: boolean;
+
     invalidTitle?: boolean;
     invalidDescription?: boolean;
 }
