@@ -88,11 +88,13 @@ export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void
         });
 }
 
-export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void) {
+export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void, errorCB: () => void = () => {}) {
     fetchAPI(`/auctions/${auctionKey}`, 'GET', tokenValue, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(auctionFromJson(data.auction)); });
+            } else {
+                errorCB();
             }
         });
 }
@@ -119,13 +121,14 @@ export function postAuction(tokenValue, auction: Auction, successCB: () => void)
         });
 }
 
-export function startAuction(tokenValue, auctionKey, successCB: () => void) {
+export function startAuction(tokenValue, auctionKey, successCB: () => void, errorCB: () => void = () => {}) {
     fetchAPI(`/auctions/${auctionKey}/start-twitter`, 'PUT', tokenValue, null,
         response => {
             if (response.status === 200) {
                 successCB();
             } else {
                 setError(response);
+                errorCB();
             }
         }
     );

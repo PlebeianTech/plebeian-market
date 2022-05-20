@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { startAuction, getAuction, deleteAuction } from "../services/api";
     import type { Auction } from "../types/auction";
-    import { token, user } from "../stores";
+    import { token, user, Info } from "../stores";
     import Confirmation from "./Confirmation.svelte";
     import Countdown from "./Countdown.svelte";
     import DateFormatter from "./DateFormatter.svelte";
@@ -10,6 +10,7 @@
     export let auction : Auction;
     let twitterOpened = false;
     let auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
+    let starting = false;
 
     let confirmation: any = null;
 
@@ -41,14 +42,24 @@
     }
 
     function start() {
+        starting = true;
+        Info.set("Checking your Twitter account...");
         startAuction($token, auction.key,
             () => {
                 getAuction($token, auction.key,
                     a => {
                         auction = a;
                         user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
+                        starting = false;
+                        Info.set("Your auction is now running...");
+                    },
+                    () => {
+                        starting = false;
                     });
-                });
+                },
+            () => {
+                starting = false;
+            });
     }
 
     function del() {
@@ -126,7 +137,7 @@
                     {/if}
                 </li>
                 <li class="step mb-5" class:step-primary={auction.started}>
-                    {#if twitterOpened && !auction.started}
+                    {#if twitterOpened && !auction.started && !starting}
                         <div class="glowbutton glowbutton-start mx-2" on:click|preventDefault={start}></div>
                     {:else}
                         <button class="btn btn-disabled mx-2">Start</button>
