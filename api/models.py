@@ -150,8 +150,8 @@ class Auction(db.Model):
                 auction['is_lost'] = True
         elif self.end_date and self.end_date < datetime.utcnow():
             top_bid = self.get_top_bid()
-            if top_bid and top_bid.buyer_id == for_user:
-                assert self.contribution_amount is not None and self.contribution_payment_request is not None # the API should set this when looking up an auction that should have ended
+            if top_bid and top_bid.buyer_id == for_user and self.contribution_payment_request is not None:
+                assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request
                 auction['contribution_amount'] = self.contribution_amount
                 auction['contribution_payment_request'] = self.contribution_payment_request
                 qr = BytesIO()
