@@ -161,9 +161,15 @@ def auction(key):
                 top_bid = auction.get_top_bid()
                 if top_bid:
                     auction.contribution_amount = int(auction.seller.contribution_percent / 100 * top_bid.amount)
-                    response = get_lnd_client().add_invoice(value=auction.contribution_amount)
-                    auction.contribution_payment_request = response.payment_request
-                    auction.contribution_requested_at = datetime.utcnow()
+                    if auction.contribution_amount == 0:
+                        # this only really happens if an auction ended with a very low bid, say 10 sats,
+                        # so just skip the contribution in this case
+                        auction.contribution_requested_at = auction.contribution_settled_at = datetime.utcnow()
+                        auction.winning_bid_id = top_bid.id
+                    else:
+                        response = get_lnd_client().add_invoice(value=auction.contribution_amount)
+                        auction.contribution_payment_request = response.payment_request
+                        auction.contribution_requested_at = datetime.utcnow()
                     db.session.commit()
         return jsonify({'auction': auction.to_dict(for_user=(user.id if user else None))})
     else:

@@ -105,29 +105,27 @@
                             <p class="my-4">
                                 Unfortunately, you were outbid.
                             </p>
-                        {:else}
-                            {#if auction.contribution_amount}
-                                <p class="my-4">
-                                    The seller has decided to donate {auction.contribution_amount} sats out of the winning bid to Plebeian Technology.
-                                    Please send the amount using the QR code below!
-                                </p>
-                                <div class="qr glowbox">
-                                    {@html auction.contribution_qr}
-                                    <span class="break-all text-xs">{auction.contribution_payment_request}</span>
-                                </div>
-                            {:else if auction.is_won}
-                                <p class="my-4">
-                                    Thank you for your contribution. Please keep in touch with the seller to arrange delivery.
-                                </p>
-                                <div class="flex items-center justify-center">
-                                    <div class="avatar">
-                                        <div class="w-24 rounded-xl">
-                                            <img src={auction.seller_twitter_profile_image_url} alt="Avatar" />
-                                        </div>
+                        {:else if auction.is_won}
+                            <p class="my-4">
+                                Thank you for your contribution! Please keep in touch with the seller to discuss details about the payment and delivery.
+                            </p>
+                            <div class="flex items-center justify-center">
+                                <div class="avatar">
+                                    <div class="w-24 rounded-xl">
+                                        <img src={auction.seller_twitter_profile_image_url} alt="Avatar" />
                                     </div>
-                                    <p class="text-5xl ml-5"><a class="link" href="https://twitter.com/{auction.seller_twitter_username}" target="_blank">@{auction.seller_twitter_username}</a></p>
                                 </div>
-                            {/if}
+                                <p class="text-5xl ml-5"><a class="link" href="https://twitter.com/{auction.seller_twitter_username}" target="_blank">@{auction.seller_twitter_username}</a></p>
+                            </div>
+                        {:else if auction.contribution_amount}
+                            <p class="my-4">
+                                The seller has decided to donate {auction.contribution_amount} sats out of the winning bid to Plebeian Technology.
+                                Please send the amount using the QR code below!
+                            </p>
+                            <div class="qr glowbox">
+                                {@html auction.contribution_qr}
+                                <span class="break-all text-xs">{auction.contribution_payment_request}</span>
+                            </div>
                         {/if}
                     {/if}
                 {:else}
