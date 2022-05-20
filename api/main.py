@@ -64,19 +64,20 @@ def settle_bids():
         if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
             bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
             if bid:
-                state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
-                state.value = str(invoice.settle_index)
                 bid.settled_at = datetime.utcnow()
-                db.session.commit()
+                if bid.auction.end_date < datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']):
+                    # NB: duration_hours should not be modified here. we use that to detect that the auction was extended!
+                    bid.auction.end_date += timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND_BY'])
                 app.logger.info(f"Settled bid {bid.id} amount {bid.amount}.")
             auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
             if auction:
-                state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
-                state.value = str(invoice.settle_index)
                 auction.contribution_settled_at = datetime.utcnow()
                 auction.winning_bid_id = auction.get_top_bid().id
-                db.session.commit()
                 app.logger.info(f"Settled contribution for {auction.id} amount {auction.contribution_amount}.")
+            if bid or auction:
+                state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
+                state.value = str(invoice.settle_index)
+                db.session.commit()
 
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
@@ -151,6 +152,7 @@ class MockTwitter:
     def get_auction_tweet(self, user_id):
         if not user_id.startswith('MOCK_USER'):
             return None
+        time.sleep(5) # deliberately slow this down, so we can find possible issues in the UI
         return {
             'id': "MOCK_TWEET_ID",
             'text': "Hello Mocked Tweet",
