@@ -73,9 +73,9 @@
     onMount(async () => { confirmation = null; });
 </script>
 
-<div class="card bg-base-100 max-w-full p-4 rounded overflow-hidden shadow-lg my-3">
+<div class="card bg-base-300 max-w-full p-4 rounded overflow-hidden shadow-lg my-3">
     <div class="text-center">
-        <h3 class="text-2xl">{auction.title}</h3>
+        <h3 class="text-4xl">{auction.title}</h3>
         <span class=" font-mono">
             {#if auction.started && !auction.ended}
                 (running)
@@ -84,15 +84,19 @@
             {/if}
         </span>
     </div>
-    <p class="mt-2">Duration: {auction.duration_str} {#if auction.start_date && auction.end_date}/ <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />{/if}</p>
-    <p><span>Starting bid: {auction.starting_bid}</span> <span>Reserve bid: {auction.reserve_bid}</span><span class="float-right">Bids: {auction.bids.length}</span></p>
-    {#each auction.media as photo, i}
-        {#if i === 0}
-            <div id="{photo.twitter_media_key}" class="w-24 rounded">
-                <img src={photo.url} class="rounded" alt="Auctioned object" />
-            </div>
+    <p class="mt-2 text-xl">
+        {#if auction.start_date && auction.end_date}
+            <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />
         {/if}
-    {/each}
+    </p>
+    <p class="mt-2 text-2xl">
+        {#if !auction.started}<span>{auction.duration_str}</span> / {/if}
+            <span>Starting bid: {auction.starting_bid}</span> /
+            <span>Reserve bid: {auction.reserve_bid}</span>
+        {#if auction.started}
+            <span class="float-right">Bids: {auction.bids.length}</span>
+        {/if}
+    </p>
     {#if confirmation}
         <div class="mt-2 py-5">
             <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
@@ -100,19 +104,34 @@
     {:else}
         <div class="mt-2 float-root">
             <div class="py-5 float-left">
-                {#if auction.started && !auction.ended}
-                    <Countdown untilDate={auction.end_date} />
-                {/if}
+                <div class="flex">
+                    <div>
+                        {#each auction.media as photo, i}
+                            {#if i === 0}
+                                <div id="{photo.twitter_media_key}" class="w-36 rounded">
+                                    <img src={photo.url} class="rounded" alt="Auctioned object" />
+                                </div>
+                            {/if}
+                        {/each}
+                    </div>
+                    <div>
+                        {#if auction.started && !auction.ended}
+                            <div class="ml-4 mt-2">
+                                <Countdown untilDate={auction.end_date} />
+                            </div>
+                        {/if}
+                    </div>
+                </div>
             </div>
             {#if !auction.started}
-            <div class="py-5 float-right">
+                <div class="py-5 float-right">
                     <button class="btn mx-1" on:click={() => onEdit(auction)}>Edit</button>
                     <button class="btn mx-1" on:click={del}>Delete</button>
-            </div>
-            {:else if auctionViewed}
-            <div class="py-5 float-right">
-                <button class="btn mx-1" on:click={view}>View</button>
-            </div>
+                </div>
+            {:else if auctionViewed || auction.ended}
+                <div class="py-5 float-right">
+                    <button class="btn mx-1" on:click={view}>View</button>
+                </div>
             {/if}
         </div>
     {/if}
@@ -129,14 +148,14 @@
         </p>
         <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
             <ul class="steps steps-vertical lg:steps-horizontal">
-                <li class="step mb-5 ml-5" class:step-primary={twitterOpened || auction.started}>
+                <li class="step mb-5 ml-5" class:step-primary={true}>
                     {#if !twitterOpened && !auction.started}
                         <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
                     {:else}
-                        <button class="btn btn-disabled mx-2" on:click={openTwitter}>Tweet</button>
+                        <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
                     {/if}
                 </li>
-                <li class="step mb-5" class:step-primary={auction.started}>
+                <li class="step mb-5" class:step-primary={twitterOpened || auction.started}>
                     {#if twitterOpened && !auction.started && !starting}
                         <div class="glowbutton glowbutton-start mx-2" on:click|preventDefault={start}></div>
                     {:else}

@@ -77,7 +77,7 @@
         {:else if auctions == null}
             <Loading />
         {:else}
-            <div class="flex items-center justify-center">
+            <div class="flex items-center justify-center mb-4">
                 <div class="glowbutton glowbutton-new" on:click|preventDefault={() => currentAuction = emptyAuction()}></div>
             </div>
             {#each auctions as auction, i}

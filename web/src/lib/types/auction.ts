@@ -81,8 +81,10 @@ export function fromJson(json: any) {
             if (days > 0) {
                 durations.push(`${days} day${ days > 1 ? "s" : ""}`);
             }
-            if (hours > 0) {
+            if (hours >= 1) {
                 durations.push(`${hours} hour${ hours > 1 ? "s" : ""}`);
+            } else if (hours > 0) {
+                durations.push(`${60 * hours} min`);
             }
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
