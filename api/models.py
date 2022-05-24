@@ -135,29 +135,40 @@ class Auction(db.Model):
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.seller_id,
+            'seller_twitter_username': self.seller.twitter_username,
+            'seller_twitter_username_verified': self.seller.twitter_username_verified,
+            'seller_twitter_profile_image_url': self.seller.twitter_profile_image_url,
         }
+
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
+
+        if self.contribution_amount is not None:
+            top_bid = self.get_top_bid() # TODO: should this be based on the winning bid rather than the top bid *if* the contribution was already settled? in case the top bid somehow never becomes the winning bid?
+            auction['contribution_amount'] = self.contribution_amount
+            auction['remaining_amount'] = top_bid.amount - self.contribution_amount
+
         if self.winning_bid_id is not None:
+            assert self.contribution_settled_at is not None # settle-bids should set both contribution_settled_at and winning_bid_id at the same time!
+            auction['has_winner'] = True
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
-            if winning_bid.buyer_id == for_user:
-                assert self.contribution_settled_at is not None # settle-bids should set both contribution_settled_at and winning_bid_id at the same time!
+            if for_user == winning_bid.buyer_id and for_user != self.seller_id: # NB: the seller should not normally win the auction (or even bid), but it happens often during testing
                 auction['is_won'] = True
-                auction['seller_twitter_username'] = self.seller.twitter_username
-                auction['seller_twitter_username_verified'] = self.seller.twitter_username_verified
-                auction['seller_twitter_profile_image_url'] = self.seller.twitter_profile_image_url
             else:
-                auction['is_lost'] = True
+                if for_user and for_user != winning_bid.buyer_id:
+                    auction['is_lost'] = True
+                auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
+                auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
+                auction['winner_twitter_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
         elif self.end_date and self.end_date < datetime.utcnow():
             top_bid = self.get_top_bid()
-            if top_bid and top_bid.buyer_id == for_user and self.contribution_payment_request is not None:
-                assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request
-                auction['contribution_amount'] = self.contribution_amount
+            if top_bid and for_user == top_bid.buyer_id and self.contribution_payment_request is not None:
+                assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request                
+                auction['contribution_percent'] = self.seller.contribution_percent
                 auction['contribution_payment_request'] = self.contribution_payment_request
                 qr = BytesIO()
                 pyqrcode.create(self.contribution_payment_request).svg(qr, omithw=True, scale=4)
                 auction['contribution_qr'] = qr.getvalue().decode('utf-8')
-
 
         return auction
 

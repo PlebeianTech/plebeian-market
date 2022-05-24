@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount } from "svelte";
     import { getAuction } from "../services/api";
     import { type Auction, nextBid } from "../types/auction";
     import { token, user } from "../stores";
+    import AuctionEndMessage from "./AuctionEndMessage.svelte";
     import BidList from "./BidList.svelte";
     import NewBid from "./NewBid.svelte";
     import Carousel from "./Carousel.svelte";
@@ -11,7 +12,7 @@
 
     export let auctionKey = null;
 
-    let newBid : NewBid;
+    let newBid: NewBid;
 
     let auction: Auction | null = null;
     let bidCount = 0;
@@ -19,26 +20,26 @@
 
     function refreshAuction() {
         getAuction($token, auctionKey,
-            a => {
-                auction = a;
-                // TODO: maybe maxBid and nextBid should go to an Auction class
-                var maxBid = auction!.starting_bid;
-                for (const bid of auction!.bids) {
-                    if (newBid && bid.payment_request !== undefined) {
-                        newBid.paymentConfirmed(bid.payment_request);
-                    }
-                    if (bid.amount > maxBid) {
-                        maxBid = bid.amount;
-                    }
+        a => {
+            auction = a;
+            // TODO: maybe maxBid and nextBid should go to an Auction class
+            var maxBid = auction!.starting_bid;
+            for (const bid of auction!.bids) {
+                if (newBid && bid.payment_request !== undefined) {
+                    newBid.paymentConfirmed(bid.payment_request);
                 }
-                if (!amount || auction!.bids.length != bidCount) {
-                    amount = nextBid(maxBid);
+                if (bid.amount > maxBid) {
+                    maxBid = bid.amount;
                 }
-                bidCount = auction!.bids.length;
-                if (finalCountdown && finalCountdown.isLastMinute()) {
-                    document.title = "LAST MINUTE";
-                }
-            });
+            }
+            if (!amount || auction!.bids.length != bidCount) {
+                amount = nextBid(maxBid);
+            }
+            bidCount = auction!.bids.length;
+            if (finalCountdown && finalCountdown.isLastMinute()) {
+                document.title = "LAST MINUTE";
+            }
+        });
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;
@@ -63,84 +64,85 @@
 </svelte:head>
 
 {#if auction}
-<div class="flex justify-center items-center">
-    <div class="mt-2 w-4/5 rounded p-4">
-        <h2 class="text-3xl">{auction.title}</h2>
-        <p class="mt-4">{auction.description}</p>
-
-        <Carousel photos={auction.media} />
-
-        <p>
-            {#if auction.start_date && auction.end_date}
-                {#if !auction.started}
-                    Auction starts <Countdown untilDate={new Date(auction.start_date)} />.
-                {:else if auction.ended}
-                    Auction ended.
-                {:else}
-                    <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
-                    {#if auction.started && !auction.reserve_bid_reached}
-                        <p class="mt-2 w-full text-xl text-center">Reserve not met!</p>
-                    {/if}
-                {/if}
-            {:else}
-                {#if auction.is_mine}
-                    Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
-                {:else}
-                    Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
-                {/if}
+    <div class="flex justify-center items-center">
+        <div class="mt-2 w-4/5 rounded p-4">
+            {#if auction.is_mine && !auction.start_date && !auction.end_date}
+                <div class="alert alert-error shadow-lg">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                            Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
+                        </span>
+                    </div>
+                </div>
             {/if}
-        </p>
 
-        <div class="mt-4 flex">
-            <div class="w-1/2 mr-10">
-                {#if !auction.ended && auction.end_date_extended}
-                    <h3 class="text-2xl text-warning mb-2">Time Extended</h3>
-                {/if}
-                {#if $token}
-                    {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                        <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount={amount} />
-                    {/if}
-                    {#if auction.ended}
-                        {#if auction.is_lost}
-                            <p class="my-4">
-                                Unfortunately, you were outbid.
+            <div class="mt-4 flex">
+                <div class="w-1/2 mr-10">
+                    <h2 class="text-3xl">{auction.title}</h2>
+                    <p class="mt-4">{auction.description}</p>
+                    <p class="mt-4">
+                        {#if auction.start_date && auction.end_date}
+                            {#if !auction.started}
+                                Auction starts <Countdown untilDate={new Date(auction.start_date)} />.
+                            {:else if auction.ended}
+                                Auction ended.
+                            {/if}
+                        {:else if !auction.is_mine}
+                            Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
+                        {/if}
+                    </p>
+                </div>
+                <div class="w-1/2">
+                    <Carousel photos={auction.media} />
+                </div>
+            </div>
+
+            <p>
+                {#if auction.start_date && auction.end_date}
+                    {#if auction.started && !auction.ended}
+                        <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
+                        {#if !auction.reserve_bid_reached}
+                            <p class="mt-2 w-full text-xl text-center">
+                                Reserve not met!
                             </p>
-                        {:else if auction.is_won}
-                            <p class="my-4">
-                                Thank you for your contribution! Please keep in touch with the seller to discuss details about the payment and delivery.
-                            </p>
-                            <div class="flex items-center justify-center">
-                                <div class="avatar">
-                                    <div class="w-24 rounded-xl">
-                                        <img src={auction.seller_twitter_profile_image_url} alt="Avatar" />
-                                    </div>
-                                </div>
-                                <p class="text-5xl ml-5"><a class="link" href="https://twitter.com/{auction.seller_twitter_username}" target="_blank">@{auction.seller_twitter_username}</a></p>
-                            </div>
-                        {:else if auction.contribution_amount}
-                            <p class="my-4">
-                                The seller has decided to donate {auction.contribution_amount} sats out of the winning bid to Plebeian Technology.
-                                Please send the amount using the QR code below!
-                            </p>
-                            <div class="qr glowbox">
-                                {@html auction.contribution_qr}
-                                <span class="break-all text-xs">{auction.contribution_payment_request}</span>
-                            </div>
                         {/if}
                     {/if}
-                {:else}
-                    <span>To start bidding, log in by scanning the QR code with your Lightning wallet.</span>
-                    <Login />
                 {/if}
-            </div>
-            <div class="w-1/2">
-                {#if auction.bids.length}
-                    <div class="mt-2">
-                        <BidList auction={auction} />
-                    </div>
-                {/if}
+            </p>
+
+            {#if auction.ended}
+                <AuctionEndMessage {auction} />
+            {/if}
+
+            <div class="mt-4 flex">
+                <div class="w-1/2 mr-10">
+                    {#if !auction.ended}
+                        {#if auction.end_date_extended}
+                            <h3 class="text-2xl text-warning mb-2">
+                                Time Extended
+                            </h3>
+                        {/if}
+                        {#if $token && $user}
+                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
+                                <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
+                            {/if}
+                        {:else}
+                            <span>To start bidding, log in by scanning the QR code with your Lightning wallet.</span>
+                            <Login />
+                        {/if}
+                    {/if}
+                </div>
+                <div class="w-1/2">
+                    {#if auction.bids.length}
+                        <div class="mt-2">
+                            <BidList {auction} />
+                        </div>
+                    {/if}
+                </div>
             </div>
         </div>
     </div>
-</div>
 {/if}

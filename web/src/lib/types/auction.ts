@@ -31,14 +31,21 @@ export interface Auction {
     media: Media[];
     is_mine: boolean;
 
+    contribution_percent?: number;
     contribution_amount?: number;
     contribution_payment_request?: string;
     contribution_qr?: string;
-    
+    remaining_amount?: number;
+
+    has_winner?: boolean;
     is_won?: boolean;
-    seller_twitter_profile_image_url?: string;
     seller_twitter_username?: string;
+    seller_twitter_username_verified?: boolean;
+    seller_twitter_profile_image_url?: string;
     is_lost?: boolean;
+    winner_twitter_username?: string;
+    winner_twitter_username_verified?: boolean;
+    winner_twitter_profile_image_url?: string;
 
     invalidTitle?: boolean;
     invalidDescription?: boolean;

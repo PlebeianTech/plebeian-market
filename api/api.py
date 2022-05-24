@@ -161,9 +161,10 @@ def auction(key):
                 top_bid = auction.get_top_bid()
                 if top_bid:
                     auction.contribution_amount = int(auction.seller.contribution_percent / 100 * top_bid.amount)
-                    if auction.contribution_amount == 0:
-                        # this only really happens if an auction ended with a very low bid, say 10 sats,
-                        # so just skip the contribution in this case
+                    if auction.contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
+                        auction.contribution_amount = 0 # probably not worth the fees, at least in the next few years
+
+                        # settle the contribution and pick the winner right away
                         auction.contribution_requested_at = auction.contribution_settled_at = datetime.utcnow()
                         auction.winning_bid_id = top_bid.id
                     else:
