@@ -84,21 +84,33 @@
             {/if}
         </span>
     </div>
-    <p class="mt-2 text-xl">
-        {#if auction.start_date && auction.end_date}
-            <DateFormatter date={auction.start_date} /> - <DateFormatter date={auction.end_date} />
-        {/if}
-    </p>
-    <p class="mt-2 text-2xl">
-        {#if !auction.started}<span>{auction.duration_str}</span> / {/if}
-            <span>Starting bid: {auction.starting_bid}</span> /
-            <span>Reserve bid: {auction.reserve_bid}</span>
-        {#if auction.started}
-            <span class="float-right">Bids: {auction.bids.length}</span>
-        {/if}
-    </p>
+    {#if auction.start_date && auction.end_date}
+    <div class="lg:flex lg:mt-2 text-xl">
+        <div>
+            <span class="visible lg:invisible lg:w-0 inline-block">From:</span>
+            <DateFormatter date={auction.start_date} />
+        </div>
+        <div class="invisible h-0 lg:h-auto lg:visible">&nbsp;-&nbsp;</div>
+        <div>
+            <span class="visible lg:invisible lg:w-0 inline-block">To:</span>
+            <DateFormatter date={auction.end_date} />
+        </div>
+    </div>
+    {/if}
+    <div class="mt-2 text-2xl">
+        <div>
+            {#if !auction.started}
+                <span>{auction.duration_str} /</span>
+            {/if}
+            <span>Starts at: {auction.starting_bid} /</span>
+            <span>Reserve: {auction.reserve_bid}</span>
+            {#if auction.started}
+                <div class="lg:float-right">Bids: {auction.bids.length}</div>
+            {/if}
+        </div>
+    </div>
     {#if confirmation}
-        <div class="mt-2 py-5">
+        <div class="mt-2 py-2 lg:py-5">
             <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
         </div>
     {:else}
@@ -124,7 +136,7 @@
                 </div>
             </div>
             {#if !auction.started}
-                <div class="py-5 float-right">
+                <div class="mt-7 lg:mt-0 py-5 float-right">
                     <button class="btn mx-1" on:click={() => onEdit(auction)}>Edit</button>
                     <button class="btn mx-1" on:click={del}>Delete</button>
                 </div>
@@ -148,21 +160,21 @@
         </p>
         <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
             <ul class="steps steps-vertical lg:steps-horizontal">
-                <li class="step mb-5 ml-5" class:step-primary={true}>
+                <li class="step lg:mb-5 lg:ml-5" class:step-primary={true}>
                     {#if !twitterOpened && !auction.started}
                         <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
                     {:else}
                         <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
                     {/if}
                 </li>
-                <li class="step mb-5" class:step-primary={twitterOpened || auction.started}>
+                <li class="step lg:mb-5" class:step-primary={twitterOpened || auction.started}>
                     {#if twitterOpened && !auction.started && !starting}
                         <div class="glowbutton glowbutton-start mx-2" on:click|preventDefault={start}></div>
                     {:else}
                         <button class="btn btn-disabled mx-2">Start</button>
                     {/if}
                 </li>
-                <li class="step mb-5 mr-5" class:step-primary={auction.started}>
+                <li class="step lg:mb-5 lg:mr-5" class:step-primary={auction.started}>
                     {#if auction.started}
                         <div class="glowbutton glowbutton-view ml-2" on:click|preventDefault={view}></div>
                     {:else}

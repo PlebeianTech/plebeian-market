@@ -32,7 +32,7 @@
 </script>
 
 <div class="w-full flex justify-center items-center">
-    <div class="card bg-base-100 w-4/6 p-4 rounded shadow-xl my-3 glowbox">
+    <div class="card bg-base-100 w-full lg:w-4/6 p-4 rounded shadow-xl my-3 glowbox">
         <h2 class="card-title mb-4 text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
         <form>
             <div class="form-control w-full max-w-xs">
@@ -73,11 +73,11 @@
                 <label class="label" for="duration">
                     <span class="label-text">Duration</span>
                 </label>
-                <div class="flex">
-                    <button class:btn-outline={auction.duration_hours !== 0.1} class:btn-active={auction.duration_hours === 0.1} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 0.1}>Six minutes</button>
-                    <button class:btn-outline={auction.duration_hours !== 1} class:btn-active={auction.duration_hours === 1} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 1}>An hour</button>
-                    <button class:btn-outline={auction.duration_hours !== 24} class:btn-active={auction.duration_hours === 24} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 24}>A day</button>
-                    <button class:btn-outline={auction.duration_hours === 0.1 || auction.duration_hours === 1 || auction.duration_hours === 24} class:btn-active={auction.duration_hours !== 0.1 && auction.duration_hours !== 1 && auction.duration_hours !== 24} class="mx-2 btn btn-accent btn-outline" on:click|preventDefault={twelveHours}>Custom</button>
+                <div class="lg:flex lg:flex-wrap">
+                    <button class:btn-outline={auction.duration_hours !== 0.1} class:btn-active={auction.duration_hours === 0.1} class="mx-2 mt-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 0.1}>Six minutes</button>
+                    <button class:btn-outline={auction.duration_hours !== 1} class:btn-active={auction.duration_hours === 1} class="mx-2 mt-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 1}>An hour</button>
+                    <button class:btn-outline={auction.duration_hours !== 24} class:btn-active={auction.duration_hours === 24} class="mx-2 mt-2 btn btn-accent btn-outline" on:click|preventDefault={() => auction.duration_hours = 24}>A day</button>
+                    <button class:btn-outline={auction.duration_hours === 0.1 || auction.duration_hours === 1 || auction.duration_hours === 24} class:btn-active={auction.duration_hours !== 0.1 && auction.duration_hours !== 1 && auction.duration_hours !== 24} class="mx-2 mt-2 btn btn-accent btn-outline" on:click|preventDefault={twelveHours}>Custom</button>
                     <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
                 </div>
                 <div class:invisible={auction.duration_hours === 0.1 || auction.duration_hours === 1 || auction.duration_hours === 24} class="flex ml-4 mt-2 w-full">

@@ -79,8 +79,8 @@
                 </div>
             {/if}
 
-            <div class="mt-4 flex">
-                <div class="w-1/2 mr-10">
+            <div class="mt-4 lg:flex">
+                <div class="lg:w-1/2 mr-10">
                     <h2 class="text-3xl">{auction.title}</h2>
                     <p class="mt-4">{auction.description}</p>
                     <p class="mt-4">
@@ -95,7 +95,7 @@
                         {/if}
                     </p>
                 </div>
-                <div class="w-1/2">
+                <div class="lg:w-1/2">
                     <Carousel photos={auction.media} />
                 </div>
             </div>
@@ -117,8 +117,8 @@
                 <AuctionEndMessage {auction} />
             {/if}
 
-            <div class="mt-4 flex">
-                <div class="w-1/2 mr-10">
+            <div class="mt-4 lg:flex">
+                <div class="lg:w-1/2 lg:mr-10">
                     {#if !auction.ended}
                         {#if auction.end_date_extended}
                             <h3 class="text-2xl text-warning mb-2">
@@ -135,7 +135,7 @@
                         {/if}
                     {/if}
                 </div>
-                <div class="w-1/2">
+                <div class="mt-4 lg:mt-0 lg:w-1/2">
                     {#if auction.bids.length}
                         <div class="mt-2">
                             <BidList {auction} />
