@@ -116,7 +116,7 @@
     {:else}
         <div class="mt-2 float-root">
             <div class="py-5 float-left">
-                <div class="flex">
+                <div class="lg:flex">
                     <div>
                         {#each auction.media as photo, i}
                             {#if i === 0}
@@ -126,7 +126,7 @@
                             {/if}
                         {/each}
                     </div>
-                    <div>
+                    <div class="mt-4 lg:mt-0">
                         {#if auction.started && !auction.ended}
                             <div class="ml-4 mt-2">
                                 <Countdown untilDate={auction.end_date} />

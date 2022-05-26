@@ -19,7 +19,9 @@
                     rightProfileImageUrl={auction.winner_twitter_profile_image_url} />
             </div>
         {/if}
-        <p class="my-4 text-center">Congratulations... the winning bidder is @{auction.winner_twitter_username}</p>
+        <div class="my-4 text-center">
+            <span class=text-3xl>Congratulations...</span> the winning bidder is @{auction.winner_twitter_username}
+        </div>
         <p class="my-2 text-center">Please contact them for the final payment of {auction.remaining_amount} sats.</p>
         {#if auction.contribution_amount}
             <p class="my-2 text-center">And thank you for your donation of {auction.contribution_amount} sats!</p>
@@ -45,9 +47,9 @@
         {/if}
     {/if}
 {:else if $user && auction.contribution_amount}
-    <p class="my-4 text-2xl">
-        CONGRATULATIONS @{$user.twitterUsername}, You've won &#x1F389; &#x1F64C; &#x1F44F;
-    </p>
+    <div class="my-4 text-2xl">
+        <span class=text-3xl>Congratulations</span> @{$user.twitterUsername}, You've won &#x1F389; &#x1F64C; &#x1F44F;
+    </div>
     <p class="my-2">
         The seller wishes to donate {auction.contribution_percent}% = {auction.contribution_amount} sats out of your winning bid to Plebeian Technology. Please send the amount using the QR code below!
     </p>

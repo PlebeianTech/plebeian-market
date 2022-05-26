@@ -121,7 +121,7 @@
                 <div class="lg:w-1/2 lg:mr-10">
                     {#if !auction.ended}
                         {#if auction.end_date_extended}
-                            <h3 class="text-2xl text-warning mb-2">
+                            <h3 class="text-2xl text-center text-warning mb-2">
                                 Time Extended
                             </h3>
                         {/if}

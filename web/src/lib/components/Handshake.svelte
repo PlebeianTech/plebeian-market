@@ -12,7 +12,7 @@
                 <img src={leftProfileImageUrl} alt="Avatar" />
             </div>
         </div>
-        <p class="text-5xl ml-5">@{leftUsername}</p>
+        <p class="text-2xl ml-5">@{leftUsername}</p>
     </div>
     <div class="text-center text-6xl w-1/3">
         &#129309;
@@ -25,7 +25,7 @@
                 </a>
             </div>
         </div>
-        <p class="text-5xl ml-5">
+        <p class="text-2xl ml-5">
             <a href="https://twitter.com/{rightUsername}" target="_blank">
                 @{rightUsername}
             </a>
