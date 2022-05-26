@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import { getAuctions, putAuction, postAuction } from "../services/api";
     import type { Auction } from "../types/auction";
     import { token, user, Info } from "../stores";
@@ -63,19 +63,7 @@
         fetchAuctions();
     }
 
-    let interval: ReturnType<typeof setInterval> | undefined;
-
-    onMount(async () => {
-        fetchAuctions();
-        interval = setInterval(fetchAuctions, 10000);
-    });
-
-    onDestroy(() => {
-        if (interval) {
-            clearInterval(interval);
-            interval = undefined;
-        }
-    });
+    onMount(async () => fetchAuctions());
 </script>
 
 <svelte:head>
