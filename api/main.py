@@ -185,13 +185,11 @@ class Twitter:
         return response_json['data']
 
     def get_auction_tweet(self, user_id):
-        ten_minutes_ago = (datetime.utcnow() - timedelta(minutes=10)).replace(microsecond=0).isoformat() + "Z"
         response_json = self.get(f"/users/{user_id}/tweets",
             params={
                 'expansions': "attachments.media_keys",
                 'media.fields': "url",
-                'tweet.fields': "id,text,entities",
-                'start_time': ten_minutes_ago})
+                'tweet.fields': "id,text,entities"})
         if response_json and response_json.get('data'):
             auction_tweet = {}
             for tweet in response_json['data']:
