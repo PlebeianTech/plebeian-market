@@ -6,6 +6,7 @@
     import AuctionEndMessage from "./AuctionEndMessage.svelte";
     import BidList from "./BidList.svelte";
     import NewBid from "./NewBid.svelte";
+    import Carousel from "./Carousel.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 
@@ -63,14 +64,6 @@
 </svelte:head>
 
 {#if auction}
-    {#each auction.media as photo, i}
-        <input type="checkbox" id="media-modal-{i}" class="modal-toggle" />
-        <label for="media-modal-{i}" class="modal">
-            <label class="modal-box relative" for="">
-                <img class="rounded-md w-full" src={photo.url} alt="Auctioned object" />
-            </label>
-        </label>
-    {/each}
     <div class="flex justify-center items-center">
         <div class="mt-2 w-4/5 rounded p-4">
             {#if auction.is_mine && !auction.start_date && !auction.end_date}
@@ -102,12 +95,8 @@
                         {/if}
                     </p>
                 </div>
-                <div class="lg:w-1/2 grid grid-cols-2 gap-4 place-items-center justify-center m-auto">
-                    {#each auction.media as photo, i}
-                        <label for="media-modal-{i}">
-                            <img class="h-48 rounded-md hover:scale-110" src={photo.url} alt="Auctioned object" />
-                        </label>
-                    {/each}
+                <div class="lg:w-1/2">
+                    <Carousel photos={auction.media} />
                 </div>
             </div>
 
