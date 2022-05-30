@@ -130,7 +130,6 @@
                                 <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
                             {/if}
                         {:else}
-                            <span>To start bidding, log in by scanning the QR code with your Lightning wallet.</span>
                             <Login />
                         {/if}
                     {/if}

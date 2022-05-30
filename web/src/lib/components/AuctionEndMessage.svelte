@@ -2,6 +2,7 @@
     import type { Auction } from "../types/auction";
     import { user } from "../stores";
     import Handshake from "./Handshake.svelte";
+    import QR from "./QR.svelte";
 
     export let auction: Auction;
 
@@ -56,8 +57,5 @@
     <p class="my-2">
         After payment you will be directed to the seller for final settlement of the remaining {remainingPercent}% = {auction.remaining_amount} sats.
     </p>
-    <div class="qr glowbox">
-        {@html auction.contribution_qr}
-        <span class="break-all text-xs">{auction.contribution_payment_request}</span>
-    </div>
+    <QR bind:qr={auction.contribution_qr} bind:lnurl={auction.contribution_payment_request} />
 {/if}

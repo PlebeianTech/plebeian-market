@@ -1,6 +1,7 @@
 <script lang="ts">
     import { postBid } from "../services/api";
     import { token } from "../stores";
+    import QR from "./QR.svelte";
 
     export let auctionKey;
     export let amount;
@@ -24,10 +25,7 @@
 </script>
 
 {#if paymentQr}
-    <div class="qr glowbox">
-        {@html paymentQr}
-        <span class="break-all text-xs">{paymentRequest}</span>
-    </div>
+    <QR bind:qr={paymentQr} bind:lnurl={paymentRequest} />
 {:else}
     <div class="form-control w-full max-w-xs">
         <label class="label" for="bid-amount">
