@@ -361,5 +361,5 @@ class TestApi(unittest.TestCase):
         self.assertTrue('auction' in response)
         self.assertTrue(response['auction']['start_date'] < (datetime.utcnow().isoformat() + "Z"))
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
-        self.assertEqual(len(response['auction']['media']), 2)
+        self.assertEqual(len(response['auction']['media']), 4)
         self.assertTrue("watch" in response['auction']['media'][0]['url']) # this one comes from MockTwitter

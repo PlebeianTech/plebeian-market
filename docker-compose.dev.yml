@@ -18,6 +18,8 @@ services:
       - DEBUG=1
       - MOCK_LND=1
       - MOCK_TWITTER=1
+      - DB_USERNAME=pleb
+      - DB_PASSWORD=plebpass
       - SQLALCHEMY_DISABLE_POOLING=1
     ports:
       - "5000:5000"
@@ -34,6 +36,8 @@ services:
       - DEBUG=1
       - MOCK_LND=1
       - MOCK_TWITTER=1
+      - DB_USERNAME=pleb
+      - DB_PASSWORD=plebpass
       - SQLALCHEMY_DISABLE_POOLING=1
     volumes:
       - "./api:/app"

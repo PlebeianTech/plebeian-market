@@ -7,6 +7,9 @@ services:
       api:
         condition: service_healthy
     environment:
+      - DEBUG=1
+      - DB_USERNAME=
+      - DB_PASSWORD=
       - FLASK_APP=main
       - BASE_URL=http://api:5000
     volumes:
