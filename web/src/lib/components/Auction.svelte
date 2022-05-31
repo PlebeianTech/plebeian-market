@@ -79,7 +79,7 @@
                 </div>
             {/if}
 
-            <div class="mt-4 lg:flex">
+            <div class="mt-4 lg:flex h-1/2">
                 <div class="lg:w-1/2 mr-10">
                     <h2 class="text-3xl">{auction.title}</h2>
                     <p class="mt-4">{auction.description}</p>

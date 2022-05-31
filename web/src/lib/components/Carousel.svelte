@@ -7,7 +7,7 @@
 <div class="mt-4 carousel carousel-center space-x-4 rounded-box">
     {#each photos as photo, i}
         <div id="{photo.twitter_media_key}" class="carousel-item">
-            <img class="max-h-96 w-full" src={photo.url} alt="Auctioned object" />
+            <img class="object-contain" src={photo.url} alt="Auctioned object" />
         </div>
     {/each}
 </div>
