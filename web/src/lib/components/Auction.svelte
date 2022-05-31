@@ -37,7 +37,14 @@
             }
             bidCount = auction!.bids.length;
             if (finalCountdown && finalCountdown.isLastMinute()) {
-                document.title = "LAST MINUTE";
+                document.title = `LAST MINUTE - ${auction!.title} | Plebeian Market`;
+            } else {
+                document.title = `${auction!.title} | Plebeian Market`;
+            }
+            if (auction!.has_winner) {
+                document.title = `Ended - ${auction!.title} | Plebeian Market`;
+                console.log("Auction ended!");
+                stopRefresh();
             }
         });
     }
@@ -51,12 +58,14 @@
         interval = setInterval(refreshAuction, 1000);
     });
 
-    onDestroy(() => {
+    function stopRefresh() {
         if (interval) {
             clearInterval(interval);
             interval = undefined;
         }
-    });
+    }
+
+    onDestroy(stopRefresh);
 </script>
 
 <svelte:head>
