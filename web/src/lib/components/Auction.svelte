@@ -5,8 +5,8 @@
     import { token, user } from "../stores";
     import AuctionEndMessage from "./AuctionEndMessage.svelte";
     import BidList from "./BidList.svelte";
+    import Gallery from "./Gallery.svelte";
     import NewBid from "./NewBid.svelte";
-    import Carousel from "./Carousel.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
 
@@ -105,7 +105,7 @@
                     </p>
                 </div>
                 <div class="lg:w-1/2">
-                    <Carousel photos={auction.media} />
+                    <Gallery photos={auction.media} />
                 </div>
             </div>
 
