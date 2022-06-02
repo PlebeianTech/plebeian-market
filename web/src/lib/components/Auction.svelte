@@ -89,8 +89,18 @@
             {/if}
 
             <div class="mt-4 lg:flex">
-                <div class="lg:w-1/2 mr-10">
-                    <h2 class="text-3xl">{auction.title}</h2>
+                <div class="lg:w-1/3">
+                    <h2 class="text-3xl text-center mb-4">{auction.title}</h2>
+                    <Gallery photos={auction.media} />
+                </div>
+                <div class="lg:w-1/2">
+                    {#if auction.bids.length}
+                        <div class="mt-2">
+                            <BidList {auction} />
+                        </div>
+                    {/if}
+                </div>
+                <div class="lg:w-1/3">
                     <p class="mt-4">{auction.description}</p>
                     <p class="mt-4">
                         {#if auction.start_date && auction.end_date}
@@ -104,12 +114,9 @@
                         {/if}
                     </p>
                 </div>
-                <div class="lg:w-1/2">
-                    <Gallery photos={auction.media} />
-                </div>
             </div>
 
-            <p>
+            <div class="mt-4">
                 {#if auction.start_date && auction.end_date}
                     {#if auction.started && !auction.ended}
                         <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
@@ -120,37 +127,27 @@
                         {/if}
                     {/if}
                 {/if}
-            </p>
+                {#if !auction.ended}
+                    {#if auction.end_date_extended}
+                        <h3 class="text-2xl text-center text-warning mb-2">
+                            Time Extended
+                        </h3>
+                    {/if}
+                    {#if $token && $user}
+                        {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
+                            <div class="mt-4 flex justify-center items-center">
+                                <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
+                            </div>
+                        {/if}
+                    {:else}
+                        <Login />
+                    {/if}
+                {/if}
+            </div>
 
             {#if auction.ended}
                 <AuctionEndMessage {auction} />
             {/if}
-
-            <div class="mt-4 lg:flex">
-                <div class="lg:w-1/2 lg:mr-10">
-                    {#if !auction.ended}
-                        {#if auction.end_date_extended}
-                            <h3 class="text-2xl text-center text-warning mb-2">
-                                Time Extended
-                            </h3>
-                        {/if}
-                        {#if $token && $user}
-                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                                <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
-                            {/if}
-                        {:else}
-                            <Login />
-                        {/if}
-                    {/if}
-                </div>
-                <div class="mt-4 lg:mt-0 lg:w-1/2">
-                    {#if auction.bids.length}
-                        <div class="mt-2">
-                            <BidList {auction} />
-                        </div>
-                    {/if}
-                </div>
-            </div>
         </div>
     </div>
 {/if}

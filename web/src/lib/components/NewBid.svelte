@@ -24,6 +24,7 @@
     }
 </script>
 
+<div>
 {#if paymentQr}
     <QR bind:qr={paymentQr} bind:lnurl={paymentRequest} />
 {:else}
@@ -39,3 +40,4 @@
     </div>
     <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
 {/if}
+</div>

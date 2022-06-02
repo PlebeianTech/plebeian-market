@@ -168,6 +168,7 @@
   justify-content: center;
   background-color: rgb(29, 29, 29);
   background-color: rgba(29, 29, 29, 0.8);
+  z-index: 100;
 }
 
 .lightbox-wrapper {
