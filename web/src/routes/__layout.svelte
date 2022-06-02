@@ -4,6 +4,7 @@
     import "../app.css";
     import { token, Info, Error } from "../lib/stores";
     import Navbar from "../lib/components/Navbar.svelte";
+    import Footer from "../lib/components/Footer.svelte";
 
     token.set(localStorage.getItem('token'));
 
@@ -34,9 +35,10 @@
 	onDestroy(errorUnsubscribe);
 </script>
 
-<div class="flex flex-col">
+<div class="flex flex-col h-screen justify-between">
     <Navbar />
     <slot />
+    <Footer />
     <ToastContainer placement="bottom-right" let:data={data}>
         <div class:alert-error={data.type === 'error'} class:alert-info={data.type === 'info'} class="alert shadow-lg">
             <div>
