@@ -117,18 +117,18 @@
 
     ['click', 'keyup'].forEach( function (eventType) {
         document.body.addEventListener(eventType, function (event) {
+            let kevent: KeyboardEvent = <KeyboardEvent>event;
             if (document.body.contains(container)) {
                 var target = event.target,
-                    key = event.keyCode,
                     type = event.type;
-                if ([container, btnClose].indexOf(target) !== -1 || key === 27) {
+                if ([container, btnClose].indexOf(target) !== -1 || kevent.key === "Escape") {
                     closeLightbox();
                 }
                 if (container.classList.contains('lightbox-gallery')) {
-                    if ((target === btnNav.next && type === 'click') || key === 39) {
+                    if ((target === btnNav.next && type === 'click') || kevent.key === "ArrowRight") {
                         galleryNavigation('next');
                     }
-                    if ((target === btnNav.previous && type === 'click') || key === 37) {
+                    if ((target === btnNav.previous && type === 'click') || kevent.key === "ArrowLeft") {
                         galleryNavigation('previous');
                     }
                 }
@@ -191,8 +191,7 @@
 }
 
 .lightbox-btn:disabled {
-  cursor: initial;
-  background-color: #adadad;
+  display: none;
 }
 
 .lightbox-btn-close {
