@@ -44,7 +44,7 @@
             if (auction!.has_winner) {
                 document.title = `Ended - ${auction!.title} | Plebeian Market`;
                 console.log("Auction ended!");
-                stopRefresh();
+                // maybe we should eventually stopRefresh() here, but is seems risky for now, at least while still testing
             }
         });
     }
