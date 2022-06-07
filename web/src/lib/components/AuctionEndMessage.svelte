@@ -21,7 +21,8 @@
             </div>
         {/if}
         <div class="my-4 text-center">
-            <span class=text-3xl>Congratulations...</span> the winning bidder is @{auction.winner_twitter_username}
+            <span class=text-3xl>Congratulations...</span> the winning bidder is
+            <a href="https://twitter.com/{auction.winner_twitter_username}">@{auction.winner_twitter_username}</a>
         </div>
         <p class="my-2 text-center">Please contact them for the final payment of {auction.remaining_amount} sats.</p>
         {#if auction.contribution_amount}
