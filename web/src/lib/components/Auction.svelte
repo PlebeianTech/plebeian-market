@@ -101,7 +101,7 @@
                     {/if}
                 </div>
                 <div class="lg:w-1/3">
-                    <p class="mt-4">{auction.description}</p>
+                    <p class=css"mt-4">{auction.description}</p>
                     <p class="mt-4">
                         {#if auction.start_date && auction.end_date}
                             {#if !auction.started}
@@ -129,7 +129,7 @@
                 {/if}
                 {#if !auction.ended}
                     {#if auction.end_date_extended}
-                        <h3 class="text-2xl text-center text-warning mb-2">
+                        <h3 class="text-2xl text-center text-warning my-2">
                             Time Extended
                         </h3>
                     {/if}
