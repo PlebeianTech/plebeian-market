@@ -243,7 +243,7 @@ def bids(user, key):
 
     amount = int(request.json['amount'])
 
-    top_bid = auction.get_top_bid()
+    top_bid = auction.get_top_bid(include_unsettled=True)
     top_amount = top_bid.amount if top_bid else auction.starting_bid
 
     if amount <= top_amount:

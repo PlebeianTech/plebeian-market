@@ -117,8 +117,8 @@ class Auction(db.Model):
     bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.requested_at)')
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
 
-    def get_top_bid(self):
-        return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
+    def get_top_bid(self, include_unsettled=False):
+        return max((bid for bid in self.bids if include_unsettled or bid.settled_at is not None), default=None, key=lambda bid: bid.amount)
 
     def to_dict(self, for_user=None):
         auction = {
