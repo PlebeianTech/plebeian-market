@@ -40,7 +40,7 @@
                     rightProfileImageUrl={auction.seller_twitter_profile_image_url} />
             </div>
         {/if}
-        <p class="my-4 text-center">Thank you for your contribution! Please keep in touch with the seller to discuss details about the payment of the remaining {auction.remaining_amount} sats and delivery.</p>
+        <p class="my-4 text-center">Thank you for your contribution! Please contact the seller directly to arrange payment of the remaining {auction.remaining_amount} sats and delivery.</p>
     {:else}
         <p class="my-4">Congratulations to @{auction.winner_twitter_username}!</p>
         {#if auction.contribution_amount}
