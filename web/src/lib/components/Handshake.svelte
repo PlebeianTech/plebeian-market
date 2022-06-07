@@ -14,7 +14,7 @@
         </div>
         <p class="text-2xl ml-5">@{leftUsername}</p>
     </div>
-    <div class="text-center text-6xl w-1/3">
+    <div class="text-center text-6xl w-1/8">
         &#129309;
     </div>
     <div class="text-center w-1/3">
