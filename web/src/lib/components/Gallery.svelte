@@ -255,7 +255,7 @@
 }
 </style>
 
-<div class="gallery lg:w-1/2 grid grid-cols-2 gap-1 place-items-center justify-center m-auto">
+<div class="gallery hidden lg:grid lg:w-1/2 grid grid-cols-2 gap-1 place-items-center justify-center m-auto">
     {#each photos as photo}
         <div class="gallery-item h-40 hover:scale-110 table">
             <a class="table-cell align-middle" href={photo.url} on:click|preventDefault={event => click(event)}>
