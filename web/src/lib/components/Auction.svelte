@@ -101,8 +101,9 @@
                     {/if}
                 </div>
                 <div class="lg:w-1/3">
-                    <p class=css"mt-4">{auction.description}</p>
-                    <p class="mt-4">
+                    <h3 class="text-3xl mb-4 ml-2">Product Details:</h3>
+                    <p class="mt-4 ml-2">{auction.description}</p>
+                    <p class="mt-4 ml-2">
                         {#if auction.start_date && auction.end_date}
                             {#if !auction.started}
                                 Auction starts <Countdown untilDate={new Date(auction.start_date)} />.
