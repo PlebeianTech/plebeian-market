@@ -8,7 +8,7 @@
     import DateFormatter from "./DateFormatter.svelte";
 
     export let auction : Auction;
-    let twitterOpened = false;
+    let auctionTweeted = auction.key.length !== 0 && (localStorage.getItem('auctions-tweeted') || "").includes(auction.key);
     let auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
     let starting = false;
 
@@ -35,7 +35,11 @@
     }
 
     function openTwitter() {
-        twitterOpened = true;
+        var tweetedAuctions = (localStorage.getItem('auctions-tweeted') || "").split(",");
+        tweetedAuctions.push(auction.key);
+        tweetedAuctions = tweetedAuctions.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
+        localStorage.setItem('auctions-tweeted', tweetedAuctions.join(","));
+        auctionTweeted = true;
         let url = encodeURIComponent(getUrl());
         let text = encodeURIComponent(`I am auctioning for sats: ${auction.title}`);
         window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', "width=500,height=500");
@@ -150,9 +154,9 @@
     {#if !auction.ended && !auctionViewed}
     <div class="mt-2">
         <p class="text-center">
-            {#if !twitterOpened && !auction.started}
+            {#if !auctionTweeted && !auction.started}
             Create your tweet and don't forget to attach some pictures
-            {:else if twitterOpened && !auction.started}
+            {:else if auctionTweeted && !auction.started}
             Start your auction
             {:else if auction.started}
             View your auction
@@ -161,14 +165,14 @@
         <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
             <ul class="steps steps-vertical lg:steps-horizontal">
                 <li class="step lg:mb-5 lg:ml-5" class:step-primary={true}>
-                    {#if !twitterOpened && !auction.started}
+                    {#if !auctionTweeted && !auction.started}
                         <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
                     {:else}
                         <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
                     {/if}
                 </li>
-                <li class="step lg:mb-5" class:step-primary={twitterOpened || auction.started}>
-                    {#if twitterOpened && !auction.started && !starting}
+                <li class="step lg:mb-5" class:step-primary={auctionTweeted || auction.started}>
+                    {#if auctionTweeted && !auction.started && !starting}
                         <div class="glowbutton glowbutton-start mx-2" on:click|preventDefault={start}></div>
                     {:else}
                         <button class="btn btn-disabled mx-2">Start</button>
