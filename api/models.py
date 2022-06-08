@@ -1,7 +1,10 @@
+from base64 import b32encode
 from datetime import datetime, timedelta
 import dateutil.parser
 import hashlib
 from io import BytesIO
+import math
+from os import urandom
 import random
 import string
 
@@ -64,6 +67,9 @@ class User(db.Model):
             'has_auctions': len(self.auctions) > 0,
             'has_bids': len(self.bids) > 0}
 
+def hash_create(length):
+    return b32encode(urandom(length)).decode("ascii").replace("=", "")
+
 class Auction(db.Model):
     __tablename__ = 'auctions'
 
@@ -105,16 +111,6 @@ class Auction(db.Model):
     winning_bid_id = db.Column(db.Integer, nullable=True)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    def __init__(self, **kwargs):
-
-        # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
-        # - perhaps some hash(user key + index), where index represents a User's Auction index (1, 2, 3...)
-        # The benefit (of that) would be that a user could then potentially have auctions which don't necessary have an underlying Auction record,
-        # in the same way in which an XPUB can derive "addresses" that don't represent an actual UTXO.
-        key = ''.join(random.choice(string.ascii_lowercase) for i in range(12))
-
-        super().__init__(key=key, **kwargs)
 
     bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.requested_at)')
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
@@ -174,6 +170,38 @@ class Auction(db.Model):
                 auction['contribution_qr'] = qr.getvalue().decode('utf-8')
 
         return auction
+
+    @classmethod
+    def generate_key(cls, count):
+        # code taken from https://github.com/supakeen/pinnwand and adapted
+
+        # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
+        # - perhaps some hash(user key + index), where index represents a User's Auction index (1, 2, 3...)
+        # The benefit (of that) would be that a user could then potentially have auctions which don't necessary have an underlying Auction record,
+        # in the same way in which an XPUB can derive "addresses" that don't represent an actual UTXO?
+
+        # The amount of bits necessary to store that count times two, then
+        # converted to bytes with a minimum of 1.
+
+        # We double the count so that we always keep half of the space
+        # available (e.g we increase the number of bytes at 127 instead of
+        # 255). This ensures that the probing below can find an empty space
+        # fast in case of collision.
+        necessary = math.ceil(math.log2((count + 1) * 2)) // 8 + 1
+
+        # Now generate random ids in the range with a maximum amount of
+        # retries, continuing until an empty slot is found
+        tries = 0
+        key = hash_create(necessary)
+
+        while cls.query.filter_by(key=key).one_or_none():
+            app.logger.debug("generate_key: triggered a collision")
+            if tries > 10:
+                raise RuntimeError("We exceeded our retry quota on a collision.")
+            tries += 1
+            key = hash_create(necessary)
+
+        return key
 
     @classmethod
     def validate_dict(cls, d):

@@ -10,6 +10,7 @@ import jwt
 import lnurl
 import pyqrcode
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.functions import func
 
 from extensions import db
 import models as m
@@ -140,7 +141,9 @@ def auctions(user):
         except m.ValidationError as e:
             return jsonify({'message': e.message}), 400
 
-        auction = m.Auction(seller=user, **validated)
+        auction_count = db.session.query(func.count(m.Auction.id).label('count')).first().count
+        key = m.Auction.generate_key(auction_count)
+        auction = m.Auction(seller=user, key=key, **validated)
         db.session.add(auction)
         db.session.commit()
 
