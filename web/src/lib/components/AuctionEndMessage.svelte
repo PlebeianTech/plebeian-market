@@ -7,6 +7,9 @@
     export let auction: Auction;
 
     $: remainingPercent = auction && auction.contribution_percent ? 100 - auction.contribution_percent : null;
+
+    $: myBidCount = auction ? auction.bids.filter(b => b.payment_request).length : 0;
+    $: myContribution = myBidCount * 21; // LIGHTNING_INVOICE_AMOUNT in config.py
 </script>
 
 {#if auction.has_winner}
@@ -30,7 +33,7 @@
         {/if}
     {:else if auction.is_lost}
         <p class="my-4">Unfortunately, you were outbid.</p>
-        <p class="my-2">Thank you so much for taking part and contributing to open source projects on Bitcoin!</p>
+        <p class="my-2">Thank you so much for taking part and contributing {#if myContribution !== 0}{myContribution} sats {/if}to open source projects on Bitcoin!</p>
     {:else if auction.is_won}
         {#if $user && $user.twitterUsername && $user.twitterProfileImageUrl && auction.seller_twitter_username && auction.seller_twitter_profile_image_url}
             <div class="my-4">
