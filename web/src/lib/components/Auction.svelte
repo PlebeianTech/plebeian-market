@@ -100,6 +100,14 @@
                         <div class="mt-2">
                             <BidList {auction} />
                         </div>
+                        {:else if $token && $user}
+                        <p class="text-3xl text-center py-9">Current Bid</p>
+                        <p class="text-2xl text-center py-7">0 Sats</p>
+                        <p class="text-center">Place your bid below</p>
+                        {:else}
+                        <p class="text-3xl text-center py-9">Current Bid</p>
+                        <p class="text-2xl text-center py-7">0 Sats</p>
+                        <p class="text-center">Scan below to login and place a bid</p>
                     {/if}
                 </div>
                 <div class="lg:w-1/3">
