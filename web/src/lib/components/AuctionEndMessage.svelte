@@ -48,7 +48,7 @@
             <p class="my-2">The seller @{auction.seller_twitter_username} has donated {auction.contribution_amount} sats to Bitcoin open source projects like this.
         {/if}
     {/if}
-{:else if $user && auction.contribution_amount}
+{:else if $user && auction.is_top_bidder}
     <div class="my-4 text-2xl">
         <span class=text-3xl>Congratulations</span> @{$user.twitterUsername}, You've won &#x1F389; &#x1F64C; &#x1F44F;
     </div>

@@ -162,7 +162,8 @@ class Auction(db.Model):
         elif self.end_date and self.end_date < datetime.utcnow():
             top_bid = self.get_top_bid()
             if top_bid and for_user == top_bid.buyer_id and self.contribution_payment_request is not None:
-                assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request                
+                assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request
+                auction['is_top_bidder'] = True
                 auction['contribution_percent'] = self.seller.contribution_percent
                 auction['contribution_payment_request'] = self.contribution_payment_request
                 qr = BytesIO()

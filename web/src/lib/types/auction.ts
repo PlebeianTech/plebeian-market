@@ -38,6 +38,7 @@ export interface Auction {
     contribution_qr?: string;
     remaining_amount?: number;
 
+    is_top_bidder?: boolean;
     has_winner?: boolean;
     is_won?: boolean;
     seller_twitter_username?: string;
