@@ -207,16 +207,25 @@ def start_twitter(user, key):
         return jsonify({'message': "Not found."}), 404
     if auction.seller_id != user.id:
         return jsonify({'message': "Unauthorized"}), 401
+
     twitter = get_twitter()
     twitter_user = twitter.get_user(user.twitter_username)
     if not twitter_user:
         return jsonify({'message': "Twitter profile not found!"}), 400
+
     user.twitter_profile_image_url = twitter_user['profile_image_url']
-    tweet = twitter.get_auction_tweet(twitter_user['id'])
+
+    tweets = twitter.get_auction_tweets(twitter_user['id'])
+    tweet = None
+    for t in sorted(tweets, key=lambda t: t['created_at'], reverse=True):
+        # we basically pick the last tweet that matches the auction
+        if t['auction_key'] == auction.key:
+            tweet = t
+            break
+
     if not tweet:
         return jsonify({'message': "Tweet not found."}), 400
-    if tweet['auction_key'] != auction.key:
-        return jsonify({'message': "Link in tweet is for another auction."}), 400
+
     if not tweet['photos']:
         return jsonify({'message': "Tweet does not have any attached pictures."}), 400
 
@@ -224,9 +233,13 @@ def start_twitter(user, key):
     auction.twitter_id = tweet['id']
     auction.start_date = datetime.utcnow()
     auction.end_date = auction.start_date + timedelta(hours=auction.duration_hours)
+
+    m.Media.query.filter_by(auction_id=auction.id).delete()
+
     for photo in tweet['photos']:
         media = m.Media(auction_id=auction.id, twitter_media_key=photo['media_key'], url=photo['url'])
         db.session.add(media)
+
     db.session.commit()
 
     return jsonify({})

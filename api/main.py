@@ -148,19 +148,20 @@ class MockTwitter:
             'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(1, 1000)}",
         }
 
-    def get_auction_tweet(self, user_id):
+    def get_auction_tweets(self, user_id):
         if not user_id.startswith('MOCK_USER'):
             return None
         time.sleep(5) # deliberately slow this down, so we can find possible issues in the UI
-        return {
+        return [{
             'id': "MOCK_TWEET_ID",
             'text': "Hello Mocked Tweet",
+            'created_at': datetime.now().isoformat(),
             'auction_key': MockTwitter.MockKey(),
             'photos': [
                 {'media_key': f"MOCK_PHOTO_{i}", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(1, 1000)}"}
                 for i in range(4)
             ]
-        }
+        }]
 
 class Twitter:
     BASE_URL = "https://api.twitter.com/2"
@@ -184,30 +185,39 @@ class Twitter:
             return
         return response_json['data']
 
-    def get_auction_tweet(self, user_id):
+    def get_auction_tweets(self, user_id):
         response_json = self.get(f"/users/{user_id}/tweets",
             params={
+                'max_results': 100,
                 'expansions': "attachments.media_keys",
                 'media.fields': "url",
-                'tweet.fields': "id,text,entities"})
-        if response_json and response_json.get('data'):
-            auction_tweet = {}
-            for tweet in response_json['data']:
-                auction_url = None
-                for url in tweet.get('entities', {}).get('urls', []):
-                    if url['expanded_url'].startswith("https://plebeian.market/auctions/"):
-                        auction_url = url['expanded_url']
-                        break
-                else:
-                    continue
-                media_keys = tweet.get('attachments', {}).get('media_keys', [])
+                'tweet.fields': "id,text,entities,created_at"})
 
-                auction_tweet['id'] = tweet['id']
-                auction_tweet['text'] = tweet['text']
-                auction_tweet['auction_key'] = auction_url[len("https://plebeian.market/auctions/"):]
-                auction_tweet['photos'] = [m for m in response_json['includes']['media'] if m['media_key'] in media_keys and m['type'] == 'photo']
+        if not response_json:
+            return []
 
-                return auction_tweet
+        auction_tweets = []
+        for tweet in response_json.get('data', []):
+            auction_url = None
+            for url in tweet.get('entities', {}).get('urls', []):
+                if url['expanded_url'].startswith("https://plebeian.market/auctions/"):
+                    auction_url = url['expanded_url']
+                    break
+            else:
+                continue
+
+            media_keys = tweet.get('attachments', {}).get('media_keys', [])
+
+            auction_tweets.append({
+                'id': tweet['id'],
+                'text': tweet['text'],
+                'created_at': tweet['created_at'],
+                'auction_key': auction_url[len("https://plebeian.market/auctions/"):],
+                'photos': [m for m in response_json['includes']['media']
+                    if m['media_key'] in media_keys and m['type'] == 'photo'],
+            })
+
+        return auction_tweets
 
 def get_twitter():
     if app.config['MOCK_TWITTER']:
