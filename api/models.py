@@ -91,6 +91,8 @@ class Auction(db.Model):
     starting_bid = db.Column(db.Integer, nullable=False)
     reserve_bid = db.Column(db.Integer, nullable=False)
 
+    shipping_from = db.Column(db.String(64), nullable=True)
+
     twitter_id = db.Column(db.String(32), nullable=True)
 
     # this identifies the Lightning invoice of the contribution payment
@@ -131,6 +133,7 @@ class Auction(db.Model):
             'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date else False,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': max(bid.amount for bid in self.bids) >= self.reserve_bid if self.bids else False,
+            'shipping_from': self.shipping_from,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",
@@ -175,7 +178,7 @@ class Auction(db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description']:
+        for k in ['title', 'description', 'shipping_from']:
             if k not in d:
                 continue
             length = len(d[k])

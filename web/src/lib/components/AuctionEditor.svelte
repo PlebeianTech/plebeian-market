@@ -70,6 +70,12 @@
                         </label>
                     </div>
                 </div>
+                <div class="form-control w-full max-w-xs">
+                    <label class="label" for="shipping_from">
+                        <span class="label-text">Shipping from (optional)</span>
+                    </label>
+                    <input bind:value={auction.shipping_from} type="text" name="shipping_from" class="input input-bordered w-full max-w-xs" />
+                </div>
                 <div class="form-control mr-2 w-full">
                     <label class="label" for="duration">
                         <span class="label-text">Duration</span>

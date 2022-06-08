@@ -103,6 +103,9 @@
                 <div class="lg:w-1/3">
                     <h3 class="text-3xl mb-4 ml-2">Product Details:</h3>
                     <p class="mt-4 ml-2">{auction.description}</p>
+                    {#if auction.shipping_from}
+                        <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
+                    {/if}
                     <p class="mt-4 ml-2">
                         {#if auction.start_date && auction.end_date}
                             {#if !auction.started}
