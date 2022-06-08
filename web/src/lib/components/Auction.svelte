@@ -100,14 +100,24 @@
                         <div class="mt-2">
                             <BidList {auction} />
                         </div>
-                        {:else if $token && $user}
-                        <p class="text-3xl text-center py-9">Current Bid</p>
-                        <p class="text-2xl text-center py-7">0 Sats</p>
-                        <p class="text-center">Place your bid below</p>
                         {:else}
-                        <p class="text-3xl text-center py-9">Current Bid</p>
-                        <p class="text-2xl text-center py-7">0 Sats</p>
-                        <p class="text-center">Scan below to login and place a bid</p>
+                        <p class="text-3xl text-center pt-24">Current Bid</p>
+                        <p class="text-2xl text-center pt-2 pb-24">0 Sats</p>
+                    {/if}
+                    {#if auction.start_date && auction.end_date}
+                        {#if auction.started && !auction.ended}
+                            <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
+                            {#if !auction.reserve_bid_reached}
+                                <p class="mt-2 w-full text-xl text-center">
+                                    Reserve not met!
+                                </p>
+                            {/if}
+                        {/if}
+                    {/if}
+                    {#if !auction.bids.length && $token && $user}
+                        <p class="text-center pt-12">Place your bid below</p>
+                    {:else if !auction.bids.length}
+                        <p class="text-center pt-24">Scan below to login and place a bid</p>
                     {/if}
                 </div>
                 <div class="lg:w-1/3">
@@ -131,16 +141,7 @@
             </div>
 
             <div class="mt-4">
-                {#if auction.start_date && auction.end_date}
-                    {#if auction.started && !auction.ended}
-                        <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
-                        {#if !auction.reserve_bid_reached}
-                            <p class="mt-2 w-full text-xl text-center">
-                                Reserve not met!
-                            </p>
-                        {/if}
-                    {/if}
-                {/if}
+
                 {#if !auction.ended}
                     {#if auction.end_date_extended}
                         <h3 class="text-2xl text-center text-warning my-2">
