@@ -6,6 +6,7 @@
     import AuctionEndMessage from "./AuctionEndMessage.svelte";
     import BidList from "./BidList.svelte";
     import Gallery from "./Gallery.svelte";
+    import Carousel from "./Carousel.svelte";
     import NewBid from "./NewBid.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
@@ -92,6 +93,7 @@
                 <div class="lg:w-1/3">
                     <h2 class="text-3xl text-center mb-4">{auction.title}</h2>
                     <Gallery photos={auction.media} />
+                    <Carousel photos={auction.media} />
                 </div>
                 <div class="lg:w-1/2">
                     {#if auction.bids.length}
