@@ -4,7 +4,7 @@ flask-cors
 flask-migrate
 flask-sqlalchemy
 gunicorn
-lnd-grpc-client
+lnd-grpc-client>=0.3.41
 lnurl
 psycopg2
 pyjwt

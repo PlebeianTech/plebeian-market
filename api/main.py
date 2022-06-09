@@ -60,7 +60,7 @@ def settle_bids():
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
     lnd = get_lnd_client()
     last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
-    for invoice in lnd.subscribe_invoices(): # TODO: use settle_index after merged in lnd-grpc-client
+    for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
         if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
             bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
             if bid:
@@ -74,8 +74,9 @@ def settle_bids():
                 auction.winning_bid_id = auction.get_top_bid().id
                 app.logger.info(f"Settled contribution for {auction.id} amount {auction.contribution_amount}.")
             if bid or auction:
+                last_settle_index = invoice.settle_index
                 state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
-                state.value = str(invoice.settle_index)
+                state.value = str(last_settle_index)
                 db.session.commit()
 
 def get_token_from_request():
@@ -117,7 +118,7 @@ class MockLNDClient:
     def add_invoice(self, value):
         return MockLNDClient.InvoiceResponse()
 
-    def subscribe_invoices(self):
+    def subscribe_invoices(self, **_):
         last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
         while True:
             time.sleep(3)
