@@ -38,6 +38,8 @@
             <span class="label-text">sats</span>
         </label>
     </div>
-    <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
+    <div class="w-full flex items-center justify-center">
+        <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
+    </div>
 {/if}
 </div>
