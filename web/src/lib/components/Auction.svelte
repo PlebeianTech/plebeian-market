@@ -104,7 +104,7 @@
                         <div class="mt-2">
                             <BidList {auction} />
                         </div>
-                        {:else}
+                    {:else}
                         <p class="text-3xl text-center pt-24">Current Bid</p>
                         <p class="text-2xl text-center pt-2 pb-24">0 Sats</p>
                     {/if}
@@ -117,11 +117,6 @@
                                 </p>
                             {/if}
                         {/if}
-                    {/if}
-                    {#if !auction.bids.length && $token && $user}
-                        <p class="text-center pt-12">Place your bid below</p>
-                    {:else if !auction.bids.length}
-                        <p class="text-center pt-24">Login below to place a bid:</p>
                     {/if}
                 </div>
                 <div class="lg:w-1/3">
@@ -153,12 +148,24 @@
                         </h3>
                     {/if}
                     {#if $token && $user}
-                        {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                            <div class="mt-4 flex justify-center items-center">
-                                <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
-                            </div>
+                        {#if !auction.is_mine}
+                            {#if !auction.bids.length}
+                                <p class="text-center pt-12">Place your bid below</p>
+                            {/if}
+                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
+                                <div class="mt-4 flex justify-center items-center">
+                                    <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
+                                </div>
+                            {/if}
+                        {:else}
+                            {#if auction.started}
+                                <p class="text-center pt-24">Your auction is running &#x1FA99; &#x1F528; &#x1F4B0;</p>
+                            {/if}
                         {/if}
                     {:else}
+                        {#if !auction.bids.length}
+                            <p class="text-center pt-24">Login below to place a bid</p>
+                        {/if}
                         <Login />
                     {/if}
                 {/if}
