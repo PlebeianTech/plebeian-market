@@ -121,7 +121,7 @@
                     {#if !auction.bids.length && $token && $user}
                         <p class="text-center pt-12">Place your bid below</p>
                     {:else if !auction.bids.length}
-                        <p class="text-center pt-24">Scan below to login and place a bid</p>
+                        <p class="text-center pt-24">Login below to place a bid:</p>
                     {/if}
                 </div>
                 <div class="lg:w-1/3">
