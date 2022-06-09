@@ -92,8 +92,12 @@
             <div class="mt-4 lg:flex">
                 <div class="lg:w-1/3">
                     <h2 class="text-3xl text-center mb-4">{auction.title}</h2>
+                    <div class="hidden lg:grid">
                     <Gallery photos={auction.media} />
+                    </div>
+                    <div class="lg:hidden">
                     <Carousel photos={auction.media} />
+                    </div>
                 </div>
                 <div class="lg:w-1/2">
                     {#if auction.bids.length}
