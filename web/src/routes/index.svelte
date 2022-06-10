@@ -3,6 +3,7 @@
 </svelte:head>
 
 <script>
+    	import Typewriter from 'svelte-typewriter'
 </script>
 <div class="flex justify-center">
 <div class="mt-4 md:columns-3 w-3/5">
@@ -13,15 +14,22 @@
 </div>
 <div class="flex justify-center">
 <div class="mt-12 columns-3 w-3/4">
-    <div>
-        <p class="text-3xl text-right">Sell anything...</p>
-    </div>
-    <div class="flex bg-black/50">
-        <p class="line-1 anim-typewriter_1">1 hour of your time</p>
-    </div>
-    <div>
+    <span>
+        <p class="flex-row text-3xl text-right">Sell anything...</p>
+    </span>
+    <span class="flex bg-black/30">
+<Typewriter interval={[50, 60, 95, 80]} cursor='255,255,255,30' loop>
+<p class="text-3xl">1 hour of your time</p>
+<p class="text-3xl">bitcoin art</p>
+<p class="text-3xl">your furniture</p>
+<p class="text-3xl">an ASIC miner</p>
+<p class="text-3xl">Baklava</p>
+<p class="text-3xl">your next book</p>
+</Typewriter>
+    </span>
+    <span>
         <p class="text-3xl text-left">...and get paid in sats.</p>
-    </div>
+    </span>
 </div>
 </div>
 
