@@ -70,8 +70,10 @@ Test output should look similar to this if the tests were successful:
 - Start the API:
   - ```cd plebeian-market```
   - ```./scripts/dev.sh``` and leave it running.
-- In another terminal, start the webapp:
+- In a new terminal, install the components with npm:
   - ```cd plebeian-market/web```
+  - ```npm install```
+- And start the webapp:
   - ```npm run dev```
 - Heed the warning:
   - ```Note that all files in the following directories will be accessible to anyone on your network: src/lib, src/routes, .svelte-kit, src, node_modules```
