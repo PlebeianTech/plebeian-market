@@ -105,14 +105,18 @@
                             <BidList {auction} />
                         </div>
                     {:else}
-                        <p class="text-3xl text-center pt-24">Current Bid</p>
-                        <p class="text-2xl text-center pt-2 pb-24">0 Sats</p>
+                        <p class="text-3xl text-center pt-24">Starting bid is {auction.starting_bid} sats</p>
+                        {#if !auction.is_mine}
+                        <p class="text-2xl text-center pt-2">Be the first to bid!</p>
+                        {/if}
                     {/if}
                     {#if auction.start_date && auction.end_date}
                         {#if auction.started && !auction.ended}
+                            <div class="pt-24">
                             <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
+                            </div>
                             {#if !auction.reserve_bid_reached}
-                                <p class="mt-2 w-full text-xl text-center">
+                                <p class="my-3 w-full text-xl text-center">
                                     Reserve not met!
                                 </p>
                             {/if}
@@ -120,7 +124,9 @@
                     {/if}
                 </div>
                 <div class="lg:w-1/3">
-                    <h3 class="text-3xl mb-4 ml-2">Product Details:</h3>
+                    <span class="flex text-1xl mb-4 ml-2 bg-black/5 rounded-md w-fit">
+                    <h3 class="mx-1">Product Details</h3>
+                    </span>
                     <p class="mt-4 ml-2">{auction.description}</p>
                     {#if auction.shipping_from}
                         <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
