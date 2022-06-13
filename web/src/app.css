@@ -133,6 +133,7 @@ body {
   animation: animateGlow 1.25s linear infinite;
 }
 
+
 @keyframes animateGlow {
   0% {
     background-position: 0% 50%;
@@ -141,6 +142,7 @@ body {
     background-position: 200% 50%;
   }
 }
+
 
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
