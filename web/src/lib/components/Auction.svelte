@@ -75,7 +75,7 @@
 
 {#if auction}
     <div class="flex justify-center items-center">
-        <div class="mt-2 w-4/5 rounded p-4">
+        <div class="mt-2 lg:w-4/5 rounded p-4">
             {#if auction.is_mine && !auction.start_date && !auction.end_date}
                 <div class="alert alert-error shadow-lg">
                     <div>
