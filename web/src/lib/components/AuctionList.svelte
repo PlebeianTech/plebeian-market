@@ -82,9 +82,6 @@
                 <div class="glowbutton glowbutton-new" on:click|preventDefault={() => currentAuction = emptyAuction()}></div>
             </div>
             {#each auctions as auction, i}
-                {#if i !== 0}
-                    <div class="divider"></div> 
-                {/if}
                 <AuctionCard auction={auction} onEdit={(auction) => currentAuction = auction} onDelete={onDelete} />
             {/each}
         {/if}
