@@ -88,7 +88,10 @@
                     <label class="label" for="twitter-username">
                         <span class="label-text">Twitter username</span>
                     </label>
-                    <input bind:value={twitterUsername} id="twitter-username" name="twitter-username" type="text" placeholder="@" class:input-error={invalidTwitterUsername && !isTwitterUsernameValid()} class="input input-bordered w-full max-w-xs" />
+                    <div class="z-0 translate-y-9 translate-x-2">
+                        <span>@</span>
+                    </div>
+                    <input bind:value={twitterUsername} id="twitter-username" name="twitter-username" type="text" class:input-error={invalidTwitterUsername && !isTwitterUsernameValid()} class="bg-transparent z-10 ml-1.5 input input-bordered w-full max-w-xs" />
                 </div>
             </div>
 
