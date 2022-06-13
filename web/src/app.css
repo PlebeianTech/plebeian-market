@@ -109,12 +109,12 @@ body {
 .glowbox::after {
   position: absolute;
   content: "";
-  top: 15px;
-  left: 0;
+  top: 10px;
+  left: -10px;
   right: 0;
   z-index: -1;
   height: 100%;
-  width: 100%;
+  width: calc(100% + 20px);
   transform: scale(0.9) translateZ(0);
   filter: blur(15px);
   background: linear-gradient(

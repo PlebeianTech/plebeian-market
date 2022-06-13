@@ -78,7 +78,7 @@
 </script>
 
 <div class="glowbox">
-<div class="card lg:card-side bg-base-100 max-w-full p-4 overflow-hidden shadow-xl my-3">
+<div class="card lg:card-side bg-base-300 max-w-full p-4 overflow-hidden shadow-xl my-3">
     <figure>
         {#each auction.media as photo, i}
             {#if i === 0}
