@@ -13,7 +13,7 @@
 </div>
 </div>
 <div class="flex justify-center">
-<div class="mt-12 columns-1 lg:columns-3 lg:w-3/4">
+<div class="mt-12 columns-1 md:columns-3 md:w-11/12">
     <span>
         <p class="flex-row text-s md:text-xl lg:text-3xl lg:text-right">Sell anything...</p>
     </span>
