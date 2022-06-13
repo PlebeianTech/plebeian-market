@@ -53,7 +53,7 @@
             return;
         }
 
-        if (!$user.twitterUsername === null) {
+        if ($user.twitterUsername === null || $user.twitterUsername.length === 0) {
             show();
         }
 
