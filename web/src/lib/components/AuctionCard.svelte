@@ -80,7 +80,7 @@
 
 <div class="glowbox">
 <div class="card lg:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
-    <figure class="lg:max-h-48">
+    <figure class="lg:max-h-48 flex justify-center">
         {#each auction.media as photo, i}
             {#if i === 0}
                 <img src={photo.url} alt="Auctioned object" />

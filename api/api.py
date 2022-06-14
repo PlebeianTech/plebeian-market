@@ -217,6 +217,9 @@ def start_twitter(user, key):
         return jsonify({'message': "Twitter profile not found!"}), 400
 
     user.twitter_profile_image_url = twitter_user['profile_image_url']
+    if '_normal' in user.twitter_profile_image_url:
+        # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
+        user.twitter_profile_image_url = user.twitter_profile_image_url.replace('_normal', '')
 
     tweets = twitter.get_auction_tweets(twitter_user['id'])
     tweet = None
@@ -260,10 +263,10 @@ def bids(user, key):
     amount = int(request.json['amount'])
 
     top_bid = auction.get_top_bid(include_unsettled=True)
-    top_amount = top_bid.amount if top_bid else auction.starting_bid
-
-    if amount <= top_amount:
-        return jsonify({'message': f"Amount needs to be at least {top_amount}."}), 400
+    if top_bid and amount <= top_bid.amount:
+        return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
+    elif amount <= auction.starting_bid:
+        return jsonify({'message': f"Your bid needs to be higher than {auction.starting_bid}, the starting bid."}), 400
 
     response = get_lnd_client().add_invoice(value=app.config['LIGHTNING_INVOICE_AMOUNT'])
 

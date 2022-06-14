@@ -171,14 +171,17 @@ class Auction(db.Model):
                 auction['winner_twitter_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
         elif self.ended:
             top_bid = self.get_top_bid()
-            if top_bid and for_user == top_bid.buyer_id and self.contribution_payment_request is not None:
-                assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request
-                auction['is_top_bidder'] = True
-                auction['contribution_percent'] = self.seller.contribution_percent
-                auction['contribution_payment_request'] = self.contribution_payment_request
-                qr = BytesIO()
-                pyqrcode.create(self.contribution_payment_request).svg(qr, omithw=True, scale=4)
-                auction['contribution_qr'] = qr.getvalue().decode('utf-8')
+            if top_bid and self.contribution_payment_request is not None:
+                if for_user == top_bid.buyer_id:
+                    assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request
+                    auction['needs_contribution'] = True
+                    auction['contribution_percent'] = self.seller.contribution_percent
+                    auction['contribution_payment_request'] = self.contribution_payment_request
+                    qr = BytesIO()
+                    pyqrcode.create(self.contribution_payment_request).svg(qr, omithw=True, scale=4)
+                    auction['contribution_qr'] = qr.getvalue().decode('utf-8')
+                elif for_user == self.seller_id:
+                    auction['wait_contribution'] = True
 
         return auction
 
