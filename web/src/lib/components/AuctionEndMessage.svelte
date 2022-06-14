@@ -51,7 +51,7 @@
             <p class="my-2">The seller @{auction.seller_twitter_username} has donated {auction.contribution_amount} sats to Bitcoin open source projects like this.
         {/if}
     {/if}
-{:else if $user && auction.is_top_bidder}
+{:else if $user && auction.needs_contribution}
     <div class="my-4 text-2xl">
         <span class=text-3xl>Congratulations</span> @{$user.twitterUsername}, You've won &#x1F389; &#x1F64C; &#x1F44F;
     </div>
@@ -59,7 +59,12 @@
         The seller wishes to donate {auction.contribution_percent}% = {auction.contribution_amount} sats out of your winning bid to Plebeian Technology. Please send the amount using the QR code below!
     </p>
     <p class="my-2">
+        @{auction.seller_twitter_username} is waiting for you to send us their contribution!
+    </p>
+    <p class="my-2">
         After payment you will be directed to the seller for final settlement of the remaining {remainingPercent}% = {auction.remaining_amount} sats.
     </p>
     <QR bind:qr={auction.contribution_qr} bind:lnurl={auction.contribution_payment_request} />
+{:else if $user && auction.wait_contribution}
+    <p class="my-2 text-center">We are waiting for the winner to send your contribution to Plebeian Technology.</p>
 {/if}

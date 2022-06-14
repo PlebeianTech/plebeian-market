@@ -207,6 +207,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         self.assertEqual(response['auctions'][0]['key'], auction_key)
+        self.assertEqual(response['auctions'][0]['started'], False)
+        self.assertEqual(response['auctions'][0]['ended'], False)
 
         # GET the newly created auction by key (even unauthenticated!)
         code, response = self.get(f"/api/auctions/{auction_key}")
@@ -360,6 +362,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
         self.assertTrue(response['auction']['start_date'] < (datetime.utcnow().isoformat() + "Z"))
+        self.assertEqual(response['auction']['started'], True)
+        self.assertEqual(response['auction']['ended'], False)
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
         self.assertEqual(len(response['auction']['media']), 4)
         self.assertTrue("watch" in response['auction']['media'][0]['url']) # this one comes from MockTwitter

@@ -13,7 +13,7 @@
             toasts.add({
                 description: value,
                 duration: 3000,
-                placement: 'bottom-right',
+                placement: window.screen.availWidth >= 1024 ? 'top-center' : 'bottom-right',
                 type: 'info'
             });
             Info.set(null);
@@ -26,7 +26,7 @@
             toasts.add({
                 description: value,
                 duration: 3000,
-                placement: 'bottom-right',
+                placement: window.screen.availWidth >= 1024 ? 'top-center' : 'bottom-right',
                 type: 'error'
             });
             Error.set(null);

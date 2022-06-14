@@ -42,7 +42,8 @@
         auctionTweeted = true;
         let url = encodeURIComponent(getUrl());
         let text = encodeURIComponent(`I am auctioning for sats: ${auction.title}`);
-        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', "width=500,height=500");
+        let specs = window.screen.availWidth >= 1024 ? "width=500,height=500" : undefined;
+        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', specs);
     }
 
     function start() {
@@ -78,8 +79,8 @@
 </script>
 
 <div class="glowbox">
-<div class="card lg:card-side bg-base-300 max-w-full p-4 overflow-hidden shadow-xl my-3">
-    <figure>
+<div class="card lg:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
+    <figure class="lg:max-h-48 flex justify-center">
         {#each auction.media as photo, i}
             {#if i === 0}
                 <img src={photo.url} alt="Auctioned object" />
@@ -87,51 +88,27 @@
         {/each}
     </figure>
     <div class="card-body">
-        <h2 class="card-title">
+        <h2 class="card-title mb-2">
             {auction.title}
             {#if auction.started && !auction.ended}
-                (running)
+                <div class="badge badge-primary">running</div>
             {:else if auction.ended}
-                (ended)
+                <div class="badge badge-secondary">ended</div>
             {/if}
         </h2>
-        {#if auction.start_date && auction.end_date}
-            <div class="lg:flex lg:mt-2">
-                <div>
-                    <span class="visible lg:invisible lg:w-0 inline-block">From:</span>
-                    <DateFormatter date={auction.start_date} />
-                </div>
-                <div>
-                    <span class="visible lg:invisible lg:w-0 inline-block">To:</span>
-                    <DateFormatter date={auction.end_date} />
-                </div>
-            </div>
-        {/if}
-        <div class="mt-2">
-            <div>
-                {#if !auction.started}
-                    <span>{auction.duration_str} /</span>
-                {/if}
-                <span>Start: {auction.starting_bid} /</span>
-                <span>Reserve: {auction.reserve_bid}</span>
-                {#if auction.started}
-                    <div class="lg:float-right">Bids: {auction.bids.length}</div>
-                {/if}
-            </div>
-        </div>
-            {#if auction.started && !auction.ended}
-                <div class="mt-2 float-root">
-                    <div class="py-5 float-left">
-                        <div class="lg:flex">
-                            <div class="mt-4 lg:mt-0">
-                                <div class="ml-4 mt-2">
-                                    <Countdown untilDate={auction.end_date} />
-                                </div>
+        {#if auction.started && !auction.ended}
+            <div class="float-root">
+                <div class="py-5 float-left">
+                    <div class="lg:flex">
+                        <div class="mt-4 lg:mt-0">
+                            <div class="ml-4 mt-2">
+                                <Countdown untilDate={auction.end_date} />
                             </div>
                         </div>
                     </div>
                 </div>
-            {/if}
+            </div>
+        {/if}
         {#if !auction.ended && !auctionViewed}
         <div class="mt-2">
             <p class="text-center">
@@ -170,7 +147,25 @@
             </div>
         </div>
         {/if}
-        <div class="card-actions justify-end">
+        <p class="whitespace-nowrap">
+            {#if auction.start_date && auction.end_date}
+                From:
+                <DateFormatter date={auction.start_date} />
+                <br />
+                To:
+                <DateFormatter date={auction.end_date} />
+            {/if}
+            <br />
+            {#if !auction.started}
+                <span>{auction.duration_str} /</span>
+            {/if}
+            <span>Start: {auction.starting_bid} /</span>
+            <span>Reserve: {auction.reserve_bid}</span>
+            {#if auction.started}
+                <span class="lg:float-right">Bids: {auction.bids.length}</span>
+            {/if}
+        </p>
+        <div class="mt-2 card-actions justify-end">
             {#if confirmation}
                     <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
             {:else}

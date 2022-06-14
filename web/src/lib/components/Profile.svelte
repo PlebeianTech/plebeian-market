@@ -83,12 +83,23 @@
             <label for="profile-modal" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide}>✕</label>
         {/if}
         <div class="w-full">
+            {#if !($user && $user.twitterUsername)}
+            <div class="alert alert-info shadow-lg">
+                <div>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  <span>We use your Twitter account to start the auctions, but we don't collect any personal information.</span>
+                </div>
+            </div>
+            {/if}
             <div class="w-full flex items-center justify-center">
                 <div class="form-control w-full max-w-lg">
                     <label class="label" for="twitter-username">
                         <span class="label-text">Twitter username</span>
                     </label>
-                    <input bind:value={twitterUsername} id="twitter-username" name="twitter-username" type="text" placeholder="@" class:input-error={invalidTwitterUsername && !isTwitterUsernameValid()} class="input input-bordered w-full max-w-xs" />
+                    <div class="z-0 translate-y-9 translate-x-2">
+                        <span>@</span>
+                    </div>
+                    <input bind:value={twitterUsername} id="twitter-username" name="twitter-username" type="text" class:input-error={invalidTwitterUsername && !isTwitterUsernameValid()} class="bg-transparent z-10 ml-1.5 input input-bordered w-full max-w-xs" />
                 </div>
             </div>
 
