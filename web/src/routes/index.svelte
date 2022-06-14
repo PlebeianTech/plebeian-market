@@ -36,5 +36,5 @@
 </div>
 
 <div class="pt-10 flex justify-center items-center">
-    <a class="btn" href="/login">Enter the market!</a>
+    <a class="btn" href="/login">Sell & stack!</a>
 </div>
