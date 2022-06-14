@@ -23,10 +23,10 @@ export interface Auction {
     shipping_from: string;
     duration_hours: number;
     start_date?: Date | null;
-    started?: boolean | null;
+    started: boolean;
     end_date?: Date | null;
     end_date_extended: boolean;
-    ended?: boolean | null;
+    ended: boolean;
     duration_str?: string;
     bids: Bid[];
     media: Media[];
@@ -64,14 +64,12 @@ export function toJson(auction: Auction) {
 }
 
 export function fromJson(json: any) {
-    var a: Auction = {key: "", title: "", description: "", starting_bid: 0, reserve_bid: 0, reserve_bid_reached: false, shipping_from: "", end_date_extended: false, duration_hours: 0, bids: [], media: [], is_mine: false};
+    var a: Auction = {key: "", title: "", description: "", started: false, ended: false, starting_bid: 0, reserve_bid: 0, reserve_bid_reached: false, shipping_from: "", end_date_extended: false, duration_hours: 0, bids: [], media: [], is_mine: false};
     for (var k in json) {
         if (k === 'start_date') {
             a.start_date = json[k] ? new Date(json[k]!) : null;
-            a.started = a.start_date && a.start_date < new Date();
         } else if (k === 'end_date') {
             a.end_date = json[k] ? new Date(json[k]!) : null;
-            a.ended = a.end_date && a.end_date < new Date();
         } else if (k === 'duration_hours') {
             a.duration_hours = json[k] || 0;
             let days = 0, hours = a.duration_hours!;

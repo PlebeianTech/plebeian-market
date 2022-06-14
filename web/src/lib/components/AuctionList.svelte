@@ -12,6 +12,8 @@
             key: "",
             title: "",
             description: "",
+            started: false,
+            ended: false,
             starting_bid: 0,
             reserve_bid: 0,
             reserve_bid_reached: false,

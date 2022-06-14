@@ -157,7 +157,7 @@ def auction(key):
         return jsonify({'message': "Not found."}), 404
 
     if request.method == 'GET':
-        if auction.end_date and auction.end_date < datetime.utcnow():
+        if auction.ended:
             if auction.winning_bid_id is None and auction.contribution_payment_request is None:
                 # auction ended, but no winning bid has been picked
                 # => ask the user with the top bid to send the contribution
@@ -181,7 +181,7 @@ def auction(key):
             return jsonify({'message': "Unauthorized"}), 401
 
         if request.method == 'PUT':
-            if auction.start_date and auction.start_date <= datetime.utcnow():
+            if auction.started:
                 return jsonify({'message': "Cannot edit an auction once started."}), 403
 
             try:
@@ -254,7 +254,7 @@ def bids(user, key):
     if not auction:
         return jsonify({'message': "Not found."}), 404
 
-    if auction.start_date is None or auction.start_date > datetime.utcnow() or auction.end_date < datetime.utcnow():
+    if not auction.started or auction.ended:
         return jsonify({'message': "Auction not running."}), 403
 
     amount = int(request.json['amount'])
