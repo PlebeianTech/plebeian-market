@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { getAuctions, putAuction, postAuction } from "../services/api";
     import type { Auction } from "../types/auction";
     import { token, user, Info } from "../stores";
@@ -29,11 +29,11 @@
     let currentAuction: Auction | undefined;
     let auctions: Auction[] | null = null;
 
-    function fetchAuctions() {
+    function fetchAuctions(successCB: () => void = () => {}) {
         getAuctions($token,
             a => {
                 auctions = a;
-                currentAuction = auctions && auctions.length ? undefined : emptyAuction();
+                successCB();
             });
     }
 
@@ -50,13 +50,16 @@
         auctions = null;
 
         if (currentAuction.key !== "") {
-            putAuction($token, currentAuction, fetchAuctions);
+            putAuction($token, currentAuction,
+                () => {
+                    fetchAuctions(() => { currentAuction = undefined; })
+                });
         } else {
             postAuction($token, currentAuction,
                 () => {
                     user.update((u) => { u!.hasAuctions = true; return u; });
                     Info.set("Your auction will start when we verify your tweet!");
-                    fetchAuctions();
+                    fetchAuctions(() => { currentAuction = undefined; });
                 });
         }
     }
@@ -66,7 +69,19 @@
         fetchAuctions();
     }
 
-    onMount(async () => fetchAuctions());
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    onMount(async () => {
+        fetchAuctions(() => { currentAuction = auctions && auctions.length === 0 ? emptyAuction() : undefined; });
+        interval = setInterval(fetchAuctions, 10000);
+    });
+
+    onDestroy(() => {
+        if (interval) {
+            clearInterval(interval);
+            interval = undefined;
+        }
+    });
 </script>
 
 <svelte:head>
