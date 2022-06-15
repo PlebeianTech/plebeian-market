@@ -110,9 +110,9 @@
                             <BidList {auction} />
                         </div>
                     {:else}
-                        <p class="text-3xl text-center pt-24">Starting bid is {auction.starting_bid} sats</p>
                         {#if !auction.is_mine}
-                        <p class="text-2xl text-center pt-2">Be the first to bid!</p>
+                            <p class="text-3xl text-center pt-24">Starting bid is {auction.starting_bid} sats</p>
+                            <p class="text-2xl text-center pt-2">Be the first to bid!</p>
                         {/if}
                     {/if}
                     {#if auction.start_date && auction.end_date}
