@@ -36,5 +36,5 @@
 </div>
 
 <div class="pt-10 flex justify-center items-center">
-    <a class="btn" href="/login">Sell & stack!</a>
+    <div class="glowbutton glowbutton-sell-and-stack mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
 </div>

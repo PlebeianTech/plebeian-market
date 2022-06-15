@@ -100,6 +100,10 @@ body {
   content: 'Tweet';
 }
 
+.glowbutton-sell-and-stack:after {
+  content: 'Sell & stack';
+}
+
 .glowbox {
   padding: 4px 24px;
   position: relative;
