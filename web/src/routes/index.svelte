@@ -14,7 +14,7 @@
 </div>
 <div class="md:ml-20 md:flex md:justify-center md:justify-items-start mt-12 px-8 columns-1 gap-0 md:columns-3 md:w-11/12">
     <span>
-        <p class="text-s text-center md:text-xl lg:text-3xl md:text-right">Sell anything...</p>
+        <p class="mr-1 text-s text-center md:text-xl lg:text-3xl md:text-right">Sell anything...</p>
     </span>
     <span class="flex justify-center">
 <Typewriter interval={[50, 60, 95, 80]} cursor='255,255,255,30' loop>
