@@ -28,8 +28,8 @@
         </span>
 </Typewriter>
     </span>
-    <span class="text-s text-center md:text-left md:text-xl lg:text-3xl">
-        <p>...and get paid in sats.</p>
+    <span class="-translate-x-2 text-s text-center md:text-left md:text-xl lg:text-3xl">
+        <p>and get paid in sats.</p>
     </span>
 </div>
 
