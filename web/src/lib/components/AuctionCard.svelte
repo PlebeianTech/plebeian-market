@@ -124,21 +124,21 @@
                 <ul class:lg:steps-horizontal={!auction.started} class="steps steps-vertical">
                     <li class="step" class:step-primary={true} class:lg:mb-5={!auction.started} class:lg:ml-5={!auction.started}>
                         {#if !auctionTweeted && !auction.started}
-                            <div class="glowbutton glowbutton-tweet mx-2" on:click|preventDefault={openTwitter}></div>
+                            <div class="glowbutton glowbutton-tweet ml-2 mr-5 my-5" class:lg:mr-0={!auction.started} class:lg:my-0={!auction.started} on:click|preventDefault={openTwitter}></div>
                         {:else}
                             <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
                         {/if}
                     </li>
                     <li class="step" class:lg:mb-5={!auction.started} class:step-primary={auctionTweeted || auction.started}>
                         {#if auctionTweeted && !auction.started && !starting}
-                            <div class="glowbutton glowbutton-start mx-2" on:click|preventDefault={start}></div>
+                            <div class="glowbutton glowbutton-start ml-2 mr-5" class:lg:mr-0={!auction.started} on:click|preventDefault={start}></div>
                         {:else}
                             <button class="btn btn-disabled mx-2">Start</button>
                         {/if}
                     </li>
                     <li class="step" class:lg:mb-5={!auction.started} class:lg:mr-5={!auction.started} class:step-primary={auction.started}>
                         {#if auction.started}
-                            <div class="glowbutton glowbutton-view ml-2" on:click|preventDefault={view}></div>
+                            <div class="glowbutton glowbutton-view ml-2 mr-5 mb-5" on:click|preventDefault={view}></div>
                         {:else}
                             <button class="btn mx-2" on:click={view}>View</button>
                         {/if}

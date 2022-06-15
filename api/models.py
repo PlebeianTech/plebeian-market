@@ -117,11 +117,11 @@ class Auction(db.Model):
 
     @property
     def started(self):
-        return self.start_date and self.start_date <= datetime.utcnow()
+        return self.start_date <= datetime.utcnow() if self.start_date else False
 
     @property
     def ended(self):
-        return self.end_date and self.end_date < datetime.utcnow()
+        return self.end_date < datetime.utcnow() if self.end_date else False
 
     def get_top_bid(self, include_unsettled=False):
         return max((bid for bid in self.bids if include_unsettled or bid.settled_at is not None), default=None, key=lambda bid: bid.amount)
