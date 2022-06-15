@@ -16,9 +16,9 @@
     <span>
         <p class="text-s text-center md:text-xl lg:text-3xl md:text-right">Sell anything...</p>
     </span>
-    <span class="flex md:w-[183px] lg:w-[274px] justify-center">
+    <span class="flex justify-center">
 <Typewriter interval={[50, 60, 95, 80]} cursor='255,255,255,30' loop>
-        <span class="justify-center text-s md:text-xl lg:text-3xl">
+        <span class="text-pink-500 justify-center text-s md:text-xl lg:text-3xl">
             <p>1 hour of your time</p>
             <p>bitcoin art</p>
             <p>your furniture</p>
