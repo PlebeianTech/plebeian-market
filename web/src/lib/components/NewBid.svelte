@@ -17,9 +17,17 @@
             });
     }
 
+    export function waitingSettlement() {
+        return paymentRequest !== null;
+    }
+
+    export function reset() {
+        paymentQr = paymentRequest = amount = null;
+    }
+
     export function paymentConfirmed(r) {
         if (paymentRequest === r) {
-            paymentQr = paymentRequest = amount = null;
+            reset();
         }
     }
 </script>

@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from "svelte";
     import { getAuction } from "../services/api";
     import { type Auction, nextBid } from "../types/auction";
-    import { token, user } from "../stores";
+    import { Error, token, user } from "../stores";
     import AuctionEndMessage from "./AuctionEndMessage.svelte";
     import BidList from "./BidList.svelte";
     import Gallery from "./Gallery.svelte";
@@ -27,10 +27,15 @@
             var maxBid = auction!.starting_bid;
             for (const bid of auction!.bids) {
                 if (newBid && bid.payment_request !== undefined) {
+                    // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
                     newBid.paymentConfirmed(bid.payment_request);
                 }
                 if (bid.amount > maxBid) {
                     maxBid = bid.amount;
+                }
+                if (amount && amount <= bid.amount && newBid.waitingSettlement()) {
+                    Error.set("A higher bid just came in.");
+                    newBid.reset();
                 }
             }
             if (!amount || auction!.bids.length != bidCount) {
