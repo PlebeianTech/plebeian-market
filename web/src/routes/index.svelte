@@ -12,7 +12,7 @@
     <div class="flex"><div class="text-7xl lg:text-9xl">3.</div><div class="h-full text-2xl lg:text-4xl">Collect Sats</div></div>
 </div>
 </div>
-<div class="md:flex md:justify-center md:justify-items-start mt-12 px-8 columns-1 gap-0 md:columns-3 md:w-11/12">
+<div class="md:ml-20 md:flex md:justify-center md:justify-items-start mt-12 px-8 columns-1 gap-0 md:columns-3 md:w-11/12">
     <span>
         <p class="text-s text-center md:text-xl lg:text-3xl md:text-right">Sell anything...</p>
     </span>
