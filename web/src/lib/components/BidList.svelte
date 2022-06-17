@@ -6,7 +6,7 @@
     export let auction: Auction;
 </script>
 
-<div class="overflow-x-auto w-full md:w-max">
+<div class="overflow-x-auto w-full md:w-auto">
     <table class="table w-full">
         <thead>
             <tr>
