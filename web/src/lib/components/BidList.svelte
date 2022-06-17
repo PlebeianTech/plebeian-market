@@ -10,7 +10,7 @@
     <div class="w-full bg-black/10 rounded-t-lg py-2 mb-1">
         <span class="ml-5 text-xl">Bids</span>
     </div>
-        <bids class="pt-2">
+        <div class="pt-2">
             {#each auction.bids as bid}
                 <div class="flex justify-between">
                         <div class="flex justify-start w-full bg-black/5 rounded-l-lg my-0.5 p-1.5 items-center space-x-2">
@@ -31,7 +31,7 @@
                     </div>
                 </div>
             {/each}
-        </bids>
+        </div>
 </div>
 <div class="hidden md:block overflow-x-auto w-full">
     <table class="table">
