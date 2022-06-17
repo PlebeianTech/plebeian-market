@@ -6,7 +6,34 @@
     export let auction: Auction;
 </script>
 
-<div class="overflow-x-auto w-full">
+<div class="md:hidden w-full rounded-b-lg mb-2">
+    <div class="w-full bg-black/10 rounded-t-lg py-2 mb-1">
+        <span class="ml-5 text-xl">Bids</span>
+    </div>
+        <bids class="pt-2">
+            {#each auction.bids as bid}
+                <div class="flex justify-between">
+                        <div class="flex justify-start w-full bg-black/5 rounded-l-lg my-0.5 p-1.5 items-center space-x-2">
+                            <div class="avatar" class:verified={bid.twitter_username_verified}>
+                                <div class="w-8 rounded-full">
+                                    <img src={bid.twitter_profile_image_url} alt="{bid.twitter_username}'s avatar" />
+                                </div>
+                            </div>
+                            <div>
+                                <div class="w-max">
+                                    <p class="font-bold text-sm translate-y-2">{bid.twitter_username}</p>
+                                    <span class="text-xs"><DateFormatter date={bid.settled_at} /></span>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="rounded-r-lg w-4/5 bg-black/5 my-0.5 pr-2 pt-3.5">
+                        <p class="text-md font-bold text-right">{bid.amount} sats</p>
+                    </div>
+                </div>
+            {/each}
+        </bids>
+</div>
+<div class="hidden md:block overflow-x-auto w-full">
     <table class="table">
         <thead>
             <tr>
