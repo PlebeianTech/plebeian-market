@@ -8,8 +8,17 @@ function setError(response) {
 }
 
 function fetchAPI(path, method, tokenValue, json, checkResponse) {
-    var isLocal = window.location.href.indexOf("localhost") != -1 || window.location.href.indexOf("127.0.0.1") != -1 || window.location.href.indexOf("0.0.0.0") != -1;
-    var API_BASE = (isLocal) ? "http://localhost:5000/api" : "https://plebeian.market/api";
+    var isLocal = window.location.href.indexOf("localhost") !== -1 || window.location.href.indexOf("127.0.0.1") !== -1 || window.location.href.indexOf("0.0.0.0") !== -1;
+    var isStaging = window.location.href.indexOf("staging") !== -1;
+    var API_BASE;
+    if (isLocal) {
+        API_BASE = "http://localhost:5000/api";
+    } else if (isStaging) {
+        API_BASE = "https://staging.plebeian.market/api";
+    } else {
+        API_BASE = "https://plebeian.market/api";
+    }
+
     var headers = {};
     if (tokenValue) {
         headers['X-Access-Token'] = tokenValue;
