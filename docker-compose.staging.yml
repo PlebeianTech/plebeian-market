@@ -1,0 +1,43 @@
+version: '3.6'
+
+services:
+  db:
+    volumes:
+      - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
+  api:
+    environment:
+      - BASE_URL=https://staging.plebeian.market
+      - LND_GRPC=plebeian-market.m.voltageapp.io:10009
+    volumes:
+      - "/home/www/plebeian-market-secrets:/secrets"
+    command: gunicorn --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
+  web:
+    build:
+      context: ./
+      dockerfile: ./web/Dockerfile
+    depends_on:
+      - api
+    networks:
+      - proxy
+  nginx:
+    build:
+      context: ./
+      dockerfile: ./services/nginx/Dockerfile
+    environment:
+      - VIRTUAL_HOST=staging.plebeian.market
+      - LETSENCRYPT_HOST=staging.plebeian.market
+    depends_on:
+      - api
+    networks:
+      - proxy
+  settle-bids:
+    environment:
+      - FLASK_APP=main
+      - LND_GRPC=plebeian-market.m.voltageapp.io:10009
+    volumes:
+      - "/home/www/plebeian-market-secrets:/secrets"
+    command: flask settle-bids
+
+networks:
+  proxy:
+    external: true
