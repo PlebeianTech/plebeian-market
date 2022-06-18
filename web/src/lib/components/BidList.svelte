@@ -6,13 +6,13 @@
     export let auction: Auction;
 </script>
 
-<div class="overflow-x-auto w-full">
-    <table class="table">
+<div class="overflow-x-auto w-full md:w-auto">
+    <table class="table w-full">
         <thead>
             <tr>
-                <th>Bidder</th>
-                <th>Amount</th>
-                <th>Date</th>
+                <th><p class="hidden md:contents">Bidder</p><p class="md:hidden">Bids</p></th>
+                <th><p class="hidden md:contents">Amount</p></th>
+                <th><p class="hidden md:contents">Date</p></th>
             </tr>
         </thead>
         <tbody>
@@ -26,16 +26,16 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="font-bold">{bid.twitter_username}</div>
-                                <div class="text-sm opacity-50"></div>
+                                <div><p class="font-bold">{bid.twitter_username}</p><p class="md:hidden text-xs"><DateFormatter date={bid.settled_at} /></p></div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        {bid.amount} sats
+                        <p class="hidden md:contents">{bid.amount} sats</p>
                     </td>
                     <td>
-                        <DateFormatter date={bid.settled_at} />
+                        <p class="hidden md:contents"><DateFormatter class="md:hidden" date={bid.settled_at} /></p>
+                        <p class="md:hidden">{bid.amount} sats</p>
                     </td>
                 </tr>
             {/each}
