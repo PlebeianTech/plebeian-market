@@ -96,11 +96,11 @@
 
             <div class="mt-4 lg:flex">
                 <div class="lg:w-1/3">
-                    <h2 class="text-3xl text-center mb-4">{auction.title}</h2>
-                    <div class="hidden lg:grid">
+                    <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
+                    <div class="hidden md:grid">
                     <Gallery photos={auction.media} />
                     </div>
-                    <div class="lg:hidden">
+                    <div class="md:hidden">
                     <Carousel photos={auction.media} />
                     </div>
                 </div>
@@ -128,8 +128,8 @@
                         {/if}
                     {/if}
                 </div>
-                <div class="lg:w-1/3">
-                    <span class="flex text-1xl mb-4 ml-2 bg-black/5 rounded-md w-fit">
+                <div class="md:w-1/3 ml-2">
+                    <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
                     <h3 class="mx-1">Product Details</h3>
                     </span>
                     <p class="mt-4 ml-2">{auction.description}</p>
