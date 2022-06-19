@@ -255,10 +255,10 @@
 }
 </style>
 
-<div class="gallery lg:w-4/5 grid grid-cols-2 gap-2 place-items-center justify-center m-auto">
+<div class="gallery lg:w-4/5 grid grid-cols-2 gap-2 m-auto">
     {#each photos as photo, i}
             {#if i < 2}
-                <div class="gallery-item h-40 hover:scale-110 hover:-translate-y-1 table">
+                <div class="gallery-item h-min hover:scale-110 hover:-translate-y-1 table">
             <a class="table-cell align-bottom" href={photo.url} on:click|preventDefault={event => click(event)}>
                 <img class="rounded-md" data-lightbox="gallery" src={photo.url} alt="Auctioned item" />
             </a>
