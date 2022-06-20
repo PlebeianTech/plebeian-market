@@ -84,6 +84,7 @@ class Auction(db.Model):
     # (the auction title in that case would be the post title)
     title = db.Column(db.String(210), nullable=False)
 
+    auction_type = db.Column(db.String(8), nullable=True)
     description = db.Column(db.String(2100), nullable=False)
 
     # in the case of Twitter auctions, start_date is only set after the tweet is published and the auction starts
@@ -120,12 +121,12 @@ class Auction(db.Model):
         return self.start_date <= datetime.utcnow() if self.start_date else False
 
     @property
-    def is_physical(self):
-        return True
-
-    @property
     def ended(self):
         return self.end_date < datetime.utcnow() if self.end_date else False
+
+    @property
+    def auction_type(self):
+        return self.auction_type
 
     def get_top_bid(self, include_unsettled=False):
         return max((bid for bid in self.bids if include_unsettled or bid.settled_at is not None), default=None, key=lambda bid: bid.amount)
@@ -148,7 +149,7 @@ class Auction(db.Model):
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.seller_id,
-            'is_physical': self.is_physical,
+            'auction_type': self.auction_type,
             'seller_twitter_username': self.seller.twitter_username,
             'seller_twitter_username_verified': self.seller.twitter_username_verified,
             'seller_twitter_profile_image_url': self.seller.twitter_profile_image_url,

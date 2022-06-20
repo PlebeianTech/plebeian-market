@@ -24,7 +24,7 @@
             bids: [],
             media: [],
             is_mine: true,
-            is_physical: true,
+            type: null,
         };
     }
 
@@ -44,6 +44,7 @@
             bids: [],
             media: [],
             is_mine: true,
+            auction_type: "time",
         };
     }
 
@@ -122,9 +123,9 @@
 <div class="pt-10 flex justify-center items-center">
     <section class="w-11/12 lg:w-3/5">
         {#if currentAuction}
-            {#if currentAuction.is_physical}
+            {#if currentAuction.auction_type == null}
             <AuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} onCancel={() => currentAuction = undefined} />
-            {:else}
+            {:else if currentAuction.auction_type == "time"}
             <TimeAuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} onCancel={() => currentAuction = undefined} />
             {/if}
         {:else if auctions == null}
