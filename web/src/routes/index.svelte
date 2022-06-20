@@ -32,7 +32,7 @@
         <p>and get paid in sats.</p>
     </span>
 </div>
-<div class="pt-10 flex justify-center ">Let's get the market started...</div>
+<div class="pt-10 text-2xl flex justify-center ">Let's get the market started...</div>
 <div class="flex justify-center items-center">
     <div class="glowbutton glowbutton-go mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
 </div>

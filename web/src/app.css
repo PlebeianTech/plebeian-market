@@ -100,8 +100,22 @@ body {
   content: 'Tweet';
 }
 
-.glowbutton-sell-and-stack:after {
-  content: 'Sell & stack';
+.glowbutton-go {
+  width: 200px;
+  height: 75px;
+  line-height: 80px;
+  font-size: 36px;
+  content: 'GO';
+}
+
+.glowbutton-go:after {
+  width: 96%;
+  height: 90%;
+  top: 5%;
+  left: 2%;
+  line-height: 70px;
+  font-size: 36px;
+  content: 'GO';
 }
 
 .glowbox {
