@@ -7,9 +7,9 @@
 </script>
 <div class="flex justify-center">
 <div class="mt-4 md:columns-3 w-3/5">
-    <div class="flex"><div class="text-7xl lg:text-9xl">1.</div><div class="h-full text-2xl lg:text-4xl">Tweet Photos</div></div>
-    <div class="flex"><div class="text-7xl lg:text-9xl">2.</div><div class="h-full text-2xl lg:text-4xl">Click Start</div></div>
-    <div class="flex"><div class="text-7xl lg:text-9xl">3.</div><div class="h-full text-2xl lg:text-4xl">Collect Sats</div></div>
+    <div class="flex items-center"><div class="text-7xl lg:text-9xl">1</div><div class="h-full text-2xl lg:text-4xl">Tweet Photos</div></div>
+    <div class="flex items-center"><div class="text-7xl lg:text-9xl">2</div><div class="h-full text-2xl lg:text-4xl">Click Start</div></div>
+    <div class="flex items-center"><div class="text-7xl lg:text-9xl">3</div><div class="h-full text-2xl lg:text-4xl">Collect Sats</div></div>
 </div>
 </div>
 <div class="md:ml-20 md:flex md:justify-center md:justify-items-start mt-12 px-8 columns-1 gap-0 md:columns-3 md:w-11/12">
