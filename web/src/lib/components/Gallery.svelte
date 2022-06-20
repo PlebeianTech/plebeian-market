@@ -186,7 +186,7 @@
   position: absolute;
   border-radius: 50%;
   transition: all 0.3s;
-  background-color: #000;
+  background-color: #ff00ff;
   background-position: center;
   background-repeat: no-repeat;
 }
