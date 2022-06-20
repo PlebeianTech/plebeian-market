@@ -31,6 +31,7 @@ export interface Auction {
     bids: Bid[];
     media: Media[];
     is_mine: boolean;
+    is_physical: boolean;
 
     contribution_percent?: number;
     contribution_amount?: number;

@@ -76,8 +76,12 @@ body {
   content: 'View';
 }
 
-.glowbutton-new:after {
-  content: 'New';
+.glowbutton-physical:after {
+  content: 'Physical';
+}
+
+.glowbutton-time:after {
+  content: 'Time';
 }
 
 .glowbutton-save:after {

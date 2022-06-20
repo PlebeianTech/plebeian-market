@@ -120,6 +120,10 @@ class Auction(db.Model):
         return self.start_date <= datetime.utcnow() if self.start_date else False
 
     @property
+    def is_physical(self):
+        return True
+
+    @property
     def ended(self):
         return self.end_date < datetime.utcnow() if self.end_date else False
 
@@ -144,6 +148,7 @@ class Auction(db.Model):
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.seller_id,
+            'is_physical': self.is_physical,
             'seller_twitter_username': self.seller.twitter_username,
             'seller_twitter_username_verified': self.seller.twitter_username_verified,
             'seller_twitter_profile_image_url': self.seller.twitter_profile_image_url,

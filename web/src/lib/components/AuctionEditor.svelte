@@ -34,7 +34,7 @@
 <div class="w-full flex justify-center items-center">
     <div class="card bg-base-300 w-full lg:w-4/6 lg:p-4 rounded shadow-2xl mt-3">
         <div class="card-body items-center">
-            <h2 class="card-title mb-4 text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
+            <h2 class="card-title mb-4 text-2xl text-center">{#if auction.key}Edit auction{:else}Auction your stuff:{/if}</h2>
             <form>
                 <div class="form-control w-full max-w-xs">
                     <label class="label" for="title">
