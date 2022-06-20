@@ -79,8 +79,8 @@
 </script>
 
 <div class="glowbox">
-<div class="card lg:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
-    <figure class="lg:h-auto flex justify-center">
+<div class="card md:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
+    <figure class="md:h-auto flex justify-center">
         {#each auction.media as photo, i}
             {#if i === 0}
                 <img class="object-contain" src={photo.url} alt="Auctioned object" />
