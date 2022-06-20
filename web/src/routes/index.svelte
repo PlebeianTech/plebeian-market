@@ -21,7 +21,7 @@
         <span class="text-neon-pink justify-center text-s md:text-xl lg:text-3xl">
             <p>1 hour of your time</p>
             <p>Bitcoin art</p>
-            <p>your furniture</p>
+            <p>your chair</p>
             <p>an ASIC miner</p>
             <p>baklava</p>
             <p>your next book</p>
