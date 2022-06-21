@@ -53,6 +53,21 @@ export class Auction {
 
     invalidTitle?: boolean;
     invalidDescription?: boolean;
+
+    public topBid() {
+        var top: Bid | undefined = undefined;
+        for (const bid of this.bids) {
+            if (top === undefined || bid.amount > top.amount) {
+                top = bid;
+            }
+        }
+        return top;
+    }
+
+    public topAmount() {
+        var top = this.topBid();
+        return top === undefined ? 0 : top.amount;
+    }
 }
 
 export function toJson(auction: Auction) {

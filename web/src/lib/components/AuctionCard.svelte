@@ -160,8 +160,14 @@
             {#if !auction.started}
                 <span>{auction.duration_str} /</span>
             {/if}
-            <span>Start: {auction.starting_bid} /</span>
-            <span>Reserve: {auction.reserve_bid}</span>
+            {#if !auction.has_winner}
+                <span>Start: {auction.starting_bid} /</span>
+                <span>Reserve: {auction.reserve_bid}</span>
+            {:else}
+                <span>Winner: @{auction.winner_twitter_username}</span>
+                <br />
+                <span>Amount: {auction.topAmount()} sats</span>
+            {/if}
             {#if auction.started}
                 <span class="lg:float-right">Bids: {auction.bids.length}</span>
             {/if}
