@@ -31,7 +31,7 @@
         <div class="text-7xl ml-9 md:ml-0 md:text-9xl">1</div>
         <div class="flex flex-col">
             <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48 " src="/images/bitko_01.png" alt="Tweet!"></div>
-            <div class=" -translate-y-4 md:-translate-y-0 h-full ml-2 text-xl">Tweet Photos</div>
+            <div class=" -translate-y-1 md:-translate-y-0 h-full ml-2 text-xl">Tweet Photos</div>
         </div>
     </div>
     <div class="flex -translate-y-3 md:-translate-y-0 items-center mt-1">
@@ -45,7 +45,7 @@
         <div class="text-7xl ml-9 md:ml-0 md:text-9xl">3</div>
         <div class="flex flex-col">
             <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48" src="/images/bitko_03.png" alt="Stack!"></div>
-            <div class="-translate-y-2 md:-translate-y-0 h-full ml-2 text-xl">Stack Sats</div>
+            <div class="-translate-y-1 md:-translate-y-0 h-full ml-2 text-xl">Stack Sats</div>
         </div>
     </div>
 </div>
