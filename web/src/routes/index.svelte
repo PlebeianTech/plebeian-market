@@ -8,23 +8,23 @@
 <div class="flex justify-center">
 <div class="mt-4 md:columns-3 w-3/5">
     <div class="flex items-center mt-2">
-        <div class="text-7xl md:text-9xl">1</div>
+        <div class="text-7xl ml-5 md:text-9xl">1</div>
         <div class="flex flex-col">
-            <div><img class="max-h-36 md:max-h-48" src="/images/bitko_01.png" alt="Tweet!"></div>
+            <div><img class="max-h-24 ml-4 md:ml-2 md:max-h-48 " src="/images/bitko_01.png" alt="Tweet!"></div>
             <div class="h-full ml-2 text-xl">Tweet Photos</div>
         </div>
     </div>
     <div class="flex items-center mt-2">
-        <div class="text-7xl md:text-9xl">2</div>
+        <div class="text-7xl ml-5 md:text-9xl">2</div>
         <div class="flex flex-col">
-            <div><img class="max-h-36 md:max-h-48" src="/images/bitko_02.png" alt="Start!"></div>
+            <div><img class="max-h-24 ml-4 md:ml-2 md:max-h-48" src="/images/bitko_02.png" alt="Start!"></div>
             <div class="h-full ml-2 text-xl">Click Start</div>
         </div>
     </div>
     <div class="flex items-center mt-2">
-        <div class="text-7xl md:text-9xl">3</div>
+        <div class="text-7xl ml-5 md:text-9xl">3</div>
         <div class="flex flex-col">
-            <div><img class="max-h-36 md:max-h-48" src="/images/bitko_03.png" alt="Stack!"></div>
+            <div><img class="max-h-24 ml-4 md:ml-2 md:max-h-48" src="/images/bitko_03.png" alt="Stack!"></div>
             <div class="h-full ml-2 text-xl">Stack Sats</div>
         </div>
     </div>
@@ -50,7 +50,7 @@
         <p>and get paid in sats.</p>
     </span>
 </div>
-<div class="pt-10 text-2xl flex justify-center ">Let's get the market started...</div>
+<div class="pt-10 mb-3 text-2xl flex justify-center ">Let's get the market started...</div>
 <div class="flex justify-center items-center">
     <div class="glowbutton glowbutton-go mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
 </div>
