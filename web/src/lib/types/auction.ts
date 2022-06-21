@@ -1,3 +1,4 @@
+import { isLocal, isStaging } from "../utils";
 
 export interface Bid {
     amount: number;
@@ -13,24 +14,24 @@ export interface Media {
     twitter_media_key: string;
 }
 
-export interface Auction {
-    key: string;
-    title: string;
-    description: string;
-    starting_bid: number;
-    reserve_bid: number;
-    reserve_bid_reached: boolean;
-    shipping_from: string;
-    duration_hours: number;
+export class Auction {
+    key: string = "";
+    title: string = "";
+    description: string = "";
+    starting_bid: number = 0;
+    reserve_bid: number = 0;
+    reserve_bid_reached: boolean = false;
+    shipping_from: string = "";
+    duration_hours: number = isLocal() || isStaging() ? 24 : 3 * 24;
     start_date?: Date | null;
-    started: boolean;
+    started: boolean = false;
     end_date?: Date | null;
-    end_date_extended: boolean;
-    ended: boolean;
+    end_date_extended: boolean = false;
+    ended: boolean = false;
     duration_str?: string;
-    bids: Bid[];
-    media: Media[];
-    is_mine: boolean;
+    bids: Bid[] = [];
+    media: Media[] = [];
+    is_mine: boolean = true;
 
     contribution_percent?: number;
     contribution_amount?: number;
@@ -65,7 +66,7 @@ export function toJson(auction: Auction) {
 }
 
 export function fromJson(json: any) {
-    var a: Auction = {key: "", title: "", description: "", started: false, ended: false, starting_bid: 0, reserve_bid: 0, reserve_bid_reached: false, shipping_from: "", end_date_extended: false, duration_hours: 0, bids: [], media: [], is_mine: false};
+    var a = new Auction();
     for (var k in json) {
         if (k === 'start_date') {
             a.start_date = json[k] ? new Date(json[k]!) : null;

@@ -14,8 +14,8 @@
 
     let confirmation: any = null;
 
-    export let onEdit = (auction) => {};
-
+    export let onEdit = (_: Auction) => {};
+    export let onView = (_: Auction) => {};
     export let onDelete = () => {};
 
     function view() {
@@ -25,6 +25,7 @@
             viewedAuctions = viewedAuctions.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
             localStorage.setItem('auctions-viewed', viewedAuctions.join(","));
             auctionViewed = true;
+            onView(auction);
         }
 
         window.open(getUrl(), "_blank");

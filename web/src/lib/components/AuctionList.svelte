@@ -1,34 +1,20 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { getAuctions, putAuction, postAuction } from "../services/api";
-    import type { Auction } from "../types/auction";
+    import { Auction } from "../types/auction";
     import { token, user, Info } from "../stores";
-    import { isLocal, isStaging } from "../utils";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Loading from "./Loading.svelte";
 
-    function emptyAuction() {
-        return {
-            key: "",
-            title: "",
-            description: "",
-            started: false,
-            ended: false,
-            starting_bid: 0,
-            reserve_bid: 0,
-            reserve_bid_reached: false,
-            shipping_from: "",
-            duration_hours: isLocal() || isStaging() ? 24 : 3 * 24,
-            end_date_extended: false,
-            bids: [],
-            media: [],
-            is_mine: true,
-        };
-    }
-
     let currentAuction: Auction | undefined;
     let auctions: Auction[] | null = null;
+
+    let viewedAuctions = (localStorage.getItem('auctions-viewed') || "").split(",");
+
+    // NB: the "new" button is shown when there are no auctions that are not ended and not viewed
+    // (basically auctions that have been just created and the user didn't go through the whole tweet-start-view flow, *unless* they already ended)
+    $: showNewButton = auctions === null || !auctions.find(a => !a.ended && viewedAuctions.indexOf(a.key) === -1);
 
     function fetchAuctions(successCB: () => void = () => {}) {
         getAuctions($token,
@@ -70,10 +56,15 @@
         fetchAuctions();
     }
 
+    function onView(auction) {
+        // NB: using assignement rather than .push() to trigger recalculation of showNewButton
+        viewedAuctions = [...viewedAuctions, auction.key];
+    }
+
     let interval: ReturnType<typeof setInterval> | undefined;
 
     onMount(async () => {
-        fetchAuctions(() => { currentAuction = auctions && auctions.length === 0 ? emptyAuction() : undefined; });
+        fetchAuctions(() => { currentAuction = auctions && auctions.length === 0 ? new Auction() : undefined; });
         interval = setInterval(fetchAuctions, 10000);
     });
 
@@ -93,14 +84,16 @@
     <section class="w-11/12 lg:w-3/5">
         {#if currentAuction}
             <AuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} onCancel={() => currentAuction = undefined} />
-        {:else if auctions == null}
+        {:else if auctions === null}
             <Loading />
         {:else}
-            <div class="flex items-center justify-center mb-4">
-                <div class="glowbutton glowbutton-new" on:click|preventDefault={() => currentAuction = emptyAuction()}></div>
-            </div>
-            {#each auctions as auction, i}
-                <AuctionCard auction={auction} onEdit={(auction) => currentAuction = auction} onDelete={onDelete} />
+            {#if showNewButton}
+                <div class="flex items-center justify-center mb-4">
+                    <div class="glowbutton glowbutton-new" on:click|preventDefault={() => currentAuction = new Auction()}></div>
+                </div>
+            {/if}
+            {#each auctions as auction}
+                <AuctionCard auction={auction} onEdit={(a) => currentAuction = a} onView={onView} onDelete={onDelete} />
             {/each}
         {/if}
     </section>
