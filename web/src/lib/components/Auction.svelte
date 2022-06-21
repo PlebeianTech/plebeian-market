@@ -18,6 +18,7 @@
     let auction: Auction | null = null;
     let bidCount = 0;
     let amount: number | null = null;
+    let firstUpdate = true;
 
     function refreshAuction() {
         getAuction($token, auctionKey,
@@ -38,8 +39,9 @@
                     newBid.reset();
                 }
             }
-            if (!amount || auction!.bids.length != bidCount) {
+            if ((!amount && firstUpdate) || auction!.bids.length != bidCount) {
                 amount = nextBid(maxBid);
+                firstUpdate = false;
             }
             bidCount = auction!.bids.length;
             if (finalCountdown && finalCountdown.isLastMinute()) {
