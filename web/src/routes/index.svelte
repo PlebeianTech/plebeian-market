@@ -8,23 +8,23 @@
 <div class="flex justify-center">
 <div class="mt-4 md:columns-3 w-3/5">
     <div class="flex items-center mt-2">
-        <div class="text-7xl ml-5 md:text-9xl">1</div>
+        <div class="text-7xl ml-9 md:ml-0 md:text-9xl">1</div>
         <div class="flex flex-col">
-            <div><img class="max-h-24 ml-4 md:ml-2 md:max-h-48 " src="/images/bitko_01.png" alt="Tweet!"></div>
+            <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48 " src="/images/bitko_01.png" alt="Tweet!"></div>
             <div class="h-full ml-2 text-xl">Tweet Photos</div>
         </div>
     </div>
     <div class="flex items-center mt-2">
-        <div class="text-7xl ml-5 md:text-9xl">2</div>
+        <div class="text-7xl ml-9 md:ml-0 md:text-9xl">2</div>
         <div class="flex flex-col">
-            <div><img class="max-h-24 ml-4 md:ml-2 md:max-h-48" src="/images/bitko_02.png" alt="Start!"></div>
+            <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48" src="/images/bitko_02.png" alt="Start!"></div>
             <div class="h-full ml-2 text-xl">Click Start</div>
         </div>
     </div>
     <div class="flex items-center mt-2">
-        <div class="text-7xl ml-5 md:text-9xl">3</div>
+        <div class="text-7xl ml-9 md:ml-0 md:text-9xl">3</div>
         <div class="flex flex-col">
-            <div><img class="max-h-24 ml-4 md:ml-2 md:max-h-48" src="/images/bitko_03.png" alt="Stack!"></div>
+            <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48" src="/images/bitko_03.png" alt="Stack!"></div>
             <div class="h-full ml-2 text-xl">Stack Sats</div>
         </div>
     </div>
