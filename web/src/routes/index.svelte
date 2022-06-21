@@ -26,7 +26,7 @@
     </span>
 </div>
 <div class="flex justify-center">
-<div class="md:flex justify-center mt-0 md:columns-3 w-3/5">
+<div class="md:flex justify-center mt-0 md:mt-14 md:columns-3 w-3/5">
     <div class="flex items-center mt-1">
         <div class="text-7xl ml-9 md:ml-0 md:text-9xl">1</div>
         <div class="flex flex-col">
