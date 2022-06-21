@@ -217,9 +217,6 @@ def start_twitter(user, key):
         return jsonify({'message': "Twitter profile not found!"}), 400
 
     user.twitter_profile_image_url = twitter_user['profile_image_url']
-    if '_normal' in user.twitter_profile_image_url:
-        # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
-        user.twitter_profile_image_url = user.twitter_profile_image_url.replace('_normal', '')
 
     tweets = twitter.get_auction_tweets(twitter_user['id'])
     tweet = None

@@ -182,9 +182,18 @@ class Twitter:
             params={
                 'user.fields': "location,name,profile_image_url",
             })
+
         if not response_json:
             return
-        return response_json['data']
+
+        twitter_user = response_json['data']
+
+        if '_normal' in twitter_user['profile_image_url']:
+            # pick high-res picture
+            # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
+            twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
+
+        return twitter_user
 
     def get_auction_tweets(self, user_id):
         response_json = self.get(f"/users/{user_id}/tweets",
