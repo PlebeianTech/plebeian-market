@@ -3,6 +3,7 @@
     import { getAuctions, putAuction, postAuction } from "../services/api";
     import type { Auction } from "../types/auction";
     import { token, user, Info } from "../stores";
+    import { isLocal, isStaging } from "../utils";
     import AuctionCard from "./AuctionCard.svelte";
     import AuctionEditor from "./AuctionEditor.svelte";
     import Loading from "./Loading.svelte";
@@ -18,7 +19,7 @@
             reserve_bid: 0,
             reserve_bid_reached: false,
             shipping_from: "",
-            duration_hours: 24,
+            duration_hours: isLocal() || isStaging() ? 24 : 3 * 24,
             end_date_extended: false,
             bids: [],
             media: [],

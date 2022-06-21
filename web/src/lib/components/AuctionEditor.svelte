@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import type { Auction } from "../types/auction";
+    import { isLocal, isStaging } from "../utils";
 
     export let auction: Auction;
     export let onSave = () => {};
@@ -8,6 +9,13 @@
 
     let duration = "";
     let durationMultiplier = "1";
+
+    $: durationOptions = isLocal() || isStaging()
+        ? [0.1, 1, 24]
+        : [1, 24, 3 * 24];
+    $: durationLabels = isLocal() || isStaging()
+        ? ["6 minutes", "1 hour", "1 day"]
+        : ["1 hour", "1 day", "3 days"];
 
     function twelveHours() {
         auction.duration_hours = 12;
@@ -81,12 +89,12 @@
                         <span class="label-text">Duration</span>
                     </label>
                     <div class="flex flex-wrap">
-                        <button class:btn-outline={auction.duration_hours !== 0.1} class:btn-active={auction.duration_hours === 0.1} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = 0.1}>Six minutes</button>
-                        <button class:btn-outline={auction.duration_hours !== 1} class:btn-active={auction.duration_hours === 1} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = 1}>An hour</button>
-                        <button class:btn-outline={auction.duration_hours !== 24} class:btn-active={auction.duration_hours === 24} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = 24}>A day</button>
-                        <button class:btn-outline={auction.duration_hours === 0.1 || auction.duration_hours === 1 || auction.duration_hours === 24} class:btn-active={auction.duration_hours !== 0.1 && auction.duration_hours !== 1 && auction.duration_hours !== 24} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={twelveHours}>Custom</button>
+                        {#each durationOptions as duration, i}
+                            <button class:btn-outline={auction.duration_hours !== duration} class:btn-active={auction.duration_hours === duration} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = duration}>{durationLabels[i]}</button>
+                        {/each}
+                        <button class:btn-outline={durationOptions.indexOf(auction.duration_hours) !== -1} class:btn-active={durationOptions.indexOf(auction.duration_hours) == -1} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={twelveHours}>Custom</button>
                         <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
-                        <div class:invisible={auction.duration_hours === 0.1 || auction.duration_hours === 1 || auction.duration_hours === 24} class="flex mx-2 mt-2 w-2/4 flex-auto">
+                        <div class:invisible={durationOptions.indexOf(auction.duration_hours) !== -1} class="flex mx-2 mt-2 w-2/4 flex-auto">
                             <div class="form-control max-w-xs mr-1 w-1/4 flex-auto">
                                 <input bind:value={duration} on:change={customChanged} type="number" name="duration" class="input input-bordered w-full max-w-xs" />
                             </div>
