@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
     import { getAuction } from "../services/api";
-    import { type Auction, nextBid } from "../types/auction";
+    import type { Auction } from "../types/auction";
     import { Error, token, user } from "../stores";
     import AuctionEndMessage from "./AuctionEndMessage.svelte";
     import BidList from "./BidList.svelte";
@@ -24,33 +24,32 @@
         getAuction($token, auctionKey,
         a => {
             auction = a;
-            // TODO: maybe maxBid and nextBid should go to an Auction class
-            var maxBid = auction!.starting_bid;
-            for (const bid of auction!.bids) {
+            if (!auction) {
+                return;
+            }
+            for (const bid of auction.bids) {
                 if (newBid && bid.payment_request !== undefined) {
                     // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
                     newBid.paymentConfirmed(bid.payment_request);
-                }
-                if (bid.amount > maxBid) {
-                    maxBid = bid.amount;
                 }
                 if (amount && amount <= bid.amount && newBid.waitingSettlement()) {
                     Error.set("A higher bid just came in.");
                     newBid.reset();
                 }
             }
-            if ((!amount && firstUpdate) || auction!.bids.length != bidCount) {
-                amount = nextBid(maxBid);
+
+            if ((!amount && firstUpdate) || auction.bids.length != bidCount) {
+                amount = auction.nextBid();
                 firstUpdate = false;
             }
-            bidCount = auction!.bids.length;
+            bidCount = auction.bids.length;
             if (finalCountdown && finalCountdown.isLastMinute()) {
-                document.title = `LAST MINUTE - ${auction!.title} | Plebeian Market`;
+                document.title = `LAST MINUTE - ${auction.title} | Plebeian Market`;
             } else {
-                document.title = `${auction!.title} | Plebeian Market`;
+                document.title = `${auction.title} | Plebeian Market`;
             }
-            if (auction!.has_winner) {
-                document.title = `Ended - ${auction!.title} | Plebeian Market`;
+            if (auction.has_winner) {
+                document.title = `Ended - ${auction.title} | Plebeian Market`;
                 console.log("Auction ended!");
                 // maybe we should eventually stopRefresh() here, but is seems risky for now, at least while still testing
             }
