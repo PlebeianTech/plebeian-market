@@ -34,7 +34,7 @@
                         <p class="hidden md:contents">{bid.amount} sats</p>
                     </td>
                     <td>
-                        <p class="hidden md:contents"><DateFormatter class="md:hidden" date={bid.settled_at} /></p>
+                        <p class="hidden md:contents"><DateFormatter date={bid.settled_at} /></p>
                         <p class="md:hidden">{bid.amount} sats</p>
                     </td>
                 </tr>
