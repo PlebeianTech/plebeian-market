@@ -6,7 +6,7 @@
         import Typewriter from 'svelte-typewriter'
 </script>
 <div class="flex justify-center">
-<div class="mt-4 md:columns-3 w-3/5">
+<div class="md:flex mt-4 md:columns-3 w-3/5">
     <div class="flex items-center mt-2">
         <div class="text-7xl md:text-9xl">1</div>
         <div class="flex flex-col">
