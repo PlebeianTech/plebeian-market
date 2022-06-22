@@ -18,7 +18,7 @@
     </div>
 </footer>
 
-<footer class="md:hidden footer p-4 py-1 bg-neutral text-neutral-content ">
+<footer class="md:hidden footer mt-auto p-4 py-1 bg-neutral text-neutral-content ">
     <div class="grid-flow-col justify-center items-center">
         <p><a class="btn" target="_blank" href="https://plebeian.technology">Plebeian Technology</a></p>
         <a class="btn gap-2" target="_blank" href="https://plebeianmarket.substack.com/">
