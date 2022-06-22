@@ -95,8 +95,8 @@
                 </div>
             {/if}
 
-            <div class="mt-4 lg:flex">
-                <div class="lg:w-1/3">
+            <div class="mt-4 md:flex">
+                <div class="md:w-1/3">
                     <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
                     <div class="hidden md:grid">
                     <Gallery photos={auction.media} />
