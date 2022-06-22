@@ -8,6 +8,7 @@ services:
     environment:
       - BASE_URL=https://staging.plebeian.market
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
+      - S3_FILENAME_PREFIX=STAGING_
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: gunicorn --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080

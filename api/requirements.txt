@@ -1,3 +1,4 @@
+boto3
 ecdsa
 flask
 flask-cors
@@ -10,5 +11,6 @@ psycopg2
 pyjwt
 pyqrcode
 python-dateutil
+python-magic
 requests
 requests_oauthlib

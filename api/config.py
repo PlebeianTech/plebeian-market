@@ -44,3 +44,10 @@ LND_TLS_CERT = "/secrets/tls.cert"
 
 MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
 TWITTER_SECRETS = "/secrets/twitter.json"
+
+MOCK_S3 = bool(int(os.environ.get("MOCK_S3", 0)))
+S3_SECRETS = "/secrets/s3.json"
+S3_ENDPOINT_URL = "https://s3.us-west-004.backblazeb2.com"
+S3_BUCKET = 'plebeian-market'
+S3_FILENAME_PREFIX = os.environ.get('S3_FILENAME_PREFIX', "")
+S3_URL_PREFIX = f"https://f004.backblazeb2.com/file/{S3_BUCKET}/"

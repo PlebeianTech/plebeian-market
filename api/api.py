@@ -9,12 +9,13 @@ from flask import Blueprint, jsonify, request
 import jwt
 import lnurl
 import pyqrcode
+import requests
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client, get_twitter
+from main import app, get_lnd_client, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 
 api_blueprint = Blueprint('api', __name__)
@@ -239,8 +240,18 @@ def start_twitter(user, key):
 
     m.Media.query.filter_by(auction_id=auction.id).delete()
 
-    for photo in tweet['photos']:
-        media = m.Media(auction_id=auction.id, twitter_media_key=photo['media_key'], url=photo['url'])
+    s3 = get_s3()
+    for i, photo in enumerate(tweet['photos'], 1):
+        response = requests.get(photo['url'])
+        if response.status_code != 200:
+            return jsonify({'message': "Error fetching picture!"}), 400
+        ext = photo['url'].rsplit('.', 1)[-1]
+        if "/" in ext:
+            ext = ext.split("/")[0]
+        filename = f"auction_{auction.key}_media_{i}.{ext}"
+        s3.upload(response.content, filename)
+        url = s3.get_url_prefix() + s3.get_filename_prefix() + filename
+        media = m.Media(auction_id=auction.id, twitter_media_key=photo['media_key'], url=url)
         db.session.add(media)
 
     db.session.commit()

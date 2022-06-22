@@ -330,7 +330,7 @@ class TestApi(unittest.TestCase):
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 777},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 400)
-        self.assertTrue('amount needs to be at least' in response['message'].lower())
+        self.assertTrue('your bid needs to be higher' in response['message'].lower())
 
         # create an auction without a start date
         code, response = self.post("/api/auctions",
@@ -366,4 +366,4 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['auction']['ended'], False)
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
         self.assertEqual(len(response['auction']['media']), 4)
-        self.assertTrue("watch" in response['auction']['media'][0]['url']) # this one comes from MockTwitter
+        self.assertTrue("/mock-s3-files/" in response['auction']['media'][0]['url'])
