@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from functools import wraps
+import io
 import json
 import os
 import random
@@ -13,9 +14,12 @@ from flask.cli import with_appcontext
 
 from flask_migrate import Migrate
 
+import boto3
+from botocore.config import Config
 import jwt
 import lndgrpc
 import logging
+import magic
 from requests_oauthlib import OAuth1Session
 
 from extensions import cors, db
@@ -247,6 +251,41 @@ def get_twitter():
         access_token_secret = twitter_secrets['ACCESS_TOKEN_SECRET']
         return Twitter(api_key, api_key_secret, access_token, access_token_secret)
 
+class MockS3:
+    def get_url_prefix(self):
+        return app.config['BASE_URL'] + "/mock-s3-files/"
+
+    def get_filename_prefix(self):
+        return ""
+
+    def upload(self, data, filename):
+        filename_with_prefix = self.get_filename_prefix() + filename
+        app.logger.info(f"Upload {filename_with_prefix} to MockS3!")
+        with open(f"/tmp/{filename_with_prefix}", "wb") as f:
+            # basically store the content under /tmp to be used by the /mock-s3-files/ route later
+            f.write(data)
+
+class S3:
+    def __init__(self, endpoint_url, key_id, application_key):
+        self.s3 = boto3.resource(service_name='s3', endpoint_url=endpoint_url, aws_access_key_id=key_id, aws_secret_access_key=application_key, config=Config(signature_version='s3v4'))
+
+    def get_url_prefix(self):
+        return app.config['S3_URL_PREFIX']
+
+    def get_filename_prefix(self):
+        return app.config['S3_FILENAME_PREFIX']
+
+    def upload(self, data, filename):
+        self.s3.Bucket(app.config['S3_BUCKET']).upload_fileobj(io.BytesIO(data), self.get_filename_prefix() + filename)
+
+def get_s3():
+    if app.config['MOCK_S3']:
+        return MockS3()
+    else:
+        with open(app.config['S3_SECRETS']) as f:
+            s3_secrets = json.load(f)
+        return S3(app.config['S3_ENDPOINT_URL'], s3_secrets['KEY_ID'], s3_secrets['APPLICATION_KEY'])
+
 if __name__ == '__main__':
     import lnurl
     try:
@@ -259,6 +298,13 @@ if __name__ == '__main__':
         app.logger.warning("Patching lnurl.types.ClearnetUrl!")
         lnurl.types.ClearnetUrl = ClearnetUrl
         lnurl.encode(app.config['BASE_URL']) # try parsing again to check that the patch worked
+
+    @app.route("/mock-s3-files/<string:filename>", methods=['GET'])
+    def mock_s3(filename):
+        app.logger.info(f"Fetch {filename} from MockS3!")
+        with open(f"/tmp/{filename}", "rb") as f:
+            data = f.read()
+            return send_file(io.BytesIO(data), mimetype=magic.from_buffer(data, mime=True))
 
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:

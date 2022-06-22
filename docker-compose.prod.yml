@@ -5,6 +5,7 @@ services:
     environment:
       - BASE_URL=https://plebeian.market
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
+      - S3_FILENAME_PREFIX=P_
   nginx:
     environment:
       - VIRTUAL_HOST=plebeian.market
