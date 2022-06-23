@@ -96,7 +96,7 @@ export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void
         });
 }
 
-export function getFeatured(tokenValue) {
+export function getFeatured(tokenValue, successCB: (auctions: Auction[]) => void) {
     fetchAPI("/auctions/featured", 'GET', tokenValue, null,
             response => {
                 if (response.status === 200) {

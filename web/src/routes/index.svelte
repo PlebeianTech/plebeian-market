@@ -4,14 +4,15 @@
 
 <script lang="ts">
         import Typewriter from 'svelte-typewriter';
-        import Auctions from "../lib/components/Auction.svelte";
+        import Auctions from "../lib/components/PublicAuctionCard.svelte";
         import { Auction } from "../lib/types/auction";
         import {getFeatured} from "../lib/services/api";
         import {onDestroy, onMount} from "svelte";
+        import {token} from "../lib/stores";
     let auctions: Auction[] | null = null;
     let currentAuction: Auction | undefined;
     function fetchAuctions(successCB: () => void = () => {}) {
-        getFeatured(
+        getFeatured($token,
             a => {
                 auctions = a;
                 successCB();
