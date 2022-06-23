@@ -115,6 +115,8 @@ def me(user):
                 if not twitter_user:
                     return jsonify({'message': "Twitter profile not found!"}), 400
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
+                if not user.fetch_twitter_profile_image():
+                    return jsonify({'message': "Error fetching profile picture!"}), 400
                 user.twitter_username_verified = False
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']
@@ -218,6 +220,8 @@ def start_twitter(user, key):
         return jsonify({'message': "Twitter profile not found!"}), 400
 
     user.twitter_profile_image_url = twitter_user['profile_image_url']
+    if not user.fetch_twitter_profile_image():
+        return jsonify({'message': "Error fetching profile picture!"}), 400
 
     tweets = twitter.get_auction_tweets(twitter_user['id'])
     tweet = None

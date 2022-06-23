@@ -8,10 +8,12 @@ from os import urandom
 import random
 import string
 
+import magic
 import pyqrcode
+import requests
 
 from extensions import db
-from main import app
+from main import app, get_s3
 
 class ValidationError(Exception):
     def __init__(self, message):
@@ -56,6 +58,28 @@ class User(db.Model):
 
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
     bids = db.relationship('Bid', backref='buyer')
+
+    def fetch_twitter_profile_image(self):
+        response = requests.get(self.twitter_profile_image_url)
+        if response.status_code != 200:
+            return False
+
+        original_ext = self.twitter_profile_image_url.rsplit('.', 1)[-1]
+        guessed_ext = magic.Magic(extension=True).from_buffer(response.content).split("/")[0]
+        for e in [guessed_ext, original_ext]:
+            if e.isalnum() and len(e) <= 5:
+                ext = f".{e}"
+                break
+        else:
+            ext = ""
+        filename = f"user_{self.id}_twitter_profile_image{ext}"
+
+        s3 = get_s3()
+        s3.upload(response.content, filename)
+
+        self.twitter_profile_image_url = s3.get_url_prefix() + s3.get_filename_prefix() + filename
+
+        return True
 
     def to_dict(self):
         return {
