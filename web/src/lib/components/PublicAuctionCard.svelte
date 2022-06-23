@@ -7,11 +7,11 @@
 </script>
 
 <div class="w-2/3 my-3 self-center glowbox">
-<div class="card md:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
+<div class="card md:card-side bg-base-300 max-w-full h-auto overflow-hidden shadow-xl my-3">
     <figure class="md:h-auto flex justify-center">
         {#each auction.media as photo, i}
             {#if i === 0}
-                <img class="h-80 object-contain" src={photo.url} alt="Auctioned object" />
+                <img class="h-auto object-scale-down" src={photo.url} alt="Auctioned object" />
             {/if}
         {/each}
     </figure>
@@ -19,9 +19,9 @@
         <h2 class="justify-center underline card-title mb-2">
             <a href="/auctions/{auction.key}">{auction.title}</a>
         </h2>
-        <p class="justify-center text-1xl">{auction.description}</p>
+        <div class="badge badge-primary self-center md:float-right">{auction.bids.length} bids</div>
+        <p class="justify-center text-xs">{auction.description}</p>
                                 <Countdown untilDate={auction.end_date} />
-                <span class="text-center md:float-right">{auction.bids.length} bids</span>
     </div>
 </div>
 </div>
