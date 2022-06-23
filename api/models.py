@@ -13,7 +13,7 @@ import pyqrcode
 import requests
 
 from extensions import db
-from main import app, get_s3
+from main import app
 
 class ValidationError(Exception):
     def __init__(self, message):
@@ -74,6 +74,7 @@ class User(db.Model):
             ext = ""
         filename = f"user_{self.id}_twitter_profile_image{ext}"
 
+        from main import get_s3
         s3 = get_s3()
         s3.upload(response.content, filename)
 
