@@ -7,10 +7,8 @@
         import Auctions from "../lib/components/PublicAuctionCard.svelte";
         import { Auction } from "../lib/types/auction";
         import {getFeatured} from "../lib/services/api";
-        import {onDestroy, onMount} from "svelte";
         import {token} from "../lib/stores";
     let auctions: Auction[] | null = null;
-    let currentAuction: Auction | undefined;
     function fetchAuctions(successCB: () => void = () => {}) {
         getFeatured($token,
             a => {
@@ -18,20 +16,6 @@
                 successCB();
             });
     }
-
-    let interval: ReturnType<typeof setInterval> | undefined;
-
-    onMount(async () => {
-        fetchAuctions(() => { currentAuction = auctions && auctions.length === 0 ? new Auction() : undefined; });
-        interval = setInterval(fetchAuctions, 10000);
-    });
-
-    onDestroy(() => {
-        if (interval) {
-            clearInterval(interval);
-            interval = undefined;
-        }
-    });
 </script>
 <div class="md:hidden">
     <span>
@@ -102,6 +86,8 @@
 <div class="flex justify-center items-center">
     <div class="glowbutton glowbutton-go mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
 </div>
+{#if auctions !== null}
 {#each auctions as auction}
     <Auctions />
 {/each}
+{/if}
