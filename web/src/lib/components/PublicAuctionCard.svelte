@@ -6,12 +6,12 @@
     export let auction : Auction;
 </script>
 
-<div class="w-2/3 my-3 self-center glowbox">
-<div class="card md:card-side bg-base-300 max-w-full h-auto overflow-hidden shadow-xl my-3">
-    <figure class="md:h-auto flex justify-center">
+<div class="my-3 self-center glowbox">
+<div class="card bg-base-300 overflow-hidden shadow-xl my-3">
+    <figure class="md:h-max flex justify-center">
         {#each auction.media as photo, i}
             {#if i === 0}
-                <img class="h-auto object-scale-down" src={photo.url} alt="Auctioned object" />
+                <img class="h-full object-fill" src={photo.url} alt="Auctioned object" />
             {/if}
         {/each}
     </figure>
