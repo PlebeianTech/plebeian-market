@@ -15,6 +15,26 @@ import requests
 from extensions import db
 from main import app
 
+def fetch_image(url, s3, filename):
+    response = requests.get(url)
+    if response.status_code != 200:
+        return None
+
+    original_ext = url.rsplit('.', 1)[-1]
+    guessed_ext = magic.Magic(extension=True).from_buffer(response.content).split("/")[0]
+    for e in [guessed_ext, original_ext]:
+        if e.isalnum() and len(e) <= 5:
+            ext = f".{e}"
+            break
+    else:
+        ext = ""
+
+    filename = f"{filename}{ext}"
+
+    s3.upload(response.content, filename)
+
+    return s3.get_url_prefix() + s3.get_filename_prefix() + filename
+
 class ValidationError(Exception):
     def __init__(self, message):
         super().__init__()
@@ -59,27 +79,11 @@ class User(db.Model):
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
     bids = db.relationship('Bid', backref='buyer')
 
-    def fetch_twitter_profile_image(self):
-        response = requests.get(self.twitter_profile_image_url)
-        if response.status_code != 200:
+    def fetch_twitter_profile_image(self, s3):
+        url = fetch_image(self.twitter_profile_image_url, s3, f"user_{self.id}_twitter_profile_image")
+        if not url:
             return False
-
-        original_ext = self.twitter_profile_image_url.rsplit('.', 1)[-1]
-        guessed_ext = magic.Magic(extension=True).from_buffer(response.content).split("/")[0]
-        for e in [guessed_ext, original_ext]:
-            if e.isalnum() and len(e) <= 5:
-                ext = f".{e}"
-                break
-        else:
-            ext = ""
-        filename = f"user_{self.id}_twitter_profile_image{ext}"
-
-        from main import get_s3
-        s3 = get_s3()
-        s3.upload(response.content, filename)
-
-        self.twitter_profile_image_url = s3.get_url_prefix() + s3.get_filename_prefix() + filename
-
+        self.twitter_profile_image_url = url
         return True
 
     def to_dict(self):
@@ -291,6 +295,13 @@ class Media(db.Model):
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
     twitter_media_key = db.Column(db.String(50), nullable=False)
     url = db.Column(db.String(256), nullable=False)
+
+    def fetch(self, s3, filename):
+        url = fetch_image(self.url, s3, filename)
+        if not url:
+            return False
+        self.url = url
+        return True
 
 class Bid(db.Model):
     __tablename__ = 'bids'
