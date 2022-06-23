@@ -195,6 +195,13 @@ class TestApi(unittest.TestCase):
 
         auction_key = response['auction']['key']
 
+        # test featured auctions
+
+        code, response = self.get("/api/auctions/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        self.assertEqual(response['auctions'][0]['key'], auction_key)
+
         # the user now has_auctions
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
