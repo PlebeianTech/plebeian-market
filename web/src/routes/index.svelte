@@ -8,7 +8,13 @@
         import { Auction } from "../lib/types/auction";
         import {getFeatured} from "../lib/services/api";
         import {token} from "../lib/stores";
+        import {onMount} from "svelte";
     let auctions: Auction[] | null = null;
+
+        onMount(async () => {
+        fetchAuctions();
+    });
+
     function fetchAuctions(successCB: () => void = () => {}) {
         getFeatured($token,
             a => {
