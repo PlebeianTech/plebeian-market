@@ -84,7 +84,7 @@
     <figure class="md:h-auto flex justify-center">
         {#each auction.media as photo, i}
             {#if i === 0}
-                <img class="object-contain" src={photo.url} alt="Auctioned object" />
+                <img class="object-cover md:w-auto" src={photo.url} alt="Auctioned object" />
             {/if}
         {/each}
     </figure>
