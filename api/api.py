@@ -154,7 +154,7 @@ def auctions(user):
 
 @api_blueprint.route('/api/auctions/featured', methods=['GET'])
 def featured_auctions():
-    auctions = [a.to_dict for a in m.auctions]
+    auctions = [a.to_dict() for a in m.Auction.query.all()]
     return jsonify({'auctions': auctions})
 
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
