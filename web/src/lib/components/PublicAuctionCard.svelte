@@ -11,16 +11,17 @@
     <figure class="md:h-auto flex justify-center">
         {#each auction.media as photo, i}
             {#if i === 0}
-                <img class="object-contain" src={photo.url} alt="Auctioned object" />
+                <img class="h-80 object-contain" src={photo.url} alt="Auctioned object" />
             {/if}
         {/each}
     </figure>
     <div class="card-body">
-        <h2 class="justify-center card-title mb-2">
-            {auction.title}
+        <h2 class="justify-center underline card-title mb-2">
+            <a href="/auctions/{auction.key}">{auction.title}</a>
         </h2>
+        <p class="justify-center text-1xl">{auction.description}</p>
                                 <Countdown untilDate={auction.end_date} />
-                <span class="lg:float-right">{auction.bids.length} bids</span>
+                <span class="text-center md:float-right">{auction.bids.length} bids</span>
     </div>
 </div>
 </div>
