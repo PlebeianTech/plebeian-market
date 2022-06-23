@@ -4,7 +4,7 @@
 
 <script lang="ts">
         import Typewriter from 'svelte-typewriter';
-        import Auctions from "../lib/components/PublicAuctionCard.svelte";
+        import PublicAuctionCard from "../lib/components/PublicAuctionCard.svelte";
         import { Auction } from "../lib/types/auction";
         import {getFeatured} from "../lib/services/api";
         import {token} from "../lib/stores";
@@ -94,6 +94,6 @@
 </div>
 {#if auctions !== null}
 {#each auctions as auction}
-    <Auctions />
+    <PublicAuctionCard auction={auction}/>
 {/each}
 {/if}
