@@ -49,7 +49,7 @@
     <div class="flex-1">
         <a href={null} on:click|preventDefault={() => goto("/")} class="btn btn-ghost normal-case text-xl">Home</a>
         <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl">About</a>
-        <a href={null} on:click|preventDefault={() => goto("/FAQ")} class="btn btn-ghost normal-case text-xl">FAQ</a>
+        <a href={null} on:click|preventDefault={() => goto("/faq")} class="btn btn-ghost normal-case text-xl">FAQ</a>
     </div>
     <div class="flex-none gap-2">
         <label class="swap swap-rotate" on:click={toggleTheme}>
