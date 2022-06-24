@@ -58,6 +58,17 @@ export function getLogin(k1, cb: (data) => void) {
         });
 }
 
+export function getFeaturedAuctions(successCB: (auctions: Auction[]) => void) {
+    fetchAPI("/auctions/featured", 'GET', null, null,
+            response => {
+                if (response.status === 200) {
+                    response.json().then(data => {
+                        successCB(data.auctions.map(auctionFromJson));
+                    });
+                }
+            });
+}
+
 export function getProfile(tokenValue, successCB: (User) => void) {
     fetchAPI("/users/me", 'GET', tokenValue, null,
         (response) => {
@@ -94,19 +105,6 @@ export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void
                 setError(response);
             }
         });
-}
-
-export function getFeatured(tokenValue, successCB: (auctions: Auction[]) => void) {
-    fetchAPI("/auctions/featured", 'GET', tokenValue, null,
-            response => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        successCB(data.auctions.map(auctionFromJson));
-                    });
-                } else {
-                    setError(response);
-                }
-            });
 }
 
 export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void, errorCB: () => void = () => {}) {

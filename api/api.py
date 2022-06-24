@@ -153,8 +153,8 @@ def auctions(user):
 
 @api_blueprint.route('/api/auctions/featured', methods=['GET'])
 def featured_auctions():
-    auctions = [a.to_dict() for a in m.Auction.query.all()]
-    return jsonify({'auctions': auctions})
+    auctions = m.Auction.query.filter(m.Auction.start_date <= datetime.utcnow(), m.Auction.end_date >= datetime.utcnow()).all()
+    return jsonify({'auctions': [a.to_dict() for a in auctions]})
 
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def auction(key):
