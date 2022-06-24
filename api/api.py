@@ -9,7 +9,6 @@ from flask import Blueprint, jsonify, request
 import jwt
 import lnurl
 import pyqrcode
-import requests
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 
@@ -115,7 +114,7 @@ def me(user):
                 if not twitter_user:
                     return jsonify({'message': "Twitter profile not found!"}), 400
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
-                if not user.fetch_twitter_profile_image():
+                if not user.fetch_twitter_profile_image(get_s3()):
                     return jsonify({'message': "Error fetching profile picture!"}), 400
                 user.twitter_username_verified = False
         if 'contribution_percent' in request.json:
@@ -225,7 +224,7 @@ def start_twitter(user, key):
         return jsonify({'message': "Twitter profile not found!"}), 400
 
     user.twitter_profile_image_url = twitter_user['profile_image_url']
-    if not user.fetch_twitter_profile_image():
+    if not user.fetch_twitter_profile_image(get_s3()):
         return jsonify({'message': "Error fetching profile picture!"}), 400
 
     tweets = twitter.get_auction_tweets(twitter_user['id'])
@@ -251,16 +250,9 @@ def start_twitter(user, key):
 
     s3 = get_s3()
     for i, photo in enumerate(tweet['photos'], 1):
-        response = requests.get(photo['url'])
-        if response.status_code != 200:
+        media = m.Media(auction_id=auction.id, twitter_media_key=photo['media_key'], url=photo['url'])
+        if not media.fetch(s3, f"auction_{auction.key}_media_{i}"):
             return jsonify({'message': "Error fetching picture!"}), 400
-        ext = photo['url'].rsplit('.', 1)[-1]
-        if "/" in ext:
-            ext = ext.split("/")[0]
-        filename = f"auction_{auction.key}_media_{i}.{ext}"
-        s3.upload(response.content, filename)
-        url = s3.get_url_prefix() + s3.get_filename_prefix() + filename
-        media = m.Media(auction_id=auction.id, twitter_media_key=photo['media_key'], url=url)
         db.session.add(media)
 
     db.session.commit()
