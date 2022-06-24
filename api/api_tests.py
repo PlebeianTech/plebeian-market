@@ -95,6 +95,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertIsNone(response['user']['twitter_username'])
         self.assertIsNone(response['user']['contribution_percent'])
+        self.assertTrue(response['user']['is_moderator']) # because this is the first user created, so it has the ID=1
 
         # set user details
         code, response = self.post("/api/users/me",
@@ -138,6 +139,14 @@ class TestApi(unittest.TestCase):
         token_2 = response['token']
 
         self.assertNotEqual(token_1, token_2)
+
+        # 2nd user is not a moderator!
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertIsNone(response['user']['twitter_username'])
+        self.assertIsNone(response['user']['contribution_percent'])
+        self.assertIsNone(response['user'].get('is_moderator'))
 
         # GET auctions requires log in
         code, response = self.get("/api/auctions")
@@ -195,12 +204,10 @@ class TestApi(unittest.TestCase):
 
         auction_key = response['auction']['key']
 
-        # test featured auctions
-
+        # the auction is not featured because it is not running
         code, response = self.get("/api/auctions/featured")
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['auctions']), 1)
-        self.assertEqual(response['auctions'][0]['key'], auction_key)
+        self.assertEqual(len(response['auctions']), 0)
 
         # the user now has_auctions
         code, response = self.get("/api/users/me",
@@ -300,6 +307,12 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
+        # now the auction is "featured"
+        code, response = self.get("/api/auctions/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        self.assertEqual(response['auctions'][0]['key'], auction_key)
+
         # can't EDIT the auction once started
         code, response = self.put(f"/api/auctions/{auction_key}",
             {'starting_bid': 101},
@@ -346,7 +359,7 @@ class TestApi(unittest.TestCase):
              'duration_hours': 24,
              'starting_bid': 10,
              'reserve_bid': 10},
-            headers=self.get_auth_headers(token_1))
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
 
@@ -354,18 +367,18 @@ class TestApi(unittest.TestCase):
 
         # another user can't start my auction
         code, response = self.put(f"/api/auctions/{auction_key_3}/start-twitter", {},
-            headers=self.get_auth_headers(token_2))
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
 
         # start the auction by getting images from Twitter
         code, response = self.put(f"/api/auctions/{auction_key_3}/start-twitter", {},
-            headers=self.get_auth_headers(token_1))
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
 
         time.sleep(1) # this is not needed for the start to work, but we use it to make sure start_date is in the past
 
         code, response = self.get(f"/api/auctions/{auction_key_3}",
-            headers=self.get_auth_headers(token_1))
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
         self.assertTrue(response['auction']['start_date'] < (datetime.utcnow().isoformat() + "Z"))
@@ -374,3 +387,34 @@ class TestApi(unittest.TestCase):
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
         self.assertEqual(len(response['auction']['media']), 4)
         self.assertTrue("/mock-s3-files/" in response['auction']['media'][0]['url'])
+
+        # now the auction is "featured"
+        code, response = self.get("/api/auctions/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 2)
+        self.assertEqual(set(a['key'] for a in response['auctions']), {auction_key, auction_key_3})
+
+        # a normal user can't unfeature an auction (even if he is the owner!)
+        code, response = self.put(f"/api/auctions/{auction_key_3}",
+            {'is_featured': False},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 401)
+
+        # a moderator can however unfeature an auction
+        # NB: by default the user with id=1 is a moderator, but this can be overwritten using an environment variable
+        code, response = self.put(f"/api/auctions/{auction_key_3}",
+            {'is_featured': False},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # but the same moderator can't EDIT another user's auction
+        code, response = self.put(f"/api/auctions/{auction_key_3}",
+            {'starting_bid': 100},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 401)
+
+        # the auction has now been unfeatured
+        code, response = self.get("/api/auctions/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        self.assertEqual(set(a['key'] for a in response['auctions']), {auction_key})

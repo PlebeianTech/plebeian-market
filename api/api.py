@@ -153,7 +153,12 @@ def auctions(user):
 
 @api_blueprint.route('/api/auctions/featured', methods=['GET'])
 def featured_auctions():
-    auctions = m.Auction.query.filter(m.Auction.start_date <= datetime.utcnow(), m.Auction.end_date >= datetime.utcnow()).all()
+    auctions = m.Auction.query.filter(
+        (m.Auction.is_featured == True)
+        | ((m.Auction.is_featured == None)
+         & (m.Auction.start_date <= datetime.utcnow())
+         & (m.Auction.end_date >= datetime.utcnow()))
+    ).all()
     return jsonify({'auctions': [a.to_dict() for a in auctions]})
 
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
@@ -184,11 +189,21 @@ def auction(key):
                     db.session.commit()
         return jsonify({'auction': auction.to_dict(for_user=(user.id if user else None))})
     else:
-        if (not user) or (auction.seller_id != user.id):
+        is_changing_featured_state = request.method == 'PUT' and 'is_featured' in set(request.json.keys())
+        is_changing_featured_state_only = request.method == 'PUT' and set(request.json.keys()) == {'is_featured'}
+
+        if is_changing_featured_state and not is_changing_featured_state_only:
+            return jsonify({'message': "When changing is_featured, nothing else can be changed in the same request."}), 400
+
+        if not user:
+            return jsonify({'message': "Unauthorized"}), 401
+        if is_changing_featured_state and not user.is_moderator:
+            return jsonify({'message': "Unauthorized"}), 401
+        if user.id != auction.seller_id and not is_changing_featured_state:
             return jsonify({'message': "Unauthorized"}), 401
 
         if request.method == 'PUT':
-            if auction.started:
+            if auction.started and not is_changing_featured_state_only:
                 return jsonify({'message': "Cannot edit an auction once started."}), 403
 
             try:

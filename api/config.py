@@ -51,3 +51,5 @@ S3_ENDPOINT_URL = "https://s3.us-west-004.backblazeb2.com"
 S3_BUCKET = 'plebeian-market'
 S3_FILENAME_PREFIX = os.environ.get('S3_FILENAME_PREFIX', "")
 S3_URL_PREFIX = f"https://f004.backblazeb2.com/file/{S3_BUCKET}/"
+
+MODERATOR_USER_IDS = [int(i) for i in os.environ.get('MODERATOR_USER_IDS', "1").split(',')]

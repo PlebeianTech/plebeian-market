@@ -74,6 +74,10 @@ class User(db.Model):
     twitter_profile_image_url = db.Column(db.String(256), nullable=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
 
+    @property
+    def is_moderator(self):
+        return self.id in app.config['MODERATOR_USER_IDS']
+
     contribution_percent = db.Column(db.Float, nullable=True)
 
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
@@ -87,7 +91,7 @@ class User(db.Model):
         return True
 
     def to_dict(self):
-        return {
+        d = {
             'nym': self.nym,
             'twitter_username': self.twitter_username,
             'twitter_profile_image_url': self.twitter_profile_image_url,
@@ -95,6 +99,9 @@ class User(db.Model):
             'contribution_percent': self.contribution_percent,
             'has_auctions': len(self.auctions) > 0,
             'has_bids': len(self.bids) > 0}
+        if self.is_moderator:
+            d['is_moderator'] = True
+        return d
 
 def hash_create(length):
     return b32encode(urandom(length)).decode("ascii").replace("=", "")
@@ -129,6 +136,8 @@ class Auction(db.Model):
     shipping_from = db.Column(db.String(64), nullable=True)
 
     twitter_id = db.Column(db.String(32), nullable=True)
+
+    is_featured = db.Column(db.Boolean, nullable=True)
 
     # this identifies the Lightning invoice of the contribution payment
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
@@ -286,6 +295,13 @@ class Auction(db.Model):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         if 'start_date' in validated and 'duration_hours' in validated:
             validated['end_date'] = validated['start_date'] + timedelta(hours=validated['duration_hours'])
+        for k in ['is_featured']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = bool(int(d[k]))
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
 class Media(db.Model):
