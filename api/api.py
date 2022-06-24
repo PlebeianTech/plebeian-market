@@ -151,6 +151,11 @@ def auctions(user):
 
         return jsonify({'auction': auction.to_dict(for_user=user)})
 
+@api_blueprint.route('/api/auctions/featured', methods=['GET'])
+def featured_auctions():
+    auctions = [a.to_dict() for a in m.Auction.query.all()]
+    return jsonify({'auctions': auctions})
+
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def auction(key):
     user = get_user_from_token(get_token_from_request())

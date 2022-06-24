@@ -1,15 +1,36 @@
 <svelte:head>
     <title>Plebeian Market</title>
 </svelte:head>
+
+<script lang="ts">
+        import Typewriter from 'svelte-typewriter';
+        import PublicAuctionCard from "../lib/components/PublicAuctionCard.svelte";
+        import { Auction } from "../lib/types/auction";
+        import {getFeatured} from "../lib/services/api";
+        import {token} from "../lib/stores";
+        import {onMount} from "svelte";
+    let auctions: Auction[] | null = null;
+
+        onMount(async () => {
+        fetchAuctions();
+    });
+
+    function fetchAuctions(successCB: () => void = () => {}) {
+        getFeatured($token,
+            a => {
+                auctions = a;
+                successCB();
+            });
+    }
+</script>
+
 <style>
 :global(:root){
     --cursor-color: #00ff00;
     --cursor-width: 0.2ch;
 }
 </style>
-<script>
-        import Typewriter from 'svelte-typewriter'
-</script>
+
 <div class="md:hidden">
     <span>
         <p class="mt-2 text-xl text-center">Sell anything...</p>
@@ -78,4 +99,13 @@
 <div class="md:pt-10 mb-0 md:mb-4 -translate-y-3 md:-translate-y-0 text-2xl flex justify-center ">Let's get the market started...</div>
 <div class="flex justify-center items-center">
     <div class="glowbutton glowbutton-go mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
+</div>
+<div class="md:flex-row self-center md:columns-3 md:w-11/12">
+{#if auctions !== null}
+{#each auctions as auction}
+    <div class="h-auto">
+    <PublicAuctionCard auction={auction}/>
+    </div>
+{/each}
+{/if}
 </div>
