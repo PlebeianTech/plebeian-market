@@ -24,6 +24,18 @@ body {
   right: 20%;
 }
 
+.avatar.not-verified::before {
+  content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="rgb(255,0,0)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 8.4469136,4.2729534 h 5.6730014 v 9.6791676 l -0.586862,5.275517 H 9.0337759 L 8.4469136,13.952121 Z m 0,18.3091446 h 5.6730014 v 3.753449 H 8.4469136 Z"></path></svg>');
+  position: absolute;
+  z-index: 10;
+  display: block;
+  --tw-bg-opacity: 1;
+  width: 100%;
+  height: 100%;
+  top: -15%;
+  right: 20%;
+}
+
 .glowbutton {
   width: 150px;
   height: 50px;
