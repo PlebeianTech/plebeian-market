@@ -162,6 +162,17 @@ export function deleteAuction(tokenValue, auctionKey, successCB: () => void) {
     });
 }
 
+export function unfeatureAuction(tokenValue, auctionKey, successCB: () => void, errorCB: () => void = () => {}) {
+    fetchAPI(`/auctions/${auctionKey}`, 'PUT', tokenValue, toJson({"is_featured": false}),
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                errorCB();
+            }
+        });
+}
+
 export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr) => void) {
     fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
         JSON.stringify({amount}),

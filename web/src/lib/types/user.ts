@@ -6,6 +6,7 @@ export interface User {
     twitterUsernameVerified: boolean;
     hasAuctions: boolean;
     hasBids: boolean;
+    isModerator: boolean;
 }
 
 export function fromJson(json: any) {
@@ -15,6 +16,7 @@ export function fromJson(json: any) {
         twitterProfileImageUrl: <string>json.twitter_profile_image_url,
         twitterUsernameVerified: <boolean>json.twitter_username_verified,
         hasAuctions: <boolean>json.has_auctions,
-        hasBids: <boolean>json.has_bids
+        hasBids: <boolean>json.has_bids,
+        isModerator: <boolean>json.is_moderator
     }
 }
