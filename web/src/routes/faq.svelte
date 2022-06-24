@@ -20,6 +20,8 @@
         <p class="mt-1 text-s">A: You can find us on <a class="link" href="https://t.me/PlebeianMarket">Telegram</a> or email us at <a class="link" href="email:support@plebeian.market">support@plebeian.market</a>. If you have a more technical feedback or would like to contribute to the development, you can find us on <a class="link" href="https://github.com/PlebeianTech/plebeian-market">GitHub</a>.</p>
         <p class="mt-3 text-2xl">Q: What about shipping?</p>
         <p class="mt-1 text-s">A: When you create a listing you can specify where you are shipping from. As a buyer, if you need additional information about the shipping cost for a specific listing, please reach out to the author of that listing directly.</p>
+        <p class="mt-3 text-2xl">Q: What does the little red exclamation mark mean by my profile picture?</p>
+        <p class="mt-1 text-s">A: After you have tweeted a link to your auction to verify that you are in control of the twitter account associated with your profile, the red exclamation mark will be replaced by a lightning bolt to indicate that you're verified.</p>
         <p class="mt-3 text-2xl">Q: Do you hold the funds in escrow?</p>
         <p class="mt-1 text-s">A: We do not touch the money at any point in the transaction, we simply run the auction to help you find the market value. The winner is put in contact with the seller and the two complete the payment directly. In the future we may develop an escrow system that does not require a trusted third party, such as a multisig Bitcoin escrow with a security deposit to protect buyer and seller, but we do not intend to ever be the trusted third party or hold the funds at any point during the transaction.</p>
         <p class="mt-3 text-2xl">Q: Plebeian?</p>
