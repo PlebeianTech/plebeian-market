@@ -23,6 +23,14 @@
             });
     }
 </script>
+
+<style>
+:global(:root){
+    --cursor-color: #00ff00;
+    --cursor-width: 0.2ch;
+}
+</style>
+
 <div class="md:hidden">
     <span>
         <p class="mt-2 text-xl text-center">Sell anything...</p>
@@ -39,7 +47,7 @@
         </span>
 </Typewriter>
     </span>
-    <span class="-translate-x-2 text-xl text-center">
+    <span class="text-xl text-center">
         <p>and get paid in sats.</p>
     </span>
 </div>
@@ -84,7 +92,7 @@
         </span>
 </Typewriter>
     </span>
-    <span class="-translate-x-2 text-s text-center md:text-left md:text-xl lg:text-3xl">
+    <span class="translate-x-1 text-s text-center md:text-left md:text-xl lg:text-3xl">
         <p>and get paid in sats.</p>
     </span>
 </div>

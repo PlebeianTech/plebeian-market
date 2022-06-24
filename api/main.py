@@ -170,6 +170,7 @@ class MockTwitter:
 
 class Twitter:
     BASE_URL = "https://api.twitter.com/2"
+    URL_PREFIXES = ["http://plebeian.market/auctions/", "https://plebeian.market/auctions/", "http://staging.plebeian.market/auctions/", "https://staging.plebeian.market/auctions/"]
 
     def __init__(self, api_key, api_key_secret, access_token, access_token_secret):
         self.session = OAuth1Session(api_key, api_key_secret, access_token, access_token_secret)
@@ -212,30 +213,23 @@ class Twitter:
 
         auction_tweets = []
         for tweet in response_json.get('data', []):
-            auction_url = None
             auction_key = None
             for url in tweet.get('entities', {}).get('urls', []):
-                if url['expanded_url'].startswith("https://plebeian.market/auctions/"):
-                    auction_url = url['expanded_url']
-                    auction_key = auction_url[len("https://plebeian.market/auctions/"):]
-                    break
-                elif url['expanded_url'].startswith("https://staging.plebeian.market/auctions/"):
-                    auction_url = url['expanded_url']
-                    auction_key = auction_url[len("https://staging.plebeian.market/auctions/"):]
-                    break
-            else:
-                continue
+                for p in Twitter.URL_PREFIXES:
+                    if url['expanded_url'].startswith(p):
+                        auction_key = url['expanded_url'][len(p):]
+                        break
 
-            media_keys = tweet.get('attachments', {}).get('media_keys', [])
-
-            auction_tweets.append({
-                'id': tweet['id'],
-                'text': tweet['text'],
-                'created_at': tweet['created_at'],
-                'auction_key': auction_key,
-                'photos': [m for m in response_json['includes']['media']
-                    if m['media_key'] in media_keys and m['type'] == 'photo'],
-            })
+            if auction_key:
+                media_keys = tweet.get('attachments', {}).get('media_keys', [])
+                auction_tweets.append({
+                    'id': tweet['id'],
+                    'text': tweet['text'],
+                    'created_at': tweet['created_at'],
+                    'auction_key': auction_key,
+                    'photos': [m for m in response_json['includes']['media']
+                        if m['media_key'] in media_keys and m['type'] == 'photo'],
+                })
 
         return auction_tweets
 
