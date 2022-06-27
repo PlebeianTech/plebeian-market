@@ -1,21 +1,21 @@
 <script lang="ts">
     import type { Auction } from "../types/auction";
     import Countdown from "./Countdown.svelte";
-    import { unfeatureAuction } from "../services/api"
-    import {Error, Info, token, user} from "../stores"
+    import { unfeatureAuction } from "../services/api";
+    import { Error, Info, token, user } from "../stores";
 
     function unfeature() {
         unfeatureAuction($token, auction.key,
-            ()=> {
-            Info.set("This auction will no longer be featured.")
+            () => {
+                Info.set("This auction will be prevented from being featured.");
             },
-            ()=> {
-            Error.set("Failed to remove auction from featured auctions.")
+            () => {
+                Error.set("Failed to unfeature the auction.");
             }
         )
     }
-    export let auction: Auction;
 
+    export let auction: Auction;
 </script>
 
 <div class="my-3 self-center glowbox">
@@ -34,8 +34,8 @@
             <div class="badge badge-primary self-center md:float-right">{auction.bids.length} bids</div>
             <p class="justify-center text-xs">{auction.description}</p>
             <Countdown untilDate={auction.end_date} />
-            {#if $user.isModerator}
-            <div class="btn btn-xs self-center md:float-right" on:click|preventDefault={unfeature}>Hide</div>
+            {#if $user && $user.isModerator}
+                <div class="btn btn-xs self-center md:float-right" on:click|preventDefault={unfeature}>Unfeature</div>
             {/if}
         </div>
     </div>
