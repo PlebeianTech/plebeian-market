@@ -286,7 +286,7 @@ def bids(user, key):
 
     amount = int(request.json['amount'])
 
-    top_bid = auction.get_top_bid(include_unsettled=True)
+    top_bid = auction.get_top_bid()
     if top_bid and amount <= top_bid.amount:
         return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
     elif amount <= auction.starting_bid:

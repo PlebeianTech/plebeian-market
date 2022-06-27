@@ -161,8 +161,8 @@ class Auction(db.Model):
     def ended(self):
         return self.end_date < datetime.utcnow() if self.end_date else False
 
-    def get_top_bid(self, include_unsettled=False):
-        return max((bid for bid in self.bids if include_unsettled or bid.settled_at is not None), default=None, key=lambda bid: bid.amount)
+    def get_top_bid(self):
+        return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
 
     def to_dict(self, for_user=None):
         auction = {
