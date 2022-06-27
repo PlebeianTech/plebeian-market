@@ -78,7 +78,7 @@
 
 <input type="checkbox" id="profile-modal-toggle" for="profile-modal" class="modal-toggle" />
 <div class="modal">
-    <div class="modal-box relative flex justify-center items-center w-10/12 max-w-5xl">
+    <div class="modal-box relative flex justify-center items-center w-10/12 max-w-1xl">
         {#if $user && $user.twitterUsername && (!$user.hasAuctions || $user.contributionPercent !== null)}
             <label for="profile-modal" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide}>✕</label>
         {/if}
@@ -107,7 +107,7 @@
                 <V4V bind:contributionPercent />
             {/if}
 
-            <div class="flex justify-center items-center mt-4 h-24">
+            <div class="flex justify-center items-center mt-4 h-15">
                 {#if !$user || ((twitterUsername === $user.twitterUsername) && (contributionPercent === $user.contributionPercent))}
                     <button class="btn" disabled>Save</button>
                 {:else}
