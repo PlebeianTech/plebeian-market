@@ -164,6 +164,11 @@ class Auction(db.Model):
     def get_top_bid(self):
         return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
 
+    @property
+    def reserve_bid_reached(self):
+        top_bid = self.get_top_bid()
+        return top_bid.amount >= self.reserve_bid if top_bid else False
+
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
@@ -176,7 +181,7 @@ class Auction(db.Model):
             'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date else False,
             'ended': self.ended,
             'starting_bid': self.starting_bid,
-            'reserve_bid_reached': max(bid.amount for bid in self.bids) >= self.reserve_bid if self.bids else False,
+            'reserve_bid_reached': self.reserve_bid_reached,
             'shipping_from': self.shipping_from,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
