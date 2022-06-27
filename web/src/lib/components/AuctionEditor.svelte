@@ -12,10 +12,10 @@
 
     $: durationOptions = isLocal() || isStaging()
         ? [0.1, 1, 24]
-        : [1, 24, 3 * 24];
+        : [1, 24, 2 * 24];
     $: durationLabels = isLocal() || isStaging()
         ? ["6 minutes", "1 hour", "1 day"]
-        : ["1 hour", "1 day", "3 days"];
+        : ["1 hour", "1 day", "2 days"];
 
     function twelveHours() {
         auction.duration_hours = 12;
