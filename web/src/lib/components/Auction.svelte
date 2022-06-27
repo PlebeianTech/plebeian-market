@@ -146,6 +146,7 @@
                     {#if auction.shipping_from}
                         <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
                     {/if}
+                    <p class="mt-4 ml-2">NOTE: Please allow for post and packaging. The seller can agree on this with you when you have won.</p>
                     <p class="mt-4 ml-2">
                         {#if auction.start_date && auction.end_date}
                             {#if !auction.started}
