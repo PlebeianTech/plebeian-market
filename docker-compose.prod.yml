@@ -6,6 +6,7 @@ services:
       - BASE_URL=https://plebeian.market
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
       - S3_FILENAME_PREFIX=P_
+      - MODERATOR_USER_IDS=1,5
   nginx:
     environment:
       - VIRTUAL_HOST=plebeian.market
