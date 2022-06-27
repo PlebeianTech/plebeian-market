@@ -128,13 +128,13 @@
                     {#if auction.start_date && auction.end_date}
                         {#if auction.started && !auction.ended}
                             <div class="pt-24">
-                            <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
+                                <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
                             </div>
-                            {#if !auction.reserve_bid_reached}
-                                <p class="my-3 w-full text-xl text-center">
-                                    Reserve not met!
-                                </p>
-                            {/if}
+                        {/if}
+                        {#if !auction.reserve_bid_reached}
+                            <p class="my-3 w-full text-xl text-center">
+                                Reserve not met!
+                            </p>
                         {/if}
                     {/if}
                 </div>
