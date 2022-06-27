@@ -98,11 +98,20 @@
             <div class="mt-4 md:flex">
                 <div class="md:w-1/3">
                     <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
+                    <div class="text-center mb-4">
+                        by
+                        <div class="avatar" class:verified={auction.seller_twitter_username_verified}>
+                            <div class="w-8 rounded-full">
+                                <img src={auction.seller_twitter_profile_image_url} alt="{auction.seller_twitter_username}'s avatar" />
+                            </div>
+                        </div>
+                        <span class="font-bold">{auction.seller_twitter_username}</span>
+                    </div>
                     <div class="hidden md:grid">
-                    <Gallery photos={auction.media} />
+                        <Gallery photos={auction.media} />
                     </div>
                     <div class="md:hidden">
-                    <Carousel photos={auction.media} />
+                        <Carousel photos={auction.media} />
                     </div>
                 </div>
                 <div class="lg:w-1/2">

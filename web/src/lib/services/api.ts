@@ -1,5 +1,5 @@
 import { goto } from "$app/navigation";
-import { type Auction, fromJson as auctionFromJson, toJson } from "../types/auction";
+import { type Auction, fromJson as auctionFromJson } from "../types/auction";
 import { type User, fromJson as userFromJson } from "../types/user";
 import { isLocal, isStaging } from "../utils";
 import { token, Error } from "../stores";
@@ -119,7 +119,7 @@ export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void,
 }
 
 export function putAuction(tokenValue, auction: Auction, successCB: () => void) {
-    fetchAPI(`/auctions/${auction.key}`, 'PUT', tokenValue, toJson(auction),
+    fetchAPI(`/auctions/${auction.key}`, 'PUT', tokenValue, auction.toJson(),
         response => {
             if (response.status === 200) {
                 successCB();
@@ -130,7 +130,7 @@ export function putAuction(tokenValue, auction: Auction, successCB: () => void) 
 }
 
 export function postAuction(tokenValue, auction: Auction, successCB: () => void) {
-    fetchAPI("/auctions", 'POST', tokenValue, toJson(auction),
+    fetchAPI("/auctions", 'POST', tokenValue, auction.toJson(),
         response => {
             if (response.status === 200) {
                 successCB();
