@@ -47,7 +47,7 @@
         </label>
     </div>
     <div class="w-full flex items-center justify-center">
-        <div class="glowbutton glowbutton-bid mt-5" on:click|preventDefault={placeBid}></div>
+        <div class="glowbutton glowbutton-bid mt-2" on:click|preventDefault={placeBid}></div>
     </div>
 {/if}
 </div>
