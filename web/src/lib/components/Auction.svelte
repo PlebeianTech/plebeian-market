@@ -115,6 +115,46 @@
                     </div>
                 </div>
                 <div class="lg:w-1/2">
+                                    {#if !auction.ended}
+                    {#if auction.end_date_extended}
+                        <h3 class="text-2xl text-center text-warning my-2">
+                            Time Extended
+                        </h3>
+                    {/if}
+                    {#if $token && $user}
+                        {#if !auction.is_mine}
+                            {#if !auction.bids.length}
+                                <p class="text-center pt-12">Place your bid below</p>
+                            {/if}
+                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
+                                <div class="flex justify-center items-center">
+                                    <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
+                                </div>
+                            {/if}
+                        {:else}
+                            {#if auction.started}
+                                <p class="text-center pt-24">Your auction is running &#x1FA99; &#x1F528; &#x1F4B0;</p>
+                            {/if}
+                        {/if}
+                    {:else}
+                        {#if !auction.bids.length}
+                            <p class="text-center pt-24">Login below to place a bid</p>
+                        {/if}
+                        <Login />
+                    {/if}
+                {/if}
+                    {#if auction.start_date && auction.end_date}
+                        {#if auction.started && !auction.ended}
+                            <div class="py-5">
+                                <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
+                            </div>
+                        {/if}
+                        {#if !auction.reserve_bid_reached}
+                            <p class="my-3 w-full text-xl text-center">
+                                Reserve not met!
+                            </p>
+                        {/if}
+                    {/if}
                     {#if auction.bids.length}
                         <div class="mt-2">
                             <BidList {auction} />
@@ -125,18 +165,7 @@
                             <p class="text-2xl text-center pt-2">Be the first to bid!</p>
                         {/if}
                     {/if}
-                    {#if auction.start_date && auction.end_date}
-                        {#if auction.started && !auction.ended}
-                            <div class="pt-24">
-                                <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
-                            </div>
-                        {/if}
-                        {#if !auction.reserve_bid_reached}
-                            <p class="my-3 w-full text-xl text-center">
-                                Reserve not met!
-                            </p>
-                        {/if}
-                    {/if}
+
                 </div>
                 <div class="md:w-1/3 ml-2">
                     <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
@@ -163,34 +192,7 @@
 
             <div class="mt-4">
 
-                {#if !auction.ended}
-                    {#if auction.end_date_extended}
-                        <h3 class="text-2xl text-center text-warning my-2">
-                            Time Extended
-                        </h3>
-                    {/if}
-                    {#if $token && $user}
-                        {#if !auction.is_mine}
-                            {#if !auction.bids.length}
-                                <p class="text-center pt-12">Place your bid below</p>
-                            {/if}
-                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                                <div class="mt-4 flex justify-center items-center">
-                                    <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
-                                </div>
-                            {/if}
-                        {:else}
-                            {#if auction.started}
-                                <p class="text-center pt-24">Your auction is running &#x1FA99; &#x1F528; &#x1F4B0;</p>
-                            {/if}
-                        {/if}
-                    {:else}
-                        {#if !auction.bids.length}
-                            <p class="text-center pt-24">Login below to place a bid</p>
-                        {/if}
-                        <Login />
-                    {/if}
-                {/if}
+
             </div>
 
             {#if auction.ended}
