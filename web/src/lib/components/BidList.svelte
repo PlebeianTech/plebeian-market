@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Auction } from "../types/auction";
 
+    import AmountFormatter from "./AmountFormatter.svelte";
     import DateFormatter from "./DateFormatter.svelte";
 
     export let auction: Auction;
@@ -31,11 +32,11 @@
                         </div>
                     </td>
                     <td>
-                        <p class="hidden md:contents">{bid.amount} sats</p>
+                        <p class="hidden md:contents"><AmountFormatter amount={bid.amount} /> sats</p>
                     </td>
                     <td>
                         <p class="hidden md:contents"><DateFormatter date={bid.settled_at} /></p>
-                        <p class="md:hidden">{bid.amount} sats</p>
+                        <p class="md:hidden"><AmountFormatter amount={bid.amount} /> sats</p>
                     </td>
                 </tr>
             {/each}
