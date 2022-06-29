@@ -18,9 +18,9 @@ body {
   z-index: 10;
   display: block;
   --tw-bg-opacity: 1;
-  width: 100%;
-  height: 100%;
-  top: -15%;
+  width: 90%;
+  height: 90%;
+  top: -10%;
   right: 20%;
 }
 
@@ -30,9 +30,9 @@ body {
   z-index: 10;
   display: block;
   --tw-bg-opacity: 1;
-  width: 100%;
-  height: 100%;
-  top: -15%;
+  width: 90%;
+  height: 90%;
+  top: -10%;
   right: 20%;
 }
 
