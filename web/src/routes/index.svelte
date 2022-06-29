@@ -3,8 +3,8 @@
 </svelte:head>
 
 <script lang="ts">
-    import Typewriter from 'svelte-typewriter';
     import PublicAuctionCard from "../lib/components/PublicAuctionCard.svelte";
+    import Typewriter from "../lib/components/Typewriter.svelte";
     import type { Auction } from "../lib/types/auction";
     import { getFeaturedAuctions } from "../lib/services/api";
     import { onMount } from "svelte";
@@ -16,39 +16,15 @@
     });
 </script>
 
-<style>
-:global(:root) {
-    --cursor-color: #00ff00;
-    --cursor-width: 0.2ch;
-}
-</style>
-
 <div class="md:hidden">
-    <span>
-        <p class="mt-2 text-xl text-center">Sell anything...</p>
-    </span>
-    <span class="flex justify-center">
-        <Typewriter interval={[50, 60, 95, 80]} cursor='255,255,255,30' loop>
-            <span class="text-neon-pink justify-center text-xl">
-                <p>1 hour of your time</p>
-                <p>Bitcoin art</p>
-                <p>your chair</p>
-                <p>an ASIC miner</p>
-                <p>baklava</p>
-                <p>your next book</p>
-            </span>
-        </Typewriter>
-    </span>
-    <span class="text-xl text-center">
-        <p>and get paid in sats.</p>
-    </span>
+    <Typewriter />
 </div>
 <div class="flex justify-center">
     <div class="md:flex justify-center mt-0 md:mt-14 md:columns-3 w-3/5">
         <div class="flex items-center mt-1">
             <div class="text-7xl ml-9 md:ml-0 md:text-9xl">1</div>
             <div class="flex flex-col">
-                <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48 " src="/images/bitko_01.png" alt="Tweet!"></div>
+                <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48" src="/images/bitko_01.png" alt="Tweet!"></div>
                 <div class="-translate-y-1 md:-translate-y-0 h-full ml-2 text-xl">Tweet Photos</div>
             </div>
         </div>
@@ -69,24 +45,7 @@
     </div>
 </div>
 <div class="hidden md:flex-container md:ml-20 md:flex md:justify-center md:justify-items-start mt-12 px-8 columns-1 gap-0 md:columns-3 md:w-11/12">
-    <span>
-        <p class="mr-1 text-s text-center md:text-xl lg:text-3xl md:text-right">Sell anything...</p>
-    </span>
-    <span class="flex justify-center">
-        <Typewriter interval={[50, 60, 95, 80]} cursor='255,255,255,30' loop>
-                <span class="text-neon-pink justify-center text-s md:text-xl lg:text-3xl">
-                    <p>1 hour of your time</p>
-                    <p>Bitcoin art</p>
-                    <p>your chair</p>
-                    <p>an ASIC miner</p>
-                    <p>baklava</p>
-                    <p>your next book</p>
-                </span>
-        </Typewriter>
-    </span>
-    <span class="translate-x-1 text-s text-center md:text-left md:text-xl lg:text-3xl">
-        <p>and get paid in sats.</p>
-    </span>
+    <Typewriter />
 </div>
 <div class="md:pt-10 mb-0 md:mb-4 -translate-y-3 md:-translate-y-0 text-2xl flex justify-center">
     Let's get the market started...
