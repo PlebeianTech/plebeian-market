@@ -21,8 +21,14 @@
 
     function showProfile() {
         if (profile) {
-            localStorage.removeItem('initial-login-seller'); // to allow twitter verification to be shown automatically if usernam changed
+            localStorage.removeItem('initial-login-seller'); // to allow twitter verification to be shown automatically if username changed
             profile.show();
+        }
+    }
+
+    function showTwitterVerification() {
+        if (profile) {
+            profile.showTwitterVerification($user!.twitterUsernameVerificationTweet);
         }
     }
 
@@ -78,6 +84,9 @@
                 <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
                     <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
                     <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button">Profile</label></li>
+                    {#if !$user.twitterUsernameVerified}
+                        <li><label for="twitter-verification-modal" on:click|preventDefault={showTwitterVerification} class="modal-button">Verify Twitter</label></li>
+                    {/if}
                     <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
                     <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }}>Logout</a></li>
                 </ul>

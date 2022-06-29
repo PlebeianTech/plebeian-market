@@ -86,7 +86,7 @@
         }
     }
 
-    function showTwitterVerification(tweetUrl: string) {
+    export function showTwitterVerification(tweetUrl: string) {
         twitterUsernameVerificationTweet = tweetUrl;
         let toggle = <HTMLInputElement>document.getElementById('twitter-verification-modal-toggle');
         if (toggle) {
