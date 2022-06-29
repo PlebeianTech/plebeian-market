@@ -5,7 +5,7 @@
     import { token, user } from "../stores";
     import Profile from "./Profile.svelte";
 
-    let profile;
+    let profile : Profile | null;
 
     let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -13,8 +13,17 @@
         getProfile(tokenValue,
             u => {
                 user.set(u);
-                profile.showIfIncomplete();
+                if (profile) {
+                    profile.showIfIncomplete();
+                }
             });
+    }
+
+    function showProfile() {
+        if (profile) {
+            localStorage.removeItem('initial-login-seller'); // to allow twitter verification to be shown automatically if usernam changed
+            profile.show();
+        }
     }
 
     function toggleTheme() {
@@ -68,7 +77,7 @@
                 </label>
                 <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
                     <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
-                    <li><label for="profile-modal" on:click|preventDefault={profile.show} class="modal-button">Profile</label></li>
+                    <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button">Profile</label></li>
                     <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
                     <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }}>Logout</a></li>
                 </ul>

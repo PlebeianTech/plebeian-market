@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { startAuction, getAuction, deleteAuction } from "../services/api";
+    import { startAuction, getAuction, deleteAuction, ErrorHandler } from "../services/api";
     import type { Auction } from "../types/auction";
     import { token, user, Info } from "../stores";
     import Confirmation from "./Confirmation.svelte";
@@ -59,13 +59,9 @@
                         starting = false;
                         Info.set("Your auction is now running...");
                     },
-                    () => {
-                        starting = false;
-                    });
+                    new ErrorHandler(false, () => starting = false));
                 },
-            () => {
-                starting = false;
-            });
+            new ErrorHandler(true, () => starting = false));
     }
 
     function del() {

@@ -151,7 +151,12 @@ class MockTwitter:
         return {
             'id': "MOCK_USER_ID",
             'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(1, 1000)}",
+            'pinned_tweet_id': "MOCK_PINNED_TWEET",
         }
+
+    def get_tweet_likes(self, tweet_id):
+        assert tweet_id == "MOCK_PINNED_TWEET" # this assertion might go away later if we have other use cases for this method
+        return ['mock_username_with_like']
 
     def get_auction_tweets(self, user_id):
         if not user_id.startswith('MOCK_USER'):
@@ -185,10 +190,10 @@ class Twitter:
     def get_user(self, username):
         response_json = self.get(f"/users/by/username/{username}",
             params={
-                'user.fields': "location,name,profile_image_url",
+                'user.fields': "location,name,profile_image_url,pinned_tweet_id",
             })
 
-        if not response_json:
+        if not response_json or response_json.get('errors'):
             return
 
         twitter_user = response_json['data']
@@ -200,6 +205,17 @@ class Twitter:
 
         return twitter_user
 
+    def get_tweet_likes(self, tweet_id):
+        response_json = self.get(f"/tweets/{tweet_id}/liking_users",
+            params={
+                'user.fields': "username",
+            })
+
+        if not response_json or response_json.get('errors'):
+            return
+
+        return [u['username'] for u in response_json['data']]
+
     def get_auction_tweets(self, user_id):
         response_json = self.get(f"/users/{user_id}/tweets",
             params={
@@ -208,7 +224,7 @@ class Twitter:
                 'media.fields': "url",
                 'tweet.fields': "id,text,entities,created_at"})
 
-        if not response_json:
+        if not response_json or response_json.get('errors'):
             return []
 
         auction_tweets = []

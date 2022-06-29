@@ -84,6 +84,10 @@ body {
   content: 'Save';
 }
 
+.glowbutton-verify:after {
+  content: 'Verify';
+}
+
 .glowbutton-start:after {
   content: 'Start';
 }

@@ -99,7 +99,7 @@ class TestApi(unittest.TestCase):
 
         # set user details
         code, response = self.post("/api/users/me",
-            {'twitter_username': 'hellokitty', 'contribution_percent': 1},
+            {'twitter_username': 'mock_username', 'contribution_percent': 1},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -107,10 +107,42 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'hellokitty')
+        self.assertEqual(response['user']['twitter_username'], 'mock_username')
+        self.assertFalse(response['user']['twitter_username_verified'])
+        self.assertTrue("twitter.com" in response['user']['twitter_username_verification_tweet'])
+        self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
         self.assertTrue("/mock-s3-files/" in response['user']['twitter_profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_auctions'], False)
+
+        # try to verify the Twitter username
+        # but will fail because mock_username didn't like the tweet according to MockTwitter
+        code, response = self.put("/api/users/me/verify-twitter", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 400)
+
+        # set user details again (a user that "liked" the tweet)
+        code, response = self.post("/api/users/me",
+            {'twitter_username': 'mock_username_with_like', 'contribution_percent': 1.5},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # check user details (again)
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['twitter_username'], 'mock_username_with_like')
+        self.assertFalse(response['user']['twitter_username_verified'])
+        self.assertTrue("twitter.com" in response['user']['twitter_username_verification_tweet'])
+        self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
+        self.assertTrue("/mock-s3-files/" in response['user']['twitter_profile_image_url'])
+        self.assertEqual(response['user']['contribution_percent'], 1.5)
+        self.assertEqual(response['user']['has_auctions'], False)
+
+        # verify Twitter for good now
+        code, response = self.put("/api/users/me/verify-twitter", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
 
         # create another user
         code, response = self.get("/api/login")
@@ -140,11 +172,18 @@ class TestApi(unittest.TestCase):
 
         self.assertNotEqual(token_1, token_2)
 
+        # set user details (to a username that did *not* like the "pinned tweet")
+        code, response = self.post("/api/users/me",
+            {'twitter_username': 'mock_username'},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
         # 2nd user is not a moderator!
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertIsNone(response['user']['twitter_username'])
+        self.assertEqual(response['user']['twitter_username'], 'mock_username')
+        self.assertFalse(response['user']['twitter_username_verified'])
         self.assertIsNone(response['user']['contribution_percent'])
         self.assertIsNone(response['user'].get('is_moderator'))
 
@@ -376,6 +415,13 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         time.sleep(1) # this is not needed for the start to work, but we use it to make sure start_date is in the past
+
+        # starting the auction verified the Twitter account (even though the user didn't "like" the pinned tweet)
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['twitter_username'], 'mock_username')
+        self.assertTrue(response['user']['twitter_username_verified'])
 
         code, response = self.get(f"/api/auctions/{auction_key_3}",
             headers=self.get_auth_headers(token_2))

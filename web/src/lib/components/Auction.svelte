@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
-    import { getAuction } from "../services/api";
+    import { ErrorHandler, getAuction } from "../services/api";
     import type { Auction } from "../types/auction";
     import { Error, token, user } from "../stores";
     import AuctionEndMessage from "./AuctionEndMessage.svelte";
@@ -53,7 +53,8 @@
                 console.log("Auction ended!");
                 // maybe we should eventually stopRefresh() here, but is seems risky for now, at least while still testing
             }
-        });
+        },
+        new ErrorHandler(false));
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;

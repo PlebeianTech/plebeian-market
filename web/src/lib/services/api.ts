@@ -4,8 +4,22 @@ import { type User, fromJson as userFromJson } from "../types/user";
 import { isLocal, isStaging } from "../utils";
 import { token, Error } from "../stores";
 
-function setError(response) {
-    response.json().then(data => { Error.set(data.message); });
+export class ErrorHandler {
+    setError: boolean;
+    onError: () => void;
+
+    public constructor(setError: boolean = true, onError: () => void = () => {}) {
+        this.setError = setError;
+        this.onError = onError;
+    }
+
+    public handle(response) {
+        if (this.setError) {
+            response.json().then(data => { Error.set(data.message); });
+        }
+
+        this.onError();
+    }
 }
 
 function fetchAPI(path, method, tokenValue, json, checkResponse) {
@@ -45,13 +59,30 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
     );
 }
 
-export function getLogin(k1, cb: (data) => void) {
+export interface GetLoginInitialResponse {
+    k1: string;
+    lnurl: string;
+    qr: string;
+}
+
+export interface GetLoginSuccessResponse {
+    token: string;
+    user: User;
+}
+
+export function getLogin(k1, initialResponseCB: (response: GetLoginInitialResponse) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void) {
     fetchAPI("/login" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(
                     data => {
-                        cb(data);
+                        if (data.success) {
+                            successResponseCB({token: data.token, user: userFromJson(data.user)});
+                        } else if (data.k1) {
+                            initialResponseCB({k1: data.k1, lnurl: data.lnurl, qr: data.qr});
+                        } else {
+                            waitResponseCB();
+                        }
                     }
                 );
             }
@@ -80,7 +111,7 @@ export function getProfile(tokenValue, successCB: (User) => void) {
         });
 }
 
-export function postProfile(tokenValue, profile: {twitterUsername: string, contributionPercent: string}, successCB: (User) => void) {
+export function postProfile(tokenValue, profile: {twitterUsername: string, contributionPercent: string}, successCB: (User) => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/users/me", 'POST', tokenValue,
         JSON.stringify({twitter_username: profile.twitterUsername, contribution_percent: profile.contributionPercent}),
         response => {
@@ -89,12 +120,26 @@ export function postProfile(tokenValue, profile: {twitterUsername: string, contr
                     successCB(userFromJson(data.user));
                 });
             } else {
-                setError(response);
+                errorHandler.handle(response);
             }
         });
 }
 
-export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void) {
+export function putVerifyTwitter(tokenValue, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/users/me/verify-twitter", 'PUT', tokenValue,
+        JSON.stringify({}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB();
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/auctions", 'GET', tokenValue, null,
         response => {
             if (response.status === 200) {
@@ -102,52 +147,51 @@ export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void
                     successCB(data.auctions.map(auctionFromJson));
                 });
             } else {
-                setError(response);
+                errorHandler.handle(response);
             }
         });
 }
 
-export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void, errorCB: () => void = () => {}) {
+export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}`, 'GET', tokenValue, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(auctionFromJson(data.auction)); });
             } else {
-                errorCB();
+                errorHandler.handle(response);
             }
         });
 }
 
-export function putAuction(tokenValue, auction: Auction, successCB: () => void) {
+export function putAuction(tokenValue, auction: Auction, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auction.key}`, 'PUT', tokenValue, auction.toJson(),
         response => {
             if (response.status === 200) {
                 successCB();
             } else {
-                setError(response);
+                errorHandler.handle(response);
             }
         });
 }
 
-export function postAuction(tokenValue, auction: Auction, successCB: () => void) {
+export function postAuction(tokenValue, auction: Auction, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/auctions", 'POST', tokenValue, auction.toJson(),
         response => {
             if (response.status === 200) {
                 successCB();
             } else {
-                setError(response);
+                errorHandler.handle(response);
             }
         });
 }
 
-export function startAuction(tokenValue, auctionKey, successCB: () => void, errorCB: () => void = () => {}) {
+export function startAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/start-twitter`, 'PUT', tokenValue, null,
         response => {
             if (response.status === 200) {
                 successCB();
             } else {
-                setError(response);
-                errorCB();
+                errorHandler.handle(response);
             }
         }
     );
@@ -162,26 +206,26 @@ export function deleteAuction(tokenValue, auctionKey, successCB: () => void) {
     });
 }
 
-export function unfeatureAuction(tokenValue, auctionKey, successCB: () => void, errorCB: () => void = () => {}) {
+export function unfeatureAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}`, 'PUT', tokenValue,
         JSON.stringify({"is_featured": false}),
         response => {
             if (response.status === 200) {
                 successCB();
             } else {
-                errorCB();
+                errorHandler.handle(response);
             }
         });
 }
 
-export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr) => void) {
+export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
         JSON.stringify({amount}),
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(data.payment_request, data.qr); });
             } else {
-                setError(response);
+                errorHandler.handle(response);
             }
         });
 }

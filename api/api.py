@@ -110,13 +110,23 @@ def me(user):
                 return jsonify({'message': "Invalid Twitter username!"}), 400
             if clean_username != user.twitter_username:
                 user.twitter_username = clean_username
-                twitter_user = get_twitter().get_user(user.twitter_username)
+
+                twitter = get_twitter()
+
+                twitter_user = twitter.get_user(user.twitter_username)
                 if not twitter_user:
                     return jsonify({'message': "Twitter profile not found!"}), 400
+
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
                 if not user.fetch_twitter_profile_image(get_s3()):
                     return jsonify({'message': "Error fetching profile picture!"}), 400
+
                 user.twitter_username_verified = False
+
+                plebeian_twitter_user = twitter.get_user(app.config['TWITTER_USER'])
+
+                user.twitter_username_verification_tweet_id = plebeian_twitter_user['pinned_tweet_id']
+
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']
         try:
@@ -124,6 +134,17 @@ def me(user):
         except IntegrityError:
             return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
         return jsonify({'user': user.to_dict()})
+
+@api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
+@user_required
+def verify_twitter(user):
+    liking_usernames = get_twitter().get_tweet_likes(user.twitter_username_verification_tweet_id)
+    if not user.twitter_username in liking_usernames:
+        return jsonify({'message': "Please like the tweet to verify your username."}), 400
+    else:
+        user.twitter_username_verified = True
+        db.session.commit()
+        return jsonify({})
 
 @api_blueprint.route('/api/auctions', methods=['GET', 'POST'])
 @user_required

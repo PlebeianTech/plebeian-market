@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Auction } from "../types/auction";
     import Countdown from "./Countdown.svelte";
-    import { unfeatureAuction } from "../services/api";
+    import { ErrorHandler, unfeatureAuction } from "../services/api";
     import { Error, Info, token, user } from "../stores";
 
     function unfeature() {
@@ -9,10 +9,7 @@
             () => {
                 Info.set("This auction will be prevented from being featured.");
             },
-            () => {
-                Error.set("Failed to unfeature the auction.");
-            }
-        )
+            new ErrorHandler(false, () => Error.set("Failed to unfeature the auction.")));
     }
 
     export let auction: Auction;

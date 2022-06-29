@@ -44,6 +44,7 @@ LND_TLS_CERT = "/secrets/tls.cert"
 
 MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
 TWITTER_SECRETS = "/secrets/twitter.json"
+TWITTER_USER = "PlebeianMarket"
 
 MOCK_S3 = bool(int(os.environ.get("MOCK_S3", 0)))
 S3_SECRETS = "/secrets/s3.json"

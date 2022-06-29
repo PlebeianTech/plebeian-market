@@ -1,11 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { getLogin } from "../services/api";
+    import { getLogin, type GetLoginInitialResponse, type GetLoginSuccessResponse } from "../services/api";
     import { token } from "../stores";
     import Loading from "./Loading.svelte";
     import QR from "./QR.svelte";
+    import type { User } from "../types/user";
 
-    export let onLogin = () => {};
+    export let onLogin = (user: User | null) => {};
 
     let lnurl;
     let qr;
@@ -13,26 +14,25 @@
 
     function doLogin() {
         getLogin(k1,
-            data => {
-                if (data.success) {
-                    token.set(data.token);
-                    localStorage.setItem('token', data.token);
-                    onLogin();
-                } else {
-                    if (data.k1) {
-                        k1 = data.k1;
-                        lnurl = data.lnurl;
-                        qr = data.qr;
-                    }
-
-                    setTimeout(doLogin, 1000);
-                }
+            (response) => {
+                k1 = response.k1;
+                lnurl = response.lnurl;
+                qr = response.qr;
+                setTimeout(doLogin, 1000);
+            },
+            () => {
+                setTimeout(doLogin, 1000);
+            },
+            (response) => {
+                token.set(response.token);
+                localStorage.setItem('token', response.token);
+                onLogin(response.user);
             });
     }
 
     onMount(async () => {
         if ($token) {
-            onLogin();
+            onLogin(null);
         } else {
             doLogin();
         }
