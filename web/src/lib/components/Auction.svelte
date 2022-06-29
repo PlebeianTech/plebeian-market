@@ -101,7 +101,7 @@
                     <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
                     <div class="text-center mb-4">
                         by
-                        <div class="avatar" class:verified={auction.seller_twitter_username_verified}>
+                        <div class="avatar" class:verified={auction.seller_twitter_username_verified} class:not-verified={!auction.seller_twitter_username_verified}>
                             <div class="w-8 rounded-full">
                                 <img src={auction.seller_twitter_profile_image_url} alt="{auction.seller_twitter_username}'s avatar" />
                             </div>
@@ -116,7 +116,7 @@
                     </div>
                 </div>
                 <div class="lg:w-1/2">
-                                    {#if !auction.ended}
+                    {#if !auction.ended}
                     {#if auction.end_date_extended}
                         <h3 class="text-2xl text-center text-warning my-2">
                             Time Extended

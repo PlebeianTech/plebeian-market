@@ -20,7 +20,7 @@
                 <tr>
                     <td>
                         <div class="flex items-center space-x-3">
-                            <div class="avatar" class:verified={bid.twitter_username_verified}>
+                            <div class="avatar" class:verified={bid.twitter_username_verified} class:not-verified={!bid.twitter_username_verified}>
                                 <div class="w-8 rounded-full">
                                     <img src={bid.twitter_profile_image_url} alt="{bid.twitter_username}'s avatar" />
                                 </div>

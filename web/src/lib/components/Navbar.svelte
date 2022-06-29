@@ -76,7 +76,7 @@
         </label>
         {#if $token && $user}
             <div class="dropdown dropdown-end">
-                <label for={null} tabindex="0" class:verified={$user.twitterUsernameVerified} class="btn btn-ghost btn-circle avatar">
+                <label for={null} tabindex="0" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified} class="btn btn-ghost btn-circle avatar">
                     <div class="w-10 rounded-full">
                         <img src={$user.twitterProfileImageUrl} alt="Avatar" />
                     </div>
