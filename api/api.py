@@ -204,7 +204,7 @@ def auction(key):
                         auction.contribution_requested_at = auction.contribution_settled_at = datetime.utcnow()
                         auction.winning_bid_id = top_bid.id
                     else:
-                        response = get_lnd_client().add_invoice(value=auction.contribution_amount)
+                        response = get_lnd_client().add_invoice(value=auction.contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY'])
                         auction.contribution_payment_request = response.payment_request
                         auction.contribution_requested_at = datetime.utcnow()
                     db.session.commit()
@@ -313,7 +313,7 @@ def bids(user, key):
     elif amount <= auction.starting_bid:
         return jsonify({'message': f"Your bid needs to be higher than {auction.starting_bid}, the starting bid."}), 400
 
-    response = get_lnd_client().add_invoice(value=app.config['LIGHTNING_INVOICE_AMOUNT'])
+    response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])
 
     payment_request = response.payment_request
 

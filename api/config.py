@@ -5,9 +5,6 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 DEBUG = bool(int(os.environ.get("DEBUG", 0)))
 PROPAGATE_EXCEPTIONS = False
 
-LIGHTNING_INVOICE_AMOUNT = 21
-MINIMUM_CONTRIBUTION_AMOUNT = 21
-
 BID_LAST_MINUTE_EXTEND = 5
 
 if DEBUG:
@@ -41,6 +38,10 @@ MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
 LND_GRPC = os.environ.get('LND_GRPC')
 LND_MACAROON = "/secrets/admin.macaroon"
 LND_TLS_CERT = "/secrets/tls.cert"
+LND_BID_INVOICE_AMOUNT = 21
+LND_BID_INVOICE_EXPIRY = 10 * 60 # 10 minutes
+LND_CONTRIBUTION_INVOICE_EXPIRY = 3 * 24 * 60 * 60 # 3 days
+MINIMUM_CONTRIBUTION_AMOUNT = 21
 
 MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
 TWITTER_SECRETS = "/secrets/twitter.json"

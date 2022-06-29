@@ -119,7 +119,7 @@ class MockLNDClient:
             self.state = state
             self.settle_index = settle_index
 
-    def add_invoice(self, value):
+    def add_invoice(self, value, **_):
         return MockLNDClient.InvoiceResponse()
 
     def subscribe_invoices(self, **_):
