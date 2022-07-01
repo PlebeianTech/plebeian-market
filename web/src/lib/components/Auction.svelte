@@ -98,7 +98,7 @@
             {/if}
 
             <div class="mt-4 md:flex">
-                <div class="md:w-auto">
+                <div class="md:w-1/3">
                     <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
                     <div class="text-center mb-4">
                         by
@@ -116,43 +116,56 @@
                         <Carousel photos={auction.media} />
                     </div>
                 </div>
-                <div class:md:w-auto={!auction.isInstantBuy()} class:hidden={auction.isInstantBuy()}>
+                <div class="lg:w-1/2">
                     {#if !auction.ended}
-                        {#if auction.end_date_extended}
-                            <h3 class="text-2xl text-center text-warning my-2">
+                    {#if auction.end_date_extended}
+                        <h3 class="text-2xl text-center text-warning my-2">
                             Time Extended
-                            </h3>
-                        {/if}
-                        {#if $token && $user}
-                            {#if !auction.is_mine}
-                                {#if !auction.bids.length}
+                        </h3>
+                    {/if}
+                    {#if $token && $user}
+                        {#if !auction.is_mine}
+                            {#if !auction.bids.length}
+                                {#if auction.isInstantBuy()}
                                     <p class="text-center pt-12">Place your bid below</p>
+                                {:else}
+                                    <p class="text-center pt-12">Buy instantly below</p>
                                 {/if}
-                                {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                                    <div class="flex justify-center items-center">
-                                        <NewBid bind:this={newBid} auction={auction} bind:amount />
-                                    </div>
-                                {/if}
-                            {:else}
-                                {#if auction.started}
-                                    <p class="text-center pt-24 md:pt-4">Your auction is running &#x1FA99; &#x1F528; &#x1F4B0;</p>
-                                {/if}
+                            {/if}
+                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
+                                <div class:mt-14={auction.isInstantBuy()} class="flex justify-center items-center">
+                                    <NewBid bind:this={newBid} auction={auction} bind:amount />
+                                </div>
                             {/if}
                         {:else}
-                            {#if !auction.bids.length}
+                            {#if auction.started}
+                                {#if auction.isInstantBuy()}
+                                    <p class="text-center text-2xl pt-14">Your instant buy is listed</p>
+                                    <p class="text-center text-4xl pt-4">&#x1FA99; &#x1F528; &#x1F4B0;</p>
+                                {:else}
+                                    <p class="text-center pt-24">Your auction is running &#x1FA99; &#x1F528; &#x1F4B0;</p>
+                                {/if}
+                            {/if}
+                        {/if}
+                    {:else}
+                        {#if !auction.bids.length}
+                            {#if auction.isInstantBuy()}
+                                <p class="text-center text-2xl pt-14">Login below to buy instantly</p>
+                            {:else}
                                 <p class="text-center pt-24">Login below to place a bid</p>
                             {/if}
-                            <Login />
                         {/if}
+                        <Login />
                     {/if}
+                {/if}
                     {#if auction.start_date && auction.end_date}
                         {#if auction.started && !auction.ended}
-                            <div class="py-5">
+                            <div class:hidden={auction.isInstantBuy()} class="py-5">
                                 <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
                             </div>
                         {/if}
                         {#if !auction.reserve_bid_reached}
-                            <p class="my-3 w-full text-xl text-center">
+                            <p class:hidden={auction.isInstantBuy()} class="my-3 w-full text-xl text-center">
                                 Reserve not met!
                             </p>
                         {/if}
@@ -163,13 +176,18 @@
                         </div>
                     {:else}
                         {#if !auction.is_mine}
-                            <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter amount={auction.starting_bid} /> sats.</p>
-                            <p class="text-2xl text-center pt-2">Be the first to bid!</p>
+                            {#if auction.isInstantBuy()}
+                                <p class="text-3xl text-center pt-4">Price is <AmountFormatter amount={auction.starting_bid} /> sats.</p>
+                                <p class="text-2xl text-center pt-2">Buy it instantly!</p>
+                            {:else}
+                                <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter amount={auction.starting_bid} /> sats.</p>
+                                <p class="text-2xl text-center pt-2">Be the first to bid!</p>
+                            {/if}
                         {/if}
                     {/if}
 
                 </div>
-                <div class="md:w-auto ml-2">
+                <div class="md:w-1/3 ml-2">
                     <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
                     <h3 class="mx-1">Product Details</h3>
                     </span>
@@ -194,29 +212,7 @@
 
             <div class="mt-4">
 
-                {#if auction.isInstantBuy()}
-                    {#if $token && $user}
-                        {#if !auction.is_mine}
-                            {#if !auction.bids.length}
-                                <p class="text-center pt-12">Buy instantly for <AmountFormatter amount={auction.starting_bid} /> sats</p>
-                            {/if}
-                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
-                                <div class="mt-4 flex justify-center items-center">
-                                    <NewBid bind:this={newBid} auction={auction} amount={auction.starting_bid} />
-                                </div>
-                            {/if}
-                        {:else}
-                            {#if auction.started}
-                                <p class="text-center pt-4">Your instant buy is listed for {auction.starting_bid} sats &#x1FA99; &#x1F528; &#x1F4B0;</p>
-                            {/if}
-                        {/if}
-                    {:else}
-                        {#if !auction.bids.length}
-                            <p class="text-center pt-24">Login below to buy instantly</p>
-                        {/if}
-                        <Login />
-                    {/if}
-                {/if}
+
             </div>
 
             {#if auction.ended}
