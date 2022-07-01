@@ -464,3 +464,92 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         self.assertEqual(set(a['key'] for a in response['auctions']), {auction_key})
+
+        # create an instant buy auction
+        code, response = self.post("/api/auctions",
+            {'title': "Auction with fixed price",
+             'description': "Selling something for a fixed price",
+             'duration_hours': 0,
+             'starting_bid': 100,
+             'reserve_bid': 0},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+
+        auction_key_4 = response['auction']['key']
+
+        # start the instant buy auction
+        code, response = self.put(f"/api/auctions/{auction_key_4}",
+            {'start_date': (datetime.utcnow() - timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat()},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # user can buy buy the instant buy auction
+        code, response = self.post(f"/api/auctions/{auction_key_4}/bids", {'amount': 100},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertTrue('payment_request' in response)
+        self.assertTrue(response['payment_request'].startswith('MOCK'))
+        self.assertTrue('svg' in response['qr'])
+        
+        bid_payment_request = response['payment_request']
+
+        # instant buy auction has no (settled) bids... yet
+        code, response = self.get(f"/api/auctions/{auction_key_4}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 0)
+
+        # waiting for the invoice to settle...
+        time.sleep(4)
+
+        # instant buy auction has our settled bid
+        code, response = self.get(f"/api/auctions/{auction_key_4}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)
+
+        # create another instant buy auction
+        code, response = self.post("/api/auctions",
+            {'title': "Auction with fixed price",
+             'description': "Selling something for a fixed price",
+             'duration_hours': 0,
+             'starting_bid': 500000,
+             'reserve_bid': 0},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+
+        auction_key_5 = response['auction']['key']
+
+        # start this instant buy auction by getting images from Twitter
+        code, response = self.put(f"/api/auctions/{auction_key_5}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # user can also buy this instant buy auction
+        code, response = self.post(f"/api/auctions/{auction_key_5}/bids", {'amount': 500500},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertTrue('payment_request' in response)
+        self.assertTrue(response['payment_request'].startswith('MOCK'))
+        self.assertTrue('svg' in response['qr'])
+        
+        bid_payment_request = response['payment_request']
+
+        # this instant buy auction has no (settled) bids... yet
+        code, response = self.get(f"/api/auctions/{auction_key_5}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 0)
+
+        # waiting for the invoice to settle...
+        time.sleep(4)
+
+        # this instant buy auction has our settled bid
+        code, response = self.get(f"/api/auctions/{auction_key_5}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)

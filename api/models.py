@@ -171,6 +171,10 @@ class Auction(db.Model):
         top_bid = self.get_top_bid()
         return top_bid.amount >= self.reserve_bid if top_bid else False
 
+    @property
+    def instant_buy(self):
+        return self.duration_hours == 0
+
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
@@ -180,7 +184,7 @@ class Auction(db.Model):
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
-            'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date else False,
+            'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date and not self.instant_buy else False,
             'ended': self.ended,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,

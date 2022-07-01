@@ -100,7 +100,11 @@
                     <div class="lg:flex">
                         <div class="mt-4 lg:mt-0">
                             <div class="ml-4 mt-2">
-                                <Countdown untilDate={auction.end_date} />
+                                {#if !auction.isInstantBuy()}
+                                    <Countdown untilDate={auction.end_date} />
+                                {:else}
+                                    <span class="text-xl">{auction.starting_bid} sats</span>
+                                {/if}
                             </div>
                         </div>
                     </div>
@@ -154,18 +158,20 @@
                 <DateFormatter date={auction.end_date} />
             {/if}
             <br />
-            {#if !auction.started}
+            {#if !auction.started && !auction.isInstantBuy()}
                 <span>{auction.duration_str} /</span>
             {/if}
             {#if !auction.has_winner}
-                <span>Start: <AmountFormatter amount={auction.starting_bid} /> sats</span>
-                <span>Reserve: <AmountFormatter amount={auction.reserve_bid} /> sats</span>
+                {#if !auction.isInstantBuy()}
+                    <span>Start: <AmountFormatter amount={auction.starting_bid} /> sats</span>
+                    <span>Reserve: <AmountFormatter amount={auction.reserve_bid} /> sats</span>
+                {/if}
             {:else}
                 <span>Winner: @{auction.winner_twitter_username}</span>
                 <br />
                 <span>Amount: <AmountFormatter amount={auction.topAmount()} /> sats</span>
             {/if}
-            {#if auction.started}
+            {#if auction.started && !auction.isInstantBuy()}
                 <span class="lg:float-right">Bids: {auction.bids.length}</span>
             {/if}
         </p>

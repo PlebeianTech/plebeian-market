@@ -281,6 +281,10 @@ def start_twitter(user, key):
     auction.twitter_id = tweet['id']
     auction.start_date = datetime.utcnow()
     auction.end_date = auction.start_date + timedelta(hours=auction.duration_hours)
+    if auction.instant_buy:
+        auction.end_date = None
+    else:
+        auction.end_date = auction.start_date + timedelta(hours=auction.duration_hours)
 
     m.Media.query.filter_by(auction_id=auction.id).delete()
 
@@ -310,7 +314,7 @@ def bids(user, key):
     top_bid = auction.get_top_bid()
     if top_bid and amount <= top_bid.amount:
         return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
-    elif amount <= auction.starting_bid:
+    elif amount < auction.starting_bid:
         return jsonify({'message': f"Your bid needs to be higher than {auction.starting_bid}, the starting bid."}), 400
 
     response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])

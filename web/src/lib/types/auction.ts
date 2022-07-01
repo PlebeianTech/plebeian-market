@@ -67,6 +67,10 @@ export class Auction {
         return top;
     }
 
+    public isInstantBuy() {
+        return this.duration_hours === 0;
+    }
+
     public topAmount() {
         var top = this.topBid();
         return top === undefined ? 0 : top.amount;

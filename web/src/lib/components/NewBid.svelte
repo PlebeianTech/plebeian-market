@@ -3,14 +3,14 @@
     import { token } from "../stores";
     import QR from "./QR.svelte";
 
-    export let auctionKey;
     export let amount;
+    export let auction;
 
     let paymentRequest = null;
     let paymentQr = null;
 
     function placeBid() {
-        postBid($token, auctionKey, amount,
+        postBid($token, auction.key, amount,
             (r, q) => {
                 paymentRequest = r;
                 paymentQr = q;
@@ -36,7 +36,7 @@
 {#if paymentQr}
     <QR bind:qr={paymentQr} bind:lnurl={paymentRequest} />
 {:else}
-    <div class="form-control w-full max-w-xs">
+    <div class:hidden={auction.isInstantBuy()} class="form-control w-full max-w-xs">
         <label class="label" for="bid-amount">
             <span class="label-text">Suggested bid</span>
         </label>
@@ -47,7 +47,7 @@
         </label>
     </div>
     <div class="w-full flex items-center justify-center">
-        <div class="glowbutton glowbutton-bid mt-2" on:click|preventDefault={placeBid}></div>
+        <div class:glowbutton-bid={!auction.isInstantBuy()} class:glowbutton-buy={auction.isInstantBuy()} class="glowbutton mt-2" on:click|preventDefault={placeBid}></div>
     </div>
 {/if}
 </div>

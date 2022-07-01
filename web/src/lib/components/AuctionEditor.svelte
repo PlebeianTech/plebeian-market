@@ -11,11 +11,11 @@
     let durationMultiplier = "1";
 
     $: durationOptions = isLocal() || isStaging()
-        ? [0.1, 1, 24]
-        : [1, 24, 2 * 24];
+        ? [0, 0.1, 1, 24]
+        : [0, 1, 24, 2 * 24];
     $: durationLabels = isLocal() || isStaging()
-        ? ["6 minutes", "1 hour", "1 day"]
-        : ["1 hour", "1 day", "2 days"];
+        ? ["instant buy", "6 minutes", "1 hour", "1 day"]
+        : ["instant buy", "1 hour", "1 day", "2 days"];
 
     function twelveHours() {
         auction.duration_hours = 12;
@@ -59,7 +59,8 @@
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
-                            <span class="label-text">Starting bid (optional)</span>
+                            <span class:hidden={durationOptions.indexOf(auction.duration_hours) !== 0} class="label-text">Price</span>
+                            <span class:hidden={durationOptions.indexOf(auction.duration_hours) === 0} class="label-text">Starting bid (optional)</span>
                         </label>
                         <input bind:value={auction.starting_bid} type="number" name="starting-bid" class="input input-bordered w-full max-w-xs" />
                         <label class="label" for="starting-bid">
@@ -67,7 +68,7 @@
                             <span class="label-text-alt">sats</span>
                         </label>
                     </div>
-                    <div class="form-control w-1/2 max-w-xs ml-1">
+                    <div class:hidden={durationOptions.indexOf(auction.duration_hours) === 0} class="form-control w-1/2 max-w-xs ml-1">
                         <label class="label" for="reserve-bid">
                             <span class="label-text">Reserve bid (optional)</span>
                         </label>
