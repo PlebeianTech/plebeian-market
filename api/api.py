@@ -280,7 +280,6 @@ def start_twitter(user, key):
     user.twitter_username_verified = True
     auction.twitter_id = tweet['id']
     auction.start_date = datetime.utcnow()
-    auction.end_date = auction.start_date + timedelta(hours=auction.duration_hours)
     if auction.instant_buy:
         auction.end_date = None
     else:
