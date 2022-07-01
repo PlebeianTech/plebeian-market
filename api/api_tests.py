@@ -527,6 +527,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
 
+        auction_key_5 = response['auction']['key']
+
         # start this instant buy auction by getting images from Twitter
         code, response = self.put(f"/api/auctions/{auction_key_5}/start-twitter", {},
             headers=self.get_auth_headers(token_1))
