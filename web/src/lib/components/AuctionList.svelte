@@ -81,7 +81,7 @@
 </svelte:head>
 
 <div class="pt-10 flex justify-center items-center">
-    <section class="w-11/12 lg:w-3/5">
+    <section class="w-11/12 md:w-auto mx-20">
         {#if currentAuction}
             <AuctionEditor bind:auction={currentAuction} onSave={saveCurrentAuction} onCancel={() => currentAuction = undefined} />
         {:else if auctions === null}
