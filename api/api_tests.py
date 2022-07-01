@@ -510,18 +510,22 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auction']['bids']), 1)
         self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)
 
+        # instant buy auction has ended 
+        code, response = self.get(f"/api/auctions/{auction_key_4}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['auction']['ended'], True)
+
         # create another instant buy auction
         code, response = self.post("/api/auctions",
             {'title': "Auction with fixed price",
              'description': "Selling something for a fixed price",
              'duration_hours': 0,
-             'starting_bid': 500000,
+             'starting_bid': 500,
              'reserve_bid': 0},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
-
-        auction_key_5 = response['auction']['key']
 
         # start this instant buy auction by getting images from Twitter
         code, response = self.put(f"/api/auctions/{auction_key_5}/start-twitter", {},
@@ -529,7 +533,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         # user can also buy this instant buy auction
-        code, response = self.post(f"/api/auctions/{auction_key_5}/bids", {'amount': 500500},
+        code, response = self.post(f"/api/auctions/{auction_key_5}/bids", {'amount': 500},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertTrue('payment_request' in response)
@@ -547,9 +551,10 @@ class TestApi(unittest.TestCase):
         # waiting for the invoice to settle...
         time.sleep(4)
 
-        # this instant buy auction has our settled bid
+        # this instant buy auction has our settled bid and has ended
         code, response = self.get(f"/api/auctions/{auction_key_5}",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 1)
         self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)
+        self.assertEqual(response['auction']['ended'], True)
