@@ -71,7 +71,8 @@ def settle_bids():
                 bid.settled_at = datetime.utcnow()
                 if bid.auction.instant_buy:
                     bid.auction.end_date = datetime.utcnow()
-                bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
+                else:
+                    bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
                 # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
                 app.logger.info(f"Settled bid {bid.id} amount {bid.amount}.")
             auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
