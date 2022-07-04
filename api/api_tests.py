@@ -484,9 +484,14 @@ class TestApi(unittest.TestCase):
             {'start_date': (datetime.utcnow() - timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat()},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
+        
+        # user cannot buy for the wrong price
+        code, response = self.post(f"/api/auctions/{auction_key_4}/bids", {'amount': 4000},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 400)
 
-        # user can buy buy the instant buy auction
-        code, response = self.post(f"/api/auctions/{auction_key_4}/bids", {'amount': 100},
+        # user can buy the instant buy auction
+        code, response = self.post(f"/api/auctions/{auction_key_4}/bids", {'amount': 5000},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertTrue('payment_request' in response)
@@ -537,7 +542,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         # user can also buy this instant buy auction
-        code, response = self.post(f"/api/auctions/{auction_key_5}/bids", {'amount': 500},
+        code, response = self.post(f"/api/auctions/{auction_key_5}/bids", {'amount': 5000},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertTrue('payment_request' in response)
