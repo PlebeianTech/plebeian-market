@@ -185,7 +185,7 @@ class Auction(db.Model):
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
-            'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date and not self.instant_buy else False,
+            'end_date_extended': self.end_date > (self.start_date + timedelta(hours=self.duration_hours)) if (self.start_date and not self.instant_buy) else False,
             'ended': self.ended,
             'starting_bid': self.starting_bid,
             'instant_buy_price': self.instant_buy_price,
