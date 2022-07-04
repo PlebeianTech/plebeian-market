@@ -470,9 +470,10 @@ class TestApi(unittest.TestCase):
             {'title': "Auction with fixed price",
              'description': "Selling something for a fixed price",
              'duration_hours': 0,
-             'starting_bid': 100,
-             'reserve_bid': 0},
-            headers=self.get_auth_headers(token_1))
+             'starting_bid': 0,
+             'reserve_bid': 0,
+             'instant_buy_price': 5000},
+        headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)
 
@@ -521,8 +522,9 @@ class TestApi(unittest.TestCase):
             {'title': "Auction with fixed price",
              'description': "Selling something for a fixed price",
              'duration_hours': 0,
-             'starting_bid': 500,
-             'reserve_bid': 0},
+             'starting_bid': 0,
+             'reserve_bid': 0,
+             'instant_buy_price': 5000},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertTrue('auction' in response)

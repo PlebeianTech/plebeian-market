@@ -69,7 +69,7 @@ export class Auction {
     }
 
     public isInstantBuy() {
-        return this.instant_buy_price !== 0;
+        return this.instant_buy_price !== null;
     }
 
     public topAmount() {
