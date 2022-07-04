@@ -134,6 +134,7 @@ class Auction(db.Model):
 
     starting_bid = db.Column(db.Integer, nullable=False)
     reserve_bid = db.Column(db.Integer, nullable=False)
+    instant_buy_price = db.Column(db.Integer, nullable=True)
 
     shipping_from = db.Column(db.String(64), nullable=True)
 
@@ -187,6 +188,7 @@ class Auction(db.Model):
             'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date and not self.instant_buy else False,
             'ended': self.ended,
             'starting_bid': self.starting_bid,
+            'instant_buy_price': self.instant_buy_price,
             'reserve_bid_reached': self.reserve_bid_reached,
             'shipping_from': self.shipping_from,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
@@ -290,7 +292,7 @@ class Auction(db.Model):
             except ValueError:
                 raise ValidationError(f"Invalid {k.replace('_', ' ')}.")
             validated[k] = date
-        for k in ['starting_bid', 'reserve_bid']:
+        for k in ['starting_bid', 'reserve_bid', 'instant_buy_price']:
             if k not in d:
                 continue
             try:

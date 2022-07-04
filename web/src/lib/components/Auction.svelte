@@ -177,7 +177,7 @@
                     {:else}
                         {#if !auction.is_mine}
                             {#if auction.isInstantBuy()}
-                                <p class="text-3xl text-center pt-4">Price is <AmountFormatter amount={auction.starting_bid} /> sats.</p>
+                                <p class="text-3xl text-center pt-4">Price is <AmountFormatter amount={auction.instant_buy_price} /> sats.</p>
                                 <p class="text-2xl text-center pt-2">Buy it instantly!</p>
                             {:else}
                                 <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter amount={auction.starting_bid} /> sats.</p>

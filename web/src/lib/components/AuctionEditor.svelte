@@ -57,10 +57,19 @@
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
                 </div>
                 <div class="flex">
-                    <div class="form-control w-1/2 max-w-xs mr-1">
+                    <div class:hidden={durationOptions.indexOf(auction.duration_hours) !== 0} class="form-control w-1/2 max-w-xs mr-1">
+                        <label class="label" for="instant-buy-price">
+                            <span class="label-text">Price</span>
+                        </label>
+                        <input bind:value={auction.instant_buy_price} type="number" name="instant-buy-price" class="input input-bordered w-full max-w-xs" />
+                        <label class="label" for="instant-buy-price">
+                            <span class="label-text-alt"></span>
+                            <span class="label-text-alt">sats</span>
+                        </label>
+                    </div>
+                    <div class:hidden={durationOptions.indexOf(auction.duration_hours) === 0} class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
-                            <span class:hidden={durationOptions.indexOf(auction.duration_hours) !== 0} class="label-text">Price</span>
-                            <span class:hidden={durationOptions.indexOf(auction.duration_hours) === 0} class="label-text">Starting bid (optional)</span>
+                            <span class="label-text">Starting bid (optional)</span>
                         </label>
                         <input bind:value={auction.starting_bid} type="number" name="starting-bid" class="input input-bordered w-full max-w-xs" />
                         <label class="label" for="starting-bid">
