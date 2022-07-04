@@ -15,7 +15,7 @@ export interface Media {
 }
 
 export class Auction {
-    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'starting_bid', 'reserve_bid', 'duration_hours'];
+    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'starting_bid', 'reserve_bid', 'instant_buy_price', 'duration_hours'];
 
     key: string = "";
     title: string = "";
@@ -69,7 +69,7 @@ export class Auction {
     }
 
     public isInstantBuy() {
-        return this.duration_hours === 0;
+        return this.instant_buy_price !== 0;
     }
 
     public topAmount() {
