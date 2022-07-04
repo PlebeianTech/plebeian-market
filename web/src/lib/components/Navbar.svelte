@@ -1,8 +1,9 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { goto } from '$app/navigation';
+    import { getValue } from 'btc2fiat';
     import { getProfile } from "../services/api";
-    import { token, user } from "../stores";
+    import { token, user, BTC2USD } from "../stores";
     import Profile from "./Profile.svelte";
 
     let profile : Profile | null;
@@ -17,6 +18,10 @@
                     profile.showIfIncomplete();
                 }
             });
+    }
+
+    async function fetchFiatRate() {
+        BTC2USD.set(await getValue());
     }
 
     function showProfile() {
@@ -42,6 +47,7 @@
         if ($token) {
             fetchProfile($token);
         }
+        fetchFiatRate();
     });
 
     const unsubscribe = token.subscribe(value => {

@@ -32,11 +32,17 @@
                         </div>
                     </td>
                     <td>
-                        <p class="hidden md:contents"><AmountFormatter amount={bid.amount} /> sats</p>
+                        <p class="hidden md:contents">
+                            <AmountFormatter amount={bid.amount} /> sats
+                            (<AmountFormatter amount={bid.amount} fiatFirst={true} />$)
+                        </p>
                     </td>
                     <td>
                         <p class="hidden md:contents"><DateFormatter date={bid.settled_at} /></p>
-                        <p class="md:hidden"><AmountFormatter amount={bid.amount} /> sats</p>
+                        <p class="md:hidden">
+                            <AmountFormatter amount={bid.amount} /> sats
+                            (<AmountFormatter amount={bid.amount} fiatFirst={true} />$)
+                        </p>
                     </td>
                 </tr>
             {/each}
