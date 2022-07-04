@@ -165,6 +165,8 @@
                 {#if !auction.isInstantBuy()}
                     <span>Start: <AmountFormatter amount={auction.starting_bid} /> sats</span>
                     <span>Reserve: <AmountFormatter amount={auction.reserve_bid} /> sats</span>
+                {:else}
+                    <span>Price: <AmountFormatter amount={auction.instant_buy_price} /> sats</span>
                 {/if}
             {:else}
                 <span>Winner: @{auction.winner_twitter_username}</span>
