@@ -24,7 +24,7 @@ export class Auction {
     seller_twitter_profile_image_url: string = "";
     description: string = "";
     starting_bid: number = 0;
-    instant_buy_price: number = 0;
+    instant_buy_price: number | null;
     reserve_bid: number = 0;
     reserve_bid_reached: boolean = false;
     shipping_from: string = "";
