@@ -214,7 +214,7 @@ class Twitter:
         if not response_json or response_json.get('errors'):
             return
 
-        return [u['username'] for u in response_json['data']]
+        return [u['username'].lower() for u in response_json['data']]
 
     def get_auction_tweets(self, user_id):
         response_json = self.get(f"/users/{user_id}/tweets",
