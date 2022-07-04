@@ -127,9 +127,9 @@
                         {#if !auction.is_mine}
                             {#if !auction.bids.length}
                                 {#if auction.isInstantBuy()}
-                                    <p class="text-center pt-12">Place your bid below</p>
-                                {:else}
                                     <p class="text-center pt-12">Buy instantly below</p>
+                                {:else}
+                                    <p class="text-center pt-12">Place your bid below</p>
                                 {/if}
                             {/if}
                             {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
