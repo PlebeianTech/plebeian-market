@@ -139,7 +139,7 @@ def me(user):
 @user_required
 def verify_twitter(user):
     liking_usernames = get_twitter().get_tweet_likes(user.twitter_username_verification_tweet_id)
-    if not user.twitter_username in liking_usernames:
+    if not user.twitter_username.lower() in liking_usernames:
         return jsonify({'message': "Please like the tweet to verify your username."}), 400
     else:
         user.twitter_username_verified = True
