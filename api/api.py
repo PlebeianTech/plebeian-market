@@ -315,6 +315,9 @@ def bids(user, key):
         return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
     elif amount < auction.starting_bid:
         return jsonify({'message': f"Your bid needs to be higher than {auction.starting_bid}, the starting bid."}), 400
+    elif auction.instant_buy:
+        if amount != auction.instant_buy_price:
+            return jsonify({'message': f"Invalid amount, must be {auction.instant_buy_price}."}), 400
 
     response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])
 

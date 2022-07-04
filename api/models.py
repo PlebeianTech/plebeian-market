@@ -174,7 +174,7 @@ class Auction(db.Model):
 
     @property
     def instant_buy(self):
-        return self.duration_hours == 0
+        return self.instant_buy_price is not None
 
     def to_dict(self, for_user=None):
         auction = {
