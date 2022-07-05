@@ -11,7 +11,7 @@
     <table class="table w-full">
         <thead>
             <tr>
-                <th><p class="hidden md:contents">Bidder</p><p class="md:hidden">Bids</p></th>
+                <th><p class:md:hidden={auction.isInstantBuy()} class="hidden md:contents">Bidder</p><p class:hidden={auction.isInstantBuy()} class="md:hidden">Bids</p><p class:contents={auction.isInstantBuy()}>Buyer</p></th>
                 <th><p class="hidden md:contents">Amount</p></th>
                 <th><p class="hidden md:contents">Date</p></th>
             </tr>

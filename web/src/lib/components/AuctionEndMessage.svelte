@@ -57,7 +57,7 @@
         <span class=text-3xl>Congratulations</span> @{$user.twitterUsername}, You've won &#x1F389; &#x1F64C; &#x1F44F;
     </div>
     <p class="my-2">
-        The seller wishes to donate {auction.contribution_percent}% = <AmountFormatter amount={auction.contribution_amount} /> sats out of your winning bid to Plebeian Technology. Please send the amount using the QR code below!
+        The seller wishes to donate {auction.contribution_percent}% = <AmountFormatter amount={auction.contribution_amount} /> sats <span class:hidden={auction.isInstantBuy()}>out of your winning bid</span><span class:hidden={!auction.isInstantBuy()}> of the purchase price</span> to Plebeian Technology. Please send the amount using the QR code below!
     </p>
     <p class="my-2">
         @{auction.seller_twitter_username} is waiting for you to send us their contribution!
@@ -67,5 +67,5 @@
     </p>
     <QR bind:qr={auction.contribution_qr} bind:lnurl={auction.contribution_payment_request} />
 {:else if $user && auction.wait_contribution}
-    <p class="my-2 text-center">We are waiting for the winner to send your contribution to Plebeian Technology.</p>
+    <p class="my-2 text-center">We are waiting for the <span class:hidden={auction.isInstantBuy()}>winner</span><span class:hidden={!auction.isInstantBuy()}>buyer</span> to send your contribution to Plebeian Technology.</p>
 {/if}
