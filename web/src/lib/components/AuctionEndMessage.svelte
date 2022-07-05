@@ -25,7 +25,11 @@
             </div>
         {/if}
         <div class="my-4 text-center">
-            <span class=text-3xl>Congratulations...</span> the winning bidder is
+            {#if auction.isInstantBuy()}
+                <span class=text-3xl>Congratulations...</span> your listing has been purchased by
+            {:else}
+                <span class=text-3xl>Congratulations...</span> the winning bidder is
+            {/if}
             <a class="link" href="https://twitter.com/{auction.winner_twitter_username}">@{auction.winner_twitter_username}</a>
         </div>
         <p class="my-2 text-center">Please contact them for the final payment of <AmountFormatter amount={auction.remaining_amount} /> sats.</p>
@@ -45,7 +49,11 @@
                     rightProfileImageUrl={auction.seller_twitter_profile_image_url} />
             </div>
         {/if}
-        <p class="my-4 text-center">Thank you for your contribution! Please contact the seller directly to arrange payment of the remaining <AmountFormatter amount={auction.remaining_amount} /> sats and delivery.</p>
+        {#if auction.isInstantBuy()}
+            <p class="my-4 text-center">Thank you for your contribution! Your order has been placed and the seller has been notified. Please contact the seller directly to arrange payment of the remaining <AmountFormatter amount={auction.remaining_amount} /> sats and delivery.</p>
+        {:else}
+            <p class="my-4 text-center">Thank you for your contribution! Please contact the seller directly to arrange payment of the remaining <AmountFormatter amount={auction.remaining_amount} /> sats and delivery.</p>
+        {/if}
     {:else}
         <p class="my-4">Congratulations to @{auction.winner_twitter_username}!</p>
         {#if auction.contribution_amount}
