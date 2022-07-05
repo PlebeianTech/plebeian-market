@@ -89,7 +89,11 @@
         <h2 class="card-title mb-2">
             {auction.title}
             {#if auction.started && !auction.ended}
-                <div class="badge badge-primary">running</div>
+                {#if auction.isInstantBuy()}
+                    <div class="badge badge-primary">listed</div>
+                {:else}
+                    <div class="badge badge-primary">running</div>
+                {/if}
             {:else if auction.ended}
                 <div class="badge badge-secondary">ended</div>
             {/if}
@@ -102,8 +106,6 @@
                             <div class="ml-4 mt-2">
                                 {#if !auction.isInstantBuy()}
                                     <Countdown untilDate={auction.end_date} />
-                                {:else}
-                                    <span class="text-xl">{auction.starting_bid} sats</span>
                                 {/if}
                             </div>
                         </div>
