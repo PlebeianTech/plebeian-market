@@ -6,8 +6,10 @@
     import { token, user, BTC2USD } from "../stores";
     import { isLocal, isStaging } from "../utils";
     import Profile from "./Profile.svelte";
+    import UserNotifications from "./UserNotifications.svelte";
 
     let profile : Profile | null;
+    let userNotifications : UserNotifications | null;
 
     let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -35,6 +37,12 @@
     function showTwitterVerification() {
         if (profile) {
             profile.showTwitterVerification($user!.twitterUsernameVerificationTweet);
+        }
+    }
+
+    function showUserNotifications() {
+        if (userNotifications) {
+            userNotifications.show();
         }
     }
 
@@ -94,11 +102,12 @@
                     </div>
                 </label>
                 <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
-                    <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
-                    <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button">Profile</label></li>
                     {#if !$user.twitterUsernameVerified}
                         <li><label for="twitter-verification-modal" on:click|preventDefault={showTwitterVerification} class="modal-button">Verify Twitter</label></li>
                     {/if}
+                    <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
+                    <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button">Profile</label></li>
+                    <li><label for="profile-modal" on:click|preventDefault={showUserNotifications} class="modal-button">Notifications</label></li>
                     <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
                     <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }}>Logout</a></li>
                 </ul>
@@ -108,3 +117,4 @@
 </div>
 
 <Profile bind:this={profile} />
+<UserNotifications bind:this={userNotifications} />

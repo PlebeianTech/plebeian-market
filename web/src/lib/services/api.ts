@@ -1,5 +1,6 @@
 import { goto } from "$app/navigation";
 import { type Auction, fromJson as auctionFromJson } from "../types/auction";
+import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "../types/notification";
 import { type User, fromJson as userFromJson } from "../types/user";
 import { isLocal, isStaging } from "../utils";
 import { token, Error } from "../stores";
@@ -125,6 +126,29 @@ export function postProfile(tokenValue, profile: {twitterUsername: string, contr
         });
 }
 
+export function getUserNotifications(tokenValue, successCB: (notifications: UserNotification[]) => void) {
+    fetchAPI("/users/me/notifications", 'GET', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(data.notifications.map(userNotificationFromJson));
+                });
+            }
+        })
+}
+
+export function putUserNotifications(tokenValue, notifications: PostUserNotification[], successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/users/me/notifications", 'PUT', tokenValue,
+        JSON.stringify({'notifications': notifications.map(n => n.toJson())}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(successCB);
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
 export function putVerifyTwitter(tokenValue, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/users/me/verify-twitter", 'PUT', tokenValue,
         JSON.stringify({}),
@@ -185,6 +209,17 @@ export function postAuction(tokenValue, auction: Auction, successCB: () => void,
         });
 }
 
+export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean, successCB: (message: string) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/auctions/${auctionKey}/follow`, 'PUT', tokenValue, JSON.stringify({follow}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => { successCB(data.message); });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
 export function startAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/start-twitter`, 'PUT', tokenValue, null,
         response => {
@@ -218,12 +253,12 @@ export function unfeatureAuction(tokenValue, auctionKey, successCB: () => void, 
         });
 }
 
-export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr) => void, errorHandler = new ErrorHandler()) {
+export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr, messages: string[]) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
         JSON.stringify({amount}),
         response => {
             if (response.status === 200) {
-                response.json().then(data => { successCB(data.payment_request, data.qr); });
+                response.json().then(data => { successCB(data.payment_request, data.qr, data.messages); });
             } else {
                 errorHandler.handle(response);
             }

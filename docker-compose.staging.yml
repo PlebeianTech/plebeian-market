@@ -38,6 +38,12 @@ services:
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask settle-bids
+  process-notifications:
+    environment:
+      - FLASK_APP=main
+    volumes:
+      - "/home/www/plebeian-market-secrets:/secrets"
+    command: flask process-notifications
 
 networks:
   proxy:

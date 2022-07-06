@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 from functools import wraps
 import io
+from itertools import chain
 import json
+from logging.config import dictConfig
 import os
 import random
 import signal
@@ -11,6 +13,8 @@ import time
 
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
+
+from sqlalchemy.exc import IntegrityError
 
 from flask_migrate import Migrate
 
@@ -23,6 +27,25 @@ import magic
 from requests_oauthlib import OAuth1Session
 
 from extensions import cors, db
+
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
+
+dictConfig({
+    'version': 1,
+    'formatters': {
+        'default': {
+            'format': "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+        }
+    },
+    'handlers': {'default': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'default',
+    }},
+    'root': {
+        'level': LOG_LEVEL,
+        'handlers': ['default'],
+    },
+})
 
 class MyFlask(Flask):
     def __init__(self, import_name, **kwargs):
@@ -60,28 +83,143 @@ def run_tests():
 @app.cli.command("settle-bids")
 @with_appcontext
 def settle_bids():
-    app.logger.setLevel(logging.INFO)
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
     lnd = get_lnd_client()
     last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
     for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
         if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
+            found_invoice = False
             bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
             if bid:
+                found_invoice = True
                 bid.settled_at = datetime.utcnow()
                 bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
                 # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
-                app.logger.info(f"Settled bid {bid.id} amount {bid.amount}.")
-            auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
-            if auction:
-                auction.contribution_settled_at = datetime.utcnow()
-                auction.winning_bid_id = auction.get_top_bid().id
-                app.logger.info(f"Settled contribution for {auction.id} amount {auction.contribution_amount}.")
-            if bid or auction:
+                app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
+            else:
+                auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
+                if auction:
+                    found_invoice = True
+                    auction.contribution_settled_at = datetime.utcnow()
+                    auction.winning_bid_id = auction.get_top_bid().id
+                    app.logger.info(f"Settled contribution: {auction.id=} {auction.contribution_amount=}.")
+            if found_invoice:
                 last_settle_index = invoice.settle_index
                 state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
                 state.value = str(last_settle_index)
                 db.session.commit()
+
+@app.cli.command("process-notifications")
+@with_appcontext
+def process_notifications():
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
+    # NB: this is used only as an optimization
+    # The actual way of making sure we don't send the same notification twice is the database, namely the UNIQUE constraint on messages (user_id, key).
+    # We store this list of sent notifications in memory so we can quickly skip duplicates and not even try to execute the INSERT query.
+    # However, if this process is restarted, this list will be lost, so we will attempt to send (some of) the same notifications again.
+    # That is when the database will save us as it will simply raise an integrity error.
+    sent_notifications = set()
+
+    while True:
+        processing_started = datetime.utcnow()
+
+        state = db.session.query(m.State).filter_by(key=m.State.LAST_PROCESSED_NOTIFICATIONS).one_or_none()
+        if not state:
+            # First time we ever run this process, there's not much to do,
+            # as we don't want to send notifications for every event that happened in the past!
+            state = m.State(key=m.State.LAST_PROCESSED_NOTIFICATIONS, value=str(int(processing_started.timestamp())))
+            db.session.add(state)
+            db.session.commit()
+            time.sleep(1)
+            continue
+
+        last_processed_notifications = datetime.fromtimestamp(int(state.value))
+
+        total_bids = 0
+        total_auctions = 0
+        start_time = time.time()
+
+        # NB: we load 1) all (new) bids (since last run)
+        # and 2) all auctions that are going to end in the next 10 minutes (or ended since the last run minus 10 minutes).
+        # This ensures that notifications to be sent for new bids or for any auction ending soon or that just ended will be processed.
+        # If we want (for example) notifications for newly created auctions (regardless of end date) we would have to load auctions based on created_at.
+        for bid_or_auction in chain(
+            db.session.query(m.Bid).filter(m.Bid.settled_at > last_processed_notifications), # TODO: select related auctions to optimize?
+            db.session.query(m.Auction).filter((m.Auction.end_date <= (datetime.utcnow() + timedelta(minutes=10))) & (m.Auction.end_date > (last_processed_notifications - timedelta(minutes=10))))
+        ):
+            match bid_or_auction:
+                case m.Bid():
+                    bid = bid_or_auction
+                    auction = bid.auction
+                    total_bids += 1
+                    app.logger.debug(f"Processing bid {bid.id=}.")
+                case m.Auction():
+                    bid = None
+                    auction = bid_or_auction
+                    total_auctions += 1
+                    app.logger.debug(f"Processing auction {auction.id=}.")
+
+            # this could be further optimized by caching the users following the running auctions in memory,
+            # but we would need a way to invalidate/update the cache on follow/unfollow
+            following_user_ids = [ua.user_id for ua in db.session.query(m.UserAuction).filter_by(auction_id=auction.id, following=True).all()]
+            following_users = {u.id: u for u in db.session.query(m.User).filter(m.User.id.in_(following_user_ids)).all()}
+
+            # notification settings for the users following the auction - could also be cached, with the same caveat as above
+            user_notifications = {(un.user_id, un.notification_type): un for un in db.session.query(m.UserNotification).filter(m.UserNotification.user_id.in_(following_user_ids)).all()}
+
+            for notification_type, notification in m.NOTIFICATION_TYPES.items():
+                for user in following_users.values():
+                    if (user.id, notification_type) not in user_notifications:
+                        # this user didn't sign up for this notification type
+                        continue
+
+                    message_args = notification.get_message_args(user, auction, bid)
+                    if not message_args:
+                        # notification type does not apply in this case
+                        continue
+
+                    if message_args['key'] in sent_notifications:
+                        # already sent - don't even bother trying again (will fail anyway with IntegrityError)!
+                        continue
+
+                    # insert before actually trying to send anything to ensure uniqueness
+                    message = m.Message(**message_args)
+                    db.session.add(message)
+
+                    try:
+                        db.session.commit()
+                    except IntegrityError:
+                        app.logger.info(f"Duplicate message send attempt: {message_args['key']=} {message_args['user_id']=}!")
+                        db.session.rollback()
+                        # the message already exists for this user
+                        # see the comment on sent_notifications above for details
+                        continue
+
+                    action = user_notifications[(user.id, notification_type)].action
+                    app.logger.info(f"Executing {action=} for {user.id=}!")
+                    if m.NOTIFICATION_ACTIONS[action].execute(user, message):
+                        message.notified_via = action
+                    else:
+                        pass
+                        # db.session.delete(message)
+                        # Probably better to keep the Message in the DB if sending failed,
+                        # since notifications are supposed to be real time sort-of,
+                        # so if the delivery failed we better don't try to send it later anyway!
+
+                    sent_notifications.add(message_args['key'])
+                    db.session.commit()
+
+        state = db.session.query(m.State).filter_by(key=m.State.LAST_PROCESSED_NOTIFICATIONS).first()
+        state.value = str(int(processing_started.timestamp()))
+        db.session.commit()
+
+        total_seconds = time.time() - start_time
+        app.logger.info(f"Processed {total_bids=} and {total_auctions=} in {total_seconds=}.")
+
+        time.sleep(1)
 
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
@@ -173,8 +311,13 @@ class MockTwitter:
             ]
         }]
 
+    def send_dm(self, user_id, body):
+        # NB: we are not actually testing that sending Twitter DMs works,
+        # but we are testing the notifications mechanism - so assume the DM went through
+        return True
+
 class Twitter:
-    BASE_URL = "https://api.twitter.com/2"
+    BASE_URL = "https://api.twitter.com"
     URL_PREFIXES = ["http://plebeian.market/auctions/", "https://plebeian.market/auctions/", "http://staging.plebeian.market/auctions/", "https://staging.plebeian.market/auctions/"]
 
     def __init__(self, api_key, api_key_secret, access_token, access_token_secret):
@@ -187,8 +330,16 @@ class Twitter:
         if response.status_code == 200:
             return response.json()
 
+    def post(self, path, params):
+        response = self.session.post(f"{Twitter.BASE_URL}{path}", params=params)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            app.logger.error(f"Error when POSTing to Twitter -> {path}: {response.json()=}")
+            return False
+
     def get_user(self, username):
-        response_json = self.get(f"/users/by/username/{username}",
+        response_json = self.get(f"/2/users/by/username/{username}",
             params={
                 'user.fields': "location,name,profile_image_url,pinned_tweet_id",
             })
@@ -206,7 +357,7 @@ class Twitter:
         return twitter_user
 
     def get_tweet_likes(self, tweet_id):
-        response_json = self.get(f"/tweets/{tweet_id}/liking_users",
+        response_json = self.get(f"/2/tweets/{tweet_id}/liking_users",
             params={
                 'user.fields': "username",
             })
@@ -217,7 +368,7 @@ class Twitter:
         return [u['username'].lower() for u in response_json['data']]
 
     def get_auction_tweets(self, user_id):
-        response_json = self.get(f"/users/{user_id}/tweets",
+        response_json = self.get(f"/2/users/{user_id}/tweets",
             params={
                 'max_results': 100,
                 'expansions': "attachments.media_keys",
@@ -233,7 +384,7 @@ class Twitter:
             for url in tweet.get('entities', {}).get('urls', []):
                 for p in Twitter.URL_PREFIXES:
                     if url['expanded_url'].startswith(p):
-                        auction_key = url['expanded_url'][len(p):]
+                        auction_key = url['expanded_url'].removeprefix(p)
                         break
 
             if auction_key:
@@ -248,6 +399,19 @@ class Twitter:
                 })
 
         return auction_tweets
+
+    def send_dm(self, user_id, body):
+        response_json = self.post(f"/1.1/direct_messages/events/new.json",
+            params={
+                'event': {
+                    'type': 'message_create',
+                    'message_create': {
+                        'target': {'recipient_id': user_id},
+                        'message_data': {'text': body},
+                    }
+                }
+            })
+        return bool(response_json)
 
 def get_twitter():
     if app.config['MOCK_TWITTER']:
