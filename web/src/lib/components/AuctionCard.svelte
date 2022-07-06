@@ -158,12 +158,12 @@
                 <span>{auction.duration_str} /</span>
             {/if}
             {#if !auction.has_winner}
-                <span>Start: <AmountFormatter amount={auction.starting_bid} /> sats</span>
-                <span>Reserve: <AmountFormatter amount={auction.reserve_bid} /> sats</span>
+                <span>Start: <AmountFormatter satsAmount={auction.starting_bid} /></span>
+                <span>Reserve: <AmountFormatter satsAmount={auction.reserve_bid} /></span>
             {:else}
                 <span>Winner: @{auction.winner_twitter_username}</span>
                 <br />
-                <span>Amount: <AmountFormatter amount={auction.topAmount()} /> sats</span>
+                <span>Amount: <AmountFormatter satsAmount={auction.topAmount()} /></span>
             {/if}
             {#if auction.started}
                 <span class="lg:float-right">Bids: {auction.bids.length}</span>

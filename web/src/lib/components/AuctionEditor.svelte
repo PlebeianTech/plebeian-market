@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import type { Auction } from "../types/auction";
     import { isLocal, isStaging } from "../utils";
+    import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
 
     export let auction: Auction;
     export let onSave = () => {};
@@ -63,7 +64,7 @@
                         </label>
                         <input bind:value={auction.starting_bid} type="number" name="starting-bid" class="input input-bordered w-full max-w-xs" />
                         <label class="label" for="starting-bid">
-                            <span class="label-text-alt"></span>
+                            <span class="label-text-alt"><AmountFormatter satsAmount={auction.starting_bid} format={AmountFormat.Usd} /></span>
                             <span class="label-text-alt">sats</span>
                         </label>
                     </div>
@@ -73,7 +74,7 @@
                         </label>
                         <input bind:value={auction.reserve_bid} type="number" name="reserve-bid" class="input input-bordered w-full max-w-xs" />
                         <label class="label" for="reserve-bid">
-                            <span class="label-text-alt"></span>
+                            <span class="label-text-alt"><AmountFormatter satsAmount={auction.reserve_bid} format={AmountFormat.Usd} /></span>
                             <span class="label-text-alt">sats</span>
                         </label>
                     </div>

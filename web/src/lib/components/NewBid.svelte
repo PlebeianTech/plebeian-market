@@ -1,6 +1,7 @@
 <script lang="ts">
     import { postBid } from "../services/api";
     import { token } from "../stores";
+    import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
     import QR from "./QR.svelte";
 
     export let auctionKey;
@@ -42,7 +43,7 @@
         </label>
         <input bind:value={amount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
         <label class="label" for="bid-amount">
-            <span class="label-text"></span>
+            <span class="label-text"><AmountFormatter satsAmount={amount} format={AmountFormat.Usd} /></span>
             <span class="label-text">sats</span>
         </label>
     </div>
