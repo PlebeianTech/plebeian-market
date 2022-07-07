@@ -42,7 +42,17 @@
 <div class="w-full flex justify-center items-center">
     <div class="card bg-base-300 w-full lg:w-4/6 lg:p-4 rounded shadow-2xl mt-3">
         <div class="card-body items-center">
-            <h2 class="card-title mb-4 text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
+            <h2 class="card-title mb-4 text-2xl text-center">{#if auction.key}Edit {#if durationOptions.indexOf(auction.duration_hours) === 0}listing{:else}auction{/if}{:else}New {#if durationOptions.indexOf(auction.duration_hours) === 0}listing{:else}auction{/if}{/if}</h2>
+            <div class="form-control mb-4 mr-2 w-full">
+                <div class="flex flex-wrap">
+                    {#each durationOptions as duration, i}
+                        {#if i === 0}
+                            <button class:btn-outline={durationOptions.indexOf(auction.duration_hours) !== 0} class:btn-active={durationOptions.indexOf(auction.duration_hours) === 0} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = duration}>{durationLabels[i]}</button>
+                            <button class:btn-outline={durationOptions.indexOf(auction.duration_hours) === 0} class:btn-active={durationOptions.indexOf(auction.duration_hours) !== 0} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = durationOptions[3]}>Auction</button>
+                        {/if}
+                    {/each}
+                </div>
+            </div>
             <form>
                 <div class="form-control w-full max-w-xs">
                     <label class="label" for="title">
@@ -96,13 +106,15 @@
                 </div>
                 <div class="form-control mr-2 w-full">
                     <label class="label" for="duration">
-                        <span class="label-text">Duration</span>
+                        <span class:hidden={durationOptions.indexOf(auction.duration_hours) === 0} class="label-text">Duration</span>
                     </label>
-                    <div class="flex flex-wrap">
+                    <div class:h-0={durationOptions.indexOf(auction.duration_hours) === 0} class="flex flex-wrap">
                         {#each durationOptions as duration, i}
-                            <button class:btn-outline={auction.duration_hours !== duration} class:btn-active={auction.duration_hours === duration} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = duration}>{durationLabels[i]}</button>
+                            {#if i > 0}
+                                <button class:invisible={durationOptions.indexOf(auction.duration_hours) === 0} class:btn-outline={auction.duration_hours !== duration} class:btn-active={auction.duration_hours === duration} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = duration}>{durationLabels[i]}</button>
+                            {/if}
                         {/each}
-                        <button class:btn-outline={durationOptions.indexOf(auction.duration_hours) !== -1} class:btn-active={durationOptions.indexOf(auction.duration_hours) == -1} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={twelveHours}>Custom</button>
+                        <button class:invisible={durationOptions.indexOf(auction.duration_hours) === 0} class:btn-outline={durationOptions.indexOf(auction.duration_hours) !== -1} class:btn-active={durationOptions.indexOf(auction.duration_hours) == -1} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={twelveHours}>Custom</button>
                         <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
                         <div class:invisible={durationOptions.indexOf(auction.duration_hours) !== -1} class="flex mx-2 mt-2 w-2/4 flex-auto">
                             <div class="form-control max-w-xs mr-1 w-1/4 flex-auto">
