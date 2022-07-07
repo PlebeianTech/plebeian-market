@@ -126,9 +126,7 @@
                     {#if $token && $user}
                         {#if !auction.is_mine}
                             {#if !auction.bids.length}
-                                {#if auction.isInstantBuy()}
-                                    <p class="text-center pt-12">Scan below to buy now</p>
-                                {:else}
+                                {#if !auction.isInstantBuy()}
                                     <p class="text-center pt-12">Place your bid below</p>
                                 {/if}
                             {/if}
