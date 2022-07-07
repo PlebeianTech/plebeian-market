@@ -14,7 +14,7 @@
     "svelte": "^3.44.0",
     "svelte-check": "^2.2.6",
     "svelte-toasts": "^1.1.2",
-    "svelte-typewriter": "^3.0.0-alpha.12",
+    "svelte-typewriter": "3.0.0-alpha.12",
     "tailwindcss": "^3.0.24",
     "typescript": "~4.7.4",
     "vite": "^2.9.13"
@@ -22,7 +22,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 dev",
-    "build": "svelte-kit build",
+    "build": "vite build",
     "package": "svelte-kit package",
     "preview": "svelte-kit preview",
     "prepare": "svelte-kit sync",
