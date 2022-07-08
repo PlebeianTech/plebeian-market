@@ -151,7 +151,7 @@
                                 <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
                             </div>
                         {/if}
-                        {#if !auction.reserve_bid_reached}
+                        {#if !auction.reserve_bid_reached && auction.reserve_bid > 0}
                             <p class="my-3 w-full text-xl text-center">
                                 Reserve not met!
                             </p>
