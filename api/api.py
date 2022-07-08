@@ -138,7 +138,7 @@ def me(user):
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
 @user_required
 def verify_twitter(user):
-    liking_usernames = get_twitter().get_tweet_likes(user.twitter_username_verification_tweet_id)
+    liking_usernames = get_twitter().get_tweet_likes(user.twitter_username_verification_tweet_id).lower()
     if not user.twitter_username.lower() in liking_usernames:
         return jsonify({'message': "Please like the tweet to verify your username."}), 400
     else:
