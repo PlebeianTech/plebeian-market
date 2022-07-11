@@ -1,19 +1,36 @@
 <script lang="ts">
-    import { postBid } from "../services/api";
+    import { postBid, putBuy, setLock } from "../services/api";
     import { token } from "../stores";
     import QR from "./QR.svelte";
+    import AmountFormatter from "./AmountFormatter.svelte";
+    import Countdown from "./Countdown.svelte";
 
     export let amount;
     export let auction;
 
     let paymentRequest = null;
     let paymentQr = null;
+    let currentTime = new Date();
 
     function placeBid() {
         postBid($token, auction.key, amount,
             (r, q) => {
                 paymentRequest = r;
                 paymentQr = q;
+            });
+    }
+
+    function buyListing() {
+        putBuy($token, auction.key,
+            (r, q) => {
+                paymentRequest = r;
+                paymentQr = q;
+            });
+    }
+
+    function lockListing() {
+        setLock($token, auction.key,
+            () => {
             });
     }
 
@@ -35,6 +52,9 @@
 <div>
 {#if paymentQr}
     <QR bind:qr={paymentQr} bind:lnurl={paymentRequest} />
+    {#if auction.isInstantBuy()}
+        <Countdown untilDate={new Date(currentTime.setMinutes(currentTime.getMinutes()+3))} />
+    {/if}
 {:else}
     <div class:hidden={auction.isInstantBuy()} class="form-control w-full max-w-xs">
         <label class="label" for="bid-amount">
@@ -47,7 +67,11 @@
         </label>
     </div>
     <div class="w-full flex items-center justify-center">
-        <div class:glowbutton-bid={!auction.isInstantBuy()} class:glowbutton-buy={auction.isInstantBuy()} class="glowbutton mt-2" on:click|preventDefault={placeBid}></div>
+        {#if auction.isInstantBuy()}
+            <div class="glowbutton-buy glowbutton mt-2" on:click|preventDefault={lockListing, buyListing}></div>
+        {:else}
+            <div class="glowbutton-bid glowbutton mt-2" on:click|preventDefault={placeBid}></div>
+        {/if}
     </div>
 {/if}
 </div>

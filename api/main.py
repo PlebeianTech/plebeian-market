@@ -114,16 +114,16 @@ def user_required(f):
 
 class MockLNDClient:
     class InvoiceResponse:
-        def __init__(self, payment_request=None, state=None, settle_index=None):
+        def __init__(self, payment_request=None, value=None, state=None, settle_index=None):
             if payment_request:
                 self.payment_request = payment_request
             else:
-                self.payment_request = "MOCK_" + ''.join(random.choice(string.ascii_lowercase) for i in range(8))
+                self.payment_request = "MOCK_" + ''.join(random.choice(string.ascii_lowercase) for i in range(8)) + (f"_{value}" if value else "")
             self.state = state
             self.settle_index = settle_index
 
     def add_invoice(self, value, **_):
-        return MockLNDClient.InvoiceResponse()
+        return MockLNDClient.InvoiceResponse(value=value)
 
     def subscribe_invoices(self, **_):
         last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
@@ -131,10 +131,10 @@ class MockLNDClient:
             time.sleep(3)
             for unsettled_bid in db.session.query(m.Bid).filter(m.Bid.settled_at == None):
                 last_settle_index += 1
-                yield MockLNDClient.InvoiceResponse(unsettled_bid.payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
+                yield MockLNDClient.InvoiceResponse(payment_request=unsettled_bid.payment_request, state=lndgrpc.client.ln.SETTLED, settle_index=last_settle_index)
             for unsettled_contribution in db.session.query(m.Auction).filter(m.Auction.contribution_settled_at == None):
                 last_settle_index += 1
-                yield MockLNDClient.InvoiceResponse(unsettled_contribution.contribution_payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
+                yield MockLNDClient.InvoiceResponse(payment_request=unsettled_contribution.contribution_payment_request, state=lndgrpc.client.ln.SETTLED, settle_index=last_settle_index)
 
 def get_lnd_client():
     if app.config['MOCK_LND']:

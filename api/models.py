@@ -127,6 +127,10 @@ class Auction(db.Model):
     # in the case of Twitter auctions, start_date is only set after the tweet is published and the auction starts
     start_date = db.Column(db.DateTime, nullable=True)
 
+	# for instant buy listing lock
+    lock_expiry = db.Column(db.DateTime, nullable=True)
+    locked_by = db.Column(db.String(32), nullable=True)
+
     # duration_hours reflects the initial duration,
     # but the auction can be extended when bids come in close to the end - hence the end_date
     duration_hours = db.Column(db.Float, nullable=False)
@@ -176,6 +180,10 @@ class Auction(db.Model):
     def instant_buy(self):
         return self.instant_buy_price is not None
 
+    @property
+    def is_locked(self):
+        return self.lock_expiry >= datetime.utcnow() if self.lock_expiry else False
+
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
@@ -189,6 +197,8 @@ class Auction(db.Model):
             'ended': self.ended,
             'starting_bid': self.starting_bid,
             'instant_buy_price': self.instant_buy_price,
+            'lock_expiry': self.lock_expiry,
+            'locked_by': self.locked_by if self.locked_by else None,
             'reserve_bid_reached': self.reserve_bid_reached,
             'shipping_from': self.shipping_from,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
@@ -271,7 +281,7 @@ class Auction(db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description', 'shipping_from']:
+        for k in ['title', 'description', 'shipping_from', 'locked_by']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -279,6 +289,17 @@ class Auction(db.Model):
             if length > max_length:
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = d[k]
+        for k in ['lock_expiry']:
+            if k not in d:
+                continue
+            try:
+                date = dateutil.parser.isoparse(d[k])
+                if date.tzinfo != dateutil.tz.tzutc():
+                    raise ValidationError(f"Date must be in UTC: {k.replace('_', ' ')}.")
+                date = date.replace(tzinfo=None)
+            except ValueError:
+                raise ValidationError(f"Invalid {k.replace('_', ' ')}.")
+            validated[k] = date
         for k in ['start_date']:
             # for now, only start_date can be edited
             # the end_date is computed on auction start using duration_hours

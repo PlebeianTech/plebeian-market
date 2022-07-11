@@ -308,6 +308,9 @@ def bids(user, key):
     if not auction.started or auction.ended:
         return jsonify({'message': "Auction not running."}), 403
 
+    if auction.instant_buy:
+        return jsonify({'message': "Cannot bid on instant buy listings!"}), 400
+
     amount = int(request.json['amount'])
 
     top_bid = auction.get_top_bid()
@@ -315,14 +318,63 @@ def bids(user, key):
         return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
     elif amount < auction.starting_bid:
         return jsonify({'message': f"Your bid needs to be higher than {auction.starting_bid}, the starting bid."}), 400
-    elif auction.instant_buy:
-        amount = auction.instant_buy_price
 
     response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])
 
     payment_request = response.payment_request
 
     bid = m.Bid(auction=auction, buyer=user, amount=amount, payment_request=payment_request)
+    db.session.add(bid)
+    db.session.commit()
+
+    qr = BytesIO()
+    pyqrcode.create(payment_request).svg(qr, omithw=True, scale=4)
+
+    return jsonify({'payment_request': payment_request, 'qr': qr.getvalue().decode('utf-8')})
+
+@api_blueprint.route('/api/auctions/<string:key>/set_lock', methods=['PUT'])
+def set_lock(key):
+    user = get_user_from_token(get_token_from_request())
+    auction = m.Auction.query.filter_by(key=key).first()
+    is_changing_lock_expiry = request.method == 'PUT' and 'lock_expiry' in set(request.json.keys())
+    is_changing_lock_expiry_only = request.method == 'PUT' and set(request.json.keys()) == {'lock_expiry'}
+    if not user:
+        return jsonify({'message': "Unauthorized"}), 401
+    if is_changing_lock_expiry and not is_changing_lock_expiry_only:
+        return jsonify({'message': "When changing lock, nothing else can be changed in the same request."}), 400
+    if auction.is_locked:
+        return jsonify({'message': "Auction is already locked."}), 400
+    if is_changing_lock_expiry_only:
+        try:
+            validated = m.Auction.validate_dict(request.json)
+        except m.ValidationError as e:
+            return jsonify({'message': e.message}), 400
+
+        for k, v in validated.items():
+            setattr(auction, k, v)
+            setattr(auction, 'locked_by', user.twitter_username)
+            db.session.commit()
+            return jsonify({'message': "Successfully set lock expiry."}), 200
+
+@api_blueprint.route('/api/auctions/<string:key>/buy', methods=['PUT'])
+@user_required
+def buy(user, key):
+    auction = m.Auction.query.filter_by(key=key).first()
+    if not auction.instant_buy:
+        return jsonify({'message': "Not an instant buy listing."}), 400
+    if not auction:
+        return jsonify({'message': "Not found."}), 404
+    if not auction.started or auction.ended:
+        return jsonify({'message': "Listing not active."}), 403
+    if auction.is_locked and not auction.locked_by == user.twitter_username:
+        return jsonify({'message': "Listing is locked by another user."}), 400
+
+    amount = auction.instant_buy_price
+    contribution_amount = int(auction.instant_buy_price * (auction.seller.contribution_percent * 0.01))
+    response = get_lnd_client().add_invoice(value=contribution_amount, expiry=3 * 60) # 3 minutes
+    payment_request = response.payment_request
+    bid = m.Bid(auction=auction, buyer=user, amount=amount, payment_request=payment_request)
+
     db.session.add(bid)
     db.session.commit()
 

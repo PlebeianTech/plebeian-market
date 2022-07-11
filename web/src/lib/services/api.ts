@@ -4,6 +4,8 @@ import { type User, fromJson as userFromJson } from "../types/user";
 import { isLocal, isStaging } from "../utils";
 import { token, Error } from "../stores";
 
+let currentTime = new Date();
+
 export class ErrorHandler {
     setError: boolean;
     onError: () => void;
@@ -224,6 +226,29 @@ export function postBid(tokenValue, auctionKey, amount, successCB: (paymentReque
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(data.payment_request, data.qr); });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function putBuy(tokenValue, auctionKey, successCB: (paymentRequest, paymentQr) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/auctions/${auctionKey}/buy`, 'PUT', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => { successCB(data.payment_request, data.qr); });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+
+export function setLock(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/auctions/${auctionKey}/set_lock`, 'PUT', tokenValue, {lock_expiry: new Date(currentTime.setMinutes(currentTime.getMinutes()+3))},
+        response => {
+            if (response.status === 200) {
+                successCB();
             } else {
                 errorHandler.handle(response);
             }
