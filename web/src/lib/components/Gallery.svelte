@@ -255,7 +255,7 @@
 }
 </style>
 
-<div class="gallery lg:w-4/5 grid grid-cols-2 gap-2 m-auto">
+<div class="gallery hidden md:grid md:w-4/5 grid grid-cols-2 gap-2 m-auto">
     {#each photos as photo, i}
             {#if i < 2}
                 <div class="gallery-item h-auto hover:scale-110 hover:-translate-y-1 table">
@@ -270,5 +270,15 @@
                 </a>
                 </div>
                 {/if}
+    {/each}
+</div>
+
+<div class=" md:hidden max-h-48 mt-4 gallery carousel carousel-center space-x-4">
+    {#each photos as photo, i}
+        <div id="{photo.twitter_media_key}" class="gallery-item carousel-item">
+            <a class="table-cell" href={photo.url} on:click|preventDefault={event => click(event)}>
+            <img class="self-center max-h-48 w-48 object-scale-down rounded-md" src={photo.url} alt="Auctioned object" />
+            </a>
+        </div>
     {/each}
 </div>
