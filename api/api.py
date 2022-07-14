@@ -180,7 +180,7 @@ def featured_auctions():
          & (m.Auction.start_date <= datetime.utcnow())
          & (m.Auction.end_date >= datetime.utcnow()))
     ).all()
-    return jsonify({'auctions': [a.to_dict() for a in auctions]})
+    return jsonify({'auctions': [a.to_dict() for a in sorted(auctions, key=lambda a: len(a.bids), reverse=True)]})
 
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def auction(key):
