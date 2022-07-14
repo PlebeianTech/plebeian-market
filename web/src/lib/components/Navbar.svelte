@@ -4,6 +4,7 @@
     import { getValue } from 'btc2fiat';
     import { getProfile } from "../services/api";
     import { token, user, BTC2USD } from "../stores";
+    import { isLocal, isStaging } from "../utils";
     import Profile from "./Profile.svelte";
 
     let profile : Profile | null;
@@ -67,6 +68,11 @@
     <div>
         <img src="/images/logo.jpg" class="mr-3 h-6 sm:h-9 rounded" alt="Plebeian Technology" />
     </div>
+    {#if isLocal()}
+        <div class="badge badge-primary">dev (local API)</div>
+    {:else if isStaging()}
+        <div class="badge badge-primary">staging (staging API)</div>
+    {/if}
     <div class="flex-1">
         <a href={null} on:click|preventDefault={() => goto("/")} class="btn btn-ghost normal-case text-xl">Home</a>
         <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl">About</a>
