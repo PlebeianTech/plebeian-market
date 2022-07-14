@@ -168,6 +168,8 @@ class Auction(db.Model):
 
     @property
     def reserve_bid_reached(self):
+        if self.reserve_bid == 0:
+            return True
         top_bid = self.get_top_bid()
         return top_bid.amount >= self.reserve_bid if top_bid else False
 
