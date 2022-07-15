@@ -8,10 +8,10 @@ import signal
 import string
 import sys
 import time
-
+import click
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
-
+from sqlalchemy import desc
 from flask_migrate import Migrate
 
 import boto3
@@ -321,3 +321,25 @@ else:
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
+
+
+def _create_lnuser(lnkey):
+    """Grabs the first LnAuth entry and stores `lnkey` in the field"""
+    ln = m.LnAuth.query.order_by(desc(m.LnAuth.id)).first()
+    ln.k1 = lnkey
+    ln.key = lnkey
+    db.session.add(ln)
+    db.session.commit()
+
+
+@app.cli.command("create-lnuser")
+@click.argument("lnkey", type=click.STRING)
+@with_appcontext
+def create_lnuser(lnkey):
+    """
+    For dev env - simplifies passing by the ln-auth system
+    Creates a ln auth entry with api key
+    :param lnkey: str
+    """
+    click.echo(f'Creating fake lnauth user for : {lnkey}')
+    _create_lnuser(lnkey)

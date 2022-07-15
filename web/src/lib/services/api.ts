@@ -229,3 +229,14 @@ export function postBid(tokenValue, auctionKey, amount, successCB: (paymentReque
             }
         });
 }
+
+export function previewMarkdown(tokenValue, text: string, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/preview-markdown", 'POST', tokenValue, text,
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
