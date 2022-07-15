@@ -4,7 +4,7 @@
     import { isLocal, isStaging } from "../utils";
     import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
     import NavTab from './NavTab.svelte';
-    import SvelteMarkdown from 'svelte-markdown'
+    import SvelteMarkdown from 'svelte-markdown';
     export let auction: Auction;
     export let onSave = () => {};
     export let onCancel = () => {};

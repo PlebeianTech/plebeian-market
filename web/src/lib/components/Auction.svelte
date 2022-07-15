@@ -10,7 +10,7 @@
     import NewBid from "./NewBid.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
-    import SvelteMarkdown from 'svelte-markdown'
+    import SvelteMarkdown from 'svelte-markdown';
 
     export let auctionKey = null;
 
