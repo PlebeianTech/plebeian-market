@@ -169,7 +169,6 @@
                     <h3 class="mx-1">Product Details</h3>
                     </span>
                     <SvelteMarkdown source={auction.description}/>
-                    <!--<p class="mt-4 ml-2">{@html auction.description_markdown}</p> -->
                     {#if auction.shipping_from}
                         <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
                     {/if}

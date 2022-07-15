@@ -7,6 +7,7 @@ import math
 from os import urandom
 import random
 import string
+
 import magic
 import pyqrcode
 import requests

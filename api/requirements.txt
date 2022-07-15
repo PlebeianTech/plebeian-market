@@ -1,4 +1,3 @@
-bleach
 boto3
 ecdsa
 flask
@@ -8,7 +7,6 @@ flask-sqlalchemy
 gunicorn
 lnd-grpc-client>=0.3.41
 lnurl
-mistune
 psycopg2
 pyjwt
 pyqrcode

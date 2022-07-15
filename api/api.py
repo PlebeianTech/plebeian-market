@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from io import BytesIO
-
 import os
 import secrets
 
@@ -164,6 +163,7 @@ def auctions(user):
             validated = m.Auction.validate_dict(request.json)
         except m.ValidationError as e:
             return jsonify({'message': e.message}), 400
+
         auction_count = db.session.query(func.count(m.Auction.id).label('count')).first().count
         key = m.Auction.generate_key(auction_count)
         auction = m.Auction(seller=user, key=key, **validated)
@@ -171,7 +171,6 @@ def auctions(user):
         db.session.commit()
 
         return jsonify({'auction': auction.to_dict(for_user=user)})
-
 
 @api_blueprint.route('/api/auctions/featured', methods=['GET'])
 def featured_auctions():
