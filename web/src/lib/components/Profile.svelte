@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onDestroy } from "svelte";
     import { ErrorHandler, postProfile, putVerifyTwitter } from "../services/api";
+    import { goto } from '$app/navigation';
     import { token, user, Info } from "../stores";
     import V4V from "./V4V.svelte";
 
@@ -126,6 +127,8 @@
     <div class="modal-box relative flex justify-center items-center w-10/12 max-w-1xl">
         {#if $user && $user.twitterUsername && (!$user.hasAuctions || $user.contributionPercent !== null)}
             <label for="profile-modal" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide}>✕</label>
+        {:else}
+            <label for="profile-modal" class="btn btn-sm btn-circle absolute right-2 top-2" on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); hide(); }}>✕</label>
         {/if}
         <div class="w-full">
             {#if !($user && $user.twitterUsername)}
