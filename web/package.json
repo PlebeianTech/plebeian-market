@@ -29,5 +29,8 @@
     "check": "svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "svelte-markdown": "^0.2.2"
   }
 }

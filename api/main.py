@@ -323,23 +323,22 @@ else:
     app.logger.setLevel(gunicorn_logger.level)
 
 
-def _create_lnuser(lnkey):
-    """Grabs the first LnAuth entry and stores `lnkey` in the field"""
-    ln = m.LnAuth.query.order_by(desc(m.LnAuth.id)).first()
-    ln.k1 = lnkey
+def _store_lnauth_key(lnkey):
+    """Grabs the latest LnAuth entry and stores `lnkey` in the field"""
+    ln = m.LnAuth.query.order_by(desc(m.LnAuth.created_at)).first()
     ln.key = lnkey
     db.session.add(ln)
     db.session.commit()
 
 
-@app.cli.command("create-lnuser")
+@app.cli.command("store-lnauth-key")
 @click.argument("lnkey", type=click.STRING)
 @with_appcontext
-def create_lnuser(lnkey):
+def store_lnauth_key(lnkey):
     """
     For dev env - simplifies passing by the ln-auth system
     Creates a ln auth entry with api key
     :param lnkey: str
     """
-    click.echo(f'Creating fake lnauth user for : {lnkey}')
-    _create_lnuser(lnkey)
+    click.echo(f'Setting latest LnAuth key: {lnkey}')
+    _store_lnauth_key(lnkey)

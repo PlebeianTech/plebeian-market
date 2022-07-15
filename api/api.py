@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from io import BytesIO
-import bleach
+
 import os
 import secrets
-import mistune
+
 import ecdsa
 from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
@@ -164,9 +164,6 @@ def auctions(user):
             validated = m.Auction.validate_dict(request.json)
         except m.ValidationError as e:
             return jsonify({'message': e.message}), 400
-        # render markdown
-        if "description" in validated:
-            validated["description"] = mistune.html(bleach.clean(validated["description"]))
         auction_count = db.session.query(func.count(m.Auction.id).label('count')).first().count
         key = m.Auction.generate_key(auction_count)
         auction = m.Auction(seller=user, key=key, **validated)
@@ -174,18 +171,6 @@ def auctions(user):
         db.session.commit()
 
         return jsonify({'auction': auction.to_dict(for_user=user)})
-
-
-@api_blueprint.route('/api/preview-markdown', methods=["POST"])
-@user_required
-def preview_markdown(user):
-    try:
-        description = request.json["description"]
-        markdown_description = mistune.html(description)
-        return {"description": markdown_description}
-    except Exception:
-        pass
-    return {"description": f"Markdown failed: {description}"}
 
 
 @api_blueprint.route('/api/auctions/featured', methods=['GET'])
@@ -247,9 +232,7 @@ def auction(key):
                 validated = m.Auction.validate_dict(request.json)
             except m.ValidationError as e:
                 return jsonify({'message': e.message}), 400
-            # render markdown
-            if "description" in validated:
-                validated["description"] = mistune.html(bleach.clean(validated["description"]))
+
             for k, v in validated.items():
                 setattr(auction, k, v)
 
