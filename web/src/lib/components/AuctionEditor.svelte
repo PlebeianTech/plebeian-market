@@ -10,7 +10,7 @@
 
     let duration = "";
     let durationMultiplier = "1";
-    let currentTab = null;
+    let currentTab = "Description";
     const tabChange = (e) => {
         currentTab = e;
     }
@@ -56,12 +56,11 @@
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered w-full max-w-xs" />
                 </div>
                 <div class="tabs justify-center mb-5 mt-5">
-                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={'Description' === currentTab || currentTab === null} on:click={() => tabChange('Description')}>
-                        <div>Description</div>
+                    {#each ['Description', 'Preview'] as tab}
+                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={tab === currentTab} on:click={() => tabChange(tab)}>
+                        <div>{tab}</div>
                     </li>
-                    <li class="tab tab-bordered mt-0 text-lg cursor-pointer" class:tab-active={'Preview' === currentTab} on:click={() => tabChange('Preview')}>
-                        <div>Preview</div>
-                    </li>
+                    {/each}
                 </div>
                 {#if currentTab === 'Description' || currentTab === null}
                 <div class="form-control">
