@@ -11,9 +11,6 @@
     let duration = "";
     let durationMultiplier = "1";
     let currentTab = "Description";
-    const tabChange = (e) => {
-        currentTab = e;
-    }
 
     $: durationOptions = isLocal() || isStaging()
         ? [0.1, 1, 24]
