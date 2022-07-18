@@ -29,7 +29,7 @@
             onView(auction);
         }
 
-        window.open(getUrl(), "_self");
+        window.open(getUrl(), "_blank");
     }
 
     function getUrl() {
