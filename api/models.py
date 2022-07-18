@@ -7,7 +7,7 @@ import math
 from os import urandom
 import random
 import string
-
+import bleach
 import magic
 import pyqrcode
 import requests
@@ -274,7 +274,7 @@ class Auction(db.Model):
             max_length = getattr(Auction, k).property.columns[0].type.length
             if length > max_length:
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
-            validated[k] = d[k]
+            validated[k] = bleach.clean(d[k])
         for k in ['start_date']:
             # for now, only start_date can be edited
             # the end_date is computed on auction start using duration_hours
