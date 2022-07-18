@@ -67,6 +67,7 @@
                 </div>
                 {:else if activeItem === 'Preview'}
                 <SvelteMarkdown source={auction.description}/>
+                <hr class="mt-2 mb-2 border-width-1">
                 {/if}
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">

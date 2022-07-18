@@ -5,10 +5,10 @@
     export let activeItem;
 </script>
 
-<div class="tabs">
-    <ul>
+<div class="mb-5 mt-5">
+    <ul class="mt-0 flex justify-center p-0 list-none">
         {#each items as item}
-            <li on:click={() => dispatch('tabChange', item)}>
+            <li class="mt-0 mr-16 text-lg cursor-pointer" on:click={() => dispatch('tabChange', item)}>
                 <div class:active={item === activeItem}>{item}</div>
             </li>
         {/each}
@@ -16,25 +16,8 @@
 </div>
 
 <style>
-    .tabs {
-        margin-bottom: 20px;
-    }
-    ul {
-        margin-top: 20px;
-        display: flex;
-        justify-content: center;
-        padding: 0;
-        list-style-type: none;
-    }
-    li {
-        margin: 0 16px;
-        font-size: 18px;
-        color: white;
-        cursor: pointer;
-    }
     .active {
-        color: white;
-        border-bottom: 2px solid white;
+        border-bottom: 2px solid gray;
         padding-bottom: 2px;
     }
 </style>
