@@ -464,3 +464,19 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         self.assertEqual(set(a['key'] for a in response['auctions']), {auction_key})
+
+        # Create an auction with malicious input to description
+        malicious_desc = '''<script type="text/javascript">alert("malicious")</script>'''
+        code, response = self.post("/api/auctions",
+            {'title': "My 1st",
+             'description': malicious_desc,
+             'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'duration_hours': 24,
+             'starting_bid': 10,
+             'reserve_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+        cleaned_description = response['auction']['description']
+        expected_cleaned_description = """&lt;script type="text/javascript"&gt;alert("malicious")&lt;/script&gt;"""
+        self.assertEqual(cleaned_description, expected_cleaned_description)
