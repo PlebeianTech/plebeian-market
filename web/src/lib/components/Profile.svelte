@@ -88,6 +88,8 @@
     }
 
     function hide_or_logout() {
+        // On initial profile editor modal, the x button should logout. When setting contribution percent for the first
+        // time, there should be no x at all. The rest of the time, the x should hide the modal as usual.
         if ($user && $user.twitterUsername && (!$user.hasAuctions || $user.contributionPercent !== null)) {
             hide();
         }
