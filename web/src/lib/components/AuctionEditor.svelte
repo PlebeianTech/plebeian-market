@@ -65,9 +65,6 @@
                 </div>
                 {#if currentTab === 'Description' || currentTab === null}
                 <div class="form-control">
-                    <label class="label" for="description">
-                        <span class="label-text">Description</span>
-                    </label>
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
                 </div>
                 {:else if currentTab === 'Preview'}
