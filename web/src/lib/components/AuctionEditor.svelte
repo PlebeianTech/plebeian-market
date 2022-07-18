@@ -57,7 +57,7 @@
                 </div>
                 <div class="tabs justify-center mb-5 mt-5">
                     {#each ['Description', 'Preview'] as tab}
-                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={tab === currentTab} on:click={() => tabChange(tab)}>
+                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={tab === currentTab} on:click={() => {currentTab = tab;}}>
                         <div>{tab}</div>
                     </li>
                     {/each}
