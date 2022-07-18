@@ -3,7 +3,6 @@
     import type { Auction } from "../types/auction";
     import { isLocal, isStaging } from "../utils";
     import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
-    import NavTab from './NavTab.svelte';
     import SvelteMarkdown from 'svelte-markdown';
     export let auction: Auction;
     export let onSave = () => {};
@@ -14,7 +13,7 @@
     let items = ["Description", "Preview"];
     let activeItem = "Description";
     const tabChange = (e) => {
-        activeItem = e.detail;
+        activeItem = e;
     }
 
     $: durationOptions = isLocal() || isStaging()
@@ -57,7 +56,21 @@
                     </label>
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered w-full max-w-xs" />
                 </div>
-                <NavTab {activeItem} {items} on:tabChange={tabChange}/>
+                <div class="tabs mb-5 mt-5">
+                    <ul class="mt-0 flex justify-center p-0 list-none">
+                        {#each items as item}
+                            {#if item === activeItem}
+                            <li class="tab tab-bordered mt-0 mr-16 ml-16 text-lg cursor-pointer tab-active" on:click={() => tabChange(item)}>
+                                <div>{item}</div>
+                            </li>
+                            {:else}
+                            <li class="tab tab-bordered mt-0 mr-16 ml-16 text-lg cursor-pointer" on:click={() => tabChange(item)}>
+                                <div>{item}</div>
+                            </li>
+                            {/if}
+                        {/each}
+                    </ul>
+                </div>
                 {#if activeItem === 'Description'}
                 <div class="form-control">
                     <label class="label" for="description">
@@ -67,7 +80,6 @@
                 </div>
                 {:else if activeItem === 'Preview'}
                 <SvelteMarkdown source={auction.description}/>
-                <hr class="mt-2 mb-2 border-width-1">
                 {/if}
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">
