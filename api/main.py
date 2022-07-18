@@ -331,7 +331,7 @@ def _store_lnauth_key(lnkey):
     db.session.commit()
 
 
-@app.cli.command("store-lnauth-key")
+@app.cli.command("lnauth")
 @click.argument("lnkey", type=click.STRING)
 @with_appcontext
 def store_lnauth_key(lnkey):
