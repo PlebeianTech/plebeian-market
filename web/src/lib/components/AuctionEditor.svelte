@@ -10,10 +10,9 @@
 
     let duration = "";
     let durationMultiplier = "1";
-    let items = ["Description", "Preview"];
-    let activeItem = "Description";
+    let currentTab = null;
     const tabChange = (e) => {
-        activeItem = e;
+        currentTab = e;
     }
 
     $: durationOptions = isLocal() || isStaging()
@@ -56,29 +55,22 @@
                     </label>
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered w-full max-w-xs" />
                 </div>
-                <div class="tabs mb-5 mt-5">
-                    <ul class="mt-0 flex justify-center p-0 list-none">
-                        {#each items as item}
-                            {#if item === activeItem}
-                            <li class="tab tab-bordered mt-0 mr-16 ml-16 text-lg cursor-pointer tab-active" on:click={() => tabChange(item)}>
-                                <div>{item}</div>
-                            </li>
-                            {:else}
-                            <li class="tab tab-bordered mt-0 mr-16 ml-16 text-lg cursor-pointer" on:click={() => tabChange(item)}>
-                                <div>{item}</div>
-                            </li>
-                            {/if}
-                        {/each}
-                    </ul>
+                <div class="tabs justify-center mb-5 mt-5">
+                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={'Description' === currentTab || currentTab === null} on:click={() => tabChange('Description')}>
+                        <div>Description</div>
+                    </li>
+                    <li class="tab tab-bordered mt-0 text-lg cursor-pointer" class:tab-active={'Preview' === currentTab} on:click={() => tabChange('Preview')}>
+                        <div>Preview</div>
+                    </li>
                 </div>
-                {#if activeItem === 'Description'}
+                {#if currentTab === 'Description' || currentTab === null}
                 <div class="form-control">
                     <label class="label" for="description">
                         <span class="label-text">Description</span>
                     </label>
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
                 </div>
-                {:else if activeItem === 'Preview'}
+                {:else if currentTab === 'Preview'}
                 <SvelteMarkdown source={auction.description} />
                 {/if}
                 <div class="flex">
