@@ -62,7 +62,7 @@
                     </li>
                     {/each}
                 </div>
-                {#if currentTab === 'Description' || currentTab === null}
+                {#if currentTab === 'Description'}
                 <div class="form-control">
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
                 </div>
