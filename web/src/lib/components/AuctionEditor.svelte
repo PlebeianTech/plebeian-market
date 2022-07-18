@@ -79,7 +79,7 @@
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
                 </div>
                 {:else if activeItem === 'Preview'}
-                <SvelteMarkdown source={auction.description}/>
+                <SvelteMarkdown source={auction.description} />
                 {/if}
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">
