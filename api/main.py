@@ -181,7 +181,7 @@ def process_notifications():
                         # notification type does not apply in this case
                         continue
 
-                    if message_args['key'] in sent_notifications:
+                    if (user.id, message_args['key']) in sent_notifications:
                         # already sent - don't even bother trying again (will fail anyway with IntegrityError)!
                         continue
 
@@ -209,7 +209,7 @@ def process_notifications():
                         # since notifications are supposed to be real time sort-of,
                         # so if the delivery failed we better don't try to send it later anyway!
 
-                    sent_notifications.add(message_args['key'])
+                    sent_notifications.add((user.id, message_args['key']))
                     db.session.commit()
 
         state = db.session.query(m.State).filter_by(key=m.State.LAST_PROCESSED_NOTIFICATIONS).first()
