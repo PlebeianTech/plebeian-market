@@ -38,6 +38,8 @@ export class Auction {
     media: Media[] = [];
     is_mine: boolean = true;
 
+    following: boolean = false;
+
     contribution_percent?: number;
     contribution_amount?: number;
     contribution_payment_request?: string;

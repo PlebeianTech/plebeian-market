@@ -1,6 +1,6 @@
 <script lang="ts">
     import { postBid } from "../services/api";
-    import { token } from "../stores";
+    import { Info, token } from "../stores";
     import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
     import QR from "./QR.svelte";
 
@@ -12,9 +12,12 @@
 
     function placeBid() {
         postBid($token, auctionKey, amount,
-            (r, q) => {
+            (r, q, messages) => {
                 paymentRequest = r;
                 paymentQr = q;
+                for (const message of messages) {
+                    setTimeout(() => Info.set(message), 0);
+                }
             });
     }
 

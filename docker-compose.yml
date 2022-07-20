@@ -25,6 +25,13 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
+  process-notifications:
+    image: plebeianmarket-api
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 1m
+    networks:
+      - db_network
 networks:
   db_network:
     driver: bridge
