@@ -401,17 +401,16 @@ class TestApi(unittest.TestCase):
 
         _, token_3 = self.create_user()
 
-        # subscribe to new bid notifications
-        code, response = self.put("/api/users/me/notifications",
-            {'notifications': [{'notification_type': 'NEW_BID', 'action': 'TWITTER_DM'}]},
-            headers=self.get_auth_headers(token_3))
-        self.assertEqual(code, 200)
-
-        # start following the auction
-        code, response = self.put(f"/api/auctions/{auction_key}/follow",
-            {'follow': True},
-            headers=self.get_auth_headers(token_3))
-        self.assertEqual(code, 200)
+        # subscribe to new bid notifications and start following, both with the user that will bid and with a 3rd one
+        for t in [token_2, token_3]:
+            code, response = self.put("/api/users/me/notifications",
+                {'notifications': [{'notification_type': 'NEW_BID', 'action': 'TWITTER_DM'}]},
+                headers=self.get_auth_headers(t))
+            self.assertEqual(code, 200)
+            code, response = self.put(f"/api/auctions/{auction_key}/follow",
+                {'follow': True},
+                headers=self.get_auth_headers(t))
+            self.assertEqual(code, 200)
 
         # the user has no messages yet
         code, response = self.get("/api/users/me/messages",
@@ -445,6 +444,12 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['messages']), 1)
         self.assertTrue("new bid" in response['messages'][0]['body'].lower())
         self.assertEqual(response['messages'][0]['notified_via'], 'TWITTER_DM')
+
+        # the bidder however was not...
+        code, response = self.get("/api/users/me/messages?via=all",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['messages']), 0)
 
         # auction has our settled bid!
         code, response = self.get(f"/api/auctions/{auction_key}",

@@ -187,7 +187,7 @@ class NewBidNotification(Notification):
         return 'NONE'
 
     def get_message_args(self, user, auction, bid):
-        if bid is not None:
+        if bid is not None and bid.buyer_id != user.id: # the bidder should not be notified
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}_{bid.id}",
