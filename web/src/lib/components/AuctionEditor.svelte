@@ -1,10 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import type { Auction } from "../types/auction";
-    import { isLocal, isStaging } from "../utils";
-    import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
     import SvelteMarkdown from 'svelte-markdown';
-    export let auction: Auction;
+    import type { IEntity } from "$lib/types/base";
+    import type { Auction } from "$lib/types/auction";
+    import { isLocal, isStaging } from "$lib/utils";
+    import AmountFormatter, { AmountFormat } from '$lib/components/AmountFormatter.svelte';
+
+    export let entity: IEntity;
+    $: auction = <Auction>entity;
     export let onSave = () => {};
     export let onCancel = () => {};
 

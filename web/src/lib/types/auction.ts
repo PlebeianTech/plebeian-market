@@ -1,4 +1,5 @@
 import { isLocal, isStaging } from "../utils";
+import type { IEntity } from "./base";
 
 export interface Bid {
     amount: number;
@@ -14,8 +15,10 @@ export interface Media {
     twitter_media_key: string;
 }
 
-export class Auction {
+export class Auction implements IEntity {
     static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'starting_bid', 'reserve_bid', 'duration_hours'];
+
+    endpoint = "auctions";
 
     key: string = "";
     title: string = "";
@@ -58,6 +61,12 @@ export class Auction {
 
     invalidTitle?: boolean;
     invalidDescription?: boolean;
+
+    public validate() {
+        this.invalidTitle = this.title.length === 0;
+        this.invalidDescription = this.description.length === 0;
+        return !(this.invalidTitle || this.invalidDescription);
+    }
 
     public topBid() {
         var top: Bid | undefined = undefined;
@@ -115,7 +124,7 @@ export class Auction {
     }
 }
 
-export function fromJson(json: any) {
+export function fromJson(json: any): IEntity {
     var a = new Auction();
     for (var k in json) {
         if (k === 'start_date') {

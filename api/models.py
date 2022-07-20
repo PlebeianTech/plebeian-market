@@ -80,10 +80,11 @@ class User(db.Model):
 
     @property
     def is_moderator(self):
-        return self.id in app.config['MODERATOR_USER_IDS']
+        return (self.id in app.config['MODERATOR_USER_IDS']) or ('ALL' in app.config['MODERATOR_USER_IDS'])
 
     contribution_percent = db.Column(db.Float, nullable=True)
 
+    campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
@@ -97,6 +98,7 @@ class User(db.Model):
 
     def to_dict(self):
         d = {
+            'id': self.id,
             'nym': self.nym,
             'twitter_username': self.twitter_username,
             'twitter_profile_image_url': self.twitter_profile_image_url,
@@ -314,7 +316,96 @@ class Message(db.Model):
 def hash_create(length):
     return b32encode(urandom(length)).decode("ascii").replace("=", "")
 
-class Auction(db.Model):
+def generate_key(cls, count):
+    # code taken from https://github.com/supakeen/pinnwand and adapted
+
+    # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
+    # - perhaps some hash(user key + index), where index represents a User's Auction index (1, 2, 3...)
+    # The benefit (of that) would be that a user could then potentially have auctions which don't necessary have an underlying Auction record,
+    # in the same way in which an XPUB can derive "addresses" that don't represent an actual UTXO?
+
+    # The amount of bits necessary to store that count times two, then
+    # converted to bytes with a minimum of 1.
+
+    # We double the count so that we always keep half of the space
+    # available (e.g we increase the number of bytes at 127 instead of
+    # 255). This ensures that the probing below can find an empty space
+    # fast in case of collision.
+    necessary = math.ceil(math.log2((count + 1) * 2)) // 8 + 1
+
+    # Now generate random ids in the range with a maximum amount of
+    # retries, continuing until an empty slot is found
+    tries = 0
+    key = hash_create(necessary)
+
+    while cls.query.filter_by(key=key).one_or_none():
+        app.logger.debug("generate_key: triggered a collision")
+        if tries > 10:
+            raise RuntimeError("We exceeded our retry quota on a collision.")
+        tries += 1
+        key = hash_create(necessary)
+
+    return key
+
+class StartedEndedMixin:
+    @property
+    def started(self):
+        return self.start_date <= datetime.utcnow() if self.start_date else False
+
+    @property
+    def ended(self):
+        return self.end_date < datetime.utcnow() if self.end_date else False
+
+class Campaign(StartedEndedMixin, db.Model):
+    __tablename__ = 'campaigns'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    owner_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+
+    key = db.Column(db.String(24), unique=True, nullable=False, index=True)
+
+    title = db.Column(db.String(210), nullable=False)
+    description = db.Column(db.String(2100), nullable=False)
+
+    start_date = db.Column(db.DateTime, nullable=True)
+    end_date = db.Column(db.DateTime, nullable=True)
+
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def to_dict(self, for_user=None):
+        campaign = {
+            'key': self.key,
+            'title': self.title,
+            'description': self.description,
+            'started': self.started,
+            'ended': self.ended,
+            'created_at': self.created_at.isoformat() + "Z",
+            'owner_twitter_username': self.owner.twitter_username,
+            'owner_twitter_username_verified': self.owner.twitter_username_verified,
+            'owner_twitter_profile_image_url': self.owner.twitter_profile_image_url,
+        }
+
+        return campaign
+
+    @classmethod
+    def generate_key(cls, count):
+        return generate_key(cls, count)
+
+    @classmethod
+    def validate_dict(cls, d):
+        validated = {}
+        for k in ['title', 'description']:
+            if k not in d:
+                continue
+            length = len(d[k])
+            max_length = getattr(Campaign, k).property.columns[0].type.length
+            if length > max_length:
+                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
+            validated[k] = d[k]
+        return validated
+
+class Auction(StartedEndedMixin, db.Model):
     __tablename__ = 'auctions'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -362,14 +453,6 @@ class Auction(db.Model):
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
 
     user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
-
-    @property
-    def started(self):
-        return self.start_date <= datetime.utcnow() if self.start_date else False
-
-    @property
-    def ended(self):
-        return self.end_date < datetime.utcnow() if self.end_date else False
 
     def get_top_bid(self):
         return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
@@ -448,35 +531,7 @@ class Auction(db.Model):
 
     @classmethod
     def generate_key(cls, count):
-        # code taken from https://github.com/supakeen/pinnwand and adapted
-
-        # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
-        # - perhaps some hash(user key + index), where index represents a User's Auction index (1, 2, 3...)
-        # The benefit (of that) would be that a user could then potentially have auctions which don't necessary have an underlying Auction record,
-        # in the same way in which an XPUB can derive "addresses" that don't represent an actual UTXO?
-
-        # The amount of bits necessary to store that count times two, then
-        # converted to bytes with a minimum of 1.
-
-        # We double the count so that we always keep half of the space
-        # available (e.g we increase the number of bytes at 127 instead of
-        # 255). This ensures that the probing below can find an empty space
-        # fast in case of collision.
-        necessary = math.ceil(math.log2((count + 1) * 2)) // 8 + 1
-
-        # Now generate random ids in the range with a maximum amount of
-        # retries, continuing until an empty slot is found
-        tries = 0
-        key = hash_create(necessary)
-
-        while cls.query.filter_by(key=key).one_or_none():
-            app.logger.debug("generate_key: triggered a collision")
-            if tries > 10:
-                raise RuntimeError("We exceeded our retry quota on a collision.")
-            tries += 1
-            key = hash_create(necessary)
-
-        return key
+        return generate_key(cls, count)
 
     @classmethod
     def validate_dict(cls, d):

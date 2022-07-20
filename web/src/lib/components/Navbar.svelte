@@ -115,6 +115,9 @@
                         </li>
                     {/if}
                     <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
+                    {#if $user.isModerator}
+                        <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
+                    {/if}
                     <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button">Profile</label></li>
                     <li><label for="profile-modal" on:click|preventDefault={showUserNotifications} class="modal-button">Notifications</label></li>
                     <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
