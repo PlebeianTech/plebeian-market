@@ -329,12 +329,12 @@ class Twitter:
         if response.status_code == 200:
             return response.json()
 
-    def post(self, path, params):
-        response = self.session.post(f"{Twitter.BASE_URL}{path}", params=params)
+    def post(self, path, params_json):
+        response = self.session.post(f"{Twitter.BASE_URL}{path}", json=params_json)
         if response.status_code == 200:
             return response.json()
         else:
-            app.logger.error(f"Error when POSTing to Twitter -> {path}: {response.json()=}")
+            app.logger.error(f"Error when POSTing to Twitter -> {path}: {response.status_code=} {response.text=}")
             return False
 
     def get_user(self, username):
@@ -401,7 +401,7 @@ class Twitter:
 
     def send_dm(self, user_id, body):
         response_json = self.post(f"/1.1/direct_messages/events/new.json",
-            params={
+            params_json={
                 'event': {
                     'type': 'message_create',
                     'message_create': {
