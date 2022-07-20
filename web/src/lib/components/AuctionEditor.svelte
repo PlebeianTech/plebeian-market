@@ -66,7 +66,7 @@
                 </div>
                 {:else if currentTab === 'Preview'}
                 <div class="p-2">
-                    <div class="markdown-container">
+                    <div class="markdown-container bg-base-100 rounded-md p-2">
                         <SvelteMarkdown source={auction.description}/>
                     </div>
                 </div>
