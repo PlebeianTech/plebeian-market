@@ -327,7 +327,6 @@ def _store_lnauth_key(lnkey):
     """Grabs the latest LnAuth entry and stores `lnkey` in the field"""
     ln = m.LnAuth.query.order_by(desc(m.LnAuth.created_at)).first()
     ln.key = lnkey
-    db.session.add(ln)
     db.session.commit()
 
 
