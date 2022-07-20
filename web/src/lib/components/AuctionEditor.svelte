@@ -62,9 +62,14 @@
                 {#if currentTab === 'Description'}
                 <div class="form-control">
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
+                    <small class="pt-2 fg-neutral-content">Markdown accepted. <a class="underline decoration-solid" href="https://www.markdownguide.org/cheat-sheet/">Cheat Sheet</a></small>
                 </div>
                 {:else if currentTab === 'Preview'}
-                <SvelteMarkdown source={auction.description} />
+                <div class="p-2">
+                    <div class="markdown-container">
+                        <SvelteMarkdown source={auction.description}/>
+                    </div>
+                </div>
                 {/if}
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">

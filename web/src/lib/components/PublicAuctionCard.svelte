@@ -30,7 +30,9 @@
                 <a href="/auctions/{auction.key}">{auction.title}</a>
             </h2>
             <div class="badge badge-primary self-center md:float-right">{auction.bids.length} bids</div>
-            <SvelteMarkdown source={auction.description} />
+            <div class="markdown-container">
+                <SvelteMarkdown source={auction.description} />
+            </div>
             <Countdown untilDate={auction.end_date} />
             {#if $user && $user.isModerator}
                 <div class="btn btn-xs self-center md:float-right" on:click|preventDefault={unfeature}>Unfeature</div>

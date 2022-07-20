@@ -168,7 +168,9 @@
                     <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
                     <h3 class="mx-1">Product Details</h3>
                     </span>
-                    <SvelteMarkdown source={auction.description} />
+                    <div class="markdown-container">
+                        <SvelteMarkdown source={auction.description} />
+                    </div>
                     {#if auction.shipping_from}
                         <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
                     {/if}
