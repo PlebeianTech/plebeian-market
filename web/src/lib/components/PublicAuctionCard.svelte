@@ -3,6 +3,7 @@
     import Countdown from "./Countdown.svelte";
     import { ErrorHandler, unfeatureAuction } from "../services/api";
     import { Error, Info, token, user } from "../stores";
+    import SvelteMarkdown from 'svelte-markdown';
 
     function unfeature() {
         unfeatureAuction($token, auction.key,
@@ -29,7 +30,7 @@
                 <a href="/auctions/{auction.key}">{auction.title}</a>
             </h2>
             <div class="badge badge-primary self-center md:float-right">{auction.bids.length} bids</div>
-            <p class="justify-center text-xs">{auction.description}</p>
+            <SvelteMarkdown source={auction.description} />
             <Countdown untilDate={auction.end_date} />
             {#if $user && $user.isModerator}
                 <div class="btn btn-xs self-center md:float-right" on:click|preventDefault={unfeature}>Unfeature</div>

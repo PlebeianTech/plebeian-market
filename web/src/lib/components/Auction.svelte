@@ -10,6 +10,7 @@
     import NewBid from "./NewBid.svelte";
     import Countdown from "./Countdown.svelte";
     import Login from "./Login.svelte";
+    import SvelteMarkdown from 'svelte-markdown';
 
     export let auctionKey = null;
 
@@ -183,7 +184,7 @@
                           <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={auction.following} class="checkbox checkbox-primary checkbox-lg" />
                         </label>
                     </div>
-                    <p class="mt-4 ml-2">{auction.description}</p>
+                    <SvelteMarkdown source={auction.description} />
                     {#if auction.shipping_from}
                         <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
                     {/if}

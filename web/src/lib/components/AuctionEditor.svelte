@@ -3,13 +3,14 @@
     import type { Auction } from "../types/auction";
     import { isLocal, isStaging } from "../utils";
     import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
-
+    import SvelteMarkdown from 'svelte-markdown';
     export let auction: Auction;
     export let onSave = () => {};
     export let onCancel = () => {};
 
     let duration = "";
     let durationMultiplier = "1";
+    let currentTab = "Description";
 
     $: durationOptions = isLocal() || isStaging()
         ? [0.1, 1, 24]
@@ -51,12 +52,20 @@
                     </label>
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered w-full max-w-xs" />
                 </div>
+                <div class="tabs justify-center mb-5 mt-5">
+                    {#each ['Description', 'Preview'] as tab}
+                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={tab === currentTab} on:click={() => {currentTab = tab;}}>
+                        <div>{tab}</div>
+                    </li>
+                    {/each}
+                </div>
+                {#if currentTab === 'Description'}
                 <div class="form-control">
-                    <label class="label" for="description">
-                        <span class="label-text">Description</span>
-                    </label>
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
                 </div>
+                {:else if currentTab === 'Preview'}
+                <SvelteMarkdown source={auction.description} />
+                {/if}
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="starting-bid">

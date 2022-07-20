@@ -10,13 +10,12 @@ import signal
 import string
 import sys
 import time
-
+import click
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
-
-from sqlalchemy.exc import IntegrityError
-
 from flask_migrate import Migrate
+from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
 
 import boto3
 from botocore.config import Config
@@ -485,3 +484,23 @@ else:
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
+
+
+def _store_lnauth_key(lnkey):
+    """Grabs the latest LnAuth entry and stores `lnkey` in the field"""
+    ln = m.LnAuth.query.order_by(desc(m.LnAuth.created_at)).first()
+    ln.key = lnkey
+    db.session.commit()
+
+
+@app.cli.command("lnauth")
+@click.argument("lnkey", type=click.STRING)
+@with_appcontext
+def store_lnauth_key(lnkey):
+    """
+    For dev env - simplifies passing by the ln-auth system
+    Creates a ln auth entry with api key
+    :param lnkey: str
+    """
+    click.echo(f'Setting latest LnAuth key: {lnkey}')
+    _store_lnauth_key(lnkey)
