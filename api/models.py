@@ -295,7 +295,7 @@ class Message(db.Model):
     # for example, for an AUCTION_END notification, we would combine that to the auction ID.
     key = db.Column(db.String(64), nullable=False)
 
-    created_at = db.Column(db.DateTime, nullable=True, default=datetime.utcnow())
+    created_at = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
 
     body = db.Column(db.String(512), nullable=True)
 
