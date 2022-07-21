@@ -4,7 +4,7 @@
     import { getValue } from 'btc2fiat';
     import { getProfile } from "../services/api";
     import { token, user, BTC2USD } from "../stores";
-    import { isLocal, isStaging } from "../utils";
+    import { isLocal, isStaging, getBaseUrl } from "../utils";
     import Profile from "./Profile.svelte";
     import UserNotifications from "./UserNotifications.svelte";
 
@@ -74,7 +74,9 @@
 
 <div class="navbar bg-base-300">
     <div>
-        <img src="/images/logo.jpg" class="mr-3 h-6 sm:h-9 rounded" alt="Plebeian Technology" />
+        <a href={getBaseUrl()}>
+            <img src="/images/logo.jpg" class="mr-3 h-6 sm:h-9 rounded" alt="Plebeian Technology" />
+        </a>
     </div>
     {#if isLocal()}
         <div class="badge badge-primary">dev (local API)</div>
