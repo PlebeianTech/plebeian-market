@@ -191,7 +191,7 @@ class NewBidNotification(Notification):
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}_{bid.id}",
-                'body': f"New bid on {auction.title}!",
+                'body': f"New bid on {auction.title} by {bid.buyer.twitter_username}: {bid.amount} sats!",
             }
 
 NOTIFICATION_TYPES = OrderedDict([
