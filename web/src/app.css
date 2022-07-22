@@ -199,3 +199,27 @@ input[type=number] {
     opacity: 0;
   }
 }
+
+/* Markdown Rendered Html */
+.markdown-container h1, h2, h3, h4, h5, h6 { margin-top: 0; margin-bottom: 0.5rem; }
+.markdown-container h1 { font-size: 3.0rem; line-height: 1.2;  letter-spacing: -.1rem;}
+.markdown-container h2 { font-size: 2.6rem; line-height: 1.25; letter-spacing: -.1rem; }
+.markdown-container h3 { font-size: 2.0rem; line-height: 1.3;  letter-spacing: -.1rem; }
+.markdown-container h4 { font-size: 1.4rem; line-height: 1.35; letter-spacing: -.08rem; }
+.markdown-container h5 { font-size: 0.8rem; line-height: 1.5;  letter-spacing: -.05rem; }
+.markdown-container h6 { font-size: 0.5rem; line-height: 1.6;  letter-spacing: 0; }
+.markdown-container p {margin-top: 0; }
+.markdown-container li {text-decoration: none;}
+.markdown-container ul { list-style: circle inside; }
+.markdown-container ol {list-style: decimal inside; }
+.markdown-container ol, ul { padding-left: 0; margin-top: 0; }
+.markdown-container ul ul, ul ol, ol ol, ol ul { margin: 1.5rem 0 1.5rem 3rem; font-size: 90%; }
+.markdown-container li { margin-bottom: 0.5rem; padding-left: 1rem; }
+.markdown-container code { padding: .2rem .5rem; margin: 0 .2rem; font-size: 90%; white-space: nowrap; }
+.markdown-container pre > code { display: block; padding: 1rem 1.5rem; white-space: pre; }
+.markdown-container th, td { padding: 12px 15px; text-align: left; }
+.markdown-container th:first-child, td:first-child { padding-left: 0; }
+.markdown-container th:last-child, td:last-child { padding-right: 0; }
+.markdown-container blockquote { padding-left: 1rem; }
+.markdown-container a { text-decoration: underline; }
+.markdown-container hr { margin-top: 1rem; margin-bottom: 1rem; border-width: 1px; border-top: 1px; }

@@ -12,6 +12,18 @@
     let durationMultiplier = "1";
     let currentTab = "Description";
 
+    let descriptionPlaceholder = `## Example Product Description
+This product is a *really* **nice** ~~thing~~ painting
+
+### Example Product More Information
+1. one
+2. two
+3. three
+___
+* item a
+* item b
+* item c
+`
     $: durationOptions = isLocal() || isStaging()
         ? [0.1, 1, 24]
         : [1, 24, 2 * 24];
@@ -38,7 +50,16 @@
         auction.duration_hours = parseInt(duration) * parseInt(durationMultiplier);
     }
 
-    onMount(async () => { customDuration() });
+    function setDefaultDescription() {
+        if (auction.description === "") {
+            auction.description = descriptionPlaceholder;
+        }
+    }
+
+    onMount(async () => {
+        customDuration();
+        setDefaultDescription();
+    });
 </script>
 
 <div class="w-full flex justify-center items-center">
@@ -62,9 +83,14 @@
                 {#if currentTab === 'Description'}
                 <div class="form-control">
                     <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
+                    <small class="pt-2 fg-neutral-content">Markdown accepted. <a class="underline decoration-solid" href="https://www.markdownguide.org/cheat-sheet/">Cheat Sheet</a></small>
                 </div>
                 {:else if currentTab === 'Preview'}
-                <SvelteMarkdown source={auction.description} />
+                <div class="p-2">
+                    <div class="markdown-container bg-base-100 rounded-md p-2">
+                        <SvelteMarkdown source={auction.description}/>
+                    </div>
+                </div>
                 {/if}
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">
