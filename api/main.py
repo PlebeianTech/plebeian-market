@@ -13,7 +13,6 @@ import time
 import click
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
-from sqlalchemy import desc
 from flask_migrate import Migrate
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
