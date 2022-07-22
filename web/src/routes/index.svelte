@@ -53,7 +53,7 @@
 <div class="flex justify-center items-center">
     <div class="glowbutton glowbutton-go mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
 </div>
-<div class="md:flex-row self-center md:columns-3 md:w-11/12">
+<div class="grid lg:grid-cols-3 gap-4">
     {#if auctions !== null}
         {#each auctions as auction}
             <div class="h-auto">

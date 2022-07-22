@@ -2,7 +2,8 @@
 
 </script>
 
-<footer class="hidden md:footer p-1.5 bg-neutral text-neutral-content ">
+<!-- large screen -->
+<footer class="hidden lg:footer p-1.5 bg-neutral text-neutral-content ">
     <div class="flex justify-center items-center">
         <p>Powered by <a class="btn" target="_blank" href="https://plebeian.technology">Plebeian Technology</a></p>
     </div>
@@ -18,7 +19,8 @@
     </div>
 </footer>
 
-<footer class="md:hidden footer mt-auto p-1.5 py-1 bg-neutral text-neutral-content ">
+<!-- smaller screen -->
+<footer class="lg:hidden footer mt-auto p-1.5 py-1 bg-neutral text-neutral-content ">
     <div class="grid-flow-col justify-center items-center">
         <p><a class="btn" target="_blank" href="https://plebeian.technology">Plebeian Technology</a></p>
         <a class="btn gap-2" target="_blank" href="https://plebeianmarket.substack.com/">
