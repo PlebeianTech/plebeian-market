@@ -222,3 +222,4 @@ input[type=number] {
 .markdown-container th:last-child, td:last-child { padding-right: 0; }
 .markdown-container blockquote { padding-left: 1rem; }
 .markdown-container a { text-decoration: underline; }
+.markdown-container hr { margin-top: 1rem; margin-bottom: 1rem; border-width: 1px; border-top: 1px; }

@@ -178,16 +178,15 @@
                     <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
                         <h3 class="mx-1">Product Details</h3>
                     </span>
-                    <div class="markdown-container">
-                        <SvelteMarkdown source={auction.description} />
-                    </div>
                     <div class="form-control">
                         <label class="label cursor-pointer text-right">
                           <span class="label-text">Follow auction</span> 
                           <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={auction.following} class="checkbox checkbox-primary checkbox-lg" />
                         </label>
                     </div>
-                    <SvelteMarkdown source={auction.description} />
+                    <div class="markdown-container">
+                        <SvelteMarkdown source={auction.description} />
+                    </div>
                     {#if auction.shipping_from}
                         <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
                     {/if}
