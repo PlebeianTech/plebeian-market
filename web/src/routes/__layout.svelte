@@ -35,7 +35,7 @@
 	onDestroy(errorUnsubscribe);
 </script>
 
-<div class="flex flex-col h-screen justify-between">
+<div class="h-screen">
     <Navbar />
     <slot />
     <Footer />

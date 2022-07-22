@@ -92,37 +92,35 @@
 </svelte:head>
 
 {#if auction}
-    <div class="flex justify-center items-center">
-        <div class="mt-2 w-11/12 lg:w-4/5 rounded p-4">
-            {#if auction.is_mine && !auction.start_date && !auction.end_date}
-                <div class="alert alert-error shadow-lg">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>
-                            Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
-                        </span>
-                    </div>
+    <div class="flex">
+        {#if auction.is_mine && !auction.start_date && !auction.end_date}
+            <div class="alert alert-error shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                        Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
+                    </span>
                 </div>
-            {/if}
-
-            <div class="mt-4 md:flex">
-                <div class="md:w-1/3">
-                    <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
-                    <div class="text-center mb-4">
-                        by
-                        <div class="avatar" class:verified={auction.seller_twitter_username_verified} class:not-verified={!auction.seller_twitter_username_verified}>
-                            <div class="w-8 rounded-full">
-                                <img src={auction.seller_twitter_profile_image_url} alt="{auction.seller_twitter_username}'s avatar" />
-                            </div>
+            </div>
+        {/if}
+        <div class="grid lg:grid-cols-3 gap-4">
+            <div class="p-5">
+                <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
+                <div class="text-center mb-4">
+                    by
+                    <div class="avatar" class:verified={auction.seller_twitter_username_verified} class:not-verified={!auction.seller_twitter_username_verified}>
+                        <div class="w-8 rounded-full">
+                            <img src={auction.seller_twitter_profile_image_url} alt="{auction.seller_twitter_username}'s avatar" />
                         </div>
-                        <span class="font-bold">{auction.seller_twitter_username}</span>
                     </div>
-                    <Gallery photos={auction.media} />
+                    <span class="font-bold">{auction.seller_twitter_username}</span>
                 </div>
-                <div class="lg:w-1/2">
-                    {#if !auction.ended}
+                <Gallery photos={auction.media} />
+            </div>
+            <div class="mr-4 p-5">
+                {#if !auction.ended}
                     {#if auction.end_date_extended}
                         <h3 class="text-2xl text-center text-warning my-2">
                             Time Extended
@@ -150,69 +148,61 @@
                         <Login />
                     {/if}
                 {/if}
-                    {#if auction.start_date && auction.end_date}
-                        {#if auction.started && !auction.ended}
-                            <div class="py-5">
-                                <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
-                            </div>
-                        {/if}
-                        {#if !auction.reserve_bid_reached}
-                            <p class="my-3 w-full text-xl text-center">
-                                Reserve not met!
-                            </p>
-                        {/if}
-                    {/if}
-                    {#if auction.bids.length}
-                        <div class="mt-2">
-                            <BidList {auction} />
+                {#if auction.start_date && auction.end_date}
+                    {#if auction.started && !auction.ended}
+                        <div class="py-5">
+                            <Countdown bind:this={finalCountdown} untilDate={new Date(auction.end_date)} />
                         </div>
-                    {:else}
-                        {#if !auction.is_mine}
-                            <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter satsAmount={auction.starting_bid} />.</p>
-                            <p class="text-2xl text-center pt-2">Be the first to bid!</p>
-                        {/if}
                     {/if}
-
-                </div>
-                <div class="md:w-1/3 ml-2">
-                    <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
-                        <h3 class="mx-1">Product Details</h3>
-                    </span>
-                    <div class="form-control">
-                        <label class="label cursor-pointer text-right">
-                          <span class="label-text">Follow auction</span> 
-                          <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={auction.following} class="checkbox checkbox-primary checkbox-lg" />
-                        </label>
-                    </div>
-                    <div class="markdown-container">
-                        <SvelteMarkdown source={auction.description} />
-                    </div>
-                    {#if auction.shipping_from}
-                        <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
+                    {#if !auction.reserve_bid_reached}
+                        <p class="my-3 w-full text-xl text-center">
+                            Reserve not met!
+                        </p>
                     {/if}
-                    <p class="mt-4 ml-2">NOTE: Please allow for post and packaging. The seller can agree on this with you when you have won.</p>
-                    <p class="mt-4 ml-2">
-                        {#if auction.start_date && auction.end_date}
-                            {#if !auction.started}
-                                Auction starts <Countdown untilDate={new Date(auction.start_date)} />.
-                            {:else if auction.ended}
-                                Auction ended.
-                            {/if}
-                        {:else if !auction.is_mine}
-                            Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
-                        {/if}
-                    </p>
+                {/if}
+                {#if auction.bids.length}
+                    <div class="mt-2">
+                        <BidList {auction} />
+                    </div>
+                {:else}
+                    {#if !auction.is_mine}
+                        <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter satsAmount={auction.starting_bid} />.</p>
+                        <p class="text-2xl text-center pt-2">Be the first to bid!</p>
+                    {/if}
+                {/if}
+            </div>
+            <div class="mr-5 p-5">
+                <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
+                    <h3 class="mx-1">Product Details</h3>
+                </span>
+                <div class="form-control">
+                    <label class="label cursor-pointer text-right">
+                        <span class="label-text">Follow auction</span> 
+                        <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={auction.following} class="checkbox checkbox-primary checkbox-lg" />
+                    </label>
                 </div>
+                <div class="markdown-container">
+                    <SvelteMarkdown source={auction.description} />
+                </div>
+                {#if auction.shipping_from}
+                    <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
+                {/if}
+                <p class="mt-4 ml-2">NOTE: Please allow for post and packaging. The seller can agree on this with you when you have won.</p>
+                <p class="mt-4 ml-2">
+                    {#if auction.start_date && auction.end_date}
+                        {#if !auction.started}
+                            Auction starts <Countdown untilDate={new Date(auction.start_date)} />.
+                        {:else if auction.ended}
+                            Auction ended.
+                        {/if}
+                    {:else if !auction.is_mine}
+                        Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
+                    {/if}
+                </p>
             </div>
-
-            <div class="mt-4">
-
-
-            </div>
-
-            {#if auction.ended}
-                <AuctionEndMessage {auction} />
-            {/if}
         </div>
+        {#if auction.ended}
+            <AuctionEndMessage {auction} />
+        {/if}
     </div>
 {/if}
