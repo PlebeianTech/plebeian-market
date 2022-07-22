@@ -1,4 +1,6 @@
+import abc
 from base64 import b32encode
+from collections import OrderedDict
 from datetime import datetime, timedelta
 import dateutil.parser
 import hashlib
@@ -44,6 +46,7 @@ class State(db.Model):
     __tablename__ = 'state'
 
     LAST_SETTLE_INDEX = 'LAST_SETTLE_INDEX'
+    LAST_PROCESSED_NOTIFICATIONS = 'LAST_PROCESSED_NOTIFICATIONS'
 
     key = db.Column(db.String(32), primary_key=True)
     value = db.Column(db.String(256), nullable=True)
@@ -83,6 +86,7 @@ class User(db.Model):
 
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
     bids = db.relationship('Bid', backref='buyer')
+    messages = db.relationship('Message', backref='user')
 
     def fetch_twitter_profile_image(self, s3):
         url = fetch_image(self.twitter_profile_image_url, s3, f"user_{self.id}_twitter_profile_image")
@@ -104,6 +108,208 @@ class User(db.Model):
         if self.is_moderator:
             d['is_moderator'] = True
         return d
+
+class Notification(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def notification_type(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def description(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def default_action(self):
+        pass
+
+    @abc.abstractmethod
+    def get_message_args(self, user, auction, bid):
+        pass
+
+class AuctionEndNotification(Notification):
+    @property
+    def notification_type(self):
+        return "AUCTION_END"
+
+    @property
+    def description(self):
+        return "Auction ended"
+
+    @property
+    def default_action(self):
+        return 'NONE'
+
+    def get_message_args(self, user, auction, bid):
+        # NB: "bid is None" means this notification refers to an auction
+        if bid is None and auction.ended:
+            return {
+                'user_id': user.id,
+                'key': f"{self.notification_type}_{auction.id}",
+                'body': f"Auction {auction.title} ended!",
+            }
+
+class AuctionEnd10MinNotification(Notification):
+    @property
+    def notification_type(self):
+        return "AUCTION_END_10MIN"
+
+    @property
+    def description(self):
+        return "Auction ending in 10 minutes"
+
+    @property
+    def default_action(self):
+        return 'NONE'
+
+    def get_message_args(self, user, auction, bid):
+        # NB: "bid is None" means this notification refers to an auction
+        if bid is None and auction.end_date <= (datetime.utcnow() + timedelta(minutes=10)):
+            return {
+                'user_id': user.id,
+                'key': f"{self.notification_type}_{auction.id}",
+                'body': f"Auction {auction.title} ending in less than 10 minutes!",
+            }
+
+class NewBidNotification(Notification):
+    @property
+    def notification_type(self):
+        return "NEW_BID"
+
+    @property
+    def description(self):
+        return "New bid"
+
+    @property
+    def default_action(self):
+        return 'NONE'
+
+    def get_message_args(self, user, auction, bid):
+        if bid is not None and bid.buyer_id != user.id: # the bidder should not be notified
+            return {
+                'user_id': user.id,
+                'key': f"{self.notification_type}_{auction.id}_{bid.id}",
+                'body': f"New bid on {auction.title} by {bid.buyer.twitter_username}: {bid.amount} sats!",
+            }
+
+NOTIFICATION_TYPES = OrderedDict([
+    (nt.notification_type, nt) for nt in [NewBidNotification(), AuctionEndNotification(), AuctionEnd10MinNotification()]
+])
+
+class NotificationAction(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def action(self):
+        pass
+
+    def to_dict(self):
+        return {'action': self.action, 'description': self.description}
+
+    @abc.abstractmethod
+    def execute(self, user, message):
+        pass
+
+class IgnoreNotificationAction(NotificationAction):
+    @property
+    def action(self):
+        return 'NONE'
+
+    @property
+    def description(self):
+        return "Ignore"
+
+    def execute(self, user, message):
+        # essentially do nothing
+        # and return False to let the system know that nothing was sent!
+        return False
+
+class InternalNotificationAction(NotificationAction):
+    @property
+    def action(self):
+        return 'INTERNAL'
+
+    @property
+    def description(self):
+        return "Internal (coming soon)"
+
+    def execute(self, user, message):
+        # essentially do nothing,
+        # but returning True will make the system think that a notification was sent,
+        # thus causing it to save the Message
+        return True
+
+class TwitterDMNotificationAction(NotificationAction):
+    @property
+    def action(self):
+        return 'TWITTER_DM'
+
+    @property
+    def description(self):
+        return "Twitter DM"
+
+    def execute(self, user, message):
+        from main import get_twitter
+        twitter = get_twitter()
+        twitter_user = twitter.get_user(user.twitter_username)
+        if not twitter_user:
+            return False
+        return twitter.send_dm(twitter_user['id'], message.body)
+
+NOTIFICATION_ACTIONS = OrderedDict([
+    (na.action, na) for na in [IgnoreNotificationAction(), TwitterDMNotificationAction(), InternalNotificationAction()]
+])
+
+class UserNotification(db.Model):
+    __tablename__ = 'user_notifications'
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False, primary_key=True)
+    notification_type = db.Column(db.String(32), nullable=False, primary_key=True)
+
+    # If we want to be able to send the same notification using multiple delivery mechanisms (for example Twitter DM + Telegram)
+    # we could, for example, combine multiple actions here (TWITTER_DM|TELEGRAM),
+    # then we would simply have to split by "|" when executing the actions in process-notifications!
+    # TODO: if we choose to do that, better just rename this field to (maybe) "actions" to make it clear that it does not refer to a single action!
+    action = db.Column(db.String(32), nullable=False)
+
+    def to_dict(self):
+        return {
+            'notification_type': self.notification_type,
+            'notification_type_description': NOTIFICATION_TYPES[self.notification_type].description,
+            'action': self.action,
+            'available_actions': [na.to_dict() for na in NOTIFICATION_ACTIONS.values()],
+        }
+
+class Message(db.Model):
+    __tablename__ = 'messages'
+
+    # NB: this makes sure we never ever send the same notification to the same user twice!
+    __table_args__ = (db.UniqueConstraint('user_id', 'key'),)
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+
+    # The "key" of a message is the notification type combined with auction/bid IDs relevant to that notification
+    # for example, for an AUCTION_END notification, we would combine that to the auction ID.
+    key = db.Column(db.String(64), nullable=False)
+
+    created_at = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+
+    body = db.Column(db.String(512), nullable=True)
+
+    # the action used to send this notification (for example TWITTER_DM)
+    # NB: this is NULL if the send failed
+    notified_via = db.Column(db.String(32), nullable=True)
+
+    def to_dict(self):
+        return {
+            'key': self.key,
+            'created_at': self.created_at.isoformat() + "Z",
+            'body': self.body,
+            'notified_via': self.notified_via,
+        }
 
 def hash_create(length):
     return b32encode(urandom(length)).decode("ascii").replace("=", "")
@@ -154,6 +360,8 @@ class Auction(db.Model):
 
     bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.requested_at)')
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
+
+    user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
 
     @property
     def started(self):
@@ -229,6 +437,12 @@ class Auction(db.Model):
                     auction['contribution_qr'] = qr.getvalue().decode('utf-8')
                 elif for_user == self.seller_id:
                     auction['wait_contribution'] = True
+
+        if for_user is not None:
+            user_auction = UserAuction.query.filter_by(user_id=for_user, auction_id=self.id).one_or_none()
+            auction['following'] = user_auction.following if user_auction is not None else False
+        else:
+            auction['following'] = False # TODO: when does this even happen?
 
         return auction
 
@@ -354,3 +568,11 @@ class Bid(db.Model):
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
             bid['payment_request'] = self.payment_request
         return bid
+
+class UserAuction(db.Model):
+    __tablename__ = 'user_auctions'
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False, primary_key=True)
+    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False, primary_key=True)
+
+    following = db.Column(db.Boolean, nullable=False)

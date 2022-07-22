@@ -70,6 +70,8 @@
                         <SvelteMarkdown source={auction.description}/>
                     </div>
                 </div>
+                {:else if currentTab === 'Preview'}
+                <SvelteMarkdown source={auction.description} />
                 {/if}
                 <div class="flex">
                     <div class="form-control w-1/2 max-w-xs mr-1">

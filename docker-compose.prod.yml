@@ -7,6 +7,7 @@ services:
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
       - S3_FILENAME_PREFIX=P_
       - MODERATOR_USER_IDS=1,5
+      - LOG_LEVEL=INFO
   nginx:
     environment:
       - VIRTUAL_HOST=plebeian.market
@@ -15,3 +16,8 @@ services:
     environment:
       - FLASK_APP=main
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
+      - LOG_LEVEL=INFO
+  process-notifications:
+    environment:
+      - FLASK_APP=main
+      - LOG_LEVEL=INFO

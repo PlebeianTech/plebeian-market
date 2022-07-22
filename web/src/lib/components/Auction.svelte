@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
-    import { ErrorHandler, getAuction } from "../services/api";
+    import { ErrorHandler, getAuction, putAuctionFollow } from "../services/api";
     import type { Auction } from "../types/auction";
-    import { Error, token, user } from "../stores";
+    import { Error, Info, token, user } from "../stores";
     import AmountFormatter from "./AmountFormatter.svelte";
     import AuctionEndMessage from "./AuctionEndMessage.svelte";
     import BidList from "./BidList.svelte";
@@ -56,6 +56,16 @@
             }
         },
         new ErrorHandler(false));
+    }
+
+    function followAuction() {
+        if (auction) {
+            auction.following = !auction.following;
+            putAuctionFollow($token, auction.key, auction.following,
+                message => {
+                    Info.set(message);
+                });
+        }
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;
@@ -166,11 +176,18 @@
                 </div>
                 <div class="md:w-1/3 ml-2">
                     <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
-                    <h3 class="mx-1">Product Details</h3>
+                        <h3 class="mx-1">Product Details</h3>
                     </span>
                     <div class="markdown-container">
                         <SvelteMarkdown source={auction.description} />
                     </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer text-right">
+                          <span class="label-text">Follow auction</span> 
+                          <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={auction.following} class="checkbox checkbox-primary checkbox-lg" />
+                        </label>
+                    </div>
+                    <SvelteMarkdown source={auction.description} />
                     {#if auction.shipping_from}
                         <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
                     {/if}

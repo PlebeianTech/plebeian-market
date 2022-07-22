@@ -29,6 +29,30 @@ class TestApi(unittest.TestCase):
     def get_auth_headers(self, token):
         return {'X-Access-Token': token}
 
+    def create_user(self):
+        code, response = self.get("/api/login")
+        self.assertEqual(code, 200)
+        self.assertTrue('k1' in response and 'svg' in response['qr'])
+
+        k1 = response['k1']
+
+        sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
+        sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
+
+        code, response = self.get("/api/login",
+            {'k1': k1,
+             'key': sk.verifying_key.to_string().hex(),
+             'sig': sig.hex()})
+        self.assertEqual(code, 200)
+        self.assertTrue('token' not in response)
+
+        code, response = self.get("/api/login",
+            {'k1': k1})
+        self.assertEqual(code, 200)
+        self.assertTrue('token' in response)
+
+        return k1, response['token']
+
     def test_11_api(self):
         code, response = self.get("/api/login")
         self.assertEqual(code, 200)
@@ -144,32 +168,30 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
+        # check user notifications
+        code, response = self.get("/api/users/me/notifications",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue(len(response['notifications']) > 0)
+        self.assertTrue(all(n['action'] == 'NONE' for n in response['notifications']))
+
+        # set a notification for the user
+        first_notification_type = response['notifications'][0]['notification_type']
+        code, response = self.put("/api/users/me/notifications",
+            {'notifications': [{'notification_type': first_notification_type, 'action': 'TWITTER_DM'}]},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # check user notifications again and we should find the one just set
+        code, response = self.get("/api/users/me/notifications",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue(len(response['notifications']) > 0)
+        self.assertEqual([n for n in response['notifications'] if n['notification_type'] == first_notification_type][0]['action'], 'TWITTER_DM')
+
         # create another user
-        code, response = self.get("/api/login")
-        self.assertEqual(code, 200)
-        self.assertTrue('k1' in response and 'svg' in response['qr'])
-
-        k1_2 = response['k1']
-
+        k1_2, token_2 = self.create_user()
         self.assertNotEqual(k1, k1_2)
-
-        sk_2 = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
-        sig_2 = sk_2.sign_digest(bytes.fromhex(k1_2), sigencode=ecdsa.util.sigencode_der)
-
-        code, response = self.get("/api/login",
-            {'k1': k1_2,
-             'key': sk_2.verifying_key.to_string().hex(),
-             'sig': sig_2.hex()})
-        self.assertEqual(code, 200)
-        self.assertTrue('token' not in response)
-
-        code, response = self.get("/api/login",
-            {'k1': k1_2})
-        self.assertEqual(code, 200)
-        self.assertTrue('token' in response)
-
-        token_2 = response['token']
-
         self.assertNotEqual(token_1, token_2)
 
         # set user details (to a username that did *not* like the "pinned tweet")
@@ -292,6 +314,24 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 1)
         self.assertEqual(response['auctions'][0]['key'], auction_key_2)
 
+        # the first user does not, by default, follow the second auction
+        code, response = self.get(f"/api/auctions/{auction_key_2}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertFalse(response['auction']['following'])
+
+        # start following the auction
+        code, response = self.put(f"/api/auctions/{auction_key_2}/follow",
+            {'follow': True},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # the user is now following the auction
+        code, response = self.get(f"/api/auctions/{auction_key_2}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue(response['auction']['following'])
+
         # can't DELETE an auction if not logged in
         code, response = self.delete(f"/api/auctions/{auction_key_2}")
         self.assertEqual(code, 401)
@@ -359,6 +399,25 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 403)
         self.assertTrue('cannot edit an auction once started' in response['message'].lower())
 
+        _, token_3 = self.create_user()
+
+        # subscribe to new bid notifications and start following, both with the user that will bid and with a 3rd one
+        for t in [token_2, token_3]:
+            code, response = self.put("/api/users/me/notifications",
+                {'notifications': [{'notification_type': 'NEW_BID', 'action': 'TWITTER_DM'}]},
+                headers=self.get_auth_headers(t))
+            self.assertEqual(code, 200)
+            code, response = self.put(f"/api/auctions/{auction_key}/follow",
+                {'follow': True},
+                headers=self.get_auth_headers(t))
+            self.assertEqual(code, 200)
+
+        # the user has no messages yet
+        code, response = self.get("/api/users/me/messages",
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['messages']), 0)
+
         # users can place a bid
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
             headers=self.get_auth_headers(token_2))
@@ -377,6 +436,20 @@ class TestApi(unittest.TestCase):
 
         # waiting for the invoice to settle...
         time.sleep(4)
+
+        # the user was notified of the new bid!
+        code, response = self.get("/api/users/me/messages?via=all",
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['messages']), 1)
+        self.assertTrue("new bid" in response['messages'][0]['body'].lower())
+        self.assertEqual(response['messages'][0]['notified_via'], 'TWITTER_DM')
+
+        # the bidder however was not...
+        code, response = self.get("/api/users/me/messages?via=all",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['messages']), 0)
 
         # auction has our settled bid!
         code, response = self.get(f"/api/auctions/{auction_key}",

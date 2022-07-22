@@ -44,3 +44,20 @@ services:
     volumes:
       - "./api:/app"
     command: flask settle-bids
+  process-notifications:
+    depends_on:
+      api: # this is because in dev & test mode, the api is the one initializing the database, on start
+        condition: service_healthy
+    environment:
+      - FLASK_APP=main
+      - FLASK_ENV=development
+      - DEBUG=1
+      - MOCK_LND=1 # probably not needed
+      - MOCK_S3=1 # probably not needed
+      - MOCK_TWITTER=1
+      - DB_USERNAME=pleb
+      - DB_PASSWORD=plebpass
+      - SQLALCHEMY_DISABLE_POOLING=1
+    volumes:
+      - "./api:/app"
+    command: flask process-notifications

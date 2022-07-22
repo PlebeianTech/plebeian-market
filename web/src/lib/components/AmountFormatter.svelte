@@ -12,6 +12,7 @@
 
     export let satsAmount;
     export let format: AmountFormat = AmountFormat.SatsAndUsd;
+    export let newline: boolean = false;
 
     function formatUSD(satsAmount) {
         let usd = sats2usd(satsAmount, $BTC2USD);
@@ -28,6 +29,9 @@
 {/if}
 {#if format === AmountFormat.Usd || format === AmountFormat.SatsAndUsd}
     {#if $BTC2USD}
-        (<span>{formatUSD(satsAmount)} $</span>)
+        {#if format === AmountFormat.SatsAndUsd && newline}
+            <br />
+        {/if}
+        (<span>${formatUSD(satsAmount)}</span>)
     {/if}
 {/if}

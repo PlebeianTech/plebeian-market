@@ -33,13 +33,13 @@
                     </td>
                     <td>
                         <p class="hidden md:contents">
-                            <AmountFormatter satsAmount={bid.amount} />
+                            <AmountFormatter satsAmount={bid.amount} newline={true} />
                         </p>
                     </td>
                     <td>
                         <p class="hidden md:contents"><DateFormatter date={bid.settled_at} /></p>
                         <p class="md:hidden">
-                            <AmountFormatter satsAmount={bid.amount} />
+                            <AmountFormatter satsAmount={bid.amount} newline={true} />
                         </p>
                     </td>
                 </tr>

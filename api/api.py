@@ -94,7 +94,7 @@ def login():
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict()})
 
-@api_blueprint.route('/api/users/me', methods=['GET', 'POST'])
+@api_blueprint.route('/api/users/me', methods=['GET', 'POST']) # TODO: POST here should actually be PUT
 @user_required
 def me(user):
     if request.method == 'GET':
@@ -146,6 +146,47 @@ def verify_twitter(user):
         db.session.commit()
         return jsonify({})
 
+@api_blueprint.route('/api/users/me/notifications', methods=['GET', 'PUT'])
+@user_required
+def user_notifications(user):
+    existing_notifications = {
+        n.notification_type: n for n in m.UserNotification.query.filter_by(user_id=user.id).all()
+    }
+    if request.method == 'GET':
+        notifications = []
+        for t in m.NOTIFICATION_TYPES:
+            if t in existing_notifications:
+                notifications.append(existing_notifications[t])
+            else:
+                notifications.append(m.UserNotification(notification_type=t, action=m.NOTIFICATION_TYPES[t].default_action))
+        return jsonify({'notifications': [n.to_dict() for n in notifications]})
+    elif request.method == 'PUT':
+        for notification in request.json['notifications']:
+            if notification['notification_type'] not in existing_notifications:
+                db.session.add(m.UserNotification(
+                    user_id=user.id,
+                    notification_type=notification['notification_type'],
+                    action=notification['action']))
+            else:
+                existing_notifications[notification['notification_type']].action = notification['action']
+        db.session.commit()
+        return jsonify({})
+
+@api_blueprint.route('/api/users/me/messages', methods=['GET'])
+@user_required
+def messages(user):
+    # by default we only return INTERNAL messages (to be shown in the UI),
+    # but using the "via" parameter, we can request additional messages,
+    # for example via=TWITTER_DM will return all messages sent to this user via TWITTER_DM
+    via = request.args.get('via') or 'INTERNAL'
+
+    if via == 'all':
+        messages = user.messages
+    else:
+        messages = m.Message.query.filter_by(user_id=user.id, notified_via=via).all()
+
+    return jsonify({'messages': [m.to_dict() for m in messages]})
+
 @api_blueprint.route('/api/auctions', methods=['GET', 'POST'])
 @user_required
 def auctions(user):
@@ -153,8 +194,6 @@ def auctions(user):
         auctions = [a.to_dict(for_user=user.id) for a in user.auctions]
         return jsonify({'auctions': auctions})
     else:
-        # TODO: prevent seller from creating too many auctions?
-
         for k in ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid']:
             if k not in request.json:
                 return jsonify({'message': f"Missing key: {k}."}), 400
@@ -170,7 +209,12 @@ def auctions(user):
         db.session.add(auction)
         db.session.commit()
 
-        return jsonify({'auction': auction.to_dict(for_user=user)})
+        # follow your own path (once you know the ID)!
+        user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=True)
+        db.session.add(user_auction)
+        db.session.commit()
+
+        return jsonify({'auction': auction.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/auctions/featured', methods=['GET'])
 def featured_auctions():
@@ -245,6 +289,28 @@ def auction(key):
 
             return jsonify({})
 
+@api_blueprint.route('/api/auctions/<string:key>/follow', methods=['PUT'])
+@user_required
+def follow_auction(user, key):
+    auction = m.Auction.query.filter_by(key=key).first()
+    if not auction:
+        return jsonify({'message': "Not found."}), 404
+
+    follow = bool(request.json['follow'])
+
+    if auction.seller_id == user.id and not follow:
+        return jsonify({'message': "Can't unfollow your own auctions!"}), 400
+
+    user_auction = m.UserAuction.query.filter_by(user_id=user.id, auction_id=auction.id).one_or_none()
+    if user_auction is None:
+        user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=follow)
+        db.session.add(user_auction)
+    else:
+        user_auction.following = follow
+    db.session.commit()
+
+    return jsonify({'message': f"Auction {'followed' if follow else 'unfollowed'}."})
+
 @api_blueprint.route('/api/auctions/<string:key>/start-twitter', methods=['PUT'])
 @user_required
 def start_twitter(user, key):
@@ -261,7 +327,7 @@ def start_twitter(user, key):
 
     user.twitter_profile_image_url = twitter_user['profile_image_url']
     if not user.fetch_twitter_profile_image(get_s3()):
-        return jsonify({'message': "Error fetching profile picture!"}), 400
+        return jsonify({'message': "Error fetching profile picture!"}), 500
 
     tweets = twitter.get_auction_tweets(twitter_user['id'])
     tweet = None
@@ -319,9 +385,26 @@ def bids(user, key):
 
     bid = m.Bid(auction=auction, buyer=user, amount=amount, payment_request=payment_request)
     db.session.add(bid)
+
+    started_following = False
+    user_auction = m.UserAuction.query.filter_by(user_id=user.id, auction_id=auction.id).one_or_none()
+    if user_auction is None:
+        user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=True)
+        db.session.add(user_auction)
+        started_following = True
+    else:
+        if not user_auction.following:
+            started_following = True
+            user_auction.following = True
     db.session.commit()
 
     qr = BytesIO()
     pyqrcode.create(payment_request).svg(qr, omithw=True, scale=4)
 
-    return jsonify({'payment_request': payment_request, 'qr': qr.getvalue().decode('utf-8')})
+    return jsonify({
+        'payment_request': payment_request,
+        'qr': qr.getvalue().decode('utf-8'),
+        'messages': [
+            "Your bid will be confirmed once you scan the QR code.",
+        ] + (["You are now following this auction."] if started_following else []),
+    })
