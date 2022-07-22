@@ -139,7 +139,7 @@
 <input type="checkbox" id="profile-modal-toggle" for="profile-modal" class="modal-toggle" />
 <div class="modal">
     <div class="modal-box relative flex justify-center items-center w-10/12 max-w-1xl">
-        <label for="profile-modal" class:hidden={$user && $user.hasAuctions && $user.contributionPercent == null} class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide_or_logout}>✕</label>
+        <label for="profile-modal" class:hidden={$user && $user.hasAuctions && $user.contributionPercent === null} class="btn btn-sm btn-circle absolute right-2 top-2" on:click={hide_or_logout}>✕</label>
         <div class="w-full">
             {#if !($user && $user.twitterUsername)}
             <div class="alert alert-info shadow-lg">
