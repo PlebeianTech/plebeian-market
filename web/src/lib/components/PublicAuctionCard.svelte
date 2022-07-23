@@ -33,7 +33,7 @@
             <div class="markdown-container max-h-52 overflow-hidden">
                 <SvelteMarkdown source={auction.description} />
             </div>
-            <hr class="border-solid border-bg-base-300 divide-y-0 opacity-50 pb-1">
+            <hr class="border-solid divide-y-0 border-accent opacity-100 pb-2 pt-2">
             <Countdown untilDate={auction.end_date} />
             {#if $user && $user.isModerator}
                 <div class="btn btn-xs self-center md:float-right" on:click|preventDefault={unfeature}>Unfeature</div>

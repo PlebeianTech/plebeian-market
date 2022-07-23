@@ -25,3 +25,13 @@ export function sats2usd(sats: number, btc2usd: number | null): number | null {
         return sats / 100000000 * btc2usd;
     }
 }
+
+export function getEnvironmentInfo() {
+    if (isLocal()) {
+        return "dev (local API)";
+    } else if (isStaging()) {
+        return "staging (staging API)";
+    } else {
+        return "";
+    }
+}
