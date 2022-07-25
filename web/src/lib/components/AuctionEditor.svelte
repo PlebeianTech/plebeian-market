@@ -12,15 +12,15 @@
     let durationMultiplier = "1";
     let currentTab = "Description";
 
-    let descriptionPlaceholder = `# Heading 1
+    let descriptionPlaceholder = `## Heading 1
 Text text text... **bold text**... *italic text* normal text normal text
 
-## Heading 2
+### Heading 2
 1. Ordered List
 2. Ordered List
 3. Ordered List
 
-- Unordered List
+* Unordered List
 * Unordered List
 * Unordered List
 `
@@ -83,7 +83,7 @@ Text text text... **bold text**... *italic text* normal text normal text
                 {#if currentTab === 'Description'}
                 <div class="form-control">
                     <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48" placeholder=""></textarea>
-                    <small class="pt-2 fg-neutral-content">Markdown accepted. <a class="underline decoration-solid" href="https://www.markdownguide.org/cheat-sheet/" target="_blank">Cheat Sheet</a></small>
+                    <small class="pt-2 fg-neutral-content">Markdown accepted</small>
                 </div>
                 {:else if currentTab === 'Preview'}
                 <div class="p-2">
