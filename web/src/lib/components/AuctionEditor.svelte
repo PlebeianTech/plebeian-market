@@ -15,6 +15,18 @@
     let durationMultiplier = "1";
     let currentTab = "Description";
 
+    let descriptionPlaceholder = `## Heading 1
+Text text text... **bold text**... *italic text* normal text normal text
+
+### Heading 2
+1. Ordered List
+2. Ordered List
+3. Ordered List
+
+* Unordered List
+* Unordered List
+* Unordered List
+`
     $: durationOptions = isLocal() || isStaging()
         ? [0.1, 1, 24]
         : [1, 24, 2 * 24];
@@ -41,21 +53,30 @@
         auction.duration_hours = parseInt(duration) * parseInt(durationMultiplier);
     }
 
-    onMount(async () => { customDuration() });
+    function setDefaultDescription() {
+        if (auction.description === "") {
+            auction.description = descriptionPlaceholder;
+        }
+    }
+
+    onMount(async () => {
+        customDuration();
+        setDefaultDescription();
+    });
 </script>
 
 <div class="w-full flex justify-center items-center">
     <div class="card bg-base-300 w-full lg:w-4/6 lg:p-4 rounded shadow-2xl mt-3">
         <div class="card-body items-center">
-            <h2 class="card-title mb-4 text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
+            <h2 class="card-title text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
             <form>
-                <div class="form-control w-full max-w-xs">
+                <div class="form-control w-full max-w-full">
                     <label class="label" for="title">
                         <span class="label-text">Title</span>
                     </label>
-                    <input bind:value={auction.title} type="text" name="title" class="input input-bordered w-full max-w-xs" />
+                    <input bind:value={auction.title} type="text" name="title" class="input input-bordered" />
                 </div>
-                <div class="tabs justify-center mb-5 mt-5">
+                <div class="tabs justify-center mb-4 mt-2">
                     {#each ['Description', 'Preview'] as tab}
                     <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={tab === currentTab} on:click={() => {currentTab = tab;}}>
                         <div>{tab}</div>
@@ -64,12 +85,17 @@
                 </div>
                 {#if currentTab === 'Description'}
                 <div class="form-control">
-                    <textarea bind:value={auction.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
+                    <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48" placeholder=""></textarea>
+                    <small class="pt-2 fg-neutral-content">Markdown accepted</small>
                 </div>
                 {:else if currentTab === 'Preview'}
-                <SvelteMarkdown source={auction.description} />
+                <div class="p-2">
+                    <div class="markdown-container bg-base-100 rounded-md p-2">
+                        <SvelteMarkdown source={auction.description}/>
+                    </div>
+                </div>
                 {/if}
-                <div class="flex">
+                <div class="flex mt-3">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
                             <span class="label-text">Starting bid (optional)</span>
@@ -91,7 +117,7 @@
                         </label>
                     </div>
                 </div>
-                <div class="form-control w-full max-w-xs">
+                <div class="form-control w-full max-w-xs mt-3">
                     <label class="label" for="shipping_from">
                         <span class="label-text">Shipping from (optional)</span>
                     </label>

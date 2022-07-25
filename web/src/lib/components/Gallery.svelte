@@ -255,7 +255,7 @@
 }
 </style>
 
-<div class="gallery hidden md:grid md:w-4/5 grid-cols-2 gap-2 m-auto">
+<div class="gallery hidden md:grid md:w-4/5 grid-cols-2 gap-3 m-auto">
     {#each photos as photo, i}
             {#if i < 2}
                 <div class="gallery-item h-auto hover:scale-110 hover:-translate-y-1 table">

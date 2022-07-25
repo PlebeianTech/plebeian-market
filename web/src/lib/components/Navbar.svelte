@@ -83,10 +83,10 @@
     {:else if isStaging()}
         <div class="badge badge-primary">staging (staging API)</div>
     {/if}
-    <div class="flex-1">
-        <a href={null} on:click|preventDefault={() => goto("/")} class="btn btn-ghost normal-case text-xl">Home</a>
-        <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl">About</a>
-        <a href={null} on:click|preventDefault={() => goto("/faq")} class="btn btn-ghost normal-case text-xl">FAQ</a>
+    <div class="flex-1 invisible md:visible">
+        <a href={null} on:click|preventDefault={() => goto("/")} class="btn btn-ghost normal-case text-xl invisible md:visible">Home</a>
+        <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl invisible md:visible">About</a>
+        <a href={null} on:click|preventDefault={() => goto("/faq")} class="btn btn-ghost normal-case text-xl invisible md:visible">FAQ</a>
     </div>
     <div class="flex-none gap-2">
         <label class="swap swap-rotate" on:click={toggleTheme}>
@@ -114,14 +114,17 @@
                             </label>
                         </li>
                     {/if}
+                    <li class="visible md:invisible md:h-0"><a href={null} on:click|preventDefault={() => goto("/")} class="modal-button cursor-pointer">Home</a></li>
+                    <li class="visible md:invisible md:h-0"><a href={null} on:click|preventDefault={() => goto("/about")} class="modal-button cursor-pointer">About</a></li>
+                    <li class="visible md:invisible md:h-0"><a href={null} on:click|preventDefault={() => goto("/faq")} class="modal-button cursor-pointer">FAQ</a></li>
                     <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
                     {#if $user.isModerator}
                         <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
                     {/if}
-                    <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button">Profile</label></li>
-                    <li><label for="profile-modal" on:click|preventDefault={showUserNotifications} class="modal-button">Notifications</label></li>
+                    <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button cursor-pointer">Profile</label></li>
+                    <li><label for="profile-modal" on:click|preventDefault={showUserNotifications} class="modal-button cursor-pointer">Notifications</label></li>
                     <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
-                    <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }}>Logout</a></li>
+                    <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }} class="modal-button cursor-pointer">Logout</a></li>
                 </ul>
             </div>
         {/if}
