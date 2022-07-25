@@ -5,7 +5,7 @@
 <script>
 </script>
 
-<div class="flex justify-center items-center md:mb-20">
+<div class="flex justify-center items-center md:mb-20 md:pb-5">
     <div class="mt-10 ml-4 w-3/4 md:text-3xl">
         <p class="mt-2 md:mt-10">This is an MVP and an incidental idea on the way to a fully sovereign version... it's the first piece of a much bigger vision of decentralised sovereign commerce.</p>
         <p class="mt-2 md:mt-10">100% Value4Value business model... 100% donations to this site go into open source bitcoin projects.</p>
