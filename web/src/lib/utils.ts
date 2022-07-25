@@ -28,9 +28,9 @@ export function sats2usd(sats: number, btc2usd: number | null): number | null {
 
 export function getEnvironmentInfo() {
     if (isLocal()) {
-        return "dev (local API)";
+        return "local";
     } else if (isStaging()) {
-        return "staging (staging API)";
+        return "staging";
     } else {
         return "";
     }
