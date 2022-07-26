@@ -1,9 +1,10 @@
 import { goto } from "$app/navigation";
-import { type Auction, fromJson as auctionFromJson } from "../types/auction";
-import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "../types/notification";
-import { type User, fromJson as userFromJson } from "../types/user";
-import { isLocal, isStaging } from "../utils";
-import { token, Error } from "../stores";
+import { token, Error } from "$lib/stores";
+import { isLocal, isStaging } from "$lib/utils";
+import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
+import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
+import { type User, fromJson as userFromJson } from "$lib/types/user";
+import type { IEntity } from "$lib/types/base";
 
 export class ErrorHandler {
     setError: boolean;
@@ -58,6 +59,46 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
             }
         }
     );
+}
+
+export interface ILoader {
+    endpoint: string;
+    fromJson: (any) => IEntity;
+}
+
+export function getEntities(loader: ILoader, tokenValue, successCB: (entities: IEntity[]) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${loader.endpoint}`, 'GET', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(data[loader.endpoint].map(loader.fromJson));
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function postEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${entity.endpoint}`, 'POST', tokenValue, entity.toJson(),
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function putEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${entity.endpoint}/${entity.key}`, 'PUT', tokenValue, entity.toJson(),
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                errorHandler.handle(response);
+            }
+        });
 }
 
 export interface GetLoginInitialResponse {
@@ -163,46 +204,11 @@ export function putVerifyTwitter(tokenValue, successCB: () => void, errorHandler
         });
 }
 
-export function getAuctions(tokenValue, successCB: (auctions: Auction[]) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/auctions", 'GET', tokenValue, null,
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => {
-                    successCB(data.auctions.map(auctionFromJson));
-                });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
 export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}`, 'GET', tokenValue, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(auctionFromJson(data.auction)); });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
-export function putAuction(tokenValue, auction: Auction, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auction.key}`, 'PUT', tokenValue, auction.toJson(),
-        response => {
-            if (response.status === 200) {
-                successCB();
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
-export function postAuction(tokenValue, auction: Auction, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/auctions", 'POST', tokenValue, auction.toJson(),
-        response => {
-            if (response.status === 200) {
-                successCB();
             } else {
                 errorHandler.handle(response);
             }
@@ -232,8 +238,8 @@ export function startAuction(tokenValue, auctionKey, successCB: () => void, erro
     );
 }
 
-export function deleteAuction(tokenValue, auctionKey, successCB: () => void) {
-    fetchAPI(`/auctions/${auctionKey}`, 'DELETE', tokenValue, null,
+export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void) {
+    fetchAPI(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null,
         response => {
             if (response.status === 200) {
                 successCB();

@@ -15,11 +15,11 @@
 
 {#if auction.has_winner}
     {#if auction.is_mine}
-        {#if auction.seller_twitter_username && auction.seller_twitter_profile_image_url && auction.winner_twitter_username && auction.winner_twitter_profile_image_url}
+        {#if auction.seller.username && auction.seller.profileImageUrl && auction.winner_twitter_username && auction.winner_twitter_profile_image_url}
             <div class="my-4">
                 <Handshake
-                    leftUsername={auction.seller_twitter_username}
-                    leftProfileImageUrl={auction.seller_twitter_profile_image_url}
+                    leftUsername={auction.seller.username}
+                    leftProfileImageUrl={auction.seller.profileImageUrl}
                     rightUsername={auction.winner_twitter_username}
                     rightProfileImageUrl={auction.winner_twitter_profile_image_url} />
             </div>
@@ -36,20 +36,20 @@
         <p class="my-4">Unfortunately, you were outbid.</p>
         <p class="my-2">Thank you so much for taking part and contributing {#if myContribution !== 0}{myContribution} sats {/if}to open source projects on Bitcoin!</p>
     {:else if auction.is_won}
-        {#if $user && $user.twitterUsername && $user.twitterProfileImageUrl && auction.seller_twitter_username && auction.seller_twitter_profile_image_url}
+        {#if $user && $user.twitterUsername && $user.twitterProfileImageUrl && auction.seller.username && auction.seller.profileImageUrl}
             <div class="my-4">
                 <Handshake
                     leftUsername={$user.twitterUsername}
                     leftProfileImageUrl={$user.twitterProfileImageUrl}
-                    rightUsername={auction.seller_twitter_username}
-                    rightProfileImageUrl={auction.seller_twitter_profile_image_url} />
+                    rightUsername={auction.seller.username}
+                    rightProfileImageUrl={auction.seller.profileImageUrl} />
             </div>
         {/if}
         <p class="my-4 text-center">Thank you for your contribution! Please contact the seller directly to arrange payment of the remaining <AmountFormatter satsAmount={auction.remaining_amount} /> and delivery.</p>
     {:else}
         <p class="my-4">Congratulations to @{auction.winner_twitter_username}!</p>
         {#if auction.contribution_amount}
-            <p class="my-2">The seller @{auction.seller_twitter_username} has donated <AmountFormatter satsAmount={auction.contribution_amount} /> to Bitcoin open source projects like this.
+            <p class="my-2">The seller @{auction.seller.username} has donated <AmountFormatter satsAmount={auction.contribution_amount} /> to Bitcoin open source projects like this.
         {/if}
     {/if}
 {:else if $user && auction.needs_contribution}
@@ -60,7 +60,7 @@
         The seller wishes to donate {auction.contribution_percent}% = <AmountFormatter satsAmount={auction.contribution_amount} /> sats out of your winning bid to Plebeian Technology. Please send the amount using the QR code below!
     </p>
     <p class="my-2">
-        @{auction.seller_twitter_username} is waiting for you to send us their contribution!
+        @{auction.seller.username} is waiting for you to send us their contribution!
     </p>
     <p class="my-2">
         After payment you will be directed to the seller for final settlement of the remaining {remainingPercent}% = <AmountFormatter satsAmount={auction.remaining_amount} />.

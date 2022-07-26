@@ -117,17 +117,18 @@
             Plebeian Market
         </span>
         {#if isLocal() || isStaging() }
+            <!-- hiddin on small devices -->
             <div class="hidden md:inline badge badge-primary ml-2">{getEnvironmentInfo()}</div>
         {/if}
     </a>
     <div class="hidden md:block">
-        <a class="rounded btn btn-ghost normal-case text-xl" href="{getBaseUrl()}">
+        <a class="rounded btn btn-ghost normal-case text-xl" href={null} on:click|preventDefault={() => goto("/")}>
             Home
         </a>
-        <a class="rounded btn btn-ghost normal-case text-xl" href="{getBaseUrl()}about">
+        <a class="rounded btn btn-ghost normal-case text-xl" href={null} on:click|preventDefault={() => goto("/about")}>
             About
         </a>
-        <a class="rounded btn btn-ghost normal-case text-xl" href="{getBaseUrl()}faq">
+        <a class="rounded btn btn-ghost normal-case text-xl" href={null} on:click|preventDefault={() => goto("/faq")}>
             FAQ
         </a>
     </div>
@@ -148,10 +149,10 @@
     </div>
     <div class="{menuDisplay} w-full">
         <ul class="flex flex flex-col" on:click={closeMenu}>
-            <a class="md:hidden px-3 py-2 rounded btn btn-ghost" href="{getBaseUrl()}about">
+            <a class="md:hidden px-3 py-2 rounded btn btn-ghost" href={null} on:click|preventDefault={() => goto("/about")}>
                 About
             </a>
-            <a class="md:hidden px-3 py-2 rounded btn btn-ghost" href="{getBaseUrl()}faq">
+            <a class="md:hidden px-3 py-2 rounded btn btn-ghost" href={null} on:click|preventDefault={() => goto("/faq")}>
                 FAQ
             </a>
             {#if $user && !$user.twitterUsernameVerified}
@@ -166,9 +167,12 @@
             {/if}
             {#if $token && $user}
             <!-- user logged in -->
-            <a class="px-3 py-2 rounded btn btn-ghost cursor-pointer" href="{getBaseUrl()}auctions">
+            <a class="px-3 py-2 rounded btn btn-ghost cursor-pointer" href={null} on:click|preventDefault={() => goto("/auctions")}>
                 My auctions
             </a>
+            {#if $user.isModerator}
+            <a class="px-3 py-2 rounded btn btn-ghost cursor-pointer" href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a>
+            {/if}
             <li class="px-3 py-2 rounded btn btn-ghost cursor-pointer" on:click|preventDefault={showProfile}>
                 <label class="cursor-pointer" for="profile-modal">Profile</label>
             </li>
@@ -188,11 +192,11 @@
             </a>
             <!-- login / logout -->
             {#if $token && $user}
-            <a class="px-3 py-2 rounded btn btn-ghost cursor-pointer" href={getBaseUrl()} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token');}}>
+            <a class="px-3 py-2 rounded btn btn-ghost cursor-pointer" href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/");}}>
                 Logout
             </a>
             {:else}
-            <a class="px-3 py-2 rounded btn btn-ghost cursor-pointer" href="{getBaseUrl()}login">
+            <a class="px-3 py-2 rounded btn btn-ghost cursor-pointer" href={null} on:click|preventDefault={() => goto("/login")}>
                 Login
             </a>
             {/if}

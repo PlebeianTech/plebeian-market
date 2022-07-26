@@ -1,16 +1,21 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { startAuction, getAuction, deleteAuction, ErrorHandler } from "../services/api";
-    import type { Auction } from "../types/auction";
-    import { token, user, Info } from "../stores";
-    import Confirmation from "./Confirmation.svelte";
-    import Countdown from "./Countdown.svelte";
-    import AmountFormatter from "./AmountFormatter.svelte";
-    import DateFormatter from "./DateFormatter.svelte";
+    import { startAuction, getAuction, deleteEntity, ErrorHandler } from "$lib/services/api";
+    import { token, user, Info } from "$lib/stores";
+    import type { IEntity } from "$lib/types/base";
+    import type { Auction } from "$lib/types/auction";
+    import AmountFormatter from "$lib/components/AmountFormatter.svelte";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import Confirmation from "$lib/components/Confirmation.svelte";
+    import Countdown from "$lib/components/Countdown.svelte";
+    import DateFormatter from "$lib/components/DateFormatter.svelte";
 
-    export let auction : Auction;
-    let auctionTweeted = auction.key.length !== 0 && (localStorage.getItem('auctions-tweeted') || "").includes(auction.key);
-    let auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
+    export let entity: IEntity;
+    $: auction = <Auction>entity;
+    $: topBid = auction.topBid();
+
+    let auctionTweeted;
+    let auctionViewed;
     let starting = false;
 
     let confirmation: any = null;
@@ -29,7 +34,7 @@
             onView(auction);
         }
 
-        window.open(getUrl(), "_self");
+        window.open(getUrl(), "_blank");
     }
 
     function getUrl() {
@@ -55,7 +60,7 @@
             () => {
                 getAuction($token, auction.key,
                     a => {
-                        auction = a;
+                        entity = a;
                         user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
                         starting = false;
                         Info.set("Your auction is now running...");
@@ -68,12 +73,16 @@
     function del() {
         confirmation = {
             onContinue: () => {
-                deleteAuction($token, auction.key, onDelete);
+                deleteEntity($token, auction, onDelete);
             }
         };
     }
 
-    onMount(async () => { confirmation = null; });
+    onMount(async () => {
+        confirmation = null;
+        auctionTweeted = auction.key.length !== 0 && (localStorage.getItem('auctions-tweeted') || "").includes(auction.key);
+        auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
+    });
 </script>
 
 <div class="glowbox">
@@ -146,27 +155,30 @@
         </div>
         {/if}
         <p class="whitespace-nowrap">
-            {#if auction.start_date && auction.end_date}
+            {#if auction.start_date && auction.end_date && !auction.started}
                 From:
                 <DateFormatter date={auction.start_date} />
                 <br />
                 To:
                 <DateFormatter date={auction.end_date} />
             {/if}
-            <br />
-            {#if !auction.started}
-                <span>{auction.duration_str} /</span>
-            {/if}
-            {#if !auction.has_winner}
-                <span>Start: <AmountFormatter satsAmount={auction.starting_bid} /></span>
-                <span>Reserve: <AmountFormatter satsAmount={auction.reserve_bid} /></span>
-            {:else}
+            {#if auction.has_winner}
+                <br />
                 <span>Winner: @{auction.winner_twitter_username}</span>
                 <br />
                 <span>Amount: <AmountFormatter satsAmount={auction.topAmount()} /></span>
-            {/if}
-            {#if auction.started}
-                <span class="lg:float-right">Bids: {auction.bids.length}</span>
+            {:else if !auction.started}
+                <br />
+                <span>{auction.duration_str} /</span>
+                <span>Start: <AmountFormatter satsAmount={auction.starting_bid} /> /</span>
+                <span>Reserve: <AmountFormatter satsAmount={auction.reserve_bid} /></span>
+            {:else}
+                {#if topBid && topBid.buyer}
+                    <br />
+                    Top bid: <AmountFormatter satsAmount={topBid.amount} /> by <Avatar account={topBid.buyer} />
+                {/if}
+                <br />
+                <span>Bids: {auction.bids.length}</span>
             {/if}
         </p>
         <div class="mt-2 card-actions justify-end">

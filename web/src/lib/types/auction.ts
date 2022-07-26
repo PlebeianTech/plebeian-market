@@ -1,10 +1,10 @@
-import { isLocal, isStaging } from "../utils";
+import { isLocal, isStaging } from "$lib/utils";
+import type { IEntity } from "$lib/types/base";
+import type { IAccount } from "$lib/types/user";
 
 export interface Bid {
     amount: number;
-    twitter_username?: string;
-    twitter_profile_image_url?: string;
-    twitter_username_verified?: boolean;
+    buyer: IAccount;
     payment_request?: string;
     settled_at?: Date;
 }
@@ -14,14 +14,14 @@ export interface Media {
     twitter_media_key: string;
 }
 
-export class Auction {
+export class Auction implements IEntity {
     static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'starting_bid', 'reserve_bid', 'duration_hours'];
+
+    endpoint = "auctions";
 
     key: string = "";
     title: string = "";
-    seller_twitter_username: string = "";
-    seller_twitter_username_verified: boolean = false;
-    seller_twitter_profile_image_url: string = "";
+    seller: IAccount = {username: "", usernameVerified: false, profileImageUrl: ""};
     description: string = "";
     starting_bid: number = 0;
     reserve_bid: number = 0;
@@ -58,6 +58,12 @@ export class Auction {
 
     invalidTitle?: boolean;
     invalidDescription?: boolean;
+
+    public validate() {
+        this.invalidTitle = this.title.length === 0;
+        this.invalidDescription = this.description.length === 0;
+        return !(this.invalidTitle || this.invalidDescription);
+    }
 
     public topBid() {
         var top: Bid | undefined = undefined;
@@ -115,7 +121,7 @@ export class Auction {
     }
 }
 
-export function fromJson(json: any) {
+export function fromJson(json: any): IEntity {
     var a = new Auction();
     for (var k in json) {
         if (k === 'start_date') {
@@ -141,7 +147,7 @@ export function fromJson(json: any) {
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
             for (const bidjson of json[k]) {
-                var b: Bid = {amount: 0};
+                var b: Bid = {amount: 0, buyer: {username: "", profileImageUrl: "", usernameVerified: false}};
                 for (var kk in bidjson) {
                     if (kk === 'settled_at') {
                         b.settled_at = new Date(bidjson[kk]);
@@ -149,12 +155,21 @@ export function fromJson(json: any) {
                         b[kk] = bidjson[kk];
                     }
                 }
+                b.buyer = {
+                    username: <string>bidjson.twitter_username,
+                    profileImageUrl: <string>bidjson.twitter_profile_image_url,
+                    usernameVerified: <boolean>bidjson.twitter_username_verified,
+                };
                 a.bids.push(b);
             }
         } else {
             a[k] = json[k];
         }
     }
+    a.seller = {
+        username: <string>json.seller_twitter_username,
+        usernameVerified: <boolean>json.seller_twitter_username_verified,
+        profileImageUrl: <string>json.seller_twitter_profile_image_url
+    };
     return a;
 }
-
