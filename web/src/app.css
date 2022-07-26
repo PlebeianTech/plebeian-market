@@ -223,4 +223,5 @@ input[type=number] {
 .markdown-container blockquote { padding-left: 1rem; }
 .markdown-container a { text-decoration: underline; }
 .markdown-container hr { margin-top: 1rem; margin-bottom: 1rem; border-width: 1px; border-top: 1px; }
-.markdown-container img { display: none; }
+.markdown-container img { display: none; } /* Hides images added in markdown */
+

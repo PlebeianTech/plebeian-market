@@ -5,7 +5,7 @@
 <footer class="mt-auto p-1.5 py-1 bg-neutral text-neutral-content">
     <div class="flex flex-col md:flex-row items-center w-full">
         <div class="md:w-1/2 text-left md:ml-4">
-            <p><span class="hidden lg:inline-block">Powered By</span><a class="btn" target="_blank" href="https://plebeian.technology">Plebeian Technology</a></p>
+            <p><span class="hidden lg:inline-block">Powered by</span><a class="btn" target="_blank" href="https://plebeian.technology">Plebeian Technology</a></p>
         </div>
         <div class="md:w-1/2 text-right">
             <a class="btn align-middle" target="_blank" href="https://t.me/PlebeianMarket">
