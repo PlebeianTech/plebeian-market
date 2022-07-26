@@ -12,7 +12,7 @@
         if (value) {
             toasts.add({
                 description: value,
-                duration: 3000,
+                duration: 4000,
                 placement: window.screen.availWidth >= 1024 ? 'top-center' : 'bottom-right',
                 type: 'info'
             });
@@ -25,7 +25,7 @@
         if (value) {
             toasts.add({
                 description: value,
-                duration: 3000,
+                duration: 4000,
                 placement: window.screen.availWidth >= 1024 ? 'top-center' : 'bottom-right',
                 type: 'error'
             });
