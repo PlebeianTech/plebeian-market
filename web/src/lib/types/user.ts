@@ -1,4 +1,4 @@
-export interface ITwitterAccount {
+export interface IAccount {
     username: string;
     usernameVerified: boolean;
     profileImageUrl: string;

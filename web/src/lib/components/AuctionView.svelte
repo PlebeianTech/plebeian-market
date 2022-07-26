@@ -1,16 +1,17 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
-    import { ErrorHandler, getAuction, putAuctionFollow } from "../services/api";
-    import type { Auction } from "../types/auction";
-    import { Error, Info, token, user } from "../stores";
-    import AmountFormatter from "./AmountFormatter.svelte";
-    import AuctionEndMessage from "./AuctionEndMessage.svelte";
-    import BidList from "./BidList.svelte";
-    import Gallery from "./Gallery.svelte";
-    import NewBid from "./NewBid.svelte";
-    import Countdown from "./Countdown.svelte";
-    import Login from "./Login.svelte";
     import SvelteMarkdown from 'svelte-markdown';
+    import { ErrorHandler, getAuction, putAuctionFollow } from "$lib/services/api";
+    import { Error, Info, token, user } from "$lib/stores";
+    import type { Auction } from "$lib/types/auction";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import AmountFormatter from "$lib/components/AmountFormatter.svelte";
+    import AuctionEndMessage from "$lib/components/AuctionEndMessage.svelte";
+    import BidList from "$lib/components/BidList.svelte";
+    import Countdown from "$lib/components/Countdown.svelte";
+    import Gallery from "$lib/components/Gallery.svelte";
+    import Login from "$lib/components/Login.svelte";
+    import NewBid from "$lib/components/NewBid.svelte";
 
     export let auctionKey = null;
 
@@ -109,13 +110,7 @@
             <div class="p-5">
                 <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
                 <div class="text-center mb-4">
-                    by
-                    <div class="avatar" class:verified={auction.seller_twitter_username_verified} class:not-verified={!auction.seller_twitter_username_verified}>
-                        <div class="w-8 rounded-full">
-                            <img src={auction.seller_twitter_profile_image_url} alt="{auction.seller_twitter_username}'s avatar" />
-                        </div>
-                    </div>
-                    <span class="font-bold">{auction.seller_twitter_username}</span>
+                    by <Avatar account={auction.seller} />
                 </div>
                 <Gallery photos={auction.media} />
             </div>

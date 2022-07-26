@@ -1,5 +1,5 @@
 import type { IEntity } from "$lib/types/base";
-import type { ITwitterAccount } from "$lib/types/user";
+import type { IAccount } from "$lib/types/user";
 
 export class Campaign implements IEntity {
     endpoint = 'campaigns';
@@ -11,7 +11,7 @@ export class Campaign implements IEntity {
     started: boolean = false;
     ended: boolean = false;
 
-    owner: ITwitterAccount = {username: "", usernameVerified: false, profileImageUrl: ""};
+    owner: IAccount = {username: "", usernameVerified: false, profileImageUrl: ""};
 
     public validate() {
         return true;

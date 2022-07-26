@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { Auction } from "../types/auction";
-
-    import AmountFormatter from "./AmountFormatter.svelte";
-    import DateFormatter from "./DateFormatter.svelte";
+    import type { Auction } from "$lib/types/auction";
+    import AmountFormatter from "$lib/components/AmountFormatter.svelte";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import DateFormatter from "$lib/components/DateFormatter.svelte";
 
     export let auction: Auction;
 </script>
@@ -11,9 +11,16 @@
     <table class="table w-full">
         <thead>
             <tr>
-                <th><p class="hidden md:contents">Bidder</p><p class="md:hidden">Bids</p></th>
-                <th><p class="hidden md:contents">Amount</p></th>
-                <th><p class="hidden md:contents">Date</p></th>
+                <th>
+                    <p class="hidden md:contents">Bidder</p>
+                    <p class="md:hidden">Bids</p>
+                </th>
+                <th>
+                    <p class="hidden md:contents">Amount</p>
+                </th>
+                <th>
+                    <p class="hidden md:contents">Date</p>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -21,14 +28,10 @@
                 <tr>
                     <td>
                         <div class="flex items-center space-x-3">
-                            <div class="avatar" class:verified={bid.twitter_username_verified} class:not-verified={!bid.twitter_username_verified}>
-                                <div class="w-8 rounded-full">
-                                    <img src={bid.twitter_profile_image_url} alt="{bid.twitter_username}'s avatar" />
-                                </div>
-                            </div>
-                            <div>
-                                <div><p class="font-bold">{bid.twitter_username}</p><p class="md:hidden text-xs"><DateFormatter date={bid.settled_at} /></p></div>
-                            </div>
+                            <Avatar account={bid.buyer} />
+                            <p class="md:hidden text-xs">
+                                <DateFormatter date={bid.settled_at} />
+                            </p>
                         </div>
                     </td>
                     <td>
@@ -37,7 +40,9 @@
                         </p>
                     </td>
                     <td>
-                        <p class="hidden md:contents"><DateFormatter date={bid.settled_at} /></p>
+                        <p class="hidden md:contents">
+                            <DateFormatter date={bid.settled_at} />
+                        </p>
                         <p class="md:hidden">
                             <AmountFormatter satsAmount={bid.amount} newline={true} />
                         </p>

@@ -1,11 +1,10 @@
-import { isLocal, isStaging } from "../utils";
-import type { IEntity } from "./base";
+import { isLocal, isStaging } from "$lib/utils";
+import type { IEntity } from "$lib/types/base";
+import type { IAccount } from "$lib/types/user";
 
 export interface Bid {
     amount: number;
-    twitter_username?: string;
-    twitter_profile_image_url?: string;
-    twitter_username_verified?: boolean;
+    buyer: IAccount;
     payment_request?: string;
     settled_at?: Date;
 }
@@ -22,9 +21,7 @@ export class Auction implements IEntity {
 
     key: string = "";
     title: string = "";
-    seller_twitter_username: string = "";
-    seller_twitter_username_verified: boolean = false;
-    seller_twitter_profile_image_url: string = "";
+    seller: IAccount = {username: "", usernameVerified: false, profileImageUrl: ""};
     description: string = "";
     starting_bid: number = 0;
     reserve_bid: number = 0;
@@ -150,7 +147,7 @@ export function fromJson(json: any): IEntity {
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
             for (const bidjson of json[k]) {
-                var b: Bid = {amount: 0};
+                var b: Bid = {amount: 0, buyer: {username: "", profileImageUrl: "", usernameVerified: false}};
                 for (var kk in bidjson) {
                     if (kk === 'settled_at') {
                         b.settled_at = new Date(bidjson[kk]);
@@ -158,12 +155,21 @@ export function fromJson(json: any): IEntity {
                         b[kk] = bidjson[kk];
                     }
                 }
+                b.buyer = {
+                    username: <string>bidjson.twitter_username,
+                    profileImageUrl: <string>bidjson.twitter_profile_image_url,
+                    usernameVerified: <boolean>bidjson.twitter_username_verified,
+                };
                 a.bids.push(b);
             }
         } else {
             a[k] = json[k];
         }
     }
+    a.seller = {
+        username: <string>json.seller_twitter_username,
+        usernameVerified: <boolean>json.seller_twitter_username_verified,
+        profileImageUrl: <string>json.seller_twitter_profile_image_url
+    };
     return a;
 }
-
