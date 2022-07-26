@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import SvelteMarkdown from 'svelte-markdown';
     import type { IEntity } from "$lib/types/base";
     import type { Auction } from "$lib/types/auction";
     import { isLocal, isStaging } from "$lib/utils";
-    import AmountFormatter, { AmountFormat } from '$lib/components/AmountFormatter.svelte';
+    import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
 
     export let entity: IEntity;
     $: auction = <Auction>entity;
@@ -13,20 +13,6 @@
 
     let duration = "";
     let durationMultiplier = "1";
-    let currentTab = "Description";
-
-    let descriptionPlaceholder = `## Heading 1
-Text text text... **bold text**... *italic text* normal text normal text
-
-### Heading 2
-1. Ordered List
-2. Ordered List
-3. Ordered List
-
-* Unordered List
-* Unordered List
-* Unordered List
-`
     $: durationOptions = isLocal() || isStaging()
         ? [0.1, 1, 24]
         : [1, 24, 2 * 24];
@@ -53,15 +39,8 @@ Text text text... **bold text**... *italic text* normal text normal text
         auction.duration_hours = parseInt(duration) * parseInt(durationMultiplier);
     }
 
-    function setDefaultDescription() {
-        if (auction.description === "") {
-            auction.description = descriptionPlaceholder;
-        }
-    }
-
     onMount(async () => {
         customDuration();
-        setDefaultDescription();
     });
 </script>
 
@@ -76,25 +55,7 @@ Text text text... **bold text**... *italic text* normal text normal text
                     </label>
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered" />
                 </div>
-                <div class="tabs justify-center mb-4 mt-2">
-                    {#each ['Description', 'Preview'] as tab}
-                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={tab === currentTab} on:click={() => {currentTab = tab;}}>
-                        <div>{tab}</div>
-                    </li>
-                    {/each}
-                </div>
-                {#if currentTab === 'Description'}
-                <div class="form-control">
-                    <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48" placeholder=""></textarea>
-                    <small class="pt-2 fg-neutral-content">Markdown accepted</small>
-                </div>
-                {:else if currentTab === 'Preview'}
-                <div class="p-2">
-                    <div class="markdown-container bg-base-100 rounded-md p-2">
-                        <SvelteMarkdown source={auction.description}/>
-                    </div>
-                </div>
-                {/if}
+                <MarkdownDescriptionEditor bind:value={auction.description} />
                 <div class="flex mt-3">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
@@ -143,7 +104,6 @@ Text text text... **bold text**... *italic text* normal text normal text
                             </select>
                         </div>
                     </div>
-
                 </div>
             </form>
             <div class="w-full flex justify-center items-center mt-2">

@@ -1,15 +1,12 @@
 <script lang="ts">
-    import SvelteMarkdown from 'svelte-markdown';
-    import type { IEntity } from '$lib/types/base';
-    import type { Campaign } from '$lib/types/campaign';
+    import type { IEntity } from "$lib/types/base";
+    import type { Campaign } from "$lib/types/campaign";
+    import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
 
     export let entity: IEntity;
     $: campaign = <Campaign>entity;
     export let onSave = () => {};
     export let onCancel = () => {};
-
-    let currentTab = "Description";
-
 </script>
 
 <div class="w-full flex justify-center items-center">
@@ -23,20 +20,7 @@
                     </label>
                     <input bind:value={campaign.title} type="text" name="title" class="input input-bordered w-full max-w-xs" />
                 </div>
-                <div class="tabs justify-center mb-5 mt-5">
-                    {#each ['Description', 'Preview'] as tab}
-                    <li class="tab tab-bordered mt-0 mr-5 text-lg cursor-pointer" class:tab-active={tab === currentTab} on:click={() => {currentTab = tab;}}>
-                        <div>{tab}</div>
-                    </li>
-                    {/each}
-                </div>
-                {#if currentTab === 'Description'}
-                <div class="form-control">
-                    <textarea bind:value={campaign.description} rows="4" class="textarea textarea-bordered h-24" placeholder=""></textarea>
-                </div>
-                {:else if currentTab === 'Preview'}
-                <SvelteMarkdown source={campaign.description} />
-                {/if}
+                <MarkdownDescriptionEditor bind:value={campaign.description} />
             </form>
             <div class="w-full flex justify-center items-center mt-2">
                 <div class="w-1/2 flex justify-center items-center">
