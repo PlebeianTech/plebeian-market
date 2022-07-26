@@ -216,6 +216,30 @@ def auctions(user):
 
         return jsonify({'auction': auction.to_dict(for_user=user.id)})
 
+@api_blueprint.route('/api/campaigns', methods=['GET', 'POST'])
+@user_required
+def campaigns(user):
+    if request.method == 'GET':
+        campaigns = [c.to_dict(for_user=user.id) for c in user.campaigns]
+        return jsonify({'campaigns': campaigns})
+    else:
+        for k in ['title', 'description']:
+            if k not in request.json:
+                return jsonify({'message': f"Missing key: {k}."}), 400
+
+        try:
+            validated = m.Campaign.validate_dict(request.json)
+        except m.ValidationError as e:
+            return jsonify({'message': e.message}), 400
+
+        campaign_count = db.session.query(func.count(m.Campaign.id).label('count')).first().count
+        key = m.Campaign.generate_key(campaign_count)
+        campaign = m.Campaign(owner=user, key=key, **validated)
+        db.session.add(campaign)
+        db.session.commit()
+
+        return jsonify({'campaign': campaign.to_dict(for_user=user.id)})
+
 @api_blueprint.route('/api/auctions/featured', methods=['GET'])
 def featured_auctions():
     auctions = m.Auction.query.filter(
@@ -267,10 +291,10 @@ def auction(key):
         if user.id != auction.seller_id and not is_changing_featured_state:
             return jsonify({'message': "Unauthorized"}), 401
 
-        if request.method == 'PUT':
-            if auction.started and not is_changing_featured_state_only:
-                return jsonify({'message': "Cannot edit an auction once started."}), 403
+        if auction.started and not is_changing_featured_state_only:
+            return jsonify({'message': "Cannot edit an auction once started."}), 403
 
+        if request.method == 'PUT':
             try:
                 validated = m.Auction.validate_dict(request.json)
             except m.ValidationError as e:
@@ -283,11 +307,76 @@ def auction(key):
 
             return jsonify({})
         elif request.method == 'DELETE':
-            # TODO: should we allow deletion of a started auction?
             db.session.delete(auction)
             db.session.commit()
 
             return jsonify({})
+
+@api_blueprint.route('/api/campaigns/<string:key>', methods=['GET', 'PUT', 'DELETE'])
+def campaign(key):
+    user = get_user_from_token(get_token_from_request())
+    campaign = m.Campaign.query.filter_by(key=key).first()
+    if not campaign:
+        return jsonify({'message': "Not found."}), 404
+
+    if request.method == 'GET':
+        return jsonify({'campaign': campaign.to_dict(for_user=(user.id if user else None))})
+    else:
+        if not user:
+            return jsonify({'message': "Unauthorized"}), 401
+        if user.id != campaign.owner_id:
+            return jsonify({'message': "Unauthorized"}), 401
+
+        if campaign.started:
+            return jsonify({'message': "Cannot edit a campaign after it started."}), 403
+
+        if request.method == 'PUT':
+            try:
+                validated = m.Campaign.validate_dict(request.json)
+            except m.ValidationError as e:
+                return jsonify({'message': e.message}), 400
+
+            for k, v in validated.items():
+                setattr(campaign, k, v)
+
+            db.session.commit()
+
+            return jsonify({})
+        elif request.method == 'DELETE':
+            db.session.delete(campaign)
+            db.session.commit()
+
+            return jsonify({})
+
+@api_blueprint.route('/api/campaigns/<string:key>/start', methods=['PUT'])
+@user_required
+def start_campaign(user, key):
+    campaign = m.Campaign.query.filter_by(key=key).first()
+    if not campaign:
+        return jsonify({'message': "Not found."}), 404
+    if campaign.owner_id != user.id:
+        return jsonify({'message': "Unauthorized"}), 401
+    if campaign.started:
+        return jsonify({'message': "Campaign already started!"}), 403
+
+    campaign.start_date = datetime.utcnow()
+    db.session.commit()
+    return jsonify({})
+
+@api_blueprint.route('/api/campaigns/<string:key>/end', methods=['PUT'])
+@user_required
+def end_campaign(user, key):
+    campaign = m.Campaign.query.filter_by(key=key).first()
+    if not campaign:
+        return jsonify({'message': "Not found."}), 404
+    if campaign.owner_id != user.id:
+        return jsonify({'message': "Unauthorized"}), 401
+    if campaign.ended:
+        return jsonify({'message': "Campaign already ended!"}), 403
+
+    campaign.end_date = datetime.utcnow()
+    db.session.commit()
+    return jsonify({})
 
 @api_blueprint.route('/api/auctions/<string:key>/follow', methods=['PUT'])
 @user_required
@@ -303,13 +392,15 @@ def follow_auction(user, key):
 
     user_auction = m.UserAuction.query.filter_by(user_id=user.id, auction_id=auction.id).one_or_none()
     if user_auction is None:
+        message = "Started following the auction."
         user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=follow)
         db.session.add(user_auction)
     else:
+        message = "Following the auction." if follow else "Unfollowed the auction."
         user_auction.following = follow
     db.session.commit()
 
-    return jsonify({'message': f"Auction {'followed' if follow else 'unfollowed'}."})
+    return jsonify({'message': message})
 
 @api_blueprint.route('/api/auctions/<string:key>/start-twitter', methods=['PUT'])
 @user_required
@@ -406,5 +497,5 @@ def bids(user, key):
         'qr': qr.getvalue().decode('utf-8'),
         'messages': [
             "Your bid will be confirmed once you scan the QR code.",
-        ] + (["You are now following this auction."] if started_following else []),
+        ] + (["Started following the auction."] if started_following else []),
     })

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { startAuction, getAuction, deleteAuction, ErrorHandler } from "../services/api";
+    import { startAuction, getAuction, deleteEntity, ErrorHandler } from "../services/api";
+    import type { IEntity } from "../types/base";
     import type { Auction } from "../types/auction";
     import { token, user, Info } from "../stores";
     import Confirmation from "./Confirmation.svelte";
@@ -8,9 +9,11 @@
     import AmountFormatter from "./AmountFormatter.svelte";
     import DateFormatter from "./DateFormatter.svelte";
 
-    export let auction : Auction;
-    let auctionTweeted = auction.key.length !== 0 && (localStorage.getItem('auctions-tweeted') || "").includes(auction.key);
-    let auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
+    export let entity: IEntity;
+    $: auction = <Auction>entity;
+
+    let auctionTweeted;
+    let auctionViewed;
     let starting = false;
 
     let confirmation: any = null;
@@ -55,7 +58,7 @@
             () => {
                 getAuction($token, auction.key,
                     a => {
-                        auction = a;
+                        entity = a;
                         user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
                         starting = false;
                         Info.set("Your auction is now running...");
@@ -68,12 +71,16 @@
     function del() {
         confirmation = {
             onContinue: () => {
-                deleteAuction($token, auction.key, onDelete);
+                deleteEntity($token, auction, onDelete);
             }
         };
     }
 
-    onMount(async () => { confirmation = null; });
+    onMount(async () => {
+        confirmation = null;
+        auctionTweeted = auction.key.length !== 0 && (localStorage.getItem('auctions-tweeted') || "").includes(auction.key);
+        auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
+    });
 </script>
 
 <div class="glowbox">

@@ -51,7 +51,157 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertTrue('token' in response)
 
-        return k1, response['token']
+        token = response['token']
+
+        code, response = self.get("/api/users/me", headers=self.get_auth_headers(token))
+        self.assertEqual(code, 200)
+        app.logger.info(f"Created user: ID={response['user']['id']}")
+        self.assertIsNone(response['user']['twitter_username'])
+        self.assertIsNone(response['user']['contribution_percent'])
+
+        return k1, token
+
+    def test_campaigns(self):
+        _, token_1 = self.create_user()
+
+        # GET campaigns requires log in
+        code, response = self.get("/api/campaigns")
+        self.assertEqual(code, 401)
+        self.assertTrue("missing token" in response['message'].lower())
+
+        # creating a campaign requires log in
+        code, response = self.post("/api/campaigns", {})
+        self.assertEqual(code, 401)
+        self.assertTrue("missing token" in response['message'].lower())
+
+        # GET my campaigns to see there are none
+        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['campaigns']), 0)
+
+        # can't create a campaign without title or description
+        for what in ['title', 'description']:
+            code, response = self.post("/api/campaigns",
+                {k: v for k, v in {'title': "T", 'description': "D"}.items() if k != what},
+                headers=self.get_auth_headers(token_1))
+            self.assertEqual(code, 400)
+            self.assertTrue("missing" in response['message'].lower())
+            self.assertTrue(what in response['message'].lower())
+
+        # finally create a campaign
+        code, response = self.post("/api/campaigns",
+            {'title': "My campaign",
+             'description': "A very noble cause"},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('campaign' in response)
+
+        campaign_key = response['campaign']['key']
+
+        # GET campaigns to find our campaign
+        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['campaigns']), 1)
+        self.assertEqual(response['campaigns'][0]['key'], campaign_key)
+        self.assertFalse(response['campaigns'][0]['started'])
+        self.assertFalse(response['campaigns'][0]['ended'])
+
+        # GET the newly created campaign by key (even unauthenticated!)
+        code, response = self.get(f"/api/campaigns/{campaign_key}")
+        self.assertEqual(code, 200)
+        self.assertEqual(response['campaign']['key'], campaign_key)
+
+        _, token_2 = self.create_user()
+
+        # create a 2nd campaign, this time for the 2nd user
+        code, response = self.post("/api/campaigns",
+            {'title': "His campaign",
+             'description': "Another noble cause"},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertTrue('campaign' in response)
+
+        campaign_key_2 = response['campaign']['key']
+
+        # the two campaigns differ indeed
+        self.assertNotEqual(campaign_key, campaign_key_2)
+
+        # listing one user's campaigns does not return the other one
+        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['campaigns']), 1)
+        self.assertEqual(response['campaigns'][0]['key'], campaign_key_2)
+
+        # edit the campaign
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}",
+            {'title': "His brilliant campaign",
+             'description': "Another brilliant cause"},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # check that the edit worked
+        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
+        self.assertEqual(code, 200)
+        self.assertEqual(response['campaign']['title'], "His brilliant campaign")
+        self.assertEqual(response['campaign']['description'], "Another brilliant cause")
+        self.assertFalse(response['campaign']['started'])
+        self.assertFalse(response['campaign']['ended'])
+
+        # can't start somebody else's campaign
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
+            {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 401)
+
+        # start the campaign
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
+            {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # check that the campaign started
+        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
+        self.assertEqual(code, 200)
+        self.assertTrue(response['campaign']['started'])
+        self.assertFalse(response['campaign']['ended'])
+
+        # can't start the campaign again
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
+            {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 403)
+
+        # end the campaign
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}/end",
+            {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # check that the campaign ended
+        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
+        self.assertEqual(code, 200)
+        self.assertTrue(response['campaign']['started'])
+        self.assertTrue(response['campaign']['ended'])
+
+        # done is done... can't bring it back!
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}",
+            {'title': "Nope"},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 403)
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
+            {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 403)
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}/end",
+            {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 403)
+
+        # DONE is DONE
+        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
+        self.assertEqual(code, 200)
+        self.assertTrue(response['campaign']['started'])
+        self.assertTrue(response['campaign']['ended'])
 
     def test_11_api(self):
         code, response = self.get("/api/login")
@@ -113,12 +263,8 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
 
-        # no user details set yet
-        code, response = self.get("/api/users/me",
-            headers=self.get_auth_headers(token_1))
+        code, response = self.get("/api/users/me", headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertIsNone(response['user']['twitter_username'])
-        self.assertIsNone(response['user']['contribution_percent'])
         self.assertTrue(response['user']['is_moderator']) # because this is the first user created, so it has the ID=1
 
         # set user details
@@ -325,6 +471,8 @@ class TestApi(unittest.TestCase):
             {'follow': True},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
+        self.assertEqual(response['message'], "Started following the auction.")
+        app.logger.info(f"{response['message']} {auction_key_2=}")
 
         # the user is now following the auction
         code, response = self.get(f"/api/auctions/{auction_key_2}",
@@ -411,9 +559,11 @@ class TestApi(unittest.TestCase):
                 {'follow': True},
                 headers=self.get_auth_headers(t))
             self.assertEqual(code, 200)
+            self.assertEqual(response['message'], "Started following the auction.")
+            app.logger.info(f"{response['message']} {auction_key=}")
 
         # the user has no messages yet
-        code, response = self.get("/api/users/me/messages",
+        code, response = self.get("/api/users/me/messages?via=all",
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['messages']), 0)
@@ -425,6 +575,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue('payment_request' in response)
         self.assertTrue(response['payment_request'].startswith('MOCK'))
         self.assertTrue('svg' in response['qr'])
+        self.assertEqual(len(response['messages']), 1) # no message about follow, since we already did that
 
         bid_payment_request = response['payment_request']
 
@@ -441,6 +592,7 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me/messages?via=all",
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
+        app.logger.warn(f"{response['messages']}")
         self.assertEqual(len(response['messages']), 1)
         self.assertTrue("new bid" in response['messages'][0]['body'].lower())
         self.assertEqual(response['messages'][0]['notified_via'], 'TWITTER_DM')

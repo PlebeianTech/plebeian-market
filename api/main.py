@@ -74,6 +74,9 @@ migrate = Migrate(app, db)
 @app.cli.command("run-tests")
 @with_appcontext
 def run_tests():
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
     import unittest
     import api_tests
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
@@ -84,6 +87,7 @@ def run_tests():
 def settle_bids():
     app.logger.setLevel(getattr(logging, LOG_LEVEL))
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
     lnd = get_lnd_client()
     last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
     for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
@@ -200,6 +204,7 @@ def process_notifications():
                     action = user_notifications[(user.id, notification_type)].action
                     app.logger.info(f"Executing {action=} for {user.id=}!")
                     if m.NOTIFICATION_ACTIONS[action].execute(user, message):
+                        app.logger.info(f"Notified {user.id=} with {action=}!")
                         message.notified_via = action
                     else:
                         pass

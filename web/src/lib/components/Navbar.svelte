@@ -118,6 +118,9 @@
                     <li class="visible md:invisible md:h-0"><a href={null} on:click|preventDefault={() => goto("/about")} class="modal-button cursor-pointer">About</a></li>
                     <li class="visible md:invisible md:h-0"><a href={null} on:click|preventDefault={() => goto("/faq")} class="modal-button cursor-pointer">FAQ</a></li>
                     <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
+                    {#if $user.isModerator}
+                        <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
+                    {/if}
                     <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button cursor-pointer">Profile</label></li>
                     <li><label for="profile-modal" on:click|preventDefault={showUserNotifications} class="modal-button cursor-pointer">Notifications</label></li>
                     <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>

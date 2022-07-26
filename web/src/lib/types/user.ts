@@ -1,3 +1,8 @@
+export interface ITwitterAccount {
+    username: string;
+    usernameVerified: boolean;
+    profileImageUrl: string;
+}
 
 export interface User {
     contributionPercent: number;

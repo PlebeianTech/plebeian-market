@@ -54,4 +54,4 @@ S3_BUCKET = 'plebeian-market'
 S3_FILENAME_PREFIX = os.environ.get('S3_FILENAME_PREFIX', "")
 S3_URL_PREFIX = f"https://f004.backblazeb2.com/file/{S3_BUCKET}/"
 
-MODERATOR_USER_IDS = [int(i) for i in os.environ.get('MODERATOR_USER_IDS', "1").split(',')]
+MODERATOR_USER_IDS = [(int(i) if i.isnumeric() else i) for i in os.environ.get('MODERATOR_USER_IDS', "1").split(',')]
