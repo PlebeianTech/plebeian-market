@@ -92,19 +92,19 @@
 </svelte:head>
 
 {#if auction}
-    <div class="flex">
-        {#if auction.is_mine && !auction.start_date && !auction.end_date}
-            <div class="alert alert-error shadow-lg">
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>
-                        Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
-                    </span>
-                </div>
-            </div>
-        {/if}
+    {#if auction.is_mine && !auction.start_date && !auction.end_date}
+    <div class="alert alert-error shadow-lg md:w-1/3 m-auto w-10/12">
+        <div class="">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>
+                Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
+            </span>
+        </div>
+    </div>
+    {/if}
+    <div class="flex mb-5 mt-5">
         <div class="grid lg:grid-cols-3 gap-4">
             <div class="p-5">
                 <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{auction.title}</h2>
@@ -119,7 +119,7 @@
                 </div>
                 <Gallery photos={auction.media} />
             </div>
-            <div class="mr-4 p-5">
+            <div class="mx-2">
                 {#if !auction.ended}
                     {#if auction.end_date_extended}
                         <h3 class="text-2xl text-center text-warning my-2">
@@ -129,7 +129,7 @@
                     {#if $token && $user}
                         {#if !auction.is_mine}
                             {#if !auction.bids.length}
-                                <p class="text-center pt-12">Place your bid below</p>
+                                <p class="text-center">Place your bid below</p>
                             {/if}
                             {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
                                 <div class="flex justify-center items-center">
@@ -138,12 +138,12 @@
                             {/if}
                         {:else}
                             {#if auction.started}
-                                <p class="text-center pt-24">Your auction is running &#x1FA99; &#x1F528; &#x1F4B0;</p>
+                                <p class="text-center">Your auction is running &#x1FA99; &#x1F528; &#x1F4B0;</p>
                             {/if}
                         {/if}
                     {:else}
                         {#if !auction.bids.length}
-                            <p class="text-center pt-24">Login below to place a bid</p>
+                            <p class="text-center">Login below to place a bid</p>
                         {/if}
                         <Login />
                     {/if}
@@ -166,7 +166,7 @@
                     </div>
                 {:else}
                     {#if !auction.is_mine}
-                        <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter satsAmount={auction.starting_bid} />.</p>
+                        <p class="text-3xl text-center pt-2">Starting bid is <AmountFormatter satsAmount={auction.starting_bid} />.</p>
                         <p class="text-2xl text-center pt-2">Be the first to bid!</p>
                     {/if}
                 {/if}

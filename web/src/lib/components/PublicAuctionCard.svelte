@@ -17,11 +17,11 @@
 </script>
 
 <div class="my-3 self-center glowbox">
-    <div class="card bg-base-300 overflow-hidden shadow-xl my-3">
+    <div class="card bg-base-300 shadow-xl my-3">
         <figure class="md:h-max flex justify-center">
             {#each auction.media as photo, i}
                 {#if i === 0}
-                    <img class="h-full object-fill" src={photo.url} alt="Auctioned object" />
+                    <img class="h-90 w-full object-fill" src={photo.url} alt="Auctioned object" />
                 {/if}
             {/each}
         </figure>

@@ -64,24 +64,33 @@
 
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector('html');
+        console.log(html.dataset.theme );
         if ( html.dataset.theme === 'night') {
-            html.dataset.theme = 'light';
-            themeToggle = 'Switch to Night Theme';
+            setLightTheme(html);
         } else {
-            html.dataset.theme = 'night';
-            themeToggle = 'Switch to Light Theme';
+            setDarkTheme(html);
         }
+    }
+
+    function setDarkTheme(html: HTMLHtmlElement) {
+        html.dataset.theme = 'night';
+        themeToggle = 'Switch to Light Theme';
+    }
+
+    function setLightTheme(html: HTMLHtmlElement) {
+        html.dataset.theme = 'light';
+        themeToggle = 'Switch to Night Theme';
     }
 
     function getProfileImage(user: User) {
         if (user.twitterProfileImageUrl) {
             return user.twitterProfileImageUrl
         }
-        //return "/images/default-profile.png";
     }
 
     onMount(async () => {
-        toggleTheme();
+        let html = <HTMLHtmlElement>document.querySelector('html');
+        setDarkTheme(html);
         if ($token) {
             fetchProfile($token);
         }
@@ -104,15 +113,18 @@
 <nav class="navbar flex items-center bg-base-300 flex-wrap">
     <a href={getBaseUrl()} class="flex" on:click={closeMenu}>
         <img src="/images/logo.jpg" class="w-10 h-10 rounded align-middle" alt="Plebeian Technology" />
-        <span class="card-title text-2xl items-center text-primary ml-2">
+        <span class="md:hidden inline-block card-title text-2xl items-center text-primary ml-2">
             Plebeian Market
         </span>
         {#if isLocal() || isStaging() }
-            <div class="badge badge-primary inline ml-2">{getEnvironmentInfo()}</div>
+            <div class="hidden md:inline badge badge-primary ml-2">{getEnvironmentInfo()}</div>
         {/if}
     </a>
     <div class="hidden md:block">
-        <a class="rounded btn btn-ghost normal-case text-xl ml-4" href="{getBaseUrl()}about">
+        <a class="rounded btn btn-ghost normal-case text-xl" href="{getBaseUrl()}">
+            Home
+        </a>
+        <a class="rounded btn btn-ghost normal-case text-xl" href="{getBaseUrl()}about">
             About
         </a>
         <a class="rounded btn btn-ghost normal-case text-xl" href="{getBaseUrl()}faq">
@@ -128,9 +140,9 @@
         </label>
         {:else}
         <label for={null} tabindex="0" class="btn btn-ghost btn-circle avatar ring-2 ring-primary ring-offset-0">
-            <div class="w-10 rounded-full">
-                <img src="/images/default-profile.png" alt="Avatar" />
-            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+            </svg>
         </label>
         {/if}
     </div>
@@ -170,6 +182,9 @@
             </li>
             <a class="px-3 py-2 rounded btn btn-ghost" href="https://t.me/PlebeianMarket"  target="_blank">
                 Telegram
+            </a>
+            <a class="px-3 py-2 rounded btn btn-ghost" href="https://plebeianmarket.substack.com/"  target="_blank">
+                Substack
             </a>
             <!-- login / logout -->
             {#if $token && $user}
