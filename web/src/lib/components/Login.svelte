@@ -40,7 +40,7 @@
     });
 </script>
 
-<div class="pt-10 flex justify-center items-center">
+<div class="pt-10 flex justify-center items-center mx-2">
     {#if qr}
         <div>
             {#if isLocal()}
