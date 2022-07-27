@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import dateutil.parser
 from functools import wraps
 import io
 from itertools import chain
@@ -358,6 +359,8 @@ class Twitter:
             # pick high-res picture
             # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
             twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
+
+        twitter_user['created_at'] = dateutil.parser.isoparse(twitter_user['created_at']).replace(tzinfo=None)
 
         return twitter_user
 

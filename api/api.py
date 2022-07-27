@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import dateutil.parser
 from io import BytesIO
 import os
 import secrets
@@ -117,7 +116,7 @@ def me(user):
                 twitter_user = twitter.get_user(user.twitter_username)
                 if not twitter_user:
                     return jsonify({'message': "Twitter profile not found!"}), 400
-                if dateutil.parser.isoparse(twitter_user['created_at']) > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
+                if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
                     return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
