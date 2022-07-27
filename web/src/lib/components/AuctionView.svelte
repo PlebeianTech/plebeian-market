@@ -166,7 +166,7 @@
                     {/if}
                 {/if}
             </div>
-            <div class="mr-5 p-5">
+            <div class="mx-1">
                 <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 bg-black/5 rounded-t">
                     <h3 class="mx-1">Product Details</h3>
                 </span>
