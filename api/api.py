@@ -499,3 +499,11 @@ def bids(user, key):
             "Your bid will be confirmed once you scan the QR code.",
         ] + (["Started following the auction."] if started_following else []),
     })
+
+
+@api_blueprint.route('/api/stores/<string:store_name>', methods=['GET'])
+def stores(store_name):
+    if request.method == 'GET':
+        # create store_name field on user - even tho i disagree with that
+        user = m.User.query.filter_by(twitter_username=store_name).first()
+        return jsonify({'user': user.to_dict()})
