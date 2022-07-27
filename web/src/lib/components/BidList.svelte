@@ -7,8 +7,8 @@
     export let auction: Auction;
 </script>
 
-<div class="overflow-x-auto w-full md:w-auto">
-    <table class="table w-full">
+<div class="w-full md:w-auto">
+    <table class="table w-full ml-2">
         <thead>
             <tr>
                 <th>
@@ -27,15 +27,15 @@
             {#each auction.bids as bid}
                 <tr>
                     <td>
-                        <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-3 md:ml-0 ml-2">
                             <Avatar account={bid.buyer} />
                             <p class="md:hidden text-xs">
                                 <DateFormatter date={bid.settled_at} />
                             </p>
                         </div>
                     </td>
-                    <td>
-                        <p class="hidden md:contents">
+                    <td class="hidden md:contents">
+                        <p>
                             <AmountFormatter satsAmount={bid.amount} newline={true} />
                         </p>
                     </td>
@@ -43,7 +43,7 @@
                         <p class="hidden md:contents">
                             <DateFormatter date={bid.settled_at} />
                         </p>
-                        <p class="md:hidden">
+                        <p class="md:hidden pr-4">
                             <AmountFormatter satsAmount={bid.amount} newline={true} />
                         </p>
                     </td>
