@@ -294,6 +294,7 @@ class MockTwitter:
             'id': "MOCK_USER_ID",
             'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(1, 1000)}",
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
+            'created_at': (datetime.now() - timedelta(days=211)).isoformat(),
         }
 
     def get_tweet_likes(self, tweet_id):
@@ -345,7 +346,7 @@ class Twitter:
     def get_user(self, username):
         response_json = self.get(f"/2/users/by/username/{username}",
             params={
-                'user.fields': "location,name,profile_image_url,pinned_tweet_id",
+                'user.fields': "location,name,profile_image_url,pinned_tweet_id,created_at",
             })
 
         if not response_json or response_json.get('errors'):
