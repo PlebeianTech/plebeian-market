@@ -8,7 +8,7 @@
 </script>
 
 <div class="w-full md:w-auto">
-    <table class="table w-full ml-2">
+    <table class="table w-full my-1">
         <thead>
             <tr>
                 <th>
