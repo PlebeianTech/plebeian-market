@@ -49,31 +49,26 @@
                     rightProfileImageUrl={auction.seller_twitter_profile_image_url} />
             </div>
         {/if}
-        {#if auction.isInstantBuy()}
-            <p class="my-4 text-center">Thank you for your contribution! Your order has been placed and the seller has been notified. Please contact the seller directly to arrange payment of the remaining <AmountFormatter amount={auction.remaining_amount} /> sats and delivery.</p>
-        {:else}
-            <p class="my-4 text-center">Thank you for your contribution! Please contact the seller directly to arrange payment of the remaining <AmountFormatter amount={auction.remaining_amount} /> sats and delivery.</p>
-        {/if}
-    {:else}
+        <p class="my-4 text-center">Thank you for your contribution! <span class:hidden={!auction.isInstantBuy()}>Your order has been placed and the seller has been notified. </span>Please contact the seller directly to arrange payment of the remaining <AmountFormatter amount={auction.remaining_amount} /> sats and delivery.</p>
+    {:else if !auction.isInstantBuy()}
         <p class="my-4">Congratulations to @{auction.winner_twitter_username}!</p>
         {#if auction.contribution_amount}
             <p class="my-2">The seller @{auction.seller_twitter_username} has donated <AmountFormatter amount={auction.contribution_amount} /> sats to Bitcoin open source projects like this.
         {/if}
     {/if}
-{:else if $user && auction.needs_contribution}
+{:else if $user && auction.needs_contribution && !auction.isInstantBuy()}
     <div class="my-4 text-2xl">
         <span class=text-3xl>Congratulations</span> @{$user.twitterUsername}, You've won &#x1F389; &#x1F64C; &#x1F44F;
     </div>
     <p class="my-2">
-        The seller wishes to donate {auction.contribution_percent}% = <AmountFormatter amount={auction.contribution_amount} /> sats <span class:hidden={auction.isInstantBuy()}>out of your winning bid</span><span class:hidden={!auction.isInstantBuy()}> of the purchase price</span> to Plebeian Technology. Please send the amount using the QR code below!
+        The seller wishes to donate {auction.contribution_percent}% = <AmountFormatter amount={auction.contribution_amount} /> sats <span class:hidden={auction.isInstantBuy()}>out of your winning bid</span><span class:hidden={!auction.isInstantBuy()}> of the purchase price</span> to Plebeian Technology. <span  class:hidden={auction.isInstantBuy()}>Please send the amount using the QR code below!</span>
     </p>
     <p class="my-2">
         @{auction.seller_twitter_username} is waiting for you to send us their contribution!
     </p>
-    <p class="my-2">
-        After payment you will be directed to the seller for final settlement of the remaining {remainingPercent}% = <AmountFormatter amount={auction.remaining_amount} /> sats.
-    </p>
+
     <QR bind:qr={auction.contribution_qr} bind:lnurl={auction.contribution_payment_request} />
 {:else if $user && auction.wait_contribution}
     <p class="my-2 text-center">We are waiting for the <span class:hidden={auction.isInstantBuy()}>winner</span><span class:hidden={!auction.isInstantBuy()}>buyer</span> to send your contribution to Plebeian Technology.</p>
 {/if}
+

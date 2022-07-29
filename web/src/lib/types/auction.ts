@@ -49,6 +49,7 @@ export class Auction {
     wait_contribution?: boolean;
     has_winner?: boolean;
     is_won?: boolean;
+    is_locked?: boolean;
 
     is_lost?: boolean;
     winner_twitter_username?: string;
@@ -70,6 +71,10 @@ export class Auction {
 
     public isInstantBuy() {
         return this.instant_buy_price !== null;
+    }
+
+    public isLocked() {
+        return this.is_locked;
     }
 
     public topAmount() {
