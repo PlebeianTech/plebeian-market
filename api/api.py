@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import os
 import secrets
-
+import bleach
 import ecdsa
 from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
@@ -506,9 +506,8 @@ def bids(user, key):
 @api_blueprint.route('/api/stores/<string:twitter_username>/auctions', methods=['GET'])
 def store_auctions_view(twitter_username):
     user = m.User.query.filter_by(twitter_username=twitter_username).first()
-    if not user:
-        return jsonify({'message': "Store Not found."}), 404
-    return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: len(a.bids), reverse=True)]})
+    if user:
+        return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: len(a.bids), reverse=True)]})
 
 
 @api_blueprint.route('/api/stores/<string:twitter_username>', methods=['GET'])
@@ -516,17 +515,16 @@ def store_view(twitter_username):
     if request.method == 'GET':
         user = m.User.query.filter_by(twitter_username=twitter_username).first()
         if not user:
-            return jsonify({'message': "Store Not found."}), 404
+            return jsonify({}), 404
         return jsonify({'user': user.to_dict()})
 
 
 @api_blueprint.route('/api/stores/<string:twitter_username>/store_info', methods=['PUT'])
 @user_required
 def update_store_info(user, twitter_username):
-    print(request.json)
     if user.twitter_username == twitter_username: # user owns this store
-        user.store_name = request.json.get("store_name")
-        user.store_description = request.json.get("store_description")
+        user.store_name = bleach.clean(request.json.get("store_name", ""))
+        user.store_description = bleach.clean(request.json.get("store_description", ""))
         db.session.commit()
         return jsonify({'user': user.to_dict()})
     return jsonify({'message': 'You cannot update this store'})

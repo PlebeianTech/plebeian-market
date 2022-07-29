@@ -153,13 +153,15 @@ export function getProfile(tokenValue, successCB: (User) => void) {
         });
 }
 
-export function getStore(storeName: string, successCB: (User) => void) {
+export function getStore(storeName: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/stores/${storeName}`, 'GET', storeName, null,
         (response) => {
             if (response.status === 200) {
                 response.json().then(data => {
                     successCB(userFromJson(data.user));
                 });
+            } else {
+                errorHandler.handle(response);
             }
         });
 }
@@ -168,10 +170,6 @@ export function getStoreAuctions(storeName: string, successCB: (auctions: Auctio
     fetchAPI(`/stores/${storeName}/auctions`, 'GET', null, null,
             response => {
                 if (response.status === 200) {
-                    response.json().then(data => {
-                        successCB(data.auctions.map(auctionFromJson));
-                    });
-                } else {
                     response.json().then(data => {
                         successCB(data.auctions.map(auctionFromJson));
                     });

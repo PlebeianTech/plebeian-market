@@ -33,7 +33,7 @@
             <div class="markdown-container max-h-52 overflow-hidden">
                 <SvelteMarkdown source={auction.description} />
             </div>
-            <hr class="border-solid border-bg-base-300 divide-y-0 opacity-50 pb-1">
+            <hr class="border-solid divide-y-0 border-accent opacity-100 mb-2 mt-2">
             {#if !auction.ended}
                 <Countdown untilDate={auction.end_date} />
             {/if}
