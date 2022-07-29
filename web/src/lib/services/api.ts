@@ -154,7 +154,7 @@ export function getProfile(tokenValue, successCB: (User) => void) {
 }
 
 export function getStore(storeName: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/stores/${storeName}`, 'GET', storeName, null,
+    fetchAPI(`/users/${storeName}`, 'GET', storeName, null,
         (response) => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -167,7 +167,7 @@ export function getStore(storeName: string, successCB: (User) => void, errorHand
 }
 
 export function getStoreAuctions(storeName: string, successCB: (auctions: Auction[]) => void) {
-    fetchAPI(`/stores/${storeName}/auctions`, 'GET', null, null,
+    fetchAPI(`/users/${storeName}/auctions`, 'GET', null, null,
             response => {
                 if (response.status === 200) {
                     response.json().then(data => {
@@ -175,20 +175,6 @@ export function getStoreAuctions(storeName: string, successCB: (auctions: Auctio
                     });
                 }
             });
-}
-
-export function putStoreInfo(tokenValue, twitterUsername: string, storeName: string, storeDescription: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/stores/${twitterUsername}/store_info`, 'PUT', tokenValue,
-        JSON.stringify({store_name: storeName, store_description: storeDescription}),
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => {
-                    successCB(userFromJson(data.user));
-                });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
 }
 
 export function postProfile(tokenValue, profile: {twitterUsername: string, contributionPercent: string}, successCB: (User) => void, errorHandler = new ErrorHandler()) {

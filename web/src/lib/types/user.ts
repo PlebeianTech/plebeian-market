@@ -7,6 +7,7 @@ export interface IAccount {
 export interface User {
     contributionPercent: number;
     twitterUsername: string;
+    nym: string;
     twitterProfileImageUrl: string;
     twitterUsernameVerified: boolean;
     twitterUsernameVerificationTweet: string;
@@ -15,14 +16,13 @@ export interface User {
     isModerator: boolean;
     activeAuctionCount: number;
     pastAuctionCount: number;
-    storeName: string;
-    storeDescription: string;
 }
 
 export function fromJson(json: any) {
     return {
         contributionPercent: <number>json.contribution_percent,
         twitterUsername: <string>json.twitter_username,
+        nym: <string>json.nym,
         twitterProfileImageUrl: <string>json.twitter_profile_image_url,
         twitterUsernameVerified: <boolean>json.twitter_username_verified,
         twitterUsernameVerificationTweet: <string>json.twitter_username_verification_tweet,
@@ -30,8 +30,6 @@ export function fromJson(json: any) {
         hasBids: <boolean>json.has_bids,
         isModerator: <boolean>json.is_moderator,
         activeAuctionCount: <number>json.active_auction_count,
-        pastAuctionCount: <number>json.past_auction_count,
-        storeName: <string>json.store_name,
-        storeDescription: <string>json.store_description
+        pastAuctionCount: <number>json.past_auction_count
     }
 }

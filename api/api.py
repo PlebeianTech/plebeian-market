@@ -110,7 +110,7 @@ def me(user):
                 return jsonify({'message': "Invalid Twitter username!"}), 400
             if clean_username != user.twitter_username:
                 user.twitter_username = clean_username
-
+                user.nym = clean_username
                 twitter = get_twitter()
 
                 twitter_user = twitter.get_user(user.twitter_username)
@@ -503,28 +503,18 @@ def bids(user, key):
     })
 
 
-@api_blueprint.route('/api/stores/<string:twitter_username>/auctions', methods=['GET'])
-def store_auctions_view(twitter_username):
-    user = m.User.query.filter_by(twitter_username=twitter_username).first()
-    if user:
-        return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: len(a.bids), reverse=True)]})
+@api_blueprint.route('/api/users/<string:nym>/auctions', methods=['GET'])
+def store_auctions_view(nym):
+    user = m.User.query.filter_by(nym=nym).first()
+    if not user:
+        return jsonify({f'users/{nym}/auctions': []}), 404
+    return jsonify({f'users/{nym}/auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: a.created_at, reverse=True)]})
 
 
-@api_blueprint.route('/api/stores/<string:twitter_username>', methods=['GET'])
-def store_view(twitter_username):
+@api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
+def store_view(nym):
     if request.method == 'GET':
-        user = m.User.query.filter_by(twitter_username=twitter_username).first()
+        user = m.User.query.filter_by(nym=nym).first()
         if not user:
             return jsonify({}), 404
         return jsonify({'user': user.to_dict()})
-
-
-@api_blueprint.route('/api/stores/<string:twitter_username>/store_info', methods=['PUT'])
-@user_required
-def update_store_info(user, twitter_username):
-    if user.twitter_username == twitter_username: # user owns this store
-        user.store_name = bleach.clean(request.json.get("store_name", ""))
-        user.store_description = bleach.clean(request.json.get("store_description", ""))
-        db.session.commit()
-        return jsonify({'user': user.to_dict()})
-    return jsonify({'message': 'You cannot update this store'})
