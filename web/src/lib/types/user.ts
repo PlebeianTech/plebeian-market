@@ -13,6 +13,10 @@ export interface User {
     hasAuctions: boolean;
     hasBids: boolean;
     isModerator: boolean;
+    activeAuctionCount: number;
+    pastAuctionCount: number;
+    storeName: string;
+    storeDescription: string;
 }
 
 export function fromJson(json: any) {
@@ -24,6 +28,10 @@ export function fromJson(json: any) {
         twitterUsernameVerificationTweet: <string>json.twitter_username_verification_tweet,
         hasAuctions: <boolean>json.has_auctions,
         hasBids: <boolean>json.has_bids,
-        isModerator: <boolean>json.is_moderator
+        isModerator: <boolean>json.is_moderator,
+        activeAuctionCount: <number>json.active_auction_count,
+        pastAuctionCount: <number>json.past_auction_count,
+        storeName: <string>json.store_name,
+        storeDescription: <string>json.store_description
     }
 }

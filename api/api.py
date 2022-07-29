@@ -135,6 +135,7 @@ def me(user):
             return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
         return jsonify({'user': user.to_dict()})
 
+
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
 @user_required
 def verify_twitter(user):
@@ -250,6 +251,7 @@ def featured_auctions():
     ).all()
     return jsonify({'auctions': [a.to_dict() for a in sorted(auctions, key=lambda a: len(a.bids), reverse=True)]})
 
+
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def auction(key):
     user = get_user_from_token(get_token_from_request())
@@ -262,8 +264,8 @@ def auction(key):
             if auction.winning_bid_id is None and auction.contribution_payment_request is None:
                 # auction ended, but no winning bid has been picked
                 # => ask the user with the top bid to send the contribution
-                if auction.reserve_bid_reached:
-                    top_bid = auction.get_top_bid()
+                top_bid = auction.get_top_bid()
+                if auction.reserve_bid_reached and top_bid:
                     auction.contribution_amount = int(auction.seller.contribution_percent / 100 * top_bid.amount)
                     if auction.contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
                         auction.contribution_amount = 0 # probably not worth the fees, at least in the next few years
@@ -501,9 +503,30 @@ def bids(user, key):
     })
 
 
-@api_blueprint.route('/api/stores/<string:store_name>', methods=['GET'])
-def stores(store_name):
+@api_blueprint.route('/api/stores/<string:twitter_username>/auctions', methods=['GET'])
+def store_auctions_view(twitter_username):
+    user = m.User.query.filter_by(twitter_username=twitter_username).first()
+    if not user:
+        return jsonify({'message': "Store Not found."}), 404
+    return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: len(a.bids), reverse=True)]})
+
+
+@api_blueprint.route('/api/stores/<string:twitter_username>', methods=['GET'])
+def store_view(twitter_username):
     if request.method == 'GET':
-        # create store_name field on user - even tho i disagree with that
-        user = m.User.query.filter_by(twitter_username=store_name).first()
+        user = m.User.query.filter_by(twitter_username=twitter_username).first()
+        if not user:
+            return jsonify({'message': "Store Not found."}), 404
         return jsonify({'user': user.to_dict()})
+
+
+@api_blueprint.route('/api/stores/<string:twitter_username>/store_info', methods=['PUT'])
+@user_required
+def update_store_info(user, twitter_username):
+    print(request.json)
+    if user.twitter_username == twitter_username: # user owns this store
+        user.store_name = request.json.get("store_name")
+        user.store_description = request.json.get("store_description")
+        db.session.commit()
+        return jsonify({'user': user.to_dict()})
+    return jsonify({'message': 'You cannot update this store'})

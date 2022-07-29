@@ -13,7 +13,6 @@ import bleach
 import magic
 import pyqrcode
 import requests
-
 from extensions import db
 from main import app
 
@@ -78,6 +77,9 @@ class User(db.Model):
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
     twitter_username_verification_tweet_id = db.Column(db.String(64), nullable=True)
 
+    store_name = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    store_description = db.Column(db.String(240), unique=True, nullable=True)
+
     @property
     def is_moderator(self):
         return (self.id in app.config['MODERATOR_USER_IDS']) or ('ALL' in app.config['MODERATOR_USER_IDS'])
@@ -85,7 +87,7 @@ class User(db.Model):
     contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
+    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)", lazy='dynamic')
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
@@ -97,6 +99,7 @@ class User(db.Model):
         return True
 
     def to_dict(self):
+        now = datetime.utcnow()
         d = {
             'id': self.id,
             'nym': self.nym,
@@ -105,8 +108,13 @@ class User(db.Model):
             'twitter_username_verified': self.twitter_username_verified,
             'twitter_username_verification_tweet': f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}",
             'contribution_percent': self.contribution_percent,
-            'has_auctions': len(self.auctions) > 0,
-            'has_bids': len(self.bids) > 0}
+            'has_auctions': len(self.auctions.all()) > 0,
+            'has_bids': len(self.bids) > 0,
+            'active_auction_count': len(self.auctions.filter(Auction.end_date > now).all()),
+            'past_auction_count': len(self.auctions.filter(Auction.end_date < now).all()),
+            'store_name': self.store_name,
+            'store_description': self.store_description
+        }
         if self.is_moderator:
             d['is_moderator'] = True
         return d

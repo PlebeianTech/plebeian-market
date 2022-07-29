@@ -118,6 +118,7 @@
                     <li class="visible md:invisible md:h-0"><a href={null} on:click|preventDefault={() => goto("/about")} class="modal-button cursor-pointer">About</a></li>
                     <li class="visible md:invisible md:h-0"><a href={null} on:click|preventDefault={() => goto("/faq")} class="modal-button cursor-pointer">FAQ</a></li>
                     <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
+                    <li><a href="{getBaseUrl()}stores/{$user.twitterUsername}">My store</a></li>
                     {#if $user.isModerator}
                         <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
                     {/if}
