@@ -166,17 +166,6 @@ export function getStore(storeName: string, successCB: (User) => void, errorHand
         });
 }
 
-export function getStoreAuctions(storeName: string, successCB: (auctions: Auction[]) => void) {
-    fetchAPI(`/users/${storeName}/auctions`, 'GET', null, null,
-            response => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        successCB(data.auctions.map(auctionFromJson));
-                    });
-                }
-            });
-}
-
 export function postProfile(tokenValue, profile: {twitterUsername: string, contributionPercent: string}, successCB: (User) => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/users/me", 'POST', tokenValue,
         JSON.stringify({twitter_username: profile.twitterUsername, contribution_percent: profile.contributionPercent}),
