@@ -264,8 +264,8 @@ def auction(key):
             if auction.winning_bid_id is None and auction.contribution_payment_request is None:
                 # auction ended, but no winning bid has been picked
                 # => ask the user with the top bid to send the contribution
-                top_bid = auction.get_top_bid()
-                if auction.reserve_bid_reached and top_bid:
+                if auction.reserve_bid_reached:
+                    top_bid = auction.get_top_bid()
                     auction.contribution_amount = int(auction.seller.contribution_percent / 100 * top_bid.amount)
                     if auction.contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
                         auction.contribution_amount = 0 # probably not worth the fees, at least in the next few years
