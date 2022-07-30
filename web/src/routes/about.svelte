@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-    <MetaTag {title} />
+    <MetaTag title={title} />
 </svelte:head>
 
 <div class="flex justify-center items-center md:mb-20">

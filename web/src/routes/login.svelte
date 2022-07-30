@@ -4,7 +4,7 @@
     import Login from "../lib/components/Login.svelte";
     import type { User } from "../lib/types/user";
 
-    export let title = "Joe - Enter the Market";
+    export let title = "Enter the Market";
 
     function onLogin(user: User | null) {
         if (user && user.twitterUsername === null) {

@@ -1,4 +1,3 @@
-
 <script lang="ts">
     import PublicAuctionCard from "../lib/components/PublicAuctionCard.svelte";
     import Typewriter from "../lib/components/Typewriter.svelte";
@@ -8,14 +7,14 @@
     import MetaTag from "$lib/components/MetaTag.svelte";
 
     let auctions: Auction[] | null = null;
-    export let title = "Plebeian Market";
+
     onMount(async () => {
         getFeaturedAuctions(a => { auctions = a; });
     });
 </script>
 
 <svelte:head>
-    <MetaTag {title} />
+    <MetaTag />
 </svelte:head>
 
 <div class="md:hidden">
