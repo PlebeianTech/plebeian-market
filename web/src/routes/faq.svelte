@@ -1,9 +1,12 @@
-<svelte:head>
-    <title>FAQ</title>
-</svelte:head>
+<script lang="ts">
+    import MetaTag from "$lib/components/MetaTag.svelte";
 
-<script>
+    export let title = "FAQ";
 </script>
+
+<svelte:head>
+    <MetaTag {title} />
+</svelte:head>
 
 <div class="flex justify-center items-center md:mb-20">
     <div class="mt-10 ml-4 w-3/4">
