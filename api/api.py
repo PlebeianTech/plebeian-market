@@ -116,6 +116,8 @@ def me(user):
                 twitter_user = twitter.get_user(user.twitter_username)
                 if not twitter_user:
                     return jsonify({'message': "Twitter profile not found!"}), 400
+                if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
+                    return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
                 if not user.fetch_twitter_profile_image(get_s3()):
@@ -264,8 +266,8 @@ def auction(key):
             if auction.winning_bid_id is None and auction.contribution_payment_request is None:
                 # auction ended, but no winning bid has been picked
                 # => ask the user with the top bid to send the contribution
-                if auction.reserve_bid_reached:
-                    top_bid = auction.get_top_bid()
+                top_bid = auction.get_top_bid()
+                if top_bid and auction.reserve_bid_reached:
                     auction.contribution_amount = int(auction.seller.contribution_percent / 100 * top_bid.amount)
                     if auction.contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
                         auction.contribution_amount = 0 # probably not worth the fees, at least in the next few years

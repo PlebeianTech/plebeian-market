@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import dateutil.parser
 from functools import wraps
 import io
 from itertools import chain
@@ -294,6 +295,7 @@ class MockTwitter:
             'id': "MOCK_USER_ID",
             'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(1, 1000)}",
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
+            'created_at': (datetime.now() - timedelta(days=211)).isoformat(),
         }
 
     def get_tweet_likes(self, tweet_id):
@@ -345,7 +347,7 @@ class Twitter:
     def get_user(self, username):
         response_json = self.get(f"/2/users/by/username/{username}",
             params={
-                'user.fields': "location,name,profile_image_url,pinned_tweet_id",
+                'user.fields': "location,name,profile_image_url,pinned_tweet_id,created_at",
             })
 
         if not response_json or response_json.get('errors'):
@@ -357,6 +359,8 @@ class Twitter:
             # pick high-res picture
             # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
             twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
+
+        twitter_user['created_at'] = dateutil.parser.isoparse(twitter_user['created_at']).replace(tzinfo=None)
 
         return twitter_user
 
