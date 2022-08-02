@@ -116,8 +116,8 @@ def me(user):
                 twitter_user = twitter.get_user(user.twitter_username)
                 if not twitter_user:
                     return jsonify({'message': "Twitter profile not found!"}), 400
-                # if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
-                #     return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
+                if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
+                    return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
                 if not user.fetch_twitter_profile_image(get_s3()):
@@ -506,11 +506,11 @@ def bids(user, key):
 
 
 @api_blueprint.route('/api/users/<string:nym>/auctions', methods=['GET'])
-def store_auctions_view(nym):
+def user_auctions(nym):
     user = m.User.query.filter_by(nym=nym).first()
     if not user:
-        return jsonify({f'users/{nym}/auctions': []}), 404
-    return jsonify({f'users/{nym}/auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: a.created_at, reverse=True)]})
+        return jsonify({'message': "No auctions found"}), 404
+    return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: a.created_at, reverse=True)]})
 
 
 @api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
@@ -518,5 +518,5 @@ def store_view(nym):
     if request.method == 'GET':
         user = m.User.query.filter_by(nym=nym).first()
         if not user:
-            return jsonify({}), 404
+            return jsonify({'message': "User not found"}), 404
         return jsonify({'user': user.to_dict()})

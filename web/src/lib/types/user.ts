@@ -14,8 +14,8 @@ export interface User {
     hasAuctions: boolean;
     hasBids: boolean;
     isModerator: boolean;
-    activeAuctionCount: number;
-    pastAuctionCount: number;
+    runningAuctionCount: number;
+    endedAuctionCount: number;
 }
 
 export function fromJson(json: any) {
@@ -29,7 +29,7 @@ export function fromJson(json: any) {
         hasAuctions: <boolean>json.has_auctions,
         hasBids: <boolean>json.has_bids,
         isModerator: <boolean>json.is_moderator,
-        activeAuctionCount: <number>json.active_auction_count,
-        pastAuctionCount: <number>json.past_auction_count
+        runningAuctionCount: <number>json.running_auction_count,
+        endedAuctionCount: <number>json.ended_auction_count
     }
 }

@@ -107,8 +107,8 @@ class User(db.Model):
             'contribution_percent': self.contribution_percent,
             'has_auctions': len(self.auctions.all()) > 0,
             'has_bids': len(self.bids) > 0,
-            'active_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),
-            'past_auction_count': len(self.auctions.filter(Auction.end_date <= now).all()),
+            'running_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),
+            'ended_auction_count': len(self.auctions.filter(Auction.end_date <= now).all()),
         }
         if self.is_moderator:
             d['is_moderator'] = True

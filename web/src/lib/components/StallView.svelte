@@ -12,7 +12,7 @@
     export let loader: ILoader;
     export let entities: IEntity[] | null = null;
 
-    let store: User;
+    let stallOwner: User;
     let currentTab = "ACTIVE AUCTIONS";
     let loading = true;
 
@@ -26,19 +26,18 @@
     function fetchStall(stallName: string) {
         getStall(stallName, 
             s => {
-                store = s;
+                stallOwner = s;
                 loading = false;
             }, 
             new ErrorHandler(true, () => {
-                loading = false
+                loading = false;
             }));
     }
 
-    function fetchEntities(successCB: () => void = () => {}) {
+    function fetchEntities() {
         getEntities(loader, $token,
             e => {
                 entities = e;
-                successCB();
             });
     }
 
@@ -57,24 +56,24 @@
     <div class="hero h-5/6 bg-base-200">
         <div class="hero-content text-center">
             <div class="max-w-md">
-                <button class="btn btn-ghost loading btn-lg"></button>
+                <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
             </div>
         </div>
     </div>
 {:else}
-    {#if store}
+    {#if stallOwner}
         <div class="w-full md:w-1/2 mx-auto mt-4">
             <div class="mx-auto">
                 <!-- top profile section -->
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex-none rounded-full border border-accent avatar lg:h-32 lg:w-32 w-12 h-12 mx-4">
                         <div class="flex justify-center">
-                            <img src={store.twitterProfileImageUrl} class="flex-none rounded-full" alt="Avatar"/>
+                            <img src={stallOwner.twitterProfileImageUrl} class="flex-none rounded-full" alt="Avatar"/>
                         </div>
                     </div>
                 </div>
                 <span class="font-thin text-3xl mx-4">
-                    @{store.nym}
+                    @{stallOwner.nym}
                 </span>
                 {#if entities === null || entities.length === 0}
                     <div class="mt-4 mx-4 font-thin text-xl mb-4">
@@ -82,14 +81,14 @@
                     </div>
                 {:else}
                     <div class="flex justify-between md:justify-start md:mx-4 mt-4 mx-8">
-                        <span class="text-sm font-semibold md:mr-4">{store.activeAuctionCount} Active Auctions</span>
-                        <span class="text-sm font-semibold">{store.pastAuctionCount} Past Auctions</span>
+                        <span class="text-sm font-semibold md:mr-4">{stallOwner.runningAuctionCount} Active Auctions</span>
+                        <span class="text-sm font-semibold">{stallOwner.endedAuctionCount} Past Auctions</span>
                     </div>
                 {/if}
             </div>
         </div>
-        {#if entities !== null}
-        <!-- store listing section -->
+        {#if entities !== null && entities.length > 0}
+        <!-- stallOwner listing section -->
         <hr class="border-solid border-accent divide-y-0 opacity-50 my-5">
         <div class="tabs flex items-center justify-center">
             {#each ['ACTIVE AUCTIONS', 'PAST AUCTIONS'] as tab}

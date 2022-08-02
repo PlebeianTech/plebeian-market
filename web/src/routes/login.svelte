@@ -11,7 +11,7 @@
         if (user && user.twitterUsername === null) {
             localStorage.setItem('initial-login-seller', "1");
         }
-        goto("/auctions");
+        goto("/stall");
     }
 </script>
 

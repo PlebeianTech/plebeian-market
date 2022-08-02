@@ -29,16 +29,6 @@
     // (basically auctions that have been just created and the user didn't go through the whole tweet-start-view flow, *unless* they already ended)
     $: showNewButton = auctions === null || !auctions.find(a => !a.ended && viewedAuctions.indexOf(a.key) === -1);
 
-    function fetchProfile(tokenValue) {
-        getProfile(tokenValue,
-            u => {
-                user.set(u);
-                if ($user && $user.nym === stallName) {
-                    userOwnsStall = true;
-                }
-            });
-    }
-
     function onCreated() {
         user.update((u) => { u!.hasAuctions = true; return u; });
         Info.set("Your auction will start when we verify your tweet!");
@@ -49,21 +39,12 @@
         viewedAuctions = [...viewedAuctions, auction.key];
     }
 
-
-    afterNavigate(() => {
-        fetchProfile($token);
-    });
-
-    onMount(async () => {
-        fetchProfile($token);
-    });
-
 </script>
 
 
-{#if userOwnsStall}
+{#if $user && $user.nym === stallName || stallName === ""}
     <ListView
-        title="My Auctions"
+        title="My Stall"
         loader={{endpoint: 'auctions', fromJson}} newEntity={() => new Auction()}
         card={AuctionCard} editor={AuctionEditor} bind:showNewButton={showNewButton}
         {onCreated} {onView}
@@ -71,7 +52,7 @@
     </ListView>
 {:else}
     <StallView
-        loader={{endpoint: `users/${stallName}/auctions`, fromJson}}
+        loader={{endpoint: `users/${stallName}/auctions`, responseField: 'auctions', fromJson}}
         stallName={stallName}
         bind:entities={auctions}
     />
