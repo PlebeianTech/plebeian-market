@@ -13,7 +13,6 @@ import bleach
 import magic
 import pyqrcode
 import requests
-
 from extensions import db
 from main import app
 
@@ -85,7 +84,7 @@ class User(db.Model):
     contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
+    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)", lazy='dynamic')
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
@@ -97,6 +96,7 @@ class User(db.Model):
         return True
 
     def to_dict(self):
+        now = datetime.utcnow()
         d = {
             'id': self.id,
             'nym': self.nym,
@@ -105,8 +105,11 @@ class User(db.Model):
             'twitter_username_verified': self.twitter_username_verified,
             'twitter_username_verification_tweet': f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}",
             'contribution_percent': self.contribution_percent,
-            'has_auctions': len(self.auctions) > 0,
-            'has_bids': len(self.bids) > 0}
+            'has_auctions': len(self.auctions.all()) > 0,
+            'has_bids': len(self.bids) > 0,
+            'running_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),
+            'ended_auction_count': len(self.auctions.filter(Auction.end_date <= now).all()),
+        }
         if self.is_moderator:
             d['is_moderator'] = True
         return d

@@ -63,6 +63,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
 
 export interface ILoader {
     endpoint: string;
+    responseField?: string;
     fromJson: (any) => IEntity;
 }
 
@@ -71,7 +72,7 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
-                    successCB(data[loader.endpoint].map(loader.fromJson));
+                    successCB(data[loader.responseField || loader.endpoint].map(loader.fromJson));
                 });
             } else {
                 errorHandler.handle(response);
@@ -149,6 +150,19 @@ export function getProfile(tokenValue, successCB: (User) => void) {
                 response.json().then(data => {
                     successCB(userFromJson(data.user));
                 });
+            }
+        });
+}
+
+export function getStall(nym: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/users/${nym}`, 'GET', null, null,
+        (response) => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(userFromJson(data.user));
+                });
+            } else {
+                errorHandler.handle(response);
             }
         });
 }
