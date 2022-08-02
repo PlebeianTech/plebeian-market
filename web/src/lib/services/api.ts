@@ -153,8 +153,8 @@ export function getProfile(tokenValue, successCB: (User) => void) {
         });
 }
 
-export function getStore(storeName: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/users/${storeName}`, 'GET', storeName, null,
+export function getStall(stallName: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/users/${stallName}`, 'GET', stallName, null,
         (response) => {
             if (response.status === 200) {
                 response.json().then(data => {
