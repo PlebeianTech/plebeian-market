@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import os
 import secrets
-
+import bleach
 import ecdsa
 from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
@@ -110,7 +110,7 @@ def me(user):
                 return jsonify({'message': "Invalid Twitter username!"}), 400
             if clean_username != user.twitter_username:
                 user.twitter_username = clean_username
-
+                user.nym = clean_username
                 twitter = get_twitter()
 
                 twitter_user = twitter.get_user(user.twitter_username)
@@ -136,6 +136,7 @@ def me(user):
         except IntegrityError:
             return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
         return jsonify({'user': user.to_dict()})
+
 
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
 @user_required
@@ -251,6 +252,7 @@ def featured_auctions():
          & (m.Auction.end_date >= datetime.utcnow()))
     ).all()
     return jsonify({'auctions': [a.to_dict() for a in sorted(auctions, key=lambda a: len(a.bids), reverse=True)]})
+
 
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def auction(key):
@@ -501,3 +503,20 @@ def bids(user, key):
             "Your bid will be confirmed once you scan the QR code.",
         ] + (["Started following the auction."] if started_following else []),
     })
+
+
+@api_blueprint.route('/api/users/<string:nym>/auctions', methods=['GET'])
+def user_auctions(nym):
+    user = m.User.query.filter_by(nym=nym).first()
+    if not user:
+        return jsonify({'message': "No auctions found"}), 404
+    return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: a.created_at, reverse=True)]})
+
+
+@api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
+def store_view(nym):
+    if request.method == 'GET':
+        user = m.User.query.filter_by(nym=nym).first()
+        if not user:
+            return jsonify({'message': "User not found"}), 404
+        return jsonify({'user': user.to_dict()})
