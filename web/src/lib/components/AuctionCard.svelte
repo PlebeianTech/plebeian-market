@@ -9,7 +9,7 @@
     import Confirmation from "$lib/components/Confirmation.svelte";
     import Countdown from "$lib/components/Countdown.svelte";
     import DateFormatter from "$lib/components/DateFormatter.svelte";
-
+    import { browser } from "$app/env";
     export let entity: IEntity;
     $: auction = <Auction>entity;
     $: topBid = auction.topBid();
@@ -26,10 +26,12 @@
 
     function view() {
         if (auction.started) {
-            var viewedAuctions = (localStorage.getItem('auctions-viewed') || "").split(",");
+            var viewedAuctions = (browser && localStorage.getItem('auctions-viewed') || "").split(",");
             viewedAuctions.push(auction.key);
             viewedAuctions = viewedAuctions.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
-            localStorage.setItem('auctions-viewed', viewedAuctions.join(","));
+            if (browser) {
+                localStorage.setItem('auctions-viewed', viewedAuctions.join(","));
+            }
             auctionViewed = true;
             onView(auction);
         }
@@ -42,10 +44,12 @@
     }
 
     function openTwitter() {
-        var tweetedAuctions = (localStorage.getItem('auctions-tweeted') || "").split(",");
+        var tweetedAuctions = (browser && localStorage.getItem('auctions-tweeted') || "").split(",");
         tweetedAuctions.push(auction.key);
         tweetedAuctions = tweetedAuctions.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
-        localStorage.setItem('auctions-tweeted', tweetedAuctions.join(","));
+        if ( browser ) {
+            localStorage.setItem('auctions-tweeted', tweetedAuctions.join(","));
+        }
         auctionTweeted = true;
         let url = encodeURIComponent(getUrl());
         let text = encodeURIComponent(`I am auctioning for sats: ${auction.title}`);
@@ -80,8 +84,8 @@
 
     onMount(async () => {
         confirmation = null;
-        auctionTweeted = auction.key.length !== 0 && (localStorage.getItem('auctions-tweeted') || "").includes(auction.key);
-        auctionViewed = auction.key.length !== 0 && (localStorage.getItem('auctions-viewed') || "").includes(auction.key);
+        auctionTweeted = auction.key.length !== 0 && (browser && localStorage.getItem('auctions-tweeted') || "").includes(auction.key);
+        auctionViewed = auction.key.length !== 0 && (browser && localStorage.getItem('auctions-viewed') || "").includes(auction.key);
     });
 </script>
 

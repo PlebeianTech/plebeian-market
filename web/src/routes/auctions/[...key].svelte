@@ -12,12 +12,13 @@
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import AuctionView from "$lib/components/AuctionView.svelte"
     import ListView from "$lib/components/ListView.svelte";
+    import { browser } from "$app/env";
 
     export let auctionKey;
 
     let auctions: Auction[] | null = [];
 
-    let viewedAuctions = (localStorage.getItem('auctions-viewed') || "").split(",");
+    let viewedAuctions = (browser && localStorage.getItem('auctions-viewed') || "").split(",");
 
     // NB: the "new" button is shown when there are no auctions that are not ended and not viewed
     // (basically auctions that have been just created and the user didn't go through the whole tweet-start-view flow, *unless* they already ended)

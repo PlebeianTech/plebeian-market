@@ -5,8 +5,11 @@
     import { token, Info, Error } from "../lib/stores";
     import Navbar from "../lib/components/Navbar.svelte";
     import Footer from "../lib/components/Footer.svelte";
+    import { browser } from "$app/env";
 
-    token.set(localStorage.getItem('token'));
+    if (browser) {
+        token.set(localStorage.getItem('token'));
+    }
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {

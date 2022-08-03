@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "devDependencies": {
     "@sveltejs/adapter-node": "^1.0.0-next.73",
+    "@sveltejs/adapter-static": "^1.0.0-next.38",
     "@sveltejs/kit": "next",
     "autoprefixer": "^10.4.7",
     "btc2fiat": "0.1.23",

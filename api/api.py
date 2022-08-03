@@ -116,8 +116,8 @@ def me(user):
                 twitter_user = twitter.get_user(user.twitter_username)
                 if not twitter_user:
                     return jsonify({'message': "Twitter profile not found!"}), 400
-                if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
-                    return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
+                # if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
+                #     return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
                 user.twitter_profile_image_url = twitter_user['profile_image_url']
                 if not user.fetch_twitter_profile_image(get_s3()):
@@ -501,3 +501,17 @@ def bids(user, key):
             "Your bid will be confirmed once you scan the QR code.",
         ] + (["Started following the auction."] if started_following else []),
     })
+
+
+@api_blueprint.route('/api/meta_data/<string:page>', methods=['GET'])
+def meta_data(page):
+    if page == "index":
+        return jsonify(
+            {
+                "title": "Plebeian Market",
+                "description": "Self-sovereign marketplace built on Bitcoin and Lightning",
+                "image": "https://plebeian.market/images/logo.jpg",
+                "domain": "plebeian.market",
+                "url": "https://plebeian.market/"
+            }
+        )

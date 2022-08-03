@@ -5,9 +5,9 @@
     import { getFeaturedAuctions } from "../lib/services/api";
     import { onMount } from "svelte";
     import MetaTag from "$lib/components/MetaTag.svelte";
+    import { goto } from '$app/navigation';
 
     let auctions: Auction[] | null = null;
-
     onMount(async () => {
         getFeaturedAuctions(a => { auctions = a; });
     });
@@ -52,7 +52,7 @@
     Let's get the market started...
 </div>
 <div class="flex justify-center items-center">
-    <div class="glowbutton glowbutton-go mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
+    <div class="glowbutton glowbutton-go mb-5" on:click|preventDefault={() => goto("/login")}></div>
 </div>
 <div class="grid lg:grid-cols-3 gap-4">
     {#if auctions !== null}

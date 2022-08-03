@@ -7,11 +7,12 @@
     import { isLocal, isStaging, getBaseUrl } from "../utils";
     import Profile from "./Profile.svelte";
     import UserNotifications from "./UserNotifications.svelte";
+    import { browser } from "$app/env";
 
     let profile : Profile | null;
     let userNotifications : UserNotifications | null;
 
-    let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let prefersDark = browser && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     function fetchProfile(tokenValue) {
         getProfile(tokenValue,
@@ -27,9 +28,19 @@
         BTC2USD.set(await getValue());
     }
 
+    function logout() {
+        token.set(null);
+        if ( browser ) {
+            localStorage.removeItem('token');
+        }
+        goto("/");
+    }
+
     function showProfile() {
         if (profile) {
-            localStorage.removeItem('initial-login-seller'); // to allow twitter verification to be shown automatically if username changed
+            if (browser) {
+                localStorage.removeItem('initial-login-seller'); // to allow twitter verification to be shown automatically if username changed
+            }
             profile.show();
         }
     }
@@ -125,7 +136,7 @@
                         <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button cursor-pointer">Profile</label></li>
                         <li><label for="profile-modal" on:click|preventDefault={showUserNotifications} class="modal-button cursor-pointer">Notifications</label></li>
                         <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
-                        <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }} class="modal-button cursor-pointer">Logout</a></li>
+                        <li><a href={null} on:click|preventDefault={logout} class="modal-button cursor-pointer">Logout</a></li>
                     </ul>
                 </div>
             {/if}

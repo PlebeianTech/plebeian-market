@@ -4,6 +4,7 @@
     import { goto } from '$app/navigation';
     import { token, user, Info } from "../stores";
     import V4V from "./V4V.svelte";
+    import { browser } from "$app/env";
 
     let twitterUsername;
     let contributionPercent;
@@ -39,7 +40,7 @@
 
                 if (!u.twitterUsernameVerified
                     && u.twitterUsernameVerificationTweet !== null
-                    && localStorage.getItem('initial-login-seller') === null) {
+                    && browser && localStorage.getItem('initial-login-seller') === null) {
                     /* NB: if you log in from the home page without having a Twitter username set (ie. initial-login-seller is set)
                     we don't want to ask for Twitter verification at this point, since you'll get verified when starting an auction */
                     showTwitterVerification(u.twitterUsernameVerificationTweet);
@@ -95,7 +96,9 @@
         }
         else {
             token.set(null);
-            localStorage.removeItem('token');
+            if ( browser ) {
+                localStorage.removeItem('token');
+            }
             goto("/");
             hide();
         }

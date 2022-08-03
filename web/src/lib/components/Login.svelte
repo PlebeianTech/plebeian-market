@@ -6,7 +6,7 @@
     import QR from "./QR.svelte";
     import { isLocal } from "../utils";
     import type { User } from "../types/user";
-
+    import { browser } from "$app/env";
     export let onLogin = (user: User | null) => {};
 
     let lnurl;
@@ -26,7 +26,9 @@
             },
             (response) => {
                 token.set(response.token);
-                localStorage.setItem('token', response.token);
+                if ( browser ) {
+                    localStorage.setItem('token', response.token);
+                }
                 onLogin(response.user);
             });
     }
