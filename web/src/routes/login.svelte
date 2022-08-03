@@ -8,9 +8,6 @@
     import type { User } from "../lib/types/user";
 
     function onLogin(user: User | null) {
-        if (user && user.twitterUsername === null) {
-            localStorage.setItem('initial-login-seller', "1");
-        }
         goto("/stall");
     }
 </script>

@@ -69,6 +69,9 @@ class User(db.Model):
     # Lightning log in key
     key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
+    # ask Pedro about this
+    xpub = db.Column(db.String(128), nullable=True)
+
     # can't set this for now, but should be useful in the future
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
@@ -95,7 +98,9 @@ class User(db.Model):
         self.twitter_profile_image_url = url
         return True
 
-    def to_dict(self):
+    def to_dict(self, for_user=None):
+        assert isinstance(for_user, int | None)
+
         now = datetime.utcnow()
         d = {
             'id': self.id,
@@ -103,15 +108,24 @@ class User(db.Model):
             'twitter_username': self.twitter_username,
             'twitter_profile_image_url': self.twitter_profile_image_url,
             'twitter_username_verified': self.twitter_username_verified,
-            'twitter_username_verification_tweet': f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}",
-            'contribution_percent': self.contribution_percent,
             'has_auctions': len(self.auctions.all()) > 0,
             'has_bids': len(self.bids) > 0,
             'running_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),
             'ended_auction_count': len(self.auctions.filter(Auction.end_date <= now).all()),
         }
+
         if self.is_moderator:
             d['is_moderator'] = True
+
+        if for_user == self.id:
+            # only ever show these fields to the actual user
+            d['contribution_percent'] = self.contribution_percent
+            d['xpub'] = self.xpub
+            if self.twitter_username_verification_tweet_id:
+                d['twitter_username_verification_tweet'] = f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}"
+            else:
+                d['twitter_username_verification_tweet'] = None
+
         return d
 
 class Notification(abc.ABC):

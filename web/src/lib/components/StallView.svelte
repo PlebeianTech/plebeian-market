@@ -68,7 +68,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex-none rounded-full border border-accent avatar lg:h-32 lg:w-32 w-12 h-12 mx-4">
                         <div class="flex justify-center">
-                            <img src={stallOwner.twitterProfileImageUrl} class="flex-none rounded-full" alt="Avatar"/>
+                            <img src={stallOwner.twitter.profileImageUrl} class="flex-none rounded-full" alt="Avatar"/>
                         </div>
                     </div>
                 </div>

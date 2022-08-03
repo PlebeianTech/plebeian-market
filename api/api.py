@@ -92,13 +92,13 @@ def login():
 
     token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
 
-    return jsonify({'success': True, 'token': token, 'user': user.to_dict()})
+    return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/users/me', methods=['GET', 'POST']) # TODO: POST here should actually be PUT
 @user_required
 def me(user):
     if request.method == 'GET':
-        return jsonify({'user': user.to_dict()})
+        return jsonify({'user': user.to_dict(for_user=user.id)})
     else:
         if 'nym' in request.json:
             return jsonify({'message': "Can't edit nym."}), 400 # yet, I guess...
@@ -131,11 +131,15 @@ def me(user):
 
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']
+        if 'xpub' in request.json:
+            user.xpub = request.json['xpub']
+
         try:
             db.session.commit()
         except IntegrityError:
             return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
-        return jsonify({'user': user.to_dict()})
+
+        return jsonify({'user': user.to_dict(for_user=user.id)})
 
 
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
@@ -159,10 +163,10 @@ def user_notifications(user):
         notifications = []
         for t in m.NOTIFICATION_TYPES:
             if t in existing_notifications:
-                notifications.append(existing_notifications[t])
+                notifications.append((False, existing_notifications[t]))
             else:
-                notifications.append(m.UserNotification(notification_type=t, action=m.NOTIFICATION_TYPES[t].default_action))
-        return jsonify({'notifications': [n.to_dict() for n in notifications]})
+                notifications.append((True, m.UserNotification(notification_type=t, action=m.NOTIFICATION_TYPES[t].default_action)))
+        return jsonify({'notifications': [n.to_dict() | {'is_default': is_default} for (is_default, n) in notifications]})
     elif request.method == 'PUT':
         for notification in request.json['notifications']:
             if notification['notification_type'] not in existing_notifications:

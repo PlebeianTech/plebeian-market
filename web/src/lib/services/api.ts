@@ -167,9 +167,18 @@ export function getStall(nym: string, successCB: (User) => void, errorHandler = 
         });
 }
 
-export function postProfile(tokenValue, profile: {twitterUsername: string, contributionPercent: string}, successCB: (User) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/users/me", 'POST', tokenValue,
-        JSON.stringify({twitter_username: profile.twitterUsername, contribution_percent: profile.contributionPercent}),
+export function postProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+    var json: any = {};
+    if (profile.twitterUsername !== undefined) {
+        json.twitter_username = profile.twitterUsername;
+    }
+    if (profile.contributionPercent !== undefined) {
+        json.contribution_percent = profile.contributionPercent;
+    }
+    if (profile.xpub !== undefined) {
+        json.xpub = profile.xpub;
+    }
+    fetchAPI("/users/me", 'POST', tokenValue, JSON.stringify(json),
         response => {
             if (response.status === 200) {
                 response.json().then(data => {

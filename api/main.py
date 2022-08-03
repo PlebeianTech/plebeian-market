@@ -295,7 +295,7 @@ class MockTwitter:
             'id': "MOCK_USER_ID",
             'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(1, 1000)}",
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
-            'created_at': (datetime.now() - timedelta(days=211)).isoformat(),
+            'created_at': datetime.now() - timedelta(days=211),
         }
 
     def get_tweet_likes(self, tweet_id):
