@@ -1,15 +1,14 @@
 <script lang="ts">
     import AuctionCard from "$lib/components/AuctionCard.svelte";
-    import type { IAccount, User } from "../types/user";
-    import { type ILoader, getEntities, getStall, getProfile, ErrorHandler, postEntity, putEntity } from "../services/api";
-    import { onMount } from "svelte";
-    import { token, user } from "../stores";
-    import StallNotFound from "./StallNotFound.svelte";
+    import type { User } from "../types/user";
+    import { type ILoader, getEntities, getStall, ErrorHandler, postEntity, putEntity } from "../services/api";
+    import { token, user, Info } from "$lib/stores";
+    import StallNotFound from "$lib/components/StallNotFound.svelte";
     import { afterNavigate } from '$app/navigation';
     import type { IEntity } from '$lib/types/base';
     import Loading from "$lib/components/Loading.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
-    import { goto } from '$app/navigation';
+    import { Auction } from "$lib/types/auction";
 
     export let title;
     export let card;
@@ -19,41 +18,31 @@
     export let loader: ILoader;
     export let entities: IEntity[] | null = null;
 
-    export let newEntity: () => IEntity;
-    export let onView: (entity: IEntity) => void = (_) => { };
-    export let onCreated: () => void = () => { };
+    let viewedAuctions = (localStorage.getItem('auctions-viewed') || "").split(",");
+
+    function onView(auction) {
+        // NB: using assignement rather than .push() to trigger recalculation of showNewButton
+        viewedAuctions = [...viewedAuctions, auction.key];
+    }
+    function onCreated() {
+        user.update((u) => { u!.hasAuctions = true; return u; });
+        Info.set("Your auction will start when we verify your tweet!");
+    }
 
     let stallOwner: User;
-    let storeAccount: IAccount;
     let currentTab = "ACTIVE AUCTIONS";
     let tabList = ['ACTIVE AUCTIONS', 'PAST AUCTIONS']
     let loading = true;
     let currentEntity: IEntity | undefined;
 
-    function fetchProfile(tokenValue) {
-        getProfile(tokenValue,
-            u => {
-                user.set(u);
-                // if user and no stallNym -> go to own stall
-                if (stallOwnerNym === "") {
-                    goto(`/stall/${u.nym}`);
-                }
-            });
-    }
-
     function fetchStall(stallOwnerNym: string) {
         getStall(stallOwnerNym, 
             s => {
                 stallOwner = s;
-                storeAccount = {
-                    username: stallOwner.twitter.username,
-                    profileImageUrl: stallOwner.twitter.profileImageUrl,
-                    usernameVerified: stallOwner.twitter.usernameVerified,
-                }
                 loading = false;
                 if ($user && $user.nym === stallOwner.nym) {
-                    tabList = ["UNLAUNCHED"].concat(tabList);
-                    currentTab = "UNLAUNCHED";
+                    tabList = ["NOT RUNNING"].concat(tabList);
+                    currentTab = "NOT RUNNING";
                 }
             }, 
             new ErrorHandler(false, () => {
@@ -102,10 +91,6 @@
             fetchEntities();
         }
     });
-
-    onMount(async () => {
-        fetchProfile($token);
-    });
 </script>
 
 
@@ -123,13 +108,13 @@
         </div>
     </div>
 {:else}
-    {#if stallOwner || stallOwnerNym === "" && $user}
+    {#if stallOwner}
         <div class="w-full md:w-1/2 mx-auto mt-4">
             <div class="mx-auto">
                 <!-- top profile section -->
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex-none lg:h-32 lg:w-32 w-12 h-12 mx-4">
-                        <Avatar account={storeAccount} showUsername={false} height="32" />
+                        <Avatar account={stallOwner.twitter} showUsername={false} height="32" />
                     </div>
                 </div>
                 <span class="font-thin text-3xl mx-4">
@@ -159,7 +144,7 @@
                     {:else}
                         {#if showNewButton}
                             <div class="flex items-center justify-center mb-4">
-                                <div class="glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = newEntity()}></div>
+                                <div class="glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = new Auction()}></div>
                             </div>
                         {/if}
                     {/if}
@@ -180,12 +165,10 @@
         <div class="pt-6 pb-6">
             <div class="grid md:grid-cols-3 grid-cols-1">
                     {#each entities as entity}
-                        {#if $user && $user.nym == stallOwner.nym}
-                            {#if currentTab === 'UNLAUNCHED' && !entity.started && !entity.ended}
-                                <div class="h-auto">
-                                    <svelte:component this={AuctionCard} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
-                                </div>
-                            {/if}
+                        {#if currentTab === 'NOT RUNNING' && !entity.started && !entity.ended}
+                            <div class="h-auto">
+                                <svelte:component this={AuctionCard} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+                            </div>
                         {/if}
                         {#if currentTab === 'ACTIVE AUCTIONS' && entity.started && !entity.ended}
                             <div class="h-auto">

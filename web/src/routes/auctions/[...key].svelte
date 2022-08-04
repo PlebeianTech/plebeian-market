@@ -14,7 +14,7 @@
 
     onMount(async () => {
         if (auctionKey === "" || auctionKey === null) {
-            goto('/stall');
+            goto('/');
         }
     });
 </script>

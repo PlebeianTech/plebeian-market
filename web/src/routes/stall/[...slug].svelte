@@ -10,14 +10,19 @@
 </script>
 
 <script lang="ts">
-    import { user, Info } from "$lib/stores";
+    import { user } from "$lib/stores";
     import { Auction, fromJson } from "$lib/types/auction";
+    import { onMount } from "svelte";
+    import { goto } from "$app/navigation";
     import StallView from "$lib/components/StallView.svelte";
     import AuctionCard from "$lib/components/AuctionCard.svelte";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import PublicAuctionCard from "$lib/components/PublicAuctionCard.svelte";
 
+
     export let stallOwnerNym: string;
+    let title = "My Stall";
+    let cardType;
     let auctions: Auction[] | null = [];
     let viewedAuctions = (localStorage.getItem('auctions-viewed') || "").split(",");
 
@@ -25,43 +30,25 @@
     // (basically auctions that have been just created and the user didn't go through the whole tweet-start-view flow, *unless* they already ended)
     $: showNewButton = ($user && $user.nym === stallOwnerNym || stallOwnerNym === "") || auctions === null || !auctions.find(a => !a.ended && viewedAuctions.indexOf(a.key) === -1);
 
-    function onCreated() {
-        user.update((u) => { u!.hasAuctions = true; return u; });
-        Info.set("Your auction will start when we verify your tweet!");
-    }
-
-    function onView(auction) {
-        // NB: using assignement rather than .push() to trigger recalculation of showNewButton
-        viewedAuctions = [...viewedAuctions, auction.key];
-    }
-
+    onMount(async () => {
+        if (stallOwnerNym === "" || stallOwnerNym === null) {
+            goto('/');
+        }
+        if ($user && $user.nym === stallOwnerNym) {
+            title = `${stallOwnerNym}'s Stall`
+            cardType = AuctionCard;
+        } else {
+            cardType = PublicAuctionCard;
+        }
+    });
 </script>
 
-
-{#if $user && $user.nym === stallOwnerNym || stallOwnerNym === ""}
-    <!-- User viewing own store -->
-    <StallView
-        title="My Stall"
-        loader={{endpoint: 'auctions', responseField: 'auctions', fromJson}}
-        newEntity={() => new Auction()}
-        stallOwnerNym={stallOwnerNym}
-        card={AuctionCard}
-        {onCreated} {onView}
-        editor={AuctionEditor}
-        bind:showNewButton={showNewButton}
-        bind:entities={auctions}
-    />
-{:else}
-    <!-- User viewing another user's store -->
-    <StallView
-        title="My Stall"
-        loader={{endpoint: `users/${stallOwnerNym}/auctions`, responseField: 'auctions', fromJson}}
-        newEntity={() => new Auction()}
-        stallOwnerNym={stallOwnerNym}
-        card={PublicAuctionCard}
-        {onCreated} {onView}
-        editor={AuctionEditor}
-        bind:showNewButton={showNewButton}
-        bind:entities={auctions}
-    />
-{/if}
+<StallView
+    title={title}
+    loader={{endpoint: `users/${stallOwnerNym}/auctions`, responseField: 'auctions', fromJson}}
+    stallOwnerNym={stallOwnerNym}
+    card={cardType}
+    editor={AuctionEditor}
+    bind:showNewButton={showNewButton}
+    bind:entities={auctions}
+/>

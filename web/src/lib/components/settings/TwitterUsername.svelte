@@ -2,6 +2,8 @@
     import { onMount } from 'svelte';
     import { ErrorHandler, postProfile } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
 
     export let onSave: () => void = () => {};
 
@@ -23,6 +25,10 @@
                 Info.set("Your Twitter username has been saved!");
                 saving = false;
                 onSave();
+                // redirect user when they enter twitter
+                if ($page.url.pathname !== "/settings") {
+                    goto(`/stall/${u.nym}`);
+                }
             },
             new ErrorHandler(true, () => saving = false));
     }

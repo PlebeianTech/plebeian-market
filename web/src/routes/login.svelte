@@ -8,7 +8,7 @@
     import type { User } from "../lib/types/user";
 
     function onLogin(user: User | null) {
-        goto("/stall");
+        goto("/");
     }
 </script>
 
