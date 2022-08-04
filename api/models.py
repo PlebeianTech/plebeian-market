@@ -449,7 +449,7 @@ class Auction(StartedEndedMixin, db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.requested_at)')
+    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.amount)')
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
 
     user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
