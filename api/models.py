@@ -16,7 +16,7 @@ import requests
 from extensions import db
 from main import app
 
-def fetch_image(url, s3, filename):
+def fetch_image(url, s3, filename, append_hash=False):
     response = requests.get(url)
     if response.status_code != 200:
         return None
@@ -30,7 +30,12 @@ def fetch_image(url, s3, filename):
     else:
         ext = ""
 
-    filename = f"{filename}{ext}"
+    if append_hash:
+        sha = hashlib.sha256()
+        sha.update(response.content)
+        filename = f"{filename}_{sha.hexdigest()}{ext}"
+    else:
+        filename = f"{filename}{ext}"
 
     s3.upload(response.content, filename)
 
@@ -91,8 +96,8 @@ class User(db.Model):
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    def fetch_twitter_profile_image(self, s3):
-        url = fetch_image(self.twitter_profile_image_url, s3, f"user_{self.id}_twitter_profile_image")
+    def fetch_twitter_profile_image(self, profile_image_url, s3):
+        url = fetch_image(profile_image_url, s3, f"user_{self.id}_twitter_profile_image", True)
         if not url:
             return False
         self.twitter_profile_image_url = url

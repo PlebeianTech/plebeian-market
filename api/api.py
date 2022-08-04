@@ -103,14 +103,14 @@ def me(user):
         if 'nym' in request.json:
             return jsonify({'message': "Can't edit nym."}), 400 # yet, I guess...
         if 'twitter_username' in request.json:
-            clean_username = request.json['twitter_username'] or ""
+            clean_username = (request.json['twitter_username'] or "").lower()
             if clean_username.startswith("@"):
-                clean_username = clean_username[1:]
+                clean_username = clean_username.removeprefix("@")
             if not clean_username:
                 return jsonify({'message': "Invalid Twitter username!"}), 400
             if clean_username != user.twitter_username:
-                user.twitter_username = clean_username
-                user.nym = clean_username
+                user.twitter_username = user.nym = clean_username
+
                 twitter = get_twitter()
 
                 twitter_user = twitter.get_user(user.twitter_username)
@@ -119,8 +119,7 @@ def me(user):
                 if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
                     return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
-                user.twitter_profile_image_url = twitter_user['profile_image_url']
-                if not user.fetch_twitter_profile_image(get_s3()):
+                if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
                     return jsonify({'message': "Error fetching profile picture!"}), 400
 
                 user.twitter_username_verified = False
@@ -424,8 +423,7 @@ def start_twitter(user, key):
     if not twitter_user:
         return jsonify({'message': "Twitter profile not found!"}), 400
 
-    user.twitter_profile_image_url = twitter_user['profile_image_url']
-    if not user.fetch_twitter_profile_image(get_s3()):
+    if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
         return jsonify({'message': "Error fetching profile picture!"}), 500
 
     tweets = twitter.get_auction_tweets(twitter_user['id'])
