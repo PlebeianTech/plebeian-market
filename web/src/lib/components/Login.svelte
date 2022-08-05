@@ -54,7 +54,9 @@
                             <br />
                             To log in, please manually set a key in the <em>lnauth</em> table of the <em>dev</em> database!
                             <br />
-                            You can do that by running <strong>./scripts/exec_lnauth.sh KEY</strong>. PS: KEY can be anything, but it will uniquely identify your user, so if you want to test with different users, you can just pass different keys here (for different log in sessions).
+                            You can do that by running <strong>./scripts/exec_lnauth.sh KEY</strong>.
+                            <br />
+                            PS: KEY can be anything, but it will uniquely identify your user, so if you want to test with different users, you can just pass different keys here (for different log in sessions).
                         </div>
                     </div>
                 </div>

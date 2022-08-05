@@ -42,11 +42,7 @@
         </div>
     </div>
 {:else}
-    <div class="alert shadow-lg">
-        <div>
-            <span title="Ask Peter">XPUB</span>
-        </div>
-    </div>
+    <h2 class="text-2xl" title="Ask Peter">XPUB</h2>
 {/if}
 
 <div class="w-full flex items-center justify-center mt-8">
