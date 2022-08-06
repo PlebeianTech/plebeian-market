@@ -66,6 +66,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
 
 export interface ILoader {
     endpoint: string;
+    responseField?: string;
     fromJson: (any) => IEntity;
 }
 
@@ -74,7 +75,7 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
-                    successCB(data[loader.endpoint].map(loader.fromJson));
+                    successCB(data[loader.responseField || loader.endpoint].map(loader.fromJson));
                 });
             } else {
                 errorHandler.handle(response);
@@ -156,9 +157,31 @@ export function getProfile(tokenValue, successCB: (User) => void) {
         });
 }
 
-export function postProfile(tokenValue, profile: {twitterUsername: string, contributionPercent: string}, successCB: (User) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/users/me", 'POST', tokenValue,
-        JSON.stringify({twitter_username: profile.twitterUsername, contribution_percent: profile.contributionPercent}),
+export function getStall(nym: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/users/${nym}`, 'GET', null, null,
+        (response) => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(userFromJson(data.user));
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function postProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+    var json: any = {};
+    if (profile.twitterUsername !== undefined) {
+        json.twitter_username = profile.twitterUsername;
+    }
+    if (profile.contributionPercent !== undefined) {
+        json.contribution_percent = profile.contributionPercent;
+    }
+    if (profile.xpub !== undefined) {
+        json.xpub = profile.xpub;
+    }
+    fetchAPI("/users/me", 'POST', tokenValue, JSON.stringify(json),
         response => {
             if (response.status === 200) {
                 response.json().then(data => {

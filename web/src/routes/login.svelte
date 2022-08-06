@@ -8,10 +8,7 @@
     let title = "Enter the Market | Plebeian Market";
 
     function onLogin(user: User | null) {
-        if (user && user.twitterUsername === null && browser) {
-            localStorage.setItem('initial-login-seller', "1");
-        }
-        goto("/auctions");
+        goto("/stall");
     }
 </script>
 

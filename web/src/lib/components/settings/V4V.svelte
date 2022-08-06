@@ -1,8 +1,47 @@
-<script>
-    export let contributionPercent;
+<script lang="ts">
+    import { onMount } from 'svelte';
+    import { ErrorHandler, postProfile } from "$lib/services/api";
+    import { Info, token, user } from "$lib/stores";
+
+    export let onSave: () => void = () => {};
+
+    let contributionPercent;
+
+    const DEFAULT = 3.0;
+
+    $: saveButtonActive = $user && !saving && contributionPercent !== $user.contributionPercent;
+
+    let saving = false;
+    function save() {
+        saving = true;
+        postProfile($token, {contributionPercent},
+            u => {
+                user.set(u);
+                if (contributionPercent === 0) {
+                    Info.set("You cheapskate!");
+                } else if (contributionPercent < 3) {
+                    Info.set("Better than nothing!");
+                } else if (contributionPercent < 5) {
+                    Info.set("Thank you for your contribution!");
+                } else {
+                    Info.set("We love you too!");
+                }
+                saving = false;
+                onSave();
+            },
+            new ErrorHandler(true, () => saving = false));
+    }
+
+    onMount(async () => {
+        if ($user) {
+            contributionPercent = $user.contributionPercent !== null ? $user.contributionPercent : DEFAULT;
+        }
+    });
 </script>
 
-<div class="flex items-center justify-center mt-8">
+<h2 class="text-2xl">Value 4 Value</h2>
+
+<div class="w-full flex items-center justify-center mt-8">
     <div>
         <div class="form-control w-full max-w-lg">
             <label class="label" for="contribution-percent">
@@ -45,4 +84,12 @@
             {/if}
         </div>
     </div>
+</div>
+
+<div class="flex justify-center items-center mt-4 h-15">
+    {#if saveButtonActive}
+        <div id="save-profile" class="glowbutton glowbutton-save" on:click|preventDefault={save}></div>
+    {:else}
+        <button class="btn" disabled>Save</button>
+    {/if}
 </div>

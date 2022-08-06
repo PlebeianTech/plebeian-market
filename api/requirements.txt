@@ -9,6 +9,7 @@ gunicorn
 lnd-grpc-client>=0.3.41
 lnurl
 psycopg2
+pycoin
 pyjwt
 pyqrcode
 python-dateutil

@@ -65,7 +65,7 @@
                 getAuction($token, auction.key,
                     a => {
                         entity = a;
-                        user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
+                        user.update(u => { if (u) { u.twitter.usernameVerified = true; } return u; });
                         starting = false;
                         Info.set("Your auction is now running...");
                     },
