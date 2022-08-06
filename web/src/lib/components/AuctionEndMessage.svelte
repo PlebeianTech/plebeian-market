@@ -36,11 +36,11 @@
         <p class="my-4">Unfortunately, you were outbid.</p>
         <p class="my-2">Thank you so much for taking part and contributing {#if myContribution !== 0}{myContribution} sats {/if}to open source projects on Bitcoin!</p>
     {:else if auction.is_won}
-        {#if $user && $user.twitterUsername && $user.twitterProfileImageUrl && auction.seller.username && auction.seller.profileImageUrl}
+        {#if $user && $user.twitter.username && $user.twitter.profileImageUrl && auction.seller.username && auction.seller.profileImageUrl}
             <div class="my-4">
                 <Handshake
-                    leftUsername={$user.twitterUsername}
-                    leftProfileImageUrl={$user.twitterProfileImageUrl}
+                    leftUsername={$user.twitter.username}
+                    leftProfileImageUrl={$user.twitter.profileImageUrl}
                     rightUsername={auction.seller.username}
                     rightProfileImageUrl={auction.seller.profileImageUrl} />
             </div>
@@ -54,7 +54,7 @@
     {/if}
 {:else if $user && auction.needs_contribution}
     <div class="my-4 text-2xl">
-        <span class=text-3xl>Congratulations</span> @{$user.twitterUsername}, You've won &#x1F389; &#x1F64C; &#x1F44F;
+        <span class=text-3xl>Congratulations</span> @{$user.twitter.username}, You've won &#x1F389; &#x1F64C; &#x1F44F;
     </div>
     <p class="my-2">
         The seller wishes to donate {auction.contribution_percent}% = <AmountFormatter satsAmount={auction.contribution_amount} /> sats out of your winning bid to Plebeian Technology. Please send the amount using the QR code below!

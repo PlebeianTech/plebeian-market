@@ -5,51 +5,36 @@
     import { getProfile } from "../services/api";
     import { token, user, BTC2USD } from "../stores";
     import { isLocal, isStaging, getBaseUrl } from "../utils";
-    import Profile from "./Profile.svelte";
-    import UserNotifications from "./UserNotifications.svelte";
+    import Modal from "$lib/components/Modal.svelte";
+    import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
+    import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
+    import V4V from "$lib/components/settings/V4V.svelte";
 
-    let profile : Profile | null;
-    let userNotifications : UserNotifications | null;
+    let modal : Modal | null;
 
     let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    function fetchProfile(tokenValue) {
-        getProfile(tokenValue,
-            u => {
-                user.set(u);
-                if (profile) {
-                    profile.showIfIncomplete();
-                }
-            });
-    }
-
-    async function fetchFiatRate() {
-        BTC2USD.set(await getValue());
-    }
-
-    function showProfile() {
-        if (profile) {
-            localStorage.removeItem('initial-login-seller'); // to allow twitter verification to be shown automatically if username changed
-            profile.show();
-        }
-    }
-
-    function showTwitterVerification() {
-        if (profile) {
-            profile.showTwitterVerification($user!.twitterUsernameVerificationTweet);
-        }
-    }
-
-    function showUserNotifications() {
-        if (userNotifications) {
-            userNotifications.show();
-        }
-    }
 
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector('html');
         let toggle = <HTMLInputElement>document.getElementById('theme-toggle');
         html.dataset.theme = toggle.checked ? 'night' : 'light';
+    }
+
+    function showModal(content: any, hasHide=true, onHide: () => void = () => {}) {
+        if (modal) {
+            modal.content = content;
+            modal.hasHide = hasHide;
+            modal.onHide = onHide;
+            modal.show();
+        }
+    }
+
+    function fetchProfile(tokenValue) {
+        getProfile(tokenValue, u => { user.set(u); });
+    }
+
+    async function fetchFiatRate() {
+        BTC2USD.set(await getValue());
     }
 
     onMount(async () => {
@@ -59,17 +44,46 @@
         fetchFiatRate();
     });
 
-    const unsubscribe = token.subscribe(value => {
-        if (profile === undefined) {
-            return;
-        }
-        if (value) {
-            fetchProfile(value);
-        } else {
-            user.set(null);
-        }
-    });
-    onDestroy(unsubscribe);
+    const tokenUnsubscribe = token.subscribe(
+        t => {
+            if (t) {
+                fetchProfile(t);
+            } else {
+                user.set(null);
+            }
+        });
+    onDestroy(tokenUnsubscribe);
+    const userUnsubscribe = user.subscribe(
+        u => {
+            if (!u) {
+                return;
+            }
+
+            if (u.twitter.username === null || u.twitter.username === "") {
+                showModal(TwitterUsername, true,
+                    () => {
+                        // trying to hide the modal if you didn't set your Twitter username logges you out
+                        token.set(null);
+                        localStorage.removeItem('token');
+                        goto("/");
+                });
+            } else if (u.hasAuctions && u.contributionPercent === null) {
+                showModal(V4V, false);
+            } else if (!u.twitter.usernameVerified && u.twitterUsernameVerificationTweet !== null) {
+                if (localStorage.getItem('initial-login-buyer') === "1") {
+                    /*
+                        NB: the only case where we want to automatically show the verification modal
+                        is when 'initial-login-buyer' is set,
+                        that is - you logged in with the intent of bidding on an auction.
+                        Other cases (where we don't want this to happen) are:
+                            1) log in from the home page (seller intent).
+                            2) change the twitter account under settings (no need for a modal, as the verification will show on the same page).
+                    */
+                    showModal(TwitterVerification);
+                }
+            }
+        });
+    onDestroy(userUnsubscribe);
 </script>
 
 <div class="navbar bg-base-300">
@@ -99,15 +113,15 @@
             </label>
             {#if $token && $user}
                 <div class="dropdown dropdown-end">
-                    <label for={null} tabindex="0" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified} class="btn btn-ghost btn-circle avatar">
+                    <label for={null} tabindex="0" class:verified={$user.twitter.usernameVerified} class:not-verified={!$user.twitter.usernameVerified} class="btn btn-ghost btn-circle avatar">
                         <div class="w-10 rounded-full">
-                            <img src={$user.twitterProfileImageUrl} alt="Avatar" />
+                            <img src={$user.twitter.profileImageUrl} alt="Avatar" />
                         </div>
                     </label>
                     <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
-                        {#if !$user.twitterUsernameVerified}
+                        {#if !$user.twitter.usernameVerified}
                             <li>
-                                <label for="twitter-verification-modal" on:click|preventDefault={showTwitterVerification} class="modal-button">
+                                <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification)} class="modal-button">
                                     Verify Twitter
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-8 h-8">
                                         <path fill="rgb(255,0,0)" d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"></path>
@@ -118,12 +132,11 @@
                         <li class="block md:hidden md:h-0"><a href={null} on:click|preventDefault={() => goto("/")} class="modal-button cursor-pointer">Home</a></li>
                         <li class="block md:hidden md:h-0"><a href={null} on:click|preventDefault={() => goto("/about")} class="modal-button cursor-pointer">About</a></li>
                         <li class="block md:hidden md:h-0"><a href={null} on:click|preventDefault={() => goto("/faq")} class="modal-button cursor-pointer">FAQ</a></li>
-                        <li><a href={null} on:click|preventDefault={() => goto("/auctions")}>My auctions</a></li>
+                        <li><a href={null} on:click|preventDefault={() => goto(`/stall/${$user.nym}`)}>My stall</a></li>
                         {#if $user.isModerator}
                             <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
                         {/if}
-                        <li><label for="profile-modal" on:click|preventDefault={showProfile} class="modal-button cursor-pointer">Profile</label></li>
-                        <li><label for="profile-modal" on:click|preventDefault={showUserNotifications} class="modal-button cursor-pointer">Notifications</label></li>
+                        <li><a href="/settings">Settings</a></li>
                         <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
                         <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }} class="modal-button cursor-pointer">Logout</a></li>
                     </ul>
@@ -133,5 +146,4 @@
     </div>
 </div>
 
-<Profile bind:this={profile} />
-<UserNotifications bind:this={userNotifications} />
+<Modal bind:this={modal} content={null} />

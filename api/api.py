@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import os
 import secrets
-
+import bleach
 import ecdsa
 from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
@@ -92,24 +92,24 @@ def login():
 
     token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
 
-    return jsonify({'success': True, 'token': token, 'user': user.to_dict()})
+    return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/users/me', methods=['GET', 'POST']) # TODO: POST here should actually be PUT
 @user_required
 def me(user):
     if request.method == 'GET':
-        return jsonify({'user': user.to_dict()})
+        return jsonify({'user': user.to_dict(for_user=user.id)})
     else:
         if 'nym' in request.json:
             return jsonify({'message': "Can't edit nym."}), 400 # yet, I guess...
         if 'twitter_username' in request.json:
-            clean_username = request.json['twitter_username'] or ""
+            clean_username = (request.json['twitter_username'] or "").lower()
             if clean_username.startswith("@"):
-                clean_username = clean_username[1:]
+                clean_username = clean_username.removeprefix("@")
             if not clean_username:
                 return jsonify({'message': "Invalid Twitter username!"}), 400
             if clean_username != user.twitter_username:
-                user.twitter_username = clean_username
+                user.twitter_username = user.nym = clean_username
 
                 twitter = get_twitter()
 
@@ -119,8 +119,7 @@ def me(user):
                 if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
                     return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
-                user.twitter_profile_image_url = twitter_user['profile_image_url']
-                if not user.fetch_twitter_profile_image(get_s3()):
+                if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
                     return jsonify({'message': "Error fetching profile picture!"}), 400
 
                 user.twitter_username_verified = False
@@ -131,11 +130,16 @@ def me(user):
 
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']
+        if 'xpub' in request.json:
+            user.xpub = request.json['xpub']
+
         try:
             db.session.commit()
         except IntegrityError:
             return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
-        return jsonify({'user': user.to_dict()})
+
+        return jsonify({'user': user.to_dict(for_user=user.id)})
+
 
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
 @user_required
@@ -158,10 +162,10 @@ def user_notifications(user):
         notifications = []
         for t in m.NOTIFICATION_TYPES:
             if t in existing_notifications:
-                notifications.append(existing_notifications[t])
+                notifications.append((False, existing_notifications[t]))
             else:
-                notifications.append(m.UserNotification(notification_type=t, action=m.NOTIFICATION_TYPES[t].default_action))
-        return jsonify({'notifications': [n.to_dict() for n in notifications]})
+                notifications.append((True, m.UserNotification(notification_type=t, action=m.NOTIFICATION_TYPES[t].default_action)))
+        return jsonify({'notifications': [n.to_dict() | {'is_default': is_default} for (is_default, n) in notifications]})
     elif request.method == 'PUT':
         for notification in request.json['notifications']:
             if notification['notification_type'] not in existing_notifications:
@@ -251,6 +255,7 @@ def featured_auctions():
          & (m.Auction.end_date >= datetime.utcnow()))
     ).all()
     return jsonify({'auctions': [a.to_dict() for a in sorted(auctions, key=lambda a: len(a.bids), reverse=True)]})
+
 
 @api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def auction(key):
@@ -418,8 +423,7 @@ def start_twitter(user, key):
     if not twitter_user:
         return jsonify({'message': "Twitter profile not found!"}), 400
 
-    user.twitter_profile_image_url = twitter_user['profile_image_url']
-    if not user.fetch_twitter_profile_image(get_s3()):
+    if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
         return jsonify({'message': "Error fetching profile picture!"}), 500
 
     tweets = twitter.get_auction_tweets(twitter_user['id'])
@@ -501,3 +505,20 @@ def bids(user, key):
             "Your bid will be confirmed once you scan the QR code.",
         ] + (["Started following the auction."] if started_following else []),
     })
+
+
+@api_blueprint.route('/api/users/<string:nym>/auctions', methods=['GET'])
+def user_auctions(nym):
+    user = m.User.query.filter_by(nym=nym).first()
+    if not user:
+        return jsonify({'message': "No auctions found"}), 404
+    return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: a.created_at, reverse=True)]})
+
+
+@api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
+def store_view(nym):
+    if request.method == 'GET':
+        user = m.User.query.filter_by(nym=nym).first()
+        if not user:
+            return jsonify({'message': "User not found"}), 404
+        return jsonify({'user': user.to_dict()})

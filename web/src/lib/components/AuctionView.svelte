@@ -4,6 +4,7 @@
     import { ErrorHandler, getAuction, putAuctionFollow } from "$lib/services/api";
     import { Error, Info, token, user } from "$lib/stores";
     import type { Auction } from "$lib/types/auction";
+    import type { User } from "$lib/types/user";
     import Avatar from "$lib/components/Avatar.svelte";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import AuctionEndMessage from "$lib/components/AuctionEndMessage.svelte";
@@ -59,6 +60,12 @@
         new ErrorHandler(false));
     }
 
+    function onLogin(user: User | null) {
+        if (user && user.twitter.username === null) {
+            localStorage.setItem('initial-login-buyer', "1");
+        }
+    }
+
     function followAuction() {
         if (auction) {
             auction.following = !auction.following;
@@ -101,7 +108,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>
-                        Your auction is not running. Please go to <a class="link" href="/auctions">My Auctions</a> and click Start!
+                        Your auction is not running. Please go to <a class="link" href="/stall/{$user.nym}">My stall</a> and click Start!
                     </span>
                 </div>
             </div>
@@ -126,7 +133,7 @@
                             {#if !auction.bids.length}
                                 <p class="text-center pt-12">Place your bid below</p>
                             {/if}
-                            {#if $user && $user.twitterUsername !== null && auction.started && !auction.ended}
+                            {#if $user && $user.twitter.username !== null && auction.started && !auction.ended}
                                 <div class="flex justify-center items-center">
                                     <NewBid bind:this={newBid} auctionKey={auction.key} bind:amount />
                                 </div>
@@ -140,7 +147,7 @@
                         {#if !auction.bids.length}
                             <p class="text-center pt-24">Login below to place a bid</p>
                         {/if}
-                        <Login />
+                        <Login {onLogin} />
                     {/if}
                 {/if}
                 {#if auction.start_date && auction.end_date}

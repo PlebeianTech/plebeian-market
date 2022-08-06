@@ -13,11 +13,10 @@ import bleach
 import magic
 import pyqrcode
 import requests
-
 from extensions import db
 from main import app
 
-def fetch_image(url, s3, filename):
+def fetch_image(url, s3, filename, append_hash=False):
     response = requests.get(url)
     if response.status_code != 200:
         return None
@@ -31,7 +30,12 @@ def fetch_image(url, s3, filename):
     else:
         ext = ""
 
-    filename = f"{filename}{ext}"
+    if append_hash:
+        sha = hashlib.sha256()
+        sha.update(response.content)
+        filename = f"{filename}_{sha.hexdigest()}{ext}"
+    else:
+        filename = f"{filename}{ext}"
 
     s3.upload(response.content, filename)
 
@@ -70,6 +74,9 @@ class User(db.Model):
     # Lightning log in key
     key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
+    # ask Pedro about this
+    xpub = db.Column(db.String(128), nullable=True)
+
     # can't set this for now, but should be useful in the future
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
@@ -85,30 +92,45 @@ class User(db.Model):
     contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)")
+    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)", lazy='dynamic')
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    def fetch_twitter_profile_image(self, s3):
-        url = fetch_image(self.twitter_profile_image_url, s3, f"user_{self.id}_twitter_profile_image")
+    def fetch_twitter_profile_image(self, profile_image_url, s3):
+        url = fetch_image(profile_image_url, s3, f"user_{self.id}_twitter_profile_image", True)
         if not url:
             return False
         self.twitter_profile_image_url = url
         return True
 
-    def to_dict(self):
+    def to_dict(self, for_user=None):
+        assert isinstance(for_user, int | None)
+
+        now = datetime.utcnow()
         d = {
             'id': self.id,
             'nym': self.nym,
             'twitter_username': self.twitter_username,
             'twitter_profile_image_url': self.twitter_profile_image_url,
             'twitter_username_verified': self.twitter_username_verified,
-            'twitter_username_verification_tweet': f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}",
-            'contribution_percent': self.contribution_percent,
-            'has_auctions': len(self.auctions) > 0,
-            'has_bids': len(self.bids) > 0}
+            'has_auctions': len(self.auctions.all()) > 0,
+            'has_bids': len(self.bids) > 0,
+            'running_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),
+            'ended_auction_count': len(self.auctions.filter(Auction.end_date <= now).all()),
+        }
+
         if self.is_moderator:
             d['is_moderator'] = True
+
+        if for_user == self.id:
+            # only ever show these fields to the actual user
+            d['contribution_percent'] = self.contribution_percent
+            d['xpub'] = self.xpub
+            if self.twitter_username_verification_tweet_id:
+                d['twitter_username_verification_tweet'] = f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}"
+            else:
+                d['twitter_username_verification_tweet'] = None
+
         return d
 
 class Notification(abc.ABC):

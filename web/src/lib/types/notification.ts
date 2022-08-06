@@ -6,16 +6,18 @@ export interface NotificationAction {
 export interface UserNotification {
     notificationType: string;
     notificationTypeDescription: string;
-    action: NotificationAction;
+    action: string;
     availableActions: NotificationAction[];
+    isDefault: boolean;
 }
 
-export function fromJson(json: any) {
+export function fromJson(json: any): UserNotification {
     return {
         notificationType: <string>json.notification_type,
         notificationTypeDescription: <string>json.notification_type_description,
-        action: <NotificationAction>json.action,
+        action: <string>json.action,
         availableActions: <NotificationAction[]>json.available_actions,
+        isDefault: <boolean>json.is_default,
     }
 }
 
