@@ -59,6 +59,23 @@ export class Auction implements IEntity {
     invalidTitle?: boolean;
     invalidDescription?: boolean;
 
+
+    public metaTitle() {
+        return this.title;
+    }
+
+    public shortDescription() {
+        return `Auction by ${this.seller.username}`;
+    }
+
+    public image() {
+        // Returns first image in auction or logo if no images
+        if (this.media.length) {
+            return this.media[0].url;
+        }
+        return "/images/logo.jpg";
+    }
+
     public validate() {
         this.invalidTitle = this.title.length === 0;
         this.invalidDescription = this.description.length === 0;
@@ -121,7 +138,7 @@ export class Auction implements IEntity {
     }
 }
 
-export function fromJson(json: any): IEntity {
+export function fromJson(json: any): Auction {
     var a = new Auction();
     for (var k in json) {
         if (k === 'start_date') {

@@ -1,7 +1,23 @@
 <script context="module">
-    export async function load({ params }) {
+    import { getBaseApiUrl } from "$lib/utils";
+
+    export async function load({ params, fetch }) {
         const { key } = params;
-        return { props: { auctionKey: key } }
+        const auctionUrl = `${getBaseApiUrl()}/api/auctions/${key}`;
+        const response = await fetch(auctionUrl)
+        const auction = await response.json()
+        if (response.ok) {
+            return {
+                props: {
+                    auctionKey: key,
+                    metaAuction: auction.auction
+                }
+            }
+        }
+        return {
+            status: response.status,
+            error: new Error("Could not fetch auction")
+        }
     }
 </script>
 
@@ -15,7 +31,7 @@
     import { browser } from "$app/env";
 
     export let auctionKey;
-
+    export let metaAuction;
     let auctions: Auction[] | null = [];
 
     let viewedAuctions = (browser && localStorage.getItem('auctions-viewed') || "").split(",");
@@ -44,5 +60,5 @@
         bind:entities={auctions}>
     </ListView>
 {:else}
-    <AuctionView auctionKey={auctionKey} />
+    <AuctionView auctionKey={auctionKey} metaAuction={fromJson(metaAuction)}/>
 {/if}

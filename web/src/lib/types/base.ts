@@ -5,4 +5,7 @@ export interface IEntity {
 
     validate: () => boolean;
     toJson: () => any;
+    metaTitle: () => string;
+    shortDescription: () => string;
+    image: () => string;
 }

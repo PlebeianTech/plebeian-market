@@ -1,28 +1,22 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-
+    import { getDomain, getBaseUrl } from '$lib/utils';
     export let title: string = "Plebeian Market";
     export let description: string = "Self-sovereign marketplace built on Bitcoin and Lightning";
-    export let image: string = "https://plebeian.market/images/logo.jpg";
-    export let domain: string  = "plebeian.market";
+    export let image: string = `${getBaseUrl()}images/logo.jpg`;
+    export let domain: string  = getDomain();
 
-    let defaultTitle = "Plebeian Market"
-    let baseTitle: string = " | Plebeian Market"
     let url: string;
 
     onMount(() => {
-        url = window.location.href
-        // concat title if not on home page
-        if (title !== defaultTitle) {
-            title = title.concat(baseTitle);
-        }
+        url = window.location.href;
     });
 </script>
 
         <title>{title}</title>
         <!-- HTML Meta Tags -->
         <meta name="description" content={description}>
-        <!-- Facebook Meta Tags -->
+        <!-- OG Meta Tags -->
         <meta property="og:url" content={url}>
         <meta property="og:type" content="website">
         <meta property="og:title" content={title}>

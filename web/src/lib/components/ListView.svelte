@@ -4,7 +4,7 @@
     import { token } from "$lib/stores";
     import type { IEntity } from '$lib/types/base';
     import Loading from "$lib/components/Loading.svelte";
-    import MetaTag from './MetaTag.svelte';
+    import MetaTags from './MetaTags.svelte';
 
     export let title;
 
@@ -71,7 +71,7 @@
 </script>
 
 <svelte:head>
-    <MetaTag {title} />
+    <MetaTags {title} />
 </svelte:head>
 
 <div class="pt-10 flex justify-center items-center">

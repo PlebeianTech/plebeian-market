@@ -4,7 +4,7 @@
     import type { Auction } from "../lib/types/auction";
     import { getFeaturedAuctions } from "../lib/services/api";
     import { onMount } from "svelte";
-    import MetaTag from "$lib/components/MetaTag.svelte";
+    import MetaTags from "$lib/components/MetaTags.svelte";
     import { goto } from '$app/navigation';
 
     let auctions: Auction[] | null = null;
@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-    <MetaTag />
+    <MetaTags />
 </svelte:head>
 
 <div class="md:hidden">

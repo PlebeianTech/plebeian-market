@@ -1,9 +1,9 @@
 import type { Handle } from "@sveltejs/kit";
 
 export async function handle({ event, resolve }): Promise<Handle> {
-    // use server side render on home, about, faq and auctions
+    // use server side render
     const response = await resolve(event, {
-      ssr: true, //["/", "/about", "/faq"].includes(event.url.pathname) || event.url.pathname.includes("/auctions") ? true : false,
+      ssr: true,
       transformPage: ({ html }) => html
     });
     return response;

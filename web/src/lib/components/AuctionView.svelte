@@ -12,8 +12,9 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import Login from "$lib/components/Login.svelte";
     import NewBid from "$lib/components/NewBid.svelte";
-    import MetaTag from "$lib/components/MetaTag.svelte";
+    import MetaTags from "$lib/components/MetaTags.svelte";
     export let auctionKey = null;
+    export let metaAuction: Auction;  // prefetched auction to render meta data
 
     let newBid: NewBid;
 
@@ -89,11 +90,7 @@
 </script>
 
 <svelte:head>
-    {#if auction}
-        <MetaTag title="Auction" image={auction.media[0].url} description={"@"+ auction.seller.username + ": " + auction.title}/>
-    {:else}
-        <MetaTag title="Auction" />
-    {/if}
+    <MetaTags title={metaAuction.metaTitle()} image={metaAuction.image()} description={metaAuction.shortDescription()}/>
 </svelte:head>
 
 {#if auction}
