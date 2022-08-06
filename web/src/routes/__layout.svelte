@@ -37,7 +37,9 @@
 
 <div class="h-screen">
     <Navbar />
-    <slot />
+    <div style="min-height: 83.33%">
+        <slot />
+    </div>
     <Footer />
     <ToastContainer placement="bottom-right" let:data={data}>
         <div class:alert-error={data.type === 'error'} class:alert-info={data.type === 'info'} class="alert shadow-lg">
