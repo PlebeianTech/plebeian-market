@@ -100,7 +100,7 @@
 </svelte:head>
 
 {#if auction}
-    <div class="flex">
+    <div>
         {#if $user && auction.is_mine && !auction.start_date && !auction.end_date}
             <div class="alert alert-error shadow-lg">
                 <div>
