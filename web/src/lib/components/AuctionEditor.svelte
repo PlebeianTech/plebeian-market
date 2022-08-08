@@ -84,6 +84,20 @@
                     </label>
                     <input bind:value={auction.shipping_from} type="text" name="shipping_from" class="input input-bordered w-full max-w-xs" />
                 </div>
+                <div class="flex mt-3">
+                    <div class="form-control w-1/2 max-w-xs mr-1">
+                        <label class="label" for="shipping-estimate-domestic">
+                            <span class="label-text">Domestic shipping estimate (optional)</span>
+                        </label>
+                        <input bind:value={auction.shipping_estimate_domestic} type="text" name="shipping-estimate-domestic" class="input input-bordered w-full max-w-xs" />
+                    </div>
+                    <div class="form-control w-1/2 max-w-xs ml-1">
+                        <label class="label" for="shipping-estimate-worldwide">
+                            <span class="label-text">Worldwide shipping estimate (optional)</span>
+                        </label>
+                        <input bind:value={auction.shipping_estimate_worldwide} type="text" name="shipping-estimate-worldwide" class="input input-bordered w-full max-w-xs" />
+                    </div>
+                </div>
                 <div class="form-control mr-2 w-full">
                     <label class="label" for="duration">
                         <span class="label-text">Duration</span>

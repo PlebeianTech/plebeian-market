@@ -190,6 +190,12 @@
                     <p class="mt-4 ml-2">Shipping from {auction.shipping_from}</p>
                 {/if}
                 <p class="mt-4 ml-2">NOTE: Please allow for post and packaging. The seller can agree on this with you when you have won.</p>
+                {#if auction.shipping_estimate_domestic}
+                    <p class="mt-4 ml-2">Shipping estimate (domestic): {auction.shipping_estimate_domestic}</p>
+                {/if}
+                {#if auction.shipping_estimate_worldwide}
+                    <p class="mt-4 ml-2">Shipping estimate (worldwide): {auction.shipping_estimate_worldwide}</p>
+                {/if}
                 <p class="mt-4 ml-2">
                     {#if auction.start_date && auction.end_date}
                         {#if !auction.started}

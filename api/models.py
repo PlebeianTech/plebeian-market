@@ -455,6 +455,8 @@ class Auction(StartedEndedMixin, db.Model):
     reserve_bid = db.Column(db.Integer, nullable=False)
 
     shipping_from = db.Column(db.String(64), nullable=True)
+    shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
+    shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
 
     twitter_id = db.Column(db.String(32), nullable=True)
 
@@ -500,6 +502,8 @@ class Auction(StartedEndedMixin, db.Model):
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,
             'shipping_from': self.shipping_from,
+            'shipping_estimate_domestic': self.shipping_estimate_domestic,
+            'shipping_estimate_worldwide': self.shipping_estimate_worldwide,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",
@@ -558,7 +562,7 @@ class Auction(StartedEndedMixin, db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description', 'shipping_from']:
+        for k in ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide']:
             if k not in d:
                 continue
             length = len(d[k])
