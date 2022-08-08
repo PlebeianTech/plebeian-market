@@ -6,9 +6,9 @@
 Text text text... **bold text**... *italic text* normal text normal text
 
 ### Heading 2
- - Unordered List
- - Unordered List
- - Unordered List
+- Unordered List
+- Unordered List
+- Unordered List
 `;
 
     export let value: string;
@@ -16,38 +16,92 @@ Text text text... **bold text**... *italic text* normal text normal text
     let currentTab = "Description";
     let markdownEditor;
 
+    function addBold() {
+        injectNewMarkdown("**** ", true);
+        markdownEditor.focus();
+    }
+
     function addHeader2() {
-        if ( markdownEditor.selectionStart === 0) {
-            markdownEditor.value += "## ";
+        if ( markdownEditor.selectionStart === 0 || lineIsEmpty()) {
+            injectNewMarkdown("## ")
         } else {
-            markdownEditor.value += "\n## ";
+            injectNewMarkdown("\n## ");
         }
         markdownEditor.focus();
     }
 
     function addHeader3() {
-        if ( markdownEditor.selectionStart === 0) {
-            markdownEditor.value += "### ";
+        if ( markdownEditor.selectionStart === 0 || lineIsEmpty()) {
+            injectNewMarkdown("### ");
         } else {
-            markdownEditor.value += "\n### ";
+            injectNewMarkdown("\n### ");
         }
         markdownEditor.focus();
     }
 
-    function addBold() {
-        markdownEditor.value += "**** ";
-        markdownEditor.selectionEnd -= 3;
-        markdownEditor.focus();
-    }
-
     function addItalic() {
-        markdownEditor.value += "** ";
-        markdownEditor.selectionEnd -= 2;
+        injectNewMarkdown("** ", true);
         markdownEditor.focus();
     }
 
     function addListItem() {
-        markdownEditor.value += "\n- ";
+        // adds a new line item at cursor
+        injectNewMarkdown("\n- ");
+        markdownEditor.focus();
+    }
+
+    function injectNewMarkdown(text, cursorPositionMiddle=false) {
+        /* Injects markdown text into textarea and positions cursor */
+        let walkback = text.length;
+        if ( cursorPositionMiddle ) {
+            walkback = Math.floor(text.length / 2);
+        }
+        let cursorPosition = markdownEditor.selectionStart;
+        let beforeNewText = markdownEditor.value.slice(0, cursorPosition);
+        let afterNewText = markdownEditor.value.slice(cursorPosition);
+        markdownEditor.value = [beforeNewText, text, afterNewText].join('');
+        markdownEditor.selectionEnd = cursorPosition + walkback;
+    }
+
+    function lineIsEmpty() {
+        let cursorPosition = markdownEditor.selectionStart;
+        let startLineIndex = markdownEditor.value.lastIndexOf("\n", cursorPosition - 1);
+        let line = markdownEditor.value.substring(startLineIndex, cursorPosition);
+        // empty line has a length of 1
+        if (line.length > 1) {
+            return false
+        }
+        return true;
+    }
+
+
+    function manageTextInput(e) {
+        /* Manage all text input here.
+           Currently:
+            - adding new list items automatically on enter
+        */
+        if ( e.key === "Enter" ) {
+            let cursorPosition = markdownEditor.selectionStart;
+            let startLineIndex = markdownEditor.value.lastIndexOf("\n", cursorPosition - 1);
+            let line = markdownEditor.value.substring(startLineIndex, cursorPosition);
+            if (line.trim() === "-") {
+                e.preventDefault();
+                cursorPosition = markdownEditor.selectionStart;
+                replaceListItemWithEmptyLine(startLineIndex, cursorPosition);
+            } else if (line.trim().startsWith("-")) {
+                e.preventDefault();
+                addListItem();
+            }
+        }
+    }
+
+    function replaceListItemWithEmptyLine(startLineIndex, position) {
+        /* When a user hits enter on a line with an empty list item
+           makes the line empty */
+        let emptyListItemStart = markdownEditor.value.slice(0, startLineIndex);
+        let emptyListItemEnd = markdownEditor.value.slice(position + 1);
+        markdownEditor.value = [emptyListItemStart, emptyListItemEnd].join('\n\n');
+        markdownEditor.selectionEnd = position - 2;
         markdownEditor.focus();
     }
 
@@ -68,6 +122,7 @@ Text text text... **bold text**... *italic text* normal text normal text
 
 {#if currentTab === 'Description'}
     <div class="form-control">
+        <!-- Text Editor Buttons -->
         <div class="flex flex-wrap m-auto mb-4">
             <div class="btn rounded-full mx-1 lg:mb-0 mb-1 btn-secondary" on:click={addHeader2}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-type-h2" viewBox="0 0 16 16">
@@ -95,7 +150,7 @@ Text text text... **bold text**... *italic text* normal text normal text
                 </svg>
             </div>
         </div>
-        <textarea bind:this={markdownEditor} bind:value={value} rows="6" class="textarea textarea-bordered h-48" placeholder=""></textarea>
+        <textarea on:keydown={manageTextInput} bind:this={markdownEditor} bind:value={value} rows="6" class="textarea textarea-bordered h-48" placeholder=""></textarea>
         <small class="pt-2 fg-neutral-content">Markdown accepted</small>
     </div>
 {:else if currentTab === 'Preview'}
