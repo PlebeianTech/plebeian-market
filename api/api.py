@@ -512,7 +512,15 @@ def user_auctions(nym):
     user = m.User.query.filter_by(nym=nym).first()
     if not user:
         return jsonify({'message': "No auctions found"}), 404
-    return jsonify({'auctions': [a.to_dict(for_user=for_user_id) for a in sorted(user.auctions.all(), key=lambda a: a.created_at, reverse=True)]})
+    now = datetime.now()
+    auction_status = request.args.get('filter')
+    if auction_status == "running":
+        filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date > now)
+    if auction_status == "ended":
+        filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date < now)
+    if auction_status == "new":
+        filtered_auctions = user.auctions.filter(m.Auction.start_date==None, m.Auction.end_date==None)
+    return jsonify({'auctions': [a.to_dict(for_user=for_user_id) for a in sorted(filtered_auctions, key=lambda a: a.created_at, reverse=True)]})
 
 
 @api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
