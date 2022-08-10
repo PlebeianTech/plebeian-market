@@ -5,6 +5,7 @@
     import { token, Info, Error } from "../lib/stores";
     import Navbar from "../lib/components/Navbar.svelte";
     import Footer from "../lib/components/Footer.svelte";
+import TelegramFixedButton from '$lib/components/TelegramFixedButton.svelte';
 
     token.set(localStorage.getItem('token'));
 
@@ -40,6 +41,7 @@
     <div style="min-height: 83.33%">
         <slot />
     </div>
+    <TelegramFixedButton />
     <Footer />
     <ToastContainer placement="bottom-right" let:data={data}>
         <div class:alert-error={data.type === 'error'} class:alert-info={data.type === 'info'} class="alert shadow-lg">
