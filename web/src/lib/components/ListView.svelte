@@ -100,7 +100,9 @@
 <div>
     <div class="grid grid-cols-1 md:grid-cols-3">
         {#each entities as entity}
-            <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+            <div class="h-auto">
+                <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+            </div>
         {/each}
     </div>
 </div>

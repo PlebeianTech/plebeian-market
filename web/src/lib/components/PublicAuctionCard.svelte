@@ -21,7 +21,7 @@
         <figure class="md:h-max flex justify-center">
             {#each entity.media as photo, i}
                 {#if i === 0}
-                    <img class="h-full md:max-h-80 object-fill" src={photo.url} alt="Auctioned object" />
+                    <img class="h-full object-fill" src={photo.url} alt="Auctioned object" />
                 {/if}
             {/each}
         </figure>

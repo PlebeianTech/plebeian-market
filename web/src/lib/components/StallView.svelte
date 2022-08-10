@@ -15,10 +15,10 @@
     export let stallOwnerNym;
 
     let stallOwner: User;
-    let card = "PublicAuctionCard";
     let currentTab = "ACTIVE AUCTIONS";
-    let tabList = ['ACTIVE AUCTIONS', 'PAST AUCTIONS']
+    let tabList;
     let loading = true;
+    let cardType;
 
     function fetchStall(stallOwnerNym: string) {
         getStall(stallOwnerNym, 
@@ -26,9 +26,11 @@
                 stallOwner = s;
                 loading = false;
                 if ($user && $user.nym === stallOwner.nym) {
-                    card = "AuctionCard";
+                    cardType = AuctionCard;
                     tabList = ["NOT RUNNING"].concat(tabList);
                     currentTab = "NOT RUNNING";
+                } else {
+                    cardType = PublicAuctionCard;
                 }
             }, 
             new ErrorHandler(false, () => {
@@ -37,6 +39,7 @@
     }
 
     afterNavigate(() => {
+        tabList = ['ACTIVE AUCTIONS', 'PAST AUCTIONS']
         if (stallOwnerNym !== "") {
             fetchStall(stallOwnerNym);
         }
@@ -70,47 +73,25 @@
             </div>
         {:else if currentTab === 'ACTIVE AUCTIONS'}
             <div class="h-auto">
-                {#if card === "AuctionCard"}
-                    <ListView
-                        title="{stallOwner.nym}'s Stall"
-                        loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=running`, responseField: 'auctions', fromJson}}
-                        newEntity={() => new Auction()}
-                        editor={null}
-                        showNewButton={false}
-                        card={AuctionCard}
-                        showAsGrid={true} />
-                {:else}
-                    <ListView
-                        title="{stallOwner.nym}'s Stall"
-                        loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=running`, responseField: 'auctions', fromJson}}
-                        newEntity={() => new Auction()}
-                        editor={null}
-                        showNewButton={false}
-                        card={PublicAuctionCard}
-                        showAsGrid={true} />
-                {/if}
+                <ListView
+                    title="{stallOwner.nym}'s Stall"
+                    loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=running`, responseField: 'auctions', fromJson}}
+                    newEntity={() => new Auction()}
+                    editor={null}
+                    showNewButton={false}
+                    card={cardType}
+                    showAsGrid={true} />
             </div>
         {:else if currentTab === 'PAST AUCTIONS'}
             <div class="h-auto">
-                {#if card === "AuctionCard"}
-                    <ListView
-                        title="{stallOwner.nym}'s Stall"
-                        loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=ended`, responseField: 'auctions', fromJson}}
-                        newEntity={() => new Auction()}
-                        editor={null}
-                        showNewButton={false}
-                        card={AuctionCard}
-                        showAsGrid={true} />
-                {:else}
-                    <ListView
-                        title="{stallOwner.nym}'s Stall"
-                        loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=ended`, responseField: 'auctions', fromJson}}
-                        newEntity={() => new Auction()}
-                        editor={null}
-                        showNewButton={false}
-                        card={PublicAuctionCard}
-                        showAsGrid={true} />
-                {/if}
+                <ListView
+                    title="{stallOwner.nym}'s Stall"
+                    loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=ended`, responseField: 'auctions', fromJson}}
+                    newEntity={() => new Auction()}
+                    editor={null}
+                    showNewButton={false}
+                    card={cardType}
+                    showAsGrid={true} />
             </div>
         {/if}
     </div>

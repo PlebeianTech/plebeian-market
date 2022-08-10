@@ -505,10 +505,10 @@ def bids(user, key):
 
 @api_blueprint.route('/api/users/<string:nym>/auctions', methods=['GET'])
 def user_auctions(nym):
-    token = get_token_from_request()
+    for_user = get_user_from_token(get_token_from_request())
     for_user_id = None
-    if token:
-        for_user_id = get_user_from_token(token).id
+    if for_user:
+        for_user_id = for_user.id
     user = m.User.query.filter_by(nym=nym).first()
     if not user:
         return jsonify({'message': "No auctions found"}), 404
@@ -516,10 +516,12 @@ def user_auctions(nym):
     auction_status = request.args.get('filter')
     if auction_status == "running":
         filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date > now)
-    if auction_status == "ended":
+    elif auction_status == "ended":
         filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date < now)
-    if auction_status == "new":
+    elif auction_status == "new":
         filtered_auctions = user.auctions.filter(m.Auction.start_date==None, m.Auction.end_date==None)
+    else:
+        filtered_auctions = user.auctions.all()
     return jsonify({'auctions': [a.to_dict(for_user=for_user_id) for a in sorted(filtered_auctions, key=lambda a: a.created_at, reverse=True)]})
 
 
