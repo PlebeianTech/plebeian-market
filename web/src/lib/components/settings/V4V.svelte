@@ -39,11 +39,7 @@
     });
 </script>
 
-<div class="alert shadow-lg">
-    <div>
-        <span>Value 4 Value</span>
-    </div>
-</div>
+<h2 class="text-2xl">Value 4 Value</h2>
 
 <div class="w-full flex items-center justify-center mt-8">
     <div>

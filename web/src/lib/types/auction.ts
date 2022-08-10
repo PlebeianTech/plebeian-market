@@ -15,7 +15,7 @@ export interface Media {
 }
 
 export class Auction implements IEntity {
-    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'starting_bid', 'reserve_bid', 'duration_hours'];
+    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide', 'starting_bid', 'reserve_bid', 'duration_hours'];
 
     endpoint = "auctions";
 
@@ -27,6 +27,8 @@ export class Auction implements IEntity {
     reserve_bid: number = 0;
     reserve_bid_reached: boolean = false;
     shipping_from: string = "";
+    shipping_estimate_domestic: string = "";
+    shipping_estimate_worldwide: string = "";
     duration_hours: number = isLocal() || isStaging() ? 24 : 3 * 24;
     start_date?: Date | null;
     started: boolean = false;

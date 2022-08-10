@@ -89,30 +89,34 @@ def settle_bids():
     app.logger.setLevel(getattr(logging, LOG_LEVEL))
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
 
-    lnd = get_lnd_client()
-    last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
-    for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
-        if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
-            found_invoice = False
-            bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
-            if bid:
-                found_invoice = True
-                bid.settled_at = datetime.utcnow()
-                bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
-                # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
-                app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
-            else:
-                auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
-                if auction:
+    while True:
+        lnd = get_lnd_client()
+        last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
+        app.logger.info(f"Subscribing to LND invoices. {last_settle_index=}")
+        for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
+            if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
+                found_invoice = False
+                bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
+                if bid:
                     found_invoice = True
-                    auction.contribution_settled_at = datetime.utcnow()
-                    auction.winning_bid_id = auction.get_top_bid().id
-                    app.logger.info(f"Settled contribution: {auction.id=} {auction.contribution_amount=}.")
-            if found_invoice:
-                last_settle_index = invoice.settle_index
-                state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
-                state.value = str(last_settle_index)
-                db.session.commit()
+                    bid.settled_at = datetime.utcnow()
+                    bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
+                    # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
+                    app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
+                else:
+                    auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
+                    if auction:
+                        found_invoice = True
+                        auction.contribution_settled_at = datetime.utcnow()
+                        auction.winning_bid_id = auction.get_top_bid().id
+                        app.logger.info(f"Settled contribution: {auction.id=} {auction.contribution_amount=}.")
+                if found_invoice:
+                    last_settle_index = invoice.settle_index
+                    state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
+                    state.value = str(last_settle_index)
+                    db.session.commit()
+        app.logger.warning("Disconnected from LND. Sleep, then retry...")
+        time.sleep(5)
 
 @app.cli.command("process-notifications")
 @with_appcontext

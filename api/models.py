@@ -16,7 +16,7 @@ import requests
 from extensions import db
 from main import app
 
-def fetch_image(url, s3, filename):
+def fetch_image(url, s3, filename, append_hash=False):
     response = requests.get(url)
     if response.status_code != 200:
         return None
@@ -30,7 +30,12 @@ def fetch_image(url, s3, filename):
     else:
         ext = ""
 
-    filename = f"{filename}{ext}"
+    if append_hash:
+        sha = hashlib.sha256()
+        sha.update(response.content)
+        filename = f"{filename}_{sha.hexdigest()}{ext}"
+    else:
+        filename = f"{filename}{ext}"
 
     s3.upload(response.content, filename)
 
@@ -91,8 +96,8 @@ class User(db.Model):
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    def fetch_twitter_profile_image(self, s3):
-        url = fetch_image(self.twitter_profile_image_url, s3, f"user_{self.id}_twitter_profile_image")
+    def fetch_twitter_profile_image(self, profile_image_url, s3):
+        url = fetch_image(profile_image_url, s3, f"user_{self.id}_twitter_profile_image", True)
         if not url:
             return False
         self.twitter_profile_image_url = url
@@ -450,6 +455,8 @@ class Auction(StartedEndedMixin, db.Model):
     reserve_bid = db.Column(db.Integer, nullable=False)
 
     shipping_from = db.Column(db.String(64), nullable=True)
+    shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
+    shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
 
     twitter_id = db.Column(db.String(32), nullable=True)
 
@@ -466,7 +473,7 @@ class Auction(StartedEndedMixin, db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.requested_at)')
+    bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.amount)')
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
 
     user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
@@ -495,6 +502,8 @@ class Auction(StartedEndedMixin, db.Model):
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,
             'shipping_from': self.shipping_from,
+            'shipping_estimate_domestic': self.shipping_estimate_domestic,
+            'shipping_estimate_worldwide': self.shipping_estimate_worldwide,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
             'created_at': self.created_at.isoformat() + "Z",
@@ -553,7 +562,7 @@ class Auction(StartedEndedMixin, db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description', 'shipping_from']:
+        for k in ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide']:
             if k not in d:
                 continue
             length = len(d[k])

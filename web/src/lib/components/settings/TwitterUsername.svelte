@@ -48,11 +48,7 @@
         </div>
     </div>
 {:else}
-    <div class="alert shadow-lg">
-        <div>
-            <span>Twitter</span>
-        </div>
-    </div>
+    <h2 class="text-2xl">Twitter</h2>
 {/if}
 
 <div class="w-full flex items-center justify-center mt-8">

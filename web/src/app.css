@@ -221,7 +221,7 @@ input[type=number] {
 .markdown-container th:first-child, td:first-child { padding-left: 0; }
 .markdown-container th:last-child, td:last-child { padding-right: 0; }
 .markdown-container blockquote { padding-left: 1rem; }
-.markdown-container a { text-decoration: underline; }
+.markdown-container a { text-decoration: underline; color: #ff00ff; text-decoration-thickness: .09rem; }
 .markdown-container hr { margin-top: 1rem; margin-bottom: 1rem; border-width: 1px; border-top: 1px; }
 
 /* loading spinner */

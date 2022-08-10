@@ -26,7 +26,7 @@
 {#if $user}
     <div class="md:flex py-5">
         <div class="md:grow-0">
-            <ul class="menu bg-base-100 md:w-56 rounded-box">
+            <ul class="menu menu-compact mt-3 bg-base-100 md:w-56 p-2 rounded-box">
                 {#each pages as page, i}
                     <li><a class:active={(currentPage === null && i === 0) || (page === currentPage)} href={null} on:click={() => currentPage = page}>{page}</a></li>
                 {/each}
