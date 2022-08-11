@@ -2,7 +2,7 @@
     import { getBaseUrl } from "../utils";
 </script>
 
-<div class="hero h-5/6 bg-base-200">
+<div class="hero min-h-screen">
     <div class="hero-content text-center">
         <div class="max-w-md">
             <h1 class="text-5xl font-bold">Stall Not Found</h1>

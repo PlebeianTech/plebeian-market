@@ -57,7 +57,7 @@
     {#if auctions !== null}
         {#each auctions as auction}
             <div class="h-auto">
-                <PublicAuctionCard auction={auction} />
+                <PublicAuctionCard entity={auction} />
             </div>
         {/each}
     {/if}

@@ -193,34 +193,30 @@ def messages(user):
 
     return jsonify({'messages': [m.to_dict() for m in messages]})
 
-@api_blueprint.route('/api/auctions', methods=['GET', 'POST'])
+@api_blueprint.route('/api/auctions', methods=['POST'])
 @user_required
 def auctions(user):
-    if request.method == 'GET':
-        auctions = [a.to_dict(for_user=user.id) for a in user.auctions]
-        return jsonify({'auctions': auctions})
-    else:
-        for k in ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid']:
-            if k not in request.json:
-                return jsonify({'message': f"Missing key: {k}."}), 400
+    for k in ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid']:
+        if k not in request.json:
+            return jsonify({'message': f"Missing key: {k}."}), 400
 
-        try:
-            validated = m.Auction.validate_dict(request.json)
-        except m.ValidationError as e:
-            return jsonify({'message': e.message}), 400
+    try:
+        validated = m.Auction.validate_dict(request.json)
+    except m.ValidationError as e:
+        return jsonify({'message': e.message}), 400
 
-        auction_count = db.session.query(func.count(m.Auction.id).label('count')).first().count
-        key = m.Auction.generate_key(auction_count)
-        auction = m.Auction(seller=user, key=key, **validated)
-        db.session.add(auction)
-        db.session.commit()
+    auction_count = db.session.query(func.count(m.Auction.id).label('count')).first().count
+    key = m.Auction.generate_key(auction_count)
+    auction = m.Auction(seller=user, key=key, **validated)
+    db.session.add(auction)
+    db.session.commit()
 
-        # follow your own path (once you know the ID)!
-        user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=True)
-        db.session.add(user_auction)
-        db.session.commit()
+    # follow your own path (once you know the ID)!
+    user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=True)
+    db.session.add(user_auction)
+    db.session.commit()
 
-        return jsonify({'auction': auction.to_dict(for_user=user.id)})
+    return jsonify({'auction': auction.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/campaigns', methods=['GET', 'POST'])
 @user_required
@@ -509,10 +505,24 @@ def bids(user, key):
 
 @api_blueprint.route('/api/users/<string:nym>/auctions', methods=['GET'])
 def user_auctions(nym):
+    for_user = get_user_from_token(get_token_from_request())
+    for_user_id = None
+    if for_user:
+        for_user_id = for_user.id
     user = m.User.query.filter_by(nym=nym).first()
     if not user:
         return jsonify({'message': "No auctions found"}), 404
-    return jsonify({'auctions': [a.to_dict() for a in sorted(user.auctions.all(), key=lambda a: a.created_at, reverse=True)]})
+    now = datetime.now()
+    auction_status = request.args.get('filter')
+    if auction_status == "running":
+        filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date > now)
+    elif auction_status == "ended":
+        filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date < now)
+    elif auction_status == "new":
+        filtered_auctions = user.auctions.filter(m.Auction.start_date==None, m.Auction.end_date==None)
+    else:
+        filtered_auctions = user.auctions.all()
+    return jsonify({'auctions': [a.to_dict(for_user=for_user_id) for a in sorted(filtered_auctions, key=lambda a: a.created_at, reverse=True)]})
 
 
 @api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
