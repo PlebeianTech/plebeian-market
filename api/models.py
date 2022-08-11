@@ -441,7 +441,7 @@ class Auction(StartedEndedMixin, db.Model):
     # (the auction title in that case would be the post title)
     title = db.Column(db.String(210), nullable=False)
 
-    description = db.Column(db.String(2100), nullable=False)
+    description = db.Column(db.String(4200), nullable=False)
 
     # in the case of Twitter auctions, start_date is only set after the tweet is published and the auction starts
     start_date = db.Column(db.DateTime, nullable=True)

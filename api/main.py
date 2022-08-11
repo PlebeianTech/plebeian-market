@@ -407,7 +407,8 @@ class Twitter:
                     'created_at': tweet['created_at'],
                     'auction_key': auction_key,
                     'photos': [m for m in response_json['includes']['media']
-                        if m['media_key'] in media_keys and m['type'] == 'photo'],
+                        # media animated_gifs, photos, video - ignore video
+                        if m['media_key'] in media_keys and m['type'] != 'video'],
                 })
 
         return auction_tweets
