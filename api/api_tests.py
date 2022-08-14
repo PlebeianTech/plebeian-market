@@ -355,11 +355,10 @@ class TestApi(unittest.TestCase):
         self.assertIsNone(response['user']['contribution_percent'])
         self.assertIsNone(response['user'].get('is_moderator'))
 
-        # GET auctions requires log in
-        code, response = self.get("/api/auctions")
-        self.assertEqual(code, 401)
-        self.assertFalse(response['success'])
-        self.assertTrue("missing token" in response['message'].lower())
+        # GET user auctions if not logged in is OK
+        code, response = self.get("/api/users/mock_username/auctions")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 0)  # no auctions yet
 
         # creating auctions requires log in
         code, response = self.post("/api/auctions",
@@ -368,8 +367,8 @@ class TestApi(unittest.TestCase):
         self.assertFalse(response['success'])
         self.assertTrue("missing token" in response['message'].lower())
 
-        # GET auctions to see there are none there
-        code, response = self.get("/api/auctions",
+        # GET auctions if logged in as well to see there are none there
+        code, response = self.get("/api/users/mock_username/auctions",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)
@@ -397,7 +396,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 400)
         self.assertTrue("must be in utc" in response['message'].lower())
 
-        # finally create an auction
+        # finally create an auction (with token_1)
         code, response = self.post("/api/auctions",
             {'title': "My 1st",
              'description': "Selling something",
@@ -411,6 +410,11 @@ class TestApi(unittest.TestCase):
 
         auction_key = response['auction']['key']
 
+        # fail to see auction that is not running yet by user that did not create it
+        code, response = self.get("/api/users/mock_username_with_like/auctions?filter=new")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 0)
+
         # the auction is not featured because it is not running
         code, response = self.get("/api/auctions/featured")
         self.assertEqual(code, 200)
@@ -422,9 +426,11 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['has_auctions'], True)
 
-        # GET auctions to find our auction
-        code, response = self.get("/api/auctions",
-            headers=self.get_auth_headers(token_1))
+        # GET auctions to find auction in our "not running" section
+        code, response = self.get(
+            "/api/users/mock_username_with_like/auctions?filter=new",
+            headers=self.get_auth_headers(token_1)
+        )
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         self.assertEqual(response['auctions'][0]['key'], auction_key)
@@ -454,7 +460,7 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(auction_key, auction_key_2)
 
         # listing one user's auctions does not return the other one
-        code, response = self.get("/api/auctions",
+        code, response = self.get("/api/users/mock_username/auctions",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
@@ -540,6 +546,29 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 1)
         self.assertEqual(response['auctions'][0]['key'], auction_key)
 
+        # all users can list the auction now that its started
+        # from the stall view in the "running" tag
+        # user 1 (owner)
+        code, response = self.get(
+            "/api/users/mock_username_with_like/auctions?filter=running",
+            headers=self.get_auth_headers(token_1)
+        )
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        # user 2 (logged in - not owner)
+        code, response = self.get(
+            "/api/users/mock_username_with_like/auctions?filter=running",
+            headers=self.get_auth_headers(token_2)
+        )
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        # unauthenticated user
+        code, response = self.get(
+            "/api/users/mock_username_with_like/auctions?filter=running",
+        )
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+
         # can't EDIT the auction once started
         code, response = self.put(f"/api/auctions/{auction_key}",
             {'starting_bid': 101},
@@ -585,7 +614,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 0)
 
-        # waiting for the invoice to settle...
+        # # waiting for the invoice to settle...
         time.sleep(4)
 
         # the user was notified of the new bid!
