@@ -12,6 +12,7 @@ services:
       timeout: 3s
       retries: 5
     environment:
+      - ENV=dev
       - BASE_URL=http://localhost:5000
       - FLASK_APP=main
       - FLASK_ENV=development

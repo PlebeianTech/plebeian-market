@@ -6,6 +6,7 @@ services:
       - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
   api:
     environment:
+      - ENV=staging
       - BASE_URL=https://staging.plebeian.market
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
       - S3_FILENAME_PREFIX=STAGING_

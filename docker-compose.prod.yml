@@ -3,6 +3,7 @@ version: '3.6'
 services:
   api:
     environment:
+      - ENV=prod
       - BASE_URL=https://plebeian.market
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
       - S3_FILENAME_PREFIX=P_

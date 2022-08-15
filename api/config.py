@@ -32,6 +32,8 @@ if bool(int(os.environ.get("SQLALCHEMY_DISABLE_POOLING", 0))):
     from sqlalchemy.pool import NullPool
     SQLALCHEMY_ENGINE_OPTIONS = {'poolclass': NullPool}
 
+ENV = os.environ.get('ENV')
+
 BASE_URL = os.environ.get('BASE_URL')
 
 MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))

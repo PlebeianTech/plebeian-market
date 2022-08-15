@@ -7,6 +7,7 @@ services:
       api:
         condition: service_healthy
     environment:
+      - ENV=test
       - DEBUG=1
       - DB_USERNAME=
       - DB_PASSWORD=
