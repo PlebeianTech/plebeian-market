@@ -10,7 +10,8 @@ export interface User {
     twitterUsernameVerificationTweet: string | null;
     contributionPercent: number | null;
     xpub: string | null;
-    hasAuctions: boolean;
+    hasItems: boolean;
+    hasListings: boolean;
     hasBids: boolean;
     isModerator: boolean;
     runningAuctionCount: number;
@@ -28,7 +29,8 @@ export function fromJson(json: any): User {
         twitterUsernameVerificationTweet: <string | null>json.twitter_username_verification_tweet,
         contributionPercent: <number | null>json.contribution_percent,
         xpub: <string | null>json.xpub,
-        hasAuctions: <boolean>json.has_auctions,
+        hasItems: <boolean>json.has_items,
+        hasListings: <boolean>json.has_listings,
         hasBids: <boolean>json.has_bids,
         isModerator: <boolean>json.is_moderator,
         runningAuctionCount: <number>json.running_auction_count,

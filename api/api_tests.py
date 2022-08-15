@@ -1,10 +1,10 @@
+import btc2fiat
 from datetime import datetime, timedelta
-import time
-
 import dateutil.parser
 import ecdsa
-import unittest
 import requests
+import time
+import unittest
 
 from main import app
 
@@ -29,7 +29,7 @@ class TestApi(unittest.TestCase):
     def get_auth_headers(self, token):
         return {'X-Access-Token': token}
 
-    def create_user(self):
+    def create_user(self, twitter_username=None, contribution_percent=None):
         code, response = self.get("/api/login")
         self.assertEqual(code, 200)
         self.assertTrue('k1' in response and 'svg' in response['qr'])
@@ -58,6 +58,18 @@ class TestApi(unittest.TestCase):
         app.logger.info(f"Created user: ID={response['user']['id']}")
         self.assertIsNone(response['user']['twitter_username'])
         self.assertIsNone(response['user']['contribution_percent'])
+
+        if twitter_username:
+            code, response = self.put("/api/users/me",
+                {'twitter_username': twitter_username},
+                headers=self.get_auth_headers(token))
+            self.assertEqual(code, 200)
+        
+        if contribution_percent:
+            code, response = self.put("/api/users/me",
+                {'contribution_percent': contribution_percent},
+                headers=self.get_auth_headers(token))
+            self.assertEqual(code, 200)
 
         return k1, token
 
@@ -203,7 +215,147 @@ class TestApi(unittest.TestCase):
         self.assertTrue(response['campaign']['started'])
         self.assertTrue(response['campaign']['ended'])
 
-    def test_11_api(self):
+    def test_listings(self):
+        _, token_1 = self.create_user(twitter_username='fixie', contribution_percent=1)
+        _, token_2 = self.create_user(twitter_username='fixie_buyer')
+
+        # GET listings to see there are none there
+        code, response = self.get("/api/users/fixie/listings",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['listings']), 0)
+
+        # can't create a listing without price
+        code, response = self.post("/api/listings",
+            {'title': "My 1st fixie",
+             'description': "Selling something cool for a fixed price",
+             'available_quantity': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 400)
+        self.assertTrue("missing" in response['message'].lower())
+        self.assertTrue("price" in response['message'].lower())
+
+        # finally create a listing
+        code, response = self.post("/api/listings",
+            {'title': "My 1st fixie",
+             'description': "Selling something cool for a fixed price",
+             'price_usd': 10,
+             'available_quantity': 5},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertTrue('listing' in response)
+
+        listing_key = response['listing']['key']
+
+        # GET listings to see our new listing
+        code, response = self.get("/api/users/fixie/listings?filter=new",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['listings']), 1)
+        self.assertEqual(response['listings'][0]['key'], listing_key)
+        self.assertEqual(response['listings'][0]['available_quantity'], 5)
+
+        # anonymous users can't buy
+        code, response = self.put(f"/api/listings/{listing_key}/buy", {})
+        self.assertEqual(code, 401)
+        self.assertTrue('missing token' in response['message'].lower())
+
+        # can't buy because the listing has not started yet
+        code, response = self.put(f"/api/listings/{listing_key}/buy", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 403)
+        self.assertTrue("not active" in response['message'].lower())
+
+        # the listing is not featured
+        code, response = self.get("/api/listings/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['listings']), 0)
+
+        # can't start the listing before setting the XPUB
+        code, response = self.put(f"/api/listings/{listing_key}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 400)
+        self.assertTrue("xpub" in response['message'].lower())
+
+        # set the xpub
+        code, response = self.put("/api/users/me",
+            {'xpub': "zpub6rLtzSoXnXKPXHroRKGCwuRVHjgA5YL6oUkdZnCfbDLdtAKNXb1FX1EmPUYR1uYMRBpngvkdJwxqhLvM46trRy5MRb7oYdSLbb4w5VC4i3z"},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['xpub_index'], 0)
+
+        # start the listing
+        code, response = self.put(f"/api/listings/{listing_key}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # the listing is featured now
+        code, response = self.get("/api/listings/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['listings']), 1)
+        self.assertEqual(response['listings'][0]['key'], listing_key)
+
+        # CAN EDIT the listing once started, unlike auctions!
+        code, response = self.put(f"/api/listings/{listing_key}",
+            {'available_quantity': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # anyone looking at our listing will see the changes
+        code, response = self.get("/api/users/fixie/listings?filter=running")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['listings']), 1)
+        self.assertEqual(response['listings'][0]['key'], listing_key)
+        self.assertEqual(response['listings'][0]['available_quantity'], 10)
+
+        # buying an item
+        code, response = self.put(f"/api/listings/{listing_key}/buy", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        one_dollar_sats = 1 / btc2fiat.get_value('kraken') * 100000000
+        ten_cent_sats = one_dollar_sats / 10
+        ten_dollars_sats = one_dollar_sats * 10
+        self.assertAlmostEqual(response['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
+        self.assertTrue('contribution_payment_request' in response)
+        self.assertTrue('contribution_payment_qr' in response)
+        self.assertAlmostEqual(response['amount'], ten_dollars_sats-ten_cent_sats, delta=(ten_dollars_sats-ten_cent_sats)/100)
+        self.assertEqual(response['address'], "bc1qvqatyv2xynyanrej2fcutj6w5yugy0gc9jx2nn")
+        self.assertTrue('address_qr' in response)
+
+        code, response = self.get(f"/api/listings/{listing_key}", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertIsNone(response['listing']['sales'][0]['contribution_settled_at'])
+        self.assertIsNone(response['listing']['sales'][0]['settled_at'])
+
+        code, response = self.get("/api/users/me", headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['xpub_index'], 1)
+
+        time.sleep(12)
+
+        # now the available quantity is one less, and we have a settled sale!
+        code, response = self.get(f"/api/listings/{listing_key}", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['listing']['available_quantity'], 9)
+        self.assertIsNotNone(response['listing']['sales'][0]['contribution_settled_at'])
+        self.assertIsNotNone(response['listing']['sales'][0]['settled_at'])
+        self.assertTrue(response['listing']['sales'][0]['settled_at'] > response['listing']['sales'][0]['contribution_settled_at'])
+        self.assertTrue(response['listing']['sales'][0]['settlement_txid'].startswith('MOCK_'))
+        self.assertIsNone(response['listing']['sales'][0]['expired_at'])
+
+        # can simply DELETE the listing while active, unlike auctions!
+        code, response = self.delete(f"/api/listings/{listing_key}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # and... GONE it is
+        code, response = self.get(f"/api/listings/{listing_key}", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 404)
+
+    def test_000_user(self):
         code, response = self.get("/api/login")
         self.assertEqual(code, 200)
         self.assertTrue('k1' in response and 'svg' in response['qr'])
@@ -268,7 +420,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue(response['user']['is_moderator']) # because this is the first user created, so it has the ID=1
 
         # set user details
-        code, response = self.post("/api/users/me",
+        code, response = self.put("/api/users/me",
             {'twitter_username': 'mock_username', 'contribution_percent': 1},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
@@ -283,7 +435,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
         self.assertTrue("/mock-s3-files/" in response['user']['twitter_profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
-        self.assertEqual(response['user']['has_auctions'], False)
+        self.assertEqual(response['user']['has_items'], False)
 
         # try to verify the Twitter username
         # but will fail because mock_username didn't like the tweet according to MockTwitter
@@ -292,7 +444,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 400)
 
         # set user details again (a user that "liked" the tweet)
-        code, response = self.post("/api/users/me",
+        code, response = self.put("/api/users/me",
             {'twitter_username': 'mock_username_with_like', 'contribution_percent': 1.5},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
@@ -307,7 +459,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
         self.assertTrue("/mock-s3-files/" in response['user']['twitter_profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1.5)
-        self.assertEqual(response['user']['has_auctions'], False)
+        self.assertEqual(response['user']['has_items'], False)
 
         # verify Twitter for good now
         code, response = self.put("/api/users/me/verify-twitter", {},
@@ -336,12 +488,12 @@ class TestApi(unittest.TestCase):
         self.assertEqual([n for n in response['notifications'] if n['notification_type'] == first_notification_type][0]['action'], 'TWITTER_DM')
 
         # create another user
-        k1_2, token_2 = self.create_user()
+        k1_2, token_2 = self.create_user(contribution_percent=1)
         self.assertNotEqual(k1, k1_2)
         self.assertNotEqual(token_1, token_2)
 
         # set user details (to a username that did *not* like the "pinned tweet")
-        code, response = self.post("/api/users/me",
+        code, response = self.put("/api/users/me",
             {'twitter_username': 'mock_username'},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
@@ -352,11 +504,68 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['twitter_username'], 'mock_username')
         self.assertFalse(response['user']['twitter_username_verified'])
-        self.assertIsNone(response['user']['contribution_percent'])
+        self.assertIsNotNone(response['user']['contribution_percent'])
         self.assertIsNone(response['user'].get('is_moderator'))
 
+        # create an auction
+        code, response = self.post("/api/auctions",
+            {'title': "An auction from user 2",
+             'description': "Selling something",
+             'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'duration_hours': 24,
+             'starting_bid': 10,
+             'reserve_bid': 10},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertTrue('auction' in response)
+
+        auction_key = response['auction']['key']
+
+        # the auction is not featured
+        code, response = self.get("/api/auctions/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 0)
+
+        # start the auction
+        code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # now the auction is "featured"
+        code, response = self.get("/api/auctions/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 1)
+        self.assertEqual(set(a['key'] for a in response['auctions']), {auction_key})
+
+        # a normal user can't unfeature an auction (even if he is the owner!)
+        code, response = self.put(f"/api/auctions/{auction_key}",
+            {'is_hidden': True},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 401)
+
+        # a moderator can however unfeature an auction
+        code, response = self.put(f"/api/auctions/{auction_key}",
+            {'is_hidden': True},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # but the same moderator can't EDIT another user's auction
+        code, response = self.put(f"/api/auctions/{auction_key}",
+            {'starting_bid': 100},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 401)
+
+        # the auction has now been unfeatured
+        code, response = self.get("/api/auctions/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auctions']), 0)
+
+    def test_auctions(self):
+        _, token_1 = self.create_user(twitter_username='auction_user_1')
+        _, token_2 = self.create_user(twitter_username='auction_user_2', contribution_percent=1)
+
         # GET user auctions if not logged in is OK
-        code, response = self.get("/api/users/mock_username/auctions")
+        code, response = self.get("/api/users/auction_user_1/auctions")
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)  # no auctions yet
 
@@ -368,7 +577,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue("missing token" in response['message'].lower())
 
         # GET auctions if logged in as well to see there are none there
-        code, response = self.get("/api/users/mock_username/auctions",
+        code, response = self.get("/api/users/auction_user_1/auctions",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)
@@ -411,7 +620,7 @@ class TestApi(unittest.TestCase):
         auction_key = response['auction']['key']
 
         # fail to see auction that is not running yet by user that did not create it
-        code, response = self.get("/api/users/mock_username_with_like/auctions?filter=new")
+        code, response = self.get("/api/users/auction_user_1/auctions?filter=new")
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)
 
@@ -420,17 +629,15 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)
 
-        # the user now has_auctions
+        # the user now has_items
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['has_auctions'], True)
+        self.assertEqual(response['user']['has_items'], True)
 
         # GET auctions to find auction in our "not running" section
-        code, response = self.get(
-            "/api/users/mock_username_with_like/auctions?filter=new",
-            headers=self.get_auth_headers(token_1)
-        )
+        code, response = self.get("/api/users/auction_user_1/auctions?filter=new",
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         self.assertEqual(response['auctions'][0]['key'], auction_key)
@@ -460,7 +667,7 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(auction_key, auction_key_2)
 
         # listing one user's auctions does not return the other one
-        code, response = self.get("/api/users/mock_username/auctions",
+        code, response = self.get("/api/users/auction_user_2/auctions",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
@@ -549,23 +756,19 @@ class TestApi(unittest.TestCase):
         # all users can list the auction now that its started
         # from the stall view in the "running" tag
         # user 1 (owner)
-        code, response = self.get(
-            "/api/users/mock_username_with_like/auctions?filter=running",
-            headers=self.get_auth_headers(token_1)
-        )
+        code, response = self.get("/api/users/auction_user_1/auctions?filter=running",
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         # user 2 (logged in - not owner)
         code, response = self.get(
-            "/api/users/mock_username_with_like/auctions?filter=running",
+            "/api/users/auction_user_1/auctions?filter=running",
             headers=self.get_auth_headers(token_2)
         )
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         # unauthenticated user
-        code, response = self.get(
-            "/api/users/mock_username_with_like/auctions?filter=running",
-        )
+        code, response = self.get("/api/users/auction_user_1/auctions?filter=running")
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
 
@@ -574,7 +777,13 @@ class TestApi(unittest.TestCase):
             {'starting_bid': 101},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 403)
-        self.assertTrue('cannot edit an auction once started' in response['message'].lower())
+        self.assertTrue('cannot edit auctions once started' in response['message'].lower())
+
+        # also can't DELETE the auction once started
+        code, response = self.delete(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 403)
+        self.assertTrue('cannot edit auctions once started' in response['message'].lower())
 
         _, token_3 = self.create_user()
 
@@ -674,7 +883,7 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'mock_username')
+        self.assertEqual(response['user']['twitter_username'], 'auction_user_2')
         self.assertTrue(response['user']['twitter_username_verified'])
 
         code, response = self.get(f"/api/auctions/{auction_key_3}",
@@ -687,37 +896,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
         self.assertEqual(len(response['auction']['media']), 4)
         self.assertTrue("/mock-s3-files/" in response['auction']['media'][0]['url'])
-
-        # now the auction is "featured"
-        code, response = self.get("/api/auctions/featured")
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['auctions']), 2)
-        self.assertEqual(set(a['key'] for a in response['auctions']), {auction_key, auction_key_3})
-
-        # a normal user can't unfeature an auction (even if he is the owner!)
-        code, response = self.put(f"/api/auctions/{auction_key_3}",
-            {'is_featured': False},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 401)
-
-        # a moderator can however unfeature an auction
-        # NB: by default the user with id=1 is a moderator, but this can be overwritten using an environment variable
-        code, response = self.put(f"/api/auctions/{auction_key_3}",
-            {'is_featured': False},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-
-        # but the same moderator can't EDIT another user's auction
-        code, response = self.put(f"/api/auctions/{auction_key_3}",
-            {'starting_bid': 100},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 401)
-
-        # the auction has now been unfeatured
-        code, response = self.get("/api/auctions/featured")
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['auctions']), 1)
-        self.assertEqual(set(a['key'] for a in response['auctions']), {auction_key})
 
         # Create an auction with malicious input to description
         malicious_desc = '''<script type="text/javascript">alert("malicious")</script>'''

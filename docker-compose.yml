@@ -18,7 +18,14 @@ services:
     networks:
       - db_network
       - proxy
-  settle-bids:
+  settle-btc-payments:
+    image: plebeianmarket-api
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 1m
+    networks:
+      - db_network
+  settle-lnd-payments:
     image: plebeianmarket-api
     depends_on: [db]
     restart: on-failure

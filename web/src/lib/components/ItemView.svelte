@@ -1,0 +1,265 @@
+<script lang="ts">
+    import { onDestroy, onMount } from "svelte";
+    import SvelteMarkdown from 'svelte-markdown';
+    import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
+    import { Error, Info, token, user } from "$lib/stores";
+    import type { Item } from "$lib/types/item";
+    import { Auction } from "$lib/types/auction";
+    import { Listing } from "$lib/types/listing";
+    import type { User } from "$lib/types/user";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import AmountFormatter from "$lib/components/AmountFormatter.svelte";
+    import AuctionEndMessage from "$lib/components/AuctionEndMessage.svelte";
+    import BidList from "$lib/components/BidList.svelte";
+    import Countdown from "$lib/components/Countdown.svelte";
+    import Gallery from "$lib/components/Gallery.svelte";
+    import Login from "$lib/components/Login.svelte";
+    import NewBid from "$lib/components/NewBid.svelte";
+    import Buy from "$lib/components/Buy.svelte";
+
+    export let loader: ILoader;
+    export let itemKey = null;
+
+    let newBid: NewBid;
+    let buy: Buy;
+
+    let item: Item | null = null;
+    let bidCount = 0;
+    let amount: number | null = null;
+    let firstUpdate = true;
+
+    function refreshItem() {
+        getItem(loader, $token, itemKey,
+        i => {
+            item = i;
+            if (!item) {
+                return;
+            }
+
+            if (item instanceof Auction) {
+                for (const bid of item.bids) {
+                    if (newBid && bid.payment_request !== undefined) {
+                        // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
+                        newBid.paymentConfirmed(bid.payment_request);
+                    }
+                    if (amount && amount <= bid.amount && newBid.waitingSettlement()) {
+                        Error.set("A higher bid just came in.");
+                        newBid.reset();
+                    }
+                }
+
+                if ((!amount && firstUpdate) || item.bids.length != bidCount) {
+                    amount = item.nextBid();
+                    firstUpdate = false;
+                }
+                bidCount = item.bids.length;
+                if (finalCountdown && finalCountdown.isLastMinute()) {
+                    document.title = `LAST MINUTE - ${item.title} | Plebeian Market`;
+                } else {
+                    document.title = `${item.title} | Plebeian Market`;
+                }
+                if (item.has_winner) {
+                    document.title = `Ended - ${item.title} | Plebeian Market`;
+                    console.log("Auction ended!");
+                    // maybe we should eventually stopRefresh() here, but is seems risky for now, at least while still testing
+                }
+            } else if (item instanceof Listing) {
+                for (const sale of item.sales) {
+                    console.log(sale)
+                    if (buy && sale.contribution_settled_at) {
+                        buy.contributionPaymentConfirmed(sale.contribution_payment_request);
+                    }
+                    if (buy && sale.settled_at) {
+                        buy.paymentConfirmed(sale.address);
+                    }
+                }
+
+                document.title = `${item.title} | Plebeian Market`;
+            }
+        },
+        new ErrorHandler(false));
+    }
+
+    function onLogin(user: User | null) {
+        if (user && user.twitter.username === null) {
+            localStorage.setItem('initial-login-buyer', "1");
+        }
+    }
+
+    function followAuction() {
+        if (item instanceof Auction) {
+            let auction = item;
+            if (auction) {
+                auction.following = !auction.following;
+                putAuctionFollow($token, auction.key, auction.following,
+                    message => {
+                        Info.set(message);
+                    });
+            }
+        }
+    }
+
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    let finalCountdown;
+
+    onMount(async () => {
+        refreshItem();
+        interval = setInterval(refreshItem, 1000);
+    });
+
+    function stopRefresh() {
+        if (interval) {
+            clearInterval(interval);
+            interval = undefined;
+        }
+    }
+
+    onDestroy(stopRefresh);
+</script>
+
+<svelte:head>
+    <title>Auction</title>
+</svelte:head>
+
+{#if item}
+    <div>
+        {#if $user && item.is_mine && !item.start_date}
+            <div class="alert alert-error shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                        Your sale is not running. Please go to <a class="link" href="/stall/{$user.nym}">My stall</a> and click Start!
+                    </span>
+                </div>
+            </div>
+        {/if}
+        <div class="grid lg:grid-cols-3 gap-4">
+            <div class="p-5">
+                <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{item.title}</h2>
+                <div class="text-center mb-4">
+                    by <Avatar account={item.seller} />
+                </div>
+                <Gallery photos={item.media} />
+            </div>
+            <div class="mr-4 p-5">
+                {#if !item.ended}
+                    {#if item instanceof Auction && item.end_date_extended}
+                        <h3 class="text-2xl text-center text-warning my-2">
+                            Time Extended
+                        </h3>
+                    {/if}
+                    {#if $token && $user}
+                        {#if !item.is_mine}
+                            {#if item instanceof Auction}
+                                {#if !item.bids.length}
+                                    <p class="text-center pt-12">Place your bid below</p>
+                                {/if}
+                                {#if $user && $user.twitter.username !== null && item.started && !item.ended}
+                                    <div class="flex justify-center items-center">
+                                        <NewBid bind:this={newBid} auctionKey={item.key} bind:amount />
+                                    </div>
+                                {/if}
+                            {:else if item instanceof Listing}
+                                <p class="text-3xl text-center pt-12">Price: ~<AmountFormatter usdAmount={item.price_usd} /></p>
+                                <p class="text-3xl text-center pt-12">{item.available_quantity} items available</p>
+                                {#if $user.twitter.username !== null && item.started && !item.ended}
+                                    <div class="mt-8 flex justify-center items-center">
+                                        <Buy bind:this={buy} listingKey={item.key} />
+                                    </div>
+                                {/if}
+                            {/if}
+                        {:else}
+                            {#if item.started}
+                                <p class="text-4xl text-center pt-24">
+                                    {#if item instanceof Auction}
+                                        Your auction is active <br /> &#x1FA99; &#x1F528; &#x1F4B0;
+                                    {:else if item instanceof Listing}
+                                        Your listing is active <br /> &#x1FA99; &#x1F528; &#x1F4B0;
+                                    {/if}
+                                </p>
+                            {/if}
+                        {/if}
+                    {:else}
+                        {#if item instanceof Auction && !item.bids.length}
+                            <p class="text-center pt-24">Login below to place a bid</p>
+                        {:else if item instanceof Listing}
+                            <p class="text-center pt-24">Login below to buy this item for <AmountFormatter usdAmount={item.price_usd} /></p>
+                        {/if}
+                        <Login {onLogin} />
+                    {/if}
+                {/if}
+                {#if item instanceof Auction && item.start_date && item.end_date}
+                    {#if item.started && !item.ended}
+                        <div class="py-5">
+                            <Countdown bind:this={finalCountdown} untilDate={new Date(item.end_date)} />
+                        </div>
+                    {/if}
+                    {#if !item.reserve_bid_reached}
+                        <p class="my-3 w-full text-xl text-center">
+                            Reserve not met!
+                        </p>
+                    {/if}
+                {/if}
+                {#if item instanceof Auction}
+                    {#if item.bids.length}
+                        <div class="mt-2">
+                            <BidList auction={item} />
+                        </div>
+                    {:else}
+                        {#if !item.is_mine}
+                            <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter satsAmount={item.starting_bid} />.</p>
+                            <p class="text-2xl text-center pt-2">Be the first to bid!</p>
+                        {/if}
+                    {/if}
+                {/if}
+            </div>
+            <div class="mr-5 p-5">
+                <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 rounded-t">
+                    <h3 class="mx-1">Product Details</h3>
+                </span>
+                {#if item instanceof Auction}
+                    <div class="form-control">
+                        <label class="label cursor-pointer text-right">
+                            <span class="label-text">Follow auction</span> 
+                            <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
+                        </label>
+                    </div>
+                {/if}
+                <div class="markdown-container">
+                    <SvelteMarkdown source={item.description} />
+                </div>
+                {#if item.shipping_from}
+                    <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
+                {/if}
+                <p class="mt-4 ml-2">NOTE: Please allow for post and packaging. The seller can agree on this with you when you have won.</p>
+                {#if item.shipping_estimate_domestic}
+                    <p class="mt-4 ml-2">Shipping estimate (domestic): {item.shipping_estimate_domestic}</p>
+                {/if}
+                {#if item.shipping_estimate_worldwide}
+                    <p class="mt-4 ml-2">Shipping estimate (worldwide): {item.shipping_estimate_worldwide}</p>
+                {/if}
+                <p class="mt-4 ml-2">
+                    {#if item instanceof Auction}
+                        {#if item.start_date && item.end_date}
+                            {#if !item.started}
+                                Auction starts <Countdown untilDate={new Date(item.start_date)} />.
+                            {:else if item.ended}
+                                Auction ended.
+                            {/if}
+                        {:else if !item.is_mine}
+                            Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
+                        {/if}
+                    {/if}
+                </p>
+            </div>
+        </div>
+        {#if item instanceof Auction}
+            {#if item.ended}
+                <AuctionEndMessage auction={item} />
+            {/if}
+        {/if}
+    </div>
+{/if}

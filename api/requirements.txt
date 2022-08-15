@@ -1,4 +1,5 @@
 bleach
+btc2fiat
 boto3
 ecdsa
 flask

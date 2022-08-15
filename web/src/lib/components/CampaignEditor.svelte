@@ -10,7 +10,7 @@
 </script>
 
 <div class="w-full flex justify-center items-center">
-    <div class="card bg-base-300 w-full lg:w-4/6 lg:p-4 rounded shadow-2xl mt-3">
+    <div class="card bg-base-300 w-full lg:p-4 rounded shadow-2xl mt-3">
         <div class="card-body items-center">
             <h2 class="card-title mb-4 text-2xl text-center">{#if campaign.key}Edit campaign{:else}New campaign{/if}</h2>
             <form>

@@ -18,6 +18,7 @@ services:
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1
+      - MOCK_BTC=1
       - MOCK_S3=1
       - MOCK_TWITTER=1
       - DB_USERNAME=pleb
@@ -28,7 +29,7 @@ services:
     volumes:
       - "./api:/app"
     command: bash -c "flask db upgrade && python3 ./main.py"
-  settle-bids:
+  settle-btc-payments:
     depends_on:
       api: # this is because in dev & test mode, the api is the one initializing the database, on start
         condition: service_healthy
@@ -37,6 +38,7 @@ services:
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1
+      - MOCK_BTC=1
       - MOCK_S3=1
       - MOCK_TWITTER=1
       - DB_USERNAME=pleb
@@ -44,7 +46,25 @@ services:
       - SQLALCHEMY_DISABLE_POOLING=1
     volumes:
       - "./api:/app"
-    command: flask settle-bids
+    command: flask settle-btc-payments
+  settle-lnd-payments:
+    depends_on:
+      api: # this is because in dev & test mode, the api is the one initializing the database, on start
+        condition: service_healthy
+    environment:
+      - FLASK_APP=main
+      - FLASK_ENV=development
+      - DEBUG=1
+      - MOCK_LND=1
+      - MOCK_BTC=1
+      - MOCK_S3=1
+      - MOCK_TWITTER=1
+      - DB_USERNAME=pleb
+      - DB_PASSWORD=plebpass
+      - SQLALCHEMY_DISABLE_POOLING=1
+    volumes:
+      - "./api:/app"
+    command: flask settle-lnd-payments
   process-notifications:
     depends_on:
       api: # this is because in dev & test mode, the api is the one initializing the database, on start
@@ -54,6 +74,7 @@ services:
       - FLASK_ENV=development
       - DEBUG=1
       - MOCK_LND=1 # probably not needed
+      - MOCK_BTC=1 # probably not needed
       - MOCK_S3=1 # probably not needed
       - MOCK_TWITTER=1
       - DB_USERNAME=pleb

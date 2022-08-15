@@ -13,6 +13,7 @@ import bleach
 import magic
 import pyqrcode
 import requests
+
 from extensions import db
 from main import app
 
@@ -76,6 +77,7 @@ class User(db.Model):
 
     # ask Pedro about this
     xpub = db.Column(db.String(128), nullable=True)
+    xpub_index = db.Column(db.Integer, nullable=True)
 
     # can't set this for now, but should be useful in the future
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
@@ -92,9 +94,12 @@ class User(db.Model):
     contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
+    items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)", lazy='dynamic')
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
+
+    sales = db.relationship('Sale', backref='buyer')
 
     def fetch_twitter_profile_image(self, profile_image_url, s3):
         url = fetch_image(profile_image_url, s3, f"user_{self.id}_twitter_profile_image", True)
@@ -113,7 +118,8 @@ class User(db.Model):
             'twitter_username': self.twitter_username,
             'twitter_profile_image_url': self.twitter_profile_image_url,
             'twitter_username_verified': self.twitter_username_verified,
-            'has_auctions': len(self.auctions.all()) > 0,
+            'has_items': len(self.items.all()) > 0,
+            'has_listings': sum(len(i.listings) for i in self.items.all()) > 0,
             'has_bids': len(self.bids) > 0,
             'running_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),
             'ended_auction_count': len(self.auctions.filter(Auction.end_date <= now).all()),
@@ -126,6 +132,7 @@ class User(db.Model):
             # only ever show these fields to the actual user
             d['contribution_percent'] = self.contribution_percent
             d['xpub'] = self.xpub
+            d['xpub_index'] = self.xpub_index
             if self.twitter_username_verification_tweet_id:
                 d['twitter_username_verification_tweet'] = f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}"
             else:
@@ -369,16 +376,27 @@ def generate_key(cls, count):
 
     return key
 
-class StartedEndedMixin:
-    @property
-    def started(self):
-        return self.start_date <= datetime.utcnow() if self.start_date else False
+class FilterStateMixin:
+    def matches_filter(self, for_user_id, request_filter):
+        seller_id = self.item.seller_id if self.item else self.seller_id
+        is_seller = for_user_id == seller_id
+        match request_filter:
+            case 'running':
+                return self.started and not self.ended
+            case 'ended':
+                return self.started and self.ended
+            case 'new':
+                if is_seller:
+                    return not self.started and not self.ended
+                else:
+                    return False
+            case None:
+                if is_seller:
+                    return True
+                else:
+                    return self.started and not self.ended
 
-    @property
-    def ended(self):
-        return self.end_date < datetime.utcnow() if self.end_date else False
-
-class Campaign(StartedEndedMixin, db.Model):
+class Campaign(db.Model):
     __tablename__ = 'campaigns'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -391,7 +409,17 @@ class Campaign(StartedEndedMixin, db.Model):
     description = db.Column(db.String(21000), nullable=False)
 
     start_date = db.Column(db.DateTime, nullable=True)
+
+    @property
+    def started(self):
+        return self.start_date <= datetime.utcnow() if self.start_date else False
+
+    # TODO: we should probably remove this and define "ended" as having no active auctions/listings
     end_date = db.Column(db.DateTime, nullable=True)
+
+    @property
+    def ended(self):
+        return self.end_date < datetime.utcnow() if self.end_date else False
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -427,44 +455,98 @@ class Campaign(StartedEndedMixin, db.Model):
             validated[k] = d[k]
         return validated
 
-class Auction(StartedEndedMixin, db.Model):
+class Item(db.Model):
+    __tablename__ = 'items'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    title = db.Column(db.String(210), nullable=False)
+    description = db.Column(db.String(21000), nullable=False)
+    shipping_from = db.Column(db.String(64), nullable=True)
+    shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
+    shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
+    media = db.relationship('Media', backref='item', foreign_keys='Media.item_id')
+
+    is_hidden = db.Column(db.Boolean, nullable=False, default=False)
+
+    auctions = db.relationship('Auction', backref='item')
+    listings = db.relationship('Listing', backref='item')
+
+    sales = db.relationship('Sale', backref='item')
+
+    @classmethod
+    def validate_dict(cls, d):
+        validated = {}
+        for k in ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide']:
+            if k not in d:
+                continue
+            length = len(d[k])
+            max_length = getattr(Item, k).property.columns[0].type.length
+            if length > max_length:
+                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
+            validated[k] = bleach.clean(d[k])
+        for k in ['is_hidden']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = bool(int(d[k]))
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        return validated
+
+class Auction(FilterStateMixin, db.Model):
     __tablename__ = 'auctions'
+
+    REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    ########
+    # TODO: these should be removed, as they are now duplicated in the Item class,
+    # but for now we keep them around until we migrate the old Auction data to Item
+    # and make sure we didn't break something.
     seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    title = db.Column(db.String(210), nullable=False)
+    description = db.Column(db.String(21000), nullable=False)
+    shipping_from = db.Column(db.String(64), nullable=True)
+    shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
+    shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
+    media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
+    ########
+    # TODO: this should eventually become non-nullable
+    # after we will have created Item records for all old auctions!
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
+    ########
 
     # this key uniquely identifies the auction. It is safe to be shared with anyone.
     key = db.Column(db.String(12), unique=True, nullable=False, index=True)
 
-    # the title *might* eventually become nullable, for the case of WP auctions
-    # (the auction title in that case would be the post title)
-    title = db.Column(db.String(210), nullable=False)
-
-    description = db.Column(db.String(21000), nullable=False)
-
-    # in the case of Twitter auctions, start_date is only set after the tweet is published and the auction starts
+    # in the case of Twitter-based auctions, start_date is only set after the tweet is published and the auction starts
     start_date = db.Column(db.DateTime, nullable=True)
+
+    @property
+    def started(self):
+        return self.start_date <= datetime.utcnow() if self.start_date else False
 
     # duration_hours reflects the initial duration,
     # but the auction can be extended when bids come in close to the end - hence the end_date
     duration_hours = db.Column(db.Float, nullable=False)
     end_date = db.Column(db.DateTime, nullable=True)
 
+    @property
+    def ended(self):
+        return self.end_date < datetime.utcnow() if self.end_date else False
+
     starting_bid = db.Column(db.Integer, nullable=False)
     reserve_bid = db.Column(db.Integer, nullable=False)
 
-    shipping_from = db.Column(db.String(64), nullable=True)
-    shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
-    shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
-
     twitter_id = db.Column(db.String(32), nullable=True)
 
-    is_featured = db.Column(db.Boolean, nullable=True)
-
-    # this identifies the Lightning invoice of the contribution payment
+    # TODO: ideally we will generate a Sale when auctions finish,
+    # then we could drop these and simplify the code quite a bit!
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
-
     contribution_requested_at = db.Column(db.DateTime, nullable=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # the contribution is settled after the Lightning invoice has been paid
     contribution_amount = db.Column(db.Integer, nullable=True)
@@ -480,6 +562,9 @@ class Auction(StartedEndedMixin, db.Model):
 
     def get_top_bid(self):
         return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
+
+    def featured_sort_key(self):
+        return len(self.bids)
 
     @property
     def reserve_bid_reached(self):
@@ -505,7 +590,7 @@ class Auction(StartedEndedMixin, db.Model):
             'shipping_estimate_domestic': self.shipping_estimate_domestic,
             'shipping_estimate_worldwide': self.shipping_estimate_worldwide,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
-            'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media],
+            'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media or (self.item.media if self.item else [])],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.seller_id,
             'seller_twitter_username': self.seller.twitter_username,
@@ -522,7 +607,7 @@ class Auction(StartedEndedMixin, db.Model):
             auction['remaining_amount'] = top_bid.amount - self.contribution_amount
 
         if self.winning_bid_id is not None:
-            assert self.contribution_settled_at is not None # settle-bids should set both contribution_settled_at and winning_bid_id at the same time!
+            assert self.contribution_settled_at is not None # settle-lnd-payments should set both contribution_settled_at and winning_bid_id at the same time!
             auction['has_winner'] = True
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
             if for_user == winning_bid.buyer_id and for_user != self.seller_id: # NB: the seller should not normally win the auction (or even bid), but it happens often during testing
@@ -562,6 +647,8 @@ class Auction(StartedEndedMixin, db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
+        # TODO: remove this after the columns have been removed!
+        ########
         for k in ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide']:
             if k not in d:
                 continue
@@ -570,6 +657,7 @@ class Auction(StartedEndedMixin, db.Model):
             if length > max_length:
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = bleach.clean(d[k])
+        ########
         for k in ['start_date']:
             # for now, only start_date can be edited
             # the end_date is computed on auction start using duration_hours
@@ -599,7 +687,140 @@ class Auction(StartedEndedMixin, db.Model):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         if 'start_date' in validated and 'duration_hours' in validated:
             validated['end_date'] = validated['start_date'] + timedelta(hours=validated['duration_hours'])
-        for k in ['is_featured']:
+        return validated
+
+    def set_contribution(self):
+        if not self.ended:
+            return
+
+        if self.winning_bid_id is not None or self.contribution_payment_request is not None:
+            return
+
+        # auction ended, but no winning bid has been picked
+        # => ask the user with the top bid to send the contribution
+        top_bid = self.get_top_bid()
+        if top_bid and self.reserve_bid_reached:
+            self.contribution_amount = int(self.seller.contribution_percent / 100 * top_bid.amount)
+            if self.contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
+                self.contribution_amount = 0 # probably not worth the fees, at least in the next few years
+
+                # settle the contribution and pick the winner right away
+                self.contribution_requested_at = self.contribution_settled_at = datetime.utcnow()
+                self.winning_bid_id = top_bid.id
+            else:
+                from main import get_lnd_client
+                response = get_lnd_client().add_invoice(value=self.contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY'])
+                self.contribution_payment_request = response.payment_request
+                self.contribution_requested_at = datetime.utcnow()
+            db.session.commit()
+
+    def ensure_item(self):
+        # TODO: this method should be removed after all existing auctions have been modified to point to items
+        if not self.item:
+            item = Item(
+                seller_id=self.seller_id,
+                created_at=self.created_at,
+                title=self.title, description=self.description,
+                shipping_from=self.shipping_from,
+                shipping_estimate_domestic=self.shipping_estimate_domestic, shipping_estimate_worldwide=self.shipping_estimate_worldwide)
+            db.session.add(item)
+            db.session.commit()
+            self.item_id = item.id
+            for media in self.media:
+                media.item_id = item.id
+            db.session.commit()
+            app.logger.warning(f"Created item for Auction {self.id}!")
+
+class Listing(FilterStateMixin, db.Model):
+    __tablename__ = 'listings'
+
+    REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity']
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+
+    # this key uniquely identifies the listing. It is safe to be shared with anyone.
+    key = db.Column(db.String(12), unique=True, nullable=False, index=True)
+
+    start_date = db.Column(db.DateTime, nullable=True)
+
+    @property
+    def started(self):
+        return self.start_date <= datetime.utcnow() if self.start_date else False
+
+    @property
+    def ended(self):
+        return self.available_quantity == 0
+
+    price_usd = db.Column(db.Float, nullable=False)
+    available_quantity = db.Column(db.Integer, nullable=False)
+
+    twitter_id = db.Column(db.String(32), nullable=True)
+
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def featured_sort_key(self):
+        return self.start_date
+
+    def to_dict(self, for_user=None):
+        assert isinstance(for_user, int | None)
+
+        listing = {
+            'key': self.key,
+            'title': self.item.title,
+            'description': self.item.description,
+            'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
+            'started': self.started,
+            'ended': self.ended,
+            'price_usd': self.price_usd,
+            'available_quantity': self.available_quantity,
+            'shipping_from': self.item.shipping_from,
+            'shipping_estimate_domestic': self.item.shipping_estimate_domestic,
+            'shipping_estimate_worldwide': self.item.shipping_estimate_worldwide,
+            'media': [
+                {
+                    'url': media.url,
+                    'twitter_media_key': media.twitter_media_key
+                }
+                for media in self.item.media
+            ],
+            'created_at': self.created_at.isoformat() + "Z",
+            'is_mine': for_user == self.item.seller_id,
+            'seller_twitter_username': self.item.seller.twitter_username,
+            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'seller_twitter_profile_image_url': self.item.seller.twitter_profile_image_url,
+        }
+
+        if for_user:
+            # NB: we only return sales for the current user, so that the UI can know the sales were settled
+            # sales for other users should be kept private or eventually shown to the seller only!
+            listing['sales'] = [sale.to_dict() for sale in self.item.sales if sale.buyer_id == for_user]
+
+        return listing
+
+    @classmethod
+    def generate_key(cls, count):
+        return generate_key(cls, count)
+
+    @classmethod
+    def validate_dict(cls, d):
+        validated = {}
+        for k in ['available_quantity']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = int(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        for k in ['price_usd']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = float(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        for k in ['active']:
             if k not in d:
                 continue
             try:
@@ -612,7 +833,13 @@ class Media(db.Model):
     __tablename__ = 'media'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
+
+    # TODO: this should eventually be dropped after we use only the link in Item
+    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
+
+    # TODO: this should be set to nullable=False after we drop auction_id
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
+
     twitter_media_key = db.Column(db.String(50), nullable=False)
     url = db.Column(db.String(256), nullable=False)
 
@@ -649,6 +876,54 @@ class Bid(db.Model):
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
             bid['payment_request'] = self.payment_request
         return bid
+
+class Sale(db.Model):
+    __tablename__ = 'sales'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+
+    # NB: this is currently not used
+    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
+
+    listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
+
+    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+
+    requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    settled_at = db.Column(db.DateTime, nullable=True) # a sale is settled after the payment has been made
+    settlement_txid = db.Column(db.String(128), nullable=True)
+    expired_at = db.Column(db.DateTime, nullable=True)
+
+    address = db.Column(db.String(128), nullable=False, unique=True, index=True)
+    price = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    amount = db.Column(db.Integer, nullable=False) # amount to be paid to the seller (total amount minus contribution)
+
+    # the Lightning invoice for the contribution
+    contribution_amount = db.Column(db.Integer, nullable=False)
+    contribution_payment_request = db.Column(db.String(512), nullable=False, unique=True, index=True)
+    contribution_settled_at = db.Column(db.DateTime, nullable=True) # this is NULL initially, and gets set after the contribution has been received
+
+    def to_dict(self):
+        sale = {
+            'price': self.price,
+            'quantity': self.quantity,
+            'amount': self.amount,
+            'twitter_username': self.buyer.twitter_username,
+            'twitter_profile_image_url': self.buyer.twitter_profile_image_url,
+            'twitter_username_verified': self.buyer.twitter_username_verified,
+            'contribution_amount': self.contribution_amount,
+            'contribution_payment_request': self.contribution_payment_request,
+            'contribution_settled_at': (self.contribution_settled_at.isoformat() + "Z" if self.contribution_settled_at else None),
+            'address': self.address,
+            'requested_at': (self.requested_at.isoformat() + "Z"),
+            'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
+            'settlement_txid': self.settlement_txid,
+            'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
+        }
+        return sale
 
 class UserAuction(db.Model):
     __tablename__ = 'user_auctions'

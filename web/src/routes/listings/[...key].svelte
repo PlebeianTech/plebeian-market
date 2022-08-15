@@ -8,7 +8,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import ItemView from "$lib/components/ItemView.svelte"
-    import { fromJson } from "$lib/types/auction";
+    import { fromJson } from "$lib/types/listing";
     import { onMount } from "svelte";
 
     export let itemKey;
@@ -21,5 +21,5 @@
 </script>
 
 {#if itemKey !== ""}
-    <ItemView {itemKey} loader={{endpoint: 'auctions', responseField: 'auction', fromJson }} />
+    <ItemView {itemKey} loader={{endpoint: 'listings', responseField: 'listing', fromJson}} />
 {/if}

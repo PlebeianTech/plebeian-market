@@ -3,14 +3,16 @@
 </svelte:head>
 
 <script lang="ts">
-    import PublicAuctionCard from "../lib/components/PublicAuctionCard.svelte";
-    import Typewriter from "../lib/components/Typewriter.svelte";
-    import type { Auction } from "../lib/types/auction";
-    import { getFeaturedAuctions } from "../lib/services/api";
-    import { user } from "$lib/stores";
     import { onMount } from "svelte";
+    import { getFeatured } from "$lib/services/api";
+    import { user } from "$lib/stores";
+    import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
+    import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
+    import PublicItemCard from "$lib/components/PublicItemCard.svelte";
+    import Typewriter from "$lib/components/Typewriter.svelte";
 
     let auctions: Auction[] | null = null;
+    let listings: Listing[] | null = null;
 
     function go() {
         if ($user && $user.nym) {
@@ -22,7 +24,10 @@
     }
 
     onMount(async () => {
-        getFeaturedAuctions(a => { auctions = a; });
+        getFeatured({endpoint: 'auctions', responseField: 'auctions', fromJson: auctionFromJson},
+            a => { auctions = a; });
+        getFeatured({endpoint: 'listings', responseField: 'listings', fromJson: listingFromJson},
+            a => { listings = a; });
     });
 </script>
 
@@ -67,7 +72,14 @@
     {#if auctions !== null}
         {#each auctions as auction}
             <div class="h-auto">
-                <PublicAuctionCard entity={auction} />
+                <PublicItemCard entity={auction} />
+            </div>
+        {/each}
+    {/if}
+    {#if listings !== null}
+        {#each listings as listing}
+            <div class="h-auto">
+                <PublicItemCard entity={listing} />
             </div>
         {/each}
     {/if}

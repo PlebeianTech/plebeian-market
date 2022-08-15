@@ -112,6 +112,10 @@ body {
   content: 'Bid';
 }
 
+.glowbutton-buy:after {
+  content: 'Buy';
+}
+
 .glowbutton-tweet:after {
   content: 'Tweet';
 }

@@ -17,5 +17,5 @@
     </div>
     <input type="checkbox" class="toggle toggle-secondary toggle-lg" bind:value={confirm} />
 </label>
-<button class="btn mx-2" on:click|preventDefault={onCancel}>Cancel</button>
-<button class="btn btn-error mx-2" on:click|preventDefault={check}>Delete</button>
+<button class="btn mx-1" on:click|preventDefault={onCancel}>Cancel</button>
+<button class="btn btn-error mx-1" on:click|preventDefault={check}>Delete</button>

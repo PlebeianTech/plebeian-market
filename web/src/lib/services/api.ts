@@ -1,10 +1,9 @@
 import { goto } from "$app/navigation";
 import { token, Error } from "$lib/stores";
-import { isLocal, isStaging } from "$lib/utils";
-import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
+import type { IEntity } from "$lib/types/base";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
-import type { IEntity } from "$lib/types/base";
+import { isLocal, isStaging } from "$lib/utils";
 
 export class ErrorHandler {
     setError: boolean;
@@ -63,7 +62,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
 
 export interface ILoader {
     endpoint: string;
-    responseField?: string;
+    responseField: string;
     fromJson: (any) => IEntity;
 }
 
@@ -72,7 +71,7 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
-                    successCB(data[loader.responseField || loader.endpoint].map(loader.fromJson));
+                    successCB(data[loader.responseField].map(loader.fromJson));
                 });
             } else {
                 errorHandler.handle(response);
@@ -132,12 +131,12 @@ export function getLogin(k1, initialResponseCB: (response: GetLoginInitialRespon
         });
 }
 
-export function getFeaturedAuctions(successCB: (auctions: Auction[]) => void) {
-    fetchAPI("/auctions/featured", 'GET', null, null,
+export function getFeatured(loader: ILoader, successCB: (items: any[]) => void) {
+    fetchAPI(`/${loader.endpoint}/featured`, 'GET', null, null,
             response => {
                 if (response.status === 200) {
                     response.json().then(data => {
-                        successCB(data.auctions.map(auctionFromJson));
+                        successCB(data[loader.responseField].map(loader.fromJson));
                     });
                 }
             });
@@ -156,7 +155,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function postProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -167,7 +166,7 @@ export function postProfile(tokenValue, profile: {twitterUsername?: string, cont
     if (profile.xpub !== undefined) {
         json.xpub = profile.xpub;
     }
-    fetchAPI("/users/me", 'POST', tokenValue, JSON.stringify(json),
+    fetchAPI("/users/me", 'PUT', tokenValue, JSON.stringify(json),
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -216,11 +215,11 @@ export function putVerifyTwitter(tokenValue, successCB: () => void, errorHandler
         });
 }
 
-export function getAuction(tokenValue, auctionKey, successCB: (Auction) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}`, 'GET', tokenValue, null,
+export function getItem(loader: ILoader, tokenValue, key, successCB: (item) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${loader.endpoint}/${key}`, 'GET', tokenValue, null,
         response => {
             if (response.status === 200) {
-                response.json().then(data => { successCB(auctionFromJson(data.auction)); });
+                response.json().then(data => { successCB(loader.fromJson(data[loader.responseField])); });
             } else {
                 errorHandler.handle(response);
             }
@@ -238,8 +237,8 @@ export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean
         });
 }
 
-export function startAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}/start-twitter`, 'PUT', tokenValue, null,
+export function putStart(tokenValue, endpoint, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${endpoint}/${auctionKey}/start-twitter`, 'PUT', tokenValue, null,
         response => {
             if (response.status === 200) {
                 successCB();
@@ -259,9 +258,9 @@ export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void)
     });
 }
 
-export function unfeatureAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
+export function hideAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}`, 'PUT', tokenValue,
-        JSON.stringify({"is_featured": false}),
+        JSON.stringify({"is_hidden": true}),
         response => {
             if (response.status === 200) {
                 successCB();
@@ -277,6 +276,18 @@ export function postBid(tokenValue, auctionKey, amount, successCB: (paymentReque
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(data.payment_request, data.qr, data.messages); });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function putBuy(tokenValue, listingKey, successCB: (contributionAmount, contributionPaymentRequest, contributionPaymentQr, amount, address, addressQr, messages: string[]) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/listings/${listingKey}/buy`, 'PUT', tokenValue,
+        JSON.stringify({}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => { successCB(data.contribution_amount, data.contribution_payment_request, data.contribution_payment_qr, data.amount, data.address, data.address_qr, data.messages); });
             } else {
                 errorHandler.handle(response);
             }

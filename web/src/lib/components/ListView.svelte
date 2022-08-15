@@ -61,7 +61,7 @@
     let interval: ReturnType<typeof setInterval> | undefined;
 
     onMount(async () => {
-        fetchEntities(() => { currentEntity = entities && entities.length === 0 && newEntity !== undefined ? newEntity() : undefined; });
+        fetchEntities(() => { currentEntity = undefined; });
         interval = setInterval(fetchEntities, 10000);
     });
 
