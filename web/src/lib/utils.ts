@@ -18,6 +18,16 @@ export function getBaseUrl() {
     }
 }
 
+export function getEnvironmentInfo() {
+    if (isLocal()) {
+        return "local";
+    } else if (isStaging()) {
+        return "staging";
+    } else {
+        return "";
+    }
+}
+
 export function sats2usd(sats: number, btc2usd: number | null): number | null {
     if (btc2usd === null) {
         return null;
