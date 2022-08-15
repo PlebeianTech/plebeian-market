@@ -24,7 +24,9 @@ import jwt
 import lndgrpc
 import logging
 import magic
+import requests
 from requests_oauthlib import OAuth1Session
+from requests.exceptions import JSONDecodeError
 
 from extensions import cors, db
 
@@ -83,9 +85,9 @@ def run_tests():
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
     unittest.TextTestRunner().run(suite)
 
-@app.cli.command("settle-bids")
+@app.cli.command("settle-lnd-payments")
 @with_appcontext
-def settle_bids():
+def settle_lnd_payments():
     app.logger.setLevel(getattr(logging, LOG_LEVEL))
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
 
@@ -110,6 +112,12 @@ def settle_bids():
                         auction.contribution_settled_at = datetime.utcnow()
                         auction.winning_bid_id = auction.get_top_bid().id
                         app.logger.info(f"Settled contribution: {auction.id=} {auction.contribution_amount=}.")
+                    else:
+                        sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
+                        if sale:
+                            found_invoice = True
+                            sale.contribution_settled_at = datetime.utcnow()
+                            app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
                 if found_invoice:
                     last_settle_index = invoice.settle_index
                     state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
@@ -117,6 +125,46 @@ def settle_bids():
                     db.session.commit()
         app.logger.warning("Disconnected from LND. Sleep, then retry...")
         time.sleep(5)
+
+@app.cli.command("settle-btc-payments")
+@with_appcontext
+def settle_btc_payments():
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
+    while True:
+        btc = get_btc_client()
+
+        sales_to_settle_filter = m.Sale.contribution_settled_at != None
+        sales_to_expire_filter = m.Sale.requested_at < (datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']))
+
+        for sale in db.session.query(m.Sale).filter((m.Sale.settled_at == None) & (m.Sale.expired_at == None) & (sales_to_settle_filter | sales_to_expire_filter)):
+            if app.config['ENV'] == 'test' and sale.requested_at >= (datetime.utcnow() - timedelta(seconds=1)):
+                # in test mode, require sales to be at least 1 second old, so we don't break the tests
+                continue
+            funding_txs = btc.get_funding_txs(sale.address)
+            if funding_txs is None:
+                app.logger.warning("Cannot get transactions from mempool API. Taking a 1 minute nap...")
+                time.sleep(60)
+                continue
+            for tx in funding_txs:
+                if tx['value'] == sale.amount:
+                    app.logger.info(f"Found transaction txid={tx['txid']} matching {sale.id=}. Block time: {tx['block_time']}.")
+                    sale.settled_at = datetime.utcnow()
+                    sale.settlement_txid = tx['txid']
+                    db.session.commit()
+                    break
+                else:
+                    app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} vs {tx['value']=}.")
+            else:
+                if sale.requested_at < datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']):
+                    app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
+                    sale.expired_at = datetime.utcnow()
+                    listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
+                    listing.available_quantity += sale.quantity
+                    db.session.commit()
+
+        time.sleep(10)
 
 @app.cli.command("process-notifications")
 @with_appcontext
@@ -274,17 +322,65 @@ class MockLNDClient:
         while True:
             time.sleep(3)
             for unsettled_bid in db.session.query(m.Bid).filter(m.Bid.settled_at == None):
+                if unsettled_bid.requested_at > datetime.utcnow() - timedelta(seconds=1):
+                    # give it at least a second in test mode
+                    continue
                 last_settle_index += 1
                 yield MockLNDClient.InvoiceResponse(unsettled_bid.payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
             for unsettled_contribution in db.session.query(m.Auction).filter(m.Auction.contribution_settled_at == None):
+                if unsettled_contribution.contribution_requested_at is None or unsettled_contribution.contribution_requested_at > datetime.utcnow() - timedelta(seconds=1):
+                    # give it at least a second in test mode
+                    continue
                 last_settle_index += 1
                 yield MockLNDClient.InvoiceResponse(unsettled_contribution.contribution_payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
+            for unsettled_sale_contribution in db.session.query(m.Sale).filter(m.Sale.contribution_settled_at == None):
+                if unsettled_sale_contribution.requested_at > datetime.utcnow() - timedelta(seconds=1):
+                    # give it at least a second in test mode
+                    continue
+                last_settle_index += 1
+                yield MockLNDClient.InvoiceResponse(unsettled_sale_contribution.contribution_payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
 
 def get_lnd_client():
     if app.config['MOCK_LND']:
         return MockLNDClient()
     else:
         return lndgrpc.LNDClient(app.config['LND_GRPC'], macaroon_filepath=app.config['LND_MACAROON'], cert_filepath=app.config['LND_TLS_CERT'])
+
+class MockBTCClient:
+    def get_funding_txs(self, addr):
+        sale = db.session.query(m.Sale).filter(m.Sale.address == addr).first()
+        if sale:
+            return [{'txid': 'MOCK_TXID', 'value': sale.amount, 'block_time': datetime.utcnow()}]
+        else:
+            return []
+
+class BTCClient:
+    def get_funding_txs(self, addr):
+        try:
+            r = requests.get(f"https://mempool.space/api/address/{addr}/txs")
+        except JSONDecodeError:
+            app.logger.warning("Invalid JSON received from mempool API.")
+            return None
+
+        txs = []
+        for tx in r.json():
+            vout_for_addr = [vo for vo in tx['vout'] if vo['scriptpubkey_address'] == addr]
+            if len(vout_for_addr) > 1:
+                app.logger.warning("Multiple outputs for same address? Strange...")
+            value = sum(vo['value'] for vo in vout_for_addr)
+            if not tx['status']['confirmed']:
+                app.logger.warning(f"Transaction with {value=} for {addr=} not confirmed. Skipping.")
+                continue
+            block_time = datetime.fromtimestamp(tx['status']['block_time'])
+            txs.append({'txid': tx['txid'], 'value': value, 'block_time': block_time})
+
+        return txs
+
+def get_btc_client():
+    if app.config['MOCK_BTC']:
+        return MockBTCClient()
+    else:
+        return BTCClient()
 
 class MockTwitter:
     class MockKey:
@@ -295,9 +391,14 @@ class MockTwitter:
         pass
 
     def get_user(self, username):
+        if app.config['ENV'] == 'test':
+            # hammer staging rather than unsplash when running tests
+            random_image = "https://staging.plebeian.market/images/logo.jpg"
+        else:
+            random_image = "https://source.unsplash.com/random/200x200"
         return {
             'id': "MOCK_USER_ID",
-            'profile_image_url': "https://source.unsplash.com/random/200x200",
+            'profile_image_url': random_image,
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
             'created_at': datetime.now() - timedelta(days=(app.config['TWITTER_USER_MIN_AGE_DAYS'] + 1)),
         }
@@ -306,18 +407,22 @@ class MockTwitter:
         assert tweet_id == "MOCK_PINNED_TWEET" # this assertion might go away later if we have other use cases for this method
         return ['mock_username_with_like']
 
-    def get_auction_tweets(self, user_id):
+    def get_sale_tweets(self, user_id, entity_endpoint):
         if not user_id.startswith('MOCK_USER'):
             return None
         time.sleep(5) # deliberately slow this down, so we can find possible issues in the UI
+        if app.config['ENV'] == 'test':
+            # hammer staging rather than unsplash when running tests
+            random_image = "https://staging.plebeian.market/images/logo.jpg"
+        else:
+            random_image = "https://source.unsplash.com/random/1024x1024"
         return [{
             'id': "MOCK_TWEET_ID",
             'text': "Hello Mocked Tweet",
             'created_at': datetime.now().isoformat(),
             'auction_key': MockTwitter.MockKey(),
             'photos': [
-                {'media_key': f"MOCK_PHOTO_{i}", 'url': "https://source.unsplash.com/random/1024x1024"}
-                for i in range(4)
+                {'media_key': f"MOCK_PHOTO_{i}", 'url': random_image} for i in range(4)
             ]
         }]
 
@@ -328,7 +433,7 @@ class MockTwitter:
 
 class Twitter:
     BASE_URL = "https://api.twitter.com"
-    URL_PREFIXES = ["http://plebeian.market/auctions/", "https://plebeian.market/auctions/", "http://staging.plebeian.market/auctions/", "https://staging.plebeian.market/auctions/"]
+    URL_PREFIXES = ["http://plebeian.market/%s/", "https://plebeian.market/%s/", "http://staging.plebeian.market/%s/", "https://staging.plebeian.market/%s/"]
 
     def __init__(self, api_key, api_key_secret, access_token, access_token_secret):
         self.session = OAuth1Session(api_key, api_key_secret, access_token, access_token_secret)
@@ -382,7 +487,7 @@ class Twitter:
 
         return [u['username'].lower() for u in response_json.get('data', [])] + next_likes
 
-    def get_auction_tweets(self, user_id):
+    def get_sale_tweets(self, user_id, entity_endpoint):
         response_json = self.get(f"/2/users/{user_id}/tweets",
             params={
                 'max_results': 100,
@@ -398,6 +503,7 @@ class Twitter:
             auction_key = None
             for url in tweet.get('entities', {}).get('urls', []):
                 for p in Twitter.URL_PREFIXES:
+                    p = p % entity_endpoint
                     if url['expanded_url'].startswith(p):
                         auction_key = url['expanded_url'].removeprefix(p)
                         break

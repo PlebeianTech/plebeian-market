@@ -33,13 +33,19 @@ services:
       - api
     networks:
       - proxy
-  settle-bids:
+  settle-btc-payments:
+    environment:
+      - FLASK_APP=main
+    volumes:
+      - "/home/www/plebeian-market-secrets:/secrets"
+    command: flask settle-btc-payments
+  settle-lnd-payments:
     environment:
       - FLASK_APP=main
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
-    command: flask settle-bids
+    command: flask settle-lnd-payments
   process-notifications:
     environment:
       - FLASK_APP=main

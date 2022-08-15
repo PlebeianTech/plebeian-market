@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { ErrorHandler, postProfile } from "$lib/services/api";
+    import { ErrorHandler, putProfile } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
 
     export let onSave: () => void = () => {};
@@ -17,7 +17,7 @@
             return;
         }
         saving = true;
-        postProfile($token, {xpub},
+        putProfile($token, {xpub},
             u => {
                 user.set(u);
                 Info.set("Your XPUB has been saved!");
@@ -38,11 +38,20 @@
     <div class="alert alert-info shadow-lg">
         <div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>We use your XPUB to generate addresses for your payments.</span>
+            <span>
+                We use your XPUB to generate addresses for your payments.
+                We strongly suggest you use a separate wallet for Plebeian Market only!
+            </span>
         </div>
     </div>
 {:else}
-    <h2 class="text-2xl" title="Ask Peter">XPUB</h2>
+    <h2 class="text-2xl" title="Ask Peter about XPUB">Your wallet</h2>
+    <div class="alert alert-info shadow-lg">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>We strongly suggest you use a separate wallet for Plebeian Market only!</span>
+        </div>
+    </div>
 {/if}
 
 <div class="w-full flex items-center justify-center mt-8">

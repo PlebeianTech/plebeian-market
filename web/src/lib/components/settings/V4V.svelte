@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { ErrorHandler, postProfile } from "$lib/services/api";
+    import { ErrorHandler, putProfile } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
 
     export let onSave: () => void = () => {};
@@ -14,7 +14,7 @@
     let saving = false;
     function save() {
         saving = true;
-        postProfile($token, {contributionPercent},
+        putProfile($token, {contributionPercent},
             u => {
                 user.set(u);
                 if (contributionPercent === 0) {

@@ -17,7 +17,7 @@
 {#if campaignKey === ""}
     <ListView
         title="My Campaigns"
-        loader={{endpoint: 'campaigns', fromJson}} newEntity={() => new Campaign()}
+        loader={{endpoint: 'campaigns', responseField: 'campaigns', fromJson}} newEntity={() => new Campaign()}
         card={CampaignCard} editor={CampaignEditor}>
     </ListView>
 {:else}

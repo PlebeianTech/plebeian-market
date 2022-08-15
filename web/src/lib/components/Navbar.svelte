@@ -9,8 +9,10 @@
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
+    import XPUB from "$lib/components/settings/XPUB.svelte";
 
     let modal : Modal | null;
+    let modalVisible = false;
 
     let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -20,11 +22,15 @@
         html.dataset.theme = toggle.checked ? 'night' : 'light';
     }
 
-    function showModal(content: any, hasHide=true, onHide: () => void = () => {}) {
-        if (modal) {
+    function showModal(content: any, hasHide: boolean, onHide: (saved: boolean) => void = (_) => { }) {
+        if (modal && !modalVisible) {
             modal.content = content;
             modal.hasHide = hasHide;
-            modal.onHide = onHide;
+            modal.onHide = (saved) => {
+                modalVisible = false;
+                onHide(saved);
+            };
+            modalVisible = true;
             modal.show();
         }
     }
@@ -61,26 +67,37 @@
 
             if (u.twitter.username === null || u.twitter.username === "") {
                 showModal(TwitterUsername, true,
-                    () => {
-                        // trying to hide the modal if you didn't set your Twitter username logges you out
-                        token.set(null);
-                        localStorage.removeItem('token');
-                        goto("/");
-                });
-            } else if (u.hasAuctions && u.contributionPercent === null) {
-                showModal(V4V, false);
-            } else if (!u.twitter.usernameVerified && u.twitterUsernameVerificationTweet !== null) {
-                if (localStorage.getItem('initial-login-buyer') === "1") {
-                    /*
-                        NB: the only case where we want to automatically show the verification modal
-                        is when 'initial-login-buyer' is set,
-                        that is - you logged in with the intent of bidding on an auction.
-                        Other cases (where we don't want this to happen) are:
-                            1) log in from the home page (seller intent).
-                            2) change the twitter account under settings (no need for a modal, as the verification will show on the same page).
-                    */
-                    showModal(TwitterVerification);
-                }
+                    (saved) => {
+                        if (saved) {
+                            if ($user && !$user.twitter.usernameVerified && $user.twitterUsernameVerificationTweet !== null) {
+                                if (localStorage.getItem('initial-login-buyer') === "1") {
+                                    /*
+                                        NB: the only case where we want to automatically show the verification modal
+                                        is when 'initial-login-buyer' is set,
+                                        that is - you logged in with the intent of bidding on an auction.
+                                        Other cases (where we don't want this to happen) are:
+                                            1) log in from the home page (seller intent).
+                                            2) change the twitter account under settings (no need for a modal, as the verification will show on the same page).
+                                    */
+                                    showModal(TwitterVerification, true);
+                                }
+                            }
+                        } else {
+                            // trying to hide the modal if you didn't set your Twitter username logges you out
+                            token.set(null);
+                            localStorage.removeItem('token');
+                            goto("/");
+                        }
+                    });
+            } else if (u.hasItems && u.contributionPercent === null) {
+                showModal(V4V, false,
+                    (_) => {
+                        if ($user && $user.hasListings && $user.xpub === null) {
+                            showModal(XPUB, true);
+                        }
+                    });
+            } else if (u.hasListings && u.xpub === null) {
+                showModal(XPUB, true);
             }
         });
     onDestroy(userUnsubscribe);
@@ -92,9 +109,9 @@
             <img src="/images/logo.jpg" class="ml-2 mr-3 h-9 rounded" alt="Plebeian Technology" />
         </a>
         <div class="md:inline hidden">
-            <a href={null} on:click|preventDefault={() => goto("/")} class="btn btn-ghost normal-case text-xl">Home</a>
-            <a href={null} on:click|preventDefault={() => goto("/about")} class="btn btn-ghost normal-case text-xl">About</a>
-            <a href={null} on:click|preventDefault={() => goto("/faq")} class="btn btn-ghost normal-case text-xl">FAQ</a>
+            <a href="/" class="btn btn-ghost normal-case text-xl">Home</a>
+            <a href="/about" class="btn btn-ghost normal-case text-xl">About</a>
+            <a href="/faq" class="btn btn-ghost normal-case text-xl">FAQ</a>
         </div>
         {#if isLocal() || isStaging() }
             <div class="inline badge badge-primary ml-2">{getEnvironmentInfo()}</div>
@@ -119,7 +136,7 @@
                     <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
                         {#if !$user.twitter.usernameVerified}
                             <li>
-                                <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification)} class="modal-button">
+                                <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} class="modal-button">
                                     Verify Twitter
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-8 h-8">
                                         <path fill="rgb(255,0,0)" d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"></path>
@@ -127,10 +144,10 @@
                                 </label>
                             </li>
                         {/if}
-                        <li class="block md:hidden md:h-0"><a href={null} on:click|preventDefault={() => goto("/")} class="modal-button cursor-pointer">Home</a></li>
-                        <li class="block md:hidden md:h-0"><a href={null} on:click|preventDefault={() => goto("/about")} class="modal-button cursor-pointer">About</a></li>
-                        <li class="block md:hidden md:h-0"><a href={null} on:click|preventDefault={() => goto("/faq")} class="modal-button cursor-pointer">FAQ</a></li>
-                        <li><a href={null} on:click|preventDefault={() => goto(`/stall/${$user.nym}`)}>My stall</a></li>
+                        <li class="block md:hidden md:h-0"><a href="/" class="modal-button cursor-pointer">Home</a></li>
+                        <li class="block md:hidden md:h-0"><a href="/about" class="modal-button cursor-pointer">About</a></li>
+                        <li class="block md:hidden md:h-0"><a href="/faq" class="modal-button cursor-pointer">FAQ</a></li>
+                        <li><a href="/stall/{$user.nym}">My stall</a></li>
                         {#if $user.isModerator}
                             <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
                         {/if}

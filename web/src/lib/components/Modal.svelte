@@ -3,8 +3,8 @@
 <script lang="ts">
     export let content;
 
-    export let hasHide = true;
-    export let onHide = () => {};
+    export let hasHide: boolean = false;
+    export let onHide: (saved: boolean) => void = (_) => { };
 
     export function show() {
         let toggle = <HTMLInputElement>document.getElementById('modal-toggle');
@@ -19,9 +19,7 @@
             toggle.checked = false;
         }
 
-        if (!saved) {
-            onHide();
-        }
+        onHide(saved);
     }
 
     function onSave() {

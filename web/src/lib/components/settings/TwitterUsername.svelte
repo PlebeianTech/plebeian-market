@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { ErrorHandler, postProfile } from "$lib/services/api";
+    import { ErrorHandler, putProfile } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
@@ -19,7 +19,7 @@
             return;
         }
         saving = true;
-        postProfile($token, {twitterUsername},
+        putProfile($token, {twitterUsername},
             u => {
                 user.set(u);
                 Info.set("Your Twitter username has been saved!");

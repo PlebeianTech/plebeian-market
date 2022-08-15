@@ -1,3 +1,4 @@
+import btc2fiat
 from datetime import datetime, timedelta
 from io import BytesIO
 import os
@@ -8,6 +9,7 @@ from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
 import jwt
 import lnurl
+from pycoin.symbols.btc import network as BTC
 import pyqrcode
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
@@ -15,7 +17,7 @@ from sqlalchemy.sql.functions import func
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client, get_s3, get_twitter
+from main import app, get_btc_client, get_lnd_client, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 
 api_blueprint = Blueprint('api', __name__)
@@ -95,7 +97,16 @@ def login():
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
-@api_blueprint.route('/api/users/me', methods=['GET', 'POST']) # TODO: POST here should actually be PUT
+@api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
+def profile(nym):
+    requesting_user = get_user_from_token(get_token_from_request())
+    if request.method == 'GET':
+        user = m.User.query.filter_by(nym=nym).first()
+        if not user:
+            return jsonify({'message': "User not found"}), 404
+        return jsonify({'user': user.to_dict(for_user=requesting_user.id)})
+
+@api_blueprint.route('/api/users/me', methods=['GET', 'PUT'])
 @user_required
 def me(user):
     if request.method == 'GET':
@@ -135,8 +146,17 @@ def me(user):
 
         if 'contribution_percent' in request.json:
             user.contribution_percent = request.json['contribution_percent']
+
         if 'xpub' in request.json:
+            k = BTC.parse(request.json['xpub'])
+            if not k:
+                return jsonify({'message': "Invalid XPUB."}), 400
+            try:
+                first_address = k.subkey(0).subkey(0).address()
+            except AttributeError:
+                return jsonify({'message': "Invalid XPUB."}), 400
             user.xpub = request.json['xpub']
+            user.xpub_index = 0
 
         try:
             db.session.commit()
@@ -144,7 +164,6 @@ def me(user):
             return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
 
         return jsonify({'user': user.to_dict(for_user=user.id)})
-
 
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
 @user_required
@@ -198,30 +217,40 @@ def messages(user):
 
     return jsonify({'messages': [m.to_dict() for m in messages]})
 
-@api_blueprint.route('/api/auctions', methods=['POST'])
+@api_blueprint.route("/api/auctions", defaults={'cls': m.Auction, 'singular': 'auction'},
+    methods=['POST'])
+@api_blueprint.route("/api/listings", defaults={'cls': m.Listing, 'singular': 'listing'},
+    methods=['POST'])
 @user_required
-def auctions(user):
-    for k in ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid']:
+def post_entity(user, cls, singular):
+    for k in cls.REQUIRED_FIELDS:
         if k not in request.json:
             return jsonify({'message': f"Missing key: {k}."}), 400
 
     try:
-        validated = m.Auction.validate_dict(request.json)
+        validated_item = m.Item.validate_dict(request.json)
+        validated_entity = cls.validate_dict(request.json)
     except m.ValidationError as e:
         return jsonify({'message': e.message}), 400
 
-    auction_count = db.session.query(func.count(m.Auction.id).label('count')).first().count
-    key = m.Auction.generate_key(auction_count)
-    auction = m.Auction(seller=user, key=key, **validated)
-    db.session.add(auction)
+    item = m.Item(seller=user, **validated_item)
+    db.session.add(item)
     db.session.commit()
 
-    # follow your own path (once you know the ID)!
-    user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=True)
-    db.session.add(user_auction)
+    existing_count = db.session.query(func.count(cls.id).label('count')).first().count
+    entity = cls(item=item, key=cls.generate_key(existing_count), **validated_entity)
+    if isinstance(entity, m.Auction):
+        entity.seller=user # TODO: remove this after removing the field from Auction
+    db.session.add(entity)
     db.session.commit()
 
-    return jsonify({'auction': auction.to_dict(for_user=user.id)})
+    if isinstance(entity, m.Auction):
+        # follow your own auctions!
+        user_auction = m.UserAuction(user_id=user.id, auction_id=entity.id, following=True)
+        db.session.add(user_auction)
+        db.session.commit()
+
+    return jsonify({singular: entity.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/campaigns', methods=['GET', 'POST'])
 @user_required
@@ -247,75 +276,78 @@ def campaigns(user):
 
         return jsonify({'campaign': campaign.to_dict(for_user=user.id)})
 
-@api_blueprint.route('/api/auctions/featured', methods=['GET'])
-def featured_auctions():
-    auctions = m.Auction.query.filter(
-        (m.Auction.is_featured == True)
-        | ((m.Auction.is_featured == None)
-         & (m.Auction.start_date <= datetime.utcnow())
-         & (m.Auction.end_date >= datetime.utcnow()))
-    ).all()
-    return jsonify({'auctions': [a.to_dict() for a in sorted(auctions, key=lambda a: len(a.bids), reverse=True)]})
+@api_blueprint.route('/api/auctions/featured',
+    defaults={'cls': m.Auction, 'plural': 'auctions'},
+    methods=['GET'])
+@api_blueprint.route('/api/listings/featured',
+    defaults={'cls': m.Listing, 'plural': 'listings'},
+    methods=['GET'])
+def featured(cls, plural):
+    entities = cls.query.filter((cls.start_date != None) & (cls.start_date <= datetime.utcnow()))
+    entities = entities.filter((cls.item_id == m.Item.id) & ~m.Item.is_hidden)
+    if cls == m.Auction:
+        entities = entities.filter((cls.end_date == None) | (cls.end_date > datetime.utcnow()))
+    elif cls == m.Listing:
+        entities = entities.filter(cls.available_quantity != 0)
+    return jsonify({plural: [e.to_dict() for e in sorted(entities.all(), key=cls.featured_sort_key, reverse=True)]})
 
-
-@api_blueprint.route('/api/auctions/<string:key>', methods=['GET', 'PUT', 'DELETE'])
-def auction(key):
+@api_blueprint.route('/api/auctions/<string:key>',
+    defaults={'cls': m.Auction, 'singular': 'auction'},
+    methods=['GET', 'PUT', 'DELETE'])
+@api_blueprint.route('/api/listings/<string:key>',
+    defaults={'cls': m.Listing, 'singular': 'listing'},
+    methods=['GET', 'PUT', 'DELETE'])
+def get_put_delete_entity(key, cls, singular):
     user = get_user_from_token(get_token_from_request())
-    auction = m.Auction.query.filter_by(key=key).first()
-    if not auction:
+    entity = cls.query.filter_by(key=key).first()
+    if not entity:
         return jsonify({'message': "Not found."}), 404
 
     if request.method == 'GET':
-        if auction.ended:
-            if auction.winning_bid_id is None and auction.contribution_payment_request is None:
-                # auction ended, but no winning bid has been picked
-                # => ask the user with the top bid to send the contribution
-                top_bid = auction.get_top_bid()
-                if top_bid and auction.reserve_bid_reached:
-                    auction.contribution_amount = int(auction.seller.contribution_percent / 100 * top_bid.amount)
-                    if auction.contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
-                        auction.contribution_amount = 0 # probably not worth the fees, at least in the next few years
-
-                        # settle the contribution and pick the winner right away
-                        auction.contribution_requested_at = auction.contribution_settled_at = datetime.utcnow()
-                        auction.winning_bid_id = top_bid.id
-                    else:
-                        response = get_lnd_client().add_invoice(value=auction.contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY'])
-                        auction.contribution_payment_request = response.payment_request
-                        auction.contribution_requested_at = datetime.utcnow()
-                    db.session.commit()
-        return jsonify({'auction': auction.to_dict(for_user=(user.id if user else None))})
+        if isinstance(entity, m.Auction):
+            entity.set_contribution()
+        return jsonify({singular: entity.to_dict(for_user=(user.id if user else None))})
     else:
-        is_changing_featured_state = request.method == 'PUT' and 'is_featured' in set(request.json.keys())
-        is_changing_featured_state_only = request.method == 'PUT' and set(request.json.keys()) == {'is_featured'}
+        is_changing_hidden_state = request.method == 'PUT' and 'is_hidden' in set(request.json.keys())
+        is_changing_hidden_state_only = request.method == 'PUT' and set(request.json.keys()) == {'is_hidden'}
 
-        if is_changing_featured_state and not is_changing_featured_state_only:
-            return jsonify({'message': "When changing is_featured, nothing else can be changed in the same request."}), 400
+        if is_changing_hidden_state and not is_changing_hidden_state_only:
+            return jsonify({'message': "When changing hidden state, nothing else can be changed in the same request."}), 400
 
         if not user:
             return jsonify({'message': "Unauthorized"}), 401
-        if is_changing_featured_state and not user.is_moderator:
-            return jsonify({'message': "Unauthorized"}), 401
-        if user.id != auction.seller_id and not is_changing_featured_state:
+        if is_changing_hidden_state and not user.is_moderator:
             return jsonify({'message': "Unauthorized"}), 401
 
-        if auction.started and not is_changing_featured_state_only:
-            return jsonify({'message': "Cannot edit an auction once started."}), 403
+        ########
+        # NB: temporary measure to generate items for existing auctions
+        if isinstance(entity, m.Auction):
+            entity.ensure_item()
+        ########
+
+        if user.id != entity.item.seller_id and not is_changing_hidden_state:
+            return jsonify({'message': "Unauthorized"}), 401
+
+        if isinstance(entity, m.Auction) and entity.started and not is_changing_hidden_state_only:
+            return jsonify({'message': "Cannot edit auctions once started."}), 403
 
         if request.method == 'PUT':
             try:
-                validated = m.Auction.validate_dict(request.json)
+                validated_item = m.Item.validate_dict(request.json)
+                validated = cls.validate_dict(request.json)
             except m.ValidationError as e:
                 return jsonify({'message': e.message}), 400
 
+            for k, v in validated_item.items():
+                setattr(entity.item, k, v)
             for k, v in validated.items():
-                setattr(auction, k, v)
+                setattr(entity, k, v)
 
             db.session.commit()
 
             return jsonify({})
         elif request.method == 'DELETE':
-            db.session.delete(auction)
+            db.session.delete(entity)
             db.session.commit()
 
             return jsonify({})
@@ -410,14 +442,32 @@ def follow_auction(user, key):
 
     return jsonify({'message': message})
 
-@api_blueprint.route('/api/auctions/<string:key>/start-twitter', methods=['PUT'])
+@api_blueprint.route('/api/auctions/<string:key>/start-twitter',
+    defaults={'cls': m.Auction, 'singular': 'auction', 'plural': 'auctions'},
+    methods=['PUT'])
+@api_blueprint.route('/api/listings/<string:key>/start-twitter',
+    defaults={'cls': m.Listing, 'singular': 'listing', 'plural': 'listings'},
+    methods=['PUT'])
 @user_required
-def start_twitter(user, key):
-    auction = m.Auction.query.filter_by(key=key).first()
-    if not auction:
+def start(user, key, cls, singular, plural):
+    entity = cls.query.filter_by(key=key).first()
+    if not entity:
         return jsonify({'message': "Not found."}), 404
-    if auction.seller_id != user.id:
+
+    ########
+    # NB: temporary measure to generate items for existing auctions
+    if isinstance(entity, m.Auction):
+        entity.ensure_item()
+    ########
+
+    if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized"}), 401
+
+    if user.contribution_percent is None:
+        return jsonify({'message': "User did not set a contribution."}), 400
+    if isinstance(entity, m.Listing):
+        if not user.xpub:
+            return jsonify({'message': "User did not set an XPUB."}), 400
 
     twitter = get_twitter()
     twitter_user = twitter.get_user(user.twitter_username)
@@ -427,11 +477,11 @@ def start_twitter(user, key):
     if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
         return jsonify({'message': "Error fetching profile picture!"}), 500
 
-    tweets = twitter.get_auction_tweets(twitter_user['id'])
+    tweets = twitter.get_sale_tweets(twitter_user['id'], plural)
     tweet = None
     for t in sorted(tweets, key=lambda t: t['created_at'], reverse=True):
         # we basically pick the last tweet that matches the auction
-        if t['auction_key'] == auction.key:
+        if t['auction_key'] == entity.key:
             tweet = t
             break
 
@@ -442,16 +492,25 @@ def start_twitter(user, key):
         return jsonify({'message': "Tweet does not have any attached pictures."}), 400
 
     user.twitter_username_verified = True
-    auction.twitter_id = tweet['id']
-    auction.start_date = datetime.utcnow()
-    auction.end_date = auction.start_date + timedelta(hours=auction.duration_hours)
+    entity.twitter_id = tweet['id']
+    entity.start_date = datetime.utcnow()
 
-    m.Media.query.filter_by(auction_id=auction.id).delete()
+    if isinstance(entity, m.Auction):
+        entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
+
+    m.Media.query.filter_by(item_id=entity.item.id).delete()
+    ########
+    # TODO: remove this after removing auction_id from Media
+    auction_id = None
+    if isinstance(entity, m.Auction):
+        m.Media.query.filter_by(auction_id=entity.id).delete()
+        auction_id = entity.id
+    ########
 
     s3 = get_s3()
     for i, photo in enumerate(tweet['photos'], 1):
-        media = m.Media(auction_id=auction.id, twitter_media_key=photo['media_key'], url=photo['url'])
-        if not media.fetch(s3, f"auction_{auction.key}_media_{i}"):
+        media = m.Media(item_id=entity.item.id, auction_id=auction_id, twitter_media_key=photo['media_key'], url=photo['url'])
+        if not media.fetch(s3, f"{singular}_{entity.key}_media_{i}"):
             return jsonify({'message': "Error fetching picture!"}), 400
         db.session.add(media)
 
@@ -461,7 +520,7 @@ def start_twitter(user, key):
 
 @api_blueprint.route('/api/auctions/<string:key>/bids', methods=['POST'])
 @user_required
-def bids(user, key):
+def post_bid(user, key):
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
         return jsonify({'message': "Not found."}), 404
@@ -507,45 +566,117 @@ def bids(user, key):
         ] + (["Started following the auction."] if started_following else []),
     })
 
+@api_blueprint.route('/api/listings/<string:key>/buy', methods=['PUT'])
+@user_required
+def put_buy(user, key):
+    listing = m.Listing.query.filter_by(key=key).first()
+    if not listing:
+        return jsonify({'message': "Not found."}), 404
+    if not listing.started or listing.ended:
+        return jsonify({'message': "Listing not active."}), 403
 
-@api_blueprint.route('/api/users/<string:nym>/auctions', methods=['GET'])
-def user_auctions(nym):
+    # NB: for now the quantity is always 1,
+    # but storing this in the DB makes it easy in case we want to change this later on:
+    # it would just be a matter of getting a quantity from the UI and sending it here to be used instead of 1.
+    quantity = 1
+
+    if listing.available_quantity < quantity:
+        return jsonify({'message': "Not enough items in stock!"}), 400
+
+    listing.available_quantity -= quantity
+
+    price_sats = int(listing.price_usd / btc2fiat.get_value('kraken') * 100000000)
+
+    contribution_amount = int(listing.item.seller.contribution_percent / 100 * price_sats * quantity)
+    response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_BID_INVOICE_EXPIRY'])
+    contribution_payment_request = response.payment_request
+
+    amount = (price_sats * quantity) - contribution_amount
+
+    k = BTC.parse(listing.item.seller.xpub)
+
+    btc = get_btc_client()
+
+    address = None
+    while True:
+        if listing.item.seller.xpub_index is None:
+            listing.item.seller.xpub_index = 0
+
+        address = k.subkey(0).subkey(listing.item.seller.xpub_index).address()
+
+        listing.item.seller.xpub_index += 1
+
+        existing_txs = btc.get_funding_txs(address)
+        if existing_txs is None:
+            return jsonify({'message': "Error reading from mempool API!"}), 500
+
+        if existing_txs:
+            app.logger.warning("Skipping address with existing txs.")
+            continue
+
+        if m.Sale.query.filter_by(address=address).first():
+            app.logger.warning("Skipping address with existing sale.")
+            continue
+
+        sale = m.Sale(item_id=listing.item.id, listing_id=listing.id, buyer_id=user.id,
+            address=address, price=price_sats, quantity=quantity, amount=amount,
+            contribution_amount=contribution_amount, contribution_payment_request=contribution_payment_request)
+        db.session.add(sale)
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            return jsonify({'message': "Address already in use. Please try again."}), 500
+
+        break
+
+    contribution_payment_qr = BytesIO()
+    pyqrcode.create(contribution_payment_request).svg(contribution_payment_qr, omithw=True, scale=4)
+
+    address_qr = BytesIO()
+    pyqrcode.create(address).svg(address_qr, omithw=True, scale=4)
+
+    return jsonify({
+        'contribution_amount': contribution_amount,
+        'contribution_payment_request': contribution_payment_request,
+        'contribution_payment_qr': contribution_payment_qr.getvalue().decode('utf-8'),
+        'amount': amount,
+        'address': address,
+        'address_qr': address_qr.getvalue().decode('utf-8'),
+        'messages': ["Please make the payment in order to confirm the sale!"],
+    })
+
+@api_blueprint.route("/api/users/<nym>/auctions",
+    defaults={'plural': 'auctions'},
+    methods=['GET'])
+@api_blueprint.route("/api/users/<nym>/listings",
+    defaults={'plural': 'listings'},
+    methods=['GET'])
+def get_user_entities(nym, plural):
     for_user = get_user_from_token(get_token_from_request())
-    for_user_id = None
-    if for_user:
-        for_user_id = for_user.id
-    user_owned_store = for_user and for_user.nym == nym
+    for_user_id = for_user.id if for_user else None
+
     user = m.User.query.filter_by(nym=nym).first()
+
     if not user:
-        return jsonify({'message': "No auctions found"}), 404
-    now = datetime.now()
-    auction_status = request.args.get('filter')
-    if auction_status == "running":
-        filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date > now)
-    elif auction_status == "ended":
-        filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date < now)
-    elif auction_status == "new":
-        if user_owned_store:
-            filtered_auctions = user.auctions.filter(
-                or_(
-                    m.Auction.start_date > now,
-                    m.Auction.start_date == None
-                )
-            )
-        else:
-            filtered_auctions = []
-    else:
-        if user_owned_store:  # return all auctions if own store and logged in
-            filtered_auctions = user.auctions.all()
-        else:
-            filtered_auctions = user.auctions.filter(m.Auction.start_date <= now)
-    return jsonify({'auctions': [a.to_dict(for_user=for_user_id) for a in sorted(filtered_auctions, key=lambda a: a.created_at, reverse=True)]})
+        return jsonify({'message': "User not found."}), 404
 
+    entities = {}
+    for item in user.items:
+        for entity in getattr(item, plural):
+            if entity.matches_filter(for_user_id, request.args.get('filter')):
+                entities[f"{plural}_{entity.id}"] = entity
 
-@api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
-def store_view(nym):
-    if request.method == 'GET':
-        user = m.User.query.filter_by(nym=nym).first()
-        if not user:
-            return jsonify({'message': "User not found"}), 404
-        return jsonify({'user': user.to_dict()})
+    # TODO: this part can be removed after we ensure all auctions in the DB have corresponding items
+    # (and at that point, FilterStateMixin becomes useless as well)
+    ########
+    if plural == 'auctions':
+        for auction in user.auctions:
+            if f"auctions_{auction.id}" not in entities:
+                if auction.matches_filter(for_user_id, request.args.get('filter')):
+                    entities[f"auctions_{auction.id}"] = auction
+    ########
+
+    sorted_entities = sorted(entities.values(), key=lambda l: l.created_at, reverse=True)
+
+    return jsonify({plural: [e.to_dict(for_user=for_user_id) for e in sorted_entities]})

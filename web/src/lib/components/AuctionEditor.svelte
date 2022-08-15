@@ -5,6 +5,7 @@
     import { isLocal, isStaging } from "$lib/utils";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
+    import ShippingEditor from "$lib/components/ShippingEditor.svelte";
 
     export let entity: IEntity;
     $: auction = <Auction>entity;
@@ -45,7 +46,7 @@
 </script>
 
 <div class="w-full flex justify-center items-center">
-    <div class="card bg-base-300 w-full lg:w-4/6 lg:p-4 rounded shadow-2xl mt-3">
+    <div class="card bg-base-300 w-full lg:p-4 rounded shadow-2xl mt-3">
         <div class="card-body items-center">
             <h2 class="card-title text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
             <form>
@@ -78,26 +79,10 @@
                         </label>
                     </div>
                 </div>
-                <div class="form-control w-full max-w-xs mt-3">
-                    <label class="label" for="shipping_from">
-                        <span class="label-text">Shipping from (optional)</span>
-                    </label>
-                    <input bind:value={auction.shipping_from} type="text" name="shipping_from" class="input input-bordered w-full max-w-xs" />
-                </div>
-                <div class="flex mt-3">
-                    <div class="form-control w-1/2 max-w-xs mr-1">
-                        <label class="label" for="shipping-estimate-domestic">
-                            <span class="label-text">Domestic shipping estimate (optional)</span>
-                        </label>
-                        <input bind:value={auction.shipping_estimate_domestic} type="text" name="shipping-estimate-domestic" class="input input-bordered w-full max-w-xs" />
-                    </div>
-                    <div class="form-control w-1/2 max-w-xs ml-1">
-                        <label class="label" for="shipping-estimate-worldwide">
-                            <span class="label-text">Worldwide shipping estimate (optional)</span>
-                        </label>
-                        <input bind:value={auction.shipping_estimate_worldwide} type="text" name="shipping-estimate-worldwide" class="input input-bordered w-full max-w-xs" />
-                    </div>
-                </div>
+                <ShippingEditor
+                    bind:shipping_from={auction.shipping_from}
+                    bind:shipping_estimate_domestic={auction.shipping_estimate_domestic}
+                    bind:shipping_estimate_worldwide={auction.shipping_estimate_worldwide} />
                 <div class="form-control mr-2 w-full">
                     <label class="label" for="duration">
                         <span class="label-text">Duration</span>
@@ -125,7 +110,7 @@
                     <button class="btn mt-1" on:click|preventDefault={onCancel}>Cancel</button>
                 </div>
                 <div class="w-1/2 flex justify-center items-center">
-                    {#if auction.title.length === 0 || auction.description.length === 0}
+                    {#if !auction.validate()}
                         <button class="btn mt-1" disabled>Save</button>
                     {:else}
                         <div class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>

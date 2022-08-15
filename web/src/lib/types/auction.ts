@@ -1,5 +1,6 @@
 import { isLocal, isStaging } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
+import type { Item, Media } from "$lib/types/item";
 import type { IAccount } from "$lib/types/user";
 
 export interface Bid {
@@ -9,15 +10,11 @@ export interface Bid {
     settled_at?: Date;
 }
 
-export interface Media {
-    url: string;
-    twitter_media_key: string;
-}
-
-export class Auction implements IEntity {
+export class Auction implements IEntity, Item {
     static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide', 'starting_bid', 'reserve_bid', 'duration_hours'];
 
     endpoint = "auctions";
+    loader = {endpoint: this.endpoint, responseField: 'auction', fromJson};
 
     key: string = "";
     title: string = "";
@@ -58,13 +55,8 @@ export class Auction implements IEntity {
     winner_twitter_username_verified?: boolean;
     winner_twitter_profile_image_url?: string;
 
-    invalidTitle?: boolean;
-    invalidDescription?: boolean;
-
     public validate() {
-        this.invalidTitle = this.title.length === 0;
-        this.invalidDescription = this.description.length === 0;
-        return !(this.invalidTitle || this.invalidDescription);
+        return !(this.title.length === 0 || this.description.length === 0);
     }
 
     public topBid() {

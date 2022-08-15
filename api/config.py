@@ -36,6 +36,8 @@ ENV = os.environ.get('ENV')
 
 BASE_URL = os.environ.get('BASE_URL')
 
+MOCK_BTC = bool(int(os.environ.get("MOCK_BTC", 0)))
+
 MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
 LND_GRPC = os.environ.get('LND_GRPC')
 LND_MACAROON = "/secrets/admin.macaroon"
@@ -44,6 +46,8 @@ LND_BID_INVOICE_AMOUNT = 21
 LND_BID_INVOICE_EXPIRY = 10 * 60 # 10 minutes
 LND_CONTRIBUTION_INVOICE_EXPIRY = 3 * 24 * 60 * 60 # 3 days
 MINIMUM_CONTRIBUTION_AMOUNT = 21
+
+BTC_TRANSACTION_TIMEOUT_MINUTES = 60
 
 MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
 TWITTER_USER_MIN_AGE_DAYS = 210

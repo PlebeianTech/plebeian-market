@@ -1,4 +1,4 @@
-# plebeian.market auctions
+# Plebeian Market
 
 ```./scripts/test.sh``` to run the automated tests for the API
 

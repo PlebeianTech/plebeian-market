@@ -13,9 +13,9 @@
 
     let TWITTER_PAGE = "Twitter";
     let NOTIFICATIONS_PAGE = "Notifications";
-    let XPUB_PAGE = "XPUB";
+    let WALLET_PAGE = "Your wallet";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [TWITTER_PAGE, NOTIFICATIONS_PAGE, XPUB_PAGE, V4V_PAGE];
+    let pages = [TWITTER_PAGE, NOTIFICATIONS_PAGE, WALLET_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     onMount(async () => {
@@ -43,7 +43,7 @@
                     {/if}
                 {:else if currentPage === NOTIFICATIONS_PAGE}
                     <Notifications />
-                {:else if currentPage === XPUB_PAGE}
+                {:else if currentPage === WALLET_PAGE}
                     <XPUB />
                 {:else if currentPage === V4V_PAGE}
                     <V4V />

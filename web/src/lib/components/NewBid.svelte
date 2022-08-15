@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { postBid } from "../services/api";
+    import { postBid } from "$lib/services/api";
     import { Info, token } from "../stores";
     import AmountFormatter, { AmountFormat } from './AmountFormatter.svelte';
     import QR from "./QR.svelte";

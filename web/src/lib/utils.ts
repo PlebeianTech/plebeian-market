@@ -35,3 +35,11 @@ export function sats2usd(sats: number, btc2usd: number | null): number | null {
         return sats / 100000000 * btc2usd;
     }
 }
+
+export function usd2sats(usd: number, btc2usd: number | null): number | null {
+    if (btc2usd === null) {
+        return null;
+    } else {
+        return usd / btc2usd * 100000000;
+    }
+}

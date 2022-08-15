@@ -13,7 +13,11 @@ services:
     environment:
       - VIRTUAL_HOST=plebeian.market
       - LETSENCRYPT_HOST=plebeian.market
-  settle-bids:
+  settle-btc-payments:
+    environment:
+      - FLASK_APP=main
+      - LOG_LEVEL=INFO
+  settle-lnd-payments:
     environment:
       - FLASK_APP=main
       - LND_GRPC=plebeian-market.m.voltageapp.io:10009
