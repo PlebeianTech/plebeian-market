@@ -9,6 +9,7 @@ from flask import Blueprint, jsonify, request
 import jwt
 import lnurl
 import pyqrcode
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 
@@ -512,6 +513,7 @@ def user_auctions(nym):
     for_user_id = None
     if for_user:
         for_user_id = for_user.id
+    user_owned_store = for_user and for_user.nym == nym
     user = m.User.query.filter_by(nym=nym).first()
     if not user:
         return jsonify({'message': "No auctions found"}), 404
@@ -522,9 +524,20 @@ def user_auctions(nym):
     elif auction_status == "ended":
         filtered_auctions = user.auctions.filter(m.Auction.start_date <= now, m.Auction.end_date < now)
     elif auction_status == "new":
-        filtered_auctions = user.auctions.filter(m.Auction.start_date==None, m.Auction.end_date==None)
+        if user_owned_store:
+            filtered_auctions = user.auctions.filter(
+                or_(
+                    m.Auction.start_date > now,
+                    m.Auction.start_date == None
+                )
+            )
+        else:
+            filtered_auctions = []
     else:
-        filtered_auctions = user.auctions.all()
+        if user_owned_store:  # return all auctions if own store and logged in
+            filtered_auctions = user.auctions.all()
+        else:
+            filtered_auctions = user.auctions.filter(m.Auction.start_date <= now)
     return jsonify({'auctions': [a.to_dict(for_user=for_user_id) for a in sorted(filtered_auctions, key=lambda a: a.created_at, reverse=True)]})
 
 
