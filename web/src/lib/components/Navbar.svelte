@@ -9,7 +9,6 @@
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
-    import Avatar from "$lib/components/Avatar.svelte";
 
     let modal : Modal | null;
 
@@ -112,8 +111,10 @@
             </label>
             {#if $token && $user}
                 <div class="dropdown dropdown-end">
-                    <label for={null} tabindex="0" class="btn btn-ghost btn-circle avatar">
-                        <Avatar account={$user.twitter} showUsername={false} linkActive={false} />
+                    <label for={null} tabindex="0" class:verified={$user.twitter.usernameVerified} class:not-verified={!$user.twitter.usernameVerified} class="btn btn-ghost btn-circle avatar">
+                        <div class="w-10 rounded-full">
+                            <img src={$user.twitter.profileImageUrl} alt="Avatar" />
+                        </div>
                     </label>
                     <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
                         {#if !$user.twitter.usernameVerified}
