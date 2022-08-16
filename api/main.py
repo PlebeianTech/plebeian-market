@@ -406,8 +406,10 @@ class Twitter:
                     'text': tweet['text'],
                     'created_at': tweet['created_at'],
                     'auction_key': auction_key,
-                    'photos': [m for m in response_json['includes']['media']
-                        if m['media_key'] in media_keys and m['type'] == 'photo'],
+                    'photos': [
+                        m for m in response_json['includes']['media']
+                            if m['media_key'] in media_keys and m['type'].lower() in ('animated_gif', 'photo')
+                    ],
                 })
 
         return auction_tweets
