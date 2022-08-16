@@ -30,7 +30,7 @@
     }
 
     function fetchProfile(tokenValue) {
-        getProfile(tokenValue, u => { user.set(u); });
+        getProfile(tokenValue, 'me', u => { user.set(u); });
     }
 
     async function fetchFiatRate() {

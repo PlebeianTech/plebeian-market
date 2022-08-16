@@ -143,19 +143,8 @@ export function getFeaturedAuctions(successCB: (auctions: Auction[]) => void) {
             });
 }
 
-export function getProfile(tokenValue, successCB: (User) => void) {
-    fetchAPI("/users/me", 'GET', tokenValue, null,
-        (response) => {
-            if (response.status === 200) {
-                response.json().then(data => {
-                    successCB(userFromJson(data.user));
-                });
-            }
-        });
-}
-
-export function getStall(nym: string, successCB: (User) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/users/${nym}`, 'GET', null, null,
+export function getProfile(tokenValue, nym: string, successCB: (User) => void, errorHandler = new ErrorHandler(false)) {
+    fetchAPI(`/users/${nym}`, 'GET', tokenValue, null,
         (response) => {
             if (response.status === 200) {
                 response.json().then(data => {
