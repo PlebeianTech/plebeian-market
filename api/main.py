@@ -297,7 +297,7 @@ class MockTwitter:
     def get_user(self, username):
         return {
             'id': "MOCK_USER_ID",
-            'profile_image_url': f"https://api.lorem.space/image/face?hash={random.randint(1, 1000)}",
+            'profile_image_url': "https://source.unsplash.com/random/200x200",
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
             'created_at': datetime.now() - timedelta(days=(app.config['TWITTER_USER_MIN_AGE_DAYS'] + 1)),
         }
@@ -316,7 +316,7 @@ class MockTwitter:
             'created_at': datetime.now().isoformat(),
             'auction_key': MockTwitter.MockKey(),
             'photos': [
-                {'media_key': f"MOCK_PHOTO_{i}", 'url': f"https://api.lorem.space/image/watch?hash={random.randint(1, 1000)}"}
+                {'media_key': f"MOCK_PHOTO_{i}", 'url': "https://source.unsplash.com/random/1024x1024"}
                 for i in range(4)
             ]
         }]
