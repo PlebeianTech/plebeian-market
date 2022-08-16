@@ -19,6 +19,7 @@
     let tabList;
     let loading = true;
     let cardType;
+    let showAsGrid;
 
     function fetchStall(stallOwnerNym: string) {
         getStall(stallOwnerNym, 
@@ -27,10 +28,12 @@
                 loading = false;
                 if ($user && $user.nym === stallOwner.nym) {
                     cardType = AuctionCard;
-                    tabList = ["NOT RUNNING"].concat(tabList);
-                    currentTab = "NOT RUNNING";
+                    showAsGrid = false;
+                    tabList = ["NEW AUCTIONS"].concat(tabList);
+                    currentTab = "NEW AUCTIONS";
                 } else {
                     cardType = PublicAuctionCard;
+                    showAsGrid = true;
                 }
             }, 
             new ErrorHandler(false, () => {
@@ -60,7 +63,7 @@
         {/each}
     </div>
     <div class="pt-6 pb-6">
-        {#if currentTab === 'NOT RUNNING'}
+        {#if currentTab === 'NEW AUCTIONS'}
             <div class="h-auto">
                 <ListView
                     title="{stallOwner.nym}'s Stall"
@@ -69,29 +72,27 @@
                     editor={AuctionEditor}
                     showNewButton={true}
                     card={AuctionCard}
-                    showAsGrid={true} />
+                    showAsGrid={false} />
             </div>
         {:else if currentTab === 'ACTIVE AUCTIONS'}
             <div class="h-auto">
                 <ListView
                     title="{stallOwner.nym}'s Stall"
                     loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=running`, responseField: 'auctions', fromJson}}
-                    newEntity={() => new Auction()}
                     editor={null}
                     showNewButton={false}
                     card={cardType}
-                    showAsGrid={true} />
+                    showAsGrid={showAsGrid} />
             </div>
         {:else if currentTab === 'PAST AUCTIONS'}
             <div class="h-auto">
                 <ListView
                     title="{stallOwner.nym}'s Stall"
                     loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=ended`, responseField: 'auctions', fromJson}}
-                    newEntity={() => new Auction()}
                     editor={null}
                     showNewButton={false}
                     card={cardType}
-                    showAsGrid={true} />
+                    showAsGrid={showAsGrid} />
             </div>
         {/if}
     </div>

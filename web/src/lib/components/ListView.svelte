@@ -12,7 +12,7 @@
     export let showNewButton: boolean = true;
     export let showAsGrid = false;
 
-    export let newEntity: () => IEntity | undefined;
+    export let newEntity: (() => IEntity) | undefined = undefined;
     export let onCreated: () => void = () => { };
     export let onView: (entity: IEntity) => void = (_) => { };
 
@@ -61,7 +61,7 @@
     let interval: ReturnType<typeof setInterval> | undefined;
 
     onMount(async () => {
-        fetchEntities(() => { currentEntity = entities && entities.length === 0 ? newEntity() : undefined; });
+        fetchEntities(() => { currentEntity = entities && entities.length === 0 && newEntity !== undefined ? newEntity() : undefined; });
         interval = setInterval(fetchEntities, 10000);
     });
 
@@ -84,7 +84,7 @@
         <Loading />
     {:else}
         {#if showNewButton}
-            <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = newEntity()}></div>
+            <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = newEntity !== undefined ? newEntity() : undefined}></div>
         {/if}
 
         {#if !showAsGrid}
