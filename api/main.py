@@ -368,16 +368,19 @@ class Twitter:
 
         return twitter_user
 
-    def get_tweet_likes(self, tweet_id):
-        response_json = self.get(f"/2/tweets/{tweet_id}/liking_users",
-            params={
-                'user.fields': "username",
-            })
+    def get_tweet_likes(self, tweet_id, next_token=None):
+        params = {'user.fields': "username"}
+        if next_token:
+            params['pagination_token'] = next_token
+        response_json = self.get(f"/2/tweets/{tweet_id}/liking_users", params=params)
 
         if not response_json or response_json.get('errors'):
-            return
+            return []
 
-        return [u['username'].lower() for u in response_json['data']]
+        next_token = response_json.get('meta', {}).get('next_token')
+        next_likes = self.get_tweet_likes(tweet_id, next_token) if next_token else []
+
+        return [u['username'].lower() for u in response_json.get('data', [])] + next_likes
 
     def get_auction_tweets(self, user_id):
         response_json = self.get(f"/2/users/{user_id}/tweets",
