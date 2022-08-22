@@ -25,8 +25,8 @@
                 Info.set("Your Twitter username has been saved!");
                 saving = false;
                 onSave();
-                // redirect user when they enter twitter
-                if ($page.url.pathname !== "/settings") {
+
+                if ($page.url.pathname !== "/settings" && localStorage.getItem('initial-login-buyer') !== "1") {
                     goto(`/stall/${u.nym}`);
                 }
             },
