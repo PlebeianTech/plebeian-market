@@ -4,6 +4,8 @@
 
     export let profileUser: User;
     export let showDivider = true;
+
+    $: href = profileUser.twitter.usernameVerified ? `https://twitter.com/${profileUser.twitter.username}` : null;
 </script>
 
 <div class="w-full md:w-1/2 mx-auto mt-5">
@@ -14,7 +16,7 @@
             </div>
         </div>
         <span class="font-thin text-3xl mx-4">
-            @{profileUser.nym}
+            <a href={href} class:link={href !== null}>@{profileUser.nym}</a>
         </span>
     </div>
 </div>

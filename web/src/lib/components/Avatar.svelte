@@ -4,8 +4,6 @@
     export let account: IAccount;
     export let height = "8";
     export let showUsername = true;
-
-    $: href = account.usernameVerified ? `https://twitter.com/${account.username}` : null;
 </script>
 
 <div class="avatar" class:verified={account.usernameVerified} class:not-verified={!account.usernameVerified}>
@@ -16,6 +14,6 @@
 
 {#if showUsername}
     <span class="font-bold">
-        <a href={href}>{account.username}</a>
+        <a class="link" href="/stall/{account.username}">{account.username}</a>
     </span>
 {/if}
