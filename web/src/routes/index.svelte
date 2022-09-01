@@ -7,9 +7,19 @@
     import Typewriter from "../lib/components/Typewriter.svelte";
     import type { Auction } from "../lib/types/auction";
     import { getFeaturedAuctions } from "../lib/services/api";
+    import { user } from "$lib/stores";
     import { onMount } from "svelte";
 
     let auctions: Auction[] | null = null;
+
+    function go() {
+        if ($user && $user.nym) {
+            window.location.href = `${window.location.protocol}//${window.location.host}/stall/${$user.nym}`;
+        } else {
+            window.location.href = `${window.location.protocol}//${window.location.host}/login`;
+        }
+        
+    }
 
     onMount(async () => {
         getFeaturedAuctions(a => { auctions = a; });
@@ -51,7 +61,7 @@
     Let's get the market started...
 </div>
 <div class="flex justify-center items-center">
-    <div class="glowbutton glowbutton-go mb-5" on:click={() => { window.location.href = `${window.location.protocol}//${window.location.host}/login`; }}></div>
+    <div class="glowbutton glowbutton-go mb-5" on:click={go}></div>
 </div>
 <div class="grid grid-cols-1 w-full gap-4 md:grid-cols-2 lg:grid-cols-3">
     {#if auctions !== null}

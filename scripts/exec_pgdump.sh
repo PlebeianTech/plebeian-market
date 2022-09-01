@@ -2,4 +2,4 @@
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
-$DIR/exec.sh plebeian-market-db-1 pg_dump -Upleb market
+$DIR/exec.sh db pg_dump -Upleb market
