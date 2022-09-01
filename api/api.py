@@ -120,8 +120,9 @@ def me(user):
                     return jsonify({'message': "Twitter profile not found!"}), 400
 
                 if app.config['ENV'] == 'prod':
-                    if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
-                        return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
+                    if user.twitter_username not in app.config['TWITTER_USER_MIN_AGE_DAYS_WHITELIST']:
+                        if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
+                            return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
                 if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
                     return jsonify({'message': "Error fetching profile picture!"}), 400

@@ -47,6 +47,7 @@ MINIMUM_CONTRIBUTION_AMOUNT = 21
 
 MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
 TWITTER_USER_MIN_AGE_DAYS = 210
+TWITTER_USER_MIN_AGE_DAYS_WHITELIST = ["ghostofmtc"]
 TWITTER_SECRETS = "/secrets/twitter.json"
 TWITTER_USER = "PlebeianMarket"
 
