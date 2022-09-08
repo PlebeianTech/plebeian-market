@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { putBuy } from "$lib/services/api";
+    import { ErrorHandler, putBuy } from "$lib/services/api";
     import { Info, token } from "$lib/stores";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import QR from "$lib/components/QR.svelte";
@@ -13,7 +13,9 @@
     let address = null;
     let addressQr = null;
 
+    let waitingResponse = false;
     function buy() {
+        waitingResponse = true;
         putBuy($token, listingKey,
             (ca, cr, cqr, a, addr, aqr, messages) => {
                 contributionAmount = ca;
@@ -25,7 +27,9 @@
                 for (const message of messages) {
                     setTimeout(() => Info.set(message), 0);
                 }
-            });
+                waitingResponse = false;
+            },
+            new ErrorHandler(true, () => waitingResponse = false));
     }
 
     export function waitingSettlement() {
@@ -54,15 +58,19 @@
 </script>
 
 <div>
-{#if contributionPaymentQr}
-    <p>The seller wishes to donate <AmountFormatter satsAmount={contributionAmount} /> sats out of the total price to Plebeian Technology. Please send the amount using the QR code below!</p>
-    <QR bind:qr={contributionPaymentQr} bind:lnurl={contributionPaymentRequest} />
-{:else if address}
-    <p>Please send the remaining amount of <AmountFormatter satsAmount={amount} /> sats directly to the seller!</p>
-    <QR bind:qr={addressQr} bind:lnurl={address} />
-{:else}
-    <div class="w-full flex items-center justify-center">
-        <div class="glowbutton glowbutton-buy mt-2" on:click|preventDefault={buy}></div>
-    </div>
-{/if}
+    {#if contributionPaymentQr}
+        <p>The seller wishes to donate <AmountFormatter satsAmount={contributionAmount} /> sats out of the total price to Plebeian Technology. Please send the amount using the QR code below!</p>
+        <QR bind:qr={contributionPaymentQr} bind:lnurl={contributionPaymentRequest} />
+    {:else if address}
+        <p>Please send the remaining amount of <AmountFormatter satsAmount={amount} /> sats directly to the seller!</p>
+        <QR bind:qr={addressQr} bind:lnurl={address} />
+    {:else}
+        {#if waitingResponse}
+            <button class="btn" disabled>Buy</button>
+        {:else}
+            <div class="w-full flex items-center justify-center">
+                <div class="glowbutton glowbutton-buy mt-2" on:click|preventDefault={buy}></div>
+            </div>
+        {/if}
+    {/if}
 </div>
