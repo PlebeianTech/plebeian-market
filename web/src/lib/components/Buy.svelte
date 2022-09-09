@@ -32,6 +32,10 @@
             new ErrorHandler(true, () => waitingResponse = false));
     }
 
+    export function getAddress() {
+        return address;
+    }
+
     export function waitingSettlement() {
         return contributionPaymentRequest !== null || address !== null;
     }
@@ -50,8 +54,9 @@
         amount = address = addressQr = null;
     }
 
-    export function paymentConfirmed(a) {
+    export function paymentDetected(a) {
         if (address === a) {
+            Info.set("Thank you! The seller will be notified once the payment is confirmed!");
             reset();
         }
     }

@@ -5,7 +5,7 @@
     import { Error, Info, token, user } from "$lib/stores";
     import type { Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
-    import { Listing } from "$lib/types/listing";
+    import { Listing, SaleState } from "$lib/types/listing";
     import type { User } from "$lib/types/user";
     import Avatar from "$lib/components/Avatar.svelte";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
@@ -22,6 +22,8 @@
 
     let newBid: NewBid;
     let buy: Buy;
+
+    let buyExpired = false;
 
     let item: Item | null = null;
     let bidCount = 0;
@@ -65,12 +67,16 @@
                 }
             } else if (item instanceof Listing) {
                 for (const sale of item.sales) {
-                    console.log(sale)
                     if (buy && sale.contribution_settled_at) {
                         buy.contributionPaymentConfirmed(sale.contribution_payment_request);
                     }
-                    if (buy && sale.settled_at) {
-                        buy.paymentConfirmed(sale.address);
+                    if (buy && ((sale.state === SaleState.TX_DETECTED) || (sale.state === SaleState.TX_CONFIRMED))) {
+                        buy.paymentDetected(sale.address);
+                    }
+                    if (buy && sale.state === SaleState.EXPIRED && sale.address === buy.getAddress()) {
+                        buyExpired = true;
+                        buy.resetContribution();
+                        buy.reset();
                     }
                 }
 
@@ -132,6 +138,18 @@
                     </svg>
                     <span>
                         Your sale is not running. Please go to <a class="link" href="/stall/{$user.nym}">My stall</a> and click Start!
+                    </span>
+                </div>
+            </div>
+        {/if}
+        {#if buyExpired}
+            <div class="alert alert-error shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                        Sale expired. The transaction was not confirmed in time. Please try again!
                     </span>
                 </div>
             </div>

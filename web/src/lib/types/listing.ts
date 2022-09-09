@@ -2,7 +2,16 @@ import type { IEntity } from "$lib/types/base";
 import type { Item, Media } from "$lib/types/item";
 import type { IAccount } from "$lib/types/user";
 
+export enum SaleState {
+    REQUESTED = 'REQUESTED',
+    CONTRIBUTION_SETTLED = 'CONTRIBUTION_SETTLED',
+    TX_DETECTED = 'TX_DETECTED',
+    TX_CONFIRMED = 'TX_CONFIRMED',
+    EXPIRED = 'EXPIRED',
+}
+
 export interface Sale {
+    state: SaleState;
     price: number;
     quantity: number;
     buyer: IAccount;
@@ -60,6 +69,7 @@ export function fromJson(json: any): IEntity {
         } else if (k === 'sales') {
             for (const salejson of json[k]) {
                 var s: Sale = {
+                    state: SaleState.REQUESTED,
                     price: 0, quantity: 0,
                     buyer: {username: "", profileImageUrl: "", usernameVerified: false},
                     address: "",

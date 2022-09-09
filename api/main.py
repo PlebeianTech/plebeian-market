@@ -116,6 +116,7 @@ def settle_lnd_payments():
                         sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
                         if sale:
                             found_invoice = True
+                            sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
                             sale.contribution_settled_at = datetime.utcnow()
                             app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
                 if found_invoice:
@@ -132,37 +133,54 @@ def settle_btc_payments():
     app.logger.setLevel(getattr(logging, LOG_LEVEL))
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
 
-    while True:
-        btc = get_btc_client()
+    btc = get_btc_client()
 
+    app.logger.info(f"Starting to settle BTC payments using {type(btc)}...")
+
+    while True:
         sales_to_settle_filter = m.Sale.contribution_settled_at != None
         sales_to_expire_filter = m.Sale.requested_at < (datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']))
 
-        for sale in db.session.query(m.Sale).filter((m.Sale.settled_at == None) & (m.Sale.expired_at == None) & (sales_to_settle_filter | sales_to_expire_filter)):
-            if app.config['ENV'] == 'test' and sale.requested_at >= (datetime.utcnow() - timedelta(seconds=1)):
-                # in test mode, require sales to be at least 1 second old, so we don't break the tests
-                continue
-            funding_txs = btc.get_funding_txs(sale.address)
-            if funding_txs is None:
-                app.logger.warning("Cannot get transactions from mempool API. Taking a 1 minute nap...")
-                time.sleep(60)
-                continue
-            for tx in funding_txs:
-                if tx['value'] == sale.amount:
-                    app.logger.info(f"Found transaction txid={tx['txid']} matching {sale.id=}. Block time: {tx['block_time']}.")
-                    sale.settled_at = datetime.utcnow()
-                    sale.settlement_txid = tx['txid']
-                    db.session.commit()
-                    break
+        try:
+            for sale in db.session.query(m.Sale).filter((m.Sale.settled_at == None) & (m.Sale.expired_at == None) & (sales_to_settle_filter | sales_to_expire_filter)):
+                if app.config['ENV'] == 'test' and sale.requested_at >= (datetime.utcnow() - timedelta(seconds=1)):
+                    # in test mode, require sales to be at least 1 second old, so we don't break the tests
+                    continue
+                funding_txs = btc.get_funding_txs(sale.address)
+                if funding_txs is None:
+                    app.logger.warning("Cannot get transactions from mempool API. Taking a 1 minute nap...")
+                    time.sleep(60)
+                    continue
+                for tx in funding_txs:
+                    if sale.settlement_txid:
+                        if tx['txid'] == sale.settlement_txid and tx['confirmed']:
+                            app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {sale.id=}.")
+                            sale.state = m.SaleState.TX_CONFIRMED.value
+                            sale.settled_at = datetime.utcnow()
+                            db.session.commit()
+                            break
+                    elif tx['value'] == sale.amount:
+                        app.logger.info(f"Found transaction txid={tx['txid']} confirmed={tx['confirmed']} matching {sale.id=}.")
+                        sale.settlement_txid = tx['txid']
+                        sale.state = m.SaleState.TX_DETECTED.value
+                        if tx['confirmed']:
+                            sale.state = m.SaleState.TX_CONFIRMED.value
+                            sale.settled_at = datetime.utcnow()
+                        db.session.commit()
+                        break
+                    else:
+                        app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} vs {tx['value']=}.")
                 else:
-                    app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} vs {tx['value']=}.")
-            else:
-                if sale.requested_at < datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']):
-                    app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
-                    sale.expired_at = datetime.utcnow()
-                    listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
-                    listing.available_quantity += sale.quantity
-                    db.session.commit()
+                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']):
+                        app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
+                        sale.state = m.SaleState.EXPIRED.value
+                        sale.expired_at = datetime.utcnow()
+                        listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
+                        listing.available_quantity += sale.quantity
+                        db.session.commit()
+        except:
+            app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
+            db.session.rollback()
 
         time.sleep(10)
 
@@ -350,11 +368,11 @@ class MockBTCClient:
     def get_funding_txs(self, addr):
         sale = db.session.query(m.Sale).filter(m.Sale.address == addr).first()
         if sale:
-            return [{'txid': 'MOCK_TXID', 'value': sale.amount, 'block_time': datetime.utcnow()}]
+            return [{'txid': 'MOCK_TXID', 'value': sale.amount, 'confirmed': False, 'block_time': None}]
         else:
             return []
 
-class BTCClient:
+class MempoolSpaceBTCClient:
     def get_funding_txs(self, addr):
         try:
             r = requests.get(f"https://mempool.space/api/address/{addr}/txs")
@@ -368,11 +386,12 @@ class BTCClient:
             if len(vout_for_addr) > 1:
                 app.logger.warning("Multiple outputs for same address? Strange...")
             value = sum(vo['value'] for vo in vout_for_addr)
-            if not tx['status']['confirmed']:
-                app.logger.warning(f"Transaction with {value=} for {addr=} not confirmed. Skipping.")
-                continue
-            block_time = datetime.fromtimestamp(tx['status']['block_time'])
-            txs.append({'txid': tx['txid'], 'value': value, 'block_time': block_time})
+            txs.append({
+                'txid': tx['txid'],
+                'value': value,
+                'confirmed': tx['status']['confirmed'],
+                'block_time': datetime.fromtimestamp(tx['status']['block_time']) if tx['status']['confirmed'] else None,
+            })
 
         return txs
 
@@ -380,7 +399,7 @@ def get_btc_client():
     if app.config['MOCK_BTC']:
         return MockBTCClient()
     else:
-        return BTCClient()
+        return MempoolSpaceBTCClient()
 
 class MockTwitter:
     class MockKey:
