@@ -3,6 +3,7 @@ from base64 import b32encode
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import dateutil.parser
+from enum import Enum
 import hashlib
 from io import BytesIO
 import math
@@ -877,6 +878,13 @@ class Bid(db.Model):
             bid['payment_request'] = self.payment_request
         return bid
 
+class SaleState(Enum):
+    REQUESTED = 0
+    CONTRIBUTION_SETTLED = 1
+    TX_DETECTED = 2
+    TX_CONFIRMED = 3
+    EXPIRED = 4
+
 class Sale(db.Model):
     __tablename__ = 'sales'
 
@@ -884,7 +892,9 @@ class Sale(db.Model):
 
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
-    # NB: this is currently not used
+    # NB: this is currently not used, but it should be:
+    # we should generate a sale for every auction won
+    # and move the contribution part out of Auction
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
 
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
@@ -892,8 +902,10 @@ class Sale(db.Model):
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    settled_at = db.Column(db.DateTime, nullable=True) # a sale is settled after the payment has been made
+    state = db.Column(db.Integer, nullable=False, default=SaleState.REQUESTED.value)
+
     settlement_txid = db.Column(db.String(128), nullable=True)
+    settled_at = db.Column(db.DateTime, nullable=True) # a sale is settled after the transaction has been confirmed
     expired_at = db.Column(db.DateTime, nullable=True)
 
     address = db.Column(db.String(128), nullable=False, unique=True, index=True)
@@ -908,6 +920,7 @@ class Sale(db.Model):
 
     def to_dict(self):
         sale = {
+            'state': SaleState(self.state).name,
             'price': self.price,
             'quantity': self.quantity,
             'amount': self.amount,
