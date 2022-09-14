@@ -239,6 +239,8 @@ class TestApi(unittest.TestCase):
         code, response = self.post("/api/listings",
             {'title': "My 1st fixie",
              'description': "Selling something cool for a fixed price",
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
              'price_usd': 10,
              'available_quantity': 5},
             headers=self.get_auth_headers(token_1))
@@ -312,15 +314,14 @@ class TestApi(unittest.TestCase):
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        one_dollar_sats = 1 / btc2fiat.get_value('kraken') * 100000000
+        one_dollar_sats = 1 / btc2fiat.get_value('kraken') * app.config['SATS_IN_BTC']
         ten_cent_sats = one_dollar_sats / 10
         ten_dollars_sats = one_dollar_sats * 10
-        self.assertAlmostEqual(response['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
-        self.assertTrue('contribution_payment_request' in response)
-        self.assertTrue('contribution_payment_qr' in response)
-        self.assertAlmostEqual(response['amount'], ten_dollars_sats-ten_cent_sats, delta=(ten_dollars_sats-ten_cent_sats)/100)
-        self.assertEqual(response['address'], "bc1qvqatyv2xynyanrej2fcutj6w5yugy0gc9jx2nn")
-        self.assertTrue('address_qr' in response)
+        self.assertAlmostEqual(response['sale']['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
+        self.assertTrue('contribution_payment_request' in response['sale'])
+        self.assertTrue('contribution_payment_qr' in response['sale'])
+        self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats-ten_cent_sats, delta=(ten_dollars_sats-ten_cent_sats)/100)
+        self.assertEqual(response['sale']['address'], "bc1qvqatyv2xynyanrej2fcutj6w5yugy0gc9jx2nn")
 
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
@@ -332,7 +333,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['xpub_index'], 1)
 
-        time.sleep(12)
+        time.sleep(5)
 
         # now the available quantity is one less, and we have a settled sale!
         code, response = self.get(f"/api/listings/{listing_key}", {},
@@ -342,7 +343,7 @@ class TestApi(unittest.TestCase):
         self.assertIsNotNone(response['listing']['sales'][0]['contribution_settled_at'])
         self.assertIsNotNone(response['listing']['sales'][0]['settled_at'])
         self.assertTrue(response['listing']['sales'][0]['settled_at'] > response['listing']['sales'][0]['contribution_settled_at'])
-        self.assertTrue(response['listing']['sales'][0]['settlement_txid'].startswith('MOCK_'))
+        self.assertTrue(response['listing']['sales'][0]['txid'].startswith('MOCK_'))
         self.assertIsNone(response['listing']['sales'][0]['expired_at'])
 
         # can simply DELETE the listing while active, unlike auctions!
@@ -513,6 +514,8 @@ class TestApi(unittest.TestCase):
              'description': "Selling something",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
              'duration_hours': 24,
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
@@ -599,6 +602,8 @@ class TestApi(unittest.TestCase):
              'description': "Selling something",
              'start_date': "2020-10-10T11:11:00",
              'duration_hours': 24,
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
@@ -611,6 +616,8 @@ class TestApi(unittest.TestCase):
              'description': "Selling something",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
              'duration_hours': 24,
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
@@ -655,6 +662,8 @@ class TestApi(unittest.TestCase):
              'description': "Selling something else",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
              'duration_hours': 24,
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
@@ -859,6 +868,8 @@ class TestApi(unittest.TestCase):
             {'title': "Auction without start date",
              'description': "Selling something on Twitter",
              'duration_hours': 24,
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
@@ -904,6 +915,8 @@ class TestApi(unittest.TestCase):
              'description': malicious_desc,
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
              'duration_hours': 24,
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))

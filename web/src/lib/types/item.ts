@@ -18,8 +18,8 @@ export interface Item {
     end_date?: Date | null;
     ended: boolean;
     shipping_from: string;
-    shipping_estimate_domestic: string;
-    shipping_estimate_worldwide: string;
+    shipping_domestic_usd: number;
+    shipping_worldwide_usd: number;
     media: Media[];
     is_mine: boolean;
 }

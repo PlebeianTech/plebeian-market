@@ -14,15 +14,24 @@ export interface Sale {
     state: SaleState;
     price: number;
     quantity: number;
+    amount: number;
+    shipping_domestic: number;
+    shipping_worldwide: number;
+    seller: IAccount;
     buyer: IAccount;
+    contribution_amount: number;
     contribution_payment_request: string;
+    contribution_payment_qr: string | null;
     contribution_settled_at: Date | null;
     address: string;
+    address_qr: string | null;
+    txid: string;
     settled_at: Date | null;
+    expired_at: Date | null;
 }
 
 export class Listing implements IEntity, Item {
-    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide', 'price_usd', 'available_quantity'];
+    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'price_usd', 'available_quantity'];
 
     endpoint = "listings";
     loader = {endpoint: this.endpoint, responseField: 'listing', fromJson};
@@ -32,8 +41,8 @@ export class Listing implements IEntity, Item {
     seller: IAccount = {username: "", usernameVerified: false, profileImageUrl: ""};
     description: string = "";
     shipping_from: string = "";
-    shipping_estimate_domestic: string = "";
-    shipping_estimate_worldwide: string = "";
+    shipping_domestic_usd: number = 0;
+    shipping_worldwide_usd: number = 0;
     price_usd: number = 0;
     available_quantity: number = 0;
     start_date?: Date | null;
@@ -61,6 +70,46 @@ export class Listing implements IEntity, Item {
     }
 }
 
+export function saleFromJson(json: any): Sale {
+    var s: Sale = {
+        state: SaleState.REQUESTED,
+        price: 0,
+        quantity: 0,
+        amount: 0,
+        shipping_domestic: 0,
+        shipping_worldwide: 0,
+        seller: {username: "", profileImageUrl: "", usernameVerified: false},
+        buyer: {username: "", profileImageUrl: "", usernameVerified: false},
+        address: "",
+        address_qr: null,
+        contribution_amount: 0,
+        contribution_payment_request: "",
+        contribution_payment_qr: null,
+        contribution_settled_at: null,
+        txid: "",
+        settled_at: null, expired_at: null,
+    };
+    for (var k in json) {
+        if (k === 'contribution_settled_at' || k === 'settled_at' || k === 'expired_at') {
+            s[k] = json[k] ? new Date(json[k]) : null;
+        } else {
+            s[k] = json[k];
+        }
+    }
+    s.seller = {
+        username: <string>json.seller_twitter_username,
+        profileImageUrl: <string>json.seller_twitter_profile_image_url,
+        usernameVerified: <boolean>json.seller_twitter_username_verified,
+    };
+    s.buyer = {
+        username: <string>json.buyer_twitter_username,
+        profileImageUrl: <string>json.buyer_twitter_profile_image_url,
+        usernameVerified: <boolean>json.buyer_twitter_username_verified,
+    };
+
+    return s;
+}
+
 export function fromJson(json: any): IEntity {
     var l = new Listing();
     for (var k in json) {
@@ -68,30 +117,7 @@ export function fromJson(json: any): IEntity {
             l.start_date = json[k] ? new Date(json[k]!) : null;
         } else if (k === 'sales') {
             for (const salejson of json[k]) {
-                var s: Sale = {
-                    state: SaleState.REQUESTED,
-                    price: 0, quantity: 0,
-                    buyer: {username: "", profileImageUrl: "", usernameVerified: false},
-                    address: "",
-                    contribution_payment_request: "",
-                    contribution_settled_at: null,
-                    settled_at: null,
-                };
-                for (var kk in salejson) {
-                    if (kk === 'settled_at') {
-                        s.settled_at = salejson[kk] ? new Date(salejson[kk]) : null;
-                    } else if (kk === 'contribution_settled_at') {
-                        s.contribution_settled_at = salejson[kk] ? new Date(salejson[kk]) : null;
-                    } else {
-                        s[kk] = salejson[kk];
-                    }
-                }
-                s.buyer = {
-                    username: <string>salejson.twitter_username,
-                    profileImageUrl: <string>salejson.twitter_profile_image_url,
-                    usernameVerified: <boolean>salejson.twitter_username_verified,
-                };
-                l.sales.push(s);
+                l.sales.push(saleFromJson(salejson));
             }
         } else {
             l[k] = json[k];

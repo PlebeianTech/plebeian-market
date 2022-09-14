@@ -1,6 +1,7 @@
 import { goto } from "$app/navigation";
 import { token, Error } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
+import { type Sale, saleFromJson } from "$lib/types/listing";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
 import { isLocal, isStaging } from "$lib/utils";
@@ -282,12 +283,12 @@ export function postBid(tokenValue, auctionKey, amount, successCB: (paymentReque
         });
 }
 
-export function putBuy(tokenValue, listingKey, successCB: (contributionAmount, contributionPaymentRequest, contributionPaymentQr, amount, address, addressQr, messages: string[]) => void, errorHandler = new ErrorHandler()) {
+export function putBuy(tokenValue, listingKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/listings/${listingKey}/buy`, 'PUT', tokenValue,
         JSON.stringify({}),
         response => {
             if (response.status === 200) {
-                response.json().then(data => { successCB(data.contribution_amount, data.contribution_payment_request, data.contribution_payment_qr, data.amount, data.address, data.address_qr, data.messages); });
+                response.json().then(data => { successCB(saleFromJson(data.sale)); });
             } else {
                 errorHandler.handle(response);
             }

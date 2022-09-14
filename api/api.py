@@ -347,6 +347,11 @@ def get_put_delete_entity(key, cls, singular):
 
             return jsonify({})
         elif request.method == 'DELETE':
+            for sale in entity.sales:
+                if isinstance(entity, m.Auction):
+                    sale.auction = None
+                elif isinstance(entity, m.Listing):
+                    sale.listing = None
             db.session.delete(entity)
             db.session.commit()
 
@@ -583,9 +588,11 @@ def put_buy(user, key):
     if listing.available_quantity < quantity:
         return jsonify({'message': "Not enough items in stock!"}), 400
 
-    listing.available_quantity -= quantity
+    btc2usd = btc2fiat.get_value('kraken')
 
-    price_sats = int(listing.price_usd / btc2fiat.get_value('kraken') * 100000000)
+    price_sats = int(listing.price_usd / btc2usd * app.config['SATS_IN_BTC'])
+    shipping_domestic_sats = int(listing.item.shipping_domestic_usd / btc2usd * app.config['SATS_IN_BTC'])
+    shipping_worldwide_sats = int(listing.item.shipping_worldwide_usd / btc2usd * app.config['SATS_IN_BTC'])
 
     contribution_amount = int(listing.item.seller.contribution_percent / 100 * price_sats * quantity)
     response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_BID_INVOICE_EXPIRY'])
@@ -619,7 +626,10 @@ def put_buy(user, key):
             continue
 
         sale = m.Sale(item_id=listing.item.id, listing_id=listing.id, buyer_id=user.id,
-            address=address, price=price_sats, quantity=quantity, amount=amount,
+            address=address,
+            price=price_sats, shipping_domestic=shipping_domestic_sats, shipping_worldwide=shipping_worldwide_sats,
+            quantity=quantity,
+            amount=amount,
             contribution_amount=contribution_amount, contribution_payment_request=contribution_payment_request)
         db.session.add(sale)
 
@@ -630,21 +640,7 @@ def put_buy(user, key):
 
         break
 
-    contribution_payment_qr = BytesIO()
-    pyqrcode.create(contribution_payment_request).svg(contribution_payment_qr, omithw=True, scale=4)
-
-    address_qr = BytesIO()
-    pyqrcode.create(address).svg(address_qr, omithw=True, scale=4)
-
-    return jsonify({
-        'contribution_amount': contribution_amount,
-        'contribution_payment_request': contribution_payment_request,
-        'contribution_payment_qr': contribution_payment_qr.getvalue().decode('utf-8'),
-        'amount': amount,
-        'address': address,
-        'address_qr': address_qr.getvalue().decode('utf-8'),
-        'messages': ["Please make the payment in order to confirm the sale!"],
-    })
+    return jsonify({'sale': sale.to_dict()})
 
 @api_blueprint.route("/api/users/<nym>/auctions",
     defaults={'plural': 'auctions'},

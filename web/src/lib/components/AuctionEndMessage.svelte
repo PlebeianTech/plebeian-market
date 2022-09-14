@@ -65,7 +65,7 @@
     <p class="my-2">
         After payment you will be directed to the seller for final settlement of the remaining {remainingPercent}% = <AmountFormatter satsAmount={auction.remaining_amount} />.
     </p>
-    <QR bind:qr={auction.contribution_qr} bind:lnurl={auction.contribution_payment_request} />
+    <QR qr={auction.contribution_qr} protocol="lightning" address={auction.contribution_payment_request} />
 {:else if $user && auction.wait_contribution}
     <p class="my-2 text-center">We are waiting for the winner to send your contribution to Plebeian Technology.</p>
 {/if}

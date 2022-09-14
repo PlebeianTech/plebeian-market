@@ -5,7 +5,7 @@
     import { Error, Info, token, user } from "$lib/stores";
     import type { Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
-    import { Listing, SaleState } from "$lib/types/listing";
+    import { Listing } from "$lib/types/listing";
     import type { User } from "$lib/types/user";
     import Avatar from "$lib/components/Avatar.svelte";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
@@ -23,7 +23,16 @@
     let newBid: NewBid;
     let buy: Buy;
 
+    let buyConfirmed = false;
     let buyExpired = false;
+
+    function onBuyConfirmed() {
+        buyConfirmed = true;
+    }
+
+    function onBuyExpired() {
+        buyExpired = true;
+    }
 
     let item: Item | null = null;
     let bidCount = 0;
@@ -67,16 +76,8 @@
                 }
             } else if (item instanceof Listing) {
                 for (const sale of item.sales) {
-                    if (buy && sale.contribution_settled_at) {
-                        buy.contributionPaymentConfirmed(sale.contribution_payment_request);
-                    }
-                    if (buy && ((sale.state === SaleState.TX_DETECTED) || (sale.state === SaleState.TX_CONFIRMED))) {
-                        buy.paymentDetected(sale.address);
-                    }
-                    if (buy && sale.state === SaleState.EXPIRED && sale.address === buy.getAddress()) {
-                        buyExpired = true;
-                        buy.resetContribution();
-                        buy.reset();
+                    if (buy) {
+                        buy.onSale(sale);
                     }
                 }
 
@@ -153,6 +154,17 @@
                     </span>
                 </div>
             </div>
+        {:else if buyConfirmed}
+            <div class="alert alert-success shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                        Your payment has been confirmed!
+                    </span>
+                </div>
+            </div>
         {/if}
         <div class="grid lg:grid-cols-3 gap-4">
             <div class="p-5">
@@ -181,11 +193,9 @@
                                     </div>
                                 {/if}
                             {:else if item instanceof Listing}
-                                <p class="text-3xl text-center pt-12">Price: ~<AmountFormatter usdAmount={item.price_usd} /></p>
-                                <p class="text-3xl text-center pt-12">{item.available_quantity} items available</p>
                                 {#if $user.twitter.username !== null && item.started && !item.ended}
                                     <div class="mt-8 flex justify-center items-center">
-                                        <Buy bind:this={buy} listingKey={item.key} />
+                                        <Buy bind:this={buy} {item} onExpired={onBuyExpired} onConfirmed={onBuyConfirmed} />
                                     </div>
                                 {/if}
                             {/if}
@@ -252,12 +262,12 @@
                 {#if item.shipping_from}
                     <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
                 {/if}
-                <p class="mt-4 ml-2">NOTE: Please allow for post and packaging. The seller can agree on this with you when you have won.</p>
-                {#if item.shipping_estimate_domestic}
-                    <p class="mt-4 ml-2">Shipping estimate (domestic): {item.shipping_estimate_domestic}</p>
+                <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
+                {#if item.shipping_domestic_usd}
+                    <p class="mt-4 ml-2">Shipping (domestic): ~<AmountFormatter usdAmount={item.shipping_domestic_usd} /></p>
                 {/if}
-                {#if item.shipping_estimate_worldwide}
-                    <p class="mt-4 ml-2">Shipping estimate (worldwide): {item.shipping_estimate_worldwide}</p>
+                {#if item.shipping_worldwide_usd}
+                    <p class="mt-4 ml-2">Shipping (worldwide): ~<AmountFormatter usdAmount={item.shipping_worldwide_usd} /></p>
                 {/if}
                 <p class="mt-4 ml-2">
                     {#if item instanceof Auction}

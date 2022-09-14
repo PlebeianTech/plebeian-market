@@ -5,6 +5,7 @@ import io
 from itertools import chain
 import json
 from logging.config import dictConfig
+import math
 import os
 import random
 import signal
@@ -116,9 +117,20 @@ def settle_lnd_payments():
                         sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
                         if sale:
                             found_invoice = True
-                            sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
-                            sale.contribution_settled_at = datetime.utcnow()
-                            app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
+                            listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
+                            if listing.available_quantity < sale.quantity:
+                                # this should not happen unless, for example,
+                                # two people clicked "buy" while there was only 1 item in stock
+                                # and one of them sent the contribution first - hence "reserved" the item
+                                # so all we can do in this case is mark the sale as "expired" for the 2nd buyer
+                                sale.state = m.SaleState.EXPIRED.value
+                                sale.expired_at = datetime.utcnow()
+                                app.logger.info(f"Expired sale {sale.id=} ahead-of-time due to somebody else sending the contribution first.")
+                            else:
+                                listing.available_quantity -= sale.quantity
+                                sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
+                                sale.contribution_settled_at = datetime.utcnow()
+                                app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
                 if found_invoice:
                     last_settle_index = invoice.settle_index
                     state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
@@ -152,24 +164,28 @@ def settle_btc_payments():
                     time.sleep(60)
                     continue
                 for tx in funding_txs:
-                    if sale.settlement_txid:
-                        if tx['txid'] == sale.settlement_txid and tx['confirmed']:
+                    if sale.txid and not sale.settled_at:
+                        if tx['txid'] == sale.txid and tx['confirmed']:
                             app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {sale.id=}.")
                             sale.state = m.SaleState.TX_CONFIRMED.value
                             sale.settled_at = datetime.utcnow()
                             db.session.commit()
                             break
-                    elif tx['value'] == sale.amount:
-                        app.logger.info(f"Found transaction txid={tx['txid']} confirmed={tx['confirmed']} matching {sale.id=}.")
-                        sale.settlement_txid = tx['txid']
-                        sale.state = m.SaleState.TX_DETECTED.value
-                        if tx['confirmed']:
-                            sale.state = m.SaleState.TX_CONFIRMED.value
-                            sale.settled_at = datetime.utcnow()
-                        db.session.commit()
-                        break
-                    else:
-                        app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} vs {tx['value']=}.")
+                    elif not sale.txid:
+                        close_with_domestic = math.isclose(tx['value'], sale.amount + sale.shipping_domestic, rel_tol=0.01)
+                        close_with_worldwide = math.isclose(tx['value'], sale.amount + sale.shipping_worldwide, rel_tol=0.01)
+                        if close_with_domestic or close_with_worldwide:
+                            app.logger.info(f"Found transaction txid={tx['txid']} confirmed={tx['confirmed']} matching {sale.id=}.")
+                            sale.txid = tx['txid']
+                            sale.tx_value = tx['value']
+                            sale.state = m.SaleState.TX_DETECTED.value
+                            if tx['confirmed']:
+                                sale.state = m.SaleState.TX_CONFIRMED.value
+                                sale.settled_at = datetime.utcnow()
+                            db.session.commit()
+                            break
+                        else:
+                            app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")
                 else:
                     if sale.requested_at < datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']):
                         app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
@@ -182,7 +198,10 @@ def settle_btc_payments():
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
 
-        time.sleep(10)
+        if app.config['ENV'] == 'test':
+            time.sleep(1)
+        else:
+            time.sleep(10)
 
 @app.cli.command("process-notifications")
 @with_appcontext
@@ -292,7 +311,9 @@ def process_notifications():
         db.session.commit()
 
         total_seconds = time.time() - start_time
-        app.logger.info(f"Processed {total_bids=} and {total_auctions=} in {total_seconds=}.")
+
+        if total_bids != 0:
+            app.logger.info(f"Processed {total_bids=} and {total_auctions=} in {total_seconds=}.")
 
         time.sleep(1)
 
@@ -368,7 +389,9 @@ class MockBTCClient:
     def get_funding_txs(self, addr):
         sale = db.session.query(m.Sale).filter(m.Sale.address == addr).first()
         if sale:
-            return [{'txid': 'MOCK_TXID', 'value': sale.amount, 'confirmed': False, 'block_time': None}]
+            confirmed = sale.txid is not None
+            block_time = datetime.utcnow() - timedelta(seconds=5) if confirmed else None
+            return [{'txid': 'MOCK_TXID', 'value': sale.amount + sale.shipping_domestic + int(sale.shipping_domestic / 100), 'confirmed': confirmed, 'block_time': block_time}]
         else:
             return []
 
@@ -411,10 +434,10 @@ class MockTwitter:
 
     def get_user(self, username):
         if app.config['ENV'] == 'test':
-            # hammer staging rather than unsplash when running tests
+            # hammer staging rather than picsum when running tests
             random_image = "https://staging.plebeian.market/images/logo.jpg"
         else:
-            random_image = "https://source.unsplash.com/random/200x200"
+            random_image = "https://picsum.photos/200"
         return {
             'id': "MOCK_USER_ID",
             'profile_image_url': random_image,
@@ -431,10 +454,10 @@ class MockTwitter:
             return None
         time.sleep(5) # deliberately slow this down, so we can find possible issues in the UI
         if app.config['ENV'] == 'test':
-            # hammer staging rather than unsplash when running tests
+            # hammer staging rather than picsum when running tests
             random_image = "https://staging.plebeian.market/images/logo.jpg"
         else:
-            random_image = "https://source.unsplash.com/random/1024x1024"
+            random_image = "https://picsum.photos/1024"
         return [{
             'id': "MOCK_TWEET_ID",
             'text': "Hello Mocked Tweet",

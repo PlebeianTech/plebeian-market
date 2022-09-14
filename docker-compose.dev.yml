@@ -15,7 +15,7 @@ services:
       - ENV=dev
       - BASE_URL=http://localhost:5000
       - FLASK_APP=main
-      - FLASK_ENV=development
+      - FLASK_DEBUG=1
       - DEBUG=1
       - MOCK_LND=1
       - MOCK_BTC=1
@@ -35,7 +35,7 @@ services:
         condition: service_healthy
     environment:
       - FLASK_APP=main
-      - FLASK_ENV=development
+      - FLASK_DEBUG=1
       - DEBUG=1
       - MOCK_LND=1
       - MOCK_BTC=1
@@ -53,7 +53,7 @@ services:
         condition: service_healthy
     environment:
       - FLASK_APP=main
-      - FLASK_ENV=development
+      - FLASK_DEBUG=1
       - DEBUG=1
       - MOCK_LND=1
       - MOCK_BTC=1
@@ -71,7 +71,7 @@ services:
         condition: service_healthy
     environment:
       - FLASK_APP=main
-      - FLASK_ENV=development
+      - FLASK_DEBUG=1
       - DEBUG=1
       - MOCK_LND=1 # probably not needed
       - MOCK_BTC=1 # probably not needed
