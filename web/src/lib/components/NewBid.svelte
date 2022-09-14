@@ -38,7 +38,7 @@
 
 <div>
 {#if paymentQr}
-    <QR bind:qr={paymentQr} bind:lnurl={paymentRequest} />
+    <QR qr={paymentQr} protocol="lightning" address={paymentRequest} />
 {:else}
     <div class="form-control w-full max-w-xs">
         <label class="label" for="bid-amount">

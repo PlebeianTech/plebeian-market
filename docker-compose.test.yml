@@ -1,6 +1,18 @@
 version: '3.6'
 
 services:
+  api:
+    environment:
+      - ENV=test
+  settle-btc-payments:
+    environment:
+      - ENV=test
+  settle-lnd-payments:
+    environment:
+      - ENV=test
+  process-notifications:
+    environment:
+      - ENV=test
   test:
     image: plebeianmarket-api
     depends_on:

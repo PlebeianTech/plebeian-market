@@ -70,7 +70,7 @@
                     or any <a class="link" href="https://github.com/fiatjaf/lnurl-rfc#lnurl-documents" target="_blank">
                         LNurl compatible wallet </a> to enter the marketplace.</p>
 
-            <QR bind:qr={qr} bind:lnurl={lnurl} />
+            <QR qr={qr} protocol="lightning" address={lnurl} />
         </div>
     {:else}
         <Loading />

@@ -81,8 +81,8 @@
                 </div>
                 <ShippingEditor
                     bind:shipping_from={auction.shipping_from}
-                    bind:shipping_estimate_domestic={auction.shipping_estimate_domestic}
-                    bind:shipping_estimate_worldwide={auction.shipping_estimate_worldwide} />
+                    bind:shipping_domestic_usd={auction.shipping_domestic_usd}
+                    bind:shipping_worldwide_usd={auction.shipping_worldwide_usd} />
                 <div class="form-control mr-2 w-full">
                     <label class="label" for="duration">
                         <span class="label-text">Duration</span>

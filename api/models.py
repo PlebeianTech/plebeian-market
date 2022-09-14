@@ -466,8 +466,8 @@ class Item(db.Model):
     title = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
     shipping_from = db.Column(db.String(64), nullable=True)
-    shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
-    shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
+    shipping_domestic_usd = db.Column(db.Float(), nullable=False)
+    shipping_worldwide_usd = db.Column(db.Float(), nullable=False)
     media = db.relationship('Media', backref='item', foreign_keys='Media.item_id')
 
     is_hidden = db.Column(db.Boolean, nullable=False, default=False)
@@ -475,12 +475,12 @@ class Item(db.Model):
     auctions = db.relationship('Auction', backref='item')
     listings = db.relationship('Listing', backref='item')
 
-    sales = db.relationship('Sale', backref='item')
+    sales = db.relationship('Sale', backref='item', order_by="desc(Sale.requested_at)")
 
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide']:
+        for k in ['title', 'description', 'shipping_from']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -488,6 +488,13 @@ class Item(db.Model):
             if length > max_length:
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = bleach.clean(d[k])
+        for k in ['shipping_domestic_usd', 'shipping_worldwide_usd']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = float(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         for k in ['is_hidden']:
             if k not in d:
                 continue
@@ -500,7 +507,7 @@ class Item(db.Model):
 class Auction(FilterStateMixin, db.Model):
     __tablename__ = 'auctions'
 
-    REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid']
+    REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid', 'shipping_domestic_usd', 'shipping_worldwide_usd']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -561,6 +568,8 @@ class Auction(FilterStateMixin, db.Model):
 
     user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
 
+    sales = db.relationship('Sale', backref='auction')
+
     def get_top_bid(self):
         return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
 
@@ -587,9 +596,9 @@ class Auction(FilterStateMixin, db.Model):
             'ended': self.ended,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,
-            'shipping_from': self.shipping_from,
-            'shipping_estimate_domestic': self.shipping_estimate_domestic,
-            'shipping_estimate_worldwide': self.shipping_estimate_worldwide,
+            'shipping_from': self.item.shipping_from if self.item else self.shipping_from,
+            'shipping_domestic_usd': self.item.shipping_domestic_usd if self.item else 0,
+            'shipping_worldwide_usd': self.item.shipping_worldwide_usd if self.item else 0,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media or (self.item.media if self.item else [])],
             'created_at': self.created_at.isoformat() + "Z",
@@ -650,7 +659,7 @@ class Auction(FilterStateMixin, db.Model):
         validated = {}
         # TODO: remove this after the columns have been removed!
         ########
-        for k in ['title', 'description', 'shipping_from', 'shipping_estimate_domestic', 'shipping_estimate_worldwide']:
+        for k in ['title', 'description']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -722,8 +731,7 @@ class Auction(FilterStateMixin, db.Model):
                 seller_id=self.seller_id,
                 created_at=self.created_at,
                 title=self.title, description=self.description,
-                shipping_from=self.shipping_from,
-                shipping_estimate_domestic=self.shipping_estimate_domestic, shipping_estimate_worldwide=self.shipping_estimate_worldwide)
+                shipping_from=self.shipping_from)
             db.session.add(item)
             db.session.commit()
             self.item_id = item.id
@@ -735,7 +743,7 @@ class Auction(FilterStateMixin, db.Model):
 class Listing(FilterStateMixin, db.Model):
     __tablename__ = 'listings'
 
-    REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity']
+    REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity', 'shipping_domestic_usd', 'shipping_worldwide_usd']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -761,6 +769,8 @@ class Listing(FilterStateMixin, db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+    sales = db.relationship('Sale', backref='listing')
+
     def featured_sort_key(self):
         return self.start_date
 
@@ -777,8 +787,8 @@ class Listing(FilterStateMixin, db.Model):
             'price_usd': self.price_usd,
             'available_quantity': self.available_quantity,
             'shipping_from': self.item.shipping_from,
-            'shipping_estimate_domestic': self.item.shipping_estimate_domestic,
-            'shipping_estimate_worldwide': self.item.shipping_estimate_worldwide,
+            'shipping_domestic_usd': self.item.shipping_domestic_usd,
+            'shipping_worldwide_usd': self.item.shipping_worldwide_usd,
             'media': [
                 {
                     'url': media.url,
@@ -904,14 +914,20 @@ class Sale(db.Model):
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     state = db.Column(db.Integer, nullable=False, default=SaleState.REQUESTED.value)
 
-    settlement_txid = db.Column(db.String(128), nullable=True)
+    txid = db.Column(db.String(128), nullable=True)
+    tx_value = db.Column(db.Integer, nullable=True)
+
     settled_at = db.Column(db.DateTime, nullable=True) # a sale is settled after the transaction has been confirmed
     expired_at = db.Column(db.DateTime, nullable=True)
 
     address = db.Column(db.String(128), nullable=False, unique=True, index=True)
+
     price = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    amount = db.Column(db.Integer, nullable=False) # amount to be paid to the seller (total amount minus contribution)
+
+    amount = db.Column(db.Integer, nullable=False) # amount to be paid to the seller (total amount minus contribution) *not* including shipping
+    shipping_domestic = db.Column(db.Integer, nullable=False)
+    shipping_worldwide = db.Column(db.Integer, nullable=False)
 
     # the Lightning invoice for the contribution
     contribution_amount = db.Column(db.Integer, nullable=False)
@@ -924,18 +940,34 @@ class Sale(db.Model):
             'price': self.price,
             'quantity': self.quantity,
             'amount': self.amount,
-            'twitter_username': self.buyer.twitter_username,
-            'twitter_profile_image_url': self.buyer.twitter_profile_image_url,
-            'twitter_username_verified': self.buyer.twitter_username_verified,
+            'shipping_domestic': self.shipping_domestic,
+            'shipping_worldwide': self.shipping_worldwide,
+            'seller_twitter_username': self.item.seller.twitter_username,
+            'seller_twitter_profile_image_url': self.item.seller.twitter_profile_image_url,
+            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'buyer_twitter_username': self.buyer.twitter_username,
+            'buyer_twitter_profile_image_url': self.buyer.twitter_profile_image_url,
+            'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
             'contribution_amount': self.contribution_amount,
             'contribution_payment_request': self.contribution_payment_request,
             'contribution_settled_at': (self.contribution_settled_at.isoformat() + "Z" if self.contribution_settled_at else None),
             'address': self.address,
             'requested_at': (self.requested_at.isoformat() + "Z"),
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
-            'settlement_txid': self.settlement_txid,
+            'txid': self.txid,
+            'tx_value': self.tx_value,
             'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
         }
+
+        if self.state == SaleState.REQUESTED.value:
+            contribution_payment_qr = BytesIO()
+            pyqrcode.create(self.contribution_payment_request).svg(contribution_payment_qr, omithw=True, scale=4)
+            sale['contribution_payment_qr'] = contribution_payment_qr.getvalue().decode('utf-8')
+        elif self.state == SaleState.CONTRIBUTION_SETTLED.value:
+            address_qr = BytesIO()
+            pyqrcode.create(self.address).svg(address_qr, omithw=True, scale=4)
+            sale['address_qr'] = address_qr.getvalue().decode('utf-8')
+
         return sale
 
 class UserAuction(db.Model):

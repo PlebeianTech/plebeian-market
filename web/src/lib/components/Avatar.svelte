@@ -6,11 +6,13 @@
     export let showUsername = true;
 </script>
 
-<div class="avatar" class:verified={account.usernameVerified} class:not-verified={!account.usernameVerified}>
-    <div class="w-{height} rounded-full">
-        <img src={account.profileImageUrl} alt="{account.username}'s avatar" />
+<a class="link" href="/stall/{account.username}">
+    <div class="avatar" class:verified={account.usernameVerified} class:not-verified={!account.usernameVerified}>
+        <div class="w-{height} rounded-full">
+            <img src={account.profileImageUrl} alt="{account.username}'s avatar" />
+        </div>
     </div>
-</div>
+</a>
 
 {#if showUsername}
     <span class="font-bold">

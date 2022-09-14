@@ -43,8 +43,8 @@
                 </div>
                 <ShippingEditor
                     bind:shipping_from={listing.shipping_from}
-                    bind:shipping_estimate_domestic={listing.shipping_estimate_domestic}
-                    bind:shipping_estimate_worldwide={listing.shipping_estimate_worldwide} />
+                    bind:shipping_domestic_usd={listing.shipping_domestic_usd}
+                    bind:shipping_worldwide_usd={listing.shipping_worldwide_usd} />
             </form>
             <div class="w-full flex justify-center items-center mt-2">
                 <div class="w-1/2 flex justify-center items-center">
