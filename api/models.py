@@ -466,8 +466,8 @@ class Item(db.Model):
     title = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
     shipping_from = db.Column(db.String(64), nullable=True)
-    shipping_domestic_usd = db.Column(db.Float(), nullable=False)
-    shipping_worldwide_usd = db.Column(db.Float(), nullable=False)
+    shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
+    shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
     media = db.relationship('Media', backref='item', foreign_keys='Media.item_id')
 
     is_hidden = db.Column(db.Boolean, nullable=False, default=False)
