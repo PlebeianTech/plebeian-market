@@ -1,34 +1,7 @@
 import type { IEntity } from "$lib/types/base";
 import type { Item, Media } from "$lib/types/item";
+import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
-
-export enum SaleState {
-    REQUESTED = 'REQUESTED',
-    CONTRIBUTION_SETTLED = 'CONTRIBUTION_SETTLED',
-    TX_DETECTED = 'TX_DETECTED',
-    TX_CONFIRMED = 'TX_CONFIRMED',
-    EXPIRED = 'EXPIRED',
-}
-
-export interface Sale {
-    state: SaleState;
-    price: number;
-    quantity: number;
-    amount: number;
-    shipping_domestic: number;
-    shipping_worldwide: number;
-    seller: IAccount;
-    buyer: IAccount;
-    contribution_amount: number;
-    contribution_payment_request: string;
-    contribution_payment_qr: string | null;
-    contribution_settled_at: Date | null;
-    address: string;
-    address_qr: string | null;
-    txid: string;
-    settled_at: Date | null;
-    expired_at: Date | null;
-}
 
 export class Listing implements IEntity, Item {
     static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'price_usd', 'available_quantity'];
@@ -68,46 +41,6 @@ export class Listing implements IEntity, Item {
         }
         return JSON.stringify(json);
     }
-}
-
-export function saleFromJson(json: any): Sale {
-    var s: Sale = {
-        state: SaleState.REQUESTED,
-        price: 0,
-        quantity: 0,
-        amount: 0,
-        shipping_domestic: 0,
-        shipping_worldwide: 0,
-        seller: {username: "", profileImageUrl: "", usernameVerified: false},
-        buyer: {username: "", profileImageUrl: "", usernameVerified: false},
-        address: "",
-        address_qr: null,
-        contribution_amount: 0,
-        contribution_payment_request: "",
-        contribution_payment_qr: null,
-        contribution_settled_at: null,
-        txid: "",
-        settled_at: null, expired_at: null,
-    };
-    for (var k in json) {
-        if (k === 'contribution_settled_at' || k === 'settled_at' || k === 'expired_at') {
-            s[k] = json[k] ? new Date(json[k]) : null;
-        } else {
-            s[k] = json[k];
-        }
-    }
-    s.seller = {
-        username: <string>json.seller_twitter_username,
-        profileImageUrl: <string>json.seller_twitter_profile_image_url,
-        usernameVerified: <boolean>json.seller_twitter_username_verified,
-    };
-    s.buyer = {
-        username: <string>json.buyer_twitter_username,
-        profileImageUrl: <string>json.buyer_twitter_profile_image_url,
-        usernameVerified: <boolean>json.buyer_twitter_username_verified,
-    };
-
-    return s;
 }
 
 export function fromJson(json: any): IEntity {

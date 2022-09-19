@@ -1,7 +1,7 @@
 <script lang="ts">
     import { ErrorHandler, putBuy } from "$lib/services/api";
     import { token } from "$lib/stores";
-    import { SaleState, type Sale } from "$lib/types/listing";
+    import { SaleState, type Sale } from "$lib/types/sale";
     import { formatBTC } from "$lib/utils";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import Avatar from "$lib/components/Avatar.svelte";

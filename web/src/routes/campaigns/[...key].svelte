@@ -9,7 +9,7 @@
     import { Campaign, fromJson } from "$lib/types/campaign";
     import CampaignCard from "$lib/components/CampaignCard.svelte";
     import CampaignEditor from "$lib/components/CampaignEditor.svelte";
-    import ListView from "$lib/components/ListView.svelte";
+    import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
 
     export let campaignKey;
 </script>
@@ -18,7 +18,8 @@
     <ListView
         title="My Campaigns"
         loader={{endpoint: 'campaigns', responseField: 'campaigns', fromJson}} newEntity={() => new Campaign()}
-        card={CampaignCard} editor={CampaignEditor}>
+        card={CampaignCard} editor={CampaignEditor}
+        style={ListViewStyle.List}>
     </ListView>
 {:else}
     <p>TODO: view campaign!</p>

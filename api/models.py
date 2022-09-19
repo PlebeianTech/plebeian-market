@@ -922,6 +922,7 @@ class Sale(db.Model):
 
     address = db.Column(db.String(128), nullable=False, unique=True, index=True)
 
+    price_usd = db.Column(db.Float, nullable=False)
     price = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
@@ -936,7 +937,9 @@ class Sale(db.Model):
 
     def to_dict(self):
         sale = {
+            'item_title': self.item.title,
             'state': SaleState(self.state).name,
+            'price_usd': self.price_usd,
             'price': self.price,
             'quantity': self.quantity,
             'amount': self.amount,

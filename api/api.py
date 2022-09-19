@@ -217,6 +217,13 @@ def messages(user):
 
     return jsonify({'messages': [m.to_dict() for m in messages]})
 
+@api_blueprint.route('/api/users/me/sales', methods=['GET'])
+@user_required
+def get_sales(user):
+    sales = m.Sale.query.filter(m.Item.id == m.Sale.item_id, m.Item.seller_id == user.id).all()
+
+    return jsonify({'sales': [s.to_dict() for s in sales]})
+
 @api_blueprint.route("/api/auctions", defaults={'cls': m.Auction, 'singular': 'auction'},
     methods=['POST'])
 @api_blueprint.route("/api/listings", defaults={'cls': m.Listing, 'singular': 'listing'},
@@ -627,6 +634,7 @@ def put_buy(user, key):
 
         sale = m.Sale(item_id=listing.item.id, listing_id=listing.id, buyer_id=user.id,
             address=address,
+            price_usd=listing.price_usd,
             price=price_sats, shipping_domestic=shipping_domestic_sats, shipping_worldwide=shipping_worldwide_sats,
             quantity=quantity,
             amount=amount,

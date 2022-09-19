@@ -310,6 +310,18 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['listings'][0]['key'], listing_key)
         self.assertEqual(response['listings'][0]['available_quantity'], 10)
 
+        # the seller has no sales
+        code, response = self.get("/api/users/me/sales", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['sales']), 0)
+
+        # the buyer has no sales
+        code, response = self.get("/api/users/me/sales", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['sales']), 0)
+
         # buying an item
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_2))
@@ -345,6 +357,18 @@ class TestApi(unittest.TestCase):
         self.assertTrue(response['listing']['sales'][0]['settled_at'] > response['listing']['sales'][0]['contribution_settled_at'])
         self.assertTrue(response['listing']['sales'][0]['txid'].startswith('MOCK_'))
         self.assertIsNone(response['listing']['sales'][0]['expired_at'])
+
+        # the seller has a sale
+        code, response = self.get("/api/users/me/sales", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['sales']), 1)
+
+        # the buyer has no sales
+        code, response = self.get("/api/users/me/sales", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['sales']), 0)
 
         # can simply DELETE the listing while active, unlike auctions!
         code, response = self.delete(f"/api/listings/{listing_key}",

@@ -151,6 +151,7 @@
                         {#if $user.isModerator}
                             <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
                         {/if}
+                        <li><a href="/sales/">My sales</a></li>
                         <li><a href="/settings">Settings</a></li>
                         <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
                         <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }} class="modal-button cursor-pointer">Logout</a></li>

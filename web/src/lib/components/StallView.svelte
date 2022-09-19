@@ -4,7 +4,7 @@
     import ItemCard from "$lib/components/ItemCard.svelte";
     import StallNotFound from "$lib/components/StallNotFound.svelte";
     import Loading from "$lib/components/Loading.svelte";
-    import ListView from "$lib/components/ListView.svelte";
+    import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import PublicItemCard from "$lib/components/PublicItemCard.svelte";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
@@ -105,7 +105,7 @@
                             editor={AuctionEditor}
                             showNewButton={true}
                             card={ItemCard}
-                            showAsGrid={false} />
+                            style={ListViewStyle.List} />
                     {:else if currentTab === FIXED_PRICE}
                         <ListView
                             title={title}
@@ -115,7 +115,7 @@
                             editor={ListingEditor}
                             showNewButton={true}
                             card={ItemCard}
-                            showAsGrid={false} />
+                            style={ListViewStyle.List} />
                     {:else if currentTab === null ? !isMyStall : currentTab === ACTIVE}
                         <ListView
                             title={title}
@@ -123,7 +123,7 @@
                             editor={null}
                             showNewButton={false}
                             card={cardType}
-                            showAsGrid={showAsGrid} />
+                            style={showAsGrid ? ListViewStyle.Grid : ListViewStyle.List} />
 
                         <ListView
                             title={title}
@@ -131,7 +131,7 @@
                             editor={ListingEditor}
                             showNewButton={false}
                             card={cardType}
-                            showAsGrid={showAsGrid} />
+                            style={showAsGrid ? ListViewStyle.Grid : ListViewStyle.List} />
                     {:else if currentTab === PAST}
                         <ListView
                             title={title}
@@ -139,7 +139,7 @@
                             editor={null}
                             showNewButton={false}
                             card={cardType}
-                            showAsGrid={showAsGrid} />
+                            style={showAsGrid ? ListViewStyle.Grid : ListViewStyle.List} />
 
                         <ListView
                             title={title}
@@ -147,7 +147,7 @@
                             editor={ListingEditor}
                             showNewButton={false}
                             card={cardType}
-                            showAsGrid={showAsGrid} />
+                            style={showAsGrid ? ListViewStyle.Grid : ListViewStyle.List} />
                     {/if}
                 </div>
             </div>

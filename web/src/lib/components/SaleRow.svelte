@@ -1,0 +1,45 @@
+<script lang="ts">
+    import type { IEntity } from "$lib/types/base";
+    import type { Sale } from "$lib/types/sale";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
+
+    export let entity: IEntity;
+    $: sale = <Sale>(<unknown>entity);
+</script>
+
+<tr>
+  <td>
+    <DateFormatter date={sale.requested_at} style={DateStyle.Short} />
+  </td>
+  <td>
+    {sale.item_title}
+  </td>
+  <td>
+    {sale.quantity}
+  </td>
+  <td>
+    {sale.price_usd}
+  </td>
+  <td>
+    {sale.amount}
+  </td>
+  <td>
+    {sale.tx_value}
+  </td>
+  <td>
+    <div class="flex items-center space-x-3">
+      <Avatar account={sale.buyer} />
+    </div>
+  </td>
+  <td>
+    <div class="badge badge-primary">
+      {sale.stateStr()}
+    </div>
+  </td>
+  <td>
+    {#if sale.txid}
+      <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">Mempool</a>
+    {/if}
+  </td>
+</tr>

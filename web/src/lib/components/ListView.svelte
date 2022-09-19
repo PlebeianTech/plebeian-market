@@ -1,3 +1,11 @@
+<script context="module" lang="ts">
+    export enum ListViewStyle {
+        List,
+        Grid,
+        Table
+    }
+</script>
+
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { type ILoader, getEntities, postEntity, putEntity } from "$lib/services/api";
@@ -10,7 +18,10 @@
     export let card;
     export let editor: any | null;
     export let showNewButton: boolean = true;
-    export let showAsGrid = false;
+    export let style: ListViewStyle;
+    export let extraClasses: string = "w-11/12 lg:w-3/5";
+
+    export let columns: string[] = [];
 
     export let newEntity: (() => IEntity) | undefined = undefined;
     export let onCreated: () => void = () => { };
@@ -77,7 +88,7 @@
     <title>{title}</title>
 </svelte:head>
 
-<div class="w-11/12 lg:w-3/5 mx-auto">
+<div class="{extraClasses} mx-auto">
     {#if currentEntity}
         <svelte:component this={editor} bind:entity={currentEntity} onSave={saveCurrentEntity} onCancel={() => currentEntity = undefined} />
     {:else if entities === null}
@@ -87,23 +98,35 @@
             <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = newEntity !== undefined ? newEntity() : undefined}></div>
         {/if}
 
-        {#if !showAsGrid}
+        {#if style === ListViewStyle.List}
             {#each entities as entity}
                 <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
             {/each}
+        {:else if style === ListViewStyle.Grid}
+            <div>
+                <div class="grid grid-cols-1 md:grid-cols-3">
+                    {#each entities as entity}
+                        <div class="h-auto">
+                            <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+                        </div>
+                    {/each}
+                </div>
+            </div>
+        {:else if style === ListViewStyle.Table}
+            <div class="overflow-x-auto w-full">
+                <table class="table w-full">
+                    <thead>
+                        {#each columns as column}
+                            <th>{column}</th>
+                        {/each}
+                    </thead>
+                    <tbody>
+                        {#each entities as entity}
+                            <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
         {/if}
     {/if}
 </div>
-
-<!-- Shows list as a grid on larger screens -->
-{#if !currentEntity && showAsGrid && entities !== null}
-<div>
-    <div class="grid grid-cols-1 md:grid-cols-3">
-        {#each entities as entity}
-            <div class="h-auto">
-                <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
-            </div>
-        {/each}
-    </div>
-</div>
-{/if}

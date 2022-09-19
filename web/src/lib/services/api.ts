@@ -1,7 +1,7 @@
 import { goto } from "$app/navigation";
 import { token, Error } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
-import { type Sale, saleFromJson } from "$lib/types/listing";
+import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
 import { isLocal, isStaging } from "$lib/utils";
