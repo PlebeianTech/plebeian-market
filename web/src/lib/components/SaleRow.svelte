@@ -1,11 +1,14 @@
 <script lang="ts">
     import type { IEntity } from "$lib/types/base";
     import type { Sale } from "$lib/types/sale";
+    import { SATS_IN_BTC } from "$lib/utils";
     import Avatar from "$lib/components/Avatar.svelte";
     import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
 
     export let entity: IEntity;
     $: sale = <Sale>(<unknown>entity);
+    $: rate = sale.price_usd * SATS_IN_BTC / sale.price;
+    $: extra_usd = sale.tx_value ? rate * (sale.tx_value - sale.amount) / SATS_IN_BTC : 0;
 </script>
 
 <tr>
@@ -25,7 +28,9 @@
     {sale.amount}
   </td>
   <td>
-    {sale.tx_value}
+    {#if sale.tx_value}
+      {sale.tx_value} (~${extra_usd.toFixed(2)})
+    {/if}
   </td>
   <td>
     <div class="flex items-center space-x-3">
