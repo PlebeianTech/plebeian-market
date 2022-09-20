@@ -93,7 +93,7 @@ def login():
     db.session.delete(lnauth)
     db.session.commit()
 
-    token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(hours=24)}, app.config['SECRET_KEY'], "HS256")
+    token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(days=30)}, app.config['SECRET_KEY'], "HS256")
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
