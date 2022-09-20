@@ -259,10 +259,11 @@
                 <div class="markdown-container">
                     <SvelteMarkdown source={item.description} />
                 </div>
+                <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
+                <div class="divider"></div>
                 {#if item.shipping_from}
                     <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
                 {/if}
-                <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
                 {#if item.shipping_domestic_usd}
                     <p class="mt-4 ml-2">Shipping (domestic): ~<AmountFormatter usdAmount={item.shipping_domestic_usd} /></p>
                 {/if}

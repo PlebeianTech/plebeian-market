@@ -133,7 +133,7 @@
                             <img src={$user.twitter.profileImageUrl} alt="Avatar" />
                         </div>
                     </label>
-                    <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
+                    <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-300 rounded-box w-52">
                         {#if !$user.twitter.usernameVerified}
                             <li>
                                 <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} class="modal-button">

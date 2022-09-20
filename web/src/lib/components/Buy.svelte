@@ -83,7 +83,7 @@
                 </div>
             {/if}
             {#if shippingAmount}
-                <p class="text-xl text-center">
+                <p class="text-xl text-center mt-4">
                     <AmountFormatter satsAmount={sale.amount} />
                 </p>
                 <p class="text-center">+</p>
@@ -104,9 +104,9 @@
             <p class="text-xl">Your purchase will be completed when the payment is confirmed by the network.</p>
             <p class="text-xl">In the mean time, you can follow the transaction <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">here</a>!</p>
         {:else if sale.state === SaleState.TX_CONFIRMED}
-            <p class="text-3xl text-center my-4">Payment confirmed!</p>
+            <p class="text-3xl text-center my-10">Payment confirmed!</p>
             <p class="text-2xl">Please <a href="/stall/{sale.seller.username}" class="link">contact</a> the seller directly to discuss shipping.</p>
-            <p class="text-center mt-4">
+            <p class="text-center mt-10">
                 <Avatar account={sale.seller} height="12" />
             </p>
         {/if}
