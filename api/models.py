@@ -83,6 +83,8 @@ class User(db.Model):
     # can't set this for now, but should be useful in the future
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
+    stall_banner_url = db.Column(db.String(256), nullable=True)
+
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
     twitter_profile_image_url = db.Column(db.String(256), nullable=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -109,6 +111,13 @@ class User(db.Model):
         self.twitter_profile_image_url = url
         return True
 
+    def fetch_twitter_profile_banner(self, profile_banner_url, s3):
+        url = fetch_image(profile_banner_url, s3, f"user_{self.id}_stall_banner", True)
+        if not url:
+            return False
+        self.stall_banner_url = url
+        return True
+
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
 
@@ -116,6 +125,7 @@ class User(db.Model):
         d = {
             'id': self.id,
             'nym': self.nym,
+            'stall_banner_url': self.stall_banner_url,
             'twitter_username': self.twitter_username,
             'twitter_profile_image_url': self.twitter_profile_image_url,
             'twitter_username_verified': self.twitter_username_verified,
@@ -382,10 +392,8 @@ class FilterStateMixin:
         seller_id = self.item.seller_id if self.item else self.seller_id
         is_seller = for_user_id == seller_id
         match request_filter:
-            case 'running':
-                return self.started and not self.ended
-            case 'ended':
-                return self.started and self.ended
+            case 'not-new':
+                return self.started
             case 'new':
                 if is_seller:
                     return not self.started and not self.ended

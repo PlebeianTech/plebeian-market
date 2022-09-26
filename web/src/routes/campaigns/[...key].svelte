@@ -15,8 +15,8 @@
 </script>
 
 {#if campaignKey === ""}
+    <h3 class="text-xl">My campaigns</h3>
     <ListView
-        title="My Campaigns"
         loader={{endpoint: 'campaigns', responseField: 'campaigns', fromJson}} newEntity={() => new Campaign()}
         card={CampaignCard} editor={CampaignEditor}
         style={ListViewStyle.List}>

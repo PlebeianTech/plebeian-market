@@ -304,7 +304,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         # anyone looking at our listing will see the changes
-        code, response = self.get("/api/users/fixie/listings?filter=running")
+        code, response = self.get("/api/users/fixie/listings")
         self.assertEqual(code, 200)
         self.assertEqual(len(response['listings']), 1)
         self.assertEqual(response['listings'][0]['key'], listing_key)
@@ -789,19 +789,19 @@ class TestApi(unittest.TestCase):
         # all users can list the auction now that its started
         # from the stall view in the "running" tag
         # user 1 (owner)
-        code, response = self.get("/api/users/auction_user_1/auctions?filter=running",
+        code, response = self.get("/api/users/auction_user_1/auctions",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         # user 2 (logged in - not owner)
         code, response = self.get(
-            "/api/users/auction_user_1/auctions?filter=running",
+            "/api/users/auction_user_1/auctions",
             headers=self.get_auth_headers(token_2)
         )
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         # unauthenticated user
-        code, response = self.get("/api/users/auction_user_1/auctions?filter=running")
+        code, response = self.get("/api/users/auction_user_1/auctions")
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
 

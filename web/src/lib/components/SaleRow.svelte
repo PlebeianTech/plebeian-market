@@ -5,6 +5,7 @@
     import Avatar from "$lib/components/Avatar.svelte";
     import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
 
+    export let isEditable: boolean = false;
     export let entity: IEntity;
     $: sale = <Sale>(<unknown>entity);
     $: rate = sale.price_usd * SATS_IN_BTC / sale.price;

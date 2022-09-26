@@ -435,12 +435,14 @@ class MockTwitter:
     def get_user(self, username):
         if app.config['ENV'] == 'test':
             # hammer staging rather than picsum when running tests
-            random_image = "https://staging.plebeian.market/images/logo.jpg"
+            random_image_small = random_image_large = "https://staging.plebeian.market/images/logo.jpg"
         else:
-            random_image = "https://picsum.photos/200"
+            random_image_small = "https://picsum.photos/200"
+            random_image_large = "https://picsum.photos/1500"
         return {
             'id': "MOCK_USER_ID",
-            'profile_image_url': random_image,
+            'profile_image_url': random_image_small,
+            'profile_banner_url': random_image_large,
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
             'created_at': datetime.now() - timedelta(days=(app.config['TWITTER_USER_MIN_AGE_DAYS'] + 1)),
         }
@@ -504,7 +506,16 @@ class Twitter:
         if not response_json or response_json.get('errors'):
             return
 
+        profile_banner_url = None
+        banner_response_json = self.get(f"/1.1/users/profile_banner.json?screen_name={username}")
+        if banner_response_json:
+            sizes = [k for k in banner_response_json['sizes'].keys()
+                if k[0].isdigit() and 'x' in k and len(k.split('x')) == 2]
+            max_size = max(sizes, key=lambda s: int(s.split('x')[0]))
+            profile_banner_url = banner_response_json['sizes'][max_size]['url']
+
         twitter_user = response_json['data']
+        twitter_user['profile_banner_url'] = profile_banner_url
 
         if '_normal' in twitter_user['profile_image_url']:
             # pick high-res picture

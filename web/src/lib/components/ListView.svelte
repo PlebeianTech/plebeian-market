@@ -13,7 +13,6 @@
     import type { IEntity } from '$lib/types/base';
     import Loading from "$lib/components/Loading.svelte";
 
-    export let title;
     export let loader: ILoader;
     export let card;
     export let editor: any | null;
@@ -25,17 +24,12 @@
 
     export let newEntity: (() => IEntity) | undefined = undefined;
     export let onCreated: () => void = () => { };
-    export let onView: (entity: IEntity) => void = (_) => { };
-
-    // NB: the "new" button is shown when there are no auctions that are not ended and not viewed
-    // (basically auctions that have been just created and the user didn't go through the whole tweet-start-view flow, *unless* they already ended)
-    // $: showNewButton = ($user && $user.nym === stallOwnerNym || stallOwnerNym === "") || auctions === null || !auctions.find(a => !a.ended && viewedAuctions.indexOf(a.key) === -1);
-
+    export let onForceReload = () => {};
 
     let currentEntity: IEntity | undefined;
     export let entities: IEntity[] | null = null;
 
-    function fetchEntities(successCB: () => void = () => {}) {
+    export function fetchEntities(successCB: () => void = () => {}) {
         getEntities(loader, $token,
             e => {
                 entities = e;
@@ -64,9 +58,10 @@
         }
     }
 
-    function onDelete() {
+    function onEntityChanged() {
         entities = null;
         fetchEntities();
+        onForceReload();
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;
@@ -84,30 +79,28 @@
     });
 </script>
 
-<svelte:head>
-    <title>{title}</title>
-</svelte:head>
-
 <div class="{extraClasses} mx-auto">
     {#if currentEntity}
         <svelte:component this={editor} bind:entity={currentEntity} onSave={saveCurrentEntity} onCancel={() => currentEntity = undefined} />
     {:else if entities === null}
         <Loading />
     {:else}
-        {#if showNewButton}
-            <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = newEntity !== undefined ? newEntity() : undefined}></div>
-        {/if}
+        <div>
+            {#if showNewButton}
+                <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = newEntity !== undefined ? newEntity() : undefined}></div>
+            {/if}
+        </div>
 
         {#if style === ListViewStyle.List}
             {#each entities as entity}
-                <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+                <svelte:component this={card} {entity} isEditable={editor !== null} onEdit={(e) => currentEntity = e} {onEntityChanged} />
             {/each}
         {:else if style === ListViewStyle.Grid}
             <div>
                 <div class="grid grid-cols-1 md:grid-cols-3">
                     {#each entities as entity}
                         <div class="h-auto">
-                            <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+                            <svelte:component this={card} {entity} isEditable={editor !== null} onEdit={(e) => currentEntity = e} {onEntityChanged} />
                         </div>
                     {/each}
                 </div>
@@ -122,7 +115,7 @@
                     </thead>
                     <tbody>
                         {#each entities as entity}
-                            <svelte:component this={card} {entity} onEdit={(e) => currentEntity = e} {onView} {onDelete} />
+                            <svelte:component this={card} {entity} isEditable={editor !== null} onEdit={(e) => currentEntity = e} {onEntityChanged} />
                         {/each}
                     </tbody>
                 </table>

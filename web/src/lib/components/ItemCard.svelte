@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { putStart, getItem, deleteEntity, ErrorHandler, type ILoader } from "$lib/services/api";
+    import { putStart, getItem, deleteEntity, ErrorHandler } from "$lib/services/api";
     import { token, user, Info } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
@@ -12,6 +12,7 @@
     import Countdown from "$lib/components/Countdown.svelte";
     import DateFormatter from "$lib/components/DateFormatter.svelte";
 
+    export let isEditable = false;
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
 
@@ -25,7 +26,7 @@
 
     export let onEdit = (_: Item) => {};
     export let onView = (_: Item) => {};
-    export let onDelete = () => {};
+    export let onEntityChanged = () => {};
 
     function view() {
         if (item.started) {
@@ -71,6 +72,7 @@
                         } else if (item instanceof Listing) {
                             Info.set("Your listing is now active...");
                         }
+                        onEntityChanged();
                     },
                     new ErrorHandler(false, () => starting = false));
                 },
@@ -80,7 +82,7 @@
     function del() {
         confirmation = {
             onContinue: () => {
-                deleteEntity($token, entity, onDelete);
+                deleteEntity($token, entity, onEntityChanged);
             }
         };
     }
@@ -106,16 +108,6 @@
             {item.title}
         </h2>
         {#if item.started && !item.ended}
-            <div class="badge badge-primary">running</div>
-        {:else if item.ended}
-            <div class="badge badge-primary">ended</div>
-        {/if}
-        {#if item instanceof Auction}
-            <div class="badge badge-secondary">auction</div>
-        {:else if item instanceof Listing}
-            <div class="badge badge-secondary">fixed price</div>
-        {/if}
-        {#if item.started && !item.ended}
             <div class="float-root">
                 <div class="py-5 float-left">
                     <div class="lg:flex">
@@ -133,42 +125,42 @@
             </div>
         {/if}
         {#if !item.ended && !itemViewed}
-        <div class="mt-2">
-            <p class="text-center">
-                {#if !itemTweeted && !item.started}
-                Create your tweet and don't forget to attach some pictures
-                {:else if itemTweeted && !item.started}
-                Start your sale
-                {:else if item.started}
-                View your listing
-                {/if}
-            </p>
-            <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
-                <ul class:lg:steps-horizontal={!item.started} class="steps steps-vertical">
-                    <li class="step" class:step-primary={true} class:lg:mb-5={!item.started} class:lg:ml-5={!item.started}>
-                        {#if !itemTweeted && !item.started}
-                            <div class="glowbutton glowbutton-tweet ml-2 mr-5 my-5" class:lg:mr-0={!item.started} class:lg:my-0={!item.started} on:click|preventDefault={openTwitter}></div>
-                        {:else}
-                            <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
-                        {/if}
-                    </li>
-                    <li class="step" class:lg:mb-5={!item.started} class:step-primary={itemTweeted || item.started}>
-                        {#if itemTweeted && !item.started && !starting}
-                            <div class="glowbutton glowbutton-start ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}></div>
-                        {:else}
-                            <button class="btn btn-disabled mx-2">Start</button>
-                        {/if}
-                    </li>
-                    <li class="step" class:lg:mb-5={!item.started} class:lg:mr-5={!item.started} class:step-primary={item.started}>
-                        {#if item.started}
-                            <div class="glowbutton glowbutton-view ml-2 mr-5 mb-5" on:click|preventDefault={view}></div>
-                        {:else}
-                            <button class="btn mx-2" on:click={view}>View</button>
-                        {/if}
-                    </li>
-                </ul>
+            <div class="mt-2">
+                <p class="text-center">
+                    {#if !itemTweeted && !item.started}
+                    Create your tweet and don't forget to attach some pictures
+                    {:else if itemTweeted && !item.started}
+                    Start your sale
+                    {:else if item.started}
+                    View your listing
+                    {/if}
+                </p>
+                <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
+                    <ul class:lg:steps-horizontal={!item.started} class="steps steps-vertical">
+                        <li class="step" class:step-primary={true} class:lg:mb-5={!item.started} class:lg:ml-5={!item.started}>
+                            {#if !itemTweeted && !item.started}
+                                <div class="glowbutton glowbutton-tweet ml-2 mr-5 my-5" class:lg:mr-0={!item.started} class:lg:my-0={!item.started} on:click|preventDefault={openTwitter}></div>
+                            {:else}
+                                <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
+                            {/if}
+                        </li>
+                        <li class="step" class:lg:mb-5={!item.started} class:step-primary={itemTweeted || item.started}>
+                            {#if itemTweeted && !item.started && !starting}
+                                <div class="glowbutton glowbutton-start ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}></div>
+                            {:else}
+                                <button class="btn btn-disabled mx-2">Start</button>
+                            {/if}
+                        </li>
+                        <li class="step" class:lg:mb-5={!item.started} class:lg:mr-5={!item.started} class:step-primary={item.started}>
+                            {#if item.started}
+                                <div class="glowbutton glowbutton-view ml-2 mr-5 mb-5" on:click|preventDefault={view}></div>
+                            {:else}
+                                <button class="btn mx-2" on:click={view}>View</button>
+                            {/if}
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
         {/if}
         <p class="whitespace-nowrap">
             {#if item.start_date && item.end_date && !item.started}
