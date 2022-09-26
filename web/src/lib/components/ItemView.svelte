@@ -125,10 +125,6 @@
     onDestroy(stopRefresh);
 </script>
 
-<svelte:head>
-    <title>Auction</title>
-</svelte:head>
-
 {#if item}
     <div>
         {#if $user && item.is_mine && !item.start_date}
@@ -217,6 +213,16 @@
                             <p class="text-center pt-24">Login below to buy this item for <AmountFormatter usdAmount={item.price_usd} /></p>
                         {/if}
                         <Login {onLogin} />
+                    {/if}
+                {:else} <!-- item.ended -->
+                    {#if item instanceof Auction}
+                        <h3 class="text-2xl text-center my-2">
+                            Auction ended
+                        </h3>
+                    {:else if item instanceof Listing}
+                        <h3 class="text-2xl text-center my-2">
+                            Sold out
+                        </h3>
                     {/if}
                 {/if}
                 {#if item instanceof Auction && item.start_date && item.end_date}

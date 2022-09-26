@@ -100,11 +100,12 @@ def login():
 @api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
 def profile(nym):
     requesting_user = get_user_from_token(get_token_from_request())
+    for_user_id = requesting_user.id if requesting_user else None
     if request.method == 'GET':
         user = m.User.query.filter_by(nym=nym).first()
         if not user:
             return jsonify({'message': "User not found"}), 404
-        return jsonify({'user': user.to_dict(for_user=requesting_user.id)})
+        return jsonify({'user': user.to_dict(for_user=for_user_id)})
 
 @api_blueprint.route('/api/users/me', methods=['GET', 'PUT'])
 @user_required
@@ -137,6 +138,9 @@ def me(user):
 
                 if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
                     return jsonify({'message': "Error fetching profile picture!"}), 400
+
+                if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
+                    return jsonify({'message': "Error fetching profile banner!"}), 400
 
                 user.twitter_username_verified = False
 
@@ -488,6 +492,9 @@ def start(user, key, cls, singular, plural):
 
     if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
         return jsonify({'message': "Error fetching profile picture!"}), 500
+
+    if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
+        return jsonify({'message': "Error fetching profile banner!"}), 500
 
     tweets = twitter.get_sale_tweets(twitter_user['id'], plural)
     tweet = None

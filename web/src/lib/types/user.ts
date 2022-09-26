@@ -6,6 +6,7 @@ export interface IAccount {
 
 export interface User {
     nym: string;
+    stallBannerUrl: string;
     twitter: IAccount;
     twitterUsernameVerificationTweet: string | null;
     contributionPercent: number | null;
@@ -21,6 +22,7 @@ export interface User {
 export function fromJson(json: any): User {
     return {
         nym: <string>json.nym,
+        stallBannerUrl: <string>json.stall_banner_url,
         twitter: {
             username: <string | null>json.twitter_username,
             profileImageUrl: <string | null>json.twitter_profile_image_url,

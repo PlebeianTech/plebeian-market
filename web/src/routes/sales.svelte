@@ -4,8 +4,9 @@
     import SaleRow from "$lib/components/SaleRow.svelte";
 </script>
 
+<h3 class="text-xl">My sales</h3>
+
 <ListView
-    title="My sales"
     loader={{endpoint: `users/me/sales`, responseField: 'sales', fromJson: saleFromJson}}
     showNewButton={false}
     columns={["Date", "Title", "Quantity", "Price (USD)", "Sats", "Received sats ($ shipping)", "Buyer", "State", "Transaction"]}

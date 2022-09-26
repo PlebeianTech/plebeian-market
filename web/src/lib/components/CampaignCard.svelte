@@ -1,11 +1,12 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { deleteEntity } from "../services/api";
+    import { deleteEntity } from "$lib/services/api";
+    import { token } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import type { Campaign } from "$lib/types/campaign";
-    import { token } from "$lib/stores";
-    import Confirmation from "./Confirmation.svelte";
+    import Confirmation from "$lib/components/Confirmation.svelte";
 
+    export let isEditable: boolean = false;
     export let entity: IEntity;
     $: campaign = <Campaign>entity;
 
@@ -13,7 +14,7 @@
 
     export let onEdit = (_: Campaign) => {};
     export let onView = (_: Campaign) => {};
-    export let onDelete = () => {};
+    export let onEntityChanged = () => {};
 
     function view() {
         onView(campaign);
@@ -27,7 +28,7 @@
     function del() {
         confirmation = {
             onContinue: () => {
-                deleteEntity($token, campaign, onDelete);
+                deleteEntity($token, campaign, onEntityChanged);
             }
         };
     }

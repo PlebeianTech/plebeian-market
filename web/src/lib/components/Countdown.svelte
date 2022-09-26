@@ -1,7 +1,16 @@
+<script context="module" lang="ts">
+    export enum CountdownStyle {
+        Large,
+        Compact
+    }
+</script>
+
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
 
     export let untilDate: Date | null = null;
+
+    export let style: CountdownStyle = CountdownStyle.Large;
 
     let days, hours, minutes, seconds;
 
@@ -40,31 +49,48 @@
     });
 </script>
 
-<div class:blink={lastMinute} class="flex justify-center items-center gap-5">
+<div class:blink={lastMinute} class="flex justify-center items-center" class:gap-5={style !== CountdownStyle.Compact} class:gap-1={style === CountdownStyle.Compact}>
     {#if !lastMinute}
         <div>
-            <span class="countdown font-mono text-3xl">
+            <span class="countdown font-mono" class:text-3xl={style === CountdownStyle.Large}>
                 <span style="--value:{days};"></span>
             </span>
-            days
-        </div> 
+            {#if style !== CountdownStyle.Compact}
+                days
+            {/if}
+        </div>
+        {#if style === CountdownStyle.Compact}
+            d
+        {/if}
         <div>
-            <span class="countdown font-mono text-3xl">
+            <span class="countdown font-mono" class:text-3xl={style === CountdownStyle.Large}>
                 <span style="--value:{hours};"></span>
             </span>
-            hours
-        </div> 
+            {#if style !== CountdownStyle.Compact}
+                hours
+            {/if}
+        </div>
+        {#if style === CountdownStyle.Compact}
+            :
+        {/if}
         <div>
-            <span class="countdown font-mono text-3xl">
+            <span class="countdown font-mono" class:text-3xl={style === CountdownStyle.Large}>
                 <span style="--value:{minutes};"></span>
             </span>
-            min
+            {#if style !== CountdownStyle.Compact}
+                min
+            {/if}
         </div>
+        {#if style === CountdownStyle.Compact}
+            :
+        {/if}
     {/if}
     <div>
-        <span class="countdown font-mono text-3xl" class:text-5xl={lastMinute}>
+        <span class="countdown font-mono" class:text-5xl={lastMinute && style === CountdownStyle.Large}>
             <span style="--value:{seconds};"></span>
         </span>
-        sec
+        {#if style !== CountdownStyle.Compact}
+            sec
+        {/if}
     </div>
 </div>
