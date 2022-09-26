@@ -75,6 +75,24 @@ import models as m
 
 migrate = Migrate(app, db)
 
+@app.cli.command("fetch-twitter-banners")
+@with_appcontext
+def fetch_twitter_banners():
+    twitter = get_twitter()
+    s3 = get_s3()
+    app.logger.setLevel(getattr(logging, 'DEBUG'))
+    for user in db.session.query(m.User).all():
+        if user.twitter_username and not user.stall_banner_url and user.twitter_username_verified:
+            app.logger.info(f"Processing {user.twitter_username}")
+            twitter_user = twitter.get_user(user.twitter_username, banner_only=True)
+            if not twitter_user:
+                app.logger.warning(f"User not found: {user.twitter_username}")
+            if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], s3):
+                app.logger.warning(f"Unable to fetch banner for {user.twitter_username}")
+            db.session.commit()
+        else:
+            app.logger.info(f"Skipping {user.twitter_username}")
+
 @app.cli.command("run-tests")
 @with_appcontext
 def run_tests():
@@ -432,7 +450,7 @@ class MockTwitter:
     def __init__(self, **__):
         pass
 
-    def get_user(self, username):
+    def get_user(self, username, banner_only=False):
         if app.config['ENV'] == 'test':
             # hammer staging rather than picsum when running tests
             random_image_small = random_image_large = "https://staging.plebeian.market/images/logo.jpg"
@@ -497,16 +515,29 @@ class Twitter:
             app.logger.error(f"Error when POSTing to Twitter -> {path}: {response.status_code=} {response.text=}")
             return False
 
-    def get_user(self, username):
-        response_json = self.get(f"/2/users/by/username/{username}",
-            params={
-                'user.fields': "location,name,profile_image_url,pinned_tweet_id,created_at",
-            })
-
-        if not response_json or response_json.get('errors'):
-            return
-
+    def get_user(self, username, banner_only=False):
         profile_banner_url = None
+
+        if banner_only:
+            twitter_user = {}
+        else:
+            response_json = self.get(f"/2/users/by/username/{username}",
+                params={
+                    'user.fields': "location,name,profile_image_url,pinned_tweet_id,created_at",
+                })
+
+            if not response_json or response_json.get('errors'):
+                return
+
+            twitter_user = response_json['data']
+
+            if '_normal' in twitter_user['profile_image_url']:
+                # pick high-res picture
+                # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
+                twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
+
+            twitter_user['created_at'] = dateutil.parser.isoparse(twitter_user['created_at']).replace(tzinfo=None)
+
         banner_response_json = self.get(f"/1.1/users/profile_banner.json?screen_name={username}")
         if banner_response_json:
             sizes = [k for k in banner_response_json['sizes'].keys()
@@ -514,15 +545,7 @@ class Twitter:
             max_size = max(sizes, key=lambda s: int(s.split('x')[0]))
             profile_banner_url = banner_response_json['sizes'][max_size]['url']
 
-        twitter_user = response_json['data']
         twitter_user['profile_banner_url'] = profile_banner_url
-
-        if '_normal' in twitter_user['profile_image_url']:
-            # pick high-res picture
-            # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
-            twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
-
-        twitter_user['created_at'] = dateutil.parser.isoparse(twitter_user['created_at']).replace(tzinfo=None)
 
         return twitter_user
 

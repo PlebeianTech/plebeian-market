@@ -112,9 +112,12 @@ class User(db.Model):
         return True
 
     def fetch_twitter_profile_banner(self, profile_banner_url, s3):
-        url = fetch_image(profile_banner_url, s3, f"user_{self.id}_stall_banner", True)
-        if not url:
-            return False
+        if profile_banner_url:
+            url = fetch_image(profile_banner_url, s3, f"user_{self.id}_stall_banner", True)
+            if not url:
+                return False
+        else:
+            url = None
         self.stall_banner_url = url
         return True
 
