@@ -4,6 +4,7 @@
 
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { page } from "$app/stores";
     import { user } from "$lib/stores";
     import Notifications from "$lib/components/settings/Notifications.svelte";
     import Stall from "$lib/components/settings/Stall.svelte";
@@ -11,6 +12,7 @@
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
     import XPUB from "$lib/components/settings/XPUB.svelte";
+    import { goto } from '$app/navigation';
 
     let STALL_PAGE = "My Stall";
     let WALLET_PAGE = "My wallet";
@@ -19,6 +21,12 @@
     let V4V_PAGE = "Value 4 Value";
     let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
+
+    function onStallSaved() {
+        if ($user && $page.url.href.endsWith("#onsave=mystall")) {
+            goto(`/stall/${$user.nym}`);
+        }
+    }
 
     onMount(async () => {
         localStorage.removeItem('initial-login-buyer'); // once the user opened settings, we don't want to pop up the verification anymore
@@ -37,7 +45,7 @@
         <div class="md:grow mx-10">
             <div class="md:w-1/2">
                 {#if currentPage === null || currentPage === STALL_PAGE}
-                    <Stall />
+                    <Stall onSave={onStallSaved} />
                 {:else if currentPage === WALLET_PAGE}
                     <XPUB />
                 {:else if currentPage === TWITTER_PAGE}
