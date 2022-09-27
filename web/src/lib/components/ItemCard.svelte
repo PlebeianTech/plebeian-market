@@ -38,7 +38,7 @@
             onView(item);
         }
 
-        window.open(getUrl(), "_blank");
+        window.open(getUrl(), "_self");
     }
 
     function getUrl() {
@@ -128,7 +128,9 @@
             <div class="mt-2">
                 <p class="text-center">
                     {#if !itemTweeted && !item.started}
-                    Create your tweet and don't forget to attach some pictures
+                    Create your tweet and don't forget to attach four pictures
+                    <br />
+                    (with the best one first)
                     {:else if itemTweeted && !item.started}
                     Start your sale
                     {:else if item.started}

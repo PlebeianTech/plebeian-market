@@ -101,8 +101,16 @@
             <QR qr={sale.address_qr} protocol="bitcoin" address={sale.address} />
         {:else if sale.state === SaleState.TX_DETECTED}
             <p class="text-2xl text-center my-4">Thank you for your payment!</p>
+            <div class="alert alert-info shadow-lg my-4">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>
+                        TxID: <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">{sale.txid}</a>
+                    </span>
+                </div>
+            </div>
             <p class="text-xl">Your purchase will be completed when the payment is confirmed by the network.</p>
-            <p class="text-xl">In the mean time, you can follow the transaction <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">here</a>!</p>
+            <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">mempool.space</a>!</p>
         {:else if sale.state === SaleState.TX_CONFIRMED}
             <p class="text-3xl text-center my-10">Payment confirmed!</p>
             <p class="text-2xl">Please <a href="/stall/{sale.seller.username}" class="link">contact</a> the seller directly to discuss shipping.</p>
