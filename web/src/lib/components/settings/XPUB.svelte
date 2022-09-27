@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { page } from '$app/stores';
     import { ErrorHandler, putProfile } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
 
@@ -45,7 +46,17 @@
         </div>
     </div>
 {:else}
-    <h2 class="text-2xl" title="Ask Peter about XPUB">My wallet</h2>
+    {#if $page.url.pathname === "/settings"}
+        <div class="text-2xl breadcrumbs">
+            <ul>
+                <li>Settings</li>
+                <li>My Wallet</li>
+            </ul>
+        </div>
+    {:else}
+        <h2 class="text-2xl" title="Ask Peter about XPUBs">My wallet</h2>
+    {/if}
+
     <div class="alert alert-info shadow-lg">
         <div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

@@ -48,7 +48,16 @@
         </div>
     </div>
 {:else}
-    <h2 class="text-2xl">Twitter</h2>
+    {#if $page.url.pathname === "/settings"}
+        <div class="text-2xl breadcrumbs">
+            <ul>
+                <li>Settings</li>
+                <li>Twitter</li>
+            </ul>
+        </div>
+    {:else}
+        <h2 class="text-2xl">Twitter</h2>
+    {/if}
 {/if}
 
 <div class="w-full flex items-center justify-center mt-8">

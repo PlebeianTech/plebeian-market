@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Info, token, user } from "$lib/stores";
+    import { page } from '$app/stores';
+    import { Info, token } from "$lib/stores";
     import { ErrorHandler, getUserNotifications, putUserNotifications } from "$lib/services/api";
     import { PostUserNotification, type UserNotification } from "$lib/types/notification";
 
@@ -33,7 +34,16 @@
     });
 </script>
 
-<h2 class="text-2xl">Notifications</h2>
+{#if $page.url.pathname === "/settings"}
+    <div class="text-2xl breadcrumbs">
+        <ul>
+            <li>Settings</li>
+            <li>Notifications</li>
+        </ul>
+    </div>
+{:else}
+    <h2 class="text-2xl">Notifications</h2>
+{/if}
 
 <div class="w-full flex items-center justify-center mt-8">
     <div>

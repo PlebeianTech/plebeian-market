@@ -69,7 +69,7 @@
 
     onMount(async () => {
         if (stallOwnerNym === "" || stallOwnerNym === null) {
-            goto('/');
+            goto("/");
         } else {
             fetchStall(stallOwnerNym);
         }
@@ -98,7 +98,7 @@
                 </div>
             </div>
             {#if isMyStall}
-                <a href="/settings" class="btn btn-xs float-right mt-2">Edit</a>
+                <a href="/settings#onsave=mystall" class="btn btn-xs float-right mt-2">Edit</a>
             {/if}
             {#if stallOwner.stallDescription}
                 <div class="markdown-container ml-12 mt-10">

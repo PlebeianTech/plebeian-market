@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { page } from '$app/stores';
     import { ErrorHandler, putProfile } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
     import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
@@ -34,7 +35,16 @@
     });
 </script>
 
-<h2 class="text-2xl">My Stall</h2>
+{#if $page.url.pathname === "/settings"}
+    <div class="text-2xl breadcrumbs">
+        <ul>
+            <li>Settings</li>
+            <li>My Stall</li>
+        </ul>
+    </div>
+{:else}
+    <h2 class="text-2xl">My Stall</h2>
+{/if}
 
 <div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full max-w-lg">
