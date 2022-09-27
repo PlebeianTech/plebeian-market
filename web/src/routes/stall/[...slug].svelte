@@ -83,8 +83,10 @@
         <div class="w-2/3 items-center mx-auto">
             <img class="w-full h-64 rounded-md object-cover mt-2" src={stallOwner.stallBannerUrl} alt="" />
 
-            <div class="flex mt-4">
-                <Avatar account={stallOwner.twitter} showUsername={false} height="24" />
+            <div class="flex flex-col-reverse md:flex-row mt-4">
+                <div class="mt-4 text-center">
+                    <Avatar account={stallOwner.twitter} showUsername={false} height="24" />
+                </div>
 
                 <div class="ml-4 bg-base-300 rounded flex-1 p-4">
                     <h2 class="text-2xl">{title}</h2>

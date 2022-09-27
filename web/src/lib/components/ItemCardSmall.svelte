@@ -48,7 +48,7 @@
         </div>
     {/if}
     <div class="card bg-base-300 max-w-full overflow-hidden shadow-xl my-3 mx-3">
-        <a target="_blank" href={url}>
+        <a href={url}>
             <figure class="h-auto flex justify-center">
                 {#each item.media as photo, i}
                     {#if i === 0}
@@ -59,7 +59,7 @@
         </a>
         <div class="card-body">
             <h2 class="card-title mb-2">
-                <a target="_blank" href={url}>{item.title}</a>
+                <a href={url}>{item.title}</a>
             </h2>
             {#if item instanceof Auction}
                 {#if item.started && !item.ended}
