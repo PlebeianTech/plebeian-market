@@ -156,7 +156,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, stallName?: string | null, stallDescription?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -166,6 +166,12 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, contr
     }
     if (profile.xpub !== undefined) {
         json.xpub = profile.xpub;
+    }
+    if (profile.stallName !== undefined) {
+        json.stall_name = profile.stallName;
+    }
+    if (profile.stallDescription !== undefined) {
+        json.stall_description = profile.stallDescription;
     }
     fetchAPI("/users/me", 'PUT', tokenValue, JSON.stringify(json),
         response => {

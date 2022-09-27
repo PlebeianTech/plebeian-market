@@ -80,10 +80,11 @@ class User(db.Model):
     xpub = db.Column(db.String(128), nullable=True)
     xpub_index = db.Column(db.Integer, nullable=True)
 
-    # can't set this for now, but should be useful in the future
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     stall_banner_url = db.Column(db.String(256), nullable=True)
+    stall_name = db.Column(db.String(256), nullable=True)
+    stall_description = db.Column(db.String(21000), nullable=True)
 
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
     twitter_profile_image_url = db.Column(db.String(256), nullable=True)
@@ -129,10 +130,13 @@ class User(db.Model):
             'id': self.id,
             'nym': self.nym,
             'stall_banner_url': self.stall_banner_url,
+            'stall_name': self.stall_name,
+            'stall_description': self.stall_description,
             'twitter_username': self.twitter_username,
             'twitter_profile_image_url': self.twitter_profile_image_url,
             'twitter_username_verified': self.twitter_username_verified,
             'has_items': len(self.items.all()) > 0,
+            'has_auctions': sum(len(i.auctions) for i in self.items.all()) > 0,
             'has_listings': sum(len(i.listings) for i in self.items.all()) > 0,
             'has_bids': len(self.bids) > 0,
             'running_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),

@@ -11,6 +11,7 @@
 
 <script lang="ts">
     import { onMount } from 'svelte';
+    import SvelteMarkdown from 'svelte-markdown';
     import { goto } from "$app/navigation";
     import Avatar from "$lib/components/Avatar.svelte";
     import ItemCard from "$lib/components/ItemCard.svelte";
@@ -32,7 +33,7 @@
     let stallOwner: User;
     let loading = true;
 
-    $: title = stallOwner ? `${stallOwner.nym}'s Stall` : "";
+    $: title = stallOwner ? (stallOwner.stallName !== null ? stallOwner.stallName : `${stallOwner.nym}'s Stall`) : "";
     $: twitterHref = stallOwner ? `https://twitter.com/${stallOwner.twitter.username}` : null;
     $: isMyStall = stallOwner && $user && stallOwner.nym === $user.nym;
 
@@ -96,55 +97,67 @@
                     </div>
                 </div>
             </div>
+            {#if isMyStall}
+                <a href="/settings" class="btn btn-xs float-right mt-2">Edit</a>
+            {/if}
+            {#if stallOwner.stallDescription}
+                <div class="markdown-container ml-12 mt-10">
+                    <SvelteMarkdown source={stallOwner.stallDescription} />
+                </div>
+            {/if}
         </div>
 
         <div class="divider"></div>
 
         <div class="md:flex">
             <div class="md:grow mx-10">
-                <h3 class="text-3xl">Auctions</h3>
-                {#if isMyStall}
+                {#if isMyStall || stallOwner.hasAuctions}
+                    <h3 class="text-3xl">Auctions</h3>
+                    {#if isMyStall}
+                        <ListView
+                            bind:this={newAuctionsList}
+                            loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=new`, responseField: 'auctions', fromJson: auctionFromJson}}
+                            newEntity={() => new Auction()}
+                            onCreated={onAuctionCreated}
+                            {onForceReload}
+                            editor={AuctionEditor}
+                            showNewButton={true}
+                            card={ItemCard}
+                            style={ListViewStyle.List} />
+                    {/if}
                     <ListView
-                        bind:this={newAuctionsList}
-                        loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=new`, responseField: 'auctions', fromJson: auctionFromJson}}
-                        newEntity={() => new Auction()}
-                        onCreated={onAuctionCreated}
+                        bind:this={auctionsList}
+                        loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=not-new`, responseField: 'auctions', fromJson: auctionFromJson}}
                         {onForceReload}
-                        editor={AuctionEditor}
-                        showNewButton={true}
-                        card={ItemCard}
-                        style={ListViewStyle.List} />
+                        editor={null}
+                        showNewButton={false}
+                        card={ItemCardSmall}
+                        style={ListViewStyle.Grid} />
+                    <div class="divider"></div>
                 {/if}
-                <ListView
-                    bind:this={auctionsList}
-                    loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=not-new`, responseField: 'auctions', fromJson: auctionFromJson}}
-                    {onForceReload}
-                    editor={null}
-                    showNewButton={false}
-                    card={ItemCardSmall}
-                    style={ListViewStyle.Grid} />
-                <div class="divider"></div>
-                <h3 class="text-3xl">Fixed price</h3>
-                {#if isMyStall}
+                {#if isMyStall || stallOwner.hasListings}
+                    <h3 class="text-3xl">Fixed price</h3>
+                    {#if isMyStall}
+                        <ListView
+                            bind:this={newListingsList}
+                            loader={{endpoint: `users/${stallOwner.nym}/listings?filter=new`, responseField: 'listings', fromJson: listingFromJson}}
+                            newEntity={() => new Listing()}
+                            onCreated={onListingCreated}
+                            {onForceReload}
+                            editor={ListingEditor}
+                            showNewButton={true}
+                            card={ItemCard}
+                            style={ListViewStyle.List} />
+                    {/if}
                     <ListView
-                        bind:this={newListingsList}
-                        loader={{endpoint: `users/${stallOwner.nym}/listings?filter=new`, responseField: 'listings', fromJson: listingFromJson}}
-                        newEntity={() => new Listing()}
-                        onCreated={onListingCreated}
+                        bind:this={listingsList}
+                        loader={{endpoint: `users/${stallOwner.nym}/listings?filter=not-new`, responseField: 'listings', fromJson: listingFromJson}}
                         {onForceReload}
-                        editor={ListingEditor}
-                        showNewButton={true}
-                        card={ItemCard}
-                        style={ListViewStyle.List} />
+                        editor={isMyStall? ListingEditor : null}
+                        showNewButton={false}
+                        card={ItemCardSmall}
+                        style={ListViewStyle.Grid} />
                 {/if}
-                <ListView
-                    bind:this={listingsList}
-                    loader={{endpoint: `users/${stallOwner.nym}/listings?filter=not-new`, responseField: 'listings', fromJson: listingFromJson}}
-                    {onForceReload}
-                    editor={isMyStall? ListingEditor : null}
-                    showNewButton={false}
-                    card={ItemCardSmall}
-                    style={ListViewStyle.Grid} />
             </div>
         </div>
 
