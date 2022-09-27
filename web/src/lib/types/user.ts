@@ -7,11 +7,14 @@ export interface IAccount {
 export interface User {
     nym: string;
     stallBannerUrl: string;
+    stallName: string;
+    stallDescription: string;
     twitter: IAccount;
     twitterUsernameVerificationTweet: string | null;
     contributionPercent: number | null;
     xpub: string | null;
     hasItems: boolean;
+    hasAuctions: boolean;
     hasListings: boolean;
     hasBids: boolean;
     isModerator: boolean;
@@ -23,6 +26,8 @@ export function fromJson(json: any): User {
     return {
         nym: <string>json.nym,
         stallBannerUrl: <string>json.stall_banner_url,
+        stallName: <string>json.stall_name,
+        stallDescription: <string>json.stall_description,
         twitter: {
             username: <string | null>json.twitter_username,
             profileImageUrl: <string | null>json.twitter_profile_image_url,
@@ -32,6 +37,7 @@ export function fromJson(json: any): User {
         contributionPercent: <number | null>json.contribution_percent,
         xpub: <string | null>json.xpub,
         hasItems: <boolean>json.has_items,
+        hasAuctions: <boolean>json.has_auctions,
         hasListings: <boolean>json.has_listings,
         hasBids: <boolean>json.has_bids,
         isModerator: <boolean>json.is_moderator,

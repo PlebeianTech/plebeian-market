@@ -6,16 +6,18 @@
     import { onMount } from 'svelte';
     import { user } from "$lib/stores";
     import Notifications from "$lib/components/settings/Notifications.svelte";
+    import Stall from "$lib/components/settings/Stall.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
     import XPUB from "$lib/components/settings/XPUB.svelte";
 
+    let STALL_PAGE = "My Stall";
+    let WALLET_PAGE = "My wallet";
     let TWITTER_PAGE = "Twitter";
     let NOTIFICATIONS_PAGE = "Notifications";
-    let WALLET_PAGE = "Your wallet";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [TWITTER_PAGE, NOTIFICATIONS_PAGE, WALLET_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     onMount(async () => {
@@ -34,7 +36,11 @@
         </div>
         <div class="md:grow mx-10">
             <div class="md:w-1/2">
-                {#if currentPage === null || currentPage === TWITTER_PAGE}
+                {#if currentPage === null || currentPage === STALL_PAGE}
+                    <Stall />
+                {:else if currentPage === WALLET_PAGE}
+                    <XPUB />
+                {:else if currentPage === TWITTER_PAGE}
                     <TwitterUsername />
                     {#if !$user.twitter.usernameVerified && $user.twitterUsernameVerificationTweet}
                         <div class="mt-4">
@@ -43,8 +49,6 @@
                     {/if}
                 {:else if currentPage === NOTIFICATIONS_PAGE}
                     <Notifications />
-                {:else if currentPage === WALLET_PAGE}
-                    <XPUB />
                 {:else if currentPage === V4V_PAGE}
                     <V4V />
                 {/if}

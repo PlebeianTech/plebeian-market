@@ -162,6 +162,12 @@ def me(user):
             user.xpub = request.json['xpub']
             user.xpub_index = 0
 
+        if 'stall_name' in request.json:
+            user.stall_name = bleach.clean(request.json['stall_name'])
+
+        if 'stall_description' in request.json:
+            user.stall_description = bleach.clean(request.json['stall_description'])
+
         try:
             db.session.commit()
         except IntegrityError:
