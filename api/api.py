@@ -114,15 +114,23 @@ def me(user):
         return jsonify({'user': user.to_dict(for_user=user.id)})
     else:
         if 'nym' in request.json:
-            return jsonify({'message': "Can't edit nym."}), 400 # yet, I guess...
+            clean_nym = (request.json['nym'] or "").lower().strip()
+            if not clean_nym:
+                return jsonify({'message': "Your nym cannot be empty!"}), 400
+            if not clean_nym.isalnum():
+                return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
+            user.nym = clean_nym
         if 'twitter_username' in request.json:
-            clean_username = (request.json['twitter_username'] or "").lower()
+            clean_username = (request.json['twitter_username'] or "").lower().strip()
             if clean_username.startswith("@"):
                 clean_username = clean_username.removeprefix("@")
             if not clean_username:
                 return jsonify({'message': "Invalid Twitter username!"}), 400
             if clean_username != user.twitter_username:
-                user.twitter_username = user.nym = clean_username
+                if user.nym == user.twitter_username:
+                    # NB: if the user has set a custom nym, don't overwrite that!
+                    user.nym = clean_username
+                user.twitter_username = clean_username
 
                 twitter = get_twitter()
 

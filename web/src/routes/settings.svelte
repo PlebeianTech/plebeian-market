@@ -50,7 +50,7 @@
                     <XPUB />
                 {:else if currentPage === TWITTER_PAGE}
                     <TwitterUsername />
-                    {#if !$user.twitter.usernameVerified && $user.twitterUsernameVerificationTweet}
+                    {#if !$user.twitterUsernameVerified && $user.twitterUsernameVerificationTweet}
                         <div class="mt-4">
                             <TwitterVerification />
                         </div>

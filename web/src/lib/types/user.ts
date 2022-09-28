@@ -1,47 +1,44 @@
 export interface IAccount {
-    username: string | null;
-    usernameVerified: boolean;
+    nym: string | null;
     profileImageUrl: string | null;
+    twitterUsername: string | null;
+    twitterUsernameVerified: boolean;
 }
 
-export interface User {
-    nym: string;
-    stallBannerUrl: string;
-    stallName: string;
-    stallDescription: string;
-    twitter: IAccount;
-    twitterUsernameVerificationTweet: string | null;
-    contributionPercent: number | null;
-    xpub: string | null;
-    hasItems: boolean;
-    hasAuctions: boolean;
-    hasListings: boolean;
-    hasBids: boolean;
-    isModerator: boolean;
-    runningAuctionCount: number;
-    endedAuctionCount: number;
+export class User implements IAccount {
+    nym: string | null = null;
+    profileImageUrl: string | null = null;
+    twitterUsername: string | null = null;
+    twitterUsernameVerified: boolean = false;
+    stallBannerUrl: string | null = null;
+    stallName: string | null = null;
+    stallDescription: string | null = null;
+    twitterUsernameVerificationTweet: string | null = null;
+    contributionPercent: number | null = null;
+    xpub: string | null = null;
+    hasItems: boolean = false;
+    hasAuctions: boolean = false;
+    hasListings: boolean = false;
+    hasBids: boolean = false;
+    isModerator: boolean = false;
 }
 
 export function fromJson(json: any): User {
     return {
-        nym: <string>json.nym,
-        stallBannerUrl: <string>json.stall_banner_url,
-        stallName: <string>json.stall_name,
-        stallDescription: <string>json.stall_description,
-        twitter: {
-            username: <string | null>json.twitter_username,
-            profileImageUrl: <string | null>json.twitter_profile_image_url,
-            usernameVerified: <boolean>json.twitter_username_verified,
-        },
-        twitterUsernameVerificationTweet: <string | null>json.twitter_username_verification_tweet,
-        contributionPercent: <number | null>json.contribution_percent,
-        xpub: <string | null>json.xpub,
+        nym: <string | null>json.nym,
+        profileImageUrl: <string | null>json.profile_image_url,
+        twitterUsername: <string | null>json.twitter_username,
+        twitterUsernameVerified: <boolean>json.twitter_username_verified,
+        stallBannerUrl: <string | null>json.stall_banner_url,
+        stallName: <string | null>json.stall_name,
+        stallDescription: <string | null>json.stall_description,
         hasItems: <boolean>json.has_items,
         hasAuctions: <boolean>json.has_auctions,
         hasListings: <boolean>json.has_listings,
         hasBids: <boolean>json.has_bids,
+        contributionPercent: <number | null>json.contribution_percent,
+        xpub: <string | null>json.xpub,
+        twitterUsernameVerificationTweet: <string | null>json.twitter_username_verification_tweet,
         isModerator: <boolean>json.is_moderator,
-        runningAuctionCount: <number>json.running_auction_count,
-        endedAuctionCount: <number>json.ended_auction_count,
     }
 }

@@ -458,7 +458,7 @@ class TestApi(unittest.TestCase):
         self.assertFalse(response['user']['twitter_username_verified'])
         self.assertTrue("twitter.com" in response['user']['twitter_username_verification_tweet'])
         self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
-        self.assertTrue("/mock-s3-files/" in response['user']['twitter_profile_image_url'])
+        self.assertTrue("/mock-s3-files/" in response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_items'], False)
 
@@ -482,7 +482,7 @@ class TestApi(unittest.TestCase):
         self.assertFalse(response['user']['twitter_username_verified'])
         self.assertTrue("twitter.com" in response['user']['twitter_username_verification_tweet'])
         self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
-        self.assertTrue("/mock-s3-files/" in response['user']['twitter_profile_image_url'])
+        self.assertTrue("/mock-s3-files/" in response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1.5)
         self.assertEqual(response['user']['has_items'], False)
 

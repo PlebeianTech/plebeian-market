@@ -65,7 +65,7 @@
                 getItem(item.loader, $token, item.key,
                     a => {
                         entity = a;
-                        user.update(u => { if (u) { u.twitter.usernameVerified = true; } return u; });
+                        user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
                         starting = false;
                         if (item instanceof Auction) {
                             Info.set("Your auction is now running...");
@@ -173,9 +173,9 @@
                 <DateFormatter date={item.end_date} />
             {/if}
             {#if item instanceof Auction}
-                {#if item.has_winner}
+                {#if item.has_winner && item.winner}
                     <br />
-                    <span>Winner: @{item.winner_twitter_username}</span>
+                    <span>Winner: {item.winner.nym}</span>
                     <br />
                     <span>Amount: <AmountFormatter satsAmount={item.topAmount()} /></span>
                 {:else if !item.started}

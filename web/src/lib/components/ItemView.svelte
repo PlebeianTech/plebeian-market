@@ -88,7 +88,7 @@
     }
 
     function onLogin(user: User | null) {
-        if (user && user.twitter.username === null) {
+        if (user && user.nym === null) {
             localStorage.setItem('initial-login-buyer', "1");
         }
     }
@@ -166,7 +166,7 @@
             <div class="p-5">
                 <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{item.title}</h2>
                 <div class="text-center mb-4">
-                    by <Avatar account={item.seller} />
+                    <Avatar account={item.seller} />
                 </div>
                 <Gallery photos={item.media} />
             </div>
@@ -183,13 +183,13 @@
                                 {#if !item.bids.length}
                                     <p class="text-center pt-12">Place your bid below</p>
                                 {/if}
-                                {#if $user && $user.twitter.username !== null && item.started && !item.ended}
+                                {#if $user && $user.nym !== null && item.started && !item.ended}
                                     <div class="flex justify-center items-center">
                                         <NewBid bind:this={newBid} auctionKey={item.key} bind:amount />
                                     </div>
                                 {/if}
                             {:else if item instanceof Listing}
-                                {#if $user.twitter.username !== null && item.started && !item.ended}
+                                {#if $user.nym !== null && item.started && !item.ended}
                                     <div class="mt-8 flex justify-center items-center">
                                         <Buy bind:this={buy} {item} onExpired={onBuyExpired} onConfirmed={onBuyConfirmed} />
                                     </div>

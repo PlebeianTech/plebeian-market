@@ -11,7 +11,7 @@ export class Campaign implements IEntity {
     started: boolean = false;
     ended: boolean = false;
 
-    owner: IAccount = {username: "", usernameVerified: false, profileImageUrl: ""};
+    owner: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
 
     public validate() {
         return true;
@@ -34,9 +34,10 @@ export function fromJson(json: any): Campaign {
     campaign.started = <boolean>json.started;
     campaign.ended = <boolean>json.ended;
     campaign.owner = {
-            username: <string>json.owner_twitter_username,
-            usernameVerified: <boolean>json.owner_twitter_username_verified,
-            profileImageUrl: <string>json.owner_twitter_profile_image_url
+        nym: <string>json.owner_nym,
+        profileImageUrl: <string | null>json.owner_profile_image_url,
+        twitterUsername: <string | null>json.owner_twitter_username,
+        twitterUsernameVerified: <boolean>json.owner_twitter_username_verified,
     };
 
     return campaign;

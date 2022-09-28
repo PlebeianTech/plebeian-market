@@ -1,7 +1,7 @@
 <script lang="ts">
-    export let leftUsername: string;
+    export let leftNym: string;
     export let leftProfileImageUrl: string;
-    export let rightUsername: string;
+    export let rightNym: string;
     export let rightProfileImageUrl: string;
 </script>
 
@@ -12,7 +12,7 @@
                 <img src={leftProfileImageUrl} alt="Avatar" />
             </div>
         </div>
-        <p class="text-center text-xl">@{leftUsername}</p>
+        <p class="text-center text-xl">{leftNym}</p>
     </div>
     <div class="text-center text-3xl lg:text-6xl w-1/8">
         &#129309;
@@ -20,14 +20,14 @@
     <div class="text-center w-1/6 flex-1 lg:flex-none">
         <div class="avatar">
             <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                <a href="https://twitter.com/{rightUsername}" target="_blank">
+                <a href="/stall/{rightNym}" target="_blank">
                     <img src={rightProfileImageUrl} alt="Avatar" />
                 </a>
             </div>
         </div>
         <p class="text-center text-xl">
-            <a href="https://twitter.com/{rightUsername}" target="_blank">
-                @{rightUsername}
+            <a href="/stall/{rightNym}" target="_blank">
+                {rightNym}
             </a>
         </p>
     </div>
