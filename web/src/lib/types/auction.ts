@@ -18,7 +18,7 @@ export class Auction implements IEntity, Item {
 
     key: string = "";
     title: string = "";
-    seller: IAccount = {username: "", usernameVerified: false, profileImageUrl: ""};
+    seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     description: string = "";
     starting_bid: number = 0;
     reserve_bid: number = 0;
@@ -48,12 +48,9 @@ export class Auction implements IEntity, Item {
     needs_contribution?: boolean;
     wait_contribution?: boolean;
     has_winner?: boolean;
+    winner? : IAccount;
     is_won?: boolean;
-
     is_lost?: boolean;
-    winner_twitter_username?: string;
-    winner_twitter_username_verified?: boolean;
-    winner_twitter_profile_image_url?: string;
 
     public validate() {
         return !(this.title.length === 0 || this.description.length === 0);
@@ -141,7 +138,7 @@ export function fromJson(json: any): IEntity {
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
             for (const bidjson of json[k]) {
-                var b: Bid = {amount: 0, buyer: {username: "", profileImageUrl: "", usernameVerified: false}};
+                var b: Bid = {amount: 0, buyer: {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false}};
                 for (var kk in bidjson) {
                     if (kk === 'settled_at') {
                         b.settled_at = new Date(bidjson[kk]);
@@ -150,9 +147,10 @@ export function fromJson(json: any): IEntity {
                     }
                 }
                 b.buyer = {
-                    username: <string>bidjson.twitter_username,
-                    profileImageUrl: <string>bidjson.twitter_profile_image_url,
-                    usernameVerified: <boolean>bidjson.twitter_username_verified,
+                    nym: <string>bidjson.buyer_nym,
+                    profileImageUrl: <string | null>bidjson.buyer_profile_image_url,
+                    twitterUsername: <string | null>bidjson.buyer_twitter_username,
+                    twitterUsernameVerified: <boolean>bidjson.buyer_twitter_username_verified,
                 };
                 a.bids.push(b);
             }
@@ -161,9 +159,18 @@ export function fromJson(json: any): IEntity {
         }
     }
     a.seller = {
-        username: <string>json.seller_twitter_username,
-        usernameVerified: <boolean>json.seller_twitter_username_verified,
-        profileImageUrl: <string>json.seller_twitter_profile_image_url
+        nym: <string>json.seller_nym,
+        profileImageUrl: <string | null>json.seller_profile_image_url,
+        twitterUsername: <string | null>json.seller_twitter_username,
+        twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
     };
+    if (json.winner_nym) {
+        a.winner = {
+            nym: <string>json.winner_nym,
+            profileImageUrl: <string | null>json.winner_profile_image_url,
+            twitterUsername: <string | null>json.winner_twitter_username,
+            twitterUsernameVerified: <boolean>json.winner_twitter_username_verified,
+        };
+    }
     return a;
 }

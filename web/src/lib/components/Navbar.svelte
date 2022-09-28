@@ -65,11 +65,11 @@
                 return;
             }
 
-            if (u.twitter.username === null || u.twitter.username === "") {
+            if (u.nym === null || u.nym === "") {
                 showModal(TwitterUsername, true,
                     (saved) => {
                         if (saved) {
-                            if ($user && !$user.twitter.usernameVerified && $user.twitterUsernameVerificationTweet !== null) {
+                            if ($user && !$user.twitterUsernameVerified && $user.twitterUsernameVerificationTweet !== null) {
                                 if (localStorage.getItem('initial-login-buyer') === "1") {
                                     /*
                                         NB: the only case where we want to automatically show the verification modal
@@ -128,13 +128,13 @@
             </label>
             {#if $token && $user}
                 <div class="dropdown dropdown-end">
-                    <label for={null} tabindex="0" class:verified={$user.twitter.usernameVerified} class:not-verified={!$user.twitter.usernameVerified} class="btn btn-ghost btn-circle avatar">
+                    <label for={null} tabindex="0" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified} class="btn btn-ghost btn-circle avatar">
                         <div class="w-10 rounded-full">
-                            <img src={$user.twitter.profileImageUrl} alt="Avatar" />
+                            <img src={$user.profileImageUrl} alt="Avatar" />
                         </div>
                     </label>
                     <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-300 rounded-box w-52">
-                        {#if !$user.twitter.usernameVerified}
+                        {#if !$user.twitterUsernameVerified}
                             <li>
                                 <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} class="modal-button">
                                     Verify Twitter

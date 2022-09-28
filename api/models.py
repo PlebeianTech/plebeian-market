@@ -82,12 +82,14 @@ class User(db.Model):
 
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
+    # TODO: rename to profile_image_url
+    twitter_profile_image_url = db.Column(db.String(256), nullable=True)
+
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
 
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
-    twitter_profile_image_url = db.Column(db.String(256), nullable=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
     twitter_username_verification_tweet_id = db.Column(db.String(64), nullable=True)
 
@@ -129,18 +131,16 @@ class User(db.Model):
         d = {
             'id': self.id,
             'nym': self.nym,
+            'profile_image_url': self.twitter_profile_image_url,
+            'twitter_username': self.twitter_username,
+            'twitter_username_verified': self.twitter_username_verified,
             'stall_banner_url': self.stall_banner_url,
             'stall_name': self.stall_name,
             'stall_description': self.stall_description,
-            'twitter_username': self.twitter_username,
-            'twitter_profile_image_url': self.twitter_profile_image_url,
-            'twitter_username_verified': self.twitter_username_verified,
             'has_items': len(self.items.all()) > 0,
             'has_auctions': sum(len(i.auctions) for i in self.items.all()) > 0,
             'has_listings': sum(len(i.listings) for i in self.items.all()) > 0,
             'has_bids': len(self.bids) > 0,
-            'running_auction_count': len(self.auctions.filter(Auction.end_date >= now).all()),
-            'ended_auction_count': len(self.auctions.filter(Auction.end_date <= now).all()),
         }
 
         if self.is_moderator:
@@ -447,9 +447,10 @@ class Campaign(db.Model):
             'started': self.started,
             'ended': self.ended,
             'created_at': self.created_at.isoformat() + "Z",
+            'owner_nym': self.owner.nym,
+            'owner_profile_image_url': self.owner.twitter_profile_image_url,
             'owner_twitter_username': self.owner.twitter_username,
             'owner_twitter_username_verified': self.owner.twitter_username_verified,
-            'owner_twitter_profile_image_url': self.owner.twitter_profile_image_url,
         }
 
         return campaign
@@ -618,9 +619,10 @@ class Auction(FilterStateMixin, db.Model):
             'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media or (self.item.media if self.item else [])],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.seller_id,
-            'seller_twitter_username': self.seller.twitter_username,
-            'seller_twitter_username_verified': self.seller.twitter_username_verified,
-            'seller_twitter_profile_image_url': self.seller.twitter_profile_image_url,
+            'seller_nym': self.item.seller.nym if self.item else self.seller.nym,
+            'seller_profile_image_url': self.item.seller.twitter_profile_image_url if self.item else self.seller.twitter_profile_image_url,
+            'seller_twitter_username': self.item.seller.twitter_username if self.item else self.seller.twitter_username,
+            'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else self.seller.twitter_username_verified,
         }
 
         if for_user == self.seller_id:
@@ -640,9 +642,10 @@ class Auction(FilterStateMixin, db.Model):
             else:
                 if for_user and for_user != winning_bid.buyer_id:
                     auction['is_lost'] = True
-                auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
-                auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
-                auction['winner_twitter_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
+            auction['winner_nym'] = winning_bid.buyer.nym
+            auction['winner_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
+            auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
+            auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
         elif self.ended:
             top_bid = self.get_top_bid()
             if top_bid and self.contribution_payment_request is not None:
@@ -813,9 +816,10 @@ class Listing(FilterStateMixin, db.Model):
             ],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.item.seller_id,
+            'seller_nym': self.item.seller.nym,
+            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
-            'seller_twitter_profile_image_url': self.item.seller.twitter_profile_image_url,
         }
 
         if for_user:
@@ -894,9 +898,10 @@ class Bid(db.Model):
     def to_dict(self, for_user=None):
         bid = {
             'amount': self.amount,
-            'twitter_username': self.buyer.twitter_username,
-            'twitter_profile_image_url': self.buyer.twitter_profile_image_url,
-            'twitter_username_verified': self.buyer.twitter_username_verified,
+            'buyer_nym': self.buyer.nym,
+            'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
+            'buyer_twitter_username': self.buyer.twitter_username,
+            'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None)}
         if for_user == self.buyer_id:
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
@@ -960,11 +965,13 @@ class Sale(db.Model):
             'amount': self.amount,
             'shipping_domestic': self.shipping_domestic,
             'shipping_worldwide': self.shipping_worldwide,
+            'seller_nym': self.item.seller.nym,
+            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
             'seller_twitter_username': self.item.seller.twitter_username,
-            'seller_twitter_profile_image_url': self.item.seller.twitter_profile_image_url,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'buyer_nym': self.buyer.nym,
+            'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
             'buyer_twitter_username': self.buyer.twitter_username,
-            'buyer_twitter_profile_image_url': self.buyer.twitter_profile_image_url,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
             'contribution_amount': self.contribution_amount,
             'contribution_payment_request': self.contribution_payment_request,

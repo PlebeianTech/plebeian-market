@@ -113,7 +113,7 @@
             <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">mempool.space</a>!</p>
         {:else if sale.state === SaleState.TX_CONFIRMED}
             <p class="text-3xl text-center my-10">Payment confirmed!</p>
-            <p class="text-2xl">Please <a href="/stall/{sale.seller.username}" class="link">contact</a> the seller directly to discuss shipping.</p>
+            <p class="text-2xl">Please <a href="/stall/{sale.seller.nym}" class="link">contact</a> the seller directly to discuss shipping.</p>
             <p class="text-center mt-10">
                 <Avatar account={sale.seller} height="12" />
             </p>

@@ -2,7 +2,7 @@
     import type { Auction } from "$lib/types/auction";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
-    import DateFormatter from "$lib/components/DateFormatter.svelte";
+    import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
 
     export let auction: Auction;
 </script>
@@ -30,7 +30,7 @@
                         <div class="flex items-center space-x-3">
                             <Avatar account={bid.buyer} />
                             <p class="md:hidden text-xs">
-                                <DateFormatter date={bid.settled_at} />
+                                <DateFormatter date={bid.settled_at} style={DateStyle.Short} />
                             </p>
                         </div>
                     </td>
@@ -41,7 +41,7 @@
                     </td>
                     <td>
                         <p class="hidden md:contents">
-                            <DateFormatter date={bid.settled_at} />
+                            <DateFormatter date={bid.settled_at} style={DateStyle.Short} />
                         </p>
                         <p class="md:hidden">
                             <AmountFormatter satsAmount={bid.amount} newline={true} />

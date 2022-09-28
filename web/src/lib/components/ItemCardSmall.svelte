@@ -74,8 +74,8 @@
             {/if}
             <p class="text-xs">
                 {#if item instanceof Auction}
-                    {#if item.has_winner}
-                        Winner: @{item.winner_twitter_username}
+                    {#if item.has_winner && item.winner}
+                        Winner: {item.winner.nym}
                         <br />
                         Amount: <AmountFormatter satsAmount={item.topAmount()} />
                     {:else if item.bids.length !== 0}
@@ -84,7 +84,7 @@
                         {#if topBid && topBid.buyer}
                             Top bid: <AmountFormatter satsAmount={topBid.amount} format={AmountFormat.Sats} />
                             <br />
-                            Bidder: @{topBid.buyer.username}
+                            Bidder: <a class="link" href="/stall/{topBid.buyer.nym}">{topBid.buyer.nym}</a>
                         {/if}
                     {:else if !item.ended}
                         Starting bid: <AmountFormatter satsAmount={item.starting_bid} format={AmountFormat.Sats} />

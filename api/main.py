@@ -121,7 +121,8 @@ def settle_lnd_payments():
                 if bid:
                     found_invoice = True
                     bid.settled_at = datetime.utcnow()
-                    bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
+                    if bid.auction.end_date:
+                        bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
                     # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
                     app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
                 else:
