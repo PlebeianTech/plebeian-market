@@ -5,7 +5,7 @@
     export let height = "8";
 </script>
 
-<a class="link" href="/stall/{account.nym}">
+<a rel="external" class="link" href="/stall/{account.nym}">
     <div class="flex flex-col">
         <div>
             <div class="avatar" class:verified={account.twitterUsernameVerified} class:not-verified={!account.twitterUsernameVerified}>

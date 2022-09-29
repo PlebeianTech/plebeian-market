@@ -75,7 +75,7 @@
             <p class="text-xs">
                 {#if item instanceof Auction}
                     {#if item.has_winner && item.winner}
-                        Winner: {item.winner.nym}
+                        Winner: <a rel="external" class="link" href="/stall/{item.winner.nym}">{item.winner.nym}</a>
                         <br />
                         Amount: <AmountFormatter satsAmount={item.topAmount()} />
                     {:else if item.bids.length !== 0}
@@ -84,7 +84,7 @@
                         {#if topBid && topBid.buyer}
                             Top bid: <AmountFormatter satsAmount={topBid.amount} format={AmountFormat.Sats} />
                             <br />
-                            Bidder: <a class="link" href="/stall/{topBid.buyer.nym}">{topBid.buyer.nym}</a>
+                            Bidder: <a rel="external" class="link" href="/stall/{topBid.buyer.nym}">{topBid.buyer.nym}</a>
                         {/if}
                     {:else if !item.ended}
                         Starting bid: <AmountFormatter satsAmount={item.starting_bid} format={AmountFormat.Sats} />
