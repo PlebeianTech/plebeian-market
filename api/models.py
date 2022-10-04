@@ -127,7 +127,6 @@ class User(db.Model):
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
 
-        now = datetime.utcnow()
         d = {
             'id': self.id,
             'nym': self.nym,
@@ -140,7 +139,6 @@ class User(db.Model):
             'has_items': len(self.items.all()) > 0,
             'has_auctions': sum(len(i.auctions) for i in self.items.all()) > 0,
             'has_listings': sum(len(i.listings) for i in self.items.all()) > 0,
-            'has_bids': len(self.bids) > 0,
         }
 
         if self.is_moderator:

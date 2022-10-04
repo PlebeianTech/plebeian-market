@@ -19,7 +19,6 @@ export class User implements IAccount {
     hasItems: boolean = false;
     hasAuctions: boolean = false;
     hasListings: boolean = false;
-    hasBids: boolean = false;
     isModerator: boolean = false;
 }
 
@@ -35,7 +34,6 @@ export function fromJson(json: any): User {
         hasItems: <boolean>json.has_items,
         hasAuctions: <boolean>json.has_auctions,
         hasListings: <boolean>json.has_listings,
-        hasBids: <boolean>json.has_bids,
         contributionPercent: <number | null>json.contribution_percent,
         xpub: <string | null>json.xpub,
         twitterUsernameVerificationTweet: <string | null>json.twitter_username_verification_tweet,

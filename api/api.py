@@ -11,7 +11,6 @@ import jwt
 import lnurl
 from pycoin.symbols.btc import network as BTC
 import pyqrcode
-from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 
