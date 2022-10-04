@@ -115,8 +115,8 @@ def me(user):
     else:
         if 'nym' in request.json:
             clean_nym = (request.json['nym'] or "").lower().strip()
-            if not clean_nym:
-                return jsonify({'message': "Your nym cannot be empty!"}), 400
+            if len(clean_nym) < 3:
+                return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
             if not clean_nym.isalnum():
                 return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
             user.nym = clean_nym
