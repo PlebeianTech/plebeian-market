@@ -11,37 +11,31 @@ from os import urandom
 import random
 import string
 import bleach
-import magic
 import pyqrcode
 import requests
 
 from extensions import db
 from main import app
+from utils import guess_ext, pick_ext
 
-def fetch_image(url, s3, filename, append_hash=False):
-    response = requests.get(url)
-    if response.status_code != 200:
-        return None
+def store_image(s3, filename, append_hash, original_filename, data):
+    if data is None:
+        url = original_filename
+        response = requests.get(url)
+        if response.status_code != 200:
+            return None, None
+        data = response.content
 
-    original_ext = url.rsplit('.', 1)[-1]
-    guessed_ext = magic.Magic(extension=True).from_buffer(response.content).split("/")[0]
-    for e in [guessed_ext, original_ext]:
-        if e.isalnum() and len(e) <= 5:
-            ext = f".{e}"
-            break
-    else:
-        ext = ""
+    sha = hashlib.sha256()
+    sha.update(data)
+    content_hash = sha.hexdigest()
 
-    if append_hash:
-        sha = hashlib.sha256()
-        sha.update(response.content)
-        filename = f"{filename}_{sha.hexdigest()}{ext}"
-    else:
-        filename = f"{filename}{ext}"
+    ext = pick_ext([guess_ext(data), original_filename.rsplit('.', 1)[-1]])
+    filename = f"{filename}_{content_hash}{ext}" if append_hash else f"{filename}{ext}"
 
-    s3.upload(response.content, filename)
+    s3.upload(data, filename)
 
-    return s3.get_url_prefix() + s3.get_filename_prefix() + filename
+    return s3.get_url_prefix() + s3.get_filename_prefix() + filename, content_hash
 
 class ValidationError(Exception):
     def __init__(self, message):
@@ -108,7 +102,7 @@ class User(db.Model):
     sales = db.relationship('Sale', backref='buyer')
 
     def fetch_twitter_profile_image(self, profile_image_url, s3):
-        url = fetch_image(profile_image_url, s3, f"user_{self.id}_twitter_profile_image", True)
+        url, _ = store_image(s3, f"user_{self.id}_twitter_profile_image", True, profile_image_url, None)
         if not url:
             return False
         self.twitter_profile_image_url = url
@@ -116,7 +110,7 @@ class User(db.Model):
 
     def fetch_twitter_profile_banner(self, profile_banner_url, s3):
         if profile_banner_url:
-            url = fetch_image(profile_banner_url, s3, f"user_{self.id}_stall_banner", True)
+            url, _ = store_image(s3, f"user_{self.id}_stall_banner", True, profile_banner_url, None)
             if not url:
                 return False
         else:
@@ -482,7 +476,7 @@ class Item(db.Model):
     shipping_from = db.Column(db.String(64), nullable=True)
     shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
-    media = db.relationship('Media', backref='item', foreign_keys='Media.item_id')
+    media = db.relationship('Media', backref='item', foreign_keys='Media.item_id', order_by="Media.index")
 
     is_hidden = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -614,7 +608,7 @@ class Auction(FilterStateMixin, db.Model):
             'shipping_domestic_usd': self.item.shipping_domestic_usd if self.item else 0,
             'shipping_worldwide_usd': self.item.shipping_worldwide_usd if self.item else 0,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
-            'media': [{'url': media.url, 'twitter_media_key': media.twitter_media_key} for media in self.media or (self.item.media if self.item else [])],
+            'media': [media.to_dict() for media in self.media or (self.item.media if self.item else [])],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.seller_id,
             'seller_nym': self.item.seller.nym if self.item else self.seller.nym,
@@ -805,13 +799,7 @@ class Listing(FilterStateMixin, db.Model):
             'shipping_from': self.item.shipping_from,
             'shipping_domestic_usd': self.item.shipping_domestic_usd,
             'shipping_worldwide_usd': self.item.shipping_worldwide_usd,
-            'media': [
-                {
-                    'url': media.url,
-                    'twitter_media_key': media.twitter_media_key
-                }
-                for media in self.item.media
-            ],
+            'media': [media.to_dict() for media in self.item.media],
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.item.seller_id,
             'seller_nym': self.item.seller.nym,
@@ -868,15 +856,24 @@ class Media(db.Model):
     # TODO: this should be set to nullable=False after we drop auction_id
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
 
-    twitter_media_key = db.Column(db.String(50), nullable=False)
+    index = db.Column(db.Integer, nullable=False)
+
+    # TODO: make non-nullable
+    content_hash = db.Column(db.String(256), nullable=True)
+
+    twitter_media_key = db.Column(db.String(50), nullable=True)
     url = db.Column(db.String(256), nullable=False)
 
-    def fetch(self, s3, filename):
-        url = fetch_image(self.url, s3, filename)
-        if not url:
-            return False
-        self.url = url
-        return True
+    def to_dict(self):
+        return {
+            'hash': self.content_hash,
+            'index': self.index,
+            'url': self.url,
+        }
+
+    def store(self, s3, filename, original_filename, data):
+        self.url, self.content_hash = store_image(s3, filename, False, original_filename, data)
+        return self.url is not None
 
 class Bid(db.Model):
     __tablename__ = 'bids'

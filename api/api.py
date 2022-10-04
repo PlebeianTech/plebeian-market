@@ -356,6 +356,13 @@ def get_put_delete_entity(key, cls, singular):
             return jsonify({'message': "Cannot edit auctions once started."}), 403
 
         if request.method == 'PUT':
+            # reorder media, if requested
+            if 'media' in request.json:
+                for media_item in request.json['media']:
+                    media = m.Media.query.filter_by(item_id=entity.item_id, content_hash=media_item['hash']).first()
+                    if media:
+                        media.index = media_item['index']
+
             try:
                 validated_item = m.Item.validate_dict(request.json)
                 validated = cls.validate_dict(request.json)
@@ -380,6 +387,90 @@ def get_put_delete_entity(key, cls, singular):
             db.session.commit()
 
             return jsonify({})
+
+@api_blueprint.route('/api/auctions/<string:key>/media',
+    defaults={'cls': m.Auction, 'singular': 'auction'},
+    methods=['POST'])
+@api_blueprint.route('/api/listings/<string:key>/media',
+    defaults={'cls': m.Listing, 'singular': 'listing'},
+    methods=['POST'])
+def post_media(key, cls, singular):
+    user = get_user_from_token(get_token_from_request())
+
+    if not user:
+        return jsonify({'message': "Unauthorized"}), 401
+
+    entity = cls.query.filter_by(key=key).first()
+    if not entity:
+        return jsonify({'message': "Not found."}), 404
+
+    ########
+    # NB: temporary measure to generate items for existing auctions
+    if isinstance(entity, m.Auction):
+        entity.ensure_item()
+    ########
+
+    if user.id != entity.item.seller_id:
+        return jsonify({'message': "Unauthorized"}), 401
+
+    if isinstance(entity, m.Auction) and entity.started:
+        return jsonify({'message': "Cannot edit auctions once started."}), 403
+
+    last_index = max([media.index for media in entity.item.media], default=0)
+    index = last_index + 1
+
+    f = request.files.get('media')
+    if not f:
+        return jsonify({'message': "No media file attached."}), 400
+
+    original_filename = f.filename
+    data = f.read()
+
+    media = m.Media(item_id=entity.item_id, index=index)
+    if not media.store(get_s3(), f"{singular}_{entity.key}_media_{index}", original_filename, data):
+        return jsonify({'message': "Error fetching picture!"}), 400
+    db.session.add(media)
+    db.session.commit()
+
+    return jsonify({'media': media.to_dict()})
+
+@api_blueprint.route('/api/auctions/<string:key>/media/<string:content_hash>',
+    defaults={'cls': m.Auction},
+    methods=['DELETE'])
+@api_blueprint.route('/api/listings/<string:key>/media/<string:content_hash>',
+    defaults={'cls': m.Listing},
+    methods=['DELETE'])
+def delete_media(key, cls, content_hash):
+    user = get_user_from_token(get_token_from_request())
+
+    if not user:
+        return jsonify({'message': "Unauthorized"}), 401
+
+    entity = cls.query.filter_by(key=key).first()
+    if not entity:
+        return jsonify({'message': "Not found."}), 404
+
+    ########
+    # NB: temporary measure to generate items for existing auctions
+    if isinstance(entity, m.Auction):
+        entity.ensure_item()
+    ########
+
+    if user.id != entity.item.seller_id:
+        return jsonify({'message': "Unauthorized"}), 401
+
+    if isinstance(entity, m.Auction) and entity.started:
+        return jsonify({'message': "Cannot edit auctions once started."}), 403
+
+    media = m.Media.query.filter_by(item_id=entity.item_id, content_hash=content_hash).first()
+
+    if not media:
+        return jsonify({'message': "Media not found."}), 404
+
+    db.session.delete(media)
+    db.session.commit()
+
+    return jsonify({})
 
 @api_blueprint.route('/api/campaigns/<string:key>', methods=['GET', 'PUT', 'DELETE'])
 def campaign(key):
@@ -541,8 +632,8 @@ def start(user, key, cls, singular, plural):
 
     s3 = get_s3()
     for i, photo in enumerate(tweet['photos'], 1):
-        media = m.Media(item_id=entity.item.id, auction_id=auction_id, twitter_media_key=photo['media_key'], url=photo['url'])
-        if not media.fetch(s3, f"{singular}_{entity.key}_media_{i}"):
+        media = m.Media(item_id=entity.item.id, auction_id=auction_id, index=i, twitter_media_key=photo['media_key'])
+        if not media.store(s3, f"{singular}_{entity.key}_media_{i}", photo['url'], None):
             return jsonify({'message': "Error fetching picture!"}), 400
         db.session.add(media)
 
