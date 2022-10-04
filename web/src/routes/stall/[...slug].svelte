@@ -122,7 +122,7 @@
                     {#if isMyStall}
                         <ListView
                             bind:this={newAuctionsList}
-                            loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=new`, responseField: 'auctions', fromJson: auctionFromJson}}
+                            loader={{endpoint: `users/me/auctions?filter=new`, responseField: 'auctions', fromJson: auctionFromJson}}
                             newEntity={() => new Auction()}
                             onCreated={onAuctionCreated}
                             {onForceReload}
@@ -133,7 +133,7 @@
                     {/if}
                     <ListView
                         bind:this={auctionsList}
-                        loader={{endpoint: `users/${stallOwner.nym}/auctions?filter=not-new`, responseField: 'auctions', fromJson: auctionFromJson}}
+                        loader={{endpoint: `users/${isMyStall ? 'me' : stallOwner.nym}/auctions?filter=not-new`, responseField: 'auctions', fromJson: auctionFromJson}}
                         {onForceReload}
                         editor={null}
                         showNewButton={false}
@@ -146,7 +146,7 @@
                     {#if isMyStall}
                         <ListView
                             bind:this={newListingsList}
-                            loader={{endpoint: `users/${stallOwner.nym}/listings?filter=new`, responseField: 'listings', fromJson: listingFromJson}}
+                            loader={{endpoint: `users/me/listings?filter=new`, responseField: 'listings', fromJson: listingFromJson}}
                             newEntity={() => new Listing()}
                             onCreated={onListingCreated}
                             {onForceReload}
@@ -157,7 +157,7 @@
                     {/if}
                     <ListView
                         bind:this={listingsList}
-                        loader={{endpoint: `users/${stallOwner.nym}/listings?filter=not-new`, responseField: 'listings', fromJson: listingFromJson}}
+                        loader={{endpoint: `users/${isMyStall ? 'me' : stallOwner.nym}/listings?filter=not-new`, responseField: 'listings', fromJson: listingFromJson}}
                         {onForceReload}
                         editor={isMyStall? ListingEditor : null}
                         showNewButton={false}
