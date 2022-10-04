@@ -1,3 +1,4 @@
+import base64
 import btc2fiat
 from datetime import datetime, timedelta
 import dateutil.parser
@@ -8,20 +9,25 @@ import unittest
 
 from main import app
 
+# just a one-pixel PNG used for testing
+ONE_PIXEL_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4v5ThPwAG7wKklwQ/bwAAAABJRU5ErkJggg==")
+
 class TestApi(unittest.TestCase):
-    def do(self, f, path, params=None, json=None, headers=None):
+    def do(self, f, path, params=None, json=None, headers=None, files=None):
+        if files is None:
+            files = {}
         BASE_URL = app.config['BASE_URL']
-        response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers)
+        response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers, files=files)
         return response.status_code, response.json() if response.status_code in (200, 400, 401, 403, 404) else None
 
     def get(self, path, params=None, headers=None):
         return self.do(requests.get, path, params=params, headers=headers)
 
-    def post(self, path, json, headers=None):
-        return self.do(requests.post, path, json=json, headers=headers)
+    def post(self, path, json, headers=None, files=None):
+        return self.do(requests.post, path, json=json, headers=headers, files=files)
 
-    def put(self, path, json, headers=None):
-        return self.do(requests.put, path, json=json, headers=headers)
+    def put(self, path, json, headers=None, files=None):
+        return self.do(requests.put, path, json=json, headers=headers, files=files)
 
     def delete(self, path, headers=None):
         return self.do(requests.delete, path, headers=headers)
@@ -297,9 +303,42 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['listings']), 1)
         self.assertEqual(response['listings'][0]['key'], listing_key)
 
+        # listing should have 4 images (the ones from Twitter)
+        code, response = self.get(f"/api/listings/{listing_key}")
+        self.assertEqual(len(response['listing']['media']), 4)
+
+        # other users cannot add images
+        code, response = self.post(f"/api/listings/{listing_key}/media",
+            headers=self.get_auth_headers(token_2), json={},
+            files={'media': ('one_pixel.png', ONE_PIXEL_PNG)})
+        self.assertEqual(code, 401)
+        code, response = self.get(f"/api/listings/{listing_key}")
+        self.assertEqual(len(response['listing']['media']), 4)
+
+        # the owner however, can!
+        code, response = self.post(f"/api/listings/{listing_key}/media",
+            headers=self.get_auth_headers(token_1), json={},
+            files={'media': ('one_pixel.png', ONE_PIXEL_PNG)})
+        self.assertEqual(code, 200)
+        self.assertTrue(response['media']['url'].endswith('.png'))
+        self.assertEqual(response['media']['index'], 5)
+        media_hash = response['media']['hash']
+
+        code, response = self.get(f"/api/listings/{listing_key}")
+        self.assertEqual(len(response['listing']['media']), 5)
+        self.assertTrue(media_hash in [m['hash'] for m in response['listing']['media']])
+
+        # other users cannot delete images...
+        code, response = self.delete(f"/api/listings/{listing_key}/media/{media_hash}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 401)
+        code, response = self.get(f"/api/listings/{listing_key}")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['listing']['media']), 5)
+
         # CAN EDIT the listing once started, unlike auctions!
         code, response = self.put(f"/api/listings/{listing_key}",
-            {'available_quantity': 10},
+            {'available_quantity': 10, 'media': [{'hash': media_hash, 'index': 500}]},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -309,6 +348,18 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['listings']), 1)
         self.assertEqual(response['listings'][0]['key'], listing_key)
         self.assertEqual(response['listings'][0]['available_quantity'], 10)
+        self.assertEqual([m for m in response['listings'][0]['media'] if m['hash'] == media_hash][0]['index'], 500)
+
+        # ... but the owner CAN delete images!
+        code, response = self.delete(f"/api/listings/{listing_key}/media/{media_hash}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # and we are back to 4 now!
+        code, response = self.get(f"/api/listings/{listing_key}")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['listing']['media']), 4)
+        self.assertTrue(media_hash not in [m['hash'] for m in response['listing']['media']])
 
         # the seller has no sales
         code, response = self.get("/api/users/me/sales", {},

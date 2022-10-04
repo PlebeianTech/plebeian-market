@@ -1,7 +1,7 @@
 <script lang="ts">
     // code taken from https://victordiego.com/lightbox/ adapted for our needs and made into a Svelte component
 
-    import type { Media } from "../types/auction";
+    import type { Media } from "$lib/types/item";
 
     export let photos : Media[];
 
@@ -274,8 +274,8 @@
 </div>
 
 <div class=" md:hidden max-h-48 mt-4 gallery carousel carousel-center space-x-4">
-    {#each photos as photo, i}
-        <div id="{photo.twitter_media_key}" class="gallery-item carousel-item">
+    {#each photos as photo}
+        <div id="{photo.hash}" class="gallery-item carousel-item">
             <a class="table-cell" href={photo.url} on:click|preventDefault={event => click(event)}>
             <img class="self-center max-h-48 w-48 object-scale-down rounded-md" src={photo.url} alt="Auctioned object" />
             </a>

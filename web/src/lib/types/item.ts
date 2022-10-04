@@ -2,8 +2,9 @@ import type { ILoader } from "$lib/services/api";
 import type { IAccount } from "$lib/types/user";
 
 export interface Media {
+    index: number;
+    hash: string;
     url: string;
-    twitter_media_key: string;
 }
 
 export interface Item {
