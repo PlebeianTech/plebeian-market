@@ -604,7 +604,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue("missing token" in response['message'].lower())
 
         # GET auctions if logged in as well to see there are none there
-        code, response = self.get("/api/users/auction_user_1/auctions",
+        code, response = self.get("/api/users/me/auctions",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)
@@ -667,7 +667,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['has_items'], True)
 
         # GET auctions to find auction in our "not running" section
-        code, response = self.get("/api/users/auction_user_1/auctions?filter=new",
+        code, response = self.get("/api/users/me/auctions?filter=new",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
