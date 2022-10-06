@@ -6,32 +6,29 @@
     import type { Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
+    import { SaleState, type Sale } from "$lib/types/sale";
     import type { User } from "$lib/types/user";
-    import Avatar from "$lib/components/Avatar.svelte";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
-    import AuctionEndMessage from "$lib/components/AuctionEndMessage.svelte";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import BidButton from "$lib/components/BidButton.svelte";
     import BidList from "$lib/components/BidList.svelte";
+    import BuyButton from "$lib/components/BuyButton.svelte";
     import Countdown from "$lib/components/Countdown.svelte";
     import Gallery from "$lib/components/Gallery.svelte";
     import Login from "$lib/components/Login.svelte";
-    import NewBid from "$lib/components/NewBid.svelte";
-    import Buy from "$lib/components/Buy.svelte";
+    import SaleFlow from "$lib/components/SaleFlow.svelte";
 
     export let loader: ILoader;
     export let itemKey = null;
 
-    let newBid: NewBid;
-    let buy: Buy;
+    let bidButton: BidButton;
 
-    let buyConfirmed = false;
-    let buyExpired = false;
+    let sale: Sale | null = null;
 
-    function onBuyConfirmed() {
-        buyConfirmed = true;
-    }
-
-    function onBuyExpired() {
-        buyExpired = true;
+    export function onSale(s: Sale) {
+        if ((sale && sale.address === s.address) || (sale === null)) {
+            sale = s;
+        }
     }
 
     let item: Item | null = null;
@@ -49,13 +46,13 @@
 
             if (item instanceof Auction) {
                 for (const bid of item.bids) {
-                    if (newBid && bid.payment_request !== undefined) {
+                    if (bidButton && bid.payment_request !== undefined) {
                         // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
-                        newBid.paymentConfirmed(bid.payment_request);
+                        bidButton.bidConfirmed(bid.payment_request);
                     }
-                    if (amount && amount <= bid.amount && newBid.waitingSettlement()) {
+                    if (amount && amount <= bid.amount && bidButton.waitingBidSettlement()) {
                         Error.set("A higher bid just came in.");
-                        newBid.reset();
+                        bidButton.resetBid();
                     }
                 }
 
@@ -69,19 +66,17 @@
                 } else {
                     document.title = `${item.title} | Plebeian Market`;
                 }
-                if (item.has_winner) {
+                if (item.has_winner !== null) {
                     document.title = `Ended - ${item.title} | Plebeian Market`;
                     console.log("Auction ended!");
                     // maybe we should eventually stopRefresh() here, but is seems risky for now, at least while still testing
                 }
             } else if (item instanceof Listing) {
-                for (const sale of item.sales) {
-                    if (buy) {
-                        buy.onSale(sale);
-                    }
-                }
-
                 document.title = `${item.title} | Plebeian Market`;
+            }
+
+            for (const sale of item.sales) {
+                onSale(sale);
             }
         },
         new ErrorHandler(false));
@@ -127,7 +122,7 @@
 
 {#if item}
     <div>
-        {#if $user && item.is_mine && !item.start_date}
+        {#if $user && item.is_mine && !item.started}
             <div class="alert alert-error shadow-lg">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -139,18 +134,18 @@
                 </div>
             </div>
         {/if}
-        {#if buyExpired}
+        {#if sale && sale.state === SaleState.EXPIRED}
             <div class="alert alert-error shadow-lg">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>
-                        Sale expired. The transaction was not confirmed in time. Please try again!
+                        Sale expired. The transaction was not confirmed in time.
                     </span>
                 </div>
             </div>
-        {:else if buyConfirmed}
+        {:else if sale && sale.state === SaleState.TX_CONFIRMED}
             <div class="alert alert-success shadow-lg">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -171,6 +166,16 @@
                 <Gallery photos={item.media} />
             </div>
             <div class="mr-4 p-5">
+                {#if item.ended}
+                    {#if item instanceof Auction}
+                        <h3 class="text-2xl text-center my-2">
+                            Auction ended
+                        </h3>
+                    {/if}
+                {/if}
+                {#if sale}
+                    <SaleFlow bind:sale={sale} />
+                {/if}
                 {#if !item.ended}
                     {#if item instanceof Auction && item.end_date_extended}
                         <h3 class="text-2xl text-center text-warning my-2">
@@ -179,20 +184,20 @@
                     {/if}
                     {#if $token && $user}
                         {#if !item.is_mine}
-                            {#if item instanceof Auction}
-                                {#if !item.bids.length}
-                                    <p class="text-center pt-12">Place your bid below</p>
-                                {/if}
-                                {#if $user && $user.nym !== null && item.started && !item.ended}
-                                    <div class="flex justify-center items-center">
-                                        <NewBid bind:this={newBid} auctionKey={item.key} bind:amount />
-                                    </div>
-                                {/if}
-                            {:else if item instanceof Listing}
-                                {#if $user.nym !== null && item.started && !item.ended}
-                                    <div class="mt-8 flex justify-center items-center">
-                                        <Buy bind:this={buy} {item} onExpired={onBuyExpired} onConfirmed={onBuyConfirmed} />
-                                    </div>
+                            {#if $user.nym !== null && item.started}
+                                {#if !item.ended}
+                                    {#if item instanceof Auction}
+                                        {#if !item.bids.length}
+                                            <p class="text-center pt-12">Place your bid below</p>
+                                        {/if}
+                                        <div class="flex justify-center items-center">
+                                            <BidButton {item} bind:amount bind:this={bidButton} />
+                                        </div>
+                                    {:else if item instanceof Listing}
+                                        <div class="mt-8 flex justify-center items-center">
+                                            <BuyButton {item} {onSale} />
+                                        </div>
+                                    {/if}
                                 {/if}
                             {/if}
                         {:else}
@@ -202,42 +207,40 @@
                                         Your auction is active <br /> &#x1FA99; &#x1F528; &#x1F4B0;
                                     {:else if item instanceof Listing}
                                         Your listing is active <br /> &#x1FA99; &#x1F528; &#x1F4B0;
+                                        <br />
+                                        Note: You can still edit it, by going to <a class="link" href="/stall/{$user.nym}">My stall</a>!
                                     {/if}
                                 </p>
                             {/if}
                         {/if}
                     {:else}
                         {#if item instanceof Auction && !item.bids.length}
-                            <p class="text-center pt-24">Login below to place a bid</p>
+                            <p class="text-center pt-24">Login below to place a bid!</p>
                         {:else if item instanceof Listing}
-                            <p class="text-center pt-24">Login below to buy this item for <AmountFormatter usdAmount={item.price_usd} /></p>
+                            <p class="text-center pt-24">Login below to buy this item for <AmountFormatter usdAmount={item.price_usd} />!</p>
                         {/if}
                         <Login {onLogin} />
                     {/if}
                 {:else} <!-- item.ended -->
-                    {#if item instanceof Auction}
-                        <h3 class="text-2xl text-center my-2">
-                            Auction ended
-                        </h3>
-                    {:else if item instanceof Listing}
+                    {#if item instanceof Listing}
                         <h3 class="text-2xl text-center my-2">
                             Sold out
                         </h3>
                     {/if}
                 {/if}
-                {#if item instanceof Auction && item.start_date && item.end_date}
-                    {#if item.started && !item.ended}
-                        <div class="py-5">
-                            <Countdown bind:this={finalCountdown} untilDate={new Date(item.end_date)} />
-                        </div>
-                    {/if}
-                    {#if !item.reserve_bid_reached}
-                        <p class="my-3 w-full text-xl text-center">
-                            Reserve not met!
-                        </p>
-                    {/if}
-                {/if}
                 {#if item instanceof Auction}
+                    {#if item.start_date && item.end_date}
+                        {#if item.started && !item.ended}
+                            <div class="py-5">
+                                <Countdown bind:this={finalCountdown} untilDate={new Date(item.end_date)} />
+                            </div>
+                        {/if}
+                        {#if !item.reserve_bid_reached}
+                            <p class="my-3 w-full text-xl text-center">
+                                Reserve not met!
+                            </p>
+                        {/if}
+                    {/if}
                     {#if item.bids.length}
                         <div class="mt-2">
                             <BidList auction={item} />
@@ -285,16 +288,11 @@
                                 Auction ended.
                             {/if}
                         {:else if !item.is_mine}
-                            Keep calm, prepare your Lightning wallet and wait for the seller to start this auction.
+                            Keep calm, prepare your wallet and wait for the seller to start this auction.
                         {/if}
                     {/if}
                 </p>
             </div>
         </div>
-        {#if item instanceof Auction}
-            {#if item.ended}
-                <AuctionEndMessage auction={item} />
-            {/if}
-        {/if}
     </div>
 {/if}

@@ -8,6 +8,7 @@ import hashlib
 from io import BytesIO
 import math
 from os import urandom
+from pycoin.symbols.btc import network as BTC
 import random
 import string
 import bleach
@@ -15,7 +16,7 @@ import pyqrcode
 import requests
 
 from extensions import db
-from main import app
+from main import app, get_btc_client
 from utils import guess_ext, pick_ext
 
 def store_image(s3, filename, append_hash, original_filename, data):
@@ -117,6 +118,35 @@ class User(db.Model):
             url = None
         self.stall_banner_url = url
         return True
+
+    def get_contribution_amount(self, for_amount):
+        contribution_amount = int(self.contribution_percent / 100 * for_amount)
+        if contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
+            contribution_amount = 0 # probably not worth the fees, at least in the next few years
+        return contribution_amount
+
+    def get_new_address(self):
+        btc = get_btc_client()
+        k = BTC.parse(self.xpub)
+        address = None
+        while True:
+            if self.xpub_index is None:
+                self.xpub_index = 0
+
+            address = k.subkey(0).subkey(self.xpub_index).address()
+            self.xpub_index += 1
+
+            existing_txs = btc.get_funding_txs(address)
+
+            if existing_txs:
+                app.logger.warning("Skipping address with existing txs.")
+                continue
+
+            if Sale.query.filter_by(address=address).first():
+                app.logger.warning("Skipping address with existing sale.")
+                continue
+
+            return address
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
@@ -473,9 +503,17 @@ class Item(db.Model):
 
     title = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
+
     shipping_from = db.Column(db.String(64), nullable=True)
     shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
+
+    def shipping_domestic_sats(self, btc2usd):
+        return int(self.shipping_domestic_usd / btc2usd * app.config['SATS_IN_BTC'])
+
+    def shipping_worldwide_sats(self, btc2usd):
+        return int(self.shipping_worldwide_usd / btc2usd * app.config['SATS_IN_BTC'])
+
     media = db.relationship('Media', backref='item', foreign_keys='Media.item_id', order_by="Media.index")
 
     is_hidden = db.Column(db.Boolean, nullable=False, default=False)
@@ -531,6 +569,13 @@ class Auction(FilterStateMixin, db.Model):
     shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
     media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
     ########
+    # TODO: these should be removed, as they are now part of Sale,
+    # but we should first generate Sales for old auctions
+    contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
+    contribution_requested_at = db.Column(db.DateTime, nullable=True)
+    contribution_settled_at = db.Column(db.DateTime, nullable=True) # the contribution is settled after the Lightning invoice has been paid
+    contribution_amount = db.Column(db.Integer, nullable=True)
+    ########
     # TODO: this should eventually become non-nullable
     # after we will have created Item records for all old auctions!
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
@@ -560,12 +605,8 @@ class Auction(FilterStateMixin, db.Model):
 
     twitter_id = db.Column(db.String(32), nullable=True)
 
-    # TODO: ideally we will generate a Sale when auctions finish,
-    # then we could drop these and simplify the code quite a bit!
-    contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
-    contribution_requested_at = db.Column(db.DateTime, nullable=True)
-    contribution_settled_at = db.Column(db.DateTime, nullable=True) # the contribution is settled after the Lightning invoice has been paid
-    contribution_amount = db.Column(db.Integer, nullable=True)
+    # None: winner not decided yet; True: winner was decided; False: nobody won
+    has_winner = db.Column(db.Boolean, nullable=True, default=None)
 
     winning_bid_id = db.Column(db.Integer, nullable=True)
 
@@ -594,8 +635,8 @@ class Auction(FilterStateMixin, db.Model):
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
-            'title': self.title,
-            'description': self.description,
+            'title': self.item.title if self.item else self.title,
+            'description': self.item.description if self.item else self.description,
             'duration_hours': self.duration_hours,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
@@ -607,6 +648,7 @@ class Auction(FilterStateMixin, db.Model):
             'shipping_from': self.item.shipping_from if self.item else self.shipping_from,
             'shipping_domestic_usd': self.item.shipping_domestic_usd if self.item else 0,
             'shipping_worldwide_usd': self.item.shipping_worldwide_usd if self.item else 0,
+            'has_winner': self.has_winner,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'media': [media.to_dict() for media in self.media or (self.item.media if self.item else [])],
             'created_at': self.created_at.isoformat() + "Z",
@@ -620,37 +662,17 @@ class Auction(FilterStateMixin, db.Model):
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
 
-        if self.contribution_amount is not None:
-            top_bid = self.get_top_bid() # TODO: should this be based on the winning bid rather than the top bid *if* the contribution was already settled? in case the top bid somehow never becomes the winning bid?
-            auction['contribution_amount'] = self.contribution_amount
-            auction['remaining_amount'] = top_bid.amount - self.contribution_amount
+        if for_user:
+            # NB: we only return sales for the current user, so that the UI can know the sales were settled
+            # sales for other users should be kept private or eventually shown to the seller only!
+            auction['sales'] = [sale.to_dict() for sale in (self.item.sales if self.item else []) if sale.buyer_id == for_user]
 
-        if self.winning_bid_id is not None:
-            assert self.contribution_settled_at is not None # settle-lnd-payments should set both contribution_settled_at and winning_bid_id at the same time!
-            auction['has_winner'] = True
+        if auction['has_winner']:
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
-            if for_user == winning_bid.buyer_id and for_user != self.seller_id: # NB: the seller should not normally win the auction (or even bid), but it happens often during testing
-                auction['is_won'] = True
-            else:
-                if for_user and for_user != winning_bid.buyer_id:
-                    auction['is_lost'] = True
             auction['winner_nym'] = winning_bid.buyer.nym
             auction['winner_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
             auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
             auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
-        elif self.ended:
-            top_bid = self.get_top_bid()
-            if top_bid and self.contribution_payment_request is not None:
-                if for_user == top_bid.buyer_id:
-                    assert self.contribution_amount is not None # this must be set at the same time as contribution_payment_request
-                    auction['needs_contribution'] = True
-                    auction['contribution_percent'] = self.seller.contribution_percent
-                    auction['contribution_payment_request'] = self.contribution_payment_request
-                    qr = BytesIO()
-                    pyqrcode.create(self.contribution_payment_request).svg(qr, omithw=True, scale=4)
-                    auction['contribution_qr'] = qr.getvalue().decode('utf-8')
-                elif for_user == self.seller_id:
-                    auction['wait_contribution'] = True
 
         if for_user is not None:
             user_auction = UserAuction.query.filter_by(user_id=for_user, auction_id=self.id).one_or_none()
@@ -708,31 +730,6 @@ class Auction(FilterStateMixin, db.Model):
         if 'start_date' in validated and 'duration_hours' in validated:
             validated['end_date'] = validated['start_date'] + timedelta(hours=validated['duration_hours'])
         return validated
-
-    def set_contribution(self):
-        if not self.ended:
-            return
-
-        if self.winning_bid_id is not None or self.contribution_payment_request is not None:
-            return
-
-        # auction ended, but no winning bid has been picked
-        # => ask the user with the top bid to send the contribution
-        top_bid = self.get_top_bid()
-        if top_bid and self.reserve_bid_reached:
-            self.contribution_amount = int(self.seller.contribution_percent / 100 * top_bid.amount)
-            if self.contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
-                self.contribution_amount = 0 # probably not worth the fees, at least in the next few years
-
-                # settle the contribution and pick the winner right away
-                self.contribution_requested_at = self.contribution_settled_at = datetime.utcnow()
-                self.winning_bid_id = top_bid.id
-            else:
-                from main import get_lnd_client
-                response = get_lnd_client().add_invoice(value=self.contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY'])
-                self.contribution_payment_request = response.payment_request
-                self.contribution_requested_at = datetime.utcnow()
-            db.session.commit()
 
     def ensure_item(self):
         # TODO: this method should be removed after all existing auctions have been modified to point to items
@@ -916,12 +913,7 @@ class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
-
-    # NB: this is currently not used, but it should be:
-    # we should generate a sale for every auction won
-    # and move the contribution part out of Auction
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
-
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
 
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
@@ -947,7 +939,7 @@ class Sale(db.Model):
 
     # the Lightning invoice for the contribution
     contribution_amount = db.Column(db.Integer, nullable=False)
-    contribution_payment_request = db.Column(db.String(512), nullable=False, unique=True, index=True)
+    contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # this is NULL initially, and gets set after the contribution has been received
 
     def to_dict(self):

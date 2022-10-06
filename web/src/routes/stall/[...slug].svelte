@@ -38,7 +38,7 @@
     $: isMyStall = stallOwner && $user && stallOwner.nym === $user.nym;
 
     function onAuctionCreated() {
-        user.update((u) => { u!.hasItems = true; return u; });
+        user.update((u) => { u!.hasItems = u!.hasAuctions = true; return u; });
         Info.set("Your auction will start when we verify your tweet!");
     }
 

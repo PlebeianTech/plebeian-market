@@ -12,6 +12,7 @@
     import Countdown from "$lib/components/Countdown.svelte";
     import DateFormatter from "$lib/components/DateFormatter.svelte";
 
+    // svelte-ignore unused-export-let
     export let isEditable = false;
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);

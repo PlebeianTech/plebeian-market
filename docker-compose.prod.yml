@@ -2,27 +2,20 @@ version: '3.6'
 
 services:
   api:
+    env_file: .env.prod
     environment:
-      - ENV=prod
       - BASE_URL=https://plebeian.market
-      - LND_GRPC=plebeian-market.m.voltageapp.io:10009
       - S3_FILENAME_PREFIX=P_
       - MODERATOR_USER_IDS=1,5
-      - LOG_LEVEL=INFO
   nginx:
     environment:
       - VIRTUAL_HOST=plebeian.market
       - LETSENCRYPT_HOST=plebeian.market
+  finalize-auctions:
+    env_file: .env.prod
   settle-btc-payments:
-    environment:
-      - FLASK_APP=main
-      - LOG_LEVEL=INFO
+    env_file: .env.prod
   settle-lnd-payments:
-    environment:
-      - FLASK_APP=main
-      - LND_GRPC=plebeian-market.m.voltageapp.io:10009
-      - LOG_LEVEL=INFO
+    env_file: .env.prod
   process-notifications:
-    environment:
-      - FLASK_APP=main
-      - LOG_LEVEL=INFO
+    env_file: .env.prod

@@ -2,28 +2,22 @@ version: '3.6'
 
 services:
   api:
-    environment:
-      - ENV=test
+    env_file: .env.test
+  finalize-auctions:
+    env_file: .env.test
   settle-btc-payments:
-    environment:
-      - ENV=test
+    env_file: .env.test
   settle-lnd-payments:
-    environment:
-      - ENV=test
+    env_file: .env.test
   process-notifications:
-    environment:
-      - ENV=test
+    env_file: .env.test
   test:
     image: plebeianmarket-api
     depends_on:
       api:
         condition: service_healthy
+    env_file: .env.test
     environment:
-      - ENV=test
-      - DEBUG=1
-      - DB_USERNAME=
-      - DB_PASSWORD=
-      - FLASK_APP=main
       - BASE_URL=http://api:5000
     volumes:
       - "./api:/app"

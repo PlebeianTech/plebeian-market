@@ -49,9 +49,7 @@ export function fromJson(json: any): IEntity {
         if (k === 'start_date') {
             l.start_date = json[k] ? new Date(json[k]!) : null;
         } else if (k === 'sales') {
-            for (const salejson of json[k]) {
-                l.sales.push(saleFromJson(salejson));
-            }
+            l.sales = (json[k] as Array<any>).map(saleFromJson);
         } else {
             l[k] = json[k];
         }

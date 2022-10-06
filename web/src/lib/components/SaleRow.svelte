@@ -5,6 +5,7 @@
     import Avatar from "$lib/components/Avatar.svelte";
     import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
 
+    // svelte-ignore unused-export-let
     export let isEditable: boolean = false;
     export let entity: IEntity;
     $: sale = <Sale>(<unknown>entity);
