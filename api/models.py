@@ -509,12 +509,6 @@ class Item(db.Model):
     shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
 
-    def shipping_domestic_sats(self, btc2usd):
-        return int(self.shipping_domestic_usd / btc2usd * app.config['SATS_IN_BTC'])
-
-    def shipping_worldwide_sats(self, btc2usd):
-        return int(self.shipping_worldwide_usd / btc2usd * app.config['SATS_IN_BTC'])
-
     media = db.relationship('Media', backref='item', foreign_keys='Media.item_id', order_by="Media.index")
 
     is_hidden = db.Column(db.Boolean, nullable=False, default=False)

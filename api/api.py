@@ -19,6 +19,7 @@ import models as m
 from main import app, get_lnd_client, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
+from utils import usd2sats
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -715,7 +716,7 @@ def put_buy(user, key):
     except MempoolSpaceError:
         return jsonify({'message': "Error reading from mempool API!"}), 500
 
-    price_sats = int(listing.price_usd / btc2usd * app.config['SATS_IN_BTC'])
+    price_sats = usd2sats(listing.price_usd, btc2usd)
     contribution_amount = listing.item.seller.get_contribution_amount(price_sats * quantity)
 
     if contribution_amount != 0:
@@ -729,8 +730,8 @@ def put_buy(user, key):
         address=address,
         price_usd=listing.price_usd,
         price=price_sats,
-        shipping_domestic=listing.item.shipping_domestic_sats(btc2usd),
-        shipping_worldwide=listing.item.shipping_worldwide_sats(btc2usd),
+        shipping_domestic=usd2sats(listing.item.shipping_domestic_usd, btc2usd),
+        shipping_worldwide=usd2sats(listing.item.shipping_worldwide_usd, btc2usd),
         quantity=quantity,
         amount=(price_sats * quantity) - contribution_amount,
         contribution_amount=contribution_amount,

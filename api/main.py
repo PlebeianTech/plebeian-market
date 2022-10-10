@@ -1,36 +1,36 @@
+import boto3
+from botocore.config import Config
 import btc2fiat
+import click
 from datetime import datetime, timedelta
 import dateutil.parser
+from flask import Flask, jsonify, request, send_file
+from flask.cli import with_appcontext
+from flask_migrate import Migrate
 from functools import wraps
 import io
 from itertools import chain
 import json
-from logging.config import dictConfig
-import math
-import os
-import random
-import signal
-import string
-import sys
-import time
-import click
-from flask import Flask, jsonify, request, send_file
-from flask.cli import with_appcontext
-from flask_migrate import Migrate
-from sqlalchemy import desc
-from sqlalchemy.exc import IntegrityError
-
-import boto3
-from botocore.config import Config
 import jwt
 import lndgrpc
 import logging
+from logging.config import dictConfig
 import magic
+import math
+import os
+import random
 import requests
 from requests_oauthlib import OAuth1Session
 from requests.exceptions import JSONDecodeError
+import signal
+from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
+import string
+import sys
+import time
 
 from extensions import cors, db
+from utils import usd2sats
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
@@ -129,7 +129,6 @@ def finalize_auctions():
                 continue
 
             price_sats = top_bid.amount
-            price_usd = (price_sats * btc2usd) / app.config['SATS_IN_BTC']
             contribution_amount = auction.item.seller.get_contribution_amount(price_sats * quantity)
 
             if contribution_amount != 0:
@@ -141,10 +140,10 @@ def finalize_auctions():
             sale = m.Sale(item_id=auction.item_id, auction_id=auction.id,
                 buyer_id=top_bid.buyer_id,
                 address=address,
-                price_usd=price_usd,
+                price_usd=sats2usd(price_sats, btc2usd),
                 price=price_sats,
-                shipping_domestic=auction.item.shipping_domestic_sats(btc2usd),
-                shipping_worldwide=auction.item.shipping_worldwide_sats(btc2usd),
+                shipping_domestic=usd2sats(auction.item.shipping_domestic_usd, btc2usd),
+                shipping_worldwide=usd2sats(auction.item.shipping_worldwide_usd, btc2usd),
                 quantity=quantity,
                 amount=(price_sats * quantity) - contribution_amount,
                 contribution_amount=contribution_amount,

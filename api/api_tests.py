@@ -8,6 +8,7 @@ import time
 import unittest
 
 from main import app
+from utils import usd2sats
 
 # just a one-pixel PNG used for testing
 ONE_PIXEL_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4v5ThPwAG7wKklwQ/bwAAAABJRU5ErkJggg==")
@@ -387,7 +388,7 @@ class TestApi(unittest.TestCase):
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        one_dollar_sats = 1 / btc2fiat.get_value('kraken') * app.config['SATS_IN_BTC']
+        one_dollar_sats = usd2sats(1, btc2fiat.get_value('kraken'))
         ten_cent_sats = one_dollar_sats / 10
         ten_dollars_sats = one_dollar_sats * 10
         self.assertAlmostEqual(response['sale']['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
