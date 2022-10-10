@@ -12,6 +12,10 @@ from main import app
 # just a one-pixel PNG used for testing
 ONE_PIXEL_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4v5ThPwAG7wKklwQ/bwAAAABJRU5ErkJggg==")
 
+# an XPUB to use for tests and some addresses belonging to it
+XPUB = "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz"
+ADDRESSES = ["1EfgV2Hr5CDjXPavHDpDMjmU33BA2veHy6", "12iNxzdF6KFZ14UyRTYCRuptxkKSSVHzqF", "1CcEugXu9Yf9Qw5cpB8gHUK4X9683WyghM"]
+
 class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, json=None, headers=None, files=None):
         if files is None:
@@ -293,7 +297,7 @@ class TestApi(unittest.TestCase):
 
         # set the xpub
         code, response = self.put("/api/users/me",
-            {'xpub': "zpub6rLtzSoXnXKPXHroRKGCwuRVHjgA5YL6oUkdZnCfbDLdtAKNXb1FX1EmPUYR1uYMRBpngvkdJwxqhLvM46trRy5MRb7oYdSLbb4w5VC4i3z"},
+            {'xpub': XPUB},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['xpub_index'], 0)
@@ -390,6 +394,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue('contribution_payment_request' in response['sale'])
         self.assertTrue('contribution_payment_qr' in response['sale'])
         self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats-ten_cent_sats, delta=(ten_dollars_sats-ten_cent_sats)/100)
+        self.assertTrue(response['sale']['address'] in ADDRESSES)
 
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
@@ -419,6 +424,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['sales']), 1)
+        self.assertTrue(response['sales'][0]['address'] in ADDRESSES)
 
         # the buyer has no sales
         code, response = self.get("/api/users/me/sales", {},
@@ -617,7 +623,7 @@ class TestApi(unittest.TestCase):
 
         # set the xpub
         code, response = self.put("/api/users/me",
-            {'xpub': "zpub6rLtzSoXnXKPXHroRKGCwuRVHjgA5YL6oUkdZnCfbDLdtAKNXb1FX1EmPUYR1uYMRBpngvkdJwxqhLvM46trRy5MRb7oYdSLbb4w5VC4i3z"},
+            {'xpub': XPUB},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['xpub_index'], 0)
@@ -657,8 +663,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
     def test_auctions(self):
-        _, token_1 = self.create_user(twitter_username='auction_user_1', contribution_percent=1, xpub="zpub6rLtzSoXnXKPXHroRKGCwuRVHjgA5YL6oUkdZnCfbDLdtAKNXb1FX1EmPUYR1uYMRBpngvkdJwxqhLvM46trRy5MRb7oYdSLbb4w5VC4i3z")
-        _, token_2 = self.create_user(twitter_username='auction_user_2', contribution_percent=1, xpub="zpub6rLtzSoXnXKPXHroRKGCwuRVHjgA5YL6oUkdZnCfbDLdtAKNXb1FX1EmPUYR1uYMRBpngvkdJwxqhLvM46trRy5MRb7oYdSLbb4w5VC4i3z")
+        _, token_1 = self.create_user(twitter_username='auction_user_1', contribution_percent=1, xpub=XPUB)
+        _, token_2 = self.create_user(twitter_username='auction_user_2', contribution_percent=1, xpub=XPUB)
 
         # GET user auctions if not logged in is OK
         code, response = self.get("/api/users/auction_user_1/auctions")
@@ -1033,6 +1039,7 @@ class TestApi(unittest.TestCase):
         self.assertIsNotNone(response['auction']['sales'][0]['settled_at'])
         self.assertTrue(response['auction']['sales'][0]['txid'].startswith('MOCK_'))
         self.assertIsNone(response['auction']['sales'][0]['expired_at'])
+        self.assertTrue(response['auction']['sales'][0]['address'] in ADDRESSES)
 
         # another user however, cannot see the sale (but it can see the auction has a winner)
         code, response = self.get(f"/api/auctions/{auction_key}",
