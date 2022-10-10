@@ -16,7 +16,7 @@ import pyqrcode
 import requests
 
 from extensions import db
-from main import app, get_btc_client
+from main import app
 from utils import guess_ext, pick_ext
 
 def store_image(s3, filename, append_hash, original_filename, data):
@@ -126,6 +126,7 @@ class User(db.Model):
         return contribution_amount
 
     def get_new_address(self):
+        from main import get_btc_client
         btc = get_btc_client()
         k = BTC.parse(self.xpub)
         address = None

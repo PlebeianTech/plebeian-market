@@ -101,7 +101,7 @@ def finalize_auctions():
             app.logger.error("Error fetching the exchange rate! Taking a 1 minute nap...")
             time.sleep(60)
             continue
-        for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
+        for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None) & (m.Auction.contribution_payment_request == None)):
             top_bid = auction.get_top_bid()
             if not top_bid or not auction.reserve_bid_reached:
                 app.logger.info(f"Auction {auction.id=} has no winner!")
@@ -191,8 +191,10 @@ def settle_lnd_payments():
                         sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
                         if sale:
                             found_invoice = True
-                            listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
-                            if listing.available_quantity < sale.quantity:
+                            listing = None
+                            if sale.listing_id:
+                                listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
+                            if listing and listing.available_quantity < sale.quantity:
                                 # this should not happen unless, for example,
                                 # two people clicked "buy" while there was only 1 item in stock
                                 # and one of them sent the contribution first - hence "reserved" the item
@@ -201,7 +203,8 @@ def settle_lnd_payments():
                                 sale.expired_at = datetime.utcnow()
                                 app.logger.info(f"Expired sale {sale.id=} ahead-of-time due to somebody else sending the contribution first.")
                             else:
-                                listing.available_quantity -= sale.quantity
+                                if listing:
+                                    listing.available_quantity -= sale.quantity
                                 sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
                                 sale.contribution_settled_at = datetime.utcnow()
                                 app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
