@@ -25,7 +25,7 @@
 
     let sale: Sale | null = null;
 
-    export function onSale(s: Sale) {
+    function onSale(s: Sale) {
         if ((sale && sale.address === s.address) || (sale === null)) {
             sale = s;
         }

@@ -255,7 +255,12 @@ def settle_btc_payments():
                     continue
                 for tx in funding_txs:
                     if sale.txid and not sale.settled_at:
-                        if tx['txid'] == sale.txid and tx['confirmed']:
+                        if tx['confirmed'] and (tx['txid'] == sale.txid or tx['value'] == sale.tx_value):
+                            if tx['txid'] != sale.txid:
+                                # this can actually happen if the buyer replaces the tx in the mempool with a new tx,
+                                # for example in order to change the fee
+                                app.logger.info(f"Transaction txid={tx['txid']} differs from original txid={sale.txid} matching {sale.id=} but we still accept it.")
+                                sale.txid = tx['txid']
                             app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {sale.id=}.")
                             sale.state = m.SaleState.TX_CONFIRMED.value
                             sale.settled_at = datetime.utcnow()

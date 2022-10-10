@@ -100,7 +100,7 @@ class User(db.Model):
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    sales = db.relationship('Sale', backref='buyer')
+    sales = db.relationship('Sale', backref='buyer', order_by="desc(Sale.requested_at)")
 
     def fetch_twitter_profile_image(self, profile_image_url, s3):
         url, _ = store_image(s3, f"user_{self.id}_twitter_profile_image", True, profile_image_url, None)

@@ -11,6 +11,7 @@ import jwt
 import lnurl
 from pycoin.symbols.btc import network as BTC
 import pyqrcode
+from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 
@@ -239,7 +240,7 @@ def messages(user):
 @api_blueprint.route('/api/users/me/sales', methods=['GET'])
 @user_required
 def get_sales(user):
-    sales = m.Sale.query.filter(m.Item.id == m.Sale.item_id, m.Item.seller_id == user.id).all()
+    sales = m.Sale.query.filter(m.Item.id == m.Sale.item_id, m.Item.seller_id == user.id).order_by(desc(m.Sale.requested_at)).all()
 
     return jsonify({'sales': [s.to_dict() for s in sales]})
 
