@@ -101,7 +101,11 @@ def finalize_auctions():
             app.logger.error("Error fetching the exchange rate! Taking a 1 minute nap...")
             time.sleep(60)
             continue
-        for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None) & (m.Auction.contribution_payment_request == None)):
+        for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None) & (m.Auction.item_id != None)):
+            if not auction.item.seller.xpub:
+                app.logger.warning(f"XPUB not set for {auction.id=}. skipping...")
+                continue
+
             top_bid = auction.get_top_bid()
             if not top_bid or not auction.reserve_bid_reached:
                 app.logger.info(f"Auction {auction.id=} has no winner!")
