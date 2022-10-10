@@ -55,12 +55,12 @@
                 <span class="label-text">sats</span>
             </label>
         </div>
-        {#if waitingResponse}
-            <button class="btn" disabled>Bid</button>
-        {:else}
-            <div class="w-full flex items-center justify-center">
+        <div class="w-full flex items-center justify-center">
+            {#if waitingResponse}
+                <button class="btn" disabled>Bid</button>
+            {:else}
                 <div class="glowbutton glowbutton-bid mt-2" on:click|preventDefault={placeBid}></div>
-            </div>
-        {/if}
+            {/if}
+        </div>
     {/if}
 </div>
