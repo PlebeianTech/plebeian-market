@@ -30,7 +30,7 @@ import sys
 import time
 
 from extensions import cors, db
-from utils import usd2sats
+from utils import sats2usd, usd2sats
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
