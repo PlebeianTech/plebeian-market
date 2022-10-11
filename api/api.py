@@ -126,8 +126,10 @@ def me(user):
             clean_username = (request.json['twitter_username'] or "").lower().strip()
             if clean_username.startswith("@"):
                 clean_username = clean_username.removeprefix("@")
-            if not clean_username:
-                return jsonify({'message': "Invalid Twitter username!"}), 400
+            if len(clean_username) < 3:
+                return jsonify({'message': "Your Twitter username needs to be at least 3 characters long!"}), 400
+            if not clean_username.replace("_", "").isalnum():
+                return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
             if clean_username != user.twitter_username:
                 if user.nym == user.twitter_username:
                     # NB: if the user has set a custom nym, don't overwrite that!
