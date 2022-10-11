@@ -101,15 +101,22 @@ def finalize_auctions():
             app.logger.error("Error fetching the exchange rate! Taking a 1 minute nap...")
             time.sleep(60)
             continue
-        for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None) & (m.Auction.item_id != None)):
-            if not auction.item.seller.xpub:
-                app.logger.warning(f"XPUB not set for {auction.id=}. skipping...")
-                continue
-
+        for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
             top_bid = auction.get_top_bid()
             if not top_bid or not auction.reserve_bid_reached:
                 app.logger.info(f"Auction {auction.id=} has no winner!")
                 auction.has_winner = False
+                db.session.commit()
+                continue
+
+            app.logger.info(f"Auction {auction.id=} has a winner: user.id={top_bid.buyer_id}!")
+            auction.has_winner = True
+            auction.winning_bid_id = top_bid.id
+
+            if not auction.item_id or not auction.item.seller.xpub:
+                app.logger.warning(f"Old-style auction {auction.id=} (no item or XPUB). Skipping the sale flow...")
+                # NB: committing only inside this if,
+                # because for normal auctions we want to set has_winner in the same transaction that generates the sale!
                 db.session.commit()
                 continue
 
@@ -152,16 +159,11 @@ def finalize_auctions():
                 sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
             db.session.add(sale)
 
-            app.logger.info(f"Auction {auction.id=} has a winner: user.id={top_bid.buyer_id}!")
-            auction.has_winner = True
-            auction.winning_bid_id = top_bid.id
-
             try:
                 db.session.commit()
             except IntegrityError:
                 # this should never happen...
                 app.logger.error(f"Address already in use. Will retry next time. {auction.id=}")
-                continue
 
         if app.config['ENV'] == 'test':
             time.sleep(1)
