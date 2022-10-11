@@ -25,12 +25,6 @@
 
     let sale: Sale | null = null;
 
-    function onSale(s: Sale) {
-        if ((sale && sale.address === s.address) || (sale === null)) {
-            sale = s;
-        }
-    }
-
     let item: Item | null = null;
     let bidCount = 0;
     let amount: number | null = null;
@@ -75,8 +69,9 @@
                 document.title = `${item.title} | Plebeian Market`;
             }
 
-            for (const sale of item.sales) {
-                onSale(sale);
+            var last_sale = item.sales.slice(-1).pop();
+            if (last_sale) {
+                sale = last_sale;
             }
         },
         new ErrorHandler(false));
@@ -173,7 +168,7 @@
                         </h3>
                     {/if}
                 {/if}
-                {#if sale}
+                {#if sale && sale.state !== SaleState.EXPIRED}
                     <SaleFlow bind:sale={sale} />
                 {/if}
                 {#if !item.ended}
@@ -194,9 +189,11 @@
                                             <BidButton {item} bind:amount bind:this={bidButton} />
                                         </div>
                                     {:else if item instanceof Listing}
-                                        <div class="mt-8 flex justify-center items-center">
-                                            <BuyButton {item} {onSale} />
-                                        </div>
+                                        {#if !sale || sale.state === SaleState.TX_CONFIRMED || sale.state === SaleState.EXPIRED}
+                                            <div class="mt-8 flex justify-center items-center">
+                                                <BuyButton {item} onSale={(s) => {sale = s;}} />
+                                            </div>
+                                        {/if}
                                     {/if}
                                 {/if}
                             {/if}

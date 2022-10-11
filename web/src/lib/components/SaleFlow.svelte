@@ -7,7 +7,7 @@
 
     export let sale: Sale;
 
-    let shippingAmount = 0;
+    let shippingAmount = sale.shipping_worldwide;
 
     function domesticShipping() {
         shippingAmount = sale.shipping_domestic;
@@ -36,18 +36,27 @@
 {:else if sale.state === SaleState.CONTRIBUTION_SETTLED}
     <p class="my-4">Please send the remaining amount of <AmountFormatter satsAmount={sale.amount} /> plus shipping directly to the seller!</p>
     {#if sale.shipping_domestic !== 0 || sale.shipping_worldwide !== 0}
-        <div class="form-control">
-            <label class="label cursor-pointer">
-                <span class="label-text">Domestic shipping <AmountFormatter satsAmount={sale.shipping_domestic} /></span>
-                <input type="radio" name="radio-domestic-shipping" class="radio radio-primary" on:change={domesticShipping} checked={shippingAmount === sale.shipping_domestic} />
-            </label>
-        </div>
-        <div class="form-control">
-            <label class="label cursor-pointer">
-                <span class="label-text">Worldwide shipping <AmountFormatter satsAmount={sale.shipping_worldwide} /></span>
-                <input type="radio" name="radio-worldwide-shipping" class="radio radio-primary" on:change={worldwideShipping} checked={shippingAmount === sale.shipping_worldwide} />
-            </label>
-        </div>
+        {#if sale.shipping_domestic === sale.shipping_worldwide}
+            <div class="form-control">
+                <label class="label cursor-pointer">
+                    <span class="label-text">Shipping <AmountFormatter satsAmount={sale.shipping_domestic} /></span>
+                    <input type="radio" name="radio-domestic-shipping" class="radio radio-primary" on:change={domesticShipping} checked={shippingAmount === sale.shipping_domestic} />
+                </label>
+            </div>
+        {:else}
+            <div class="form-control">
+                <label class="label cursor-pointer">
+                    <span class="label-text">Domestic shipping <AmountFormatter satsAmount={sale.shipping_domestic} /></span>
+                    <input type="radio" name="radio-domestic-shipping" class="radio radio-primary" on:change={domesticShipping} checked={shippingAmount === sale.shipping_domestic} />
+                </label>
+            </div>
+            <div class="form-control">
+                <label class="label cursor-pointer">
+                    <span class="label-text">Worldwide shipping <AmountFormatter satsAmount={sale.shipping_worldwide} /></span>
+                    <input type="radio" name="radio-worldwide-shipping" class="radio radio-primary" on:change={worldwideShipping} checked={shippingAmount === sale.shipping_worldwide} />
+                </label>
+            </div>
+        {/if}
     {/if}
     {#if shippingAmount}
         <p class="text-xl text-center mt-4">
@@ -66,7 +75,7 @@
         BTC {formatBTC(sale.amount + shippingAmount)}
     </p>
     <QR qr={sale.address_qr} protocol="bitcoin" address={sale.address} />
-{:else if sale.state === SaleState.TX_DETECTED}
+{:else if sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}
     <p class="text-2xl text-center my-4">Thank you for your payment!</p>
     <div class="alert alert-info shadow-lg my-4">
         <div>
@@ -76,12 +85,14 @@
             </span>
         </div>
     </div>
-    <p class="text-xl">Your purchase will be completed when the payment is confirmed by the network.</p>
-    <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">mempool.space</a>!</p>
-{:else if sale.state === SaleState.TX_CONFIRMED}
-    <p class="text-3xl text-center my-10">Payment confirmed!</p>
-    <p class="text-2xl">Please <a href="/stall/{sale.seller.nym}" class="link">contact</a> the seller directly to discuss shipping.</p>
-    <p class="text-center mt-10">
-        <Avatar account={sale.seller} height="12" />
-    </p>
+    {#if sale.state === SaleState.TX_DETECTED}
+        <p class="text-xl">Your purchase will be completed when the payment is confirmed by the network.</p>
+        <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">mempool.space</a>!</p>
+    {:else}
+        <p class="text-3xl text-center my-10">Payment confirmed!</p>
+        <p class="text-2xl">Please <a href="/stall/{sale.seller.nym}" class="link">contact</a> the seller directly to discuss shipping.</p>
+        <p class="text-center mt-10">
+            <Avatar account={sale.seller} height="12" />
+        </p>
+    {/if}
 {/if}

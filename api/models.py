@@ -516,7 +516,7 @@ class Item(db.Model):
     auctions = db.relationship('Auction', backref='item')
     listings = db.relationship('Listing', backref='item')
 
-    sales = db.relationship('Sale', backref='item', order_by="desc(Sale.requested_at)")
+    sales = db.relationship('Sale', backref='item', order_by="Sale.requested_at")
 
     @classmethod
     def validate_dict(cls, d):
