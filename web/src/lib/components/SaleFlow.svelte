@@ -40,7 +40,7 @@
             <div class="form-control">
                 <label class="label cursor-pointer">
                     <span class="label-text">Shipping <AmountFormatter satsAmount={sale.shipping_domestic} /></span>
-                    <input type="radio" name="radio-domestic-shipping" class="radio radio-primary" on:change={domesticShipping} checked={shippingAmount === sale.shipping_domestic} />
+                    <input type="radio" name="radio-domestic-shipping" class="radio radio-primary" checked={true} />
                 </label>
             </div>
         {:else}
