@@ -92,11 +92,11 @@
             } else if (u.hasItems && u.contributionPercent === null) {
                 showModal(V4V, false,
                     (_) => {
-                        if ($user && $user.hasListings && $user.xpub === null) {
+                        if ($user && $user.xpub === null) {
                             showModal(XPUB, true);
                         }
                     });
-            } else if (u.hasListings && u.xpub === null) {
+            } else if (u.hasItems && u.xpub === null) {
                 showModal(XPUB, true);
             }
         });

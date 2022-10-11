@@ -1,35 +1,36 @@
+import boto3
+from botocore.config import Config
+import btc2fiat
+import click
 from datetime import datetime, timedelta
 import dateutil.parser
+from flask import Flask, jsonify, request, send_file
+from flask.cli import with_appcontext
+from flask_migrate import Migrate
 from functools import wraps
 import io
 from itertools import chain
 import json
-from logging.config import dictConfig
-import math
-import os
-import random
-import signal
-import string
-import sys
-import time
-import click
-from flask import Flask, jsonify, request, send_file
-from flask.cli import with_appcontext
-from flask_migrate import Migrate
-from sqlalchemy import desc
-from sqlalchemy.exc import IntegrityError
-
-import boto3
-from botocore.config import Config
 import jwt
 import lndgrpc
 import logging
+from logging.config import dictConfig
 import magic
+import math
+import os
+import random
 import requests
 from requests_oauthlib import OAuth1Session
 from requests.exceptions import JSONDecodeError
+import signal
+from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
+import string
+import sys
+import time
 
 from extensions import cors, db
+from utils import sats2usd, usd2sats
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
@@ -86,6 +87,89 @@ def run_tests():
     suite = unittest.TestLoader().loadTestsFromModule(api_tests)
     unittest.TextTestRunner().run(suite)
 
+@app.cli.command("finalize-auctions")
+def finalize_auctions():
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
+    app.logger.info("Starting finalize-auctions process...")
+
+    while True:
+        try:
+            btc2usd = btc2fiat.get_value('kraken')
+        except Exception:
+            app.logger.error("Error fetching the exchange rate! Taking a 1 minute nap...")
+            time.sleep(60)
+            continue
+        for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
+            top_bid = auction.get_top_bid()
+            if not top_bid or not auction.reserve_bid_reached:
+                app.logger.info(f"Auction {auction.id=} has no winner!")
+                auction.has_winner = False
+                db.session.commit()
+                continue
+
+            app.logger.info(f"Auction {auction.id=} has a winner: user.id={top_bid.buyer_id}!")
+            auction.has_winner = True
+            auction.winning_bid_id = top_bid.id
+
+            if not auction.item_id or not auction.item.seller.xpub:
+                app.logger.warning(f"Old-style auction {auction.id=} (no item or XPUB). Skipping the sale flow...")
+                # NB: committing only inside this if,
+                # because for normal auctions we want to set has_winner in the same transaction that generates the sale!
+                db.session.commit()
+                continue
+
+            # NB: we assume that the top bidder is the winner, which works for now,
+            # but we might want to make it so that if the winner failed to pay on time,
+            # has_winner becomes None again (when the Sale state is set to EXPIRED),
+            # and here we would pick the next bidder to be the new winner and give him a chance to buy the item.
+            # In that case, we should check here for an EXPIRED Sale belonging to this auction and to the bidder...
+
+            quantity = 1 # always 1 for auctions
+
+            try:
+                address = auction.item.seller.get_new_address()
+            except MempoolSpaceError:
+                app.logger.error("Error reading from mempool API! Taking a 1 minute nap...")
+                time.sleep(60)
+                continue
+
+            price_sats = top_bid.amount
+            contribution_amount = auction.item.seller.get_contribution_amount(price_sats * quantity)
+
+            if contribution_amount != 0:
+                response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY_AUCTION'])
+                contribution_payment_request = response.payment_request
+            else:
+                contribution_payment_request = None
+
+            sale = m.Sale(item_id=auction.item_id, auction_id=auction.id,
+                buyer_id=top_bid.buyer_id,
+                address=address,
+                price_usd=sats2usd(price_sats, btc2usd),
+                price=price_sats,
+                shipping_domestic=usd2sats(auction.item.shipping_domestic_usd, btc2usd),
+                shipping_worldwide=usd2sats(auction.item.shipping_worldwide_usd, btc2usd),
+                quantity=quantity,
+                amount=(price_sats * quantity) - contribution_amount,
+                contribution_amount=contribution_amount,
+                contribution_payment_request=contribution_payment_request)
+            if not contribution_payment_request:
+                sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
+            db.session.add(sale)
+
+            try:
+                db.session.commit()
+            except IntegrityError:
+                # this should never happen...
+                app.logger.error(f"Address already in use. Will retry next time. {auction.id=}")
+
+        if app.config['ENV'] == 'test':
+            time.sleep(1)
+        else:
+            time.sleep(5)
+
 @app.cli.command("settle-lnd-payments")
 @with_appcontext
 def settle_lnd_payments():
@@ -95,31 +179,27 @@ def settle_lnd_payments():
     while True:
         lnd = get_lnd_client()
         last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
-        app.logger.info(f"Subscribing to LND invoices. {last_settle_index=}")
-        for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
-            if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
-                found_invoice = False
-                bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
-                if bid:
-                    found_invoice = True
-                    bid.settled_at = datetime.utcnow()
-                    if bid.auction.end_date:
-                        bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
-                    # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
-                    app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
-                else:
-                    auction = db.session.query(m.Auction).filter_by(contribution_payment_request=invoice.payment_request).first()
-                    if auction:
+        app.logger.info(f"Subscribing to LND invoices using {type(lnd)}. {last_settle_index=}")
+        try:
+            for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
+                if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
+                    found_invoice = False
+                    bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
+                    if bid:
                         found_invoice = True
-                        auction.contribution_settled_at = datetime.utcnow()
-                        auction.winning_bid_id = auction.get_top_bid().id
-                        app.logger.info(f"Settled contribution: {auction.id=} {auction.contribution_amount=}.")
+                        bid.settled_at = datetime.utcnow()
+                        if bid.auction.end_date:
+                            bid.auction.end_date = max(bid.auction.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
+                        # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
+                        app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
                     else:
                         sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
                         if sale:
                             found_invoice = True
-                            listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
-                            if listing.available_quantity < sale.quantity:
+                            listing = None
+                            if sale.listing_id:
+                                listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
+                            if listing and listing.available_quantity < sale.quantity:
                                 # this should not happen unless, for example,
                                 # two people clicked "buy" while there was only 1 item in stock
                                 # and one of them sent the contribution first - hence "reserved" the item
@@ -128,17 +208,26 @@ def settle_lnd_payments():
                                 sale.expired_at = datetime.utcnow()
                                 app.logger.info(f"Expired sale {sale.id=} ahead-of-time due to somebody else sending the contribution first.")
                             else:
-                                listing.available_quantity -= sale.quantity
+                                if listing:
+                                    listing.available_quantity -= sale.quantity
                                 sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
                                 sale.contribution_settled_at = datetime.utcnow()
                                 app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
-                if found_invoice:
-                    last_settle_index = invoice.settle_index
-                    state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
-                    state.value = str(last_settle_index)
-                    db.session.commit()
-        app.logger.warning("Disconnected from LND. Sleep, then retry...")
-        time.sleep(5)
+                    if found_invoice:
+                        last_settle_index = invoice.settle_index
+                        state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
+                        state.value = str(last_settle_index)
+                        db.session.commit()
+        except:
+            app.logger.exception("Error while processing LND invoices. Will roll back and retry.")
+            db.session.rollback()
+        else:
+            app.logger.warning("Disconnected from LND. Sleep, then retry...")
+
+        if app.config['ENV'] == 'test':
+            time.sleep(1)
+        else:
+            time.sleep(10)
 
 @app.cli.command("settle-btc-payments")
 @with_appcontext
@@ -151,22 +240,29 @@ def settle_btc_payments():
     app.logger.info(f"Starting to settle BTC payments using {type(btc)}...")
 
     while True:
-        sales_to_settle_filter = m.Sale.contribution_settled_at != None
-        sales_to_expire_filter = m.Sale.requested_at < (datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']))
+        sales_to_settle_filter = (m.Sale.contribution_payment_request == None) | (m.Sale.contribution_settled_at != None)
+        sales_to_expire_filter = m.Sale.requested_at < (datetime.utcnow() - timedelta(minutes=min(app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_LISTING'], app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_AUCTION'])))
 
         try:
             for sale in db.session.query(m.Sale).filter((m.Sale.settled_at == None) & (m.Sale.expired_at == None) & (sales_to_settle_filter | sales_to_expire_filter)):
                 if app.config['ENV'] == 'test' and sale.requested_at >= (datetime.utcnow() - timedelta(seconds=1)):
                     # in test mode, require sales to be at least 1 second old, so we don't break the tests
+                    app.logger.warning("Waiting...")
                     continue
-                funding_txs = btc.get_funding_txs(sale.address)
-                if funding_txs is None:
+                try:
+                    funding_txs = btc.get_funding_txs(sale.address)
+                except MempoolSpaceError:
                     app.logger.warning("Cannot get transactions from mempool API. Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
                 for tx in funding_txs:
                     if sale.txid and not sale.settled_at:
-                        if tx['txid'] == sale.txid and tx['confirmed']:
+                        if tx['confirmed'] and (tx['txid'] == sale.txid or tx['value'] == sale.tx_value):
+                            if tx['txid'] != sale.txid:
+                                # this can actually happen if the buyer replaces the tx in the mempool with a new tx,
+                                # for example in order to change the fee
+                                app.logger.info(f"Transaction txid={tx['txid']} differs from original txid={sale.txid} matching {sale.id=} but we still accept it.")
+                                sale.txid = tx['txid']
                             app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {sale.id=}.")
                             sale.state = m.SaleState.TX_CONFIRMED.value
                             sale.settled_at = datetime.utcnow()
@@ -188,7 +284,10 @@ def settle_btc_payments():
                         else:
                             app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")
                 else:
-                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=app.config['BTC_TRANSACTION_TIMEOUT_MINUTES']):
+                    is_auction_sale = sale.auction_id is not None
+                    is_listing_sale = sale.listing_id is not None
+                    timeout_minutes = app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_LISTING'] if is_listing_sale else app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_AUCTION']
+                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=timeout_minutes):
                         app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
                         sale.state = m.SaleState.EXPIRED.value
                         sale.expired_at = datetime.utcnow()
@@ -396,13 +495,15 @@ class MockBTCClient:
         else:
             return []
 
+class MempoolSpaceError(Exception):
+    pass
+
 class MempoolSpaceBTCClient:
     def get_funding_txs(self, addr):
         try:
             r = requests.get(f"https://mempool.space/api/address/{addr}/txs")
-        except JSONDecodeError:
-            app.logger.warning("Invalid JSON received from mempool API.")
-            return None
+        except JSONDecodeError as e:
+            raise MempoolSpaceError() from e
 
         txs = []
         for tx in r.json():

@@ -9,3 +9,11 @@ def pick_ext(choices):
             return f".{e}"
     else:
         return ""
+
+def usd2sats(amount, btc2usd):
+    from main import app
+    return int(amount / btc2usd * app.config['SATS_IN_BTC'])
+
+def sats2usd(amount, btc2usd):
+    from main import app
+    return (amount * btc2usd) / app.config['SATS_IN_BTC']

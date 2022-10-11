@@ -6,6 +6,7 @@
     import type { Campaign } from "$lib/types/campaign";
     import Confirmation from "$lib/components/Confirmation.svelte";
 
+    // svelte-ignore unused-export-let
     export let isEditable: boolean = false;
     export let entity: IEntity;
     $: campaign = <Campaign>entity;

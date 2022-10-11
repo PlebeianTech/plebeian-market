@@ -11,13 +11,16 @@ import jwt
 import lnurl
 from pycoin.symbols.btc import network as BTC
 import pyqrcode
+from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 
 from extensions import db
 import models as m
-from main import app, get_btc_client, get_lnd_client, get_s3, get_twitter
+from main import app, get_lnd_client, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
+from main import MempoolSpaceError
+from utils import usd2sats
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -237,7 +240,7 @@ def messages(user):
 @api_blueprint.route('/api/users/me/sales', methods=['GET'])
 @user_required
 def get_sales(user):
-    sales = m.Sale.query.filter(m.Item.id == m.Sale.item_id, m.Item.seller_id == user.id).all()
+    sales = m.Sale.query.filter(m.Item.id == m.Sale.item_id, m.Item.seller_id == user.id).order_by(desc(m.Sale.requested_at)).all()
 
     return jsonify({'sales': [s.to_dict() for s in sales]})
 
@@ -328,8 +331,6 @@ def get_put_delete_entity(key, cls, singular):
         return jsonify({'message': "Not found."}), 404
 
     if request.method == 'GET':
-        if isinstance(entity, m.Auction):
-            entity.set_contribution()
         return jsonify({singular: entity.to_dict(for_user=(user.id if user else None))})
     else:
         is_changing_hidden_state = request.method == 'PUT' and 'is_hidden' in set(request.json.keys())
@@ -585,9 +586,9 @@ def start(user, key, cls, singular, plural):
 
     if user.contribution_percent is None:
         return jsonify({'message': "User did not set a contribution."}), 400
-    if isinstance(entity, m.Listing):
-        if not user.xpub:
-            return jsonify({'message': "User did not set an XPUB."}), 400
+
+    if not user.xpub:
+        return jsonify({'message': "User did not set an XPUB."}), 400
 
     twitter = get_twitter()
     twitter_user = twitter.get_user(user.twitter_username)
@@ -706,58 +707,44 @@ def put_buy(user, key):
     if listing.available_quantity < quantity:
         return jsonify({'message': "Not enough items in stock!"}), 400
 
-    btc2usd = btc2fiat.get_value('kraken')
+    try:
+        btc2usd = btc2fiat.get_value('kraken')
+    except Exception:
+        return jsonify({'message': "Error fetching the exchange rate!"}), 500
 
-    price_sats = int(listing.price_usd / btc2usd * app.config['SATS_IN_BTC'])
-    shipping_domestic_sats = int(listing.item.shipping_domestic_usd / btc2usd * app.config['SATS_IN_BTC'])
-    shipping_worldwide_sats = int(listing.item.shipping_worldwide_usd / btc2usd * app.config['SATS_IN_BTC'])
+    try:
+        address = listing.item.seller.get_new_address()
+    except MempoolSpaceError:
+        return jsonify({'message': "Error reading from mempool API!"}), 500
 
-    contribution_amount = int(listing.item.seller.contribution_percent / 100 * price_sats * quantity)
-    response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_BID_INVOICE_EXPIRY'])
-    contribution_payment_request = response.payment_request
+    price_sats = usd2sats(listing.price_usd, btc2usd)
+    contribution_amount = listing.item.seller.get_contribution_amount(price_sats * quantity)
 
-    amount = (price_sats * quantity) - contribution_amount
+    if contribution_amount != 0:
+        response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY_LISTING'])
+        contribution_payment_request = response.payment_request
+    else:
+        contribution_payment_request = None
 
-    k = BTC.parse(listing.item.seller.xpub)
+    sale = m.Sale(item_id=listing.item.id, listing_id=listing.id,
+        buyer_id=user.id,
+        address=address,
+        price_usd=listing.price_usd,
+        price=price_sats,
+        shipping_domestic=usd2sats(listing.item.shipping_domestic_usd, btc2usd),
+        shipping_worldwide=usd2sats(listing.item.shipping_worldwide_usd, btc2usd),
+        quantity=quantity,
+        amount=(price_sats * quantity) - contribution_amount,
+        contribution_amount=contribution_amount,
+        contribution_payment_request=contribution_payment_request)
+    if not contribution_payment_request:
+        sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
+    db.session.add(sale)
 
-    btc = get_btc_client()
-
-    address = None
-    while True:
-        if listing.item.seller.xpub_index is None:
-            listing.item.seller.xpub_index = 0
-
-        address = k.subkey(0).subkey(listing.item.seller.xpub_index).address()
-
-        listing.item.seller.xpub_index += 1
-
-        existing_txs = btc.get_funding_txs(address)
-        if existing_txs is None:
-            return jsonify({'message': "Error reading from mempool API!"}), 500
-
-        if existing_txs:
-            app.logger.warning("Skipping address with existing txs.")
-            continue
-
-        if m.Sale.query.filter_by(address=address).first():
-            app.logger.warning("Skipping address with existing sale.")
-            continue
-
-        sale = m.Sale(item_id=listing.item.id, listing_id=listing.id, buyer_id=user.id,
-            address=address,
-            price_usd=listing.price_usd,
-            price=price_sats, shipping_domestic=shipping_domestic_sats, shipping_worldwide=shipping_worldwide_sats,
-            quantity=quantity,
-            amount=amount,
-            contribution_amount=contribution_amount, contribution_payment_request=contribution_payment_request)
-        db.session.add(sale)
-
-        try:
-            db.session.commit()
-        except IntegrityError:
-            return jsonify({'message': "Address already in use. Please try again."}), 500
-
-        break
+    try:
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({'message': "Address already in use. Please try again."}), 500
 
     return jsonify({'sale': sale.to_dict()})
 

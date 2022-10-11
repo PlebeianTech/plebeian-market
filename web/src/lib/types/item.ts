@@ -1,4 +1,5 @@
 import type { ILoader } from "$lib/services/api";
+import type { Sale } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
 export interface Media {
@@ -21,6 +22,7 @@ export interface Item {
     shipping_from: string;
     shipping_domestic_usd: number;
     shipping_worldwide_usd: number;
+    sales: Sale[];
     media: Media[];
     is_mine: boolean;
 }

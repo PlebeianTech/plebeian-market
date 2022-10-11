@@ -1,6 +1,7 @@
 import { isLocal, isStaging } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
 import type { Item, Media } from "$lib/types/item";
+import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
 export interface Bid {
@@ -34,23 +35,12 @@ export class Auction implements IEntity, Item {
     ended: boolean = false;
     duration_str?: string;
     bids: Bid[] = [];
+    sales: Sale[] = [];
     media: Media[] = [];
     is_mine: boolean = true;
-
     following: boolean = false;
-
-    contribution_percent?: number;
-    contribution_amount?: number;
-    contribution_payment_request?: string;
-    contribution_qr?: string;
-    remaining_amount?: number;
-
-    needs_contribution?: boolean;
-    wait_contribution?: boolean;
-    has_winner?: boolean;
+    has_winner?: boolean = false;
     winner? : IAccount;
-    is_won?: boolean;
-    is_lost?: boolean;
 
     public validate() {
         return !(this.title.length === 0 || this.description.length === 0);
@@ -154,6 +144,8 @@ export function fromJson(json: any): IEntity {
                 };
                 a.bids.push(b);
             }
+        } else if (k === 'sales') {
+            a.sales = (json[k] as Array<any>).map(saleFromJson);
         } else {
             a[k] = json[k];
         }

@@ -8,9 +8,14 @@ import time
 import unittest
 
 from main import app
+from utils import usd2sats
 
 # just a one-pixel PNG used for testing
 ONE_PIXEL_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4v5ThPwAG7wKklwQ/bwAAAABJRU5ErkJggg==")
+
+# an XPUB to use for tests and some addresses belonging to it
+XPUB = "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz"
+ADDRESSES = ["1EfgV2Hr5CDjXPavHDpDMjmU33BA2veHy6", "12iNxzdF6KFZ14UyRTYCRuptxkKSSVHzqF", "1CcEugXu9Yf9Qw5cpB8gHUK4X9683WyghM"]
 
 class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, json=None, headers=None, files=None):
@@ -35,7 +40,7 @@ class TestApi(unittest.TestCase):
     def get_auth_headers(self, token):
         return {'X-Access-Token': token}
 
-    def create_user(self, twitter_username=None, contribution_percent=None):
+    def create_user(self, twitter_username=None, contribution_percent=None, xpub=None):
         code, response = self.get("/api/login")
         self.assertEqual(code, 200)
         self.assertTrue('k1' in response and 'svg' in response['qr'])
@@ -74,6 +79,12 @@ class TestApi(unittest.TestCase):
         if contribution_percent:
             code, response = self.put("/api/users/me",
                 {'contribution_percent': contribution_percent},
+                headers=self.get_auth_headers(token))
+            self.assertEqual(code, 200)
+
+        if xpub:
+            code, response = self.put("/api/users/me",
+                {'xpub': xpub},
                 headers=self.get_auth_headers(token))
             self.assertEqual(code, 200)
 
@@ -287,7 +298,7 @@ class TestApi(unittest.TestCase):
 
         # set the xpub
         code, response = self.put("/api/users/me",
-            {'xpub': "zpub6rLtzSoXnXKPXHroRKGCwuRVHjgA5YL6oUkdZnCfbDLdtAKNXb1FX1EmPUYR1uYMRBpngvkdJwxqhLvM46trRy5MRb7oYdSLbb4w5VC4i3z"},
+            {'xpub': XPUB},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['xpub_index'], 0)
@@ -377,14 +388,14 @@ class TestApi(unittest.TestCase):
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        one_dollar_sats = 1 / btc2fiat.get_value('kraken') * app.config['SATS_IN_BTC']
+        one_dollar_sats = usd2sats(1, btc2fiat.get_value('kraken'))
         ten_cent_sats = one_dollar_sats / 10
         ten_dollars_sats = one_dollar_sats * 10
         self.assertAlmostEqual(response['sale']['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
         self.assertTrue('contribution_payment_request' in response['sale'])
         self.assertTrue('contribution_payment_qr' in response['sale'])
         self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats-ten_cent_sats, delta=(ten_dollars_sats-ten_cent_sats)/100)
-        self.assertEqual(response['sale']['address'], "bc1qvqatyv2xynyanrej2fcutj6w5yugy0gc9jx2nn")
+        self.assertTrue(response['sale']['address'] in ADDRESSES)
 
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
@@ -394,7 +405,7 @@ class TestApi(unittest.TestCase):
 
         code, response = self.get("/api/users/me", headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['xpub_index'], 1)
+        self.assertTrue(response['user']['xpub_index'] > 0)
 
         time.sleep(5)
 
@@ -414,6 +425,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['sales']), 1)
+        self.assertTrue(response['sales'][0]['address'] in ADDRESSES)
 
         # the buyer has no sales
         code, response = self.get("/api/users/me/sales", {},
@@ -604,6 +616,19 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 0)
 
+        # can't start the auction without xpub
+        code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 400)
+        self.assertTrue("xpub" in response['message'].lower())
+
+        # set the xpub
+        code, response = self.put("/api/users/me",
+            {'xpub': XPUB},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['xpub_index'], 0)
+
         # start the auction
         code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
             headers=self.get_auth_headers(token_2))
@@ -639,8 +664,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
     def test_auctions(self):
-        _, token_1 = self.create_user(twitter_username='auction_user_1')
-        _, token_2 = self.create_user(twitter_username='auction_user_2', contribution_percent=1)
+        _, token_1 = self.create_user(twitter_username='auction_user_1', contribution_percent=1, xpub=XPUB)
+        _, token_2 = self.create_user(twitter_username='auction_user_2', contribution_percent=1, xpub=XPUB)
 
         # GET user auctions if not logged in is OK
         code, response = self.get("/api/users/auction_user_1/auctions")
@@ -690,7 +715,7 @@ class TestApi(unittest.TestCase):
             {'title': "My 1st",
              'description': "Selling something",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
-             'duration_hours': 24,
+             'duration_hours': 0.003, # 10 seconds
              'shipping_domestic_usd': 5,
              'shipping_worldwide_usd': 10,
              'starting_bid': 10,
@@ -827,7 +852,8 @@ class TestApi(unittest.TestCase):
 
         # start the auction
         code, response = self.put(f"/api/auctions/{auction_key}",
-            {'start_date': (datetime.utcnow() - timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat()},
+            {'start_date': datetime.utcnow().replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'duration_hours': 0.003}, # 10 seconds
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -847,8 +873,7 @@ class TestApi(unittest.TestCase):
         # user 2 (logged in - not owner)
         code, response = self.get(
             "/api/users/auction_user_1/auctions",
-            headers=self.get_auth_headers(token_2)
-        )
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
         # unauthenticated user
@@ -907,7 +932,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 0)
 
-        # # waiting for the invoice to settle...
+        app.logger.warning("Waiting for the bid to settle...")
         time.sleep(4)
 
         # the user was notified of the new bid!
@@ -925,12 +950,13 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['messages']), 0)
 
-        # auction has our settled bid!
+        # auction has our settled bid! but no winner decided.
         code, response = self.get(f"/api/auctions/{auction_key}",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 1)
         self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)
+        self.assertIsNone(response['auction']['has_winner'])
 
         # can't place a bid lower than the previous one now
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 777},
@@ -1000,3 +1026,26 @@ class TestApi(unittest.TestCase):
         cleaned_description = response['auction']['description']
         expected_cleaned_description = """&lt;script type="text/javascript"&gt;alert("malicious")&lt;/script&gt;"""
         self.assertEqual(cleaned_description, expected_cleaned_description)
+
+        app.logger.warning("Waiting for the auction to finalize...")
+        time.sleep(15)
+
+        # auction should have a winner now, and the winner (token_2) can even see a Sale!
+        code, response = self.get(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertTrue(response['auction']['has_winner'])
+        self.assertIsNone(response['auction']['sales'][0]['contribution_settled_at'])
+        self.assertIsNotNone(response['auction']['sales'][0]['settled_at'])
+        self.assertTrue(response['auction']['sales'][0]['txid'].startswith('MOCK_'))
+        self.assertIsNone(response['auction']['sales'][0]['expired_at'])
+        self.assertTrue(response['auction']['sales'][0]['address'] in ADDRESSES)
+
+        # another user however, cannot see the sale (but it can see the auction has a winner)
+        code, response = self.get(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertTrue(response['auction']['has_winner'])
+        self.assertEqual(response['auction']['sales'], [])

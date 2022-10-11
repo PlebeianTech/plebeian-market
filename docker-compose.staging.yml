@@ -5,10 +5,9 @@ services:
     volumes:
       - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
   api:
+    env_file: .env.staging
     environment:
-      - ENV=staging
       - BASE_URL=https://staging.plebeian.market
-      - LND_GRPC=plebeian-market.m.voltageapp.io:10009
       - S3_FILENAME_PREFIX=STAGING_
       - MODERATOR_USER_IDS=ALL
     volumes:
@@ -33,22 +32,23 @@ services:
       - api
     networks:
       - proxy
+  finalize-auctions:
+    env_file: .env.staging
+    volumes:
+      - "/home/www/plebeian-market-secrets:/secrets"
+    command: flask finalize-auctions
   settle-btc-payments:
-    environment:
-      - FLASK_APP=main
+    env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask settle-btc-payments
   settle-lnd-payments:
-    environment:
-      - FLASK_APP=main
-      - LND_GRPC=plebeian-market.m.voltageapp.io:10009
+    env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask settle-lnd-payments
   process-notifications:
-    environment:
-      - FLASK_APP=main
+    env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask process-notifications

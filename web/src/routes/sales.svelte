@@ -9,7 +9,7 @@
 <ListView
     loader={{endpoint: `users/me/sales`, responseField: 'sales', fromJson: saleFromJson}}
     showNewButton={false}
-    columns={["Date", "Title", "Quantity", "Price (USD)", "Sats", "Received sats ($ shipping)", "Buyer", "State", "Transaction"]}
+    columns={["Date", "Title", "Quantity", "Price ($)", "Sats", "Received ($ shipping)", "Buyer", "State", "TX"]}
     card={SaleRow}
     editor={null}
     extraClasses="w-11/12 mt-4"
