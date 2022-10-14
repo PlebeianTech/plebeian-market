@@ -835,6 +835,17 @@ class Listing(FilterStateMixin, db.Model):
                 validated[k] = bool(int(d[k]))
             except (ValueError, TypeError):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        for k in ['start_date']:
+            if k not in d:
+                continue
+            try:
+                date = dateutil.parser.isoparse(d[k])
+                if date.tzinfo != dateutil.tz.tzutc():
+                    raise ValidationError(f"Date must be in UTC: {k.replace('_', ' ')}.")
+                date = date.replace(tzinfo=None)
+            except ValueError:
+                raise ValidationError(f"Invalid {k.replace('_', ' ')}.")
+            validated[k] = date
         return validated
 
 class Media(db.Model):
