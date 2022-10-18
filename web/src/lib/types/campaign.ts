@@ -2,15 +2,15 @@ import type { IEntity } from "$lib/types/base";
 import type { IAccount } from "$lib/types/user";
 
 export class Campaign implements IEntity {
+    static SAVED_FIELDS = ['name', 'description', 'xpub'];
+
     endpoint = 'campaigns';
 
     key: string = "";
-    title: string = "";
+    name: string = "";
     description: string = "";
-
-    started: boolean = false;
-    ended: boolean = false;
-
+    is_mine: boolean = true;
+    xpub: string | null = null;
     owner: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
 
     public validate() {
@@ -18,21 +18,23 @@ export class Campaign implements IEntity {
     }
 
     public toJson() {
-        return JSON.stringify(
-            {
-                title: this.title,
-                description: this.description,
-            });
+        var json = {} as Record<string, any>;
+        for (const k in this) {
+            if (Campaign.SAVED_FIELDS.indexOf(k) !== -1) {
+                json[k] = this[k];
+            }
+        }
+        return JSON.stringify(json);
     }
 }
 
 export function fromJson(json: any): Campaign {
     let campaign = new Campaign();
     campaign.key = <string>json.key;
-    campaign.title = <string>json.title;
+    campaign.name = <string>json.name;
     campaign.description = <string>json.description;
-    campaign.started = <boolean>json.started;
-    campaign.ended = <boolean>json.ended;
+    campaign.is_mine = <boolean>json.is_mine;
+    campaign.xpub = <string | null>json.xpub;
     campaign.owner = {
         nym: <string>json.owner_nym,
         profileImageUrl: <string | null>json.owner_profile_image_url,

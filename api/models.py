@@ -1,5 +1,5 @@
 import abc
-from base64 import b32encode
+import bleach
 from collections import OrderedDict
 from datetime import datetime, timedelta
 import dateutil.parser
@@ -7,17 +7,17 @@ from enum import Enum
 import hashlib
 from io import BytesIO
 import math
-from os import urandom
 from pycoin.symbols.btc import network as BTC
-import random
-import string
-import bleach
 import pyqrcode
+import random
 import requests
+from slugify import slugify
+from sqlalchemy.sql.functions import func
+import string
 
 from extensions import db
 from main import app
-from utils import guess_ext, pick_ext
+from utils import hash_create, guess_ext, pick_ext
 
 def store_image(s3, filename, append_hash, original_filename, data):
     if data is None:
@@ -383,60 +383,58 @@ class Message(db.Model):
             'notified_via': self.notified_via,
         }
 
-def hash_create(length):
-    return b32encode(urandom(length)).decode("ascii").replace("=", "")
+class GeneratedKeyMixin:
+    def generate_key(self):
+        count = db.session.query(func.count(self.__class__.id).label('count')).first().count
 
-def generate_key(cls, count):
-    # code taken from https://github.com/supakeen/pinnwand and adapted
+        # code taken from https://github.com/supakeen/pinnwand and adapted
 
-    # TODO: while this works great for now, it would be nice to have it be somehow derived from the User key
-    # - perhaps some hash(user key + index), where index represents a User's Auction index (1, 2, 3...)
-    # The benefit (of that) would be that a user could then potentially have auctions which don't necessary have an underlying Auction record,
-    # in the same way in which an XPUB can derive "addresses" that don't represent an actual UTXO?
+        # The amount of bits necessary to store that count times two, then
+        # converted to bytes with a minimum of 1.
 
-    # The amount of bits necessary to store that count times two, then
-    # converted to bytes with a minimum of 1.
+        # We double the count so that we always keep half of the space
+        # available (e.g we increase the number of bytes at 127 instead of
+        # 255). This ensures that the probing below can find an empty space
+        # fast in case of collision.
+        necessary = math.ceil(math.log2((count + 1) * 2)) // 8 + 1
 
-    # We double the count so that we always keep half of the space
-    # available (e.g we increase the number of bytes at 127 instead of
-    # 255). This ensures that the probing below can find an empty space
-    # fast in case of collision.
-    necessary = math.ceil(math.log2((count + 1) * 2)) // 8 + 1
+        # Now generate random ids in the range with a maximum amount of
+        # retries, continuing until an empty slot is found
+        tries = 0
 
-    # Now generate random ids in the range with a maximum amount of
-    # retries, continuing until an empty slot is found
-    tries = 0
-    key = hash_create(necessary)
+        get_new_key = getattr(self, 'get_new_key', lambda n, _: hash_create(n))
 
-    while cls.query.filter_by(key=key).one_or_none():
-        app.logger.debug("generate_key: triggered a collision")
-        if tries > 10:
-            raise RuntimeError("We exceeded our retry quota on a collision.")
-        tries += 1
-        key = hash_create(necessary)
+        key = get_new_key(necessary, tries)
+        while self.__class__.query.filter_by(key=key).one_or_none():
+            app.logger.debug("generate_key: triggered a collision")
+            if tries > 10:
+                raise RuntimeError("We exceeded our retry quota on a collision.")
+            tries += 1
+            key = get_new_key(necessary, tries)
 
-    return key
+        self.key = key
 
 class FilterStateMixin:
     def matches_filter(self, for_user_id, request_filter):
-        seller_id = self.item.seller_id if self.item else self.seller_id
-        is_seller = for_user_id == seller_id
+        is_owner = for_user_id == self.owner_id
         match request_filter:
             case 'not-new':
                 return self.started
             case 'new':
-                if is_seller:
+                if is_owner:
                     return not self.started and not self.ended
                 else:
                     return False
             case None:
-                if is_seller:
+                if is_owner:
                     return True
                 else:
                     return self.started and not self.ended
 
-class Campaign(db.Model):
+class Campaign(GeneratedKeyMixin, FilterStateMixin, db.Model):
     __tablename__ = 'campaigns'
+
+    REQUIRED_FIELDS = ['xpub', 'name', 'description']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -444,48 +442,50 @@ class Campaign(db.Model):
 
     key = db.Column(db.String(24), unique=True, nullable=False, index=True)
 
-    title = db.Column(db.String(210), nullable=False)
+    def get_new_key(self, _, tries):
+        match tries:
+            case 0:
+                return slugify(self.name)
+            case tries if tries <= 5:
+                return f"{slugify(self.name)}-{tries}"
+            case _:
+                return f"{slugify(self.name)}-{hash_create(1)}"
+
+    name = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
 
-    start_date = db.Column(db.DateTime, nullable=True)
-
-    @property
-    def started(self):
-        return self.start_date <= datetime.utcnow() if self.start_date else False
-
-    # TODO: we should probably remove this and define "ended" as having no active auctions/listings
-    end_date = db.Column(db.DateTime, nullable=True)
-
-    @property
-    def ended(self):
-        return self.end_date < datetime.utcnow() if self.end_date else False
+    xpub = db.Column(db.String(128), nullable=False)
+    xpub_index = db.Column(db.Integer, nullable=False, default=0)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    auctions = db.relationship('Auction', backref='campaign')
+    listings = db.relationship('Listing', backref='campaign')
 
     def to_dict(self, for_user=None):
         campaign = {
             'key': self.key,
-            'title': self.title,
+            'name': self.name,
             'description': self.description,
-            'started': self.started,
-            'ended': self.ended,
             'created_at': self.created_at.isoformat() + "Z",
+            'is_mine': for_user == self.owner_id,
             'owner_nym': self.owner.nym,
             'owner_profile_image_url': self.owner.twitter_profile_image_url,
             'owner_twitter_username': self.owner.twitter_username,
             'owner_twitter_username_verified': self.owner.twitter_username_verified,
         }
 
+        if campaign['is_mine']:
+            # only ever show these fields to the owner!
+            campaign['xpub'] = self.xpub
+            campaign['xpub_index'] = self.xpub_index
+
         return campaign
 
     @classmethod
-    def generate_key(cls, count):
-        return generate_key(cls, count)
-
-    @classmethod
-    def validate_dict(cls, d):
+    def validate_dict(cls, d, for_method=None):
         validated = {}
-        for k in ['title', 'description']:
+        for k in ['name', 'description']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -493,6 +493,16 @@ class Campaign(db.Model):
             if length > max_length:
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = d[k]
+        if for_method == 'POST' and 'xpub' in d: # xpub can only be set once, on POST
+            k = BTC.parse(d['xpub'])
+            if not k:
+                raise ValidationError("Invalid XPUB.")
+            try:
+                first_address = k.subkey(0).subkey(0).address()
+            except AttributeError:
+                raise ValidationError("Invalid XPUB.")
+            validated['xpub'] = d['xpub']
+            validated['xpub_index'] = 0
         return validated
 
 class Item(db.Model):
@@ -519,7 +529,7 @@ class Item(db.Model):
     sales = db.relationship('Sale', backref='item', order_by="Sale.requested_at")
 
     @classmethod
-    def validate_dict(cls, d):
+    def validate_dict(cls, d, for_method=None):
         validated = {}
         for k in ['title', 'description', 'shipping_from']:
             if k not in d:
@@ -545,7 +555,7 @@ class Item(db.Model):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
-class Auction(FilterStateMixin, db.Model):
+class Auction(GeneratedKeyMixin, FilterStateMixin, db.Model):
     __tablename__ = 'auctions'
 
     REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid', 'shipping_domestic_usd', 'shipping_worldwide_usd']
@@ -576,8 +586,14 @@ class Auction(FilterStateMixin, db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
     ########
 
+    @property
+    def owner_id(self):
+        return self.item.seller_id if self.item else self.seller_id
+
     # this key uniquely identifies the auction. It is safe to be shared with anyone.
     key = db.Column(db.String(12), unique=True, nullable=False, index=True)
+
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
 
     # in the case of Twitter-based auctions, start_date is only set after the tweet is published and the auction starts
     start_date = db.Column(db.DateTime, nullable=True)
@@ -678,11 +694,7 @@ class Auction(FilterStateMixin, db.Model):
         return auction
 
     @classmethod
-    def generate_key(cls, count):
-        return generate_key(cls, count)
-
-    @classmethod
-    def validate_dict(cls, d):
+    def validate_dict(cls, d, for_method=None):
         validated = {}
         # TODO: remove this after the columns have been removed!
         ########
@@ -742,7 +754,7 @@ class Auction(FilterStateMixin, db.Model):
             db.session.commit()
             app.logger.warning(f"Created item for Auction {self.id}!")
 
-class Listing(FilterStateMixin, db.Model):
+class Listing(GeneratedKeyMixin, FilterStateMixin, db.Model):
     __tablename__ = 'listings'
 
     REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity', 'shipping_domestic_usd', 'shipping_worldwide_usd']
@@ -751,8 +763,14 @@ class Listing(FilterStateMixin, db.Model):
 
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
+    @property
+    def owner_id(self):
+        return self.item.seller_id
+
     # this key uniquely identifies the listing. It is safe to be shared with anyone.
     key = db.Column(db.String(12), unique=True, nullable=False, index=True)
+
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
 
     start_date = db.Column(db.DateTime, nullable=True)
 
@@ -808,11 +826,7 @@ class Listing(FilterStateMixin, db.Model):
         return listing
 
     @classmethod
-    def generate_key(cls, count):
-        return generate_key(cls, count)
-
-    @classmethod
-    def validate_dict(cls, d):
+    def validate_dict(cls, d, for_method=None):
         validated = {}
         for k in ['available_quantity']:
             if k not in d:

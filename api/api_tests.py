@@ -93,33 +93,29 @@ class TestApi(unittest.TestCase):
     def test_campaigns(self):
         _, token_1 = self.create_user()
 
-        # GET campaigns requires log in
-        code, response = self.get("/api/campaigns")
-        self.assertEqual(code, 401)
-        self.assertTrue("missing token" in response['message'].lower())
-
         # creating a campaign requires log in
-        code, response = self.post("/api/campaigns", {})
+        code, response = self.post("/api/users/me/campaigns", {})
         self.assertEqual(code, 401)
         self.assertTrue("missing token" in response['message'].lower())
 
         # GET my campaigns to see there are none
-        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_1))
+        code, response = self.get("/api/users/me/campaigns",
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['campaigns']), 0)
 
-        # can't create a campaign without title or description
-        for what in ['title', 'description']:
-            code, response = self.post("/api/campaigns",
-                {k: v for k, v in {'title': "T", 'description': "D"}.items() if k != what},
+        # can't create a campaign without name or description
+        for what in ['name', 'description']:
+            code, response = self.post("/api/users/me/campaigns",
+                {k: v for k, v in {'name': "T", 'description': "D"}.items() if k != what},
                 headers=self.get_auth_headers(token_1))
             self.assertEqual(code, 400)
             self.assertTrue("missing" in response['message'].lower())
             self.assertTrue(what in response['message'].lower())
 
         # finally create a campaign
-        code, response = self.post("/api/campaigns",
-            {'title': "My campaign",
+        code, response = self.post("/api/users/me/campaigns",
+            {'name': "My campaign",
              'description': "A very noble cause"},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
@@ -128,12 +124,12 @@ class TestApi(unittest.TestCase):
         campaign_key = response['campaign']['key']
 
         # GET campaigns to find our campaign
-        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_1))
+        code, response = self.get("/api/users/me/campaigns",
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['campaigns']), 1)
         self.assertEqual(response['campaigns'][0]['key'], campaign_key)
         self.assertFalse(response['campaigns'][0]['started'])
-        self.assertFalse(response['campaigns'][0]['ended'])
 
         # GET the newly created campaign by key (even unauthenticated!)
         code, response = self.get(f"/api/campaigns/{campaign_key}")
@@ -143,8 +139,8 @@ class TestApi(unittest.TestCase):
         _, token_2 = self.create_user()
 
         # create a 2nd campaign, this time for the 2nd user
-        code, response = self.post("/api/campaigns",
-            {'title': "His campaign",
+        code, response = self.post("/api/users/me/campaigns",
+            {'name': "His campaign",
              'description': "Another noble cause"},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
@@ -156,14 +152,15 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(campaign_key, campaign_key_2)
 
         # listing one user's campaigns does not return the other one
-        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_2))
+        code, response = self.get("/api/users/me/campaigns",
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['campaigns']), 1)
         self.assertEqual(response['campaigns'][0]['key'], campaign_key_2)
 
         # edit the campaign
         code, response = self.put(f"/api/campaigns/{campaign_key_2}",
-            {'title': "His brilliant campaign",
+            {'name': "His brilliant campaign",
              'description': "Another brilliant cause"},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
@@ -171,66 +168,26 @@ class TestApi(unittest.TestCase):
         # check that the edit worked
         code, response = self.get(f"/api/campaigns/{campaign_key_2}")
         self.assertEqual(code, 200)
-        self.assertEqual(response['campaign']['title'], "His brilliant campaign")
+        self.assertEqual(response['campaign']['name'], "His brilliant campaign")
         self.assertEqual(response['campaign']['description'], "Another brilliant cause")
-        self.assertFalse(response['campaign']['started'])
-        self.assertFalse(response['campaign']['ended'])
 
-        # can't start somebody else's campaign
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
+        # can't edit somebody else's campaign
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}",
+            {'name': "A fake cause"},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
 
-        # start the campaign
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
-            headers=self.get_auth_headers(token_2))
+        # add a listing to the campaign
+        code, response = self.post(f"/api/campaigns/{campaign_key_2}/listings",
+            {'title': "A listing for a noble cause",
+             'description': "Selling something boringh to raise money for good",
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
+             'price_usd': 10,
+             'available_quantity': 5},
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-
-        # check that the campaign started
-        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
-        self.assertEqual(code, 200)
-        self.assertTrue(response['campaign']['started'])
-        self.assertFalse(response['campaign']['ended'])
-
-        # can't start the campaign again
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-
-        # end the campaign
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/end",
-            {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-
-        # check that the campaign ended
-        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
-        self.assertEqual(code, 200)
-        self.assertTrue(response['campaign']['started'])
-        self.assertTrue(response['campaign']['ended'])
-
-        # done is done... can't bring it back!
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}",
-            {'title': "Nope"},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/end",
-            {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-
-        # DONE is DONE
-        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
-        self.assertEqual(code, 200)
-        self.assertTrue(response['campaign']['started'])
-        self.assertTrue(response['campaign']['ended'])
+        self.assertTrue('listing' in response)
 
     def test_listings(self):
         _, token_1 = self.create_user(twitter_username='fixie', contribution_percent=1)
@@ -243,7 +200,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['listings']), 0)
 
         # can't create a listing without price
-        code, response = self.post("/api/listings",
+        code, response = self.post("/api/users/me/listings",
             {'title': "My 1st fixie",
              'description': "Selling something cool for a fixed price",
              'available_quantity': 10},
@@ -253,7 +210,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue("price" in response['message'].lower())
 
         # finally create a listing
-        code, response = self.post("/api/listings",
+        code, response = self.post("/api/users/me/listings",
             {'title': "My 1st fixie",
              'description': "Selling something cool for a fixed price",
              'shipping_domestic_usd': 5,
@@ -596,7 +553,7 @@ class TestApi(unittest.TestCase):
         self.assertIsNone(response['user'].get('is_moderator'))
 
         # create an auction
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "An auction from user 2",
              'description': "Selling something",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
@@ -673,7 +630,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)  # no auctions yet
 
         # creating auctions requires log in
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'starting_bid': 10})
         self.assertEqual(code, 401)
         self.assertFalse(response['success'])
@@ -686,7 +643,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
         # can't create an auction without dates or duration
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': "Selling something",
              'starting_bid': 10,
@@ -697,7 +654,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue("duration" in response['message'].lower())
 
         # dates must be UTC
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': "Selling something",
              'start_date': "2020-10-10T11:11:00",
@@ -711,7 +668,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue("must be in utc" in response['message'].lower())
 
         # finally create an auction (with token_1)
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': "Selling something",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
@@ -757,7 +714,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['auction']['key'], auction_key)
 
         # create a 2nd auction, this time for the 2nd user
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "His 2st",
              'description': "Selling something else",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
@@ -965,7 +922,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue('your bid needs to be higher' in response['message'].lower())
 
         # create an auction without a start date
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "Auction without start date",
              'description': "Selling something on Twitter",
              'duration_hours': 24,
@@ -1011,7 +968,7 @@ class TestApi(unittest.TestCase):
 
         # Create an auction with malicious input to description
         malicious_desc = '''<script type="text/javascript">alert("malicious")</script>'''
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': malicious_desc,
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),

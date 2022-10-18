@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import SvelteMarkdown from 'svelte-markdown';
     import { deleteEntity } from "$lib/services/api";
     import { token } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
@@ -7,7 +8,10 @@
     import Confirmation from "$lib/components/Confirmation.svelte";
 
     // svelte-ignore unused-export-let
-    export let isEditable: boolean = false;
+    export let isEditable = false;
+    // svelte-ignore unused-export-let
+    export let showOwner = false;
+
     export let entity: IEntity;
     $: campaign = <Campaign>entity;
 
@@ -41,22 +45,18 @@
 <div class="card md:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
     <div class="card-body">
         <h2 class="card-title mb-2">
-            {campaign.title}
-            {#if campaign.started && !campaign.ended}
-                <div class="badge badge-primary">running</div>
-            {:else if campaign.ended}
-                <div class="badge badge-secondary">ended</div>
-            {/if}
+            {campaign.name}
         </h2>
+        <div class="markdown-container">
+            <SvelteMarkdown source={campaign.description} />
+        </div>
         <div class="mt-2 card-actions justify-end">
             {#if confirmation}
                 <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
             {:else}
-                {#if !campaign.started}
-                    <button class="btn mx-1" on:click={() => onEdit(campaign)}>Edit</button>
-                    <button class="btn mx-1" on:click={del}>Delete</button>
-                    <button class="btn mx-1" on:click={view}>View</button>
-                {/if}
+                <button class="btn mx-1" on:click={() => onEdit(campaign)}>Edit</button>
+                <button class="btn mx-1" on:click={del}>Delete</button>
+                <button class="btn mx-1" on:click={view}>View</button>
             {/if}
         </div>
     </div>

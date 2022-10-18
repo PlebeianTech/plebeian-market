@@ -6,9 +6,12 @@
     import { Listing } from "$lib/types/listing";
     import type { Item } from "$lib/types/item";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import Avatar from "$lib/components/Avatar.svelte";
     import Countdown, { CountdownStyle } from "$lib/components/Countdown.svelte";
 
     export let isEditable = false;
+    export let showOwner = false;
+
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
 
@@ -26,8 +29,9 @@
 </script>
 
 <div class="group">
-    {#if isEditable && item instanceof Listing}
-        <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
+    <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
+        <div class="btn-xs"></div>
+        {#if isEditable && item instanceof Listing}
             <button class="btn btn-primary btn-circle btn-xs" on:click={del}>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" width="512.000000pt" height="512.000000pt" viewBox="0 0 512 512" stroke="currentColor">
                     <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
@@ -45,8 +49,8 @@
                     </g>
                 </svg>            
             </button>
-        </div>
-    {/if}
+        {/if}
+    </div>
     <div class="card bg-base-300 max-w-full overflow-hidden shadow-xl my-3 mx-3">
         <a href={url}>
             <figure class="h-auto flex justify-center">
@@ -97,6 +101,13 @@
                     <span>Stock: {item.available_quantity}</span>
                 {/if}
             </p>
+            {#if showOwner}
+                <div class="divider"></div>
+                <div class="flex items-center justify-center gap-2">
+                    <span>by</span>
+                    <Avatar account={item.seller} inline={true} />
+                </div>
+            {/if}
         </div>
     </div>
 </div>

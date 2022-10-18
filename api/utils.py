@@ -1,4 +1,9 @@
+from base64 import b32encode
 import magic
+from os import urandom
+
+def hash_create(length):
+    return b32encode(urandom(length)).decode("ascii").replace("=", "")
 
 def guess_ext(data):
     return magic.Magic(extension=True).from_buffer(data).split("/")[0]

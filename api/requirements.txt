@@ -15,5 +15,6 @@ pyjwt
 pyqrcode
 python-dateutil
 python-magic
+python-slugify
 requests
 requests_oauthlib
