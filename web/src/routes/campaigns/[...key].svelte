@@ -14,7 +14,7 @@
     import StallView from "$lib/components/StallView.svelte";
     import { Campaign, fromJson } from "$lib/types/campaign";
     import { getItem, putEntity, ErrorHandler } from "$lib/services/api";
-    import { token } from "$lib/stores";
+    import { token, user } from "$lib/stores";
 
     export let campaignKey;
     let campaign: Campaign;
@@ -54,13 +54,22 @@
 </script>
 
 {#if campaignKey === "" || campaignKey === null}
-    <h3 class="text-xl">My campaigns</h3>
-    <ListView
-        loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
-        postEndpoint="users/me/campaigns"
-        newEntity={() => new Campaign()}
-        card={CampaignCard} editor={CampaignEditor}
-        style={ListViewStyle.List} />
+    {#if $user && $user.isModerator}
+        <h3 class="text-xl">My campaigns</h3>
+        <ListView
+            loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
+            postEndpoint="users/me/campaigns"
+            newEntity={() => new Campaign()}
+            card={CampaignCard} editor={CampaignEditor}
+            style={ListViewStyle.List} />
+    {:else}
+        <div class="alert alert-info shadow-lg">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Please contact us if you want to launch a campaign!</span>
+            </div>
+        </div>
+    {/if}
 {:else if loading}
     <Loading />
 {:else if campaign}
