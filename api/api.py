@@ -99,92 +99,93 @@ def login():
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/users/<nym>', methods=['GET'])
-def profile(nym):
+def get_profile(nym):
     requesting_user = get_user_from_token(get_token_from_request())
     for_user_id = requesting_user.id if requesting_user else None
-    if request.method == 'GET':
-        user = m.User.query.filter_by(nym=nym).first()
-        if not user:
-            return jsonify({'message': "User not found"}), 404
-        return jsonify({'user': user.to_dict(for_user=for_user_id)})
+    user = m.User.query.filter_by(nym=nym).first()
+    if not user:
+        return jsonify({'message': "User not found"}), 404
+    return jsonify({'user': user.to_dict(for_user=for_user_id)})
 
-@api_blueprint.route('/api/users/me', methods=['GET', 'PUT'])
+@api_blueprint.route('/api/users/me', methods=['GET'])
 @user_required
-def me(user):
-    if request.method == 'GET':
-        return jsonify({'user': user.to_dict(for_user=user.id)})
-    else:
-        if 'nym' in request.json:
-            clean_nym = (request.json['nym'] or "").lower().strip()
-            if len(clean_nym) < 3:
-                return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
-            if not clean_nym.isalnum():
-                return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
-            user.nym = clean_nym
-        if 'twitter_username' in request.json:
-            clean_username = (request.json['twitter_username'] or "").lower().strip()
-            if clean_username.startswith("@"):
-                clean_username = clean_username.removeprefix("@")
-            if len(clean_username) < 3:
-                return jsonify({'message': "Your Twitter username needs to be at least 3 characters long!"}), 400
-            if not clean_username.replace("_", "").isalnum():
-                return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
-            if clean_username != user.twitter_username:
-                if user.nym == user.twitter_username:
-                    # NB: if the user has set a custom nym, don't overwrite that!
-                    user.nym = clean_username
-                user.twitter_username = clean_username
+def get_me(user):
+    return jsonify({'user': user.to_dict(for_user=user.id)})
 
-                twitter = get_twitter()
+@api_blueprint.route('/api/users/me', methods=['PUT'])
+@user_required
+def put_me(user):
+    if 'nym' in request.json:
+        clean_nym = (request.json['nym'] or "").lower().strip()
+        if len(clean_nym) < 3:
+            return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
+        if not clean_nym.isalnum():
+            return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
+        user.nym = clean_nym
+    if 'twitter_username' in request.json:
+        clean_username = (request.json['twitter_username'] or "").lower().strip()
+        if clean_username.startswith("@"):
+            clean_username = clean_username.removeprefix("@")
+        if len(clean_username) < 3:
+            return jsonify({'message': "Your Twitter username needs to be at least 3 characters long!"}), 400
+        if not clean_username.replace("_", "").isalnum():
+            return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
+        if clean_username != user.twitter_username:
+            if user.nym == user.twitter_username:
+                # NB: if the user has set a custom nym, don't overwrite that!
+                user.nym = clean_username
+            user.twitter_username = clean_username
 
-                twitter_user = twitter.get_user(user.twitter_username)
+            twitter = get_twitter()
 
-                if not twitter_user:
-                    return jsonify({'message': "Twitter profile not found!"}), 400
+            twitter_user = twitter.get_user(user.twitter_username)
 
-                if app.config['ENV'] == 'prod':
-                    if user.twitter_username not in app.config['TWITTER_USER_MIN_AGE_DAYS_WHITELIST']:
-                        if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
-                            return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
+            if not twitter_user:
+                return jsonify({'message': "Twitter profile not found!"}), 400
 
-                if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
-                    return jsonify({'message': "Error fetching profile picture!"}), 400
+            if app.config['ENV'] == 'prod':
+                if user.twitter_username not in app.config['TWITTER_USER_MIN_AGE_DAYS_WHITELIST']:
+                    if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
+                        return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
-                if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
-                    return jsonify({'message': "Error fetching profile banner!"}), 400
+            if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
+                return jsonify({'message': "Error fetching profile picture!"}), 400
 
-                user.twitter_username_verified = False
+            if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
+                return jsonify({'message': "Error fetching profile banner!"}), 400
 
-                plebeian_twitter_user = twitter.get_user(app.config['TWITTER_USER'])
+            user.twitter_username_verified = False
 
-                user.twitter_username_verification_tweet_id = plebeian_twitter_user['pinned_tweet_id']
+            plebeian_twitter_user = twitter.get_user(app.config['TWITTER_USER'])
 
-        if 'contribution_percent' in request.json:
-            user.contribution_percent = request.json['contribution_percent']
+            user.twitter_username_verification_tweet_id = plebeian_twitter_user['pinned_tweet_id']
 
-        if 'xpub' in request.json:
-            k = BTC.parse(request.json['xpub'])
-            if not k:
-                return jsonify({'message': "Invalid XPUB."}), 400
-            try:
-                first_address = k.subkey(0).subkey(0).address()
-            except AttributeError:
-                return jsonify({'message': "Invalid XPUB."}), 400
-            user.xpub = request.json['xpub']
-            user.xpub_index = 0
+    if 'contribution_percent' in request.json:
+        user.contribution_percent = request.json['contribution_percent']
 
-        if 'stall_name' in request.json:
-            user.stall_name = bleach.clean(request.json['stall_name'])
-
-        if 'stall_description' in request.json:
-            user.stall_description = bleach.clean(request.json['stall_description'])
-
+    if 'xpub' in request.json:
+        k = BTC.parse(request.json['xpub'])
+        if not k:
+            return jsonify({'message': "Invalid XPUB."}), 400
         try:
-            db.session.commit()
-        except IntegrityError:
-            return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
+            first_address = k.subkey(0).subkey(0).address()
+        except AttributeError:
+            return jsonify({'message': "Invalid XPUB."}), 400
+        user.xpub = request.json['xpub']
+        user.xpub_index = 0
 
-        return jsonify({'user': user.to_dict(for_user=user.id)})
+    if 'stall_name' in request.json:
+        user.stall_name = bleach.clean(request.json['stall_name'])
+
+    if 'stall_description' in request.json:
+        user.stall_description = bleach.clean(request.json['stall_description'])
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
+
+    return jsonify({'user': user.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
 @user_required
@@ -225,7 +226,7 @@ def user_notifications(user):
 
 @api_blueprint.route('/api/users/me/messages', methods=['GET'])
 @user_required
-def messages(user):
+def get_messages(user):
     # by default we only return INTERNAL messages (to be shown in the UI),
     # but using the "via" parameter, we can request additional messages,
     # for example via=TWITTER_DM will return all messages sent to this user via TWITTER_DM
@@ -311,7 +312,7 @@ def post_entity(user, cls, singular, has_item, campaign_key):
 @api_blueprint.route('/api/listings/featured',
     defaults={'cls': m.Listing, 'plural': 'listings'},
     methods=['GET'])
-def featured(cls, plural):
+def get_featured(cls, plural):
     entities = cls.query.filter((cls.start_date != None) & (cls.start_date <= datetime.utcnow()))
     entities = entities.filter((cls.item_id == m.Item.id) & ~m.Item.is_hidden)
     if cls == m.Auction:
@@ -384,12 +385,9 @@ def get_put_delete_entity(key, cls, singular, has_item):
 
             return jsonify({})
         elif request.method == 'DELETE':
-            if isinstance(entity, m.Auction) or isinstance(entity, m.Listing):
+            if isinstance(entity, m.Auction | m.Listing):
                 for sale in entity.sales:
-                    if isinstance(entity, m.Auction):
-                        sale.auction = None
-                    elif isinstance(entity, m.Listing):
-                        sale.listing = None
+                    sale.auction = sale.listing = None
             db.session.delete(entity)
             db.session.commit()
 
