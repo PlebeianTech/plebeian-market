@@ -43,6 +43,31 @@ class ValidationError(Exception):
         super().__init__()
         self.message = message
 
+class XpubMixin:
+    def get_new_address(self):
+        from main import get_btc_client
+        btc = get_btc_client()
+        k = BTC.parse(self.xpub)
+        address = None
+        while True:
+            if self.xpub_index is None:
+                self.xpub_index = 0
+
+            address = k.subkey(0).subkey(self.xpub_index).address()
+            self.xpub_index += 1
+
+            existing_txs = btc.get_funding_txs(address)
+
+            if existing_txs:
+                app.logger.warning("Skipping address with existing txs.")
+                continue
+
+            if Sale.query.filter_by(address=address).first():
+                app.logger.warning("Skipping address with existing sale.")
+                continue
+
+            return address
+
 class State(db.Model):
     __tablename__ = 'state'
 
@@ -62,7 +87,7 @@ class LnAuth(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     key = db.Column(db.String(128))
 
-class User(db.Model):
+class User(XpubMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -124,30 +149,6 @@ class User(db.Model):
         if contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
             contribution_amount = 0 # probably not worth the fees, at least in the next few years
         return contribution_amount
-
-    def get_new_address(self):
-        from main import get_btc_client
-        btc = get_btc_client()
-        k = BTC.parse(self.xpub)
-        address = None
-        while True:
-            if self.xpub_index is None:
-                self.xpub_index = 0
-
-            address = k.subkey(0).subkey(self.xpub_index).address()
-            self.xpub_index += 1
-
-            existing_txs = btc.get_funding_txs(address)
-
-            if existing_txs:
-                app.logger.warning("Skipping address with existing txs.")
-                continue
-
-            if Sale.query.filter_by(address=address).first():
-                app.logger.warning("Skipping address with existing sale.")
-                continue
-
-            return address
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
@@ -431,7 +432,7 @@ class FilterStateMixin:
                 else:
                     return self.started and not self.ended
 
-class Campaign(GeneratedKeyMixin, FilterStateMixin, db.Model):
+class Campaign(XpubMixin, GeneratedKeyMixin, FilterStateMixin, db.Model):
     __tablename__ = 'campaigns'
 
     REQUIRED_FIELDS = ['xpub', 'name', 'description']

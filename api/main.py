@@ -129,7 +129,10 @@ def finalize_auctions():
             quantity = 1 # always 1 for auctions
 
             try:
-                address = auction.item.seller.get_new_address()
+                if auction.campaign:
+                    address = auction.campaign.get_new_address()
+                else:
+                    address = auction.item.seller.get_new_address()
             except MempoolSpaceError:
                 app.logger.error("Error reading from mempool API! Taking a 1 minute nap...")
                 time.sleep(60)

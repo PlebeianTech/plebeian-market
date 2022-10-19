@@ -525,7 +525,7 @@ def start(user, key, cls, singular, plural):
     if user.contribution_percent is None:
         return jsonify({'message': "User did not set a contribution."}), 400
 
-    if not user.xpub:
+    if not entity.campaign and not user.xpub:
         return jsonify({'message': "User did not set an XPUB."}), 400
 
     twitter = get_twitter()
@@ -587,8 +587,10 @@ def post_bid(user, key):
     if not auction:
         return jsonify({'message': "Not found."}), 404
 
-    if not auction.started or auction.ended:
-        return jsonify({'message': "Auction not running."}), 403
+    if not auction.started:
+        return jsonify({'message': "Auction not started."}), 403
+    if auction.ended:
+        return jsonify({'message': "Auction ended."}), 403
 
     amount = int(request.json['amount'])
 
@@ -651,7 +653,10 @@ def put_buy(user, key):
         return jsonify({'message': "Error fetching the exchange rate!"}), 500
 
     try:
-        address = listing.item.seller.get_new_address()
+        if listing.campaign:
+            address = listing.campaign.get_new_address()
+        else:
+            address = listing.item.seller.get_new_address()
     except MempoolSpaceError:
         return jsonify({'message': "Error reading from mempool API!"}), 500
 
