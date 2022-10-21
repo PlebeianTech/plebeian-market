@@ -44,10 +44,12 @@ class TestApi(unittest.TestCase):
     def get_auth_headers(self, token):
         return {'X-Access-Token': token}
 
-    def update_user(self, token, **kwargs):
+    def update_user(self, token, expect_success=True, **kwargs):
         code, response = self.put("/api/users/me", kwargs,
             headers=self.get_auth_headers(token))
-        self.assertEqual(code, 200)
+        if expect_success:
+            self.assertEqual(code, 200)
+        return code, response
 
     def create_user(self, **kwargs):
         code, response = self.get("/api/login")
@@ -248,10 +250,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         # set the xpub
-        code, response = self.put("/api/users/me",
-            {'xpub': XPUB},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
+        _, response = self.update_user(token_1, xpub=XPUB)
         self.assertEqual(response['user']['xpub_index'], 0)
 
         # start the listing
@@ -363,10 +362,7 @@ class TestApi(unittest.TestCase):
         self.assertIn("xpub", response['message'].lower())
 
         # set the xpub
-        code, response = self.put("/api/users/me",
-            {'xpub': XPUB},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
+        _, response = self.update_user(token_1, xpub=XPUB)
         self.assertEqual(response['user']['xpub_index'], 0)
 
         # start the listing
@@ -574,10 +570,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue(response['user']['is_moderator']) # because this is the first user created, so it has the ID=1
 
         # set user details
-        code, response = self.put("/api/users/me",
-            {'twitter_username': 'mock_username', 'contribution_percent': 1},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
+        self.update_user(token_1, twitter_username='mock_username', contribution_percent=1)
 
         # check user details again
         code, response = self.get("/api/users/me",
@@ -591,6 +584,17 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_items'], False)
 
+        code, response = self.update_user(token_1, False, email="brokenemail")
+        self.assertEqual(code, 400)
+        self.assertIn("invalid", response['message'])
+
+        code, response = self.update_user(token_1, False, email="brokenemail@plebinexistingdomain.com")
+        self.assertEqual(code, 400)
+        self.assertIn("invalid", response['message'])
+
+        _, response = self.update_user(token_1, email="goodemail@plebeian.market")
+        self.assertEqual(response['user']['email'], "goodemail@plebeian.market")
+
         # try to verify the Twitter username
         # but will fail because mock_username didn't like the tweet according to MockTwitter
         code, response = self.put("/api/users/me/verify-twitter", {},
@@ -598,10 +602,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 400)
 
         # set user details again (a user that "liked" the tweet)
-        code, response = self.put("/api/users/me",
-            {'twitter_username': 'mock_username_with_like', 'contribution_percent': 1.5},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
+        self.update_user(token_1, twitter_username='mock_username_with_like', contribution_percent=1.5)
 
         # check user details (again)
         code, response = self.get("/api/users/me",
@@ -647,10 +648,7 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(token_1, token_2)
 
         # set user details (to a username that did *not* like the "pinned tweet")
-        code, response = self.put("/api/users/me",
-            {'twitter_username': 'mock_username'},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
+        self.update_user(token_2, twitter_username='mock_username')
 
         # 2nd user is not a moderator!
         code, response = self.get("/api/users/me",
@@ -689,10 +687,7 @@ class TestApi(unittest.TestCase):
         self.assertIn("xpub", response['message'].lower())
 
         # set the xpub
-        code, response = self.put("/api/users/me",
-            {'xpub': XPUB},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
+        _, response = self.update_user(token_2, xpub=XPUB)
         self.assertEqual(response['user']['xpub_index'], 0)
 
         # start the auction

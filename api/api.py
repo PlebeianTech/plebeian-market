@@ -1,5 +1,6 @@
 import btc2fiat
 from datetime import datetime, timedelta
+from email_validator import validate_email, EmailNotValidError
 from io import BytesIO
 import os
 import secrets
@@ -122,6 +123,12 @@ def put_me(user):
         if not clean_nym.isalnum():
             return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
         user.nym = clean_nym
+    if 'email' in request.json:
+        clean_email = (request.json['email'] or "").lower().strip()
+        try:
+            user.email = validate_email(clean_email).email
+        except EmailNotValidError:
+            return jsonify({'message': "The email address is invalid."}), 400
     if 'twitter_username' in request.json:
         clean_username = (request.json['twitter_username'] or "").lower().strip()
         if clean_username.startswith("@"):
