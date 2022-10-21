@@ -80,7 +80,7 @@
     {:else}
         <StallView
             baseUrl={`campaigns/${campaignKey}`}
-            bannerUrl={null}
+            bannerUrl={campaign.banner_url}
             owner={campaign.owner}
             title={campaign.name} description={campaign.description}
             onEdit={campaign.is_mine ? (() => editing = true) : null}

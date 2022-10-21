@@ -4,39 +4,18 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 import dateutil.parser
 from enum import Enum
-import hashlib
 from io import BytesIO
 import math
 from pycoin.symbols.btc import network as BTC
 import pyqrcode
 import random
-import requests
 from slugify import slugify
 from sqlalchemy.sql.functions import func
 import string
 
 from extensions import db
 from main import app
-from utils import hash_create, guess_ext, pick_ext
-
-def store_image(s3, filename, append_hash, original_filename, data):
-    if data is None:
-        url = original_filename
-        response = requests.get(url)
-        if response.status_code != 200:
-            return None, None
-        data = response.content
-
-    sha = hashlib.sha256()
-    sha.update(data)
-    content_hash = sha.hexdigest()
-
-    ext = pick_ext([guess_ext(data), original_filename.rsplit('.', 1)[-1]])
-    filename = f"{filename}_{content_hash}{ext}" if append_hash else f"{filename}{ext}"
-
-    s3.upload(data, filename)
-
-    return s3.get_url_prefix() + s3.get_filename_prefix() + filename, content_hash
+from utils import hash_create, store_image
 
 class ValidationError(Exception):
     def __init__(self, message):
@@ -457,6 +436,7 @@ class Campaign(XpubMixin, GeneratedKeyMixin, FilterStateMixin, db.Model):
             case _:
                 return f"{slugify(self.name)}-{hash_create(1)}"
 
+    banner_url = db.Column(db.String(256), nullable=True)
     name = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
 
@@ -471,6 +451,7 @@ class Campaign(XpubMixin, GeneratedKeyMixin, FilterStateMixin, db.Model):
     def to_dict(self, for_user=None):
         campaign = {
             'key': self.key,
+            'banner_url': self.banner_url,
             'name': self.name,
             'description': self.description,
             'created_at': self.created_at.isoformat() + "Z",

@@ -7,6 +7,7 @@ export class Campaign implements IEntity {
     endpoint = 'campaigns';
 
     key: string = "";
+    banner_url: string | null = null;
     name: string = "";
     description: string = "";
     is_mine: boolean = true;
@@ -31,6 +32,7 @@ export class Campaign implements IEntity {
 export function fromJson(json: any): Campaign {
     let campaign = new Campaign();
     campaign.key = <string>json.key;
+    campaign.banner_url = <string | null>json.banner_url;
     campaign.name = <string>json.name;
     campaign.description = <string>json.description;
     campaign.is_mine = <boolean>json.is_mine;
