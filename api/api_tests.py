@@ -237,13 +237,13 @@ class TestApi(unittest.TestCase):
 
         auction_key_2 = response['auction']['key']
 
-        # can start start the campaign listing even before setting the XPUB (because it is part of the campaign!)
-        code, response = self.put(f"/api/listings/{listing_key}/start-twitter", {},
+        # can start the campaign listing even before setting the XPUB (because it is part of the campaign!)
+        code, response = self.put(f"/api/listings/{listing_key}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
         # can start the campaign auction even before setting the XPUB (because it is part of the campaign!)
-        code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
+        code, response = self.put(f"/api/auctions/{auction_key}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -255,12 +255,12 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['xpub_index'], 0)
 
         # start the listing
-        code, response = self.put(f"/api/listings/{listing_key_2}/start-twitter", {},
+        code, response = self.put(f"/api/listings/{listing_key_2}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
         # start the auction
-        code, response = self.put(f"/api/auctions/{auction_key_2}/start-twitter", {},
+        code, response = self.put(f"/api/auctions/{auction_key_2}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -357,7 +357,7 @@ class TestApi(unittest.TestCase):
         self.assertNotIn(listing_key, [l['key'] for l in response['listings']])
 
         # can't start the listing before setting the XPUB
-        code, response = self.put(f"/api/listings/{listing_key}/start-twitter", {},
+        code, response = self.put(f"/api/listings/{listing_key}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
         self.assertIn("xpub", response['message'].lower())
@@ -370,7 +370,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['xpub_index'], 0)
 
         # start the listing
-        code, response = self.put(f"/api/listings/{listing_key}/start-twitter", {},
+        code, response = self.put(f"/api/listings/{listing_key}/start", {'twitter': True},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -683,7 +683,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
         # can't start the auction without xpub
-        code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
+        code, response = self.put(f"/api/auctions/{auction_key}/start", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 400)
         self.assertIn("xpub", response['message'].lower())
@@ -696,7 +696,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['xpub_index'], 0)
 
         # start the auction
-        code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
+        code, response = self.put(f"/api/auctions/{auction_key}/start", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
 
@@ -1046,12 +1046,12 @@ class TestApi(unittest.TestCase):
         auction_key_3 = response['auction']['key']
 
         # another user can't start my auction
-        code, response = self.put(f"/api/auctions/{auction_key_3}/start-twitter", {},
+        code, response = self.put(f"/api/auctions/{auction_key_3}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
 
-        # start the auction by getting images from Twitter
-        code, response = self.put(f"/api/auctions/{auction_key_3}/start-twitter", {},
+        # start the auction and get images from Twitter
+        code, response = self.put(f"/api/auctions/{auction_key_3}/start", {'twitter': True},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
 

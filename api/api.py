@@ -501,10 +501,10 @@ def follow_auction(user, key):
 
     return jsonify({'message': message})
 
-@api_blueprint.route('/api/auctions/<key>/start-twitter',
+@api_blueprint.route('/api/auctions/<key>/start',
     defaults={'cls': m.Auction, 'singular': 'auction', 'plural': 'auctions'},
     methods=['PUT'])
-@api_blueprint.route('/api/listings/<key>/start-twitter',
+@api_blueprint.route('/api/listings/<key>/start',
     defaults={'cls': m.Listing, 'singular': 'listing', 'plural': 'listings'},
     methods=['PUT'])
 @user_required
@@ -528,53 +528,56 @@ def start(user, key, cls, singular, plural):
     if not entity.campaign and not user.xpub:
         return jsonify({'message': "User did not set an XPUB."}), 400
 
-    twitter = get_twitter()
-    twitter_user = twitter.get_user(user.twitter_username)
-    if not twitter_user:
-        return jsonify({'message': "Twitter profile not found!"}), 400
+    if request.json.get('twitter'):
+        twitter = get_twitter()
 
-    if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
-        return jsonify({'message': "Error fetching profile picture!"}), 500
+        twitter_user = twitter.get_user(user.twitter_username)
+        if not twitter_user:
+            return jsonify({'message': "Twitter profile not found!"}), 400
 
-    if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
-        return jsonify({'message': "Error fetching profile banner!"}), 500
+        if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
+            return jsonify({'message': "Error fetching profile picture!"}), 500
 
-    tweets = twitter.get_sale_tweets(twitter_user['id'], plural)
-    tweet = None
-    for t in sorted(tweets, key=lambda t: t['created_at'], reverse=True):
-        # we basically pick the last tweet that matches the auction
-        if t['auction_key'] == entity.key:
-            tweet = t
-            break
+        if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
+            return jsonify({'message': "Error fetching profile banner!"}), 500
 
-    if not tweet:
-        return jsonify({'message': "Tweet not found."}), 400
+        tweets = twitter.get_sale_tweets(twitter_user['id'], plural)
+        tweet = None
+        for t in sorted(tweets, key=lambda t: t['created_at'], reverse=True):
+            # we basically pick the last tweet that matches the auction
+            if t['auction_key'] == entity.key:
+                tweet = t
+                break
 
-    if not tweet['photos']:
-        return jsonify({'message': "Tweet does not have any attached pictures."}), 400
+        if not tweet:
+            return jsonify({'message': "Tweet not found."}), 400
 
-    user.twitter_username_verified = True
-    entity.twitter_id = tweet['id']
+        if not tweet['photos']:
+            return jsonify({'message': "Tweet does not have any attached pictures."}), 400
+
+        user.twitter_username_verified = True
+        entity.twitter_id = tweet['id']
+
+        m.Media.query.filter_by(item_id=entity.item.id).delete()
+        ########
+        # TODO: remove this after removing auction_id from Media
+        auction_id = None
+        if isinstance(entity, m.Auction):
+            m.Media.query.filter_by(auction_id=entity.id).delete()
+            auction_id = entity.id
+        ########
+
+        s3 = get_s3()
+        for i, photo in enumerate(tweet['photos'], 1):
+            media = m.Media(item_id=entity.item.id, auction_id=auction_id, index=i, twitter_media_key=photo['media_key'])
+            if not media.store(s3, f"{singular}_{entity.key}_media_{i}", photo['url'], None):
+                return jsonify({'message': "Error fetching picture!"}), 400
+            db.session.add(media)
+
     entity.start_date = datetime.utcnow()
 
     if isinstance(entity, m.Auction):
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
-
-    m.Media.query.filter_by(item_id=entity.item.id).delete()
-    ########
-    # TODO: remove this after removing auction_id from Media
-    auction_id = None
-    if isinstance(entity, m.Auction):
-        m.Media.query.filter_by(auction_id=entity.id).delete()
-        auction_id = entity.id
-    ########
-
-    s3 = get_s3()
-    for i, photo in enumerate(tweet['photos'], 1):
-        media = m.Media(item_id=entity.item.id, auction_id=auction_id, index=i, twitter_media_key=photo['media_key'])
-        if not media.store(s3, f"{singular}_{entity.key}_media_{i}", photo['url'], None):
-            return jsonify({'message': "Error fetching picture!"}), 400
-        db.session.add(media)
 
     db.session.commit()
 
