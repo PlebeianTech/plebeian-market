@@ -2,6 +2,7 @@ bleach
 btc2fiat
 boto3
 ecdsa
+email-validator
 flask
 flask-cors
 flask-migrate

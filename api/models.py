@@ -109,6 +109,9 @@ class User(XpubMixin, db.Model):
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
 
+    email = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    email_verified = db.Column(db.Boolean, nullable=False, default=False)
+
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
     twitter_username_verification_tweet_id = db.Column(db.String(64), nullable=True)
@@ -157,6 +160,8 @@ class User(XpubMixin, db.Model):
             'id': self.id,
             'nym': self.nym,
             'profile_image_url': self.twitter_profile_image_url,
+            'email': self.email,
+            'email_verified': self.email_verified,
             'twitter_username': self.twitter_username,
             'twitter_username_verified': self.twitter_username_verified,
             'stall_banner_url': self.stall_banner_url,
