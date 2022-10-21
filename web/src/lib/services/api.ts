@@ -247,8 +247,8 @@ export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean
         });
 }
 
-export function putStart(tokenValue, endpoint, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}/${auctionKey}/start-twitter`, 'PUT', tokenValue, null,
+export function putStartTwitter(tokenValue, endpoint, key, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${endpoint}/${key}/start`, 'PUT', tokenValue, JSON.stringify({twitter: true}),
         response => {
             if (response.status === 200) {
                 successCB();

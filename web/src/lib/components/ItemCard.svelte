@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { putStart, getItem, deleteEntity, ErrorHandler } from "$lib/services/api";
+    import { putStartTwitter, getItem, deleteEntity, ErrorHandler } from "$lib/services/api";
     import { token, user, Info } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
@@ -64,7 +64,7 @@
     function start() {
         starting = true;
         Info.set("Checking your Twitter account...");
-        putStart($token, item.endpoint, item.key,
+        putStartTwitter($token, item.endpoint, item.key,
             () => {
                 getItem(item.loader, $token, item.key,
                     a => {
