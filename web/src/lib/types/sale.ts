@@ -34,6 +34,7 @@ export class Sale implements IEntity {
     requested_at?: Date = undefined;
     settled_at?: Date = undefined;
     expired_at?: Date = undefined;
+    is_mine = true;
 
     public validate() {
         return false; // since we cannot create sales from the UI

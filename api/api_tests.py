@@ -15,7 +15,11 @@ ONE_PIXEL_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAA
 
 # an XPUB to use for tests and some addresses belonging to it
 XPUB = "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz"
-ADDRESSES = ["1EfgV2Hr5CDjXPavHDpDMjmU33BA2veHy6", "12iNxzdF6KFZ14UyRTYCRuptxkKSSVHzqF", "1CcEugXu9Yf9Qw5cpB8gHUK4X9683WyghM"]
+ADDRESSES = ["1EfgV2Hr5CDjXPavHDpDMjmU33BA2veHy6", "12iNxzdF6KFZ14UyRTYCRuptxkKSSVHzqF", "1CcEugXu9Yf9Qw5cpB8gHUK4X9683WyghM", "15xANZb5vJv5RGL263NFuh8UGgHT7noXeZ", "1PJMBXKBYEBMRDmpAoBRbDff26gHJrawSp", "16ZBYSHkLkRFHAuZvyzosXYgU1UDJxRV1R", "1EHeVKfjjq6FJpix86G2yzFeRbZ6RNg2Zm"]
+
+# an XPUB to test campaigns, different from the other one
+CAMPAIGN_XPUB = "xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5WrxhntpcvqJKTVg96dUVL9P7hZ7Kcvqvd"
+CAMPAIGN_ADDRESSES = ["1FbrmmxQGH46x9BqXr5H4p2JK91PRpKkYE", "162cdnDPmqXkuu77PWWi9LugaXuyvsebmP", "1EFfsY9VzwC1RbrfU4xnNCyLfq9NzmeoSh"]
 
 class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, json=None, headers=None, files=None):
@@ -40,10 +44,16 @@ class TestApi(unittest.TestCase):
     def get_auth_headers(self, token):
         return {'X-Access-Token': token}
 
-    def create_user(self, twitter_username=None, contribution_percent=None, xpub=None):
+    def update_user(self, token, **kwargs):
+        code, response = self.put("/api/users/me", kwargs,
+            headers=self.get_auth_headers(token))
+        self.assertEqual(code, 200)
+
+    def create_user(self, **kwargs):
         code, response = self.get("/api/login")
         self.assertEqual(code, 200)
-        self.assertTrue('k1' in response and 'svg' in response['qr'])
+        self.assertIn('k1', response)
+        self.assertIn('svg', response['qr'])
 
         k1 = response['k1']
 
@@ -55,12 +65,12 @@ class TestApi(unittest.TestCase):
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
-        self.assertTrue('token' not in response)
+        self.assertNotIn('token', response)
 
         code, response = self.get("/api/login",
             {'k1': k1})
         self.assertEqual(code, 200)
-        self.assertTrue('token' in response)
+        self.assertIn('token', response)
 
         token = response['token']
 
@@ -70,85 +80,66 @@ class TestApi(unittest.TestCase):
         self.assertIsNone(response['user']['twitter_username'])
         self.assertIsNone(response['user']['contribution_percent'])
 
-        if twitter_username:
-            code, response = self.put("/api/users/me",
-                {'twitter_username': twitter_username},
-                headers=self.get_auth_headers(token))
-            self.assertEqual(code, 200)
-        
-        if contribution_percent:
-            code, response = self.put("/api/users/me",
-                {'contribution_percent': contribution_percent},
-                headers=self.get_auth_headers(token))
-            self.assertEqual(code, 200)
-
-        if xpub:
-            code, response = self.put("/api/users/me",
-                {'xpub': xpub},
-                headers=self.get_auth_headers(token))
-            self.assertEqual(code, 200)
+        self.update_user(token, **kwargs)
 
         return k1, token
 
     def test_campaigns(self):
-        _, token_1 = self.create_user()
-
-        # GET campaigns requires log in
-        code, response = self.get("/api/campaigns")
-        self.assertEqual(code, 401)
-        self.assertTrue("missing token" in response['message'].lower())
+        _, token_1 = self.create_user(contribution_percent=1)
+        _, token_2 = self.create_user()
+        _, token_3 = self.create_user(twitter_username='buyer')
 
         # creating a campaign requires log in
-        code, response = self.post("/api/campaigns", {})
+        code, response = self.post("/api/users/me/campaigns", {})
         self.assertEqual(code, 401)
-        self.assertTrue("missing token" in response['message'].lower())
+        self.assertIn("missing token", response['message'].lower())
 
         # GET my campaigns to see there are none
-        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_1))
+        code, response = self.get("/api/users/me/campaigns",
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['campaigns']), 0)
 
-        # can't create a campaign without title or description
-        for what in ['title', 'description']:
-            code, response = self.post("/api/campaigns",
-                {k: v for k, v in {'title': "T", 'description': "D"}.items() if k != what},
+        # can't create a campaign without name, description or XPUB
+        for what in ['name', 'description']:
+            code, response = self.post("/api/users/me/campaigns",
+                {k: v for k, v in {'xpub': CAMPAIGN_XPUB, 'name': "T", 'description': "D"}.items() if k != what},
                 headers=self.get_auth_headers(token_1))
             self.assertEqual(code, 400)
-            self.assertTrue("missing" in response['message'].lower())
-            self.assertTrue(what in response['message'].lower())
+            self.assertIn("missing", response['message'].lower())
+            self.assertIn(what, response['message'].lower())
 
         # finally create a campaign
-        code, response = self.post("/api/campaigns",
-            {'title': "My campaign",
+        code, response = self.post("/api/users/me/campaigns",
+            {'xpub': CAMPAIGN_XPUB,
+             'name': "My campaign",
              'description': "A very noble cause"},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertTrue('campaign' in response)
+        self.assertIn('campaign', response)
 
         campaign_key = response['campaign']['key']
 
         # GET campaigns to find our campaign
-        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_1))
+        code, response = self.get("/api/users/me/campaigns",
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['campaigns']), 1)
         self.assertEqual(response['campaigns'][0]['key'], campaign_key)
-        self.assertFalse(response['campaigns'][0]['started'])
-        self.assertFalse(response['campaigns'][0]['ended'])
 
         # GET the newly created campaign by key (even unauthenticated!)
         code, response = self.get(f"/api/campaigns/{campaign_key}")
         self.assertEqual(code, 200)
         self.assertEqual(response['campaign']['key'], campaign_key)
 
-        _, token_2 = self.create_user()
-
         # create a 2nd campaign, this time for the 2nd user
-        code, response = self.post("/api/campaigns",
-            {'title': "His campaign",
-             'description': "Another noble cause"},
+        code, response = self.post("/api/users/me/campaigns",
+            {'name': "His campaign",
+             'description': "Another noble cause",
+             'xpub': CAMPAIGN_XPUB},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertTrue('campaign' in response)
+        self.assertIn('campaign', response)
 
         campaign_key_2 = response['campaign']['key']
 
@@ -156,81 +147,156 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(campaign_key, campaign_key_2)
 
         # listing one user's campaigns does not return the other one
-        code, response = self.get("/api/campaigns", headers=self.get_auth_headers(token_2))
+        code, response = self.get("/api/users/me/campaigns",
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['campaigns']), 1)
         self.assertEqual(response['campaigns'][0]['key'], campaign_key_2)
 
         # edit the campaign
         code, response = self.put(f"/api/campaigns/{campaign_key_2}",
-            {'title': "His brilliant campaign",
+            {'xpub': XPUB, # this will not change!
+             'name': "His brilliant campaign",
              'description': "Another brilliant cause"},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
 
         # check that the edit worked
-        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
+        code, response = self.get(f"/api/campaigns/{campaign_key_2}",
+            headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(response['campaign']['title'], "His brilliant campaign")
+        self.assertEqual(response['campaign']['xpub'], CAMPAIGN_XPUB) # note that the XPUB of a campaign does not change
+        self.assertEqual(response['campaign']['name'], "His brilliant campaign")
         self.assertEqual(response['campaign']['description'], "Another brilliant cause")
-        self.assertFalse(response['campaign']['started'])
-        self.assertFalse(response['campaign']['ended'])
 
-        # can't start somebody else's campaign
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
+        # can't edit somebody else's campaign
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}",
+            {'name': "A fake cause"},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
 
-        # start the campaign
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
-            headers=self.get_auth_headers(token_2))
+        # add a listing to the campaign
+        code, response = self.post(f"/api/campaigns/{campaign_key_2}/listings",
+            {'title': "A listing for a cause",
+             'description': "Selling something boring to raise money for good",
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
+             'price_usd': 10,
+             'available_quantity': 5},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertIn('listing', response)
+
+        listing_key = response['listing']['key']
+
+        # add an auction to the campaign
+        code, response = self.post(f"/api/campaigns/{campaign_key_2}/auctions",
+            {'title': "An auction for a cause",
+             'description': "Auctioning something boring to raise money for good",
+             'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'duration_hours': 0.005, # 18 seconds
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
+             'starting_bid': 10,
+             'reserve_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertIn('auction', response)
+
+        auction_key = response['auction']['key']
+
+        # same seller, add a listing outside of the campaign
+        code, response = self.post(f"/api/users/me/listings",
+            {'title': "A selfish listing",
+             'description': "Selling something boring to clear up space",
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
+             'price_usd': 10,
+             'available_quantity': 5},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertIn('listing', response)
+
+        listing_key_2 = response['listing']['key']
+
+        self.assertNotEqual(listing_key, listing_key_2)
+
+        # same seller, add an auction outside the campaign
+        code, response = self.post(f"/api/users/me/auctions",
+            {'title': "A selfish auction",
+             'description': "Auctioning something boring to clear up space",
+             'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
+             'duration_hours': 0.005, # 18 seconds
+             'shipping_domestic_usd': 5,
+             'shipping_worldwide_usd': 10,
+             'starting_bid': 10,
+             'reserve_bid': 10},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertIn('auction', response)
+
+        auction_key_2 = response['auction']['key']
+
+        # can start start the campaign listing even before setting the XPUB (because it is part of the campaign!)
+        code, response = self.put(f"/api/listings/{listing_key}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
-        # check that the campaign started
-        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
-        self.assertEqual(code, 200)
-        self.assertTrue(response['campaign']['started'])
-        self.assertFalse(response['campaign']['ended'])
-
-        # can't start the campaign again
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-
-        # end the campaign
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/end",
-            {},
-            headers=self.get_auth_headers(token_2))
+        # can start the campaign auction even before setting the XPUB (because it is part of the campaign!)
+        code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
-        # check that the campaign ended
-        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
+        # set the xpub
+        code, response = self.put("/api/users/me",
+            {'xpub': XPUB},
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertTrue(response['campaign']['started'])
-        self.assertTrue(response['campaign']['ended'])
+        self.assertEqual(response['user']['xpub_index'], 0)
 
-        # done is done... can't bring it back!
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}",
-            {'title': "Nope"},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/start",
-            {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-        code, response = self.put(f"/api/campaigns/{campaign_key_2}/end",
-            {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 403)
-
-        # DONE is DONE
-        code, response = self.get(f"/api/campaigns/{campaign_key_2}")
+        # start the listing
+        code, response = self.put(f"/api/listings/{listing_key_2}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertTrue(response['campaign']['started'])
-        self.assertTrue(response['campaign']['ended'])
+
+        # start the auction
+        code, response = self.put(f"/api/auctions/{auction_key_2}/start-twitter", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # bidding on both auctions
+        code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        code, response = self.post(f"/api/auctions/{auction_key_2}/bids", {'amount': 999},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+
+        # buying the two items
+        code, response = self.put(f"/api/listings/{listing_key}/buy", {},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        code, response = self.put(f"/api/listings/{listing_key_2}/buy", {},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+
+        time.sleep(20)
+
+        # the seller has four sales
+        code, response = self.get("/api/users/me/sales", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['sales']), 4)
+        address_for_campaign_listing = [s['address'] for s in response['sales'] if s['item_title'] == "A listing for a cause"][0]
+        self.assertIn(address_for_campaign_listing, CAMPAIGN_ADDRESSES)
+        address_for_normal_listing = [s['address'] for s in response['sales'] if s['item_title'] == "A selfish listing"][0]
+        self.assertIn(address_for_normal_listing, ADDRESSES)
+        self.assertNotEqual(address_for_campaign_listing, address_for_normal_listing)
+        address_for_campaign_auction = [s['address'] for s in response['sales'] if s['item_title'] == "An auction for a cause"][0]
+        self.assertIn(address_for_campaign_auction, CAMPAIGN_ADDRESSES)
+        address_for_normal_auction = [s['address'] for s in response['sales'] if s['item_title'] == "A selfish auction"][0]
+        self.assertIn(address_for_normal_auction, ADDRESSES)
+        self.assertNotEqual(address_for_campaign_auction, address_for_normal_auction)
 
     def test_listings(self):
         _, token_1 = self.create_user(twitter_username='fixie', contribution_percent=1)
@@ -243,17 +309,17 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['listings']), 0)
 
         # can't create a listing without price
-        code, response = self.post("/api/listings",
+        code, response = self.post("/api/users/me/listings",
             {'title': "My 1st fixie",
              'description': "Selling something cool for a fixed price",
              'available_quantity': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
-        self.assertTrue("missing" in response['message'].lower())
-        self.assertTrue("price" in response['message'].lower())
+        self.assertIn("missing", response['message'].lower())
+        self.assertIn("price", response['message'].lower())
 
         # finally create a listing
-        code, response = self.post("/api/listings",
+        code, response = self.post("/api/users/me/listings",
             {'title': "My 1st fixie",
              'description': "Selling something cool for a fixed price",
              'shipping_domestic_usd': 5,
@@ -262,7 +328,7 @@ class TestApi(unittest.TestCase):
              'available_quantity': 5},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertTrue('listing' in response)
+        self.assertIn('listing', response)
 
         listing_key = response['listing']['key']
 
@@ -277,24 +343,24 @@ class TestApi(unittest.TestCase):
         # anonymous users can't buy
         code, response = self.put(f"/api/listings/{listing_key}/buy", {})
         self.assertEqual(code, 401)
-        self.assertTrue('missing token' in response['message'].lower())
+        self.assertIn("missing token", response['message'].lower())
 
         # can't buy because the listing has not started yet
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 403)
-        self.assertTrue("not active" in response['message'].lower())
+        self.assertIn("not active", response['message'].lower())
 
         # the listing is not featured
         code, response = self.get("/api/listings/featured")
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['listings']), 0)
+        self.assertNotIn(listing_key, [l['key'] for l in response['listings']])
 
         # can't start the listing before setting the XPUB
         code, response = self.put(f"/api/listings/{listing_key}/start-twitter", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
-        self.assertTrue("xpub" in response['message'].lower())
+        self.assertIn("xpub", response['message'].lower())
 
         # set the xpub
         code, response = self.put("/api/users/me",
@@ -311,8 +377,7 @@ class TestApi(unittest.TestCase):
         # the listing is featured now
         code, response = self.get("/api/listings/featured")
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['listings']), 1)
-        self.assertEqual(response['listings'][0]['key'], listing_key)
+        self.assertIn(listing_key, [l['key'] for l in response['listings']])
 
         # listing should have 4 images (the ones from Twitter)
         code, response = self.get(f"/api/listings/{listing_key}")
@@ -337,7 +402,7 @@ class TestApi(unittest.TestCase):
 
         code, response = self.get(f"/api/listings/{listing_key}")
         self.assertEqual(len(response['listing']['media']), 5)
-        self.assertTrue(media_hash in [m['hash'] for m in response['listing']['media']])
+        self.assertIn(media_hash, [m['hash'] for m in response['listing']['media']])
 
         # other users cannot delete images...
         code, response = self.delete(f"/api/listings/{listing_key}/media/{media_hash}",
@@ -370,7 +435,7 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/api/listings/{listing_key}")
         self.assertEqual(code, 200)
         self.assertEqual(len(response['listing']['media']), 4)
-        self.assertTrue(media_hash not in [m['hash'] for m in response['listing']['media']])
+        self.assertNotIn(media_hash, [m['hash'] for m in response['listing']['media']])
 
         # the seller has no sales
         code, response = self.get("/api/users/me/sales", {},
@@ -392,10 +457,10 @@ class TestApi(unittest.TestCase):
         ten_cent_sats = one_dollar_sats / 10
         ten_dollars_sats = one_dollar_sats * 10
         self.assertAlmostEqual(response['sale']['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
-        self.assertTrue('contribution_payment_request' in response['sale'])
-        self.assertTrue('contribution_payment_qr' in response['sale'])
+        self.assertIn('contribution_payment_request', response['sale'])
+        self.assertIn('contribution_payment_qr', response['sale'])
         self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats-ten_cent_sats, delta=(ten_dollars_sats-ten_cent_sats)/100)
-        self.assertTrue(response['sale']['address'] in ADDRESSES)
+        self.assertIn(response['sale']['address'], ADDRESSES)
 
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
@@ -425,7 +490,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['sales']), 1)
-        self.assertTrue(response['sales'][0]['address'] in ADDRESSES)
+        self.assertIn(response['sales'][0]['address'], ADDRESSES)
 
         # the buyer has no sales
         code, response = self.get("/api/users/me/sales", {},
@@ -446,7 +511,8 @@ class TestApi(unittest.TestCase):
     def test_000_user(self):
         code, response = self.get("/api/login")
         self.assertEqual(code, 200)
-        self.assertTrue('k1' in response and 'svg' in response['qr'])
+        self.assertIn('k1', response)
+        self.assertIn('svg', response['qr'])
 
         k1 = response['k1']
 
@@ -468,7 +534,7 @@ class TestApi(unittest.TestCase):
              'key': sk.verifying_key.to_string().hex(),
              'sig': another_sig.hex()})
         self.assertEqual(code, 400)
-        self.assertTrue('verification failed' in response['message'].lower())
+        self.assertIn("verification failed", response['message'].lower())
 
         # try sending a wrong signature
         code, response = self.get("/api/login",
@@ -476,20 +542,20 @@ class TestApi(unittest.TestCase):
              'key': sk.verifying_key.to_string().hex(),
              'sig': another_sig.hex()})
         self.assertEqual(code, 400)
-        self.assertTrue('verification failed' in response['message'].lower())
+        self.assertIn("verification failed", response['message'].lower())
 
         code, response = self.get("/api/login",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
-        self.assertTrue('token' not in response)
+        self.assertNotIn('token', response)
 
         code, response = self.get("/api/login",
             {'k1': k1})
         self.assertEqual(code, 200)
-        self.assertTrue('token' in response)
-        self.assertTrue('user' in response)
+        self.assertIn('token', response)
+        self.assertIn('user', response)
         self.assertIsNone(response['user']['twitter_username'])
         self.assertIsNone(response['user']['contribution_percent'])
 
@@ -519,9 +585,9 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['twitter_username'], 'mock_username')
         self.assertFalse(response['user']['twitter_username_verified'])
-        self.assertTrue("twitter.com" in response['user']['twitter_username_verification_tweet'])
-        self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
-        self.assertTrue("/mock-s3-files/" in response['user']['profile_image_url'])
+        self.assertIn("twitter.com", response['user']['twitter_username_verification_tweet'])
+        self.assertIn("/status/", response['user']['twitter_username_verification_tweet'])
+        self.assertIn("/mock-s3-files/", response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_items'], False)
 
@@ -543,9 +609,9 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['twitter_username'], 'mock_username_with_like')
         self.assertFalse(response['user']['twitter_username_verified'])
-        self.assertTrue("twitter.com" in response['user']['twitter_username_verification_tweet'])
-        self.assertTrue("/status/" in response['user']['twitter_username_verification_tweet'])
-        self.assertTrue("/mock-s3-files/" in response['user']['profile_image_url'])
+        self.assertIn("twitter.com", response['user']['twitter_username_verification_tweet'])
+        self.assertIn("/status/", response['user']['twitter_username_verification_tweet'])
+        self.assertIn("/mock-s3-files/", response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1.5)
         self.assertEqual(response['user']['has_items'], False)
 
@@ -596,7 +662,7 @@ class TestApi(unittest.TestCase):
         self.assertIsNone(response['user'].get('is_moderator'))
 
         # create an auction
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "An auction from user 2",
              'description': "Selling something",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
@@ -607,7 +673,7 @@ class TestApi(unittest.TestCase):
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertTrue('auction' in response)
+        self.assertIn('auction', response)
 
         auction_key = response['auction']['key']
 
@@ -620,7 +686,7 @@ class TestApi(unittest.TestCase):
         code, response = self.put(f"/api/auctions/{auction_key}/start-twitter", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 400)
-        self.assertTrue("xpub" in response['message'].lower())
+        self.assertIn("xpub", response['message'].lower())
 
         # set the xpub
         code, response = self.put("/api/users/me",
@@ -673,11 +739,11 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)  # no auctions yet
 
         # creating auctions requires log in
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'starting_bid': 10})
         self.assertEqual(code, 401)
         self.assertFalse(response['success'])
-        self.assertTrue("missing token" in response['message'].lower())
+        self.assertIn("missing token", response['message'].lower())
 
         # GET auctions if logged in as well to see there are none there
         code, response = self.get("/api/users/me/auctions",
@@ -686,18 +752,18 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
         # can't create an auction without dates or duration
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': "Selling something",
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
-        self.assertTrue("missing" in response['message'].lower())
-        self.assertTrue("duration" in response['message'].lower())
+        self.assertIn("missing", response['message'].lower())
+        self.assertIn("duration", response['message'].lower())
 
         # dates must be UTC
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': "Selling something",
              'start_date': "2020-10-10T11:11:00",
@@ -708,10 +774,10 @@ class TestApi(unittest.TestCase):
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
-        self.assertTrue("must be in utc" in response['message'].lower())
+        self.assertIn("must be in utc", response['message'].lower())
 
         # finally create an auction (with token_1)
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': "Selling something",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
@@ -722,7 +788,7 @@ class TestApi(unittest.TestCase):
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertTrue('auction' in response)
+        self.assertIn('auction', response)
 
         auction_key = response['auction']['key']
 
@@ -757,7 +823,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['auction']['key'], auction_key)
 
         # create a 2nd auction, this time for the 2nd user
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "His 2st",
              'description': "Selling something else",
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
@@ -768,7 +834,7 @@ class TestApi(unittest.TestCase):
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertTrue('auction' in response)
+        self.assertIn('auction', response)
 
         auction_key_2 = response['auction']['key']
 
@@ -842,13 +908,13 @@ class TestApi(unittest.TestCase):
         # anonymous users can't place a bid
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 100})
         self.assertEqual(code, 401)
-        self.assertTrue('missing token' in response['message'].lower())
+        self.assertIn("missing token", response['message'].lower())
 
         # can't place a bid because the auction has not started yet
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 403)
-        self.assertTrue('not running' in response['message'].lower())
+        self.assertIn("not started", response['message'].lower())
 
         # start the auction
         code, response = self.put(f"/api/auctions/{auction_key}",
@@ -886,13 +952,13 @@ class TestApi(unittest.TestCase):
             {'starting_bid': 101},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 403)
-        self.assertTrue('cannot edit auctions once started' in response['message'].lower())
+        self.assertIn("cannot edit auctions once started", response['message'].lower())
 
         # also can't DELETE the auction once started
         code, response = self.delete(f"/api/auctions/{auction_key}",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 403)
-        self.assertTrue('cannot edit auctions once started' in response['message'].lower())
+        self.assertIn("cannot edit auctions once started", response['message'].lower())
 
         _, token_3 = self.create_user()
 
@@ -919,9 +985,9 @@ class TestApi(unittest.TestCase):
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertTrue('payment_request' in response)
+        self.assertIn('payment_request', response)
         self.assertTrue(response['payment_request'].startswith('MOCK'))
-        self.assertTrue('svg' in response['qr'])
+        self.assertIn('svg', response['qr'])
         self.assertEqual(len(response['messages']), 1) # no message about follow, since we already did that
 
         bid_payment_request = response['payment_request']
@@ -941,7 +1007,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         app.logger.warn(f"{response['messages']}")
         self.assertEqual(len(response['messages']), 1)
-        self.assertTrue("new bid" in response['messages'][0]['body'].lower())
+        self.assertIn("new bid", response['messages'][0]['body'].lower())
         self.assertEqual(response['messages'][0]['notified_via'], 'TWITTER_DM')
 
         # the bidder however was not...
@@ -962,10 +1028,10 @@ class TestApi(unittest.TestCase):
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 777},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 400)
-        self.assertTrue('your bid needs to be higher' in response['message'].lower())
+        self.assertIn("your bid needs to be higher", response['message'].lower())
 
         # create an auction without a start date
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "Auction without start date",
              'description': "Selling something on Twitter",
              'duration_hours': 24,
@@ -975,7 +1041,7 @@ class TestApi(unittest.TestCase):
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertTrue('auction' in response)
+        self.assertIn('auction', response)
 
         auction_key_3 = response['auction']['key']
 
@@ -1001,17 +1067,17 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/api/auctions/{auction_key_3}",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertTrue('auction' in response)
+        self.assertIn('auction', response)
         self.assertTrue(response['auction']['start_date'] < (datetime.utcnow().isoformat() + "Z"))
         self.assertEqual(response['auction']['started'], True)
         self.assertEqual(response['auction']['ended'], False)
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
         self.assertEqual(len(response['auction']['media']), 4)
-        self.assertTrue("/mock-s3-files/" in response['auction']['media'][0]['url'])
+        self.assertIn("/mock-s3-files/", response['auction']['media'][0]['url'])
 
         # Create an auction with malicious input to description
         malicious_desc = '''<script type="text/javascript">alert("malicious")</script>'''
-        code, response = self.post("/api/auctions",
+        code, response = self.post("/api/users/me/auctions",
             {'title': "My 1st",
              'description': malicious_desc,
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
@@ -1022,7 +1088,7 @@ class TestApi(unittest.TestCase):
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertTrue('auction' in response)
+        self.assertIn('auction', response)
         cleaned_description = response['auction']['description']
         expected_cleaned_description = """&lt;script type="text/javascript"&gt;alert("malicious")&lt;/script&gt;"""
         self.assertEqual(cleaned_description, expected_cleaned_description)
@@ -1040,7 +1106,7 @@ class TestApi(unittest.TestCase):
         self.assertIsNotNone(response['auction']['sales'][0]['settled_at'])
         self.assertTrue(response['auction']['sales'][0]['txid'].startswith('MOCK_'))
         self.assertIsNone(response['auction']['sales'][0]['expired_at'])
-        self.assertTrue(response['auction']['sales'][0]['address'] in ADDRESSES)
+        self.assertIn(response['auction']['sales'][0]['address'], ADDRESSES)
 
         # another user however, cannot see the sale (but it can see the auction has a winner)
         code, response = self.get(f"/api/auctions/{auction_key}",

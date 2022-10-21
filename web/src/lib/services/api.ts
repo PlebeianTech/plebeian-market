@@ -80,8 +80,8 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
         });
 }
 
-export function postEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${entity.endpoint}`, 'POST', tokenValue, entity.toJson(),
+export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${endpoint}`, 'POST', tokenValue, entity.toJson(),
         response => {
             if (response.status === 200) {
                 successCB();

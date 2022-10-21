@@ -3,6 +3,8 @@ export interface IEntity {
 
     endpoint: string;
 
+    is_mine: boolean;
+
     validate: () => boolean;
     toJson: () => any;
 }

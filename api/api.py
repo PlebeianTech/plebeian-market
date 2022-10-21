@@ -13,7 +13,6 @@ from pycoin.symbols.btc import network as BTC
 import pyqrcode
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql.functions import func
 
 from extensions import db
 import models as m
@@ -99,93 +98,94 @@ def login():
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
-@api_blueprint.route('/api/users/<string:nym>', methods=['GET'])
-def profile(nym):
+@api_blueprint.route('/api/users/<nym>', methods=['GET'])
+def get_profile(nym):
     requesting_user = get_user_from_token(get_token_from_request())
     for_user_id = requesting_user.id if requesting_user else None
-    if request.method == 'GET':
-        user = m.User.query.filter_by(nym=nym).first()
-        if not user:
-            return jsonify({'message': "User not found"}), 404
-        return jsonify({'user': user.to_dict(for_user=for_user_id)})
+    user = m.User.query.filter_by(nym=nym).first()
+    if not user:
+        return jsonify({'message': "User not found"}), 404
+    return jsonify({'user': user.to_dict(for_user=for_user_id)})
 
-@api_blueprint.route('/api/users/me', methods=['GET', 'PUT'])
+@api_blueprint.route('/api/users/me', methods=['GET'])
 @user_required
-def me(user):
-    if request.method == 'GET':
-        return jsonify({'user': user.to_dict(for_user=user.id)})
-    else:
-        if 'nym' in request.json:
-            clean_nym = (request.json['nym'] or "").lower().strip()
-            if len(clean_nym) < 3:
-                return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
-            if not clean_nym.isalnum():
-                return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
-            user.nym = clean_nym
-        if 'twitter_username' in request.json:
-            clean_username = (request.json['twitter_username'] or "").lower().strip()
-            if clean_username.startswith("@"):
-                clean_username = clean_username.removeprefix("@")
-            if len(clean_username) < 3:
-                return jsonify({'message': "Your Twitter username needs to be at least 3 characters long!"}), 400
-            if not clean_username.replace("_", "").isalnum():
-                return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
-            if clean_username != user.twitter_username:
-                if user.nym == user.twitter_username:
-                    # NB: if the user has set a custom nym, don't overwrite that!
-                    user.nym = clean_username
-                user.twitter_username = clean_username
+def get_me(user):
+    return jsonify({'user': user.to_dict(for_user=user.id)})
 
-                twitter = get_twitter()
+@api_blueprint.route('/api/users/me', methods=['PUT'])
+@user_required
+def put_me(user):
+    if 'nym' in request.json:
+        clean_nym = (request.json['nym'] or "").lower().strip()
+        if len(clean_nym) < 3:
+            return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
+        if not clean_nym.isalnum():
+            return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
+        user.nym = clean_nym
+    if 'twitter_username' in request.json:
+        clean_username = (request.json['twitter_username'] or "").lower().strip()
+        if clean_username.startswith("@"):
+            clean_username = clean_username.removeprefix("@")
+        if len(clean_username) < 3:
+            return jsonify({'message': "Your Twitter username needs to be at least 3 characters long!"}), 400
+        if not clean_username.replace("_", "").isalnum():
+            return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
+        if clean_username != user.twitter_username:
+            if user.nym == user.twitter_username:
+                # NB: if the user has set a custom nym, don't overwrite that!
+                user.nym = clean_username
+            user.twitter_username = clean_username
 
-                twitter_user = twitter.get_user(user.twitter_username)
+            twitter = get_twitter()
 
-                if not twitter_user:
-                    return jsonify({'message': "Twitter profile not found!"}), 400
+            twitter_user = twitter.get_user(user.twitter_username)
 
-                if app.config['ENV'] == 'prod':
-                    if user.twitter_username not in app.config['TWITTER_USER_MIN_AGE_DAYS_WHITELIST']:
-                        if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
-                            return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
+            if not twitter_user:
+                return jsonify({'message': "Twitter profile not found!"}), 400
 
-                if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
-                    return jsonify({'message': "Error fetching profile picture!"}), 400
+            if app.config['ENV'] == 'prod':
+                if user.twitter_username not in app.config['TWITTER_USER_MIN_AGE_DAYS_WHITELIST']:
+                    if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
+                        return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
-                if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
-                    return jsonify({'message': "Error fetching profile banner!"}), 400
+            if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
+                return jsonify({'message': "Error fetching profile picture!"}), 400
 
-                user.twitter_username_verified = False
+            if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
+                return jsonify({'message': "Error fetching profile banner!"}), 400
 
-                plebeian_twitter_user = twitter.get_user(app.config['TWITTER_USER'])
+            user.twitter_username_verified = False
 
-                user.twitter_username_verification_tweet_id = plebeian_twitter_user['pinned_tweet_id']
+            plebeian_twitter_user = twitter.get_user(app.config['TWITTER_USER'])
 
-        if 'contribution_percent' in request.json:
-            user.contribution_percent = request.json['contribution_percent']
+            user.twitter_username_verification_tweet_id = plebeian_twitter_user['pinned_tweet_id']
 
-        if 'xpub' in request.json:
-            k = BTC.parse(request.json['xpub'])
-            if not k:
-                return jsonify({'message': "Invalid XPUB."}), 400
-            try:
-                first_address = k.subkey(0).subkey(0).address()
-            except AttributeError:
-                return jsonify({'message': "Invalid XPUB."}), 400
-            user.xpub = request.json['xpub']
-            user.xpub_index = 0
+    if 'contribution_percent' in request.json:
+        user.contribution_percent = request.json['contribution_percent']
 
-        if 'stall_name' in request.json:
-            user.stall_name = bleach.clean(request.json['stall_name'])
-
-        if 'stall_description' in request.json:
-            user.stall_description = bleach.clean(request.json['stall_description'])
-
+    if 'xpub' in request.json:
+        k = BTC.parse(request.json['xpub'])
+        if not k:
+            return jsonify({'message': "Invalid XPUB."}), 400
         try:
-            db.session.commit()
-        except IntegrityError:
-            return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
+            first_address = k.subkey(0).subkey(0).address()
+        except AttributeError:
+            return jsonify({'message': "Invalid XPUB."}), 400
+        user.xpub = request.json['xpub']
+        user.xpub_index = 0
 
-        return jsonify({'user': user.to_dict(for_user=user.id)})
+    if 'stall_name' in request.json:
+        user.stall_name = bleach.clean(request.json['stall_name'])
+
+    if 'stall_description' in request.json:
+        user.stall_description = bleach.clean(request.json['stall_description'])
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
+
+    return jsonify({'user': user.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
 @user_required
@@ -226,7 +226,7 @@ def user_notifications(user):
 
 @api_blueprint.route('/api/users/me/messages', methods=['GET'])
 @user_required
-def messages(user):
+def get_messages(user):
     # by default we only return INTERNAL messages (to be shown in the UI),
     # but using the "via" parameter, we can request additional messages,
     # for example via=TWITTER_DM will return all messages sent to this user via TWITTER_DM
@@ -246,29 +246,54 @@ def get_sales(user):
 
     return jsonify({'sales': [s.to_dict() for s in sales]})
 
-@api_blueprint.route("/api/auctions", defaults={'cls': m.Auction, 'singular': 'auction'},
+@api_blueprint.route("/api/users/me/auctions",
+    defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True, 'campaign_key': None},
     methods=['POST'])
-@api_blueprint.route("/api/listings", defaults={'cls': m.Listing, 'singular': 'listing'},
+@api_blueprint.route("/api/users/me/listings",
+    defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True, 'campaign_key': None},
+    methods=['POST'])
+@api_blueprint.route("/api/campaigns/<campaign_key>/auctions",
+    defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True},
+    methods=['POST'])
+@api_blueprint.route("/api/campaigns/<campaign_key>/listings",
+    defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True},
+    methods=['POST'])
+@api_blueprint.route('/api/users/me/campaigns',
+    defaults={'cls': m.Campaign, 'singular': 'campaign', 'has_item': False, 'campaign_key': None},
     methods=['POST'])
 @user_required
-def post_entity(user, cls, singular):
+def post_entity(user, cls, singular, has_item, campaign_key):
+    campaign = None
+    if campaign_key:
+        campaign = m.Campaign.query.filter_by(key=campaign_key).first()
+        if not campaign:
+            return jsonify({'message': "Not found."}), 404
+
     for k in cls.REQUIRED_FIELDS:
         if k not in request.json:
             return jsonify({'message': f"Missing key: {k}."}), 400
 
     try:
-        validated_item = m.Item.validate_dict(request.json)
-        validated_entity = cls.validate_dict(request.json)
+        validated_item = m.Item.validate_dict(request.json, for_method='POST') if has_item else {}
+        validated_entity = cls.validate_dict(request.json, for_method='POST')
     except m.ValidationError as e:
         return jsonify({'message': e.message}), 400
 
-    item = m.Item(seller=user, **validated_item)
-    db.session.add(item)
-    db.session.commit()
+    item = None
+    if has_item:
+        item = m.Item(seller=user, **validated_item)
+        db.session.add(item)
+        db.session.commit()
 
-    existing_count = db.session.query(func.count(cls.id).label('count')).first().count
-    entity = cls(item=item, key=cls.generate_key(existing_count), **validated_entity)
-    if isinstance(entity, m.Auction):
+    entity = cls(**validated_entity)
+    entity.generate_key()
+    if campaign:
+        entity.campaign = campaign
+    if item:
+        entity.item = item
+    if isinstance(entity, m.Campaign):
+        entity.owner = user
+    elif isinstance(entity, m.Auction):
         entity.seller=user # TODO: remove this after removing the field from Auction
     db.session.add(entity)
     db.session.commit()
@@ -281,37 +306,13 @@ def post_entity(user, cls, singular):
 
     return jsonify({singular: entity.to_dict(for_user=user.id)})
 
-@api_blueprint.route('/api/campaigns', methods=['GET', 'POST'])
-@user_required
-def campaigns(user):
-    if request.method == 'GET':
-        campaigns = [c.to_dict(for_user=user.id) for c in user.campaigns]
-        return jsonify({'campaigns': campaigns})
-    else:
-        for k in ['title', 'description']:
-            if k not in request.json:
-                return jsonify({'message': f"Missing key: {k}."}), 400
-
-        try:
-            validated = m.Campaign.validate_dict(request.json)
-        except m.ValidationError as e:
-            return jsonify({'message': e.message}), 400
-
-        campaign_count = db.session.query(func.count(m.Campaign.id).label('count')).first().count
-        key = m.Campaign.generate_key(campaign_count)
-        campaign = m.Campaign(owner=user, key=key, **validated)
-        db.session.add(campaign)
-        db.session.commit()
-
-        return jsonify({'campaign': campaign.to_dict(for_user=user.id)})
-
 @api_blueprint.route('/api/auctions/featured',
     defaults={'cls': m.Auction, 'plural': 'auctions'},
     methods=['GET'])
 @api_blueprint.route('/api/listings/featured',
     defaults={'cls': m.Listing, 'plural': 'listings'},
     methods=['GET'])
-def featured(cls, plural):
+def get_featured(cls, plural):
     entities = cls.query.filter((cls.start_date != None) & (cls.start_date <= datetime.utcnow()))
     entities = entities.filter((cls.item_id == m.Item.id) & ~m.Item.is_hidden)
     if cls == m.Auction:
@@ -320,13 +321,16 @@ def featured(cls, plural):
         entities = entities.filter(cls.available_quantity != 0)
     return jsonify({plural: [e.to_dict() for e in sorted(entities.all(), key=cls.featured_sort_key, reverse=True)]})
 
-@api_blueprint.route('/api/auctions/<string:key>',
-    defaults={'cls': m.Auction, 'singular': 'auction'},
+@api_blueprint.route('/api/auctions/<key>',
+    defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True},
     methods=['GET', 'PUT', 'DELETE'])
-@api_blueprint.route('/api/listings/<string:key>',
-    defaults={'cls': m.Listing, 'singular': 'listing'},
+@api_blueprint.route('/api/listings/<key>',
+    defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True},
     methods=['GET', 'PUT', 'DELETE'])
-def get_put_delete_entity(key, cls, singular):
+@api_blueprint.route('/api/campaigns/<key>',
+    defaults={'cls': m.Campaign, 'singular': 'campaign', 'has_item': False},
+    methods=['GET', 'PUT', 'DELETE'])
+def get_put_delete_entity(key, cls, singular, has_item):
     user = get_user_from_token(get_token_from_request())
     entity = cls.query.filter_by(key=key).first()
     if not entity:
@@ -352,7 +356,7 @@ def get_put_delete_entity(key, cls, singular):
             entity.ensure_item()
         ########
 
-        if user.id != entity.item.seller_id and not is_changing_hidden_state:
+        if user.id != entity.owner_id and not is_changing_hidden_state:
             return jsonify({'message': "Unauthorized"}), 401
 
         if isinstance(entity, m.Auction) and entity.started and not is_changing_hidden_state_only:
@@ -367,8 +371,8 @@ def get_put_delete_entity(key, cls, singular):
                         media.index = media_item['index']
 
             try:
-                validated_item = m.Item.validate_dict(request.json)
-                validated = cls.validate_dict(request.json)
+                validated_item = m.Item.validate_dict(request.json, for_method='PUT') if has_item else {}
+                validated = cls.validate_dict(request.json, for_method='PUT')
             except m.ValidationError as e:
                 return jsonify({'message': e.message}), 400
 
@@ -381,20 +385,18 @@ def get_put_delete_entity(key, cls, singular):
 
             return jsonify({})
         elif request.method == 'DELETE':
-            for sale in entity.sales:
-                if isinstance(entity, m.Auction):
-                    sale.auction = None
-                elif isinstance(entity, m.Listing):
-                    sale.listing = None
+            if isinstance(entity, m.Auction | m.Listing):
+                for sale in entity.sales:
+                    sale.auction = sale.listing = None
             db.session.delete(entity)
             db.session.commit()
 
             return jsonify({})
 
-@api_blueprint.route('/api/auctions/<string:key>/media',
+@api_blueprint.route('/api/auctions/<key>/media',
     defaults={'cls': m.Auction, 'singular': 'auction'},
     methods=['POST'])
-@api_blueprint.route('/api/listings/<string:key>/media',
+@api_blueprint.route('/api/listings/<key>/media',
     defaults={'cls': m.Listing, 'singular': 'listing'},
     methods=['POST'])
 def post_media(key, cls, singular):
@@ -437,10 +439,10 @@ def post_media(key, cls, singular):
 
     return jsonify({'media': media.to_dict()})
 
-@api_blueprint.route('/api/auctions/<string:key>/media/<string:content_hash>',
+@api_blueprint.route('/api/auctions/<key>/media/<content_hash>',
     defaults={'cls': m.Auction},
     methods=['DELETE'])
-@api_blueprint.route('/api/listings/<string:key>/media/<string:content_hash>',
+@api_blueprint.route('/api/listings/<key>/media/<content_hash>',
     defaults={'cls': m.Listing},
     methods=['DELETE'])
 def delete_media(key, cls, content_hash):
@@ -475,73 +477,7 @@ def delete_media(key, cls, content_hash):
 
     return jsonify({})
 
-@api_blueprint.route('/api/campaigns/<string:key>', methods=['GET', 'PUT', 'DELETE'])
-def campaign(key):
-    user = get_user_from_token(get_token_from_request())
-    campaign = m.Campaign.query.filter_by(key=key).first()
-    if not campaign:
-        return jsonify({'message': "Not found."}), 404
-
-    if request.method == 'GET':
-        return jsonify({'campaign': campaign.to_dict(for_user=(user.id if user else None))})
-    else:
-        if not user:
-            return jsonify({'message': "Unauthorized"}), 401
-        if user.id != campaign.owner_id:
-            return jsonify({'message': "Unauthorized"}), 401
-
-        if campaign.started:
-            return jsonify({'message': "Cannot edit a campaign after it started."}), 403
-
-        if request.method == 'PUT':
-            try:
-                validated = m.Campaign.validate_dict(request.json)
-            except m.ValidationError as e:
-                return jsonify({'message': e.message}), 400
-
-            for k, v in validated.items():
-                setattr(campaign, k, v)
-
-            db.session.commit()
-
-            return jsonify({})
-        elif request.method == 'DELETE':
-            db.session.delete(campaign)
-            db.session.commit()
-
-            return jsonify({})
-
-@api_blueprint.route('/api/campaigns/<string:key>/start', methods=['PUT'])
-@user_required
-def start_campaign(user, key):
-    campaign = m.Campaign.query.filter_by(key=key).first()
-    if not campaign:
-        return jsonify({'message': "Not found."}), 404
-    if campaign.owner_id != user.id:
-        return jsonify({'message': "Unauthorized"}), 401
-    if campaign.started:
-        return jsonify({'message': "Campaign already started!"}), 403
-
-    campaign.start_date = datetime.utcnow()
-    db.session.commit()
-    return jsonify({})
-
-@api_blueprint.route('/api/campaigns/<string:key>/end', methods=['PUT'])
-@user_required
-def end_campaign(user, key):
-    campaign = m.Campaign.query.filter_by(key=key).first()
-    if not campaign:
-        return jsonify({'message': "Not found."}), 404
-    if campaign.owner_id != user.id:
-        return jsonify({'message': "Unauthorized"}), 401
-    if campaign.ended:
-        return jsonify({'message': "Campaign already ended!"}), 403
-
-    campaign.end_date = datetime.utcnow()
-    db.session.commit()
-    return jsonify({})
-
-@api_blueprint.route('/api/auctions/<string:key>/follow', methods=['PUT'])
+@api_blueprint.route('/api/auctions/<key>/follow', methods=['PUT'])
 @user_required
 def follow_auction(user, key):
     auction = m.Auction.query.filter_by(key=key).first()
@@ -565,10 +501,10 @@ def follow_auction(user, key):
 
     return jsonify({'message': message})
 
-@api_blueprint.route('/api/auctions/<string:key>/start-twitter',
+@api_blueprint.route('/api/auctions/<key>/start-twitter',
     defaults={'cls': m.Auction, 'singular': 'auction', 'plural': 'auctions'},
     methods=['PUT'])
-@api_blueprint.route('/api/listings/<string:key>/start-twitter',
+@api_blueprint.route('/api/listings/<key>/start-twitter',
     defaults={'cls': m.Listing, 'singular': 'listing', 'plural': 'listings'},
     methods=['PUT'])
 @user_required
@@ -589,7 +525,7 @@ def start(user, key, cls, singular, plural):
     if user.contribution_percent is None:
         return jsonify({'message': "User did not set a contribution."}), 400
 
-    if not user.xpub:
+    if not entity.campaign and not user.xpub:
         return jsonify({'message': "User did not set an XPUB."}), 400
 
     twitter = get_twitter()
@@ -644,15 +580,17 @@ def start(user, key, cls, singular, plural):
 
     return jsonify({})
 
-@api_blueprint.route('/api/auctions/<string:key>/bids', methods=['POST'])
+@api_blueprint.route('/api/auctions/<key>/bids', methods=['POST'])
 @user_required
 def post_bid(user, key):
     auction = m.Auction.query.filter_by(key=key).first()
     if not auction:
         return jsonify({'message': "Not found."}), 404
 
-    if not auction.started or auction.ended:
-        return jsonify({'message': "Auction not running."}), 403
+    if not auction.started:
+        return jsonify({'message': "Auction not started."}), 403
+    if auction.ended:
+        return jsonify({'message': "Auction ended."}), 403
 
     amount = int(request.json['amount'])
 
@@ -692,7 +630,7 @@ def post_bid(user, key):
         ] + (["Started following the auction."] if started_following else []),
     })
 
-@api_blueprint.route('/api/listings/<string:key>/buy', methods=['PUT'])
+@api_blueprint.route('/api/listings/<key>/buy', methods=['PUT'])
 @user_required
 def put_buy(user, key):
     listing = m.Listing.query.filter_by(key=key).first()
@@ -715,7 +653,10 @@ def put_buy(user, key):
         return jsonify({'message': "Error fetching the exchange rate!"}), 500
 
     try:
-        address = listing.item.seller.get_new_address()
+        if listing.campaign:
+            address = listing.campaign.get_new_address()
+        else:
+            address = listing.item.seller.get_new_address()
     except MempoolSpaceError:
         return jsonify({'message': "Error reading from mempool API!"}), 500
 
@@ -756,6 +697,9 @@ def put_buy(user, key):
 @api_blueprint.route("/api/users/<nym>/listings",
     defaults={'plural': 'listings'},
     methods=['GET'])
+@api_blueprint.route("/api/users/<nym>/campaigns",
+    defaults={'plural': 'campaigns'},
+    methods=['GET'])
 def get_user_entities(nym, plural):
     for_user = get_user_from_token(get_token_from_request())
     for_user_id = for_user.id if for_user else None
@@ -768,14 +712,21 @@ def get_user_entities(nym, plural):
     if not user:
         return jsonify({'message': "User not found."}), 404
 
+    def iter_entities():
+        if plural == 'campaigns':
+            for campaign in user.campaigns:
+                yield campaign
+        else:
+            for item in user.items:
+                for entity in getattr(item, plural):
+                    yield entity
+
     entities = {}
-    for item in user.items:
-        for entity in getattr(item, plural):
-            if entity.matches_filter(for_user_id, request.args.get('filter')):
-                entities[f"{plural}_{entity.id}"] = entity
+    for entity in iter_entities():
+        if entity.matches_filter(for_user_id, request.args.get('filter')):
+            entities[f"{plural}_{entity.id}"] = entity
 
     # TODO: this part can be removed after we ensure all auctions in the DB have corresponding items
-    # (and at that point, FilterStateMixin becomes useless as well)
     ########
     if plural == 'auctions':
         for auction in user.auctions:
@@ -785,5 +736,28 @@ def get_user_entities(nym, plural):
     ########
 
     sorted_entities = sorted(entities.values(), key=lambda l: l.created_at, reverse=True)
+
+    return jsonify({plural: [e.to_dict(for_user=for_user_id) for e in sorted_entities]})
+
+@api_blueprint.route("/api/campaigns/<key>/auctions",
+    defaults={'plural': 'auctions'},
+    methods=['GET'])
+@api_blueprint.route("/api/campaigns/<key>/listings",
+    defaults={'plural': 'listings'},
+    methods=['GET'])
+def get_campaign_entities(key, plural):
+    for_user = get_user_from_token(get_token_from_request())
+    for_user_id = for_user.id if for_user else None
+
+    campaign = m.Campaign.query.filter_by(key=key).first()
+
+    if not campaign:
+        return jsonify({'message': "Campaign not found."}), 404
+
+    entities = []
+    for entity in getattr(campaign, plural):
+        if entity.matches_filter(for_user_id, request.args.get('filter')):
+            entities.append(entity)
+    sorted_entities = sorted(entities, key=lambda e: e.created_at, reverse=True)
 
     return jsonify({plural: [e.to_dict(for_user=for_user_id) for e in sorted_entities]})
