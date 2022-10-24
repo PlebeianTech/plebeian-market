@@ -24,5 +24,7 @@ export interface Item {
     shipping_worldwide_usd: number;
     sales: Sale[];
     media: Media[];
+    campaign_key: string | null;
+    campaign_name: string | null;
     is_mine: boolean;
 }

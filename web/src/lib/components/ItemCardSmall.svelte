@@ -10,6 +10,7 @@
     import Countdown, { CountdownStyle } from "$lib/components/Countdown.svelte";
 
     export let isEditable = false;
+    export let showCampaign = false;
     export let showOwner = false;
 
     export let entity: IEntity;
@@ -65,6 +66,9 @@
             <h2 class="card-title mb-2">
                 <a href={url}>{item.title}</a>
             </h2>
+            {#if showCampaign && item.campaign_name !== null}
+                <div class="badge badge-primary"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
+            {/if}
             {#if item instanceof Auction}
                 {#if item.started && !item.ended}
                     <Countdown untilDate={item.end_date} style={CountdownStyle.Compact} />

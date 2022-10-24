@@ -57,7 +57,7 @@
             owner={stallOwner}
             {title} description={stallOwner.stallDescription}
             onEdit={isMyStall ? () => { goto("/settings#onsave=mystall") } : null}
-            showItemsOwner={false}
+            showItemsOwner={false} showItemsCampaign={true}
             canAddItems={isMyStall}
             hasAuctions={stallOwner.hasAuctions}
             hasListings={stallOwner.hasListings} />

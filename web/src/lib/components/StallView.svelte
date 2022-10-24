@@ -20,6 +20,7 @@
     export let onEdit: (() => void) | null = null;
 
     export let showItemsOwner: boolean;
+    export let showItemsCampaign: boolean;
     export let canAddItems: boolean;
     export let hasAuctions: boolean;
     export let hasListings: boolean;
@@ -99,7 +100,7 @@
                     onCreated={onAuctionCreated}
                     {onForceReload}
                     editor={AuctionEditor}
-                    {showItemsOwner}
+                    {showItemsOwner} {showItemsCampaign}
                     showNewButton={true}
                     card={ItemCard}
                     style={ListViewStyle.List} />
@@ -109,7 +110,7 @@
                 loader={{endpoint: `${baseUrl}/auctions?filter=not-new`, responseField: 'auctions', fromJson: auctionFromJson}}
                 {onForceReload}
                 editor={null}
-                {showItemsOwner}
+                {showItemsOwner} {showItemsCampaign}
                 showNewButton={false}
                 card={ItemCardSmall}
                 style={ListViewStyle.Grid} />
@@ -126,7 +127,7 @@
                     onCreated={onListingCreated}
                     {onForceReload}
                     editor={ListingEditor}
-                    {showItemsOwner}
+                    {showItemsOwner} {showItemsCampaign}
                     showNewButton={true}
                     card={ItemCard}
                     style={ListViewStyle.List} />
@@ -136,7 +137,7 @@
                 loader={{endpoint: `${baseUrl}/listings?filter=not-new`, responseField: 'listings', fromJson: listingFromJson}}
                 {onForceReload}
                 editor={canAddItems ? ListingEditor : null}
-                {showItemsOwner}
+                {showItemsOwner} {showItemsCampaign}
                 showNewButton={false}
                 card={ItemCardSmall}
                 style={ListViewStyle.Grid} />

@@ -23,6 +23,8 @@ export class Listing implements IEntity, Item {
     ended: boolean = false;
     sales: Sale[] = [];
     media: Media[] = [];
+    campaign_key: string | null = null;
+    campaign_name: string | null = null;
     is_mine: boolean = true;
 
     public validate() {

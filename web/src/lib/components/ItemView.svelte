@@ -156,6 +156,9 @@
             <div class="p-5">
                 <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{item.title}</h2>
                 <div class="text-center mb-4">
+                    {#if item.campaign_name !== null}
+                        <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
+                    {/if}
                     <Avatar account={item.seller} />
                 </div>
                 <Gallery photos={item.media} />

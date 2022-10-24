@@ -37,6 +37,8 @@ export class Auction implements IEntity, Item {
     bids: Bid[] = [];
     sales: Sale[] = [];
     media: Media[] = [];
+    campaign_key: string | null = null;
+    campaign_name: string | null = null;
     is_mine: boolean = true;
     following: boolean = false;
     has_winner?: boolean = false;

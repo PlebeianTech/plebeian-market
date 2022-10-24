@@ -15,6 +15,8 @@
     // svelte-ignore unused-export-let
     export let isEditable = false;
     // svelte-ignore unused-export-let
+    export let showCampaign = false;
+    // svelte-ignore unused-export-let
     export let showOwner = false;
 
     export let entity: IEntity;
