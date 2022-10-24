@@ -6,7 +6,7 @@ services:
     environment:
       - BASE_URL=https://plebeian.market
       - S3_FILENAME_PREFIX=P_
-      - MODERATOR_USER_IDS=1,5
+      - MODERATOR_USER_IDS=1,5,328
   nginx:
     environment:
       - VIRTUAL_HOST=plebeian.market
