@@ -22,27 +22,37 @@
     export let showItemsOwner: boolean;
     export let showItemsCampaign: boolean;
     export let canAddItems: boolean;
-    export let hasAuctions: boolean;
-    export let hasListings: boolean;
+    export let showActiveAuctions: boolean = true;
+    export let showPastAuctions: boolean = true;
+    export let showActiveListings: boolean = true;
+    export let showPastListings: boolean = true;
 
-    let newAuctionsList: ListView, auctionsList: ListView, newListingsList: ListView, listingsList: ListView;
+    let availableFilters = ['active', 'past'];
+    let auctionFilter = 'active';
+    let listingFilter = 'active';
+
+    let auctionsLists: { [key: string]: ListView } = {};
+    let listingsLists: { [key: string]: ListView } = {};
 
     $: twitterUsername = owner ? owner.twitterUsername : null;
     $: twitterHref = owner ? `https://twitter.com/${owner.twitterUsername}` : null;
 
     function onAuctionCreated() {
-        user.update((u) => { u!.hasItems = u!.hasAuctions = true; return u; });
+        user.update((u) => { u!.hasItems = true; return u; });
         Info.set("Your auction will start when we verify your tweet!");
     }
 
     function onListingCreated() {
-        user.update((u) => { u!.hasItems = u!.hasListings = true; return u; });
+        user.update((u) => { u!.hasItems = true; return u; });
         Info.set("Your listing will become active after we verify your tweet!");
     }
 
     function onForceReload() {
         if (canAddItems) {
-            for (const l of [newAuctionsList, auctionsList, newListingsList, listingsList]) {
+            for (let [_, l] of Object.entries(auctionsLists)) {
+                l.fetchEntities();
+            }
+            for (let [_, l] of Object.entries(listingsLists)) {
                 l.fetchEntities();
             }
         }
@@ -89,11 +99,11 @@
 
 <div class="md:flex">
     <div class="md:grow mx-10">
-        {#if canAddItems || hasAuctions}
+        {#if canAddItems || showActiveAuctions || showPastAuctions}
             <h3 class="text-3xl">Auctions</h3>
             {#if canAddItems}
                 <ListView
-                    bind:this={newAuctionsList}
+                    bind:this={auctionsLists['new']}
                     loader={{endpoint: `${baseUrl}/auctions?filter=new`, responseField: 'auctions', fromJson: auctionFromJson}}
                     postEndpoint={`${baseUrl}/auctions`}
                     newEntity={() => new Auction()}
@@ -105,22 +115,33 @@
                     card={ItemCard}
                     style={ListViewStyle.List} />
             {/if}
-            <ListView
-                bind:this={auctionsList}
-                loader={{endpoint: `${baseUrl}/auctions?filter=not-new`, responseField: 'auctions', fromJson: auctionFromJson}}
-                {onForceReload}
-                editor={null}
-                {showItemsOwner} {showItemsCampaign}
-                showNewButton={false}
-                card={ItemCardSmall}
-                style={ListViewStyle.Grid} />
+            {#if showActiveAuctions || showPastAuctions}
+                <div class="tabs">
+                    {#each availableFilters as filter}
+                    <a href="#{filter}" class="tab tab-lifted" class:tab-active={auctionFilter === filter} on:click={() => auctionFilter = filter}>{filter}</a>
+                    {/each}
+                </div>
+                {#each availableFilters as filter}
+                    <div class="bg-base-200" class:hidden={auctionFilter !== filter}>
+                        <ListView
+                            bind:this={auctionsLists[filter]}
+                            loader={{endpoint: `${baseUrl}/auctions?filter=${filter}`, responseField: 'auctions', fromJson: auctionFromJson}}
+                            {onForceReload}
+                            editor={null}
+                            {showItemsOwner} {showItemsCampaign}
+                            showNewButton={false}
+                            card={ItemCardSmall}
+                            style={ListViewStyle.Grid} />
+                    </div>
+                {/each}
+            {/if}
             <div class="divider"></div>
         {/if}
-        {#if canAddItems || hasListings}
+        {#if canAddItems || showActiveListings || showPastListings}
             <h3 class="text-3xl">Fixed price</h3>
             {#if canAddItems}
                 <ListView
-                    bind:this={newListingsList}
+                    bind:this={listingsLists['new']}
                     loader={{endpoint: `${baseUrl}/listings?filter=new`, responseField: 'listings', fromJson: listingFromJson}}
                     postEndpoint={`${baseUrl}/listings`}
                     newEntity={() => new Listing()}
@@ -132,15 +153,26 @@
                     card={ItemCard}
                     style={ListViewStyle.List} />
             {/if}
-            <ListView
-                bind:this={listingsList}
-                loader={{endpoint: `${baseUrl}/listings?filter=not-new`, responseField: 'listings', fromJson: listingFromJson}}
-                {onForceReload}
-                editor={canAddItems ? ListingEditor : null}
-                {showItemsOwner} {showItemsCampaign}
-                showNewButton={false}
-                card={ItemCardSmall}
-                style={ListViewStyle.Grid} />
+            {#if showActiveListings || showPastListings}
+                <div class="tabs">
+                    {#each availableFilters as filter}
+                        <a href={null} class="tab tab-lifted" class:tab-active={listingFilter === filter} on:click={() => listingFilter = filter}>{filter}</a>
+                    {/each}
+                </div>
+                {#each availableFilters as filter}
+                    <div class="bg-base-200" class:hidden={listingFilter !== filter}>
+                        <ListView
+                            bind:this={listingsLists[filter]}
+                            loader={{endpoint: `${baseUrl}/listings?filter=${filter}`, responseField: 'listings', fromJson: listingFromJson}}
+                            {onForceReload}
+                            editor={canAddItems ? ListingEditor : null}
+                            {showItemsOwner} {showItemsCampaign}
+                            showNewButton={false}
+                            card={ItemCardSmall}
+                            style={ListViewStyle.Grid} />
+                    </div>
+                {/each}
+            {/if}
         {/if}
     </div>
 </div>

@@ -17,8 +17,10 @@ export class User implements IAccount {
     contributionPercent: number | null = null;
     xpub: string | null = null;
     hasItems: boolean = false;
-    hasAuctions: boolean = false;
-    hasListings: boolean = false;
+    hasActiveAuctions: boolean = false;
+    hasPastAuctions: boolean = false;
+    hasActiveListings: boolean = false;
+    hasPastListings: boolean = false;
     isModerator: boolean = false;
 }
 
@@ -32,8 +34,10 @@ export function fromJson(json: any): User {
         stallName: <string | null>json.stall_name,
         stallDescription: <string | null>json.stall_description,
         hasItems: <boolean>json.has_items,
-        hasAuctions: <boolean>json.has_auctions,
-        hasListings: <boolean>json.has_listings,
+        hasActiveAuctions: <boolean>json.has_active_auctions,
+        hasPastAuctions: <boolean>json.has_past_auctions,
+        hasActiveListings: <boolean>json.has_active_listings,
+        hasPastListings: <boolean>json.has_past_listings,
         contributionPercent: <number | null>json.contribution_percent,
         xpub: <string | null>json.xpub,
         twitterUsernameVerificationTweet: <string | null>json.twitter_username_verification_tweet,

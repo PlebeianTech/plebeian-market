@@ -67,7 +67,7 @@
                 <a href={url}>{item.title}</a>
             </h2>
             {#if showCampaign && item.campaign_name !== null}
-                <div class="badge badge-primary"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
+                <div class="badge badge-primary"><a href="/campaigns/{item.campaign_key}"><nobr>{item.campaign_name} campaign</nobr></a></div>
             {/if}
             {#if item instanceof Auction}
                 {#if item.started && !item.ended}

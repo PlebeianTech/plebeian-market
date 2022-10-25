@@ -16,23 +16,27 @@
     import StallView from "$lib/components/StallView.svelte";
     import type { User } from "$lib/types/user";
     import { getProfile, ErrorHandler } from "$lib/services/api";
-    import { token, user, Info } from "$lib/stores";
+    import { token, user } from "$lib/stores";
 
     export let stallOwnerNym: string;
 
-    let stallOwner: User | null = null;
-    let loading = true;
+    let owner: User | null = null;
+    let loading = false;
 
-    $: title = stallOwner ? (stallOwner.stallName !== null ? stallOwner.stallName : `${stallOwner.nym}'s Stall`) : "";
-    $: isMyStall = stallOwner !== null && $user !== null && stallOwner.nym === $user.nym;
+    $: title = owner ? (owner.stallName !== null ? owner.stallName : `${owner.nym}'s Stall`) : "";
+    $: isMyStall = owner !== null && $user !== null && owner.nym === $user.nym;
+    $: showActiveAuctions = isMyStall ? $user!.hasActiveAuctions : (owner ? owner.hasActiveAuctions : false);
+    $: showPastAuctions = isMyStall ? $user!.hasPastAuctions : (owner ? owner.hasPastAuctions : false);
+    $: showActiveListings = isMyStall ? $user!.hasActiveListings : (owner ? owner.hasActiveListings : false);
+    $: showPastListings = isMyStall ? $user!.hasPastListings : (owner ? owner.hasPastListings : false);
 
-    function fetchStall(stallOwnerNym: string) {
+    function fetchStall(nym: string) {
         loading = true;
-        getProfile($token, stallOwnerNym,
+        getProfile($token, nym,
             s => {
-                stallOwner = s;
+                owner = s;
                 loading = false;
-            }, 
+            },
             new ErrorHandler(false, () => {
                 loading = false;
             }));
@@ -50,17 +54,16 @@
 {#if loading}
     <Loading />
 {:else}
-    {#if stallOwner}
+    {#if owner}
         <StallView
-            baseUrl={`users/${isMyStall ? 'me' : stallOwner.nym}`}
-            bannerUrl={stallOwner.stallBannerUrl}
-            owner={stallOwner}
-            {title} description={stallOwner.stallDescription}
+            baseUrl={`users/${isMyStall ? 'me' : owner.nym}`}
+            bannerUrl={owner.stallBannerUrl}
+            {owner} {title} description={owner.stallDescription}
             onEdit={isMyStall ? () => { goto("/settings#onsave=mystall") } : null}
             showItemsOwner={false} showItemsCampaign={true}
             canAddItems={isMyStall}
-            hasAuctions={stallOwner.hasAuctions}
-            hasListings={stallOwner.hasListings} />
+            {showActiveAuctions} {showPastAuctions}
+            {showActiveListings} {showPastListings} />
     {:else}
         <div class="hero min-h-screen">
             <div class="hero-content text-center">

@@ -733,7 +733,7 @@ def get_user_entities(nym, plural):
 
     entities = {}
     for entity in iter_entities():
-        if entity.matches_filter(for_user_id, request.args.get('filter')):
+        if entity.filter_state(request.args.get('filter'), for_user_id):
             entities[f"{plural}_{entity.id}"] = entity
 
     # TODO: this part can be removed after we ensure all auctions in the DB have corresponding items
@@ -741,7 +741,7 @@ def get_user_entities(nym, plural):
     if plural == 'auctions':
         for auction in user.auctions:
             if f"auctions_{auction.id}" not in entities:
-                if auction.matches_filter(for_user_id, request.args.get('filter')):
+                if auction.filter_state(request.args.get('filter'), for_user_id):
                     entities[f"auctions_{auction.id}"] = auction
     ########
 
@@ -766,7 +766,7 @@ def get_campaign_entities(key, plural):
 
     entities = []
     for entity in getattr(campaign, plural):
-        if entity.matches_filter(for_user_id, request.args.get('filter')):
+        if entity.filter_state(request.args.get('filter'), for_user_id):
             entities.append(entity)
     sorted_entities = sorted(entities, key=lambda e: e.created_at, reverse=True)
 

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 from enum import Enum
 from io import BytesIO
+from itertools import chain
 import math
 from pycoin.symbols.btc import network as BTC
 import pyqrcode
@@ -146,10 +147,20 @@ class User(XpubMixin, db.Model):
             'stall_banner_url': self.stall_banner_url,
             'stall_name': self.stall_name,
             'stall_description': self.stall_description,
-            'has_items': len(self.items.all()) > 0,
-            'has_auctions': sum(len(i.auctions) for i in self.items.all()) > 0,
-            'has_listings': sum(len(i.listings) for i in self.items.all()) > 0,
+            'has_items': False,
+            'has_active_auctions': False,
+            'has_past_auctions': False,
+            'has_active_listings': False,
+            'has_past_listings': False,
         }
+
+        for item in self.items.all():
+            d['has_items'] = True
+            for entity in chain(item.auctions, item.listings):
+                if entity.state in ('active', 'past'):
+                    d[f'has_{entity.state}_{entity.__tablename__}'] = True
+            if d['has_active_auctions'] and d['has_past_auctions'] and d['has_active_listings'] and d['has_past_listings']:
+                break # short-circuit
 
         if self.is_moderator:
             d['is_moderator'] = True
@@ -399,24 +410,26 @@ class GeneratedKeyMixin:
 
         self.key = key
 
-class FilterStateMixin:
-    def matches_filter(self, for_user_id, request_filter):
-        is_owner = for_user_id == self.owner_id
-        match request_filter:
-            case 'not-new':
-                return self.started
-            case 'new':
-                if is_owner:
-                    return not self.started and not self.ended
-                else:
-                    return False
-            case None:
-                if is_owner:
-                    return True
-                else:
-                    return self.started and not self.ended
+class StateMixin:
+    @property
+    def state(self):
+        if not self.started and not self.ended:
+            return 'new'
+        elif self.started and not self.ended:
+            return 'active'
+        elif self.ended:
+            return 'past'
 
-class Campaign(XpubMixin, GeneratedKeyMixin, FilterStateMixin, db.Model):
+    def filter_state(self, state, for_user_id):
+        is_owner = for_user_id == self.owner_id
+        if state is None:
+            return True if is_owner else self.state != 'new'
+        elif state == 'new':
+            return self.state == 'new' if is_owner else False
+        else:
+            return self.state == state
+
+class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'campaigns'
 
     REQUIRED_FIELDS = ['xpub', 'name', 'description']
@@ -542,7 +555,7 @@ class Item(db.Model):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
-class Auction(GeneratedKeyMixin, FilterStateMixin, db.Model):
+class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'auctions'
 
     REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid', 'shipping_domestic_usd', 'shipping_worldwide_usd']
@@ -743,7 +756,7 @@ class Auction(GeneratedKeyMixin, FilterStateMixin, db.Model):
             db.session.commit()
             app.logger.warning(f"Created item for Auction {self.id}!")
 
-class Listing(GeneratedKeyMixin, FilterStateMixin, db.Model):
+class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'listings'
 
     REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity', 'shipping_domestic_usd', 'shipping_worldwide_usd']

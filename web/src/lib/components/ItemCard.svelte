@@ -71,11 +71,12 @@
                 getItem(item.loader, $token, item.key,
                     a => {
                         entity = a;
-                        user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
                         starting = false;
                         if (item instanceof Auction) {
-                            Info.set("Your auction is now running...");
+                            user.update(u => { if (u) { u.twitterUsernameVerified = true; u.hasActiveAuctions = true; } return u; });
+                            Info.set("Your auction is now active...");
                         } else if (item instanceof Listing) {
+                            user.update(u => { if (u) { u.twitterUsernameVerified = true; u.hasActiveListings = true; } return u; });
                             Info.set("Your listing is now active...");
                         }
                         onEntityChanged();

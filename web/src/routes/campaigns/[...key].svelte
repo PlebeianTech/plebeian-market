@@ -85,8 +85,6 @@
             title={campaign.name} description={campaign.description}
             onEdit={campaign.is_mine ? (() => editing = true) : null}
             showItemsOwner={true} showItemsCampaign={false}
-            canAddItems={true}
-            hasAuctions={true}
-            hasListings={true} />
+            canAddItems={true} />
     {/if}
 {/if}
