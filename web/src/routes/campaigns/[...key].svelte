@@ -59,9 +59,12 @@
         <ListView
             loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
             postEndpoint="users/me/campaigns"
-            newEntity={() => new Campaign()}
             card={CampaignCard} editor={CampaignEditor}
-            style={ListViewStyle.List} />
+            style={ListViewStyle.List}>
+            <div slot="new-entity" let:setCurrent={setCurrent}>
+                <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => setCurrent(new Campaign())}></div>
+            </div>
+        </ListView>
     {:else}
         <div class="alert alert-info shadow-lg">
             <div>

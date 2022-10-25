@@ -505,6 +505,9 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             validated['xpub_index'] = 0
         return validated
 
+class Category(Enum):
+    Time = 'TIME'
+
 class Item(db.Model):
     __tablename__ = 'items'
 
@@ -514,6 +517,7 @@ class Item(db.Model):
 
     title = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
+    category = db.Column(db.String(21), nullable=True)
 
     shipping_from = db.Column(db.String(64), nullable=True)
     shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
@@ -531,7 +535,7 @@ class Item(db.Model):
     @classmethod
     def validate_dict(cls, d, for_method=None):
         validated = {}
-        for k in ['title', 'description', 'shipping_from']:
+        for k in ['title', 'description', 'category', 'shipping_from']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -648,6 +652,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'key': self.key,
             'title': self.item.title if self.item else self.title,
             'description': self.item.description if self.item else self.description,
+            'category': self.item.category if self.item else None,
             'duration_hours': self.duration_hours,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
@@ -803,6 +808,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
+            'category': self.item.category,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
             'ended': self.ended,

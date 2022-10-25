@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { IEntity } from "$lib/types/base";
+    import { Category } from "$lib/types/item";
     import type { Listing } from "$lib/types/listing";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
@@ -41,10 +42,12 @@
                         <input bind:value={listing.available_quantity} type="number" name="available-quantity" class="input input-bordered w-full max-w-xs" />
                     </div>
                 </div>
-                <ShippingEditor
-                    bind:shipping_from={listing.shipping_from}
-                    bind:shipping_domestic_usd={listing.shipping_domestic_usd}
-                    bind:shipping_worldwide_usd={listing.shipping_worldwide_usd} />
+                {#if listing.category !== Category.Time}
+                    <ShippingEditor
+                        bind:shipping_from={listing.shipping_from}
+                        bind:shipping_domestic_usd={listing.shipping_domestic_usd}
+                        bind:shipping_worldwide_usd={listing.shipping_worldwide_usd} />
+                {/if}
             </form>
             <div class="w-full flex justify-center items-center mt-2">
                 <div class="w-1/2 flex justify-center items-center">

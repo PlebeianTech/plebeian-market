@@ -92,6 +92,22 @@ body {
   content: 'New';
 }
 
+.glowbutton-auction:after {
+  content: 'Auction item';
+}
+
+.glowbutton-auction-time:after {
+  content: 'Auction time';
+}
+
+.glowbutton-listing:after {
+  content: 'Sell item';
+}
+
+.glowbutton-listing-time:after {
+  content: 'Sell time';
+}
+
 .glowbutton-save:after {
   content: 'Save';
 }

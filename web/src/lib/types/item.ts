@@ -8,6 +8,10 @@ export interface Media {
     url: string;
 }
 
+export enum Category {
+    Time = 'TIME',
+}
+
 export interface Item {
     endpoint: string;
     loader: ILoader;
@@ -15,6 +19,7 @@ export interface Item {
     seller: IAccount;
     title: string;
     description: string;
+    category: string | null;
     start_date?: Date | null;
     started: boolean;
     end_date?: Date | null;

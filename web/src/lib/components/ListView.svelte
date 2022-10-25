@@ -18,18 +18,20 @@
     export let editor: any | null;
     export let showItemsOwner = false;
     export let showItemsCampaign = false;
-    export let showNewButton: boolean = true;
     export let postEndpoint: string | null = null;
     export let style: ListViewStyle;
     export let extraClasses: string = "w-11/12 lg:w-3/5";
 
     export let columns: string[] = [];
 
-    export let newEntity: (() => IEntity) | undefined = undefined;
     export let onCreated: () => void = () => { };
     export let onForceReload = () => {};
 
     let currentEntity: IEntity | undefined;
+    function setCurrent(entity: IEntity) {
+        currentEntity = entity;
+    }
+
     export let entities: IEntity[] | null = null;
 
     export function fetchEntities(successCB: () => void = () => {}) {
@@ -88,11 +90,7 @@
     {:else if entities === null}
         <Loading />
     {:else}
-        <div>
-            {#if showNewButton}
-                <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => currentEntity = newEntity !== undefined ? newEntity() : undefined}></div>
-            {/if}
-        </div>
+        <slot name="new-entity" {setCurrent} />
 
         {#if style === ListViewStyle.List}
             {#each entities as entity}

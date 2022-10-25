@@ -559,27 +559,28 @@ def start(user, key, cls, singular, plural):
         if not tweet:
             return jsonify({'message': "Tweet not found."}), 400
 
-        if not tweet['photos']:
-            return jsonify({'message': "Tweet does not have any attached pictures."}), 400
+        if entity.item.category != m.Category.Time.value:
+            if not tweet['photos']:
+                return jsonify({'message': "Tweet does not have any attached pictures."}), 400
+
+            m.Media.query.filter_by(item_id=entity.item.id).delete()
+            ########
+            # TODO: remove this after removing auction_id from Media
+            auction_id = None
+            if isinstance(entity, m.Auction):
+                m.Media.query.filter_by(auction_id=entity.id).delete()
+                auction_id = entity.id
+            ########
+
+            s3 = get_s3()
+            for i, photo in enumerate(tweet['photos'], 1):
+                media = m.Media(item_id=entity.item.id, auction_id=auction_id, index=i, twitter_media_key=photo['media_key'])
+                if not media.store(s3, f"{singular}_{entity.key}_media_{i}", photo['url'], None):
+                    return jsonify({'message': "Error fetching picture!"}), 400
+                db.session.add(media)
 
         user.twitter_username_verified = True
         entity.twitter_id = tweet['id']
-
-        m.Media.query.filter_by(item_id=entity.item.id).delete()
-        ########
-        # TODO: remove this after removing auction_id from Media
-        auction_id = None
-        if isinstance(entity, m.Auction):
-            m.Media.query.filter_by(auction_id=entity.id).delete()
-            auction_id = entity.id
-        ########
-
-        s3 = get_s3()
-        for i, photo in enumerate(tweet['photos'], 1):
-            media = m.Media(item_id=entity.item.id, auction_id=auction_id, index=i, twitter_media_key=photo['media_key'])
-            if not media.store(s3, f"{singular}_{entity.key}_media_{i}", photo['url'], None):
-                return jsonify({'message': "Error fetching picture!"}), 400
-            db.session.add(media)
 
     entity.start_date = datetime.utcnow()
 

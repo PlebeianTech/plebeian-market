@@ -8,7 +8,6 @@
 
 <ListView
     loader={{endpoint: `users/me/sales`, responseField: 'sales', fromJson: saleFromJson}}
-    showNewButton={false}
     columns={["Date", "Buyer", "Item", "Sats / Fiat", "Received sats ($ shipping)", "State"]}
     card={SaleRow}
     editor={null}

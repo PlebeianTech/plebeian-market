@@ -1,6 +1,6 @@
 import { isLocal, isStaging } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
-import type { Item, Media } from "$lib/types/item";
+import { type Item, Category, type Media } from "$lib/types/item";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
@@ -12,7 +12,7 @@ export interface Bid {
 }
 
 export class Auction implements IEntity, Item {
-    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'starting_bid', 'reserve_bid', 'duration_hours'];
+    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'starting_bid', 'reserve_bid', 'duration_hours'];
 
     endpoint = "auctions";
     loader = {endpoint: this.endpoint, responseField: 'auction', fromJson};
@@ -21,6 +21,7 @@ export class Auction implements IEntity, Item {
     title: string = "";
     seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     description: string = "";
+    category: string | null = null;
     starting_bid: number = 0;
     reserve_bid: number = 0;
     reserve_bid_reached: boolean = false;
@@ -96,11 +97,19 @@ export class Auction implements IEntity, Item {
     public toJson() {
         var json = {} as Record<string, any>;
         for (const k in this) {
-            if (Auction.SAVED_FIELDS.indexOf(k) !== -1) {
+            if (Auction.SAVED_FIELDS.indexOf(k) !== -1 && this[k] !== null) {
                 json[k] = this[k];
             }
         }
         return JSON.stringify(json);
+    }
+}
+
+export class TimeAuction extends Auction {
+    constructor(nym: string) {
+        super();
+        this.category = Category.Time;
+        this.title = `1 hour one-to-one call with ${nym}`;
     }
 }
 

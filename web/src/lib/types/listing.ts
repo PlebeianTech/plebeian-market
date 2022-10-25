@@ -1,10 +1,10 @@
 import type { IEntity } from "$lib/types/base";
-import type { Item, Media } from "$lib/types/item";
+import { type Item, Category, type Media } from "$lib/types/item";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
 export class Listing implements IEntity, Item {
-    static SAVED_FIELDS = ['title', 'description', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'price_usd', 'available_quantity'];
+    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'price_usd', 'available_quantity'];
 
     endpoint = "listings";
     loader = {endpoint: this.endpoint, responseField: 'listing', fromJson};
@@ -13,6 +13,7 @@ export class Listing implements IEntity, Item {
     title: string = "";
     seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     description: string = "";
+    category: string | null = null;
     shipping_from: string = "";
     shipping_domestic_usd: number = 0;
     shipping_worldwide_usd: number = 0;
@@ -37,11 +38,19 @@ export class Listing implements IEntity, Item {
     public toJson() {
         var json = {} as Record<string, any>;
         for (const k in this) {
-            if (Listing.SAVED_FIELDS.indexOf(k) !== -1) {
+            if (Listing.SAVED_FIELDS.indexOf(k) !== -1 && this[k] !== null) {
                 json[k] = this[k];
             }
         }
         return JSON.stringify(json);
+    }
+}
+
+export class TimeListing extends Listing {
+    constructor(nym: string) {
+        super();
+        this.category = Category.Time;
+        this.title = `1 hour one-to-one call with ${nym}`;
     }
 }
 

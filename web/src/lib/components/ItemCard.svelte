@@ -5,7 +5,7 @@
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
-    import type { Item } from "$lib/types/item";
+    import { Category, type Item } from "$lib/types/item";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
     import Confirmation from "$lib/components/Confirmation.svelte";
@@ -135,9 +135,13 @@
             <div class="mt-2">
                 <p class="text-center">
                     {#if !itemTweeted && !item.started}
-                    Create your tweet and don't forget to attach four pictures
-                    <br />
-                    (with the best one first)
+                    {#if item.category !== Category.Time}
+                        Create your tweet and don't forget to attach four pictures!
+                        <br />
+                        (with the best one first)
+                    {:else}
+                        Create a tweet!
+                    {/if}
                     {:else if itemTweeted && !item.started}
                     Start your sale
                     {:else if item.started}

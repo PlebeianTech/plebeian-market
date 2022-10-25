@@ -21,7 +21,7 @@ export class Campaign implements IEntity {
     public toJson() {
         var json = {} as Record<string, any>;
         for (const k in this) {
-            if (Campaign.SAVED_FIELDS.indexOf(k) !== -1) {
+            if (Campaign.SAVED_FIELDS.indexOf(k) !== -1 && this[k] !== null) {
                 json[k] = this[k];
             }
         }

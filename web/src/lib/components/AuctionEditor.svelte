@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import type { IEntity } from "$lib/types/base";
     import type { Auction } from "$lib/types/auction";
+    import { Category } from "$lib/types/item";
     import { isLocal, isStaging } from "$lib/utils";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
@@ -79,10 +80,12 @@
                         </label>
                     </div>
                 </div>
-                <ShippingEditor
-                    bind:shipping_from={auction.shipping_from}
-                    bind:shipping_domestic_usd={auction.shipping_domestic_usd}
-                    bind:shipping_worldwide_usd={auction.shipping_worldwide_usd} />
+                {#if auction.category !== Category.Time}
+                    <ShippingEditor
+                        bind:shipping_from={auction.shipping_from}
+                        bind:shipping_domestic_usd={auction.shipping_domestic_usd}
+                        bind:shipping_worldwide_usd={auction.shipping_worldwide_usd} />
+                {/if}
                 <div class="form-control mr-2 w-full">
                     <label class="label" for="duration">
                         <span class="label-text">Duration</span>

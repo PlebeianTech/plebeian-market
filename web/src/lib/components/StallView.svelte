@@ -7,8 +7,8 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import { user, Info } from "$lib/stores";
-    import { Auction, fromJson as auctionFromJson } from "$lib/types/auction";
-    import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
+    import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
+    import { Listing, TimeListing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount } from "$lib/types/user";
 
     export let baseUrl: string;
@@ -106,19 +106,22 @@
                     bind:this={auctionsLists['new']}
                     loader={{endpoint: `${baseUrl}/auctions?filter=new`, responseField: 'auctions', fromJson: auctionFromJson}}
                     postEndpoint={`${baseUrl}/auctions`}
-                    newEntity={() => new Auction()}
                     onCreated={onAuctionCreated}
                     {onForceReload}
                     editor={AuctionEditor}
                     {showItemsOwner} {showItemsCampaign}
-                    showNewButton={true}
                     card={ItemCard}
-                    style={ListViewStyle.List} />
+                    style={ListViewStyle.List}>
+                    <div slot="new-entity" class="flex" let:setCurrent={setCurrent}>
+                        <div class="mx-auto my-10 glowbutton glowbutton-auction" on:click|preventDefault={() => setCurrent(new Auction())}></div>
+                        <div class="mx-auto my-10 glowbutton glowbutton-auction-time" on:click|preventDefault={() => { if ($user && $user.nym) setCurrent(new TimeAuction($user.nym)) }}></div>
+                    </div>
+                </ListView>
             {/if}
             {#if showActiveAuctions || showPastAuctions}
                 <div class="tabs">
                     {#each availableFilters as filter}
-                    <a href="#{filter}" class="tab tab-lifted" class:tab-active={auctionFilter === filter} on:click={() => auctionFilter = filter}>{filter}</a>
+                        <a href="#{filter}" class="tab tab-lifted" class:tab-active={auctionFilter === filter} on:click={() => auctionFilter = filter}>{filter}</a>
                     {/each}
                 </div>
                 {#each availableFilters as filter}
@@ -129,7 +132,6 @@
                             {onForceReload}
                             editor={null}
                             {showItemsOwner} {showItemsCampaign}
-                            showNewButton={false}
                             card={ItemCardSmall}
                             style={ListViewStyle.Grid} />
                     </div>
@@ -144,19 +146,22 @@
                     bind:this={listingsLists['new']}
                     loader={{endpoint: `${baseUrl}/listings?filter=new`, responseField: 'listings', fromJson: listingFromJson}}
                     postEndpoint={`${baseUrl}/listings`}
-                    newEntity={() => new Listing()}
                     onCreated={onListingCreated}
                     {onForceReload}
                     editor={ListingEditor}
                     {showItemsOwner} {showItemsCampaign}
-                    showNewButton={true}
                     card={ItemCard}
-                    style={ListViewStyle.List} />
+                    style={ListViewStyle.List}>
+                    <div slot="new-entity" class="flex" let:setCurrent={setCurrent}>
+                        <div class="mx-auto my-10 glowbutton glowbutton-listing" on:click|preventDefault={() => setCurrent(new Listing())}></div>
+                        <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => { if ($user && $user.nym) setCurrent(new TimeListing($user.nym)) }}></div>
+                    </div>
+                </ListView>
             {/if}
             {#if showActiveListings || showPastListings}
                 <div class="tabs">
                     {#each availableFilters as filter}
-                        <a href={null} class="tab tab-lifted" class:tab-active={listingFilter === filter} on:click={() => listingFilter = filter}>{filter}</a>
+                        <a href="#{filter}" class="tab tab-lifted" class:tab-active={listingFilter === filter} on:click={() => listingFilter = filter}>{filter}</a>
                     {/each}
                 </div>
                 {#each availableFilters as filter}
@@ -167,7 +172,6 @@
                             {onForceReload}
                             editor={canAddItems ? ListingEditor : null}
                             {showItemsOwner} {showItemsCampaign}
-                            showNewButton={false}
                             card={ItemCardSmall}
                             style={ListViewStyle.Grid} />
                     </div>
