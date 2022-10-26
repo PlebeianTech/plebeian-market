@@ -35,7 +35,7 @@
         tweetedItems = tweetedItems.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
         localStorage.setItem(`${item.endpoint}-tweeted`, tweetedItems.join(","));
         itemTweeted = true;
-        let text = encodeURIComponent(`I am selling for sats: ${item.title}`);
+        let text = encodeURIComponent(`Selling for sats: ${item.title} #PlebeianMarket`);
         let specs = window.screen.availWidth >= 1024 ? "width=500,height=500" : undefined;
         window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${text}`, '_blank', specs);
     }
