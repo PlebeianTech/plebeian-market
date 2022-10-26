@@ -1,5 +1,5 @@
 import type { IEntity } from "$lib/types/base";
-import { type Item, Category, type Media } from "$lib/types/item";
+import { Category, type Item, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
@@ -13,6 +13,7 @@ export class Listing implements IEntity, Item {
     title: string = "";
     seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     description: string = "";
+    descriptionPlaceholder: string = "";
     category: string | null = null;
     shipping_from: string = "";
     shipping_domestic_usd: number = 0;
@@ -51,6 +52,7 @@ export class TimeListing extends Listing {
         super();
         this.category = Category.Time;
         this.title = `1 hour one-to-one call with ${nym}`;
+        this.descriptionPlaceholder = TIME_ITEM_DESCRIPTION_PLACEHOLDER;
     }
 }
 

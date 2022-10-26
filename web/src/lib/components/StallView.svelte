@@ -112,7 +112,7 @@
                     {showItemsOwner} {showItemsCampaign}
                     card={ItemCard}
                     style={ListViewStyle.List}>
-                    <div slot="new-entity" class="flex" let:setCurrent={setCurrent}>
+                    <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
                         <div class="mx-auto my-10 glowbutton glowbutton-auction" on:click|preventDefault={() => setCurrent(new Auction())}></div>
                         <div class="mx-auto my-10 glowbutton glowbutton-auction-time" on:click|preventDefault={() => { if ($user && $user.nym) setCurrent(new TimeAuction($user.nym)) }}></div>
                     </div>
@@ -152,7 +152,7 @@
                     {showItemsOwner} {showItemsCampaign}
                     card={ItemCard}
                     style={ListViewStyle.List}>
-                    <div slot="new-entity" class="flex" let:setCurrent={setCurrent}>
+                    <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
                         <div class="mx-auto my-10 glowbutton glowbutton-listing" on:click|preventDefault={() => setCurrent(new Listing())}></div>
                         <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => { if ($user && $user.nym) setCurrent(new TimeListing($user.nym)) }}></div>
                     </div>

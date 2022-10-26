@@ -57,7 +57,7 @@
                     </label>
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered" />
                 </div>
-                <MarkdownDescriptionEditor bind:value={auction.description} />
+                <MarkdownDescriptionEditor bind:value={auction.description} placeholder={auction.descriptionPlaceholder} />
                 <div class="flex mt-3">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
@@ -70,14 +70,16 @@
                         </label>
                     </div>
                     <div class="form-control w-1/2 max-w-xs ml-1">
-                        <label class="label" for="reserve-bid">
-                            <span class="label-text">Reserve bid (optional)</span>
-                        </label>
-                        <input bind:value={auction.reserve_bid} type="number" name="reserve-bid" class="input input-bordered w-full max-w-xs" />
-                        <label class="label" for="reserve-bid">
-                            <span class="label-text-alt"><AmountFormatter satsAmount={auction.reserve_bid} format={AmountFormat.Usd} /></span>
-                            <span class="label-text-alt">sats</span>
-                        </label>
+                        {#if auction.category !== Category.Time}
+                            <label class="label" for="reserve-bid">
+                                <span class="label-text">Reserve bid (optional)</span>
+                            </label>
+                            <input bind:value={auction.reserve_bid} type="number" name="reserve-bid" class="input input-bordered w-full max-w-xs" />
+                            <label class="label" for="reserve-bid">
+                                <span class="label-text-alt"><AmountFormatter satsAmount={auction.reserve_bid} format={AmountFormat.Usd} /></span>
+                                <span class="label-text-alt">sats</span>
+                            </label>
+                        {/if}
                     </div>
                 </div>
                 {#if auction.category !== Category.Time}

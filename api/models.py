@@ -666,7 +666,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'shipping_worldwide_usd': self.item.shipping_worldwide_usd if self.item else 0,
             'has_winner': self.has_winner,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
-            'media': [media.to_dict() for media in self.media or (self.item.media if self.item else [])],
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
@@ -676,6 +675,11 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_twitter_username': self.item.seller.twitter_username if self.item else self.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else self.seller.twitter_username_verified,
         }
+
+        if self.item and self.item.category == Category.Time.value:
+            auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.twitter_profile_image_url}]
+        else:
+            auction['media'] = [media.to_dict() for media in self.media or (self.item.media if self.item else [])]
 
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
@@ -817,7 +821,6 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'shipping_from': self.item.shipping_from,
             'shipping_domestic_usd': self.item.shipping_domestic_usd,
             'shipping_worldwide_usd': self.item.shipping_worldwide_usd,
-            'media': [media.to_dict() for media in self.item.media],
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
@@ -827,6 +830,10 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
         }
+        if self.item.category == Category.Time.value:
+            listing['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.twitter_profile_image_url}]
+        else:
+            listing['media'] = [media.to_dict() for media in self.item.media]
 
         if for_user:
             # NB: we only return sales for the current user, so that the UI can know the sales were settled

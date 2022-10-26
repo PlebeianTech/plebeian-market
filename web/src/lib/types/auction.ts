@@ -1,6 +1,6 @@
 import { isLocal, isStaging } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
-import { type Item, Category, type Media } from "$lib/types/item";
+import { Category, type Item, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
@@ -21,6 +21,7 @@ export class Auction implements IEntity, Item {
     title: string = "";
     seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     description: string = "";
+    descriptionPlaceholder: string = "";
     category: string | null = null;
     starting_bid: number = 0;
     reserve_bid: number = 0;
@@ -110,6 +111,7 @@ export class TimeAuction extends Auction {
         super();
         this.category = Category.Time;
         this.title = `1 hour one-to-one call with ${nym}`;
+        this.descriptionPlaceholder = TIME_ITEM_DESCRIPTION_PLACEHOLDER;
     }
 }
 

@@ -12,6 +12,8 @@ export enum Category {
     Time = 'TIME',
 }
 
+export const TIME_ITEM_DESCRIPTION_PLACEHOLDER = "Please describe what the winner can expect. Can they ask anything or are there topics to avoid? What's your format? Zoom, Jitsi, Matrix, Keet?";
+
 export interface Item {
     endpoint: string;
     loader: ILoader;
@@ -19,6 +21,7 @@ export interface Item {
     seller: IAccount;
     title: string;
     description: string;
+    descriptionPlaceholder: string;
     category: string | null;
     start_date?: Date | null;
     started: boolean;

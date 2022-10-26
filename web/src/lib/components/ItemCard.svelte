@@ -21,35 +21,15 @@
 
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
-
-    $: topBid = (item instanceof Auction) ? item.topBid() : null;
+    $: url = item ? `${window.location.protocol}//${window.location.host}/${item.endpoint}/${item.key}` : "";
 
     let itemTweeted;
-    let itemViewed;
-    let starting = false;
 
+    let box; // the whole box representing this item (the HTML Element)
     let confirmation: any = null;
 
     export let onEdit = (_: Item) => {};
-    export let onView = (_: Item) => {};
     export let onEntityChanged = () => {};
-
-    function view() {
-        if (item.started) {
-            var viewedItems = (localStorage.getItem(`${item.endpoint}-viewed`) || "").split(",");
-            viewedItems.push(item.key);
-            viewedItems = viewedItems.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
-            localStorage.setItem(`${item.endpoint}-viewed`, viewedItems.join(","));
-            itemViewed = true;
-            onView(item);
-        }
-
-        window.open(getUrl(), "_self");
-    }
-
-    function getUrl() {
-        return `${window.location.protocol}//${window.location.host}/${item.endpoint}/${item.key}`;
-    }
 
     function openTwitter() {
         var tweetedItems = (localStorage.getItem(`${item.endpoint}-tweeted`) || "").split(",");
@@ -57,12 +37,12 @@
         tweetedItems = tweetedItems.filter((v, i, s) => s.indexOf(v) === i).filter(e => e !== "");
         localStorage.setItem(`${item.endpoint}-tweeted`, tweetedItems.join(","));
         itemTweeted = true;
-        let url = encodeURIComponent(getUrl());
         let text = encodeURIComponent(`I am selling for sats: ${item.title}`);
         let specs = window.screen.availWidth >= 1024 ? "width=500,height=500" : undefined;
-        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', specs);
+        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${text}`, '_blank', specs);
     }
 
+    let starting = false;
     function start() {
         starting = true;
         Info.set("Checking your Twitter account...");
@@ -97,55 +77,31 @@
     onMount(async () => {
         confirmation = null;
         itemTweeted = item.key.length !== 0 && (localStorage.getItem(`${item.endpoint}-tweeted`) || "").includes(item.key);
-        itemViewed = item.key.length !== 0 && (localStorage.getItem(`${item.endpoint}-viewed`) || "").includes(item.key);
+
+        if (item && window.location.hash === `#item-${item.key}`) {
+            window.scrollTo(0, box.offsetTop);
+        }
     });
 </script>
 
-<div class="glowbox">
-<div class="card md:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
-    <figure class="md:h-auto flex justify-center">
-        {#each item.media as photo, i}
-            {#if i === 0}
-                <img class="object-contain" src={photo.url} alt="Item" />
-            {/if}
-        {/each}
-    </figure>
-    <div class="card-body">
-        <h2 class="card-title mb-2">
-            {item.title}
-        </h2>
-        {#if item.started && !item.ended}
-            <div class="float-root">
-                <div class="py-5 float-left">
-                    <div class="lg:flex">
-                        <div class="mt-4 lg:mt-0">
-                            <div class="ml-4 mt-2">
-                                {#if item instanceof Auction}
-                                    <Countdown untilDate={item.end_date} />
-                                {:else}
-                                    <nobr class="text-2xl">Your listing is live!</nobr>
-                                {/if}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {/if}
-        {#if !item.ended && !itemViewed}
+<div bind:this={box} class="glowbox">
+    <div class="card md:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
+        <div class="card-body">
+            <h2 class="card-title mb-2">
+                {item.title}
+            </h2>
             <div class="mt-2">
                 <p class="text-center">
-                    {#if !itemTweeted && !item.started}
-                    {#if item.category !== Category.Time}
-                        Create your tweet and don't forget to attach four pictures!
-                        <br />
-                        (with the best one first)
+                    {#if !itemTweeted}
+                        {#if item.category !== Category.Time}
+                            Create your tweet and don't forget to attach four pictures!
+                            <br />
+                            (with the best one first)
+                        {:else}
+                            Create a tweet!
+                        {/if}
                     {:else}
-                        Create a tweet!
-                    {/if}
-                    {:else if itemTweeted && !item.started}
-                    Start your sale
-                    {:else if item.started}
-                    View your listing
+                        Start your sale
                     {/if}
                 </p>
                 <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
@@ -165,62 +121,39 @@
                             {/if}
                         </li>
                         <li class="step" class:lg:mb-5={!item.started} class:lg:mr-5={!item.started} class:step-primary={item.started}>
-                            {#if item.started}
-                                <div class="glowbutton glowbutton-view ml-2 mr-5 mb-5" on:click|preventDefault={view}></div>
-                            {:else}
-                                <button class="btn mx-2" on:click={view}>View</button>
-                            {/if}
+                            <a class="btn mx-2" href={url}>View</a>
                         </li>
                     </ul>
                 </div>
             </div>
-        {/if}
-        <p class="whitespace-nowrap">
-            {#if item.start_date && item.end_date && !item.started}
-                From:
-                <DateFormatter date={item.start_date} />
-                <br />
-                To:
-                <DateFormatter date={item.end_date} />
-            {/if}
-            {#if item instanceof Auction}
-                {#if item.has_winner && item.winner}
+            <p class="whitespace-nowrap">
+                {#if item.start_date && item.end_date}
                     <br />
-                    <span>Winner: {item.winner.nym}</span>
+                    From: <DateFormatter date={item.start_date} />
                     <br />
-                    <span>Amount: <AmountFormatter satsAmount={item.topAmount()} /></span>
-                {:else if !item.started}
+                    To: <DateFormatter date={item.end_date} />
+                {/if}
+                {#if item instanceof Auction}
                     <br />
-                    <span>{item.duration_str} /</span>
+                    <span>{item.duration_str}</span>
+                    <br />
                     <span>Start: <AmountFormatter satsAmount={item.starting_bid} /> /</span>
                     <span>Reserve: <AmountFormatter satsAmount={item.reserve_bid} /></span>
-                {:else}
-                    {#if topBid && topBid.buyer}
-                        <br />
-                        Top bid: <AmountFormatter satsAmount={topBid.amount} /> by <Avatar account={topBid.buyer} />
-                    {/if}
+                {:else if item instanceof Listing}
                     <br />
-                    <span>Bids: {item.bids.length}</span>
+                    <span>Price: ~<AmountFormatter usdAmount={item.price_usd} /></span>
+                    <br />
+                    <span>Avalable quantity: {item.available_quantity}</span>
                 {/if}
-            {:else if item instanceof Listing}
-                <br />
-                <span>Price: ~<AmountFormatter usdAmount={item.price_usd} /></span>
-                <br />
-                <span>Avalable quantity: {item.available_quantity}</span>
-            {/if}
-        </p>
-        <div class="mt-2 card-actions justify-end">
-            {#if confirmation}
-                <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
-            {:else}
-                {#if item instanceof Listing || !item.started}
+            </p>
+            <div class="mt-2 card-actions justify-end">
+                {#if confirmation}
+                    <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
+                {:else}
                     <button class="btn mx-1" on:click={() => onEdit(item)}>Edit</button>
                     <button class="btn mx-1" on:click={del}>Delete</button>
-                {:else if itemViewed || item.ended}
-                    <button class="btn mx-1" on:click={view}>View</button>
                 {/if}
-            {/if}
+            </div>
         </div>
     </div>
-</div>
 </div>

@@ -23,7 +23,7 @@
                     </label>
                     <input bind:value={listing.title} type="text" name="title" class="input input-bordered" />
                 </div>
-                <MarkdownDescriptionEditor bind:value={listing.description} />
+                <MarkdownDescriptionEditor bind:value={listing.description} placeholder={listing.descriptionPlaceholder} />
                 <div class="flex mt-3">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="price_usd">

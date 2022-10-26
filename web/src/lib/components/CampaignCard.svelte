@@ -20,11 +20,9 @@
     let confirmation: any = null;
 
     export let onEdit = (_: Campaign) => {};
-    export let onView = (_: Campaign) => {};
     export let onEntityChanged = () => {};
 
     function view() {
-        onView(campaign);
         window.open(getUrl(), "_blank");
     }
 
