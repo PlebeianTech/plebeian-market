@@ -21,8 +21,8 @@ export class Sale implements IEntity {
     amount: number = 0;
     shipping_domestic: number = 0;
     shipping_worldwide: number = 0;
-    seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
-    buyer: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
+    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
+    buyer: IAccount = {nym: null, displayName: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     contribution_amount: number = 0;
     contribution_payment_request: string = "";
     contribution_payment_qr: string | null = null;
@@ -61,12 +61,14 @@ export function fromJson(json: any): Sale {
     }
     s.seller = {
         nym: <string>json.seller_nym,
+        displayName: <string>json.seller_display_name,
         profileImageUrl: <string | null>json.seller_profile_image_url,
         twitterUsername: <string | null>json.seller_twitter_username,
         twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
     };
     s.buyer = {
         nym: <string>json.buyer_nym,
+        displayName: <string>json.buyer_display_name,
         profileImageUrl: <string | null>json.buyer_profile_image_url,
         twitterUsername: <string | null>json.buyer_twitter_username,
         twitterUsernameVerified: <boolean>json.buyer_twitter_username_verified,

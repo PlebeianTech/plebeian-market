@@ -118,7 +118,7 @@
                 <div class="divider"></div>
                 <div class="flex items-center justify-center gap-2">
                     <span>by</span>
-                    <Avatar account={item.seller} inline={true} />
+                    <Avatar account={item.seller} inline={true} nymOnly={true} />
                 </div>
             {/if}
         </div>

@@ -4,6 +4,7 @@
     export let account: IAccount;
     export let height = "8";
     export let inline = false;
+    export let nymOnly = false;
 </script>
 
 <a rel="external" class="link" href="/stall/{account.nym}">
@@ -16,7 +17,11 @@
             </div>
         </div>
         <span class="font-bold flex items-center justify-center">
-            {account.nym}
+            {#if nymOnly}
+                {account.nym}
+            {:else}
+                {account.displayName}
+            {/if}
         </span>
     </div>
 </a>

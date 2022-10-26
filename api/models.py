@@ -82,6 +82,10 @@ class User(XpubMixin, db.Model):
 
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
+    @property
+    def display_name(self):
+        return f"{self.nym}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else self.nym
+
     # TODO: rename to profile_image_url
     twitter_profile_image_url = db.Column(db.String(256), nullable=True)
 
@@ -139,6 +143,7 @@ class User(XpubMixin, db.Model):
         d = {
             'id': self.id,
             'nym': self.nym,
+            'display_name': self.display_name,
             'profile_image_url': self.twitter_profile_image_url,
             'email': self.email,
             'email_verified': self.email_verified,
@@ -472,6 +477,7 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.owner_id,
             'owner_nym': self.owner.nym,
+            'owner_display_name': self.owner.display_name,
             'owner_profile_image_url': self.owner.twitter_profile_image_url,
             'owner_twitter_username': self.owner.twitter_username,
             'owner_twitter_username_verified': self.owner.twitter_username_verified,
@@ -668,6 +674,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.seller_id,
             'seller_nym': self.item.seller.nym if self.item else self.seller.nym,
+            'seller_display_name': self.item.seller.display_name if self.item else self.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url if self.item else self.seller.twitter_profile_image_url,
             'seller_twitter_username': self.item.seller.twitter_username if self.item else self.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else self.seller.twitter_username_verified,
@@ -689,6 +696,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         if auction['has_winner']:
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
             auction['winner_nym'] = winning_bid.buyer.nym
+            auction['winner_display_name'] = winning_bid.buyer.display_name
             auction['winner_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
             auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
             auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
@@ -823,6 +831,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.item.seller_id,
             'seller_nym': self.item.seller.nym,
+            'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
@@ -914,6 +923,7 @@ class Bid(db.Model):
         bid = {
             'amount': self.amount,
             'buyer_nym': self.buyer.nym,
+            'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
@@ -976,10 +986,12 @@ class Sale(db.Model):
             'shipping_domestic': self.shipping_domestic,
             'shipping_worldwide': self.shipping_worldwide,
             'seller_nym': self.item.seller.nym,
+            'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
             'buyer_nym': self.buyer.nym,
+            'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,

@@ -28,7 +28,7 @@
                 <tr>
                     <td>
                         <div class="flex items-center space-x-3">
-                            <Avatar account={bid.buyer} />
+                            <Avatar account={bid.buyer} nymOnly={true} />
                             <p class="md:hidden text-xs">
                                 <DateFormatter date={bid.settled_at} style={DateStyle.Short} />
                             </p>

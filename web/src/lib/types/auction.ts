@@ -19,7 +19,7 @@ export class Auction implements IEntity, Item {
 
     key: string = "";
     title: string = "";
-    seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
+    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     description: string = "";
     descriptionPlaceholder: string = "";
     category: string | null = null;
@@ -141,7 +141,7 @@ export function fromJson(json: any): IEntity {
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
             for (const bidjson of json[k]) {
-                var b: Bid = {amount: 0, buyer: {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false}};
+                var b: Bid = {amount: 0, buyer: {nym: null, displayName: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false}};
                 for (var kk in bidjson) {
                     if (kk === 'settled_at') {
                         b.settled_at = new Date(bidjson[kk]);
@@ -151,6 +151,7 @@ export function fromJson(json: any): IEntity {
                 }
                 b.buyer = {
                     nym: <string>bidjson.buyer_nym,
+                    displayName: <string>bidjson.buyer_display_name,
                     profileImageUrl: <string | null>bidjson.buyer_profile_image_url,
                     twitterUsername: <string | null>bidjson.buyer_twitter_username,
                     twitterUsernameVerified: <boolean>bidjson.buyer_twitter_username_verified,
@@ -165,6 +166,7 @@ export function fromJson(json: any): IEntity {
     }
     a.seller = {
         nym: <string>json.seller_nym,
+        displayName: <string>json.seller_display_name,
         profileImageUrl: <string | null>json.seller_profile_image_url,
         twitterUsername: <string | null>json.seller_twitter_username,
         twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
@@ -172,6 +174,7 @@ export function fromJson(json: any): IEntity {
     if (json.winner_nym) {
         a.winner = {
             nym: <string>json.winner_nym,
+            displayName: <string>json.winner_display_name,
             profileImageUrl: <string | null>json.winner_profile_image_url,
             twitterUsername: <string | null>json.winner_twitter_username,
             twitterUsernameVerified: <boolean>json.winner_twitter_username_verified,

@@ -1,5 +1,6 @@
 export interface IAccount {
     nym: string | null;
+    displayName: string | null;
     profileImageUrl: string | null;
     twitterUsername: string | null;
     twitterUsernameVerified: boolean;
@@ -7,6 +8,7 @@ export interface IAccount {
 
 export class User implements IAccount {
     nym: string | null = null;
+    displayName: string | null = null;
     profileImageUrl: string | null = null;
     twitterUsername: string | null = null;
     twitterUsernameVerified: boolean = false;
@@ -27,6 +29,7 @@ export class User implements IAccount {
 export function fromJson(json: any): User {
     return {
         nym: <string | null>json.nym,
+        displayName: <string | null>json.display_name,
         profileImageUrl: <string | null>json.profile_image_url,
         twitterUsername: <string | null>json.twitter_username,
         twitterUsernameVerified: <boolean>json.twitter_username_verified,

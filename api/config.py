@@ -35,6 +35,7 @@ if bool(int(os.environ.get("SQLALCHEMY_DISABLE_POOLING", 0))):
 ENV = os.environ.get('ENV')
 
 BASE_URL = os.environ.get('BASE_URL')
+DOMAIN_NAME = "plebeian.market"
 
 MOCK_BTC = bool(int(os.environ.get("MOCK_BTC", 0)))
 BTC_TRANSACTION_TIMEOUT_MINUTES_LISTING = 3 * 60 # 3 hours

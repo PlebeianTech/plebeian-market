@@ -11,7 +11,7 @@ export class Listing implements IEntity, Item {
 
     key: string = "";
     title: string = "";
-    seller: IAccount = {nym: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
+    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
     description: string = "";
     descriptionPlaceholder: string = "";
     category: string | null = null;
@@ -69,6 +69,7 @@ export function fromJson(json: any): IEntity {
     }
     l.seller = {
         nym: <string>json.seller_nym,
+        displayName: <string>json.seller_display_name,
         profileImageUrl: <string | null>json.seller_profile_image_url,
         twitterUsername: <string | null>json.seller_twitter_username,
         twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
