@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { deleteEntity } from "$lib/services/api";
     import { token } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
@@ -19,6 +20,8 @@
     $: url = `${window.location.protocol}//${window.location.host}/${item.endpoint}/${item.key}`;
     $: topBid = (item instanceof Auction) ? item.topBid() : null;
 
+    let box; // the whole box representing this item (the HTML Element)
+
     export let onEdit = (_: Item) => {};
     export let onEntityChanged = () => {};
 
@@ -27,9 +30,15 @@
             deleteEntity($token, entity, onEntityChanged);
         }
     }
+
+    onMount(async () => {
+        if (item && window.location.hash === `#item-${item.key}`) {
+            window.scrollTo(0, box.offsetTop);
+        }
+    });
 </script>
 
-<div class="group">
+<div bind:this={box} class="group">
     <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
         <div class="btn-xs"></div>
         {#if isEditable && item instanceof Listing}

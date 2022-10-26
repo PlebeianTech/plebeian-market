@@ -7,9 +7,7 @@
     import { Listing } from "$lib/types/listing";
     import { Category, type Item } from "$lib/types/item";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
-    import Avatar from "$lib/components/Avatar.svelte";
     import Confirmation from "$lib/components/Confirmation.svelte";
-    import Countdown from "$lib/components/Countdown.svelte";
     import DateFormatter from "$lib/components/DateFormatter.svelte";
 
     // svelte-ignore unused-export-let
@@ -51,6 +49,7 @@
                 getItem(item.loader, $token, item.key,
                     a => {
                         entity = a;
+                        window.location.hash = `#item-${item.key}`;
                         starting = false;
                         if (item instanceof Auction) {
                             user.update(u => { if (u) { u.twitterUsernameVerified = true; u.hasActiveAuctions = true; } return u; });
