@@ -467,6 +467,8 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'banner_url': self.banner_url,
             'name': self.name,
             'description': self.description,
+            'xpub': self.xpub,
+            'xpub_index': self.xpub_index,
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.owner_id,
             'owner_nym': self.owner.nym,
@@ -474,11 +476,6 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'owner_twitter_username': self.owner.twitter_username,
             'owner_twitter_username_verified': self.owner.twitter_username_verified,
         }
-
-        if campaign['is_mine']:
-            # only ever show these fields to the owner!
-            campaign['xpub'] = self.xpub
-            campaign['xpub_index'] = self.xpub_index
 
         return campaign
 

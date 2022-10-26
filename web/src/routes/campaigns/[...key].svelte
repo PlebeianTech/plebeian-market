@@ -19,6 +19,13 @@
     export let campaignKey;
     let campaign: Campaign;
 
+    let showXpub = false;
+    let xpubCopied = false;
+    function copyXpub() {
+        navigator.clipboard.writeText(campaign.xpub!);
+        xpubCopied = true;
+    }
+
     let editing = false;
 
     let loading = false;
@@ -88,6 +95,21 @@
             title={campaign.name} description={campaign.description}
             onEdit={campaign.is_mine ? (() => editing = true) : null}
             showItemsOwner={true} showItemsCampaign={false}
-            canAddItems={true} />
+            canAddItems={true}>
+            <div slot="extra-description" class="mt-4">
+                {#if showXpub}
+                    Note: all money from the sales in this campaign will go to addresses generated from the following XPUB.
+                    <div class="text-center">
+                        <input value={campaign.xpub} type="text" class="input input-bordered w-full max-w-xs" disabled />
+                        <button class="btn ml-2 mt-2 w-20" on:click={copyXpub}>{#if xpubCopied}Copied{:else}Copy!{/if}</button>
+                        <span class="ml-2">Don't trust, verify!</span>
+                    </div>
+                {:else}
+                    <div class="flex flex-row-reverse">
+                        <button class="btn btn-sm" on:click={() => showXpub = true}>Show XPUB</button>
+                    </div>
+                {/if}
+            </div>
+        </StallView>
     {/if}
 {/if}

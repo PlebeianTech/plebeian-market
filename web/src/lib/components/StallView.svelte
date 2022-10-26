@@ -93,6 +93,7 @@
             <SvelteMarkdown source={description} />
         </div>
     {/if}
+    <slot name="extra-description" />
 </div>
 
 <div class="divider"></div>
