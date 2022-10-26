@@ -228,10 +228,10 @@ input[type=number] {
 .markdown-container h4 { font-size: 1.4rem; line-height: 1.35; letter-spacing: -.08rem; }
 .markdown-container h5 { font-size: 0.8rem; line-height: 1.5;  letter-spacing: -.05rem; }
 .markdown-container h6 { font-size: 0.5rem; line-height: 1.6;  letter-spacing: 0; }
-.markdown-container p {margin-top: 0; }
-.markdown-container li {text-decoration: none;}
+.markdown-container p { margin-top: 10px; }
+.markdown-container li { text-decoration: none;}
 .markdown-container ul { list-style: circle inside; }
-.markdown-container ol {list-style: decimal inside; }
+.markdown-container ol { list-style: decimal inside; }
 .markdown-container ol, ul { padding-left: 0; margin-top: 0; }
 .markdown-container ul ul, ul ol, ol ol, ol ul { margin: 1.5rem 0 1.5rem 3rem; font-size: 90%; }
 .markdown-container li { margin-bottom: 0.5rem; padding-left: 1rem; }
