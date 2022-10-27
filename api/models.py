@@ -754,21 +754,51 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             validated['end_date'] = validated['start_date'] + timedelta(hours=validated['duration_hours'])
         return validated
 
-    def ensure_item(self):
-        # TODO: this method should be removed after all existing auctions have been modified to point to items
+    def migrate(self, dry_run=True):
         if not self.item:
-            item = Item(
-                seller_id=self.seller_id,
-                created_at=self.created_at,
-                title=self.title, description=self.description,
-                shipping_from=self.shipping_from)
-            db.session.add(item)
-            db.session.commit()
-            self.item_id = item.id
-            for media in self.media:
-                media.item_id = item.id
-            db.session.commit()
-            app.logger.warning(f"Created item for Auction {self.id}!")
+            app.logger.info(f"{self.id=} - Item missing")
+            if not dry_run:
+                item = Item(
+                    seller_id=self.seller_id,
+                    created_at=self.created_at,
+                    title=self.title,
+                    description=self.description,
+                    shipping_from=self.shipping_from)
+                db.session.add(item)
+                db.session.commit()
+                self.item_id = item.id
+                db.session.commit()
+                app.logger.info("Added item.")
+        if self.shipping_estimate_domestic or self.shipping_estimate_worldwide:
+            if not self.item or not self.item.shipping_domestic_usd or not self.item.shipping_worldwide_usd:
+                app.logger.info(f"{self.id=} - Shipping missing {self.shipping_estimate_domestic=} / {self.shipping_estimate_worldwide=}")
+        if self.item and len(self.media) != len(self.item.media):
+            app.logger.info(f"{self.id=} - Media not matching: {len(self.media)=} vs. {len(self.item.media)}")
+            if not dry_run:
+                for media in self.media:
+                    media.item_id = self.item_id
+                db.session.commit()
+                app.logger.info("Updated media items.")
+        if self.winning_bid_id and len(self.sales) == 0:
+            app.logger.info(f"{self.id=} Has winning bid but no sale {self.contribution_amount=} / {self.contribution_settled_at=}")
+            if not dry_run:
+                winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
+                sale = Sale(item_id=self.item_id, auction_id=self.id,
+                            buyer_id=winning_bid.buyer_id,
+                            address=f"OLD_{self.id}",
+                            price_usd=0,
+                            price=winning_bid.amount,
+                            shipping_domestic=0,
+                            shipping_worldwide=0,
+                            quantity=1,
+                            amount=winning_bid.amount - (self.contribution_amount or 0),
+                            contribution_amount=(self.contribution_amount or 0),
+                            contribution_payment_request=self.contribution_payment_request)
+                if self.contribution_settled_at:
+                    sale.state = SaleState.CONTRIBUTION_SETTLED.value
+                db.session.add(sale)
+                db.session.commit()
+                app.logger.info("Added sale.")
 
 class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'listings'
