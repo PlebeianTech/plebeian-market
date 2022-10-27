@@ -570,32 +570,27 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     ########
-    # TODO: these should be removed, as they are now duplicated in the Item class,
-    # but for now we keep them around until we migrate the old Auction data to Item
-    # and make sure we didn't break something.
-    seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    title = db.Column(db.String(210), nullable=False)
-    description = db.Column(db.String(21000), nullable=False)
+    # TODO: these should be removed, as they are now duplicated in the Item class!
+    seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
+    title = db.Column(db.String(210), nullable=True)
+    description = db.Column(db.String(21000), nullable=True)
     shipping_from = db.Column(db.String(64), nullable=True)
     shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
     shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
-    media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
     ########
-    # TODO: these should be removed, as they are now part of Sale,
-    # but we should first generate Sales for old auctions
+    ########
+    # TODO: these should be removed, as they are now part of Sale!
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
     contribution_requested_at = db.Column(db.DateTime, nullable=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # the contribution is settled after the Lightning invoice has been paid
     contribution_amount = db.Column(db.Integer, nullable=True)
     ########
-    # TODO: this should eventually become non-nullable
-    # after we will have created Item records for all old auctions!
-    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
-    ########
+
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
     @property
     def owner_id(self):
-        return self.item.seller_id if self.item else self.seller_id
+        return self.item.seller_id
 
     # this key uniquely identifies the auction. It is safe to be shared with anyone.
     key = db.Column(db.String(12), unique=True, nullable=False, index=True)
@@ -631,7 +626,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.amount)')
-    media = db.relationship('Media', backref='auction', foreign_keys='Media.auction_id')
 
     user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
 
@@ -653,9 +647,9 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     def to_dict(self, for_user=None):
         auction = {
             'key': self.key,
-            'title': self.item.title if self.item else self.title,
-            'description': self.item.description if self.item else self.description,
-            'category': self.item.category if self.item else None,
+            'title': self.item.title,
+            'description': self.item.description,
+            'category': self.item.category,
             'duration_hours': self.duration_hours,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
@@ -664,26 +658,26 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'ended': self.ended,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,
-            'shipping_from': self.item.shipping_from if self.item else self.shipping_from,
-            'shipping_domestic_usd': self.item.shipping_domestic_usd if self.item else 0,
-            'shipping_worldwide_usd': self.item.shipping_worldwide_usd if self.item else 0,
+            'shipping_from': self.item.shipping_from,
+            'shipping_domestic_usd': self.item.shipping_domestic_usd,
+            'shipping_worldwide_usd': self.item.shipping_worldwide_usd,
             'has_winner': self.has_winner,
             'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.seller_id,
-            'seller_nym': self.item.seller.nym if self.item else self.seller.nym,
-            'seller_display_name': self.item.seller.display_name if self.item else self.seller.display_name,
-            'seller_profile_image_url': self.item.seller.twitter_profile_image_url if self.item else self.seller.twitter_profile_image_url,
-            'seller_twitter_username': self.item.seller.twitter_username if self.item else self.seller.twitter_username,
-            'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else self.seller.twitter_username_verified,
+            'seller_nym': self.item.seller.nym,
+            'seller_display_name': self.item.seller.display_name,
+            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
+            'seller_twitter_username': self.item.seller.twitter_username,
+            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
         }
 
-        if self.item and self.item.category == Category.Time.value:
+        if self.item.category == Category.Time.value:
             auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.twitter_profile_image_url}]
         else:
-            auction['media'] = [media.to_dict() for media in self.media or (self.item.media if self.item else [])]
+            auction['media'] = [media.to_dict() for media in self.item.media]
 
         if for_user == self.seller_id:
             auction['reserve_bid'] = self.reserve_bid
@@ -691,7 +685,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         if for_user:
             # NB: we only return sales for the current user, so that the UI can know the sales were settled
             # sales for other users should be kept private or eventually shown to the seller only!
-            auction['sales'] = [sale.to_dict() for sale in (self.item.sales if self.item else []) if sale.buyer_id == for_user]
+            auction['sales'] = [sale.to_dict() for sale in self.item.sales if sale.buyer_id == for_user]
 
         if auction['has_winner']:
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
@@ -712,17 +706,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     @classmethod
     def validate_dict(cls, d, for_method=None):
         validated = {}
-        # TODO: remove this after the columns have been removed!
-        ########
-        for k in ['title', 'description']:
-            if k not in d:
-                continue
-            length = len(d[k])
-            max_length = getattr(Auction, k).property.columns[0].type.length
-            if length > max_length:
-                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
-            validated[k] = bleach.clean(d[k])
-        ########
         for k in ['start_date']:
             # for now, only start_date can be edited
             # the end_date is computed on auction start using duration_hours
@@ -753,52 +736,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         if 'start_date' in validated and 'duration_hours' in validated:
             validated['end_date'] = validated['start_date'] + timedelta(hours=validated['duration_hours'])
         return validated
-
-    def migrate(self, dry_run=True):
-        if not self.item:
-            app.logger.info(f"{self.id=} - Item missing")
-            if not dry_run:
-                item = Item(
-                    seller_id=self.seller_id,
-                    created_at=self.created_at,
-                    title=self.title,
-                    description=self.description,
-                    shipping_from=self.shipping_from)
-                db.session.add(item)
-                db.session.commit()
-                self.item_id = item.id
-                db.session.commit()
-                app.logger.info("Added item.")
-        if self.shipping_estimate_domestic or self.shipping_estimate_worldwide:
-            if not self.item or not self.item.shipping_domestic_usd or not self.item.shipping_worldwide_usd:
-                app.logger.info(f"{self.id=} - Shipping missing {self.shipping_estimate_domestic=} / {self.shipping_estimate_worldwide=}")
-        if self.item and len(self.media) != len(self.item.media):
-            app.logger.info(f"{self.id=} - Media not matching: {len(self.media)=} vs. {len(self.item.media)}")
-            if not dry_run:
-                for media in self.media:
-                    media.item_id = self.item_id
-                db.session.commit()
-                app.logger.info("Updated media items.")
-        if self.winning_bid_id and len(self.sales) == 0:
-            app.logger.info(f"{self.id=} Has winning bid but no sale {self.contribution_amount=} / {self.contribution_settled_at=}")
-            if not dry_run:
-                winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
-                sale = Sale(item_id=self.item_id, auction_id=self.id,
-                            buyer_id=winning_bid.buyer_id,
-                            address=f"OLD_{self.id}",
-                            price_usd=0,
-                            price=winning_bid.amount,
-                            shipping_domestic=0,
-                            shipping_worldwide=0,
-                            quantity=1,
-                            amount=winning_bid.amount - (self.contribution_amount or 0),
-                            contribution_amount=(self.contribution_amount or 0),
-                            contribution_payment_request=self.contribution_payment_request)
-                if self.contribution_settled_at:
-                    sale.state = SaleState.CONTRIBUTION_SETTLED.value
-                db.session.add(sale)
-                db.session.commit()
-                app.logger.info("Added sale.")
 
 class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'listings'
@@ -909,11 +846,10 @@ class Media(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    # TODO: this should eventually be dropped after we use only the link in Item
+    # TODO: remove this!
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
 
-    # TODO: this should be set to nullable=False after we drop auction_id
-    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
     index = db.Column(db.Integer, nullable=False)
 

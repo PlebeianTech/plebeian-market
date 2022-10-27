@@ -300,8 +300,6 @@ def post_entity(user, cls, singular, has_item, campaign_key):
         entity.item = item
     if isinstance(entity, m.Campaign):
         entity.owner = user
-    elif isinstance(entity, m.Auction):
-        entity.seller=user # TODO: remove this after removing the field from Auction
     db.session.add(entity)
     db.session.commit()
 
@@ -540,17 +538,10 @@ def start(user, key, cls, singular, plural):
                 return jsonify({'message': "Tweet does not have any attached pictures."}), 400
 
             m.Media.query.filter_by(item_id=entity.item.id).delete()
-            ########
-            # TODO: remove this after removing auction_id from Media
-            auction_id = None
-            if isinstance(entity, m.Auction):
-                m.Media.query.filter_by(auction_id=entity.id).delete()
-                auction_id = entity.id
-            ########
 
             s3 = get_s3()
             for i, photo in enumerate(tweet['photos'], 1):
-                media = m.Media(item_id=entity.item.id, auction_id=auction_id, index=i, twitter_media_key=photo['media_key'])
+                media = m.Media(item_id=entity.item.id, index=i, twitter_media_key=photo['media_key'])
                 if not media.store(s3, f"{singular}_{entity.key}_media_{i}", photo['url'], None):
                     return jsonify({'message': "Error fetching picture!"}), 400
                 db.session.add(media)
@@ -712,15 +703,6 @@ def get_user_entities(nym, plural):
     for entity in iter_entities():
         if entity.filter_state(request.args.get('filter'), for_user_id):
             entities[f"{plural}_{entity.id}"] = entity
-
-    # TODO: this part can be removed after we ensure all auctions in the DB have corresponding items
-    ########
-    if plural == 'auctions':
-        for auction in user.auctions:
-            if f"auctions_{auction.id}" not in entities:
-                if auction.filter_state(request.args.get('filter'), for_user_id):
-                    entities[f"auctions_{auction.id}"] = auction
-    ########
 
     sorted_entities = sorted(entities.values(), key=lambda l: l.created_at, reverse=True)
 

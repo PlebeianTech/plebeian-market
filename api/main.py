@@ -447,14 +447,6 @@ def set_campaign_banner(key, filename):
     campaign.banner_url = url
     db.session.commit()
 
-@app.cli.command("migrate-auctions")
-@click.argument("dry_run", type=click.BOOL)
-def migrate_auctions(dry_run):
-    app.logger.info("Starting migrate-auctions...")
-
-    for auction in db.session.query(m.Auction):
-        auction.migrate(dry_run)
-
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
 
