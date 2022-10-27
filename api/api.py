@@ -357,12 +357,6 @@ def get_put_delete_entity(key, cls, singular, has_item):
         if is_changing_hidden_state and not user.is_moderator:
             return jsonify({'message': "Unauthorized"}), 401
 
-        ########
-        # NB: temporary measure to generate items for existing auctions
-        if isinstance(entity, m.Auction):
-            entity.ensure_item()
-        ########
-
         if user.id != entity.owner_id and not is_changing_hidden_state:
             return jsonify({'message': "Unauthorized"}), 401
 
@@ -416,12 +410,6 @@ def post_media(key, cls, singular):
     if not entity:
         return jsonify({'message': "Not found."}), 404
 
-    ########
-    # NB: temporary measure to generate items for existing auctions
-    if isinstance(entity, m.Auction):
-        entity.ensure_item()
-    ########
-
     if user.id != entity.item.seller_id:
         return jsonify({'message': "Unauthorized"}), 401
 
@@ -461,12 +449,6 @@ def delete_media(key, cls, content_hash):
     entity = cls.query.filter_by(key=key).first()
     if not entity:
         return jsonify({'message': "Not found."}), 404
-
-    ########
-    # NB: temporary measure to generate items for existing auctions
-    if isinstance(entity, m.Auction):
-        entity.ensure_item()
-    ########
 
     if user.id != entity.item.seller_id:
         return jsonify({'message': "Unauthorized"}), 401
@@ -519,12 +501,6 @@ def start(user, key, cls, singular, plural):
     entity = cls.query.filter_by(key=key).first()
     if not entity:
         return jsonify({'message': "Not found."}), 404
-
-    ########
-    # NB: temporary measure to generate items for existing auctions
-    if isinstance(entity, m.Auction):
-        entity.ensure_item()
-    ########
 
     if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized"}), 401
