@@ -127,8 +127,20 @@ def put_me(user):
         clean_email = (request.json['email'] or "").lower().strip()
         try:
             user.email = validate_email(clean_email).email
+            user.email_verified = False
         except EmailNotValidError:
             return jsonify({'message': "The email address is invalid."}), 400
+    if 'telegram_username' in request.json:
+        clean_username = (request.json['telegram_username'] or "").lower().strip()
+        if clean_username.startswith("@"):
+            clean_username = clean_username.removeprefix("@")
+        if len(clean_username) < 3:
+            return jsonify({'message': "Your Telegram username needs to be at least 3 characters long!"}), 400
+        if not clean_username.replace("_", "").isalnum():
+            return jsonify({'message': "Your Telegram username can only contain letters, numbers and underscores!"}), 400
+        if clean_username != user.telegram_username:
+            user.telegram_username = clean_username
+            user.telegram_username_verified = False
     if 'twitter_username' in request.json:
         clean_username = (request.json['twitter_username'] or "").lower().strip()
         if clean_username.startswith("@"):

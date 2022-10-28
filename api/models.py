@@ -96,6 +96,9 @@ class User(XpubMixin, db.Model):
     email = db.Column(db.String(64), unique=True, nullable=True, index=True)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
 
+    telegram_username = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    telegram_username_verified = db.Column(db.Boolean, nullable=False, default=False)
+
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
     twitter_username_verification_tweet_id = db.Column(db.String(64), nullable=True)
@@ -147,6 +150,8 @@ class User(XpubMixin, db.Model):
             'profile_image_url': self.twitter_profile_image_url,
             'email': self.email,
             'email_verified': self.email_verified,
+            'telegram_username': self.telegram_username,
+            'telegram_username_verified': self.telegram_username_verified,
             'twitter_username': self.twitter_username,
             'twitter_username_verified': self.twitter_username_verified,
             'stall_banner_url': self.stall_banner_url,
@@ -479,6 +484,10 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'owner_nym': self.owner.nym,
             'owner_display_name': self.owner.display_name,
             'owner_profile_image_url': self.owner.twitter_profile_image_url,
+            'owner_email': self.owner.email,
+            'owner_email_verified': self.owner.email_verified,
+            'owner_telegram_username': self.owner.telegram_username,
+            'owner_telegram_username_verified': self.owner.telegram_username_verified,
             'owner_twitter_username': self.owner.twitter_username,
             'owner_twitter_username_verified': self.owner.twitter_username_verified,
         }
@@ -670,6 +679,10 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
+            'seller_email': self.item.seller.email,
+            'seller_email_verified': self.item.seller.email_verified,
+            'seller_telegram_username': self.item.seller.telegram_username,
+            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
         }
@@ -692,6 +705,10 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             auction['winner_nym'] = winning_bid.buyer.nym
             auction['winner_display_name'] = winning_bid.buyer.display_name
             auction['winner_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
+            auction['winner_email'] = winning_bid.buyer.email
+            auction['winner_email_verified'] = winning_bid.buyer.email_verified
+            auction['winner_telegram_username'] = winning_bid.buyer.telegram_username
+            auction['winner_telegram_username_verified'] = winning_bid.buyer.telegram_username_verified
             auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
             auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
 
@@ -800,6 +817,10 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
+            'seller_email': self.item.seller.email,
+            'seller_email_verified': self.item.seller.email_verified,
+            'seller_telegram_username': self.item.seller.telegram_username,
+            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
         }
@@ -891,6 +912,10 @@ class Bid(db.Model):
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
+            'buyer_email': self.buyer.email,
+            'buyer_email_verified': self.buyer.email_verified,
+            'buyer_telegram_username': self.buyer.telegram_username,
+            'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None)}
@@ -954,11 +979,19 @@ class Sale(db.Model):
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
+            'seller_email': self.item.seller.email,
+            'seller_email_verified': self.item.seller.email_verified,
+            'seller_telegram_username': self.item.seller.telegram_username,
+            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
+            'buyer_email': self.buyer.email,
+            'buyer_email_verified': self.buyer.email_verified,
+            'buyer_telegram_username': self.buyer.telegram_username,
+            'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
             'contribution_amount': self.contribution_amount,

@@ -2,6 +2,10 @@ export interface IAccount {
     nym: string | null;
     displayName: string | null;
     profileImageUrl: string | null;
+    email: string | null;
+    emailVerified: boolean;
+    telegramUsername: string | null;
+    telegramUsernameVerified: boolean;
     twitterUsername: string | null;
     twitterUsernameVerified: boolean;
 }
@@ -10,6 +14,10 @@ export class User implements IAccount {
     nym: string | null = null;
     displayName: string | null = null;
     profileImageUrl: string | null = null;
+    email: string | null = null;
+    emailVerified: boolean = false;
+    telegramUsername: string | null = null;
+    telegramUsernameVerified: boolean = false;
     twitterUsername: string | null = null;
     twitterUsernameVerified: boolean = false;
     stallBannerUrl: string | null = null;
@@ -31,6 +39,10 @@ export function fromJson(json: any): User {
         nym: <string | null>json.nym,
         displayName: <string | null>json.display_name,
         profileImageUrl: <string | null>json.profile_image_url,
+        email: <string | null>json.email,
+        emailVerified: <boolean>json.email_verified,
+        telegramUsername: <string | null>json.telegram_username,
+        telegramUsernameVerified: <boolean>json.telegram_username_verified,
         twitterUsername: <string | null>json.twitter_username,
         twitterUsernameVerified: <boolean>json.twitter_username_verified,
         stallBannerUrl: <string | null>json.stall_banner_url,

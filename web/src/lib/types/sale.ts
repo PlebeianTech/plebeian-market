@@ -21,8 +21,8 @@ export class Sale implements IEntity {
     amount: number = 0;
     shipping_domestic: number = 0;
     shipping_worldwide: number = 0;
-    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
-    buyer: IAccount = {nym: null, displayName: null, profileImageUrl: null, twitterUsername: null, twitterUsernameVerified: false};
+    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
+    buyer: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
     contribution_amount: number = 0;
     contribution_payment_request: string = "";
     contribution_payment_qr: string | null = null;
@@ -63,6 +63,10 @@ export function fromJson(json: any): Sale {
         nym: <string>json.seller_nym,
         displayName: <string>json.seller_display_name,
         profileImageUrl: <string | null>json.seller_profile_image_url,
+        email: <string | null>json.seller_email,
+        emailVerified: <boolean>json.seller_email_verified,
+        telegramUsername: <string | null>json.seller_telegram_username,
+        telegramUsernameVerified: <boolean>json.seller_telegram_username_verified,
         twitterUsername: <string | null>json.seller_twitter_username,
         twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
     };
@@ -70,6 +74,10 @@ export function fromJson(json: any): Sale {
         nym: <string>json.buyer_nym,
         displayName: <string>json.buyer_display_name,
         profileImageUrl: <string | null>json.buyer_profile_image_url,
+        email: <string | null>json.buyer_email,
+        emailVerified: <boolean>json.buyer_email_verified,
+        telegramUsername: <string | null>json.buyer_telegram_username,
+        telegramUsernameVerified: <boolean>json.buyer_telegram_username_verified,
         twitterUsername: <string | null>json.buyer_twitter_username,
         twitterUsernameVerified: <boolean>json.buyer_twitter_username_verified,
     };
