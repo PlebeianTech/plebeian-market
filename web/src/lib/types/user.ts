@@ -27,6 +27,7 @@ export class User implements IAccount {
     contributionPercent: number | null = null;
     xpub: string | null = null;
     hasItems: boolean = false;
+    hasOwnItems: boolean = false;
     hasActiveAuctions: boolean = false;
     hasPastAuctions: boolean = false;
     hasActiveListings: boolean = false;
@@ -49,6 +50,7 @@ export function fromJson(json: any): User {
         stallName: <string | null>json.stall_name,
         stallDescription: <string | null>json.stall_description,
         hasItems: <boolean>json.has_items,
+        hasOwnItems: <boolean>json.has_own_items,
         hasActiveAuctions: <boolean>json.has_active_auctions,
         hasPastAuctions: <boolean>json.has_past_auctions,
         hasActiveListings: <boolean>json.has_active_listings,

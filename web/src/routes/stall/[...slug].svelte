@@ -60,6 +60,7 @@
             bannerUrl={owner.stallBannerUrl}
             {owner} {title} description={owner.stallDescription}
             onEdit={isMyStall ? () => { goto("/settings#onsave=mystall") } : null}
+            isOwnStall={isMyStall}
             showItemsOwner={false} showItemsCampaign={true}
             canAddItems={isMyStall}
             {showActiveAuctions} {showPastAuctions}

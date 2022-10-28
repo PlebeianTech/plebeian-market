@@ -19,6 +19,8 @@
     export let description: string | null;
     export let onEdit: (() => void) | null = null;
 
+    export let isOwnStall = false;
+
     export let showItemsOwner: boolean;
     export let showItemsCampaign: boolean;
     export let canAddItems: boolean;
@@ -41,12 +43,24 @@
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
 
     function onAuctionCreated() {
-        user.update((u) => { u!.hasItems = true; return u; });
+        user.update((u) => {
+            u!.hasItems = true;
+            if (isOwnStall) {
+                u!.hasOwnItems = true;
+            }
+            return u;
+        });
         Info.set("Your auction will start when we verify your tweet!");
     }
 
     function onListingCreated() {
-        user.update((u) => { u!.hasItems = true; return u; });
+        user.update((u) => {
+            u!.hasItems = true;
+            if (isOwnStall) {
+                u!.hasOwnItems = true;
+            }
+            return u;
+        });
         Info.set("Your listing will become active after we verify your tweet!");
     }
 

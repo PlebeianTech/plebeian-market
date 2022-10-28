@@ -158,6 +158,7 @@ class User(XpubMixin, db.Model):
             'stall_name': self.stall_name,
             'stall_description': self.stall_description,
             'has_items': False,
+            'has_own_items': False,
             'has_active_auctions': False,
             'has_past_auctions': False,
             'has_active_listings': False,
@@ -167,9 +168,11 @@ class User(XpubMixin, db.Model):
         for item in self.items.all():
             d['has_items'] = True
             for entity in chain(item.auctions, item.listings):
+                if not entity.campaign_id:
+                    d['has_own_items'] = True
                 if entity.state in ('active', 'past'):
                     d[f'has_{entity.state}_{entity.__tablename__}'] = True
-            if d['has_active_auctions'] and d['has_past_auctions'] and d['has_active_listings'] and d['has_past_listings']:
+            if d['has_own_items'] and d['has_active_auctions'] and d['has_past_auctions'] and d['has_active_listings'] and d['has_past_listings']:
                 break # short-circuit
 
         if self.is_moderator:

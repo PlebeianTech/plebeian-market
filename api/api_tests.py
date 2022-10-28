@@ -207,6 +207,13 @@ class TestApi(unittest.TestCase):
 
         auction_key = response['auction']['key']
 
+        # check user details
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['has_items'], True)
+        self.assertEqual(response['user']['has_own_items'], False) # campaign items do not count as "own" items
+
         # same seller, add a listing outside of the campaign
         code, response = self.post(f"/api/users/me/listings",
             {'title': "A selfish listing",
@@ -583,6 +590,7 @@ class TestApi(unittest.TestCase):
         self.assertIn("/mock-s3-files/", response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_items'], False)
+        self.assertEqual(response['user']['has_own_items'], False)
 
         code, response = self.update_user(token_1, False, email="brokenemail")
         self.assertEqual(code, 400)
@@ -615,6 +623,7 @@ class TestApi(unittest.TestCase):
         self.assertIn("/mock-s3-files/", response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1.5)
         self.assertEqual(response['user']['has_items'], False)
+        self.assertEqual(response['user']['has_own_items'], False)
 
         # verify Twitter for good now
         code, response = self.put("/api/users/me/verify-twitter", {},
@@ -802,6 +811,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['has_items'], True)
+        self.assertEqual(response['user']['has_own_items'], True)
 
         # GET auctions to find auction in our "not running" section
         code, response = self.get("/api/users/me/auctions?filter=new",
