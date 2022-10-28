@@ -51,7 +51,7 @@ export class TimeListing extends Listing {
     constructor(nym: string) {
         super();
         this.category = Category.Time;
-        this.title = `1 hour one-to-one call with ${nym}`;
+        this.title = `1 hour one-to-one call with ${nym} AMA`;
         this.descriptionPlaceholder = TIME_ITEM_DESCRIPTION_PLACEHOLDER;
     }
 }

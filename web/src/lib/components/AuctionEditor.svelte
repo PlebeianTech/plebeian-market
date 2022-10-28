@@ -58,19 +58,19 @@
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered" />
                 </div>
                 <MarkdownDescriptionEditor bind:value={auction.description} placeholder={auction.descriptionPlaceholder} />
-                <div class="flex mt-3">
-                    <div class="form-control w-1/2 max-w-xs mr-1">
-                        <label class="label" for="starting-bid">
-                            <span class="label-text">Starting bid (optional)</span>
-                        </label>
-                        <input bind:value={auction.starting_bid} type="number" name="starting-bid" class="input input-bordered w-full max-w-xs" />
-                        <label class="label" for="starting-bid">
-                            <span class="label-text-alt"><AmountFormatter satsAmount={auction.starting_bid} format={AmountFormat.Usd} /></span>
-                            <span class="label-text-alt">sats</span>
-                        </label>
-                    </div>
-                    <div class="form-control w-1/2 max-w-xs ml-1">
-                        {#if auction.category !== Category.Time}
+                {#if auction.category !== Category.Time}
+                    <div class="flex mt-3">
+                        <div class="form-control w-1/2 max-w-xs mr-1">
+                            <label class="label" for="starting-bid">
+                                <span class="label-text">Starting bid (optional)</span>
+                            </label>
+                            <input bind:value={auction.starting_bid} type="number" name="starting-bid" class="input input-bordered w-full max-w-xs" />
+                            <label class="label" for="starting-bid">
+                                <span class="label-text-alt"><AmountFormatter satsAmount={auction.starting_bid} format={AmountFormat.Usd} /></span>
+                                <span class="label-text-alt">sats</span>
+                            </label>
+                        </div>
+                        <div class="form-control w-1/2 max-w-xs ml-1">
                             <label class="label" for="reserve-bid">
                                 <span class="label-text">Reserve bid (optional)</span>
                             </label>
@@ -79,9 +79,9 @@
                                 <span class="label-text-alt"><AmountFormatter satsAmount={auction.reserve_bid} format={AmountFormat.Usd} /></span>
                                 <span class="label-text-alt">sats</span>
                             </label>
-                        {/if}
+                        </div>
                     </div>
-                </div>
+                    {/if}
                 {#if auction.category !== Category.Time}
                     <ShippingEditor
                         bind:shipping_from={auction.shipping_from}
@@ -90,7 +90,7 @@
                 {/if}
                 <div class="form-control mr-2 w-full">
                     <label class="label" for="duration">
-                        <span class="label-text">Duration</span>
+                        <span class="label-text">Auction Duration</span>
                     </label>
                     <div class="flex flex-wrap">
                         {#each durationOptions as duration, i}
