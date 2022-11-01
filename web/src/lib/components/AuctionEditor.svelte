@@ -3,6 +3,7 @@
     import type { IEntity } from "$lib/types/base";
     import type { Auction } from "$lib/types/auction";
     import { Category } from "$lib/types/item";
+    import { user } from "$lib/stores";
     import { isLocal, isStaging } from "$lib/utils";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
@@ -12,6 +13,9 @@
     $: auction = <Auction>entity;
     export let onSave = () => {};
     export let onCancel = () => {};
+
+    $: nym = $user ? $user.nym : "";
+    $: auction.title = auction.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
 
     let duration = "";
     let durationMultiplier = "1";

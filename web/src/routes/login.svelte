@@ -4,10 +4,10 @@
 
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import Login from "../lib/components/Login.svelte";
-    import type { User } from "../lib/types/user";
+    import Login from "$lib/components/Login.svelte";
+    import type { User } from "$lib/types/user";
 
-    function onLogin(user: User | null) {
+    function onLogin(_: User | null) {
         goto("/");
     }
 </script>

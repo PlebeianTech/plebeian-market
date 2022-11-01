@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Category } from "$lib/types/item";
     import type { Listing } from "$lib/types/listing";
@@ -10,6 +11,9 @@
     $: listing = <Listing>entity;
     export let onSave = () => {};
     export let onCancel = () => {};
+
+    $: nym = $user ? $user.nym : "";
+    $: listing.title = listing.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
 </script>
 
 <div class="w-full flex justify-center items-center">

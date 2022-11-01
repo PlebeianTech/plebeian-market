@@ -6,10 +6,12 @@
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
+    import Login from "$lib/components/Login.svelte";
     import { user, Info } from "$lib/stores";
+    import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, TimeListing, fromJson as listingFromJson } from "$lib/types/listing";
-    import type { IAccount } from "$lib/types/user";
+    import type { IAccount, User } from "$lib/types/user";
 
     export let baseUrl: string;
 
@@ -72,6 +74,19 @@
             for (let [_, l] of Object.entries(listingsLists)) {
                 l.fetchEntities();
             }
+        }
+    }
+
+    let onLogin: ((_: User | null) => void) | null = null;
+
+    function newItem(setCurrent: (IEntity) => void, getNewItem: () => IEntity) {
+        if ($user && $user.nym) {
+            setCurrent(getNewItem());
+        } else {
+            onLogin = (_: User | null) => {
+                onLogin = null;
+                setCurrent(getNewItem())
+            };
         }
     }
 </script>
@@ -137,6 +152,9 @@
 
 <div class="md:flex">
     <div class="md:grow mx-10">
+        {#if onLogin !== null}
+            <Login {onLogin} />
+        {/if}
         {#if canAddItems || showActiveAuctions || showPastAuctions}
             <h3 class="text-3xl">Auctions</h3>
             {#if canAddItems}
@@ -151,8 +169,8 @@
                     card={ItemCard}
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
-                        <div class="mx-auto my-10 glowbutton glowbutton-auction" on:click|preventDefault={() => setCurrent(new Auction())}></div>
-                        <div class="mx-auto my-10 glowbutton glowbutton-auction-time" on:click|preventDefault={() => { if ($user && $user.nym) setCurrent(new TimeAuction($user.nym)) }}></div>
+                        <div class="mx-auto my-10 glowbutton glowbutton-auction" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}></div>
+                        <div class="mx-auto my-10 glowbutton glowbutton-auction-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeAuction())}></div>
                     </div>
                 </ListView>
             {/if}
@@ -191,8 +209,8 @@
                     card={ItemCard}
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
-                        <div class="mx-auto my-10 glowbutton glowbutton-listing" on:click|preventDefault={() => setCurrent(new Listing())}></div>
-                        <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => { if ($user && $user.nym) setCurrent(new TimeListing($user.nym)) }}></div>
+                        <div class="mx-auto my-10 glowbutton glowbutton-listing" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}></div>
+                        <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeListing())}></div>
                     </div>
                 </ListView>
             {/if}

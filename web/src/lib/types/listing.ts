@@ -48,10 +48,9 @@ export class Listing implements IEntity, Item {
 }
 
 export class TimeListing extends Listing {
-    constructor(nym: string) {
+    constructor() {
         super();
         this.category = Category.Time;
-        this.title = `1 hour one-to-one call with ${nym} AMA`;
         this.descriptionPlaceholder = TIME_ITEM_DESCRIPTION_PLACEHOLDER;
     }
 }
