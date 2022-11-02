@@ -1,4 +1,5 @@
 import abc
+import bip39gen
 import bleach
 from collections import OrderedDict
 from datetime import datetime, timedelta
@@ -101,7 +102,14 @@ class User(XpubMixin, db.Model):
 
     twitter_username = db.Column(db.String(32), unique=True, nullable=True, index=True)
     twitter_username_verified = db.Column(db.Boolean, nullable=False, default=False)
-    twitter_username_verification_tweet_id = db.Column(db.String(64), nullable=True)
+    twitter_verification_phrase = db.Column(db.String(32), nullable=True)
+    twitter_verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)
+    twitter_verification_phrase_check_counter = db.Column(db.Integer, nullable=False, default=0)
+
+    def generate_twitter_verification_phrase(self):
+        self.twitter_verification_phrase = bip39gen.random_as_string(3)
+        self.twitter_verification_phrase_check_counter = 0
+        self.twitter_verification_phrase_sent_at = None
 
     @property
     def is_moderator(self):
@@ -183,10 +191,6 @@ class User(XpubMixin, db.Model):
             d['contribution_percent'] = self.contribution_percent
             d['xpub'] = self.xpub
             d['xpub_index'] = self.xpub_index
-            if self.twitter_username_verification_tweet_id:
-                d['twitter_username_verification_tweet'] = f"https://twitter.com/{app.config['TWITTER_USER']}/status/{self.twitter_username_verification_tweet_id}"
-            else:
-                d['twitter_username_verification_tweet'] = None
 
         return d
 

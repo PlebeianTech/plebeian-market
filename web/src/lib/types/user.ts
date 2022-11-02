@@ -23,7 +23,6 @@ export class User implements IAccount {
     stallBannerUrl: string | null = null;
     stallName: string | null = null;
     stallDescription: string | null = null;
-    twitterUsernameVerificationTweet: string | null = null;
     contributionPercent: number | null = null;
     xpub: string | null = null;
     hasItems: boolean = false;
@@ -57,7 +56,6 @@ export function fromJson(json: any): User {
         hasPastListings: <boolean>json.has_past_listings,
         contributionPercent: <number | null>json.contribution_percent,
         xpub: <string | null>json.xpub,
-        twitterUsernameVerificationTweet: <string | null>json.twitter_username_verification_tweet,
         isModerator: <boolean>json.is_moderator,
     }
 }

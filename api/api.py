@@ -14,6 +14,7 @@ from pycoin.symbols.btc import network as BTC
 import pyqrcode
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
+import time
 
 from extensions import db
 import models as m
@@ -122,14 +123,22 @@ def put_me(user):
             return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
         if not clean_nym.isalnum():
             return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
+        if m.User.query.filter_by(nym=clean_nym).one_or_none():
+            return jsonify({'message': "Your nym is already in use!"}), 400
         user.nym = clean_nym
+
     if 'email' in request.json:
         clean_email = (request.json['email'] or "").lower().strip()
         try:
-            user.email = validate_email(clean_email).email
-            user.email_verified = False
+            clean_email = validate_email(clean_email).email
         except EmailNotValidError:
-            return jsonify({'message': "The email address is invalid."}), 400
+            return jsonify({'message': "Your email address is not valid."}), 400
+        if clean_email != user.email:
+            if m.User.query.filter_by(email=clean_email).one_or_none():
+                return jsonify({'message': "Somebody already registered this email address!"}), 400
+            user.email = clean_email
+            user.email_verified = False
+
     if 'telegram_username' in request.json:
         clean_username = (request.json['telegram_username'] or "").lower().strip()
         if clean_username.startswith("@"):
@@ -139,8 +148,11 @@ def put_me(user):
         if not clean_username.replace("_", "").isalnum():
             return jsonify({'message': "Your Telegram username can only contain letters, numbers and underscores!"}), 400
         if clean_username != user.telegram_username:
+            if m.User.query.filter_by(telegram_username=clean_username).one_or_none():
+                return jsonify({'message': "Somebody already registered this Telegram username!"}), 400
             user.telegram_username = clean_username
             user.telegram_username_verified = False
+
     if 'twitter_username' in request.json:
         clean_username = (request.json['twitter_username'] or "").lower().strip()
         if clean_username.startswith("@"):
@@ -150,15 +162,18 @@ def put_me(user):
         if not clean_username.replace("_", "").isalnum():
             return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
         if clean_username != user.twitter_username:
+            if m.User.query.filter_by(twitter_username=clean_username).one_or_none():
+                return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
             if user.nym == user.twitter_username:
                 # NB: if the user has set a custom nym, don't overwrite that!
                 user.nym = clean_username
+
             user.twitter_username = clean_username
+            user.twitter_username_verified = False
+            user.generate_twitter_verification_phrase()
 
             twitter = get_twitter()
-
             twitter_user = twitter.get_user(user.twitter_username)
-
             if not twitter_user:
                 return jsonify({'message': "Twitter profile not found!"}), 400
 
@@ -173,11 +188,8 @@ def put_me(user):
             if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
                 return jsonify({'message': "Error fetching profile banner!"}), 400
 
-            user.twitter_username_verified = False
-
-            plebeian_twitter_user = twitter.get_user(app.config['TWITTER_USER'])
-
-            user.twitter_username_verification_tweet_id = plebeian_twitter_user['pinned_tweet_id']
+            twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase)
+            user.twitter_verification_phrase_sent_at = datetime.utcnow()
 
     if 'contribution_percent' in request.json:
         user.contribution_percent = request.json['contribution_percent']
@@ -202,20 +214,41 @@ def put_me(user):
     try:
         db.session.commit()
     except IntegrityError:
-        return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
+        return jsonify({'message': "Please try again!"}), 500
 
     return jsonify({'user': user.to_dict(for_user=user.id)})
 
-@api_blueprint.route('/api/users/me/verify-twitter', methods=['PUT'])
+@api_blueprint.route('/api/users/me/verify/twitter', methods=['PUT'])
 @user_required
 def verify_twitter(user):
-    liking_usernames = get_twitter().get_tweet_likes(user.twitter_username_verification_tweet_id)
-    if not user.twitter_username.lower() in liking_usernames:
-        return jsonify({'message': "Please like the tweet to verify your username."}), 400
-    else:
+    if request.json.get('resend'):
+        if user.twitter_verification_phrase_sent_at and user.twitter_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
+            return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
+        user.generate_twitter_verification_phrase()
+        twitter = get_twitter()
+        twitter_user = twitter.get_user(user.twitter_username)
+        twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase)
+        user.twitter_verification_phrase_sent_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({})
+
+    if not request.json.get('phrase'):
+        return jsonify({'message': "Please provide the verification phrase!"}), 400
+
+    if user.twitter_verification_phrase_check_counter > 5:
+        return jsonify({'message': "Please try requesting a new verification phrase!"}), 400
+
+    clean_phrase = ' '.join([w for w in request.json['phrase'].lower().split(' ') if w])
+
+    if get_twitter().get_verification_phrase(user) == clean_phrase:
         user.twitter_username_verified = True
         db.session.commit()
         return jsonify({})
+    else:
+        time.sleep(2 ** user.twitter_verification_phrase_check_counter)
+        user.twitter_verification_phrase_check_counter += 1
+        db.session.commit()
+        return jsonify({'message': "Invalid verification phrase."}), 400
 
 @api_blueprint.route('/api/users/me/notifications', methods=['GET', 'PUT'])
 @user_required
