@@ -3,7 +3,7 @@
     import SvelteMarkdown from 'svelte-markdown';
     import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
     import { Error, Info, token, user } from "$lib/stores";
-    import type { Item } from "$lib/types/item";
+    import { Category, type Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
     import { SaleState, type Sale } from "$lib/types/sale";
@@ -172,7 +172,7 @@
                     {/if}
                 {/if}
                 {#if sale && sale.state !== SaleState.EXPIRED}
-                    <SaleFlow bind:sale={sale} />
+                    <SaleFlow bind:item={item} bind:sale={sale} />
                 {/if}
                 {#if !item.ended}
                     {#if item instanceof Auction && item.end_date_extended}
@@ -268,7 +268,9 @@
                 <div class="markdown-container">
                     <SvelteMarkdown source={item.description} />
                 </div>
-                <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
+                {#if item.category !== Category.Time}
+                    <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
+                {/if}
                 <div class="divider"></div>
                 {#if item.shipping_from}
                     <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>

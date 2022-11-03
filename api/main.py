@@ -113,8 +113,8 @@ def finalize_auctions():
             auction.has_winner = True
             auction.winning_bid_id = top_bid.id
 
-            if not auction.item_id or not auction.item.seller.xpub:
-                app.logger.warning(f"Old-style auction {auction.id=} (no item or XPUB). Skipping the sale flow...")
+            if not auction.item.seller.xpub and not auction.campaign_id:
+                app.logger.warning(f"Old-style auction {auction.id=} (no seller XPUB). Skipping the sale flow...")
                 # NB: committing only inside this if,
                 # because for normal auctions we want to set has_winner in the same transaction that generates the sale!
                 db.session.commit()

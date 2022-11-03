@@ -1,11 +1,15 @@
 <script lang="ts">
+    import { Category, type Item } from "$lib/types/item";
     import { SaleState, type Sale } from "$lib/types/sale";
     import { formatBTC } from "$lib/utils";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
     import QR from "$lib/components/QR.svelte";
 
+    export let item: Item;
     export let sale: Sale;
+
+    $: hasShipping = sale.shipping_domestic !== 0 || sale.shipping_worldwide !== 0;
 
     let shippingAmount = sale.shipping_worldwide;
 
@@ -34,8 +38,18 @@
     <p class="my-4">The seller wishes to donate <AmountFormatter satsAmount={sale.contribution_amount} /> sats out of the total price to Plebeian Technology. Please send the amount using the QR code below!</p>
     <QR qr={sale.contribution_payment_qr} protocol="lightning" address={sale.contribution_payment_request} />
 {:else if sale.state === SaleState.CONTRIBUTION_SETTLED}
-    <p class="my-4">Please send the remaining amount of <AmountFormatter satsAmount={sale.amount} /> plus shipping directly to the seller!</p>
-    {#if sale.shipping_domestic !== 0 || sale.shipping_worldwide !== 0}
+    <p class="my-4">
+        Please send the remaining amount of <AmountFormatter satsAmount={sale.amount} />
+        {#if hasShipping}plus shipping {/if}
+        directly to
+        {#if item.campaign_name !== null}
+            <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
+        {:else}
+            the seller
+        {/if}
+        !
+    </p>
+    {#if hasShipping}
         {#if sale.shipping_domestic === sale.shipping_worldwide}
             <div class="form-control">
                 <label class="label cursor-pointer">
@@ -90,7 +104,13 @@
         <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">mempool.space</a>!</p>
     {:else}
         <p class="text-3xl text-center my-10">Payment confirmed!</p>
-        <p class="text-2xl">Please <a href="/stall/{sale.seller.nym}" class="link">contact</a> the seller directly to discuss shipping.</p>
+        <p class="text-2xl">
+            Please <a href="/stall/{sale.seller.nym}" class="link">contact</a>
+            the seller directly
+            {#if item.category !== Category.Time}
+                to discuss shipping
+            {/if}
+        </p>
         <p class="text-center mt-10">
             <Avatar account={sale.seller} height="12" />
         </p>
