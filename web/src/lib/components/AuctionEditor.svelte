@@ -15,7 +15,7 @@
     export let onCancel = () => {};
 
     $: nym = $user ? $user.nym : "";
-    $: auction.title = auction.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
+//    $: auction.title = auction.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
 
     let duration = "";
     let durationMultiplier = "1";
