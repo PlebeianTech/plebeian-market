@@ -227,7 +227,10 @@ def verify_twitter(user):
         user.generate_twitter_verification_phrase()
         twitter = get_twitter()
         twitter_user = twitter.get_user(user.twitter_username)
-        twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase)
+        if not twitter_user:
+            return jsonify({'message': "Twitter user not found!"}), 500
+        if not twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase):
+            return jsonify({'message': f"Please allow DMs from @{app.config['TWITTER_USER']}"}), 400
         user.twitter_verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
         return jsonify({})

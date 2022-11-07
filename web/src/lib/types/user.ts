@@ -20,6 +20,7 @@ export class User implements IAccount {
     telegramUsernameVerified: boolean = false;
     twitterUsername: string | null = null;
     twitterUsernameVerified: boolean = false;
+    twitterVerificationPhraseSentAt: Date | null = null;
     stallBannerUrl: string | null = null;
     stallName: string | null = null;
     stallDescription: string | null = null;
@@ -45,6 +46,7 @@ export function fromJson(json: any): User {
         telegramUsernameVerified: <boolean>json.telegram_username_verified,
         twitterUsername: <string | null>json.twitter_username,
         twitterUsernameVerified: <boolean>json.twitter_username_verified,
+        twitterVerificationPhraseSentAt: json.twitter_verification_phrase_sent_at ? new Date(json.twitter_verification_phrase_sent_at) : null,
         stallBannerUrl: <string | null>json.stall_banner_url,
         stallName: <string | null>json.stall_name,
         stallDescription: <string | null>json.stall_description,

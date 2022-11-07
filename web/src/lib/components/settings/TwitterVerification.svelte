@@ -24,6 +24,7 @@
         inRequest = true;
         putVerifyTwitter($token, true, undefined,
             () => {
+                user.update(u => { if (u) { u.twitterVerificationPhraseSentAt = new Date(); } return u; });
                 Info.set("Check your Twitter DM!");
                 inRequest = false;
             },
@@ -31,24 +32,41 @@
     }
 </script>
 
-<div class="w-full flex items-center justify-center mt-4">
-    <div class="form-control w-full max-w-full">
-        <label class="label" for="title">
-            <span class="label-text">Phrase</span>
-        </label>
-        <input bind:value={phrase} type="text" name="phrase" class="input input-lg input-bordered" />
-    </div>
-</div>
-<div class="flex justify-center items-center mt-4 h-24">
-    {#if !inRequest}
-        <div id="verify-twitter" class="glowbutton glowbutton-verify" on:click|preventDefault={verify}></div>
+{#if $user}
+    {#if !$user.twitterVerificationPhraseSentAt}
+        <div class="alert alert-info shadow-lg">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Please make sure your Twitter DMs are open and hit <strong>send</strong> below.</span>
+            </div>
+        </div>
+        <div class="w-full flex items-center justify-center mt-4">
+            <div class="form-control w-full max-w-lg">
+                <button class="btn btn-primary" on:click={resend} disabled={inRequest}>Send</button>
+            </div>
+        </div>
     {:else}
-        <button class="btn" disabled>Verify</button>
+        <div class="alert alert-info shadow-lg">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>You should have received three BIP-39 words via Twitter DM. This is your verification phrase.</span>
+            </div>
+        </div>
+        <div class="w-full flex items-center justify-center mt-4">
+            <div class="form-control w-full max-w-full">
+                <label class="label" for="title">
+                    <span class="label-text">Verification phrase</span>
+                </label>
+                <input bind:value={phrase} type="text" name="phrase" class="input input-lg input-bordered" />
+            </div>
+        </div>
+        <div class="flex justify-center items-center mt-4 h-24 gap-5">
+            {#if !inRequest}
+                <div id="verify-twitter" class="glowbutton glowbutton-verify" on:click|preventDefault={verify}></div>
+            {:else}
+                <button class="btn" disabled>Verify</button>
+            {/if}
+            <button class="btn" on:click={resend} disabled={inRequest}>Resend</button>
+        </div>
     {/if}
-</div>
-<div class="divider"></div>
-<div class="w-full flex items-center justify-center mt-4">
-    <div class="form-control w-full max-w-lg">
-        <button class="btn btn-primary" on:click={resend} disabled={inRequest}>Resend</button>
-    </div>
-</div>
+{/if}

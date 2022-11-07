@@ -162,6 +162,7 @@ class User(XpubMixin, db.Model):
             'telegram_username_verified': self.telegram_username_verified,
             'twitter_username': self.twitter_username,
             'twitter_username_verified': self.twitter_username_verified,
+            'twitter_verification_phrase_sent_at': self.twitter_verification_phrase_sent_at.isoformat() + "Z" if self.twitter_verification_phrase_sent_at else None,
             'stall_banner_url': self.stall_banner_url,
             'stall_name': self.stall_name,
             'stall_description': self.stall_description,
