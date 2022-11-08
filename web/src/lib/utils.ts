@@ -1,13 +1,32 @@
+import { browser } from "$app/env";
+
 export let SATS_IN_BTC = 100000000;
 
 export function isLocal() {
     // TODO: deal with local network addresses
     // alternatively: pass an environment variable from the Dockerfile to node.js, in the same way we pass BASE_URL for the Python API => no more guessing based on the URL
-    return window.location.href.indexOf("localhost") !== -1 || window.location.href.indexOf("127.0.0.1") !== -1 || window.location.href.indexOf("0.0.0.0") !== -1;
+    if (browser) {
+        return window.location.href.indexOf("localhost") !== -1 || window.location.href.indexOf("127.0.0.1") !== -1 || window.location.href.indexOf("0.0.0.0") !== -1;
+    }
+    return false;
 }
 
 export function isStaging() {
-    return window.location.href.indexOf("staging") !== -1;
+    if (browser) {
+        return window.location.href.indexOf("staging") !== -1;
+    }
+    return false;
+}
+
+export function getBaseApiUrl() {
+    let mode = import.meta.env.MODE;
+    if (mode === "development") {
+        return 'http://localhost:5000';
+    }
+    if (mode === "staging") {
+        return 'https://staging.plebeian.market';
+    }
+    return 'https://plebeian.market';
 }
 
 export function getBaseUrl() {

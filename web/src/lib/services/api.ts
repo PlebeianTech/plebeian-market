@@ -5,12 +5,13 @@ import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
 import { isLocal, isStaging } from "$lib/utils";
+import { browser } from "$app/env";
 
 export class ErrorHandler {
     setError: boolean;
     onError: () => void;
 
-    public constructor(setError: boolean = true, onError: () => void = () => {}) {
+    public constructor(setError: boolean = true, onError: () => void = () => { }) {
         this.setError = setError;
         this.onError = onError;
     }
@@ -41,7 +42,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
     if (json) {
         headers['Content-Type'] = 'application/json';
     }
-    var fetchOptions = {method, headers};
+    var fetchOptions = { method, headers };
     if (json) {
         fetchOptions['body'] = json;
     }
@@ -51,7 +52,9 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
                 if (tokenValue) {
                     console.log("Error 401: Unauthorized. Deleting the token.");
                     token.set(null);
-                    localStorage.removeItem('token');
+                    if (browser) {
+                        localStorage.removeItem('token');                                                                                                                                                                                                                                                                                                                                                               
+                    }
                     goto("/login");
                 }
             } else {
@@ -61,7 +64,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
     );
 }
 
-export interface ILoader {
+export interface ILoader {                                                                                                                                                                         
     endpoint: string;
     responseField: string;
     fromJson: (any) => IEntity;
@@ -120,9 +123,9 @@ export function getLogin(k1, initialResponseCB: (response: GetLoginInitialRespon
                 response.json().then(
                     data => {
                         if (data.success) {
-                            successResponseCB({token: data.token, user: userFromJson(data.user)});
+                            successResponseCB({ token: data.token, user: userFromJson(data.user) });
                         } else if (data.k1) {
-                            initialResponseCB({k1: data.k1, lnurl: data.lnurl, qr: data.qr});
+                            initialResponseCB({ k1: data.k1, lnurl: data.lnurl, qr: data.qr });
                         } else {
                             waitResponseCB();
                         }
@@ -134,13 +137,13 @@ export function getLogin(k1, initialResponseCB: (response: GetLoginInitialRespon
 
 export function getFeatured(loader: ILoader, successCB: (items: any[]) => void) {
     fetchAPI(`/${loader.endpoint}/featured`, 'GET', null, null,
-            response => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        successCB(data[loader.responseField].map(loader.fromJson));
-                    });
-                }
-            });
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(data[loader.responseField].map(loader.fromJson));
+                });
+            }
+        });
 }
 
 export function getProfile(tokenValue, nym: string, successCB: (User) => void, errorHandler = new ErrorHandler(false)) {
@@ -156,7 +159,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: { twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string }, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -201,7 +204,7 @@ export function getUserNotifications(tokenValue, successCB: (notifications: User
 
 export function putUserNotifications(tokenValue, notifications: PostUserNotification[], successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/users/me/notifications", 'PUT', tokenValue,
-        JSON.stringify({'notifications': notifications.map(n => n.toJson())}),
+        JSON.stringify({ 'notifications': notifications.map(n => n.toJson()) }),
         response => {
             if (response.status === 200) {
                 response.json().then(successCB);
@@ -237,7 +240,7 @@ export function getItem(loader: ILoader, tokenValue, key, successCB: (item) => v
 }
 
 export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean, successCB: (message: string) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}/follow`, 'PUT', tokenValue, JSON.stringify({follow}),
+    fetchAPI(`/auctions/${auctionKey}/follow`, 'PUT', tokenValue, JSON.stringify({ follow }),
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(data.message); });
@@ -248,7 +251,7 @@ export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean
 }
 
 export function putStartTwitter(tokenValue, endpoint, key, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}/${key}/start`, 'PUT', tokenValue, JSON.stringify({twitter: true}),
+    fetchAPI(`/${endpoint}/${key}/start`, 'PUT', tokenValue, JSON.stringify({ twitter: true }),
         response => {
             if (response.status === 200) {
                 successCB();
@@ -265,12 +268,12 @@ export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void)
             if (response.status === 200) {
                 successCB();
             }
-    });
+        });
 }
 
 export function hideAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}`, 'PUT', tokenValue,
-        JSON.stringify({"is_hidden": true}),
+        JSON.stringify({ "is_hidden": true }),
         response => {
             if (response.status === 200) {
                 successCB();
@@ -282,7 +285,7 @@ export function hideAuction(tokenValue, auctionKey, successCB: () => void, error
 
 export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr, messages: string[]) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
-        JSON.stringify({amount}),
+        JSON.stringify({ amount }),
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(data.payment_request, data.qr, data.messages); });

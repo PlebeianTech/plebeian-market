@@ -5,6 +5,7 @@
     import { getProfile } from "../services/api";
     import { token, user, BTC2USD } from "../stores";
     import { isLocal, isStaging, getBaseUrl, getEnvironmentInfo } from "../utils";
+    import { browser } from "$app/env";
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -14,12 +15,20 @@
     let modal : Modal | null;
     let modalVisible = false;
 
-    let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let prefersDark = browser && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector('html');
         let toggle = <HTMLInputElement>document.getElementById('theme-toggle');
         html.dataset.theme = toggle.checked ? 'night' : 'light';
+    }
+
+    function logout() {
+        token.set(null);
+        if ( browser ) {
+            localStorage.removeItem('token');
+        }
+        goto("/");
     }
 
     function showModal(content: any, hasHide: boolean, onHide: (saved: boolean) => void = (_) => { }) {
@@ -154,7 +163,7 @@
                         <li><a href="/sales/">My sales</a></li>
                         <li><a href="/settings">Settings</a></li>
                         <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
-                        <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }} class="modal-button cursor-pointer">Logout</a></li>
+                        <li><a href={null} on:click|preventDefault={() => { logout }} class="modal-button cursor-pointer">Logout</a></li>
                     </ul>
                 </div>
             {/if}
