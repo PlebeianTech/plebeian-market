@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount } from 'svelte';
     import { putStartTwitter, getItem, deleteEntity, ErrorHandler } from "$lib/services/api";
     import { token, user, Info } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
@@ -20,6 +20,8 @@
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
     $: url = item ? `${window.location.protocol}//${window.location.host}/${item.endpoint}/${item.key}` : "";
+
+    $: hasXpub = ($user && $user.xpub !== null) || (item.campaign_name !== null);
 
     let itemTweeted;
 
@@ -101,7 +103,16 @@
                             Create a tweet!
                         {/if}
                     {:else}
-                        Start your sale
+                        {#if hasXpub}
+                            Start your sale
+                        {:else}
+                            <div class="alert alert-error shadow-lg">
+                                <div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span>Please <a href="/settings#page=1&onsave=mystall" class="link">set your XPUB</a> before you continue!</span>
+                                </div>
+                            </div>
+                        {/if}
                     {/if}
                 </p>
                 <div class="pt-5 mb-5 w-full flex items-center justify-center rounded">
@@ -114,7 +125,7 @@
                             {/if}
                         </li>
                         <li class="step" class:lg:mb-5={!item.started} class:step-primary={itemTweeted || item.started}>
-                            {#if itemTweeted && !item.started && !starting}
+                            {#if itemTweeted && !item.started && !starting && hasXpub}
                                 <div class="glowbutton glowbutton-start ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}></div>
                             {:else}
                                 <button class="btn btn-disabled mx-2">Start</button>
