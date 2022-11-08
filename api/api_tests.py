@@ -658,12 +658,12 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         # can't use the same Twitter username
-        code, response = self.update_user(token_2, twitter_username='username1')
+        code, response = self.update_user(token_2, twitter_username='username1', expect_success=False)
         self.assertEqual(code, 400)
         self.assertIn("already registered", response['message'])
 
         # can't set the same email
-        code, response = self.update_user(token_2, email="goodemail@plebeian.market")
+        code, response = self.update_user(token_2, email="goodemail@plebeian.market", expect_success=False)
         self.assertEqual(code, 400)
         self.assertIn("already registered", response['message'])
 
