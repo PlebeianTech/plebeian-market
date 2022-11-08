@@ -86,7 +86,10 @@
         } else {
             onLogin = (_: User | null) => {
                 onLogin = null;
-                setCurrent(getNewItem())
+                setCurrent(getNewItem());
+                if (isCampaignStall) {
+                    localStorage.setItem('initial-login-campaign', "1");
+                }
             };
         }
     }
