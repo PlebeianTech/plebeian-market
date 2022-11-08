@@ -23,8 +23,10 @@
     let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
-    function onStallSaved() {
-        if ($user && $page.url.href.endsWith("#onsave=mystall")) {
+    let params = {};
+
+    function onSaved() {
+        if ($user && params['onsave'] === 'mystall') {
             goto(`/stall/${$user.nym}`);
         }
     }
@@ -32,6 +34,18 @@
     onMount(async () => {
         if (browser) {
             localStorage.removeItem('initial-login-buyer'); // once the user opened settings, we don't want to pop up the verification anymore
+        }
+
+        let parts = $page.url.href.split("#");
+        if (parts.length === 2) {
+            for (let kv of parts[1].split("&")) {
+                let [k, v] = kv.split("=");
+                params[k] = v;
+            }
+        }
+
+        if (params['page']) {
+            currentPage = pages[parseInt(params['page'])];
         }
     });
 </script>
@@ -48,9 +62,9 @@
         <div class="md:grow mx-10">
             <div class="md:w-1/2">
                 {#if currentPage === null || currentPage === STALL_PAGE}
-                    <Stall onSave={onStallSaved} />
+                    <Stall onSave={onSaved} />
                 {:else if currentPage === WALLET_PAGE}
-                    <XPUB />
+                    <XPUB onSave={onSaved} />
                 {:else if currentPage === TWITTER_PAGE}
                     <TwitterUsername />
                     {#if !$user.twitterUsernameVerified}
