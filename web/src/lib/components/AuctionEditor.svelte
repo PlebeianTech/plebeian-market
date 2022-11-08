@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import type { IEntity } from "$lib/types/base";
     import type { Auction } from "$lib/types/auction";
     import { Category } from "$lib/types/item";
@@ -14,8 +14,13 @@
     export let onSave = () => {};
     export let onCancel = () => {};
 
-    $: nym = $user ? $user.nym : "";
-    $: auction.title = auction.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
+    function setTitle(user) {
+        if (user && user.nym && auction && auction.category === Category.Time) {
+            auction.title = `1 hour one-to-one call with ${user.nym} AMA`;
+        }
+    }
+
+    onDestroy(user.subscribe(setTitle));
 
     let duration = "";
     let durationMultiplier = "1";
@@ -46,6 +51,7 @@
     }
 
     onMount(async () => {
+        setTitle($user);
         customDuration();
     });
 </script>

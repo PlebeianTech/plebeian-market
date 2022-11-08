@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onDestroy, onMount } from 'svelte';
     import { user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Category } from "$lib/types/item";
@@ -12,8 +13,17 @@
     export let onSave = () => {};
     export let onCancel = () => {};
 
-    $: nym = $user ? $user.nym : "";
-    $: listing.title = listing.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
+    function setTitle(user) {
+        if (user && user.nym && listing && listing.category === Category.Time) {
+            listing.title = `1 hour one-to-one call with ${user.nym} AMA`;
+        }
+    }
+
+    onDestroy(user.subscribe(setTitle));
+
+    onMount(async () => {
+        setTitle($user);
+    });
 </script>
 
 <div class="w-full flex justify-center items-center">
