@@ -94,6 +94,7 @@
             owner={campaign.owner}
             title={campaign.name} description={campaign.description}
             onEdit={campaign.is_mine ? (() => editing = true) : null}
+            isCampaignStall={true}
             showItemsOwner={true} showItemsCampaign={false}
             canAddItems={true}>
             <div slot="extra-description" class="mt-4">

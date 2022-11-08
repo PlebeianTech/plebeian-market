@@ -22,6 +22,7 @@
     export let onEdit: (() => void) | null = null;
 
     export let isOwnStall = false;
+    export let isCampaignStall = false;
 
     export let showItemsOwner: boolean;
     export let showItemsCampaign: boolean;
@@ -170,7 +171,9 @@
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
                         <div class="mx-auto my-10 glowbutton glowbutton-auction" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}></div>
-                        <div class="mx-auto my-10 glowbutton glowbutton-auction-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeAuction())}></div>
+                        {#if isCampaignStall}
+                            <div class="mx-auto my-10 glowbutton glowbutton-auction-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeAuction())}></div>
+                        {/if}
                     </div>
                 </ListView>
             {/if}
@@ -210,7 +213,9 @@
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
                         <div class="mx-auto my-10 glowbutton glowbutton-listing" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}></div>
-                        <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeListing())}></div>
+                        {#if isCampaignStall}
+                            <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeListing())}></div>
+                        {/if}
                     </div>
                 </ListView>
             {/if}
