@@ -115,7 +115,7 @@ class User(XpubMixin, db.Model):
     def is_moderator(self):
         return (self.id in app.config['MODERATOR_USER_IDS']) or ('ALL' in app.config['MODERATOR_USER_IDS'])
 
-    contribution_percent = db.Column(db.Float, nullable=True)
+    contribution_percent = db.Column(db.Float, nullable=True, default=5.0)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')

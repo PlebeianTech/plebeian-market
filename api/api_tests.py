@@ -80,7 +80,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         app.logger.info(f"Created user: ID={response['user']['id']}")
         self.assertIsNone(response['user']['twitter_username'])
-        self.assertIsNone(response['user']['contribution_percent'])
+        self.assertEqual(response['user']['contribution_percent'], 5.0)
 
         self.update_user(token, **kwargs)
 
@@ -560,7 +560,6 @@ class TestApi(unittest.TestCase):
         self.assertIn('token', response)
         self.assertIn('user', response)
         self.assertIsNone(response['user']['twitter_username'])
-        self.assertIsNone(response['user']['contribution_percent'])
 
         token_1 = response['token']
 
