@@ -214,12 +214,18 @@ export function putUserNotifications(tokenValue, notifications: PostUserNotifica
         });
 }
 
-export function putVerifyTwitter(tokenValue, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/users/me/verify-twitter", 'PUT', tokenValue,
-        JSON.stringify({}),
+export function putVerifyTwitter(tokenValue, resend: boolean | undefined, phrase: string | undefined, successCB: () => void, errorHandler = new ErrorHandler()) {
+    let payload = {};
+    if (resend) {
+        payload['resend'] = true;
+    } else {
+        payload['phrase'] = phrase;
+    }
+    fetchAPI("/users/me/verify/twitter", 'PUT', tokenValue,
+        JSON.stringify(payload),
         response => {
             if (response.status === 200) {
-                response.json().then(data => {
+                response.json().then(_ => {
                     successCB();
                 });
             } else {
