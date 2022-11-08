@@ -2,15 +2,13 @@
     import { onDestroy, onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { getValue } from 'btc2fiat';
-    import { getProfile } from "../services/api";
-    import { token, user, BTC2USD } from "../stores";
-    import { isLocal, isStaging, getBaseUrl, getEnvironmentInfo } from "../utils";
+    import { getProfile } from "$lib/services/api";
+    import { token, user, BTC2USD } from "$lib/stores";
+    import { isLocal, isStaging, getBaseUrl, getEnvironmentInfo } from "$lib/utils";
     import { browser } from "$app/env";
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
-    import V4V from "$lib/components/settings/V4V.svelte";
-    import XPUB from "$lib/components/settings/XPUB.svelte";
 
     let modal : Modal | null;
     let modalVisible = false;
@@ -98,15 +96,6 @@
                             goto("/");
                         }
                     });
-            } else if (u.hasItems && u.contributionPercent === null) {
-                showModal(V4V, false,
-                    (_) => {
-                        if ($user && $user.xpub === null && $user.hasOwnItems) {
-                            showModal(XPUB, true);
-                        }
-                    });
-            } else if (u.hasOwnItems && u.xpub === null) {
-                showModal(XPUB, true);
             }
         });
     onDestroy(userUnsubscribe);
