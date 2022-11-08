@@ -13,7 +13,7 @@
     export let onCancel = () => {};
 
     $: nym = $user ? $user.nym : "";
-//    $: listing.title = listing.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
+    $: listing.title = listing.category === Category.Time ? `1 hour one-to-one call with ${nym} AMA` : "";
 </script>
 
 <div class="w-full flex justify-center items-center">
