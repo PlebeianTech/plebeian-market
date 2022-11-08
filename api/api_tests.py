@@ -577,16 +577,14 @@ class TestApi(unittest.TestCase):
         self.assertTrue(response['user']['is_moderator']) # because this is the first user created, so it has the ID=1
 
         # set user details
-        self.update_user(token_1, twitter_username='mock_username', contribution_percent=1)
+        self.update_user(token_1, twitter_username='username1', contribution_percent=1)
 
         # check user details again
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'mock_username')
+        self.assertEqual(response['user']['twitter_username'], 'username1')
         self.assertFalse(response['user']['twitter_username_verified'])
-        self.assertIn("twitter.com", response['user']['twitter_username_verification_tweet'])
-        self.assertIn("/status/", response['user']['twitter_username_verification_tweet'])
         self.assertIn("/mock-s3-files/", response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_items'], False)
@@ -594,41 +592,40 @@ class TestApi(unittest.TestCase):
 
         code, response = self.update_user(token_1, False, email="brokenemail")
         self.assertEqual(code, 400)
-        self.assertIn("invalid", response['message'])
+        self.assertIn("not valid", response['message'])
 
         code, response = self.update_user(token_1, False, email="brokenemail@plebinexistingdomain.com")
         self.assertEqual(code, 400)
-        self.assertIn("invalid", response['message'])
+        self.assertIn("not valid", response['message']) # inexisting domain
 
         _, response = self.update_user(token_1, email="goodemail@plebeian.market")
         self.assertEqual(response['user']['email'], "goodemail@plebeian.market")
 
         # try to verify the Twitter username
-        # but will fail because mock_username didn't like the tweet according to MockTwitter
-        code, response = self.put("/api/users/me/verify-twitter", {},
+        code, response = self.put("/api/users/me/verify/twitter",
+            {'phrase': "i hate you"},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
-
-        # set user details again (a user that "liked" the tweet)
-        self.update_user(token_1, twitter_username='mock_username_with_like', contribution_percent=1.5)
 
         # check user details (again)
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'mock_username_with_like')
+        self.assertEqual(response['user']['twitter_username'], 'username1')
         self.assertFalse(response['user']['twitter_username_verified'])
-        self.assertIn("twitter.com", response['user']['twitter_username_verification_tweet'])
-        self.assertIn("/status/", response['user']['twitter_username_verification_tweet'])
-        self.assertIn("/mock-s3-files/", response['user']['profile_image_url'])
-        self.assertEqual(response['user']['contribution_percent'], 1.5)
-        self.assertEqual(response['user']['has_items'], False)
-        self.assertEqual(response['user']['has_own_items'], False)
 
         # verify Twitter for good now
-        code, response = self.put("/api/users/me/verify-twitter", {},
+        code, response = self.put("/api/users/me/verify/twitter",
+            {'phrase': "i am ME"},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
+
+        # check user details (yet again)
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['twitter_username'], 'username1')
+        self.assertTrue(response['user']['twitter_username_verified'])
 
         # check user notifications
         code, response = self.get("/api/users/me/notifications",
@@ -656,15 +653,31 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(k1, k1_2)
         self.assertNotEqual(token_1, token_2)
 
-        # set user details (to a username that did *not* like the "pinned tweet")
-        self.update_user(token_2, twitter_username='mock_username')
+        # set user details
+        code, response = self.update_user(token_2, twitter_username='username2')
+        self.assertEqual(code, 200)
+
+        # can't use the same Twitter username
+        code, response = self.update_user(token_2, twitter_username='username1', expect_success=False)
+        self.assertEqual(code, 400)
+        self.assertIn("already registered", response['message'])
+
+        # can't set the same email
+        code, response = self.update_user(token_2, email="goodemail@plebeian.market", expect_success=False)
+        self.assertEqual(code, 400)
+        self.assertIn("already registered", response['message'])
+
+        # ... but can set another email
+        code, response = self.update_user(token_2, email="goodemail2@plebeian.market")
+        self.assertEqual(code, 200)
 
         # 2nd user is not a moderator!
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'mock_username')
+        self.assertEqual(response['user']['twitter_username'], 'username2')
         self.assertFalse(response['user']['twitter_username_verified'])
+        self.assertEqual(response['user']['email'], "goodemail2@plebeian.market")
         self.assertIsNotNone(response['user']['contribution_percent'])
         self.assertIsNone(response['user'].get('is_moderator'))
 

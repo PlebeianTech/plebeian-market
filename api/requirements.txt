@@ -1,3 +1,4 @@
+bip39gen
 bleach
 btc2fiat
 boto3

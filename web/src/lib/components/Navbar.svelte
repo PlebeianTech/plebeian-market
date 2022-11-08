@@ -69,7 +69,7 @@
                 showModal(TwitterUsername, true,
                     (saved) => {
                         if (saved) {
-                            if ($user && !$user.twitterUsernameVerified && $user.twitterUsernameVerificationTweet !== null) {
+                            if ($user && !$user.twitterUsernameVerified) {
                                 if (localStorage.getItem('initial-login-buyer') === "1") {
                                     /*
                                         NB: the only case where we want to automatically show the verification modal

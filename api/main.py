@@ -564,6 +564,9 @@ class MockTwitter:
     def __init__(self, **__):
         pass
 
+    def get_verification_phrase(self, user):
+        return "i am me"
+
     def get_user(self, username, banner_only=False):
         if app.config['ENV'] == 'test':
             # hammer staging rather than picsum when running tests
@@ -578,10 +581,6 @@ class MockTwitter:
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
             'created_at': datetime.now() - timedelta(days=(app.config['TWITTER_USER_MIN_AGE_DAYS'] + 1)),
         }
-
-    def get_tweet_likes(self, tweet_id):
-        assert tweet_id == "MOCK_PINNED_TWEET" # this assertion might go away later if we have other use cases for this method
-        return ['mock_username_with_like']
 
     def get_sale_tweets(self, user_id, entity_endpoint):
         if not user_id.startswith('MOCK_USER'):
@@ -603,6 +602,7 @@ class MockTwitter:
         }]
 
     def send_dm(self, user_id, body):
+        app.logger.info(f"Twitter DM: {body}!")
         # NB: we are not actually testing that sending Twitter DMs works,
         # but we are testing the notifications mechanism - so assume the DM went through
         return True
@@ -613,6 +613,9 @@ class Twitter:
 
     def __init__(self, api_key, api_key_secret, access_token, access_token_secret):
         self.session = OAuth1Session(api_key, api_key_secret, access_token, access_token_secret)
+
+    def get_verification_phrase(self, user):
+        return user.twitter_verification_phrase
 
     def get(self, path, params=None):
         if params is None:
@@ -662,20 +665,6 @@ class Twitter:
         twitter_user['profile_banner_url'] = profile_banner_url
 
         return twitter_user
-
-    def get_tweet_likes(self, tweet_id, next_token=None):
-        params = {'user.fields': "username"}
-        if next_token:
-            params['pagination_token'] = next_token
-        response_json = self.get(f"/2/tweets/{tweet_id}/liking_users", params=params)
-
-        if not response_json or response_json.get('errors'):
-            return []
-
-        next_token = response_json.get('meta', {}).get('next_token')
-        next_likes = self.get_tweet_likes(tweet_id, next_token) if next_token else []
-
-        return [u['username'].lower() for u in response_json.get('data', [])] + next_likes
 
     def get_sale_tweets(self, user_id, entity_endpoint):
         response_json = self.get(f"/2/users/{user_id}/tweets",
