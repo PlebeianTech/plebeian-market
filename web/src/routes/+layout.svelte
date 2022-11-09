@@ -1,13 +1,11 @@
 <script lang="ts">
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { toasts, ToastContainer }  from "svelte-toasts";
     import "../app.css";
     import { token, Info, Error } from "../lib/stores";
-    import Navbar from "../lib/components/Navbar.svelte";
-    import Footer from "../lib/components/Footer.svelte";
-import TelegramFixedButton from '$lib/components/TelegramFixedButton.svelte';
-
-    token.set(localStorage.getItem('token'));
+    import Navbar from "$lib/components/Navbar.svelte";
+    import Footer from "$lib/components/Footer.svelte";
+    import TelegramFixedButton from "$lib/components/TelegramFixedButton.svelte";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -34,6 +32,10 @@ import TelegramFixedButton from '$lib/components/TelegramFixedButton.svelte';
         }
 	});
 	onDestroy(errorUnsubscribe);
+
+    onMount(async () => {
+        token.set(localStorage.getItem('token'));
+    });
 </script>
 
 <div class="h-screen">
@@ -43,6 +45,7 @@ import TelegramFixedButton from '$lib/components/TelegramFixedButton.svelte';
     </div>
     <TelegramFixedButton />
     <Footer />
+
     <ToastContainer placement="bottom-right" let:data={data}>
         <div class:alert-error={data.type === 'error'} class:alert-info={data.type === 'info'} class="alert shadow-lg">
             <div>

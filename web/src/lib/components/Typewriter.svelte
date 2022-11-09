@@ -13,7 +13,7 @@
     <p class="mt-2 md:mt-0 text-xl text-center lg:text-3xl md:text-right mr-0 md:mr-1">Sell anything...</p>
 </span>
 <span class="flex justify-center">
-    <Typewriter interval={[50, 60, 95, 80]} cursor='255,255,255,30' loop>
+    <Typewriter interval={60} cursor={true} mode="loop">
         <span class="text-neon-pink justify-center text-xl lg:text-3xl">
             <p>1 hour of your time</p>
             <p>Bitcoin art</p>

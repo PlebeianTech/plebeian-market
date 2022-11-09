@@ -19,7 +19,7 @@
     export let owner: IAccount | null;
     export let title: string;
     export let description: string | null;
-    export let onEdit: (() => void) | null = null;
+    export let editUrl: string | null = null;
 
     export let isOwnStall = false;
     export let isCampaignStall = false;
@@ -141,8 +141,8 @@
             </div>
         </div>
     </div>
-    {#if onEdit}
-        <a href={null} on:click={onEdit} class="btn btn-xs float-right mt-2">Edit</a>
+    {#if editUrl}
+        <a href={editUrl} class="btn btn-xs float-right mt-2">Edit</a>
     {/if}
     {#if description}
         <div class="markdown-container ml-0 md:ml-12 mt-10">
