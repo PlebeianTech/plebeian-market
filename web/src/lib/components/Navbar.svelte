@@ -4,7 +4,7 @@
     import { getValue } from 'btc2fiat';
     import { getProfile } from "$lib/services/api";
     import { token, user, BTC2USD } from "$lib/stores";
-    import { isLocal, isStaging, getBaseUrl, getEnvironmentInfo } from "$lib/utils";
+    import { isProduction, getBaseUrl, getEnvironmentInfo } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -102,7 +102,7 @@
             <a href="/about" class="btn btn-ghost normal-case text-xl">About</a>
             <a href="/faq" class="btn btn-ghost normal-case text-xl">FAQ</a>
         </div>
-        {#if isLocal() || isStaging() }
+        {#if ! isProduction() }
             <div class="inline badge badge-primary ml-2">{getEnvironmentInfo()}</div>
         {/if}
     </div>

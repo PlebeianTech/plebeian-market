@@ -24,6 +24,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 dev",
     "build": "vite build",
+    "build-staging": "vite build --mode staging",
     "package": "svelte-kit package",
     "preview": "svelte-kit preview",
     "prepare": "svelte-kit sync",

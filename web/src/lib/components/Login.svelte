@@ -4,7 +4,7 @@
     import { token } from "../stores";
     import Loading from "./Loading.svelte";
     import QR from "./QR.svelte";
-    import { isLocal } from "../utils";
+    import { isDevelopment } from "../utils";
     import type { User } from "../types/user";
 
     export let onLogin = (user: User | null) => {};
@@ -43,7 +43,7 @@
 <div class="pt-10 flex justify-center items-center">
     {#if qr}
         <div>
-            {#if isLocal()}
+            {#if isDevelopment()}
                 <div class="alert alert-error shadow-lg mb-4">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
