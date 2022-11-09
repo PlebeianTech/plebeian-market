@@ -8,6 +8,10 @@ export function isStaging() {
     return import.meta.env.MODE === 'staging';
 }
 
+export function isProduction() {
+    return import.meta.env.MODE === 'production';
+}
+
 export function getBaseUrl() {
     return import.meta.env.VITE_BASE_URL;
 }
