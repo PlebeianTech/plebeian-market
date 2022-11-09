@@ -1,6 +1,6 @@
 export let SATS_IN_BTC = 100000000;
 
-export function isLocal() {
+export function isDevelopment() {
     return import.meta.env.MODE === 'development';
 }
 
