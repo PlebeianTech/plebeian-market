@@ -1,6 +1,12 @@
 version: '3.6'
 
 services:
+  web:
+    build:
+      context: ./
+      dockerfile: ./web/Dockerfile
+      args:
+        - BUILD_MODE=
   api:
     env_file: .env.prod
     environment:
