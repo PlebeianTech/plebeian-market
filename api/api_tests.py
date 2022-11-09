@@ -21,6 +21,8 @@ ADDRESSES = ["1EfgV2Hr5CDjXPavHDpDMjmU33BA2veHy6", "12iNxzdF6KFZ14UyRTYCRuptxkKS
 CAMPAIGN_XPUB = "xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5WrxhntpcvqJKTVg96dUVL9P7hZ7Kcvqvd"
 CAMPAIGN_ADDRESSES = ["1FbrmmxQGH46x9BqXr5H4p2JK91PRpKkYE", "162cdnDPmqXkuu77PWWi9LugaXuyvsebmP", "1EFfsY9VzwC1RbrfU4xnNCyLfq9NzmeoSh"]
 
+ONE_DOLLAR_SATS = usd2sats(1, btc2fiat.get_value('kraken'))
+
 class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, json=None, headers=None, files=None):
         if files is None:
@@ -80,7 +82,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         app.logger.info(f"Created user: ID={response['user']['id']}")
         self.assertIsNone(response['user']['twitter_username'])
-        self.assertEqual(response['user']['contribution_percent'], 5.0)
+        self.assertIsNone(response['user']['contribution_percent'])
 
         self.update_user(token, **kwargs)
 
@@ -305,7 +307,7 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(address_for_campaign_auction, address_for_normal_auction)
 
     def test_listings(self):
-        _, token_1 = self.create_user(twitter_username='fixie', contribution_percent=1)
+        _, token_1 = self.create_user(twitter_username='fixie')
         _, token_2 = self.create_user(twitter_username='fixie_buyer')
 
         # GET listings to see there are none there
@@ -453,16 +455,30 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['sales']), 0)
 
         # buying an item
+        # NB: the seller didn't set a contribution yet, so the default is being used
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        one_dollar_sats = usd2sats(1, btc2fiat.get_value('kraken'))
-        ten_cent_sats = one_dollar_sats / 10
-        ten_dollars_sats = one_dollar_sats * 10
+        fifty_cent_sats = ONE_DOLLAR_SATS / 2
+        ten_dollars_sats = ONE_DOLLAR_SATS * 10
+        self.assertAlmostEqual(response['sale']['contribution_amount'], fifty_cent_sats, delta=fifty_cent_sats/100)
+        self.assertIn('contribution_payment_request', response['sale'])
+        self.assertIn('contribution_payment_qr', response['sale'])
+        self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats - fifty_cent_sats, delta=((ten_dollars_sats - fifty_cent_sats) / 100))
+        self.assertIn(response['sale']['address'], ADDRESSES)
+
+        self.update_user(token_1, contribution_percent=1.0)
+
+        # buying an item again, after the seller has changed the contribution
+        code, response = self.put(f"/api/listings/{listing_key}/buy", {},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        ten_cent_sats = ONE_DOLLAR_SATS / 10
+        ten_dollars_sats = ONE_DOLLAR_SATS * 10
         self.assertAlmostEqual(response['sale']['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
         self.assertIn('contribution_payment_request', response['sale'])
         self.assertIn('contribution_payment_qr', response['sale'])
-        self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats-ten_cent_sats, delta=(ten_dollars_sats-ten_cent_sats)/100)
+        self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats - ten_cent_sats, delta=((ten_dollars_sats - ten_cent_sats) / 100))
         self.assertIn(response['sale']['address'], ADDRESSES)
 
         code, response = self.get(f"/api/listings/{listing_key}", {},
@@ -477,23 +493,26 @@ class TestApi(unittest.TestCase):
 
         time.sleep(5)
 
-        # now the available quantity is one less, and we have a settled sale!
+        # now the available quantity is two less, and we have two settled sales!
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(response['listing']['available_quantity'], 9)
-        self.assertIsNotNone(response['listing']['sales'][0]['contribution_settled_at'])
-        self.assertIsNotNone(response['listing']['sales'][0]['settled_at'])
-        self.assertTrue(response['listing']['sales'][0]['settled_at'] > response['listing']['sales'][0]['contribution_settled_at'])
-        self.assertTrue(response['listing']['sales'][0]['txid'].startswith('MOCK_'))
-        self.assertIsNone(response['listing']['sales'][0]['expired_at'])
+        self.assertEqual(response['listing']['available_quantity'], 8)
+        self.assertEqual(len(response['listing']['sales']), 2)
+        for s in response['listing']['sales']:
+            self.assertIsNotNone(s['contribution_settled_at'])
+            self.assertIsNotNone(s['settled_at'])
+            self.assertTrue(s['settled_at'] > s['contribution_settled_at'])
+            self.assertTrue(s['txid'].startswith('MOCK_'))
+            self.assertIsNone(s['expired_at'])
 
-        # the seller has a sale
+        # the seller has two sales
         code, response = self.get("/api/users/me/sales", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 1)
+        self.assertEqual(len(response['sales']), 2)
         self.assertIn(response['sales'][0]['address'], ADDRESSES)
+        self.assertIn(response['sales'][1]['address'], ADDRESSES)
 
         # the buyer has no sales
         code, response = self.get("/api/users/me/sales", {},
@@ -747,7 +766,7 @@ class TestApi(unittest.TestCase):
 
     def test_auctions(self):
         _, token_1 = self.create_user(twitter_username='auction_user_1', contribution_percent=1, xpub=XPUB)
-        _, token_2 = self.create_user(twitter_username='auction_user_2', contribution_percent=1, xpub=XPUB)
+        _, token_2 = self.create_user(twitter_username='auction_user_2', xpub=XPUB)
 
         # GET user auctions if not logged in is OK
         code, response = self.get("/api/users/auction_user_1/auctions")

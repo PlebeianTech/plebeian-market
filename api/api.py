@@ -551,9 +551,6 @@ def start(user, key, cls, singular, plural):
     if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized"}), 401
 
-    if user.contribution_percent is None:
-        return jsonify({'message': "User did not set a contribution."}), 400
-
     if not entity.campaign and not user.xpub:
         return jsonify({'message': "User did not set an XPUB."}), 400
 

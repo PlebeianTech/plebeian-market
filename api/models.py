@@ -115,7 +115,7 @@ class User(XpubMixin, db.Model):
     def is_moderator(self):
         return (self.id in app.config['MODERATOR_USER_IDS']) or ('ALL' in app.config['MODERATOR_USER_IDS'])
 
-    contribution_percent = db.Column(db.Float, nullable=True, default=5.0)
+    contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')
@@ -143,7 +143,8 @@ class User(XpubMixin, db.Model):
         return True
 
     def get_contribution_amount(self, for_amount):
-        contribution_amount = int(self.contribution_percent / 100 * for_amount)
+        contribution_percent = self.contribution_percent if self.contribution_percent is not None else app.config['CONTRIBUTION_PERCENT_DEFAULT']
+        contribution_amount = int(contribution_percent / 100 * for_amount)
         if contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
             contribution_amount = 0 # probably not worth the fees, at least in the next few years
         return contribution_amount

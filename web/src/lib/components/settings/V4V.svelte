@@ -8,7 +8,7 @@
 
     let contributionPercent;
 
-    const DEFAULT = 3.0;
+    const CONTRIBUTION_PERCENT_DEFAULT = 5.0; // NB: must be in sync with the value in config.py
 
     $: saveButtonActive = $user && !saving && contributionPercent !== $user.contributionPercent;
 
@@ -35,7 +35,7 @@
 
     onMount(async () => {
         if ($user) {
-            contributionPercent = $user.contributionPercent !== null ? $user.contributionPercent : DEFAULT;
+            contributionPercent = $user.contributionPercent !== null ? $user.contributionPercent : CONTRIBUTION_PERCENT_DEFAULT;
         }
     });
 </script>
