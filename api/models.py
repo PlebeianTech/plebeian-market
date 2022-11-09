@@ -701,7 +701,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         else:
             auction['media'] = [media.to_dict() for media in self.item.media]
 
-        if for_user == self.seller_id:
+        if for_user == self.owner_id:
             auction['reserve_bid'] = self.reserve_bid
 
         if for_user:
