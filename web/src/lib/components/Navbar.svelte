@@ -12,7 +12,7 @@
     let modal : Modal | null;
     let modalVisible = false;
 
-    let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let prefersDark = true;
 
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector('html');
@@ -42,6 +42,7 @@
     }
 
     onMount(async () => {
+        prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         if ($token) {
             fetchProfile($token);
         }

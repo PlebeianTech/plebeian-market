@@ -66,7 +66,7 @@
     Let's get the market started...
 </div>
 <div class="flex justify-center items-center">
-    <div class="glowbutton glowbutton-go mb-5" on:click={go}></div>
+    <div class="glowbutton glowbutton-go mb-5" on:click={go} on:keypress={go}></div>
 </div>
 <div class="grid grid-cols-1 w-full gap-4 md:grid-cols-2 lg:grid-cols-3">
     {#if auctions !== null}
