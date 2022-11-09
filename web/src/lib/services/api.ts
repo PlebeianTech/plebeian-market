@@ -4,7 +4,7 @@ import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
-import { isLocal, isStaging } from "$lib/utils";
+import { getApiBaseUrl } from "$lib/utils";
 import { browser } from "$app/env";
 
 export class ErrorHandler {
@@ -26,14 +26,7 @@ export class ErrorHandler {
 }
 
 function fetchAPI(path, method, tokenValue, json, checkResponse) {
-    var API_BASE;
-    if (isLocal()) {
-        API_BASE = "http://localhost:5000/api";
-    } else if (isStaging()) {
-        API_BASE = "https://staging.plebeian.market/api";
-    } else {
-        API_BASE = "https://plebeian.market/api";
-    }
+    var API_BASE = getApiBaseUrl() + '/api';
 
     var headers = {};
     if (tokenValue) {

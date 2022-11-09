@@ -4,7 +4,7 @@
     import type { Auction } from "$lib/types/auction";
     import { Category } from "$lib/types/item";
     import { user } from "$lib/stores";
-    import { isLocal, isStaging } from "$lib/utils";
+    import { isProduction } from "$lib/utils";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
     import ShippingEditor from "$lib/components/ShippingEditor.svelte";
@@ -24,12 +24,12 @@
 
     let duration = "";
     let durationMultiplier = "1";
-    $: durationOptions = isLocal() || isStaging()
-        ? [0.1, 1, 24]
-        : [1, 24, 2 * 24];
-    $: durationLabels = isLocal() || isStaging()
-        ? ["6 minutes", "1 hour", "1 day"]
-        : ["1 hour", "1 day", "2 days"];
+    $: durationOptions = isProduction()
+        ? [1, 24, 2 * 24]
+        : [0.1, 1, 24];
+    $: durationLabels = isProduction()
+        ? ["1 hour", "1 day", "2 days"]
+        : ["6 minutes", "1 hour", "1 day"];
 
     function twelveHours() {
         auction.duration_hours = 12;

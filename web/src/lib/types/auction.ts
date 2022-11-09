@@ -1,4 +1,4 @@
-import { isLocal, isStaging } from "$lib/utils";
+import { isProduction } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
 import { Category, type Item, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
@@ -29,7 +29,7 @@ export class Auction implements IEntity, Item {
     shipping_from: string = "";
     shipping_domestic_usd: number = 0;
     shipping_worldwide_usd: number = 0;
-    duration_hours: number = isLocal() || isStaging() ? 24 : 3 * 24;
+    duration_hours: number = isProduction() ? 3 * 24 : 24;
     start_date?: Date | null;
     started: boolean = false;
     end_date?: Date | null;

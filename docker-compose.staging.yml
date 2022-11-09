@@ -17,6 +17,8 @@ services:
     build:
       context: ./
       dockerfile: ./web/Dockerfile
+      args:
+        - BUILD_MODE=-staging
     depends_on:
       - api
     networks:
