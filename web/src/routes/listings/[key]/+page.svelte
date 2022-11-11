@@ -15,5 +15,9 @@
 </script>
 
 {#if data.itemKey !== ""}
-    <ItemView itemKey={data.itemKey} loader={{endpoint: 'listings', responseField: 'listing', fromJson}} />
+    <ItemView
+            itemKey={data.itemKey}
+            loader={{endpoint: 'listings', responseField: 'listing', fromJson}}
+            serverLoadedItem={fromJson(data.serverLoadedItem)}
+    />
 {/if}
