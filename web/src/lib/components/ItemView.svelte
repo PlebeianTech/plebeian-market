@@ -126,9 +126,9 @@
 </script>
 
 <MetaTags
-        title={serverLoadedItem?.title ?? "Plebeian Market item"}
-        description={serverLoadedItem?.description ?? "Self-sovereign marketplace built on Bitcoin and Lightning"}
-        openGraph={{
+    title={serverLoadedItem?.title ?? "Plebeian Market item"}
+    description={serverLoadedItem?.description ?? "Self-sovereign marketplace built on Bitcoin and Lightning"}
+    openGraph={{
         site_name: "Plebeian Market",
         type: 'website',
         url: $page.url.href,
@@ -136,7 +136,7 @@
         description: serverLoadedItem?.description ?? "Self-sovereign marketplace built on Bitcoin and Lightning",
         images: ogImages,
     }}
-        twitter={{
+    twitter={{
         site: "@PlebeianMarket",
         handle: "@PlebeianMarket",
         cardType: "summary_large_image",
