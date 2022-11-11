@@ -7,11 +7,13 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import Login from "$lib/components/Login.svelte";
-    import { user, Info } from "$lib/stores";
+    import { publish } from "$lib/services/api";
+    import { Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, TimeListing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, User } from "$lib/types/user";
+    import { Category } from '$lib/types/item';
 
     export let baseUrl: string;
 
@@ -45,7 +47,7 @@
     $: twitterUsername = owner ? owner.twitterUsername : null;
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
 
-    function onAuctionCreated() {
+    function onAuctionCreated(key: string, entity: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
             if (isOwnStall) {
@@ -53,10 +55,19 @@
             }
             return u;
         });
-        Info.set("Your auction will start when we verify your tweet!");
+        let auction = entity as Auction;
+        if (auction.category === Category.Time) {
+            publish($token, auction.endpoint, key, false,
+                () => {
+                    Info.set("Your auction has been published!");
+                    onForceReload();
+                });
+        } else {
+            Info.set("Your auction will start when we verify your tweet!");
+        }
     }
 
-    function onListingCreated() {
+    function onListingCreated(_: string, __: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
             if (isOwnStall) {

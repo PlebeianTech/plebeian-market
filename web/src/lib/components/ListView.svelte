@@ -24,7 +24,7 @@
 
     export let columns: string[] = [];
 
-    export let onCreated: () => void = () => { };
+    export let onCreated: (key: string, entity: IEntity) => void = () => { };
     export let onForceReload = () => {};
 
     let currentEntity: IEntity | undefined;
@@ -56,8 +56,8 @@
                 });
         } else {
             postEntity(postEndpoint, $token, currentEntity,
-                () => {
-                    onCreated();
+                (key) => {
+                    onCreated(key, currentEntity!);
                     fetchEntities(() => { currentEntity = undefined; });
                 });
         }

@@ -14,8 +14,10 @@
     export let onSave = () => {};
     export let onCancel = () => {};
 
+    $: isTimeAuction = auction.category === Category.Time;
+
     function setTitle(user) {
-        if (user && user.nym && auction && auction.category === Category.Time) {
+        if (user && user.nym && auction && isTimeAuction) {
             auction.title = `1 hour one-to-one call with ${user.nym} AMA`;
         }
     }
@@ -68,7 +70,7 @@
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered" />
                 </div>
                 <MarkdownDescriptionEditor bind:value={auction.description} placeholder={auction.descriptionPlaceholder} />
-                {#if auction.category !== Category.Time}
+                {#if !isTimeAuction}
                     <div class="flex mt-3">
                         <div class="form-control w-1/2 max-w-xs mr-1">
                             <label class="label" for="starting-bid">
@@ -92,7 +94,7 @@
                         </div>
                     </div>
                     {/if}
-                {#if auction.category !== Category.Time}
+                {#if !isTimeAuction}
                     <ShippingEditor
                         bind:shipping_from={auction.shipping_from}
                         bind:shipping_domestic_usd={auction.shipping_domestic_usd}
@@ -128,7 +130,7 @@
                     {#if !auction.validate()}
                         <button class="btn mt-1" disabled>Save</button>
                     {:else}
-                        <div class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
+                        <div class="glowbutton" class:glowbutton-save={!isTimeAuction} class:glowbutton-publish={isTimeAuction} on:click|preventDefault={onSave}></div>
                     {/if}
                 </div>
             </div>

@@ -25,7 +25,7 @@ export class ErrorHandler {
 }
 
 function fetchAPI(path, method, tokenValue, json, checkResponse) {
-    var API_BASE = getApiBaseUrl() + '/api';
+    var API_BASE = `${getApiBaseUrl()}api`;
 
     var headers = {};
     if (tokenValue) {
@@ -73,11 +73,13 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
         });
 }
 
-export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
+export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (key: string) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/${endpoint}`, 'POST', tokenValue, entity.toJson(),
         response => {
             if (response.status === 200) {
-                successCB();
+                response.json().then(data => {
+                    successCB(data.key);
+                });
             } else {
                 errorHandler.handle(response);
             }
@@ -246,8 +248,8 @@ export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean
         });
 }
 
-export function putStartTwitter(tokenValue, endpoint, key, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}/${key}/start`, 'PUT', tokenValue, JSON.stringify({twitter: true}),
+export function publish(tokenValue, endpoint, key, useTwitter: boolean, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${endpoint}/${key}/publish`, 'PUT', tokenValue, JSON.stringify({twitter: useTwitter}),
         response => {
             if (response.status === 200) {
                 successCB();

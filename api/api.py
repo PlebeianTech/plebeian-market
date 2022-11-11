@@ -358,7 +358,7 @@ def post_entity(user, cls, singular, has_item, campaign_key):
         db.session.add(user_auction)
         db.session.commit()
 
-    return jsonify({singular: entity.to_dict(for_user=user.id)})
+    return jsonify({'key': entity.key, singular: entity.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/auctions/featured',
     defaults={'cls': m.Auction, 'plural': 'auctions'},
@@ -537,10 +537,10 @@ def follow_auction(user, key):
 
     return jsonify({'message': message})
 
-@api_blueprint.route('/api/auctions/<key>/start',
+@api_blueprint.route('/api/auctions/<key>/publish',
     defaults={'cls': m.Auction, 'singular': 'auction', 'plural': 'auctions'},
     methods=['PUT'])
-@api_blueprint.route('/api/listings/<key>/start',
+@api_blueprint.route('/api/listings/<key>/publish',
     defaults={'cls': m.Listing, 'singular': 'listing', 'plural': 'listings'},
     methods=['PUT'])
 @user_required

@@ -112,6 +112,10 @@ body {
   content: 'Save';
 }
 
+.glowbutton-publish:after {
+  content: 'Publish';
+}
+
 .glowbutton-verify:after {
   content: 'Verify';
 }
