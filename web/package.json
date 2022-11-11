@@ -14,6 +14,7 @@
     "svelte": "3.x",
     "svelte-check": "2.x",
     "svelte-markdown": "0.x",
+    "svelte-meta-tags": "^2.6.3",
     "svelte-toasts": "1.x",
     "svelte-typewriter": "3.x",
     "tailwindcss": "3.x",

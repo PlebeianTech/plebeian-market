@@ -5,6 +5,7 @@ import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl } from "$lib/utils";
+import { browser } from '$app/environment';
 
 export class ErrorHandler {
     setError: boolean;
@@ -44,7 +45,9 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
                 if (tokenValue) {
                     console.log("Error 401: Unauthorized. Deleting the token.");
                     token.set(null);
-                    localStorage.removeItem('token');
+                    if (browser) {
+                        localStorage.removeItem('token');
+                    }
                     goto("/login");
                 }
             } else {
