@@ -227,9 +227,6 @@
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
                         <div class="mx-auto my-10 glowbutton glowbutton-listing" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}></div>
-                        {#if isCampaignStall}
-                            <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeListing())}></div>
-                        {/if}
                     </div>
                 </ListView>
             {/if}

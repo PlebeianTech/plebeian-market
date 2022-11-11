@@ -97,15 +97,11 @@ body {
 }
 
 .glowbutton-auction-time:after {
-  content: 'Auction time';
+  content: 'Auction my time';
 }
 
 .glowbutton-listing:after {
   content: 'Sell item';
-}
-
-.glowbutton-listing-time:after {
-  content: 'Sell time';
 }
 
 .glowbutton-save:after {
