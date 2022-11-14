@@ -28,6 +28,7 @@
 
 <div class="w-full flex justify-center items-center">
     <div class="card bg-base-300 w-full lg:p-4 rounded shadow-2xl mt-3">
+        <span class="btn btn-sm btn-circle absolute right-2 top-2" on:click={onCancel}>✕</span>
         <div class="card-body items-center">
             <h2 class="card-title text-2xl text-center">{#if listing.key}Edit listing{:else}New listing{/if}</h2>
             <form>
