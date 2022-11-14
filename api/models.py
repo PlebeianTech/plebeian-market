@@ -855,6 +855,8 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
                 validated[k] = int(d[k])
             except (ValueError, TypeError):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+            if validated[k] < 0:
+                raise ValidationError(f"{k.replace('_', ' ')} needs to be greater than zero.".capitalize())
         for k in ['price_usd']:
             if k not in d:
                 continue
