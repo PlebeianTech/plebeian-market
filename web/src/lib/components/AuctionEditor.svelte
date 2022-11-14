@@ -54,6 +54,9 @@
 
     onMount(async () => {
         setTitle($user);
+        if (isTimeAuction) {
+            auction.duration_hours = 48;
+        }
         customDuration();
     });
 </script>
@@ -63,7 +66,7 @@
         <span class="btn btn-sm btn-circle absolute right-2 top-2" on:click={onCancel}>✕</span>
         <div class="card-body items-center">
             <h2 class="card-title text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
-            <form>
+            <form class="w-full">
                 <div class="form-control w-full max-w-full">
                     <label class="label" for="title">
                         <span class="label-text">Title</span>
@@ -95,33 +98,35 @@
                         </div>
                     </div>
                     {/if}
-                {#if !isTimeAuction}
+                {#if !isTimeAuction} <!-- shipping -->
                     <ShippingEditor
                         bind:shipping_from={auction.shipping_from}
                         bind:shipping_domestic_usd={auction.shipping_domestic_usd}
                         bind:shipping_worldwide_usd={auction.shipping_worldwide_usd} />
-                {/if}
-                <div class="form-control mr-2 w-full">
-                    <label class="label" for="duration">
-                        <span class="label-text">Auction Duration</span>
-                    </label>
-                    <div class="flex flex-wrap">
-                        {#each durationOptions as duration, i}
-                            <button class:btn-outline={auction.duration_hours !== duration} class:btn-active={auction.duration_hours === duration} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = duration}>{durationLabels[i]}</button>
-                        {/each}
-                        <button class:btn-outline={durationOptions.indexOf(auction.duration_hours) !== -1} class:btn-active={durationOptions.indexOf(auction.duration_hours) == -1} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={twelveHours}>Custom</button>
-                        <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
-                        <div class:invisible={durationOptions.indexOf(auction.duration_hours) !== -1} class="flex mx-2 mt-2 w-2/4 flex-auto">
-                            <div class="form-control max-w-xs mr-1 w-1/4 flex-auto">
-                                <input bind:value={duration} on:change={customChanged} type="number" name="duration" class="input input-bordered w-full max-w-xs" />
+                {/if} <!-- /shipping -->
+                {#if !isTimeAuction} <!-- duration -->
+                    <div class="form-control mr-2 w-full">
+                        <label class="label" for="duration">
+                            <span class="label-text">Auction Duration</span>
+                        </label>
+                        <div class="flex flex-wrap">
+                            {#each durationOptions as duration, i}
+                                <button class:btn-outline={auction.duration_hours !== duration} class:btn-active={auction.duration_hours === duration} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={() => auction.duration_hours = duration}>{durationLabels[i]}</button>
+                            {/each}
+                            <button class:btn-outline={durationOptions.indexOf(auction.duration_hours) !== -1} class:btn-active={durationOptions.indexOf(auction.duration_hours) == -1} class="mx-2 mt-2 btn btn-accent btn-outline flex-auto" on:click|preventDefault={twelveHours}>Custom</button>
+                            <input type="hidden" name="duration-hours" bind:value={auction.duration_hours} />
+                            <div class:invisible={durationOptions.indexOf(auction.duration_hours) !== -1} class="flex mx-2 mt-2 w-2/4 flex-auto">
+                                <div class="form-control max-w-xs mr-1 w-1/4 flex-auto">
+                                    <input bind:value={duration} on:change={customChanged} type="number" name="duration" class="input input-bordered w-full max-w-xs" />
+                                </div>
+                                <select bind:value={durationMultiplier} on:change={customChanged} class="select select-bordered w-2/4 max-w-xs ml-1 flex-auto" name="duration-multiplier" id="duration-multiplier">
+                                    <option value="1">Hours</option>
+                                    <option value="24">Days</option>
+                                </select>
                             </div>
-                            <select bind:value={durationMultiplier} on:change={customChanged} class="select select-bordered w-2/4 max-w-xs ml-1 flex-auto" name="duration-multiplier" id="duration-multiplier">
-                                <option value="1">Hours</option>
-                                <option value="24">Days</option>
-                            </select>
                         </div>
                     </div>
-                </div>
+                {/if} <!-- /duration -->
             </form>
             <div class="w-full flex justify-center items-center mt-2">
                 <div class="w-1/2 flex justify-center items-center">

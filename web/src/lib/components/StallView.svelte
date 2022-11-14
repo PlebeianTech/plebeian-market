@@ -59,7 +59,7 @@
         if (auction.category === Category.Time) {
             publish($token, auction.endpoint, key, false,
                 () => {
-                    Info.set("Your auction has been published!");
+                    Info.set("Your auction is live!");
                     onForceReload();
                 });
         } else {
