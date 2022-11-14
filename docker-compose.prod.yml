@@ -6,7 +6,7 @@ services:
       context: ./
       dockerfile: ./web/Dockerfile
       args:
-        - BUILD_MODE=
+        - BUILD_MODE=-production
   api:
     env_file: .env.prod
     environment:
