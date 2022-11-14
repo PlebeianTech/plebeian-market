@@ -8,6 +8,8 @@
     import { Campaign, fromJson } from "$lib/types/campaign";
     import { getItem, ErrorHandler } from "$lib/services/api";
     import { token, user } from "$lib/stores";
+    import { MetaTags } from "svelte-meta-tags";
+    import { page } from "$app/stores";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -41,14 +43,42 @@
     });
 </script>
 
+{#if data.serverLoadedCampaign}
+<MetaTags
+        title={data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!"}
+        description={data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!"}
+        openGraph={{
+        site_name: "Plebeian Market",
+        type: "website",
+        url: $page.url.href,
+        title: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+        description: data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!",
+        images: [
+          {
+            url: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
+            alt: "My Stall picture"
+          }
+        ],
+    }}
+        twitter={{
+        site: "@PlebeianMarket",
+        handle: "@PlebeianMarket",
+        cardType: "summary_large_image",
+        image: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
+        imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+    }}
+/>
+{/if}
+
 {#if data.campaignKey === "" || data.campaignKey === null}
     {#if $user && $user.isModerator}
         <h3 class="text-xl">My campaigns</h3>
         <ListView
-            loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
-            postEndpoint="users/me/campaigns"
-            card={CampaignCard} editor={CampaignEditor}
-            style={ListViewStyle.List}>
+                loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
+                postEndpoint="users/me/campaigns"
+                card={CampaignCard}
+                editor={CampaignEditor}
+                style={ListViewStyle.List}>
             <div slot="new-entity" let:setCurrent={setCurrent}>
                 <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => setCurrent(new Campaign())}></div>
             </div>
@@ -68,9 +98,11 @@
         baseUrl={`campaigns/${data.campaignKey}`}
         bannerUrl={campaign.banner_url}
         owner={campaign.owner}
-        title={campaign.name} description={campaign.description}
+        title={campaign.name}
+        description={campaign.description}
         isCampaignStall={true}
-        showItemsOwner={true} showItemsCampaign={false}
+        showItemsOwner={true}
+        showItemsCampaign={false}
         canAddItems={true}>
         <div slot="extra-description" class="mt-4">
             {#if showXpub}
