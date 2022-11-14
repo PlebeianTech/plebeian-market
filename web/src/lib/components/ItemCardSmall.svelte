@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { deleteEntity } from "$lib/services/api";
-    import { token } from "$lib/stores";
+    import { onMount } from 'svelte';
+    import SvelteMarkdown from 'svelte-markdown';
+    import { ErrorHandler, deleteEntity, hideAuction } from "$lib/services/api";
+    import { Error, Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
@@ -17,13 +18,21 @@
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
 
-    $: url = `${window.location.protocol}//${window.location.host}/${item.endpoint}/${item.key}`;
+    $: url = `/${item.endpoint}/${item.key}`;
     $: topBid = (item instanceof Auction) ? item.topBid() : null;
 
     let box; // the whole box representing this item (the HTML Element)
 
     export let onEdit = (_: Item) => {};
     export let onEntityChanged = () => {};
+
+    function hide() {
+        hideAuction($token, item.key,
+            () => {
+                Info.set("Hidden from homepage.");
+            },
+            new ErrorHandler(false, () => Error.set("Failed to hide the item.")));
+    }
 
     function del() {
         if (window.confirm("Are you sure?")) {
@@ -79,6 +88,11 @@
                 <div class="badge badge-primary"><a href="/campaigns/{item.campaign_key}"><nobr>{item.campaign_name} campaign</nobr></a></div>
             {/if}
             {#if item instanceof Auction}
+                <div class="badge badge-secondary">auction</div>
+            {:else if item instanceof Listing}
+                <div class="badge badge-secondary">fixed price</div>
+            {/if}
+            {#if item instanceof Auction}
                 {#if item.started && !item.ended}
                     <Countdown untilDate={item.end_date} style={CountdownStyle.Compact} />
                 {:else if item.ended}
@@ -120,6 +134,12 @@
                     <span>by</span>
                     <Avatar account={item.seller} inline={true} nymOnly={true} />
                 </div>
+            {/if}
+            <div class="markdown-container max-h-52 overflow-hidden">
+                <SvelteMarkdown source={item.description} />
+            </div>
+            {#if $user && $user.isModerator}
+                <div class="btn self-center md:float-right" on:click|preventDefault={hide} on:keypress={hide}>Hide from homepage</div>
             {/if}
         </div>
     </div>
