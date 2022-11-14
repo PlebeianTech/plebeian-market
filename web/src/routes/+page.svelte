@@ -8,7 +8,7 @@
     import { user } from "$lib/stores";
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
-    import PublicItemCard from "$lib/components/PublicItemCard.svelte";
+    import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import Typewriter from "$lib/components/Typewriter.svelte";
 
     let auctions: Auction[] | null = null;
@@ -71,15 +71,15 @@
 <div class="grid grid-cols-1 w-full gap-4 md:grid-cols-2 lg:grid-cols-3">
     {#if auctions !== null}
         {#each auctions as auction}
-            <div class="h-auto">
-                <PublicItemCard entity={auction} />
+            <div class="h-auto my-3 self-center glowbox">
+                <ItemCardSmall entity={auction} showCampaign={true} showOwner={true} />
             </div>
         {/each}
     {/if}
     {#if listings !== null}
         {#each listings as listing}
-            <div class="h-auto">
-                <PublicItemCard entity={listing} />
+            <div class="h-auto my-3 self-center glowbox">
+                <ItemCardSmall entity={listing} showCampaign={true} showOwner={true} />
             </div>
         {/each}
     {/if}
