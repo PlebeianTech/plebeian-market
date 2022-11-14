@@ -67,8 +67,8 @@
                 ],
             }}
             twitter={{
-                site: "@PlebeianMarket",
-                handle: "@PlebeianMarket",
+                site: import.meta.env.VITE_TWITTER_USER,
+                handle: import.meta.env.VITE_TWITTER_USER,
                 cardType: "summary_large_image",
                 image: serverLoadedUser.stall_banner_url ?? serverLoadedUser.profile_image_url ?? "",
                 imageAlt: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),

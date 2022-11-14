@@ -127,18 +127,18 @@
 
 <MetaTags
     title={serverLoadedItem?.title ?? "Plebeian Market item"}
-    description={serverLoadedItem?.description ?? "Self-sovereign marketplace built on Bitcoin and Lightning"}
+    description={serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION}
     openGraph={{
         site_name: "Plebeian Market",
         type: 'website',
         url: $page.url.href,
         title: serverLoadedItem?.title ?? "Plebeian Market item",
-        description: serverLoadedItem?.description ?? "Self-sovereign marketplace built on Bitcoin and Lightning",
+        description: serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION,
         images: ogImages,
     }}
     twitter={{
-        site: "@PlebeianMarket",
-        handle: "@PlebeianMarket",
+        site: import.meta.env.VITE_TWITTER_USER,
+        handle: import.meta.env.VITE_TWITTER_USER,
         cardType: "summary_large_image",
         image: serverLoadedItem && serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg",
         imageAlt: serverLoadedItem?.title ?? "Plebeian Market item",

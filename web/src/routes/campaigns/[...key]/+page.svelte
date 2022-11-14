@@ -48,25 +48,25 @@
         title={data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!"}
         description={data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!"}
         openGraph={{
-        site_name: "Plebeian Market",
-        type: "website",
-        url: $page.url.href,
-        title: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
-        description: data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!",
-        images: [
-          {
-            url: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
-            alt: "My Stall picture"
-          }
-        ],
-    }}
+            site_name: "Plebeian Market",
+            type: "website",
+            url: $page.url.href,
+            title: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+            description: data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!",
+            images: [
+              {
+                url: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
+                alt: "My Stall picture"
+              }
+            ],
+        }}
         twitter={{
-        site: "@PlebeianMarket",
-        handle: "@PlebeianMarket",
-        cardType: "summary_large_image",
-        image: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
-        imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
-    }}
+            site: import.meta.env.VITE_TWITTER_USER,
+            handle: import.meta.env.VITE_TWITTER_USER,
+            cardType: "summary_large_image",
+            image: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
+            imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+        }}
 />
 {/if}
 
