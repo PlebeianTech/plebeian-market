@@ -25,6 +25,7 @@
     "dev": "vite --host 0.0.0.0 dev",
     "build": "vite build",
     "build-staging": "vite build --mode staging",
+    "build-production": "vite build --mode production",
     "package": "svelte-kit package",
     "preview": "svelte-kit preview",
     "prepare": "svelte-kit sync",
