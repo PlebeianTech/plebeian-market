@@ -28,12 +28,17 @@ export function getEnvironmentInfo() {
     return import.meta.env.MODE;
 }
 
-export function logout(url = "/") {
+export function logout(gotoUrl = "/") {
     token.set(null);
     if ( browser ) {
         localStorage.removeItem('token');
     }
-    goto(url);
+
+    if (typeof gotoUrl !== 'string') {
+        gotoUrl = "/";
+    }
+
+    goto(gotoUrl);
 }
 
 export function sats2usd(sats: number, btc2usd: number | null): number | null {
