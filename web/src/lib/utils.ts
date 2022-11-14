@@ -1,3 +1,7 @@
+import {browser} from "$app/environment";
+import {goto} from "$app/navigation";
+import {token} from "$lib/stores";
+
 export let SATS_IN_BTC = 100000000;
 
 export function isDevelopment() {
@@ -22,6 +26,14 @@ export function getApiBaseUrl() {
 
 export function getEnvironmentInfo() {
     return import.meta.env.MODE;
+}
+
+export function logout(url = "/") {
+    token.set(null);
+    if ( browser ) {
+        localStorage.removeItem('token');
+    }
+    goto(url);
 }
 
 export function sats2usd(sats: number, btc2usd: number | null): number | null {

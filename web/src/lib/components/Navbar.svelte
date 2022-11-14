@@ -4,7 +4,7 @@
     import { getValue } from 'btc2fiat';
     import { getProfile } from "$lib/services/api";
     import { token, user, BTC2USD } from "$lib/stores";
-    import { isProduction, getBaseUrl, getEnvironmentInfo } from "$lib/utils";
+    import { isProduction, getBaseUrl, getEnvironmentInfo, logout } from "$lib/utils";
     import { browser } from '$app/environment';
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
@@ -19,14 +19,6 @@
         let html = <HTMLHtmlElement>document.querySelector('html');
         let toggle = <HTMLInputElement>document.getElementById('theme-toggle');
         html.dataset.theme = toggle.checked ? 'night' : 'light';
-    }
-
-    function logout() {
-        token.set(null);
-        if ( browser ) {
-            localStorage.removeItem('token');
-        }
-        goto("/");
     }
 
     function showModal(content: any, hasHide: boolean, onHide: (saved: boolean) => void = (_) => { }) {
@@ -92,9 +84,7 @@
                             }
                         } else {
                             // trying to hide the modal if you didn't set your Twitter username logges you out
-                            token.set(null);
-                            localStorage.removeItem('token');
-                            goto("/");
+                            logout();
                         }
                     });
             }

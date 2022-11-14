@@ -1,11 +1,10 @@
 import { goto } from "$app/navigation";
-import { token, Error } from "$lib/stores";
+import { Error } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
-import { getApiBaseUrl } from "$lib/utils";
-import { browser } from '$app/environment';
+import { getApiBaseUrl, logout } from "$lib/utils";
 
 export class ErrorHandler {
     setError: boolean;
@@ -44,11 +43,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
             if (response.status === 401) {
                 if (tokenValue) {
                     console.log("Error 401: Unauthorized. Deleting the token.");
-                    token.set(null);
-                    if (browser) {
-                        localStorage.removeItem('token');
-                    }
-                    goto("/login");
+                    logout("/login");
                 }
             } else {
                 checkResponse(response);
