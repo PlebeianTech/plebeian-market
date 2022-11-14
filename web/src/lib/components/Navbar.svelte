@@ -153,7 +153,7 @@
                         <li><a href="/sales/">My sales</a></li>
                         <li><a href="/settings">Settings</a></li>
                         <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
-                        <li><a href={null} on:click|preventDefault={() => { logout }} class="modal-button cursor-pointer">Logout</a></li>
+                        <li><a href={null} on:click={logout} class="modal-button cursor-pointer">Logout</a></li>
                     </ul>
                 </div>
             {/if}
