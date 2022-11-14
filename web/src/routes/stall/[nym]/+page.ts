@@ -3,7 +3,7 @@ import { getApiBaseUrl } from "$lib/utils";
 export async function load({ params }) {
     const { nym } = params;
 
-    const userUrl = `${getApiBaseUrl()}/api/users/${nym}`;
+    const userUrl = `${getApiBaseUrl()}api/users/${nym}`;
     const response = await fetch(userUrl)
     const user = await response.json()
     if (response.ok) {
