@@ -50,7 +50,7 @@
                 <Countdown untilDate={item.end_date} />
             {/if}
             {#if $user && $user.isModerator}
-                <div class="btn btn-xs self-center md:float-right" on:click|preventDefault={hide}>Hide</div>
+                <div class="btn btn-xs self-center md:float-right" on:click|preventDefault={hide} on:keypress={hide}>Hide</div>
             {/if}
         </div>
     </div>

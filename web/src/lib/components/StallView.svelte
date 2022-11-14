@@ -7,11 +7,13 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import Login from "$lib/components/Login.svelte";
-    import { user, Info } from "$lib/stores";
+    import { publish } from "$lib/services/api";
+    import { Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, TimeListing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, User } from "$lib/types/user";
+    import { Category } from '$lib/types/item';
 
     export let baseUrl: string;
 
@@ -19,7 +21,7 @@
     export let owner: IAccount | null;
     export let title: string;
     export let description: string | null;
-    export let onEdit: (() => void) | null = null;
+    export let editUrl: string | null = null;
 
     export let isOwnStall = false;
     export let isCampaignStall = false;
@@ -45,7 +47,7 @@
     $: twitterUsername = owner ? owner.twitterUsername : null;
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
 
-    function onAuctionCreated() {
+    function onAuctionCreated(key: string, entity: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
             if (isOwnStall) {
@@ -53,10 +55,19 @@
             }
             return u;
         });
-        Info.set("Your auction will start when we verify your tweet!");
+        let auction = entity as Auction;
+        if (auction.category === Category.Time) {
+            publish($token, auction.endpoint, key, false,
+                () => {
+                    Info.set("Your auction is live!");
+                    onForceReload();
+                });
+        } else {
+            Info.set("Your auction will start when we verify your tweet!");
+        }
     }
 
-    function onListingCreated() {
+    function onListingCreated(_: string, __: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
             if (isOwnStall) {
@@ -141,8 +152,8 @@
             </div>
         </div>
     </div>
-    {#if onEdit}
-        <a href={null} on:click={onEdit} class="btn btn-xs float-right mt-2">Edit</a>
+    {#if editUrl}
+        <a href={editUrl} class="btn btn-xs float-right mt-2">Edit</a>
     {/if}
     {#if description}
         <div class="markdown-container ml-0 md:ml-12 mt-10">
@@ -216,9 +227,6 @@
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
                         <div class="mx-auto my-10 glowbutton glowbutton-listing" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}></div>
-                        {#if isCampaignStall}
-                            <div class="mx-auto my-10 glowbutton glowbutton-listing-time" on:click|preventDefault={() => newItem(setCurrent, () => new TimeListing())}></div>
-                        {/if}
                     </div>
                 </ListView>
             {/if}

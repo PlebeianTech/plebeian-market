@@ -119,13 +119,14 @@ def get_me(user):
 def put_me(user):
     if 'nym' in request.json:
         clean_nym = (request.json['nym'] or "").lower().strip()
-        if len(clean_nym) < 3:
-            return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
-        if not clean_nym.isalnum():
-            return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
-        if m.User.query.filter_by(nym=clean_nym).one_or_none():
-            return jsonify({'message': "Your nym is already in use!"}), 400
-        user.nym = clean_nym
+        if clean_nym != user.nym:
+            if len(clean_nym) < 3:
+                return jsonify({'message': "Your nym needs to be at least 3 characters long!"}), 400
+            if not clean_nym.isalnum():
+                return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
+            if m.User.query.filter_by(nym=clean_nym).one_or_none():
+                return jsonify({'message': "Your nym is already in use!"}), 400
+            user.nym = clean_nym
 
     if 'email' in request.json:
         clean_email = (request.json['email'] or "").lower().strip()
@@ -143,11 +144,11 @@ def put_me(user):
         clean_username = (request.json['telegram_username'] or "").lower().strip()
         if clean_username.startswith("@"):
             clean_username = clean_username.removeprefix("@")
-        if len(clean_username) < 3:
-            return jsonify({'message': "Your Telegram username needs to be at least 3 characters long!"}), 400
-        if not clean_username.replace("_", "").isalnum():
-            return jsonify({'message': "Your Telegram username can only contain letters, numbers and underscores!"}), 400
         if clean_username != user.telegram_username:
+            if len(clean_username) < 3:
+                return jsonify({'message': "Your Telegram username needs to be at least 3 characters long!"}), 400
+            if not clean_username.replace("_", "").isalnum():
+                return jsonify({'message': "Your Telegram username can only contain letters, numbers and underscores!"}), 400
             if m.User.query.filter_by(telegram_username=clean_username).one_or_none():
                 return jsonify({'message': "Somebody already registered this Telegram username!"}), 400
             user.telegram_username = clean_username
@@ -157,11 +158,11 @@ def put_me(user):
         clean_username = (request.json['twitter_username'] or "").lower().strip()
         if clean_username.startswith("@"):
             clean_username = clean_username.removeprefix("@")
-        if len(clean_username) < 3:
-            return jsonify({'message': "Your Twitter username needs to be at least 3 characters long!"}), 400
-        if not clean_username.replace("_", "").isalnum():
-            return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
         if clean_username != user.twitter_username:
+            if len(clean_username) < 3:
+                return jsonify({'message': "Your Twitter username needs to be at least 3 characters long!"}), 400
+            if not clean_username.replace("_", "").isalnum():
+                return jsonify({'message': "Your Twitter username can only contain letters, numbers and underscores!"}), 400
             if m.User.query.filter_by(twitter_username=clean_username).one_or_none():
                 return jsonify({'message': "Somebody already registered this Twitter username!"}), 400
             if user.nym == user.twitter_username:
@@ -357,7 +358,7 @@ def post_entity(user, cls, singular, has_item, campaign_key):
         db.session.add(user_auction)
         db.session.commit()
 
-    return jsonify({singular: entity.to_dict(for_user=user.id)})
+    return jsonify({'key': entity.key, singular: entity.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/auctions/featured',
     defaults={'cls': m.Auction, 'plural': 'auctions'},
@@ -536,10 +537,10 @@ def follow_auction(user, key):
 
     return jsonify({'message': message})
 
-@api_blueprint.route('/api/auctions/<key>/start',
+@api_blueprint.route('/api/auctions/<key>/publish',
     defaults={'cls': m.Auction, 'singular': 'auction', 'plural': 'auctions'},
     methods=['PUT'])
-@api_blueprint.route('/api/listings/<key>/start',
+@api_blueprint.route('/api/listings/<key>/publish',
     defaults={'cls': m.Listing, 'singular': 'listing', 'plural': 'listings'},
     methods=['PUT'])
 @user_required

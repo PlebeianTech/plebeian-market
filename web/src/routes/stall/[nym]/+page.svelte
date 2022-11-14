@@ -2,13 +2,6 @@
     <title>Market Stall</title>
 </svelte:head>
 
-<script context="module">
-    export async function load({ params }) {
-        const { slug } = params;
-        return { props: { stallOwnerNym: slug } }
-    }
-</script>
-
 <script lang="ts">
     import { onMount } from 'svelte';
     import { goto } from "$app/navigation";
@@ -18,10 +11,11 @@
     import { getProfile, ErrorHandler } from "$lib/services/api";
     import { token, user } from "$lib/stores";
 
-    export let stallOwnerNym: string;
+    /** @type {import('./$types').PageData} */
+    export let data;
 
     let owner: User | null = null;
-    let loading = false;
+    let loading = true;
 
     $: title = owner ? (owner.stallName !== null ? owner.stallName : `${owner.nym}'s Stall`) : "";
     $: isMyStall = owner !== null && $user !== null && owner.nym === $user.nym;
@@ -43,10 +37,10 @@
     }
 
     onMount(async () => {
-        if (stallOwnerNym === "" || stallOwnerNym === null) {
+        if (data.stallOwnerNym === "" || data.stallOwnerNym === null) {
             goto("/");
         } else {
-            fetchStall(stallOwnerNym);
+            fetchStall(data.stallOwnerNym);
         }
     });
 </script>
@@ -59,7 +53,7 @@
             baseUrl={`users/${isMyStall ? 'me' : owner.nym}`}
             bannerUrl={owner.stallBannerUrl}
             {owner} {title} description={owner.stallDescription}
-            onEdit={isMyStall ? () => { goto("/settings#onsave=mystall") } : null}
+            editUrl={isMyStall ? "/settings#onsave=mystall" : null}
             isOwnStall={isMyStall}
             showItemsOwner={false} showItemsCampaign={true}
             canAddItems={isMyStall}

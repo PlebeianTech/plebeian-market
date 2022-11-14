@@ -4,7 +4,7 @@
     import { token } from "../stores";
     import Loading from "./Loading.svelte";
     import QR from "./QR.svelte";
-    import { isLocal } from "../utils";
+    import { isDevelopment } from "../utils";
     import type { User } from "../types/user";
 
     export let onLogin = (user: User | null) => {};
@@ -43,7 +43,7 @@
 <div class="pt-10 flex justify-center items-center">
     {#if qr}
         <div>
-            {#if isLocal()}
+            {#if isDevelopment()}
                 <div class="alert alert-error shadow-lg mb-4">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -62,12 +62,12 @@
                 </div>
             {/if}
             <p class="mb-4 text-center">Scan with <a class="link" href="https://breez.technology/" target="_blank">Breez,</a>
-                <a class="link" href="https://phoenix.acinq.co/" target="_blank">Phoenix,</a>
-                <a class="link" href="https://zeusln.app/" target="_blank">Zeus,</a>
+                <a class="link" href="https://phoenix.acinq.co/" target="_blank" rel="noreferrer">Phoenix,</a>
+                <a class="link" href="https://zeusln.app/" target="_blank" rel="noreferrer">Zeus,</a>
                 </p>
-                <p class="mb-4 text-center">or use <a class="link" href="https://getalby.com/" target="_blank">Alby,</a>
-                    <a class="link" href="https://thunderhub.io/" target="_blank">Thunderhub</a>
-                    or any <a class="link" href="https://github.com/fiatjaf/lnurl-rfc#lnurl-documents" target="_blank">
+                <p class="mb-4 text-center">or use <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby,</a>
+                    <a class="link" href="https://thunderhub.io/" target="_blank" rel="noreferrer">Thunderhub</a>
+                    or any <a class="link" href="https://github.com/fiatjaf/lnurl-rfc#lnurl-documents" target="_blank" rel="noreferrer">
                         LNurl compatible wallet </a> to enter the marketplace.</p>
 
             <QR qr={qr} protocol="lightning" address={lnurl} />

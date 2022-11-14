@@ -20,13 +20,13 @@
     <div class="text-center w-1/6 flex-1 lg:flex-none">
         <div class="avatar">
             <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                <a href="/stall/{rightNym}" target="_blank">
+                <a href="/stall/{rightNym}" target="_blank" rel="noreferrer">
                     <img src={rightProfileImageUrl} alt="Avatar" />
                 </a>
             </div>
         </div>
         <p class="text-center text-xl">
-            <a href="/stall/{rightNym}" target="_blank">
+            <a href="/stall/{rightNym}" target="_blank" rel="noreferrer">
                 {rightNym}
             </a>
         </p>

@@ -4,7 +4,7 @@ import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
-import { isLocal, isStaging } from "$lib/utils";
+import { getApiBaseUrl } from "$lib/utils";
 
 export class ErrorHandler {
     setError: boolean;
@@ -25,14 +25,7 @@ export class ErrorHandler {
 }
 
 function fetchAPI(path, method, tokenValue, json, checkResponse) {
-    var API_BASE;
-    if (isLocal()) {
-        API_BASE = "http://localhost:5000/api";
-    } else if (isStaging()) {
-        API_BASE = "https://staging.plebeian.market/api";
-    } else {
-        API_BASE = "https://plebeian.market/api";
-    }
+    var API_BASE = `${getApiBaseUrl()}api`;
 
     var headers = {};
     if (tokenValue) {
@@ -80,11 +73,13 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
         });
 }
 
-export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
+export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (key: string) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/${endpoint}`, 'POST', tokenValue, entity.toJson(),
         response => {
             if (response.status === 200) {
-                successCB();
+                response.json().then(data => {
+                    successCB(data.key);
+                });
             } else {
                 errorHandler.handle(response);
             }
@@ -253,8 +248,8 @@ export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean
         });
 }
 
-export function putStartTwitter(tokenValue, endpoint, key, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}/${key}/start`, 'PUT', tokenValue, JSON.stringify({twitter: true}),
+export function publish(tokenValue, endpoint, key, useTwitter: boolean, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${endpoint}/${key}/publish`, 'PUT', tokenValue, JSON.stringify({twitter: useTwitter}),
         response => {
             if (response.status === 200) {
                 successCB();
