@@ -1,10 +1,10 @@
-import { goto } from "$app/navigation";
 import { Error } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl, logout } from "$lib/utils";
+import { error } from '@sveltejs/kit';
 
 export class ErrorHandler {
     setError: boolean;
@@ -299,4 +299,72 @@ export function putBuy(tokenValue, listingKey, successCB: (sale: Sale) => void, 
                 errorHandler.handle(response);
             }
         });
+}
+
+export async function getAuction(key) {
+    const response = await fetch(`${getApiBaseUrl()}api/auctions/${key}`)
+    const auction = await response.json()
+    if (response.ok) {
+        return {
+            itemKey: key,
+            serverLoadedItem: auction.auction
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch auction on the server"
+    );
+}
+
+export async function getListing(key) {
+    const response = await fetch(`${getApiBaseUrl()}api/listings/${key}`)
+    const listing = await response.json()
+    if (response.ok) {
+        return {
+            itemKey: key,
+            serverLoadedItem: listing.listing
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch listing on the server"
+    );
+}
+
+export async function getCampaign(key) {
+    if (!key) {
+        return {
+            campaignKey: null,
+            serverLoadedCampaign: null
+        }
+    }
+
+    const response = await fetch(`${getApiBaseUrl()}api/campaigns/${key}`)
+    const campaign = await response.json()
+    if (response.ok) {
+        return {
+            campaignKey: key,
+            serverLoadedCampaign: campaign.campaign
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch campaign on the server"
+    );
+}
+
+
+export async function getUser(nym) {
+    const response = await fetch(`${getApiBaseUrl()}api/users/${nym}`)
+    const user = await response.json()
+    if (response.ok) {
+        return {
+            stallOwnerNym: nym,
+            serverLoadedUser: user.user
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch user on the server"
+    );
 }
