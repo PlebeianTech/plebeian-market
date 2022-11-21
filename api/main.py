@@ -279,6 +279,10 @@ def settle_btc_payments():
                             sale.txid = tx['txid']
                             sale.tx_value = tx['value']
                             sale.state = m.SaleState.TX_DETECTED.value
+                            if sale.campaign and sale.desired_badge is not None:
+                                app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} to user {sale.buyer_id}.")
+                                ub = m.UserBadge(user_id=sale.buyer_id, badge=sale.desired_badge, icon=sale.campaign.key)
+                                db.session.add(ub)
                             if tx['confirmed']:
                                 sale.state = m.SaleState.TX_CONFIRMED.value
                                 sale.settled_at = datetime.utcnow()

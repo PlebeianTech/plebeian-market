@@ -10,6 +10,15 @@ export interface IAccount {
     twitterUsernameVerified: boolean;
 }
 
+export interface Badge {
+    badge: number;
+    icon: string;
+}
+
+export function badgeFromJson(json: any): Badge {
+    return {badge: <number>json.badge, icon: <string>json.icon};
+}
+
 export class User implements IAccount {
     nym: string | null = null;
     displayName: string | null = null;
@@ -33,6 +42,7 @@ export class User implements IAccount {
     hasActiveListings: boolean = false;
     hasPastListings: boolean = false;
     isModerator: boolean = false;
+    badges: Badge[] = [];
 }
 
 export function fromJson(json: any): User {
@@ -59,5 +69,6 @@ export function fromJson(json: any): User {
         contributionPercent: <number | null>json.contribution_percent,
         xpub: <string | null>json.xpub,
         isModerator: <boolean>json.is_moderator,
+        badges: (json.badges as Array<any>).map(badgeFromJson),
     }
 }

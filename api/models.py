@@ -149,6 +149,10 @@ class User(XpubMixin, db.Model):
             contribution_amount = 0 # probably not worth the fees, at least in the next few years
         return contribution_amount
 
+    def get_badges(self):
+        return [{'badge': b.badge, 'icon': b.icon}
+            for b in UserBadge.query.filter_by(user_id=self.id).all()]
+
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
 
@@ -188,6 +192,8 @@ class User(XpubMixin, db.Model):
         if self.is_moderator:
             d['is_moderator'] = True
 
+        d['badges'] = self.get_badges()
+
         if for_user == self.id:
             # only ever show these fields to the actual user
             d['contribution_percent'] = self.contribution_percent
@@ -195,6 +201,19 @@ class User(XpubMixin, db.Model):
             d['xpub_index'] = self.xpub_index
 
         return d
+
+class Badge(Enum):
+    Contributor1000 = 1000
+
+class UserBadge(db.Model):
+    __tablename__ = 'user_badges'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    badge = db.Column(db.Integer, nullable=False)
+    icon = db.Column(db.String(16), nullable=False)
+    awarded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 class Notification(abc.ABC):
     @property
@@ -480,6 +499,17 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
     auctions = db.relationship('Auction', backref='campaign')
     listings = db.relationship('Listing', backref='campaign')
 
+    bid_thresholds = db.relationship('BidThreshold', backref='campaign')
+    rewards = db.relationship('Reward', backref='campaign')
+    sales = db.relationship('Sale', backref='campaign')
+
+    def get_bid_thresholds(self):
+        return [{'bid_amount_usd': bt.bid_amount_usd, 'required_badge': bt.required_badge}
+            for bt in BidThreshold.query.filter_by(campaign_id=self.id).all()]
+
+    def get_min_usd_amount_for_badge_reward(self, badge):
+        return min([r.min_amount_usd for r in self.rewards if r.badge == badge], default=None)
+
     def to_dict(self, for_user=None):
         campaign = {
             'key': self.key,
@@ -499,6 +529,7 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'owner_telegram_username_verified': self.owner.telegram_username_verified,
             'owner_twitter_username': self.owner.twitter_username,
             'owner_twitter_username_verified': self.owner.twitter_username_verified,
+            'bid_thresholds': self.get_bid_thresholds(),
         }
 
         return campaign
@@ -524,6 +555,94 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
                 raise ValidationError("Invalid XPUB.")
             validated['xpub'] = d['xpub']
             validated['xpub_index'] = 0
+        return validated
+
+class BidThreshold(db.Model):
+    __tablename__ = 'bid_thresholds'
+
+    REQUIRED_FIELDS = ['bid_amount_usd', 'required_badge']
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    @property
+    def key(self):
+        return self.id
+
+    def generate_key(self):
+        pass
+
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
+    bid_amount_usd = db.Column(db.Float, nullable=False)
+    required_badge = db.Column(db.Integer, nullable=False)
+
+    def to_dict(self, **_):
+        return {
+            'key': self.key,
+            'bid_amount_usd': self.bid_amount_usd,
+            'required_badge': self.required_badge,
+        }
+
+    @classmethod
+    def validate_dict(cls, d, for_method=None):
+        validated = {}
+        for k in ['bid_amount_usd']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = float(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        for k in ['required_badge']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = int(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        return validated
+
+class Reward(db.Model):
+    __tablename__ = 'rewards'
+
+    REQUIRED_FIELDS = ['min_amount_usd', 'badge']
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    @property
+    def key(self):
+        return self.id
+
+    def generate_key(self):
+        pass
+
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=False)
+    min_amount_usd = db.Column(db.Float, nullable=False)
+    badge = db.Column(db.Integer, nullable=False)
+
+    def to_dict(self, **_):
+        return {
+            'key': self.key,
+            'min_amount_usd': self.min_amount_usd,
+            'badge': self.badge,
+        }
+
+    @classmethod
+    def validate_dict(cls, d, for_method=None):
+        validated = {}
+        for k in ['min_amount_usd']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = float(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+        for k in ['badge']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = int(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
 class Category(Enum):
@@ -684,6 +803,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
+            'bid_thresholds': self.campaign.get_bid_thresholds() if self.campaign else [],
             'is_mine': for_user == self.seller_id,
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
@@ -708,6 +828,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             # NB: we only return sales for the current user, so that the UI can know the sales were settled
             # sales for other users should be kept private or eventually shown to the seller only!
             auction['sales'] = [sale.to_dict() for sale in self.item.sales if sale.buyer_id == for_user]
+            if self.campaign:
+                auction['sales'].extend([sale.to_dict() for sale in self.campaign.sales if sale.buyer_id == for_user])
 
         if auction['has_winner']:
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
@@ -947,9 +1069,13 @@ class Sale(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
+
+    # this is used when donating money to a campaign without buying anything
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
+    desired_badge = db.Column(db.Integer, nullable=True)
 
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
@@ -968,7 +1094,7 @@ class Sale(db.Model):
     price = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
-    amount = db.Column(db.Integer, nullable=False) # amount to be paid to the seller (total amount minus contribution) *not* including shipping
+    amount = db.Column(db.Integer, nullable=False) # amount to be paid (total amount minus contribution) *not* including shipping
     shipping_domestic = db.Column(db.Integer, nullable=False)
     shipping_worldwide = db.Column(db.Integer, nullable=False)
 
@@ -979,7 +1105,7 @@ class Sale(db.Model):
 
     def to_dict(self):
         sale = {
-            'item_title': self.item.title,
+            'item_title': self.item.title if self.item else None,
             'state': SaleState(self.state).name,
             'price_usd': self.price_usd,
             'price': self.price,
@@ -987,15 +1113,15 @@ class Sale(db.Model):
             'amount': self.amount,
             'shipping_domestic': self.shipping_domestic,
             'shipping_worldwide': self.shipping_worldwide,
-            'seller_nym': self.item.seller.nym,
-            'seller_display_name': self.item.seller.display_name,
-            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
-            'seller_email': self.item.seller.email,
-            'seller_email_verified': self.item.seller.email_verified,
-            'seller_telegram_username': self.item.seller.telegram_username,
-            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
-            'seller_twitter_username': self.item.seller.twitter_username,
-            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'seller_nym': self.item.seller.nym if self.item else None,
+            'seller_display_name': self.item.seller.display_name if self.item else None,
+            'seller_profile_image_url': self.item.seller.twitter_profile_image_url if self.item else None,
+            'seller_email': self.item.seller.email if self.item else None,
+            'seller_email_verified': self.item.seller.email_verified if self.item else None,
+            'seller_telegram_username': self.item.seller.telegram_username if self.item else None,
+            'seller_telegram_username_verified': self.item.seller.telegram_username_verified if self.item else None,
+            'seller_twitter_username': self.item.seller.twitter_username if self.item else None,
+            'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else None,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.twitter_profile_image_url,

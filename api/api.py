@@ -308,14 +308,20 @@ def get_sales(user):
 @api_blueprint.route("/api/users/me/listings",
     defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True, 'campaign_key': None},
     methods=['POST'])
+@api_blueprint.route("/api/users/me/campaigns",
+    defaults={'cls': m.Campaign, 'singular': 'campaign', 'has_item': False, 'campaign_key': None},
+    methods=['POST'])
 @api_blueprint.route("/api/campaigns/<campaign_key>/auctions",
     defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True},
     methods=['POST'])
 @api_blueprint.route("/api/campaigns/<campaign_key>/listings",
     defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True},
     methods=['POST'])
-@api_blueprint.route('/api/users/me/campaigns',
-    defaults={'cls': m.Campaign, 'singular': 'campaign', 'has_item': False, 'campaign_key': None},
+@api_blueprint.route("/api/campaigns/<campaign_key>/bid-thresholds",
+    defaults={'cls': m.BidThreshold, 'singular': 'bid_threshold', 'has_item': False},
+    methods=['POST'])
+@api_blueprint.route("/api/campaigns/<campaign_key>/rewards",
+    defaults={'cls': m.Reward, 'singular': 'reward', 'has_item': False},
     methods=['POST'])
 @user_required
 def post_entity(user, cls, singular, has_item, campaign_key):
@@ -624,6 +630,19 @@ def post_bid(user, key):
     elif amount <= auction.starting_bid:
         return jsonify({'message': f"Your bid needs to be higher than {auction.starting_bid}, the starting bid."}), 400
 
+    bid_thresholds = auction.campaign.get_bid_thresholds() if auction.campaign else []
+    if bid_thresholds:
+        try:
+            btc2usd = btc2fiat.get_value('kraken')
+        except Exception:
+            return jsonify({'message': "Error fetching the exchange rate!"}), 500
+        user_badges = {b['badge'] for b in user.get_badges()}
+        for threshold in bid_thresholds:
+            threshold_sats = usd2sats(threshold['bid_amount_usd'], btc2usd)
+            if amount >= threshold_sats:
+                if threshold['required_badge'] not in user_badges:
+                    return jsonify({'message': f"Can't bid more than ${threshold['bid_amount_usd']} without deposit.", 'required_badge': threshold['required_badge']}), 402
+
     response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])
 
     payment_request = response.payment_request
@@ -653,6 +672,56 @@ def post_bid(user, key):
             "Your bid will be confirmed once you scan the QR code.",
         ] + (["Started following the auction."] if started_following else []),
     })
+
+@api_blueprint.route('/api/campaigns/<key>/back', methods=['PUT'])
+@user_required
+def back_campaign(user, key):
+    campaign = m.Campaign.query.filter_by(key=key).first()
+    if not campaign:
+        return jsonify({'message': "Not found."}), 404
+
+    if not request.json.get('desired_badge'):
+        return jsonify({'message': "Desired badge required."}), 400
+
+    usd_amount = campaign.get_min_usd_amount_for_badge_reward(request.json['desired_badge'])
+    if not usd_amount:
+        return jsonify({'message': "Desired badge not found."}), 400
+
+    try:
+        btc2usd = btc2fiat.get_value('kraken')
+    except Exception:
+        return jsonify({'message': "Error fetching the exchange rate!"}), 500
+
+    try:
+        address = campaign.get_new_address()
+        db.session.commit()
+    except MempoolSpaceError:
+        return jsonify({'message': "Error reading from mempool API!"}), 500
+
+    amount_sats = usd2sats(usd_amount, btc2usd)
+
+    sale = m.Sale(
+        campaign_id=campaign.id,
+        desired_badge=request.json['desired_badge'],
+        buyer_id=user.id,
+        address=address,
+        price_usd=usd_amount,
+        price=amount_sats,
+        shipping_domestic=0,
+        shipping_worldwide=0,
+        quantity=1,
+        amount=amount_sats,
+        contribution_amount=0,
+        contribution_payment_request=None,
+        state=m.SaleState.CONTRIBUTION_SETTLED.value)
+    db.session.add(sale)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        return jsonify({'message': "Address already in use. Please try again."}), 500
+
+    return jsonify({'sale': sale.to_dict()})
 
 @api_blueprint.route('/api/listings/<key>/buy', methods=['PUT'])
 @user_required

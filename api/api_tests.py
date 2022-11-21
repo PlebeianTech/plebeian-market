@@ -29,7 +29,7 @@ class TestApi(unittest.TestCase):
             files = {}
         BASE_URL = app.config['BASE_URL']
         response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers, files=files)
-        return response.status_code, response.json() if response.status_code in (200, 400, 401, 403, 404) else None
+        return response.status_code, response.json() if response.status_code in (200, 400, 401, 402, 403, 404) else None
 
     def get(self, path, params=None, headers=None):
         return self.do(requests.get, path, params=params, headers=headers)
@@ -280,6 +280,31 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
 
+        # set a threshold for the bids on the campaign
+        code, response = self.post(f"/api/campaigns/{campaign_key_2}/bid-thresholds",
+            {'bid_amount_usd': 5.0, 'required_badge': 666}, # the badge number is just a random number, but it should match the reward
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # bidding too high (above the campaign threshold) will give an error
+        code, response = self.post(f"/api/auctions/{auction_key}/bids",
+            {'amount': ONE_DOLLAR_SATS * 7},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 402)
+
+        # add a reward for this campaign (the badge required above)
+        code, response = self.post(f"/api/campaigns/{campaign_key_2}/rewards",
+            {'min_amount_usd': 1.0, 'badge': 666}, # same badge as the required above
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # now try backing the campaign with an amount higher than required to get the reward
+        code, response = self.put(f"/api/campaigns/{campaign_key_2}/back",
+            {'desired_badge': 666},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertTrue(response['sale']['price'] >= ONE_DOLLAR_SATS)
+
         # buying the two items
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_3))
@@ -289,6 +314,12 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         time.sleep(20)
+
+        # we got the badge!!
+        code, response = self.get("/api/users/me", {},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertIn(666, [b['badge'] for b in response['user']['badges']])
 
         # the seller has four sales
         code, response = self.get("/api/users/me/sales", {},
