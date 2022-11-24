@@ -43,32 +43,52 @@ export class User implements IAccount {
     hasPastListings: boolean = false;
     isModerator: boolean = false;
     badges: Badge[] = [];
+
+    public hasBadge(badge) {
+        for (const b of this.badges) {
+            if (b.badge === badge) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public firstBadge(badge) {
+        for (const b of this.badges) {
+            if (b.badge === badge) {
+                return b;
+            }
+        }
+
+        return null;
+    }
 }
 
 export function fromJson(json: any): User {
-    return {
-        nym: <string | null>json.nym,
-        displayName: <string | null>json.display_name,
-        profileImageUrl: <string | null>json.profile_image_url,
-        email: <string | null>json.email,
-        emailVerified: <boolean>json.email_verified,
-        telegramUsername: <string | null>json.telegram_username,
-        telegramUsernameVerified: <boolean>json.telegram_username_verified,
-        twitterUsername: <string | null>json.twitter_username,
-        twitterUsernameVerified: <boolean>json.twitter_username_verified,
-        twitterVerificationPhraseSentAt: json.twitter_verification_phrase_sent_at ? new Date(json.twitter_verification_phrase_sent_at) : null,
-        stallBannerUrl: <string | null>json.stall_banner_url,
-        stallName: <string | null>json.stall_name,
-        stallDescription: <string | null>json.stall_description,
-        hasItems: <boolean>json.has_items,
-        hasOwnItems: <boolean>json.has_own_items,
-        hasActiveAuctions: <boolean>json.has_active_auctions,
-        hasPastAuctions: <boolean>json.has_past_auctions,
-        hasActiveListings: <boolean>json.has_active_listings,
-        hasPastListings: <boolean>json.has_past_listings,
-        contributionPercent: <number | null>json.contribution_percent,
-        xpub: <string | null>json.xpub,
-        isModerator: <boolean>json.is_moderator,
-        badges: (json.badges as Array<any>).map(badgeFromJson),
-    }
+    var u = new User();
+    u.nym = <string | null>json.nym;
+    u.displayName = <string | null>json.display_name;
+    u.profileImageUrl = <string | null>json.profile_image_url;
+    u.email = <string | null>json.email;
+    u.emailVerified = <boolean>json.email_verified;
+    u.telegramUsername = <string | null>json.telegram_username;
+    u.telegramUsernameVerified = <boolean>json.telegram_username_verified;
+    u.twitterUsername = <string | null>json.twitter_username;
+    u.twitterUsernameVerified = <boolean>json.twitter_username_verified;
+    u.twitterVerificationPhraseSentAt = json.twitter_verification_phrase_sent_at ? new Date(json.twitter_verification_phrase_sent_at) : null;
+    u.stallBannerUrl = <string | null>json.stall_banner_url;
+    u.stallName = <string | null>json.stall_name;
+    u.stallDescription = <string | null>json.stall_description;
+    u.hasItems = <boolean>json.has_items;
+    u.hasOwnItems = <boolean>json.has_own_items;
+    u.hasActiveAuctions = <boolean>json.has_active_auctions;
+    u.hasPastAuctions = <boolean>json.has_past_auctions;
+    u.hasActiveListings = <boolean>json.has_active_listings;
+    u.hasPastListings = <boolean>json.has_past_listings;
+    u.contributionPercent = <number | null>json.contribution_percent;
+    u.xpub = <string | null>json.xpub;
+    u.isModerator = <boolean>json.is_moderator;
+    u.badges = (json.badges as Array<any>).map(badgeFromJson);
+    return u;
 }

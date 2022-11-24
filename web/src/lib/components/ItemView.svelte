@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
     import SvelteMarkdown from 'svelte-markdown';
-    import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
+    import { ErrorHandler, getItem, postBid, putAuctionFollow, type ILoader } from "$lib/services/api";
     import { Error, Info, token, user } from "$lib/stores";
     import { Category, type Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
@@ -32,49 +32,49 @@
 
     function refreshItem() {
         getItem(loader, $token, itemKey,
-        i => {
-            item = i;
-            if (!item) {
-                return;
-            }
-
-            if (item instanceof Auction) {
-                for (const bid of item.bids) {
-                    if (bidButton && bid.payment_request !== undefined) {
-                        // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
-                        bidButton.bidConfirmed(bid.payment_request);
-                    }
-                    if (amount && amount <= bid.amount && bidButton.waitingBidSettlement()) {
-                        Error.set("A higher bid just came in.");
-                        bidButton.resetBid();
-                    }
+            i => {
+                item = i;
+                if (!item) {
+                    return;
                 }
 
-                if ((!amount && firstUpdate) || item.bids.length != bidCount) {
-                    amount = item.nextBid();
-                    firstUpdate = false;
-                }
-                bidCount = item.bids.length;
-                if (finalCountdown && finalCountdown.isLastMinute()) {
-                    document.title = `LAST MINUTE - ${item.title} | Plebeian Market`;
-                } else {
+                if (item instanceof Auction) {
+                    for (const bid of item.bids) {
+                        if (bidButton && bid.payment_request !== null) {
+                            // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
+                            bidButton.bidConfirmed(bid.payment_request);
+                        }
+                        if (amount && amount <= bid.amount && bidButton.waitingBidSettlement()) {
+                            Error.set("A higher bid just came in.");
+                            bidButton.resetBid();
+                        }
+                    }
+
+                    if ((!amount && firstUpdate) || item.bids.length != bidCount) {
+                        amount = item.nextBid();
+                        firstUpdate = false;
+                    }
+                    bidCount = item.bids.length;
+                    if (finalCountdown && finalCountdown.isLastMinute()) {
+                        document.title = `LAST MINUTE - ${item.title} | Plebeian Market`;
+                    } else {
+                        document.title = `${item.title} | Plebeian Market`;
+                    }
+                    if (item.has_winner !== null) {
+                        document.title = `Ended - ${item.title} | Plebeian Market`;
+                        console.log("Auction ended!");
+                        // maybe we should eventually stopRefresh() here, but is seems risky for now, at least while still testing
+                    }
+                } else if (item instanceof Listing) {
                     document.title = `${item.title} | Plebeian Market`;
                 }
-                if (item.has_winner !== null) {
-                    document.title = `Ended - ${item.title} | Plebeian Market`;
-                    console.log("Auction ended!");
-                    // maybe we should eventually stopRefresh() here, but is seems risky for now, at least while still testing
-                }
-            } else if (item instanceof Listing) {
-                document.title = `${item.title} | Plebeian Market`;
-            }
 
-            var last_sale = item.sales.slice(-1).pop();
-            if (last_sale) {
-                sale = last_sale;
-            }
-        },
-        new ErrorHandler(false));
+                var last_sale = item.sales.slice(-1).pop();
+                if (last_sale) {
+                    sale = last_sale;
+                }
+            },
+            new ErrorHandler(false));
     }
 
     function onLogin(user: User | null) {
@@ -189,7 +189,7 @@
                                             <p class="text-center pt-12">Place your bid below</p>
                                         {/if}
                                         <div class="flex justify-center items-center">
-                                            <BidButton {item} bind:amount bind:this={bidButton} />
+                                            <BidButton auction={item} bind:amount bind:this={bidButton} />
                                         </div>
                                     {:else if item instanceof Listing}
                                         {#if !sale || sale.state === SaleState.TX_CONFIRMED || sale.state === SaleState.EXPIRED}

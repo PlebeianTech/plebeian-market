@@ -54,6 +54,7 @@
             bannerUrl={owner.stallBannerUrl}
             {owner} {title} description={owner.stallDescription}
             editUrl={isMyStall ? "/settings#onsave=mystall" : null}
+            badges={owner.badges}
             isOwnStall={isMyStall}
             showItemsOwner={false} showItemsCampaign={true}
             canAddItems={isMyStall}

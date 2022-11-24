@@ -1,12 +1,52 @@
 <script lang="ts">
-    import { ErrorHandler, postBid } from "$lib/services/api";
-    import { Info, token } from "$lib/stores";
+    import { ErrorHandler, postBid, getEntities, buyBadge, getProfile } from "$lib/services/api";
+    import { BTC2USD, Info, token, user } from "$lib/stores";
+    import { sats2usd } from "$lib/utils";
+    import type { Auction } from "$lib/types/auction";
+    import { SaleState, type Sale, fromJson as saleFromJson } from "$lib/types/sale";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import BadgeSVG from "$lib/components/BadgeSVG.svelte";
+    import SaleFlowBadge from "$lib/components/SaleFlowBadge.svelte";
     import QR from "$lib/components/QR.svelte";
 
     export let amount;
+    export let auction: Auction;
 
-    export let item;
+    let badgeSale: Sale | null = null;
+    let interval: ReturnType<typeof setInterval> | undefined = undefined;
+
+    function repostBid() {
+        // repost the bid after we purchased the badge
+        postBid($token, auction.key, amount, 'NEW_BADGE',
+            (_, __, messages) => {
+                for (const message of messages) {
+                    setTimeout(() => Info.set(message), 0);
+                }
+            });
+    }
+
+    function refreshBadgeSale() {
+        if (badgeSale === null) {
+            clearInterval(interval);
+            interval = undefined;
+        }
+
+        getEntities({endpoint: "users/me/purchases", responseField: 'purchases', fromJson: saleFromJson}, $token,
+            (purchases) => {
+                for (const p of purchases) {
+                    const purchase = <Sale>p;
+                    if (badgeSale && badgeSale.address === purchase.address) {
+                        if (purchase.state === SaleState.TX_DETECTED || purchase.state === SaleState.TX_CONFIRMED) {
+                            getProfile($token, 'me', u => { user.set(u); });
+                            repostBid();
+                            badgeSale = null;
+                        }
+                    }
+                }
+            });
+    }
+
+    $: usdAmount = $BTC2USD ? sats2usd(amount, $BTC2USD) : null;
 
     let paymentRequest = null;
     let paymentQr = null;
@@ -14,7 +54,7 @@
     let waitingResponse = false;
     function placeBid() {
         waitingResponse = true;
-        postBid($token, item.key, amount,
+        postBid($token, auction.key, amount, undefined,
             (r, q, messages) => {
                 paymentRequest = r;
                 paymentQr = q;
@@ -22,6 +62,19 @@
                     setTimeout(() => Info.set(message), 0);
                 }
                 waitingResponse = false;
+            },
+            (badge) => {
+                buyBadge($token, badge, auction.campaign_key,
+                    (s) => {
+                        waitingResponse = false;
+                        if (s.state === SaleState.TX_DETECTED || s.state === SaleState.TX_CONFIRMED) {
+                            repostBid();
+                        } else {
+                            badgeSale = s;
+                            interval = setInterval(refreshBadgeSale, 1000);
+                        }
+                    },
+                    new ErrorHandler(true, () => waitingResponse = false));
             },
             new ErrorHandler(true, () => waitingResponse = false));
     }
@@ -44,6 +97,8 @@
 <div>
     {#if paymentQr}
         <QR qr={paymentQr} protocol="lightning" address={paymentRequest} />
+    {:else if badgeSale}
+        <SaleFlowBadge sale={badgeSale} />
     {:else}
         <div class="form-control w-full max-w-xs">
             <label class="label" for="bid-amount">
@@ -55,11 +110,26 @@
                 <span class="label-text">sats</span>
             </label>
         </div>
-        <div class="w-full flex items-center justify-center">
+        <div class="w-full flex items-center justify-center mt-2">
             {#if waitingResponse}
                 <button class="btn" disabled>Bid</button>
             {:else}
-                <div class="glowbutton glowbutton-bid mt-2" on:click|preventDefault={placeBid}></div>
+                <div class="flex gap-4 justify-center items-center">
+                    <div class="my-10 glowbutton glowbutton-bid" on:click|preventDefault={placeBid}></div>
+                    {#each auction.bid_thresholds as threshold, i}
+                        {#if usdAmount}
+                            {#if usdAmount > threshold.bid_amount_usd && $user && $user.hasBadge(threshold.required_badge)}
+                                <div class="radial-progress text-success" style="--value:100">
+                                    <BadgeSVG badge={$user.firstBadge(threshold.required_badge)} />
+                                </div>
+                            {:else}
+                                {#if usdAmount > threshold.bid_amount_usd / 2}
+                                    <div class="radial-progress" class:text-info={usdAmount < threshold.bid_amount_usd * 0.75} class:text-warning={usdAmount >= threshold.bid_amount_usd * 0.75 && usdAmount < threshold.bid_amount_usd * 0.85} class:text-error={usdAmount >= threshold.bid_amount_usd * 0.85} style="--value:{usdAmount / threshold.bid_amount_usd * 100};">{threshold.bid_amount_usd}$</div>
+                                {/if}
+                            {/if}
+                        {/if}
+                    {/each}
+                </div>
             {/if}
         </div>
     {/if}

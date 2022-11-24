@@ -2,6 +2,7 @@
     import SvelteMarkdown from 'svelte-markdown';
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
+    import BadgeSVG from "$lib/components/BadgeSVG.svelte";
     import ItemCard from "$lib/components/ItemCard.svelte";
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
@@ -11,8 +12,8 @@
     import { Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
-    import { Listing, TimeListing, fromJson as listingFromJson } from "$lib/types/listing";
-    import type { IAccount, User } from "$lib/types/user";
+    import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
+    import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
 
     export let baseUrl: string;
@@ -22,6 +23,8 @@
     export let title: string;
     export let description: string | null;
     export let editUrl: string | null = null;
+
+    export let badges: Badge[] = [];
 
     export let isOwnStall = false;
     export let isCampaignStall = false;
@@ -119,7 +122,7 @@
             {/if}
         </div>
 
-        <div class="md:ml-4 ml-0 bg-base-300 rounded flex-1 p-4 flex">
+        <div class="md:ml-4 ml-0 bg-base-300 rounded flex-1 p-4 flex gap-3">
             <h2 class="w-full flex text-2xl items-center justify-center">{title}</h2>
             <div class="flex flex-col gap-4 text-center">
                 <div>Contact</div>
@@ -148,6 +151,14 @@
                             </span>
                         </a>
                     {/if}
+                </div>
+            </div>
+            <div class="flex flex-col gap-4 text-center">
+                <div>Badges</div>
+                <div class="flex">
+                    {#each badges as badge}
+                        <BadgeSVG {badge} />
+                    {/each}
                 </div>
             </div>
         </div>

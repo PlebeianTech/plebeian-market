@@ -1,5 +1,4 @@
 import type { IEntity } from "$lib/types/base";
-import { type BidThreshold, bidThresholdFromJson } from "$lib/types/auction";
 import type { IAccount } from "$lib/types/user";
 
 export class Campaign implements IEntity {
@@ -14,7 +13,6 @@ export class Campaign implements IEntity {
     is_mine: boolean = true;
     xpub: string | null = null;
     owner: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
-    bid_thresholds: BidThreshold[] = [];
 
     public validate() {
         return true;
@@ -50,7 +48,6 @@ export function fromJson(json: any): Campaign {
         twitterUsername: <string | null>json.owner_twitter_username,
         twitterUsernameVerified: <boolean>json.owner_twitter_username_verified,
     };
-    campaign.bid_thresholds = (json.bid_thresholds as Array<any>).map(bidThresholdFromJson);
 
     return campaign;
 }

@@ -281,19 +281,37 @@ export function hideAuction(tokenValue, auctionKey, successCB: () => void, error
         });
 }
 
-export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr, messages: string[]) => void, errorHandler = new ErrorHandler()) {
+export function postBid(tokenValue, auctionKey, amount, skip_invoice, successCB: (paymentRequest, paymentQr, messages: string[]) => void, badgeRequiredCB: (badge: number) => void = (_) => {}, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
-        JSON.stringify({amount}),
+        JSON.stringify({amount, skip_invoice}),
         response => {
             if (response.status === 200) {
-                response.json().then(data => { successCB(data.payment_request, data.qr, data.messages); });
+                response.json().then(data => {
+                    successCB(data.payment_request, data.qr, data.messages);
+                });
+            } else if (response.status === 402) {
+                response.json().then(data => {
+                    badgeRequiredCB(data.required_badge);
+                });
             } else {
                 errorHandler.handle(response);
             }
         });
 }
 
-export function putBuy(tokenValue, listingKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
+export function buyBadge(tokenValue, badge, campaignKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/badges/${badge}/buy`, 'PUT', tokenValue,
+        JSON.stringify({campaign_key: campaignKey}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => { successCB(saleFromJson(data.sale)); });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function buyListing(tokenValue, listingKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/listings/${listingKey}/buy`, 'PUT', tokenValue,
         JSON.stringify({}),
         response => {
