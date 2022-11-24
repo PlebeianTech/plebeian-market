@@ -72,5 +72,5 @@ SATS_IN_BTC = 100000000
 
 BADGE_PLAYER = 1000
 BADGES = {
-    BADGE_PLAYER: {'threshold_usd': 1000.0, 'price_usd': 50.0}
+    BADGE_PLAYER: {'threshold_usd': 1000.0, 'price_usd': 50.0 if ENV != 'staging' else 1.0}
 }
