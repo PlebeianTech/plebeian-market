@@ -202,9 +202,6 @@ class User(XpubMixin, db.Model):
 
         return d
 
-class Badge(Enum):
-    Contributor1000 = 1000
-
 class UserBadge(db.Model):
     __tablename__ = 'user_badges'
 
