@@ -21,7 +21,7 @@
   </td>
   <td>
     <div class="flex items-center space-x-3">
-      <Avatar account={sale.buyer} nymOnly={true} />
+      <Avatar account={sale.buyer} />
     </div>
   </td>
   <td>

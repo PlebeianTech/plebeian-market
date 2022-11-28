@@ -3,7 +3,7 @@
     import { SaleState, type Sale } from "$lib/types/sale";
     import { formatBTC } from "$lib/utils";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
-    import Avatar from "$lib/components/Avatar.svelte";
+    import Avatar, { AvatarSize } from "$lib/components/Avatar.svelte";
     import QR from "$lib/components/QR.svelte";
 
     export let item: Item;
@@ -115,7 +115,7 @@
             {/if}
         </p>
         <p class="text-center mt-10">
-            <Avatar account={sale.seller} height="12" />
+            <Avatar account={sale.seller} size={AvatarSize.M} />
         </p>
     {/if}
 {/if}
