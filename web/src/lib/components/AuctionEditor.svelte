@@ -107,7 +107,7 @@
                 {#if !isTimeAuction} <!-- duration -->
                     <div class="form-control mr-2 w-full">
                         <label class="label" for="duration">
-                            <span class="label-text">Auction Duration</span>
+                            <span class="label-text text-lg">Auction Duration</span>
                         </label>
                         <div class="flex flex-wrap">
                             {#each durationOptions as duration, i}

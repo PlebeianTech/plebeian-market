@@ -93,11 +93,11 @@ body {
 }
 
 .glowbutton-auction:after {
-  content: 'Auction item';
+  content: 'Physical item';
 }
 
 .glowbutton-auction-time:after {
-  content: 'Auction my time';
+  content: 'My time';
 }
 
 .glowbutton-listing:after {

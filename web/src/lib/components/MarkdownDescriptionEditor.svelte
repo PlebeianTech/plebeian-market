@@ -131,8 +131,8 @@
                 </svg>
             </div>
         </div>
+        <small class="pt-2 fg-neutral-content mb-1">Markdown accepted</small>
         <textarea on:keydown={manageTextInput} bind:this={markdownEditor} bind:value={value} rows="6" class="textarea textarea-bordered h-48" {placeholder}></textarea>
-        <small class="pt-2 fg-neutral-content">Markdown accepted</small>
     </div>
 {:else if currentTab === 'Preview'}
     <div class="p-2">
