@@ -13,7 +13,8 @@ export class Sale implements IEntity {
     key: string = "";
     endpoint = "sales";
 
-    item_title: string = "";
+    item_title: string | null = null;
+    desired_badge: number | null = null;
     state: SaleState = SaleState.REQUESTED;
     price_usd: number = 0;
     price: number = 0;
@@ -28,7 +29,9 @@ export class Sale implements IEntity {
     contribution_payment_qr: string | null = null;
     contribution_settled_at: Date | null = null;
     address: string = "";
-    address_qr: string | null = null;
+    qr: string | null = null;
+    qr_domestic: string | null = null;
+    qr_worldwide: string | null = null;
     txid: string = "";
     tx_value?: number = undefined;
     requested_at?: Date = undefined;
@@ -60,8 +63,8 @@ export function fromJson(json: any): Sale {
         }
     }
     s.seller = {
-        nym: <string>json.seller_nym,
-        displayName: <string>json.seller_display_name,
+        nym: <string | null>json.seller_nym,
+        displayName: <string | null>json.seller_display_name,
         profileImageUrl: <string | null>json.seller_profile_image_url,
         email: <string | null>json.seller_email,
         emailVerified: <boolean>json.seller_email_verified,

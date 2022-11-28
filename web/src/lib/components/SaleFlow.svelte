@@ -3,7 +3,7 @@
     import { SaleState, type Sale } from "$lib/types/sale";
     import { formatBTC } from "$lib/utils";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
-    import Avatar from "$lib/components/Avatar.svelte";
+    import Avatar, { AvatarSize } from "$lib/components/Avatar.svelte";
     import QR from "$lib/components/QR.svelte";
 
     export let item: Item;
@@ -12,13 +12,16 @@
     $: hasShipping = sale.shipping_domestic !== 0 || sale.shipping_worldwide !== 0;
 
     let shippingAmount = sale.shipping_worldwide;
+    let qr = sale.qr;
 
     function domesticShipping() {
         shippingAmount = sale.shipping_domestic;
+        qr = sale.qr_domestic;
     }
 
     function worldwideShipping() {
         shippingAmount = sale.shipping_worldwide;
+        qr = sale.qr_worldwide;
     }
 </script>
 
@@ -88,7 +91,7 @@
     <p class="text-txl text-center mb-4">
         BTC {formatBTC(sale.amount + shippingAmount)}
     </p>
-    <QR qr={sale.address_qr} protocol="bitcoin" address={sale.address} />
+    <QR {qr} protocol="bitcoin" address={sale.address} />
 {:else if sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}
     <p class="text-2xl text-center my-4">Thank you for your payment!</p>
     <div class="alert alert-info shadow-lg my-4">
@@ -112,7 +115,7 @@
             {/if}
         </p>
         <p class="text-center mt-10">
-            <Avatar account={sale.seller} height="12" />
+            <Avatar account={sale.seller} size={AvatarSize.M} />
         </p>
     {/if}
 {/if}

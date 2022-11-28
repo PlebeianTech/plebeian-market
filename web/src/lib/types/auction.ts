@@ -11,6 +11,15 @@ export interface Bid {
     settled_at?: Date;
 }
 
+export interface BidThreshold {
+    bid_amount_usd: number;
+    required_badge: number;
+}
+
+export function bidThresholdFromJson(json: any): BidThreshold {
+    return {bid_amount_usd: <number>json.bid_amount_usd, required_badge: <number>json.required_badge};
+}
+
 export class Auction implements IEntity, Item {
     static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'starting_bid', 'reserve_bid', 'duration_hours'];
 
@@ -41,6 +50,7 @@ export class Auction implements IEntity, Item {
     media: Media[] = [];
     campaign_key: string | null = null;
     campaign_name: string | null = null;
+    bid_thresholds: BidThreshold[] = [];
     is_mine: boolean = true;
     following: boolean = false;
     has_winner?: boolean = false;
@@ -161,6 +171,8 @@ export function fromJson(json: any): IEntity {
                 };
                 a.bids.push(b);
             }
+        } else if (k === 'bid_thresholds') {
+            a.bid_thresholds = (json[k] as Array<any>).map(bidThresholdFromJson);
         } else if (k === 'sales') {
             a.sales = (json[k] as Array<any>).map(saleFromJson);
         } else {

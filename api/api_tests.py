@@ -29,7 +29,7 @@ class TestApi(unittest.TestCase):
             files = {}
         BASE_URL = app.config['BASE_URL']
         response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers, files=files)
-        return response.status_code, response.json() if response.status_code in (200, 400, 401, 403, 404) else None
+        return response.status_code, response.json() if response.status_code in (200, 400, 401, 402, 403, 404) else None
 
     def get(self, path, params=None, headers=None):
         return self.do(requests.get, path, params=params, headers=headers)
@@ -280,6 +280,19 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
 
+        # bidding too high (above the threshold) will give an error
+        code, response = self.post(f"/api/auctions/{auction_key}/bids",
+            {'amount': ONE_DOLLAR_SATS * 1001},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 402)
+
+        # now try buying the badge
+        code, response = self.put(f"/api/badges/500/buy",
+            {'campaign_key': campaign_key_2},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertAlmostEqual(response['sale']['price'], ONE_DOLLAR_SATS * 50, delta=ONE_DOLLAR_SATS * 50 / 100)
+
         # buying the two items
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_3))
@@ -289,6 +302,12 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         time.sleep(20)
+
+        # we got the badge!!
+        code, response = self.get("/api/users/me", {},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertIn(500, [b['badge'] for b in response['user']['badges']])
 
         # the seller has four sales
         code, response = self.get("/api/users/me/sales", {},

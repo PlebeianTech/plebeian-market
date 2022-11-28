@@ -123,7 +123,7 @@ class User(XpubMixin, db.Model):
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    sales = db.relationship('Sale', backref='buyer')
+    sales = db.relationship('Sale', backref='buyer', order_by="Sale.requested_at")
 
     def fetch_twitter_profile_image(self, profile_image_url, s3):
         url, _ = store_image(s3, f"user_{self.id}_twitter_profile_image", True, profile_image_url, None)
@@ -148,6 +148,10 @@ class User(XpubMixin, db.Model):
         if contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
             contribution_amount = 0 # probably not worth the fees, at least in the next few years
         return contribution_amount
+
+    def get_badges(self):
+        return [{'badge': b.badge, 'icon': b.icon, 'awarded_at': b.awarded_at}
+            for b in UserBadge.query.filter_by(user_id=self.id).all()]
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
@@ -188,6 +192,8 @@ class User(XpubMixin, db.Model):
         if self.is_moderator:
             d['is_moderator'] = True
 
+        d['badges'] = self.get_badges()
+
         if for_user == self.id:
             # only ever show these fields to the actual user
             d['contribution_percent'] = self.contribution_percent
@@ -195,6 +201,16 @@ class User(XpubMixin, db.Model):
             d['xpub_index'] = self.xpub_index
 
         return d
+
+class UserBadge(db.Model):
+    __tablename__ = 'user_badges'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    badge = db.Column(db.Integer, nullable=False)
+    icon = db.Column(db.String(32), nullable=False)
+    awarded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 class Notification(abc.ABC):
     @property
@@ -480,6 +496,8 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
     auctions = db.relationship('Auction', backref='campaign')
     listings = db.relationship('Listing', backref='campaign')
 
+    sales = db.relationship('Sale', backref='campaign', order_by="Sale.requested_at")
+
     def to_dict(self, for_user=None):
         campaign = {
             'key': self.key,
@@ -647,7 +665,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
 
-    sales = db.relationship('Sale', backref='auction')
+    sales = db.relationship('Sale', backref='auction', order_by="Sale.requested_at")
 
     def get_top_bid(self):
         return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
@@ -684,7 +702,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
-            'is_mine': for_user == self.seller_id,
+            'is_mine': for_user == self.seller_id if for_user else False,
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
@@ -695,6 +713,9 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
         }
+
+        auction['bid_thresholds'] = [{'bid_amount_usd': bd['threshold_usd'], 'required_badge': b}
+            for b, bd in sorted(app.config['BADGES'].items(), key=lambda i: i[1]['threshold_usd'])]
 
         if self.item.category == Category.Time.value:
             auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.twitter_profile_image_url}]
@@ -798,7 +819,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    sales = db.relationship('Sale', backref='listing')
+    sales = db.relationship('Sale', backref='listing', order_by="Sale.requested_at")
 
     def featured_sort_key(self):
         return self.start_date
@@ -915,7 +936,7 @@ class Bid(db.Model):
     amount = db.Column(db.Integer, nullable=False)
 
     # payment_request identifies the Lightning invoice
-    payment_request = db.Column(db.String(512), nullable=False, unique=True, index=True)
+    payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
 
     def to_dict(self, for_user=None):
         bid = {
@@ -947,9 +968,13 @@ class Sale(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
+
+    # this is used when donating money to a campaign without buying anything
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
+    desired_badge = db.Column(db.Integer, nullable=True)
 
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
@@ -968,7 +993,7 @@ class Sale(db.Model):
     price = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
-    amount = db.Column(db.Integer, nullable=False) # amount to be paid to the seller (total amount minus contribution) *not* including shipping
+    amount = db.Column(db.Integer, nullable=False) # amount to be paid (total amount minus contribution) *not* including shipping
     shipping_domestic = db.Column(db.Integer, nullable=False)
     shipping_worldwide = db.Column(db.Integer, nullable=False)
 
@@ -979,7 +1004,8 @@ class Sale(db.Model):
 
     def to_dict(self):
         sale = {
-            'item_title': self.item.title,
+            'item_title': self.item.title if self.item else None,
+            'desired_badge': self.desired_badge,
             'state': SaleState(self.state).name,
             'price_usd': self.price_usd,
             'price': self.price,
@@ -987,15 +1013,15 @@ class Sale(db.Model):
             'amount': self.amount,
             'shipping_domestic': self.shipping_domestic,
             'shipping_worldwide': self.shipping_worldwide,
-            'seller_nym': self.item.seller.nym,
-            'seller_display_name': self.item.seller.display_name,
-            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
-            'seller_email': self.item.seller.email,
-            'seller_email_verified': self.item.seller.email_verified,
-            'seller_telegram_username': self.item.seller.telegram_username,
-            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
-            'seller_twitter_username': self.item.seller.twitter_username,
-            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'seller_nym': self.item.seller.nym if self.item else None,
+            'seller_display_name': self.item.seller.display_name if self.item else None,
+            'seller_profile_image_url': self.item.seller.twitter_profile_image_url if self.item else None,
+            'seller_email': self.item.seller.email if self.item else None,
+            'seller_email_verified': self.item.seller.email_verified if self.item else False,
+            'seller_telegram_username': self.item.seller.telegram_username if self.item else None,
+            'seller_telegram_username_verified': self.item.seller.telegram_username_verified if self.item else False,
+            'seller_twitter_username': self.item.seller.twitter_username if self.item else None,
+            'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else False,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
@@ -1021,9 +1047,10 @@ class Sale(db.Model):
             pyqrcode.create(self.contribution_payment_request).svg(contribution_payment_qr, omithw=True, scale=4)
             sale['contribution_payment_qr'] = contribution_payment_qr.getvalue().decode('utf-8')
         elif self.state == SaleState.CONTRIBUTION_SETTLED.value:
-            address_qr = BytesIO()
-            pyqrcode.create(self.address).svg(address_qr, omithw=True, scale=4)
-            sale['address_qr'] = address_qr.getvalue().decode('utf-8')
+            for which, shipping in [("", 0), ("_domestic", 1 / app.config['SATS_IN_BTC'] * self.shipping_domestic), ("_worldwide", 1 / app.config['SATS_IN_BTC'] * self.shipping_worldwide)]:
+                qr = BytesIO()
+                pyqrcode.create(f"bitcoin:{self.address}?amount={1 / app.config['SATS_IN_BTC'] * self.amount + shipping}").svg(qr, omithw=True, scale=4)
+                sale[f'qr{which}'] = qr.getvalue().decode('utf-8')
 
         return sale
 
