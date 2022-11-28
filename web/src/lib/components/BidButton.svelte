@@ -18,7 +18,9 @@
     function repostBid() {
         // repost the bid after we purchased the badge
         postBid($token, auction.key, amount, 'NEW_BADGE',
-            (_, __, messages) => {
+            (r, q, messages) => {
+                paymentRequest = r;
+                paymentQr = q;
                 for (const message of messages) {
                     setTimeout(() => Info.set(message), 0);
                 }

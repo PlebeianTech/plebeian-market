@@ -29,7 +29,9 @@ export class Sale implements IEntity {
     contribution_payment_qr: string | null = null;
     contribution_settled_at: Date | null = null;
     address: string = "";
-    address_qr: string | null = null;
+    qr: string | null = null;
+    qr_domestic: string | null = null;
+    qr_worldwide: string | null = null;
     txid: string = "";
     tx_value?: number = undefined;
     requested_at?: Date = undefined;

@@ -287,7 +287,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 402)
 
         # now try buying the badge
-        code, response = self.put(f"/api/badges/1000/buy",
+        code, response = self.put(f"/api/badges/500/buy",
             {'campaign_key': campaign_key_2},
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
@@ -307,7 +307,7 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me", {},
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
-        self.assertIn(1000, [b['badge'] for b in response['user']['badges']])
+        self.assertIn(500, [b['badge'] for b in response['user']['badges']])
 
         # the seller has four sales
         code, response = self.get("/api/users/me/sales", {},

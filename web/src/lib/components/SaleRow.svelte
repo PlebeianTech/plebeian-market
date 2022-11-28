@@ -11,7 +11,7 @@
     $: sale = <Sale>(<unknown>entity);
     $: rate = sale.price_usd * SATS_IN_BTC / sale.price;
     $: extra_usd = sale.tx_value ? rate * (sale.tx_value - sale.amount) / SATS_IN_BTC : 0;
-    $: short_title = sale.item_title.length <= 20 ? sale.item_title : sale.item_title.substring(0, 20) + "...";
+    $: short_title = sale.item_title ? (sale.item_title.length <= 20 ? sale.item_title : sale.item_title.substring(0, 20) + "...") : "";
     $: tx_url = sale.txid ? `https://mempool.space/tx/${sale.txid}` : null;
 </script>
 

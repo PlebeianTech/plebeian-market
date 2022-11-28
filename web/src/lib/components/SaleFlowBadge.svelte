@@ -17,14 +17,21 @@
 </ul>
 
 {#if sale.state === SaleState.CONTRIBUTION_SETTLED}
-    <p class="my-4">
-        Please send your donation amount of <AmountFormatter satsAmount={sale.amount} />.
+    <h3 class="mt-4 text-2xl">Skin in the game</h3>
+    <p class="mt-4">
+        In order to bid over $500 we ask plebs for a 1-time fee, the equivalent of $50... this has two benefits:
     </p>
-    <p class="text-2xl text-center mb-4">
+    <ul class="list-disc mt-2">
+        <li>It shows that you are a committed participant</li>
+        <li>It deters spam</li>
+    </ul>
+    <p class="mt-2">If you do this within a campaign, the money will go directly to that campaign! If you do this anywhere else on Plebeian Market, you will be enabling us to continue to develop this service.</p>
+    <p class="mt-2">You will receive a badge for the campaign you have contributed to and/or also a Plebeian Market Player badge. These will be visible on your Market Stall and will contribute towards your reputation.</p>
+    <p class="text-2xl text-center my-4">
         <AmountFormatter satsAmount={sale.amount} />
     </p>
     <p class="text-txl text-center mb-4">
         BTC {formatBTC(sale.amount)}
     </p>
-    <QR qr={sale.address_qr} protocol="bitcoin" address={sale.address} />
+    <QR qr={sale.qr} protocol="bitcoin" address={sale.address} />
 {/if}
