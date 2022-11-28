@@ -126,7 +126,7 @@
             <div class="w-full">
                 <h2 class="text-3xl mt-2 ml-2">{title}</h2>
                 <div class="flex flex-col gap-4 ml-2">
-                    {#if badges}
+                    {#if badges.length !== 0}
                         <div>Badges</div>
                         <div class="flex gap-2">
                             {#each badges as badge}
