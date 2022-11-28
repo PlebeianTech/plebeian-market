@@ -126,12 +126,14 @@
             <div class="w-full">
                 <h2 class="text-3xl mt-2 ml-2">{title}</h2>
                 <div class="flex flex-col gap-4 ml-2">
-                    <div>Badges</div>
-                    <div class="flex gap-2">
-                        {#each badges as badge}
-                            <BadgeSVG {badge} />
-                        {/each}
-                    </div>
+                    {#if badges}
+                        <div>Badges</div>
+                        <div class="flex gap-2">
+                            {#each badges as badge}
+                                <BadgeSVG {badge} />
+                            {/each}
+                        </div>
+                    {/if}
                 </div>
             </div>
             <div>
