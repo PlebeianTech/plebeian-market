@@ -45,7 +45,7 @@ MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
 LND_GRPC = os.environ.get('LND_GRPC')
 LND_MACAROON = "/secrets/admin.macaroon"
 LND_TLS_CERT = "/secrets/tls.cert"
-LND_BID_INVOICE_AMOUNT = 21
+LND_BID_INVOICE_AMOUNT = 21 if ENV != 'staging' else 1
 LND_BID_INVOICE_EXPIRY = 10 * 60 # 10 minutes
 LND_CONTRIBUTION_INVOICE_EXPIRY_AUCTION = 3 * 24 * 60 * 60 # 3 days
 LND_CONTRIBUTION_INVOICE_EXPIRY_LISTING = 30 * 60 # 30 minutes
