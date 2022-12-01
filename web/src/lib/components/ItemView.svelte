@@ -186,7 +186,7 @@
                                 {#if !item.ended}
                                     {#if item instanceof Auction}
                                         {#if !item.bids.length}
-                                            <p class="text-center pt-12">Place your bid below</p>
+                                            <p class="text-center pt-12 mb-4">Place your bid below</p>
                                         {/if}
                                         <div class="flex justify-center items-center">
                                             <BidButton auction={item} bind:amount bind:this={bidButton} />

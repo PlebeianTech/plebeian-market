@@ -1033,6 +1033,8 @@ class Sale(db.Model):
         sale = {
             'item_title': self.item.title if self.item else None,
             'desired_badge': self.desired_badge,
+            'campaign_key': self.campaign.key if self.campaign else None,
+            'campaign_name': self.campaign.name if self.campaign else None,
             'state': SaleState(self.state).name,
             'price_usd': self.price_usd,
             'price': self.price,

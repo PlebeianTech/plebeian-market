@@ -15,6 +15,8 @@ export class Sale implements IEntity {
 
     item_title: string | null = null;
     desired_badge: number | null = null;
+    campaign_key: string | null = null;
+    campaign_name: string | null = null;
     state: SaleState = SaleState.REQUESTED;
     price_usd: number = 0;
     price: number = 0;

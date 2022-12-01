@@ -5,6 +5,7 @@
     import type { Auction } from "$lib/types/auction";
     import { SaleState, type Sale, fromJson as saleFromJson } from "$lib/types/sale";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import BadgeHelp from "$lib/components/BadgeHelp.svelte";
     import BadgeSVG from "$lib/components/BadgeSVG.svelte";
     import SaleFlowBadge from "$lib/components/SaleFlowBadge.svelte";
     import QR from "$lib/components/QR.svelte";
@@ -126,7 +127,13 @@
                                 </div>
                             {:else}
                                 {#if usdAmount > threshold.bid_amount_usd / 2}
-                                    <div class="radial-progress" class:text-info={usdAmount < threshold.bid_amount_usd * 0.75} class:text-warning={usdAmount >= threshold.bid_amount_usd * 0.75 && usdAmount < threshold.bid_amount_usd * 0.85} class:text-error={usdAmount >= threshold.bid_amount_usd * 0.85} style="--value:{usdAmount / threshold.bid_amount_usd * 100};">{threshold.bid_amount_usd}$</div>
+                                    <div class="radial-progress" class:text-info={usdAmount < threshold.bid_amount_usd * 0.75} class:text-warning={usdAmount >= threshold.bid_amount_usd * 0.75 && usdAmount < threshold.bid_amount_usd * 0.85} class:text-error={usdAmount >= threshold.bid_amount_usd * 0.85} style="--value:{usdAmount / threshold.bid_amount_usd * 100};">
+                                        <div class="tooltip" data-tip="Badge required">
+                                            <label class="cursor-help" for="badge-modal">
+                                                {threshold.bid_amount_usd}$
+                                            </label>
+                                        </div>
+                                    </div>
                                 {/if}
                             {/if}
                         {/if}
@@ -135,4 +142,14 @@
             {/if}
         </div>
     {/if}
+</div>
+
+<input type="checkbox" id="badge-modal" class="modal-toggle" />
+<div class="modal">
+    <div class="modal-box">
+        <BadgeHelp campaign_name={auction.campaign_name} />
+        <div class="modal-action">
+            <label for="badge-modal" class="btn">OK</label>
+        </div>
+    </div>
 </div>
