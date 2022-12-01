@@ -38,8 +38,6 @@ BASE_URL = os.environ.get('BASE_URL')
 DOMAIN_NAME = "plebeian.market"
 
 MOCK_BTC = bool(int(os.environ.get("MOCK_BTC", 0)))
-BTC_TRANSACTION_TIMEOUT_MINUTES_LISTING = 3 * 60 # 3 hours
-BTC_TRANSACTION_TIMEOUT_MINUTES_AUCTION = 3 * 24 * 60 # 3 days
 
 MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
 LND_GRPC = os.environ.get('LND_GRPC')

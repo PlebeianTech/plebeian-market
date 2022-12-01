@@ -667,8 +667,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     sales = db.relationship('Sale', backref='auction', order_by="Sale.requested_at")
 
-    def get_top_bid(self):
-        return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
+    def get_top_bid(self, below=None):
+        return max((bid for bid in self.bids if bid.settled_at and (below is None or bid.amount < below)), default=None, key=lambda bid: bid.amount)
 
     def featured_sort_key(self):
         return len(self.bids)
@@ -972,9 +972,22 @@ class Sale(db.Model):
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
 
-    # this is used when donating money to a campaign without buying anything
-    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
     desired_badge = db.Column(db.Integer, nullable=True)
+
+    @property
+    def is_auction_sale(self):
+        return self.auction_id is not None
+
+    @property
+    def is_listing_sale(self):
+        return self.listing_id is not None
+
+    @property
+    def is_badge_sale(self):
+        return self.desired_badge is not None
+
+    # this is used when donating money to a campaign without buying anything (for the purpose of getting a campaign badge)
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
 
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
@@ -1001,6 +1014,20 @@ class Sale(db.Model):
     contribution_amount = db.Column(db.Integer, nullable=False)
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # this is NULL initially, and gets set after the contribution has been received
+
+    @property
+    def timeout_minutes(self):
+        if self.txid:
+            # if we already have a TX (without confirmations though),
+            # we can give it more time to confirm...
+            return 3 * 60 # leave 3 hours for BTC transactions to settle on-chain
+        else:
+            if self.is_auction_sale:
+                winning_bid = db.session.query(Bid).filter_by(id=self.auction.winning_bid_id).first()
+                if winning_bid and winning_bid.settled_at < self.auction.end_date - timedelta(minutes=20):
+                    return 24 * 60 # give them one day, if the winning bid was not in the final 20 minutes
+
+        return 1 * 60 # one hour to get a 0-conf for all other cases
 
     def to_dict(self):
         sale = {
