@@ -34,7 +34,7 @@
                             </p>
                         </div>
                     </td>
-                    <td>
+                    <td class="rounded-md" class:bg-success={bid.is_winning_bid} class:bg-success-content={bid.is_winning_bid}>
                         <p class="hidden md:contents">
                             <AmountFormatter satsAmount={bid.amount} newline={true} />
                         </p>

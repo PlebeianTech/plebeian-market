@@ -9,6 +9,7 @@ export interface Bid {
     buyer: IAccount;
     payment_request?: string;
     settled_at?: Date;
+    is_winning_bid: boolean;
 }
 
 export interface BidThreshold {
@@ -150,7 +151,7 @@ export function fromJson(json: any): IEntity {
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
             for (const bidjson of json[k]) {
-                var b: Bid = {amount: 0, buyer: {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false}};
+                var b: Bid = {amount: 0, buyer: {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false}, is_winning_bid: false};
                 for (var kk in bidjson) {
                     if (kk === 'settled_at') {
                         b.settled_at = new Date(bidjson[kk]);

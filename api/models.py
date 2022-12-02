@@ -950,7 +950,9 @@ class Bid(db.Model):
             'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
-            'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None)}
+            'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
+            'is_winning_bid': self.id == self.auction.winning_bid_id,
+        }
         if for_user == self.buyer_id:
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
             bid['payment_request'] = self.payment_request
