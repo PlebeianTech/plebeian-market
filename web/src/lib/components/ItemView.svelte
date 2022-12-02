@@ -169,6 +169,12 @@
                         <h3 class="text-2xl text-center my-2">
                             Auction ended
                         </h3>
+                        {#if item.is_mine && item.has_winner && item.winner}
+                            <div class="my-8 flex gap-2 items-center justify-center">
+                                <span>The winner is</span>
+                                <Avatar account={item.winner} inline={true} />
+                            </div>
+                        {/if}
                     {/if}
                 {/if}
                 {#if sale && sale.state !== SaleState.EXPIRED}

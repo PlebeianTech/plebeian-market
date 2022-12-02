@@ -702,7 +702,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
-            'is_mine': for_user == self.seller_id if for_user else False,
+            'is_mine': for_user == self.item.seller_id if for_user else False,
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
