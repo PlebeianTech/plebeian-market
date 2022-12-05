@@ -63,7 +63,7 @@
 
 <div class="w-full flex justify-center items-center">    
     <div class="card bg-base-300 w-full lg:p-4 rounded shadow-2xl mt-3">
-        <span class="btn btn-sm btn-circle absolute right-2 top-2" on:click={onCancel} on:keypress={onCancel}>✕</span>
+        <span class="btn btn-sm btn-circle absolute right-2 top-2" on:click={onCancel}>✕</span>
         <div class="card-body items-center">
             <h2 class="card-title text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
             <form class="w-full">
@@ -136,7 +136,7 @@
                     {#if !auction.validate()}
                         <button class="btn mt-1" disabled>Save</button>
                     {:else}
-                        <div class="glowbutton" class:glowbutton-save={!isTimeAuction} class:glowbutton-publish={isTimeAuction} on:click|preventDefault={onSave} on:keypress={onSave}></div>
+                        <div class="glowbutton" class:glowbutton-save={!isTimeAuction} class:glowbutton-publish={isTimeAuction} on:click|preventDefault={onSave}></div>
                     {/if}
                 </div>
             </div>

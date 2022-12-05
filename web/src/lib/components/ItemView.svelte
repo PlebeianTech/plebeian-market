@@ -1,8 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
     import SvelteMarkdown from 'svelte-markdown';
-    import { MetaTags } from 'svelte-meta-tags';
-    import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
+    import { ErrorHandler, getItem, postBid, putAuctionFollow, type ILoader } from "$lib/services/api";
     import { Error, Info, token, user } from "$lib/stores";
     import { Category, type Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
@@ -18,6 +17,7 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import Login from "$lib/components/Login.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
+    import { MetaTags } from "svelte-meta-tags";
     import { page } from "$app/stores";
 
     export let loader: ILoader;
