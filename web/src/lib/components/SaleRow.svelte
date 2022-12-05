@@ -37,7 +37,7 @@
   </td>
   <td>
     <div class="badge" class:badge-primary={sale.state === SaleState.TX_CONFIRMED} class:badge-secondary={sale.state !== SaleState.TX_CONFIRMED}>
-      <a class="link" title={sale.txid} target="_blank" href={tx_url}>
+      <a class="link" title={sale.txid} target="_blank" href={tx_url} rel="noreferrer">
         {sale.stateStr()}
       </a>
     </div>

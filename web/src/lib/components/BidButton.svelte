@@ -118,7 +118,7 @@
                 <button class="btn" disabled>Bid</button>
             {:else}
                 <div class="flex gap-4 justify-center items-center">
-                    <div class="my-10 glowbutton glowbutton-bid" on:click|preventDefault={placeBid}></div>
+                    <div class="my-10 glowbutton glowbutton-bid" on:click|preventDefault={placeBid} on:keypress={placeBid}></div>
                     {#each auction.bid_thresholds as threshold, i}
                         {#if usdAmount}
                             {#if usdAmount > threshold.bid_amount_usd && $user && $user.hasBadge(threshold.required_badge)}
