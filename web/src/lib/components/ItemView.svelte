@@ -17,9 +17,12 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import Login from "$lib/components/Login.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
+    import { MetaTags } from "svelte-meta-tags";
+    import { page } from "$app/stores";
 
     export let loader: ILoader;
     export let itemKey = null;
+    export let serverLoadedItem: Listing;
 
     let bidButton: BidButton;
 
@@ -113,7 +116,34 @@
     }
 
     onDestroy(stopRefresh);
+
+    let ogImages: {url: string}[] = [];
+    if (serverLoadedItem && serverLoadedItem.media) {
+        serverLoadedItem.media.forEach(element => {
+            ogImages.push({'url': element.url});
+        });
+    }
 </script>
+
+<MetaTags
+    title={serverLoadedItem?.title ?? "Plebeian Market item"}
+    description={serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION}
+    openGraph={{
+        site_name: "Plebeian Market",
+        type: 'website',
+        url: $page.url.href,
+        title: serverLoadedItem?.title ?? "Plebeian Market item",
+        description: serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION,
+        images: ogImages,
+    }}
+    twitter={{
+        site: import.meta.env.VITE_TWITTER_USER,
+        handle: import.meta.env.VITE_TWITTER_USER,
+        cardType: "summary_large_image",
+        image: serverLoadedItem && serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg",
+        imageAlt: serverLoadedItem?.title ?? "Plebeian Market item",
+    }}
+/>
 
 {#if item}
     <div>

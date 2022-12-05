@@ -4,7 +4,8 @@
     import { getValue } from 'btc2fiat';
     import { getProfile } from "$lib/services/api";
     import { token, user, BTC2USD } from "$lib/stores";
-    import { isProduction, getBaseUrl, getEnvironmentInfo } from "$lib/utils";
+    import { isProduction, getBaseUrl, getEnvironmentInfo, logout } from "$lib/utils";
+    import { browser } from '$app/environment';
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -42,7 +43,7 @@
     }
 
     onMount(async () => {
-        prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        prefersDark = browser && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         if ($token) {
             fetchProfile($token);
         }
@@ -83,9 +84,7 @@
                             }
                         } else {
                             // trying to hide the modal if you didn't set your Twitter username logges you out
-                            token.set(null);
-                            localStorage.removeItem('token');
-                            goto("/");
+                            logout();
                         }
                     });
             }
@@ -144,7 +143,7 @@
                         <li><a href="/sales/">My sales</a></li>
                         <li><a href="/settings">Settings</a></li>
                         <li><a href="https://t.me/PlebeianMarket" target="_blank">Telegram group</a></li>
-                        <li><a href={null} on:click|preventDefault={() => { token.set(null); localStorage.removeItem('token'); goto("/"); }} class="modal-button cursor-pointer">Logout</a></li>
+                        <li><a href={null} on:click={logout} class="modal-button cursor-pointer">Logout</a></li>
                     </ul>
                 </div>
             {/if}

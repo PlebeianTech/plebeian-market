@@ -6,6 +6,7 @@
     import Navbar from "$lib/components/Navbar.svelte";
     import Footer from "$lib/components/Footer.svelte";
     import TelegramFixedButton from "$lib/components/TelegramFixedButton.svelte";
+    import { browser } from '$app/environment';
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -34,7 +35,9 @@
 	onDestroy(errorUnsubscribe);
 
     onMount(async () => {
-        token.set(localStorage.getItem('token'));
+        if (browser) {
+            token.set(localStorage.getItem("token"));
+        }
     });
 </script>
 
