@@ -1019,6 +1019,9 @@ class Sale(db.Model):
 
     @property
     def timeout_minutes(self):
+        if app.config['ENV'] in ['dev', 'staging']:
+            return 6
+
         if self.txid:
             # if we already have a TX (without confirmations though),
             # we can give it more time to confirm...

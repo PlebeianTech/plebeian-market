@@ -55,7 +55,7 @@
     onMount(async () => {
         setTitle($user);
         if (isTimeAuction) {
-            auction.duration_hours = 48;
+            auction.duration_hours = isProduction() ? 48 : 0.1;
         }
         customDuration();
     });
