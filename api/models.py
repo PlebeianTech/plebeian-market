@@ -243,7 +243,7 @@ class AuctionEndNotification(Notification):
 
     @property
     def default_action(self):
-        return 'NONE'
+        return 'TWITTER_DM'
 
     def get_message_args(self, user, auction, bid):
         # NB: "bid is None" means this notification refers to an auction
@@ -265,7 +265,7 @@ class AuctionEnd10MinNotification(Notification):
 
     @property
     def default_action(self):
-        return 'NONE'
+        return 'TWITTER_DM'
 
     def get_message_args(self, user, auction, bid):
         # NB: "bid is None" means this notification refers to an auction
@@ -287,7 +287,7 @@ class NewBidNotification(Notification):
 
     @property
     def default_action(self):
-        return 'NONE'
+        return 'TWITTER_DM'
 
     def get_message_args(self, user, auction, bid):
         if bid is not None and bid.buyer_id != user.id: # the bidder should not be notified

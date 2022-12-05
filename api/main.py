@@ -374,9 +374,10 @@ def process_notifications():
 
             for notification_type, notification in m.NOTIFICATION_TYPES.items():
                 for user in following_users.values():
-                    if (user.id, notification_type) not in user_notifications:
-                        # this user didn't sign up for this notification type
-                        continue
+                    if (user.id, notification_type) in user_notifications:
+                        action = user_notifications[(user.id, notification_type)].action
+                    else:
+                        action = notification.default_action
 
                     message_args = notification.get_message_args(user, auction, bid)
                     if not message_args:
@@ -400,7 +401,6 @@ def process_notifications():
                         # see the comment on sent_notifications above for details
                         continue
 
-                    action = user_notifications[(user.id, notification_type)].action
                     app.logger.info(f"Executing {action=} for {user.id=}!")
                     if m.NOTIFICATION_ACTIONS[action].execute(user, message):
                         app.logger.info(f"Notified {user.id=} with {action=}!")
