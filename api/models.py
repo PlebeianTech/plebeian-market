@@ -361,7 +361,7 @@ class TwitterDMNotificationAction(NotificationAction):
         return twitter.send_dm(twitter_user['id'], message.body)
 
 NOTIFICATION_ACTIONS = OrderedDict([
-    (na.action, na) for na in [IgnoreNotificationAction(), TwitterDMNotificationAction(), InternalNotificationAction()]
+    (na.action, na) for na in [IgnoreNotificationAction(), TwitterDMNotificationAction()]
 ])
 
 class UserNotification(db.Model):
