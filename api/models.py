@@ -12,6 +12,7 @@ from pycoin.symbols.btc import network as BTC
 import pyqrcode
 import random
 from slugify import slugify
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 import string
 
@@ -224,82 +225,150 @@ class Notification(abc.ABC):
         pass
 
     @property
-    @abc.abstractmethod
     def default_action(self):
-        pass
+        return 'TWITTER_DM'
 
     @abc.abstractmethod
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
         pass
 
 class AuctionEndNotification(Notification):
     @property
     def notification_type(self):
-        return "AUCTION_END"
+        return 'AUCTION_END'
 
     @property
     def description(self):
         return "Auction ended"
 
-    @property
-    def default_action(self):
-        return 'TWITTER_DM'
-
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
+        user, auction, bid = kwargs['user'], kwargs['auction'], kwargs['bid']
         # NB: "bid is None" means this notification refers to an auction
         if bid is None and auction.ended:
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}",
-                'body': f"Auction {auction.title} ended!",
+                'body': f"Auction {auction.item.title} ended!",
             }
 
 class AuctionEnd10MinNotification(Notification):
     @property
     def notification_type(self):
-        return "AUCTION_END_10MIN"
+        return 'AUCTION_END_10MIN'
 
     @property
     def description(self):
         return "Auction ending in 10 minutes"
 
-    @property
-    def default_action(self):
-        return 'TWITTER_DM'
-
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
+        user, auction, bid = kwargs['user'], kwargs['auction'], kwargs['bid']
         # NB: "bid is None" means this notification refers to an auction
         if bid is None and auction.end_date <= (datetime.utcnow() + timedelta(minutes=10)):
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}",
-                'body': f"Auction {auction.title} ending in less than 10 minutes!",
+                'body': f"Auction {auction.item.title} ending in less than 10 minutes!",
             }
 
 class NewBidNotification(Notification):
     @property
     def notification_type(self):
-        return "NEW_BID"
+        return 'NEW_BID'
 
     @property
     def description(self):
         return "New bid"
 
-    @property
-    def default_action(self):
-        return 'TWITTER_DM'
-
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
+        user, auction, bid = kwargs['user'], kwargs['auction'], kwargs['bid']
         if bid is not None and bid.buyer_id != user.id: # the bidder should not be notified
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}_{bid.id}",
-                'body': f"New bid on {auction.title} by {bid.buyer.twitter_username}: {bid.amount} sats!",
+                'body': f"New bid on {auction.item.title} by {bid.buyer.twitter_username}: {bid.amount} sats!",
             }
 
+class SaleExpiredNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'SALE_EXPIRED'
+
+    @property
+    def description(self):
+        return "Sale expired"
+
+    def get_message_args(self, **kwargs):
+        user, auction, buyer = kwargs['user'], kwargs['auction'], kwargs['buyer']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}_{buyer.id}",
+            'body': f"The sale to {buyer.nym} of {auction.item.title} has expired!",
+        }
+
+class PurchaseExpiredNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'PURCHASE_EXPIRED'
+
+    @property
+    def description(self):
+        return "Purchase expired"
+
+    def get_message_args(self, **kwargs):
+        user, auction = kwargs['user'], kwargs['auction']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}",
+            'body': f"Your purchase of {auction.item.title} has expired!",
+        }
+
+class AuctionHasWinnerNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'AUCTION_HAS_WINNER'
+
+    @property
+    def description(self):
+        return "Auction has winner"
+
+    def get_message_args(self, **kwargs):
+        user, auction, buyer = kwargs['user'], kwargs['auction'], kwargs['buyer']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}_{buyer.id}",
+            'body': f"{buyer.nym} is the winner for {auction.item.title}!",
+        }
+
+class AuctionWonNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'AUCTION_WON'
+
+    @property
+    def description(self):
+        return "Auction won"
+
+    def get_message_args(self, **kwargs):
+        user, auction = kwargs['user'], kwargs['auction']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}",
+            'body': f"You are the winner of {auction.item.title}!",
+        }
+
 NOTIFICATION_TYPES = OrderedDict([
-    (nt.notification_type, nt) for nt in [NewBidNotification(), AuctionEndNotification(), AuctionEnd10MinNotification()]
+    (nt.notification_type, nt) for nt in [
+        NewBidNotification(),
+        AuctionEndNotification(),
+        AuctionEnd10MinNotification(),
+        SaleExpiredNotification(),
+        PurchaseExpiredNotification(),
+        AuctionHasWinnerNotification(),
+        AuctionWonNotification(),
+    ]
 ])
+
+BACKGROUND_PROCESS_NOTIFICATION_TYPES = {'AUCTION_END', 'AUCTION_END_10MIN', 'NEW_BID'}
 
 class NotificationAction(abc.ABC):
     @property
@@ -376,6 +445,11 @@ class UserNotification(db.Model):
     # TODO: if we choose to do that, better just rename this field to (maybe) "actions" to make it clear that it does not refer to a single action!
     action = db.Column(db.String(32), nullable=False)
 
+    @classmethod
+    def get_action(cls, user_id, notification_type):
+        un = db.session.query(cls).filter_by(user_id=user_id, notification_type=notification_type).first()
+        return un.action if un else NOTIFICATION_TYPES[notification_type].default_action
+
     def to_dict(self):
         return {
             'notification_type': self.notification_type,
@@ -405,6 +479,30 @@ class Message(db.Model):
     # the action used to send this notification (for example TWITTER_DM)
     # NB: this is NULL if the send failed
     notified_via = db.Column(db.String(32), nullable=True)
+
+    @classmethod
+    def create_and_send(cls, notification_type, user, **kwargs):
+        notification = NOTIFICATION_TYPES[notification_type]
+
+        message_args = notification.get_message_args(user=user, **kwargs)
+        if not message_args:
+            return
+
+        message = cls(**message_args)
+        db.session.add(message)
+
+        try:
+            db.session.commit() # this is done before actually sending the message, to ensure uniqueness
+
+            action = UserNotification.get_action(user.id, notification_type)
+            app.logger.info(f"Executing {action=} for {user.id=}!")
+            if NOTIFICATION_ACTIONS[action].execute(user, message):
+                app.logger.info(f"Notified {user.id=} with {action=}!")
+                message.notified_via = action
+                db.session.commit()
+        except IntegrityError:
+            app.logger.warning(f"Duplicate message send attempt: {message_args['key']=} {message_args['user_id']=}!")
+            db.session.rollback()
 
     def to_dict(self):
         return {

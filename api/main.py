@@ -166,6 +166,10 @@ def finalize_auctions():
             except IntegrityError:
                 # this should never happen...
                 app.logger.error(f"Address already in use. Will retry next time. {auction.id=}")
+                continue
+
+            m.Message.create_and_send('AUCTION_HAS_WINNER', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
+            m.Message.create_and_send('AUCTION_WON', user=sale.buyer, auction=sale.auction)
 
         if app.config['ENV'] == 'test':
             time.sleep(1)
@@ -289,8 +293,6 @@ def settle_btc_payments():
                             app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")
                 else:
                     timeout_minutes = sale.timeout_minutes
-                    if app.config['ENV'] == 'dev':
-                        timeout_minutes /= 60 # 1 h => 1 min, 3h => 3 min, etc..
                     if sale.requested_at < datetime.utcnow() - timedelta(minutes=timeout_minutes):
                         app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
                         sale.state = m.SaleState.EXPIRED.value
@@ -303,6 +305,12 @@ def settle_btc_payments():
                             listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
                             listing.available_quantity += sale.quantity
                         db.session.commit()
+
+                        # NB: we send messages after the final commit
+                        # because sending messages performa extra commits!
+                        if sale.is_auction_sale:
+                            m.Message.create_and_send('SALE_EXPIRED', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
+                            m.Message.create_and_send('PURCHASE_EXPIRED', user=sale.buyer, auction=sale.auction)
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
@@ -373,13 +381,15 @@ def process_notifications():
             user_notifications = {(un.user_id, un.notification_type): un for un in db.session.query(m.UserNotification).filter(m.UserNotification.user_id.in_(following_user_ids)).all()}
 
             for notification_type, notification in m.NOTIFICATION_TYPES.items():
+                if notification_type not in m.BACKGROUND_PROCESS_NOTIFICATION_TYPES:
+                    continue
                 for user in following_users.values():
                     if (user.id, notification_type) in user_notifications:
                         action = user_notifications[(user.id, notification_type)].action
                     else:
                         action = notification.default_action
 
-                    message_args = notification.get_message_args(user, auction, bid)
+                    message_args = notification.get_message_args(user=user, auction=auction, bid=bid)
                     if not message_args:
                         # notification type does not apply in this case
                         continue
