@@ -27,7 +27,7 @@
         <p class="text-3xl text-center pt-12">Price: ~<AmountFormatter usdAmount={item.price_usd} /></p>
         <p class="text-3xl text-center pt-12">{item.available_quantity} items available</p>
         <div class="w-full flex items-center justify-center mt-4">
-            <div class="glowbutton glowbutton-buy mt-2" on:click|preventDefault={buy}></div>
+            <div class="glowbutton glowbutton-buy mt-2" on:click|preventDefault={buy} on:keypress={buy}></div>
         </div>
     {/if}
 </div>
