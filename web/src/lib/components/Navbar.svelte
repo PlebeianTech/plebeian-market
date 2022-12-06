@@ -117,12 +117,12 @@
             </label>
             {#if $token && $user}
                 <div class="dropdown dropdown-end">
-                    <label for={null} class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified} class="btn btn-ghost btn-circle avatar">
+                    <label role="button" for={null} tabindex="0" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified} class="btn btn-ghost btn-circle avatar">
                         <div class="w-10 rounded-full">
                             <img src={$user.profileImageUrl} alt="Avatar" />
                         </div>
                     </label>
-                    <ul class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-300 rounded-box w-52">
+                    <ul role="menuitem" tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-300 rounded-box w-52">
                         {#if !$user.twitterUsernameVerified}
                             <li>
                                 <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button">
