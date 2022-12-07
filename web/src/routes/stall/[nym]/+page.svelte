@@ -10,6 +10,8 @@
     import type { User } from "$lib/types/user";
     import { getProfile, ErrorHandler } from "$lib/services/api";
     import { token, user } from "$lib/stores";
+    import { MetaTags } from "svelte-meta-tags";
+    import { page } from "$app/stores";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -43,7 +45,36 @@
             fetchStall(data.stallOwnerNym);
         }
     });
+
+    let serverLoadedUser = data.serverLoadedUser;
 </script>
+
+{#if serverLoadedUser}
+    <MetaTags
+            title={serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")}
+            description={serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!"}
+            openGraph={{
+                site_name: "Plebeian Market",
+                type: "website",
+                url: $page.url.href,
+                title: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
+                description: serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!",
+                images: [
+                  {
+                    url: serverLoadedUser.stall_banner_url ?? serverLoadedUser.profile_image_url ?? "",
+                    alt: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
+                  }
+                ],
+            }}
+            twitter={{
+                site: import.meta.env.VITE_TWITTER_USER,
+                handle: import.meta.env.VITE_TWITTER_USER,
+                cardType: "summary_large_image",
+                image: serverLoadedUser.stall_banner_url ?? serverLoadedUser.profile_image_url ?? "",
+                imageAlt: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
+            }}
+    />
+{/if}
 
 {#if loading}
     <Loading />
@@ -52,10 +83,13 @@
         <StallView
             baseUrl={`users/${isMyStall ? 'me' : owner.nym}`}
             bannerUrl={owner.stallBannerUrl}
-            {owner} {title} description={owner.stallDescription}
+            {owner} {title}
+            description={owner.stallDescription}
             editUrl={isMyStall ? "/settings#onsave=mystall" : null}
+            badges={owner.badges}
             isOwnStall={isMyStall}
-            showItemsOwner={false} showItemsCampaign={true}
+            showItemsOwner={false}
+            showItemsCampaign={true}
             canAddItems={isMyStall}
             {showActiveAuctions} {showPastAuctions}
             {showActiveListings} {showPastListings} />

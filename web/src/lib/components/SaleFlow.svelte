@@ -3,7 +3,7 @@
     import { SaleState, type Sale } from "$lib/types/sale";
     import { formatBTC } from "$lib/utils";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
-    import Avatar from "$lib/components/Avatar.svelte";
+    import Avatar, { AvatarSize } from "$lib/components/Avatar.svelte";
     import QR from "$lib/components/QR.svelte";
 
     export let item: Item;
@@ -12,13 +12,16 @@
     $: hasShipping = sale.shipping_domestic !== 0 || sale.shipping_worldwide !== 0;
 
     let shippingAmount = sale.shipping_worldwide;
+    let qr = sale.qr;
 
     function domesticShipping() {
         shippingAmount = sale.shipping_domestic;
+        qr = sale.qr_domestic;
     }
 
     function worldwideShipping() {
         shippingAmount = sale.shipping_worldwide;
+        qr = sale.qr_worldwide;
     }
 </script>
 
@@ -88,20 +91,20 @@
     <p class="text-txl text-center mb-4">
         BTC {formatBTC(sale.amount + shippingAmount)}
     </p>
-    <QR qr={sale.address_qr} protocol="bitcoin" address={sale.address} />
+    <QR {qr} protocol="bitcoin" address={sale.address} />
 {:else if sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}
     <p class="text-2xl text-center my-4">Thank you for your payment!</p>
     <div class="alert alert-info shadow-lg my-4">
         <div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>
-                TxID: <a class="link break-all" target="_blank" href="https://mempool.space/tx/{sale.txid}">{sale.txid}</a>
+                TxID: <a class="link break-all" target="_blank" href="https://mempool.space/tx/{sale.txid}" rel="noreferrer">{sale.txid}</a>
             </span>
         </div>
     </div>
     {#if sale.state === SaleState.TX_DETECTED}
         <p class="text-xl">Your purchase will be completed when the payment is confirmed by the network.</p>
-        <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}">mempool.space</a>!</p>
+        <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}" rel="noreferrer">mempool.space</a>!</p>
     {:else}
         <p class="text-3xl text-center my-10">Payment confirmed!</p>
         <p class="text-2xl">
@@ -112,7 +115,7 @@
             {/if}
         </p>
         <p class="text-center mt-10">
-            <Avatar account={sale.seller} height="12" />
+            <Avatar account={sale.seller} size={AvatarSize.M} />
         </p>
     {/if}
 {/if}

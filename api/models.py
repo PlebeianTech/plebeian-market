@@ -12,6 +12,7 @@ from pycoin.symbols.btc import network as BTC
 import pyqrcode
 import random
 from slugify import slugify
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 import string
 
@@ -123,7 +124,7 @@ class User(XpubMixin, db.Model):
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    sales = db.relationship('Sale', backref='buyer')
+    sales = db.relationship('Sale', backref='buyer', order_by="Sale.requested_at")
 
     def fetch_twitter_profile_image(self, profile_image_url, s3):
         url, _ = store_image(s3, f"user_{self.id}_twitter_profile_image", True, profile_image_url, None)
@@ -148,6 +149,10 @@ class User(XpubMixin, db.Model):
         if contribution_amount < app.config['MINIMUM_CONTRIBUTION_AMOUNT']:
             contribution_amount = 0 # probably not worth the fees, at least in the next few years
         return contribution_amount
+
+    def get_badges(self):
+        return [{'badge': b.badge, 'icon': b.icon, 'awarded_at': b.awarded_at}
+            for b in UserBadge.query.filter_by(user_id=self.id).all()]
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
@@ -188,6 +193,8 @@ class User(XpubMixin, db.Model):
         if self.is_moderator:
             d['is_moderator'] = True
 
+        d['badges'] = self.get_badges()
+
         if for_user == self.id:
             # only ever show these fields to the actual user
             d['contribution_percent'] = self.contribution_percent
@@ -195,6 +202,16 @@ class User(XpubMixin, db.Model):
             d['xpub_index'] = self.xpub_index
 
         return d
+
+class UserBadge(db.Model):
+    __tablename__ = 'user_badges'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    badge = db.Column(db.Integer, nullable=False)
+    icon = db.Column(db.String(32), nullable=False)
+    awarded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 class Notification(abc.ABC):
     @property
@@ -208,82 +225,150 @@ class Notification(abc.ABC):
         pass
 
     @property
-    @abc.abstractmethod
     def default_action(self):
-        pass
+        return 'TWITTER_DM'
 
     @abc.abstractmethod
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
         pass
 
 class AuctionEndNotification(Notification):
     @property
     def notification_type(self):
-        return "AUCTION_END"
+        return 'AUCTION_END'
 
     @property
     def description(self):
         return "Auction ended"
 
-    @property
-    def default_action(self):
-        return 'NONE'
-
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
+        user, auction, bid = kwargs['user'], kwargs['auction'], kwargs['bid']
         # NB: "bid is None" means this notification refers to an auction
         if bid is None and auction.ended:
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}",
-                'body': f"Auction {auction.title} ended!",
+                'body': f"Auction {auction.item.title} ended!",
             }
 
 class AuctionEnd10MinNotification(Notification):
     @property
     def notification_type(self):
-        return "AUCTION_END_10MIN"
+        return 'AUCTION_END_10MIN'
 
     @property
     def description(self):
         return "Auction ending in 10 minutes"
 
-    @property
-    def default_action(self):
-        return 'NONE'
-
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
+        user, auction, bid = kwargs['user'], kwargs['auction'], kwargs['bid']
         # NB: "bid is None" means this notification refers to an auction
         if bid is None and auction.end_date <= (datetime.utcnow() + timedelta(minutes=10)):
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}",
-                'body': f"Auction {auction.title} ending in less than 10 minutes!",
+                'body': f"Auction {auction.item.title} ending in less than 10 minutes!",
             }
 
 class NewBidNotification(Notification):
     @property
     def notification_type(self):
-        return "NEW_BID"
+        return 'NEW_BID'
 
     @property
     def description(self):
         return "New bid"
 
-    @property
-    def default_action(self):
-        return 'NONE'
-
-    def get_message_args(self, user, auction, bid):
+    def get_message_args(self, **kwargs):
+        user, auction, bid = kwargs['user'], kwargs['auction'], kwargs['bid']
         if bid is not None and bid.buyer_id != user.id: # the bidder should not be notified
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}_{bid.id}",
-                'body': f"New bid on {auction.title} by {bid.buyer.twitter_username}: {bid.amount} sats!",
+                'body': f"New bid on {auction.item.title} by {bid.buyer.twitter_username}: {bid.amount} sats!",
             }
 
+class SaleExpiredNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'SALE_EXPIRED'
+
+    @property
+    def description(self):
+        return "Sale expired"
+
+    def get_message_args(self, **kwargs):
+        user, auction, buyer = kwargs['user'], kwargs['auction'], kwargs['buyer']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}_{buyer.id}",
+            'body': f"The sale to {buyer.nym} of {auction.item.title} has expired!",
+        }
+
+class PurchaseExpiredNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'PURCHASE_EXPIRED'
+
+    @property
+    def description(self):
+        return "Purchase expired"
+
+    def get_message_args(self, **kwargs):
+        user, auction = kwargs['user'], kwargs['auction']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}",
+            'body': f"Your purchase of {auction.item.title} has expired!",
+        }
+
+class AuctionHasWinnerNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'AUCTION_HAS_WINNER'
+
+    @property
+    def description(self):
+        return "Auction has winner"
+
+    def get_message_args(self, **kwargs):
+        user, auction, buyer = kwargs['user'], kwargs['auction'], kwargs['buyer']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}_{buyer.id}",
+            'body': f"{buyer.nym} is the winner for {auction.item.title}!",
+        }
+
+class AuctionWonNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'AUCTION_WON'
+
+    @property
+    def description(self):
+        return "Auction won"
+
+    def get_message_args(self, **kwargs):
+        user, auction = kwargs['user'], kwargs['auction']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{auction.id}",
+            'body': f"You are the winner of {auction.item.title}!",
+        }
+
 NOTIFICATION_TYPES = OrderedDict([
-    (nt.notification_type, nt) for nt in [NewBidNotification(), AuctionEndNotification(), AuctionEnd10MinNotification()]
+    (nt.notification_type, nt) for nt in [
+        NewBidNotification(),
+        AuctionEndNotification(),
+        AuctionEnd10MinNotification(),
+        SaleExpiredNotification(),
+        PurchaseExpiredNotification(),
+        AuctionHasWinnerNotification(),
+        AuctionWonNotification(),
+    ]
 ])
+
+BACKGROUND_PROCESS_NOTIFICATION_TYPES = {'AUCTION_END', 'AUCTION_END_10MIN', 'NEW_BID'}
 
 class NotificationAction(abc.ABC):
     @property
@@ -345,7 +430,7 @@ class TwitterDMNotificationAction(NotificationAction):
         return twitter.send_dm(twitter_user['id'], message.body)
 
 NOTIFICATION_ACTIONS = OrderedDict([
-    (na.action, na) for na in [IgnoreNotificationAction(), TwitterDMNotificationAction(), InternalNotificationAction()]
+    (na.action, na) for na in [IgnoreNotificationAction(), TwitterDMNotificationAction()]
 ])
 
 class UserNotification(db.Model):
@@ -359,6 +444,11 @@ class UserNotification(db.Model):
     # then we would simply have to split by "|" when executing the actions in process-notifications!
     # TODO: if we choose to do that, better just rename this field to (maybe) "actions" to make it clear that it does not refer to a single action!
     action = db.Column(db.String(32), nullable=False)
+
+    @classmethod
+    def get_action(cls, user_id, notification_type):
+        un = db.session.query(cls).filter_by(user_id=user_id, notification_type=notification_type).first()
+        return un.action if un else NOTIFICATION_TYPES[notification_type].default_action
 
     def to_dict(self):
         return {
@@ -389,6 +479,30 @@ class Message(db.Model):
     # the action used to send this notification (for example TWITTER_DM)
     # NB: this is NULL if the send failed
     notified_via = db.Column(db.String(32), nullable=True)
+
+    @classmethod
+    def create_and_send(cls, notification_type, user, **kwargs):
+        notification = NOTIFICATION_TYPES[notification_type]
+
+        message_args = notification.get_message_args(user=user, **kwargs)
+        if not message_args:
+            return
+
+        message = cls(**message_args)
+        db.session.add(message)
+
+        try:
+            db.session.commit() # this is done before actually sending the message, to ensure uniqueness
+
+            action = UserNotification.get_action(user.id, notification_type)
+            app.logger.info(f"Executing {action=} for {user.id=}!")
+            if NOTIFICATION_ACTIONS[action].execute(user, message):
+                app.logger.info(f"Notified {user.id=} with {action=}!")
+                message.notified_via = action
+                db.session.commit()
+        except IntegrityError:
+            app.logger.warning(f"Duplicate message send attempt: {message_args['key']=} {message_args['user_id']=}!")
+            db.session.rollback()
 
     def to_dict(self):
         return {
@@ -479,6 +593,8 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
 
     auctions = db.relationship('Auction', backref='campaign')
     listings = db.relationship('Listing', backref='campaign')
+
+    sales = db.relationship('Sale', backref='campaign', order_by="Sale.requested_at")
 
     def to_dict(self, for_user=None):
         campaign = {
@@ -647,10 +763,10 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
 
-    sales = db.relationship('Sale', backref='auction')
+    sales = db.relationship('Sale', backref='auction', order_by="Sale.requested_at")
 
-    def get_top_bid(self):
-        return max((bid for bid in self.bids if bid.settled_at), default=None, key=lambda bid: bid.amount)
+    def get_top_bid(self, below=None):
+        return max((bid for bid in self.bids if bid.settled_at and (below is None or bid.amount < below)), default=None, key=lambda bid: bid.amount)
 
     def featured_sort_key(self):
         return len(self.bids)
@@ -684,7 +800,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
-            'is_mine': for_user == self.seller_id,
+            'is_mine': for_user == self.item.seller_id if for_user else False,
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
             'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
@@ -695,6 +811,9 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
         }
+
+        auction['bid_thresholds'] = [{'bid_amount_usd': bd['threshold_usd'], 'required_badge': b}
+            for b, bd in sorted(app.config['BADGES'].items(), key=lambda i: i[1]['threshold_usd'])]
 
         if self.item.category == Category.Time.value:
             auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.twitter_profile_image_url}]
@@ -798,7 +917,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    sales = db.relationship('Sale', backref='listing')
+    sales = db.relationship('Sale', backref='listing', order_by="Sale.requested_at")
 
     def featured_sort_key(self):
         return self.start_date
@@ -915,7 +1034,7 @@ class Bid(db.Model):
     amount = db.Column(db.Integer, nullable=False)
 
     # payment_request identifies the Lightning invoice
-    payment_request = db.Column(db.String(512), nullable=False, unique=True, index=True)
+    payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
 
     def to_dict(self, for_user=None):
         bid = {
@@ -929,7 +1048,9 @@ class Bid(db.Model):
             'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
-            'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None)}
+            'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
+            'is_winning_bid': self.id == self.auction.winning_bid_id,
+        }
         if for_user == self.buyer_id:
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
             bid['payment_request'] = self.payment_request
@@ -947,9 +1068,26 @@ class Sale(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
+
+    desired_badge = db.Column(db.Integer, nullable=True)
+
+    @property
+    def is_auction_sale(self):
+        return self.auction_id is not None
+
+    @property
+    def is_listing_sale(self):
+        return self.listing_id is not None
+
+    @property
+    def is_badge_sale(self):
+        return self.desired_badge is not None
+
+    # this is used when donating money to a campaign without buying anything (for the purpose of getting a campaign badge)
+    campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
 
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
@@ -968,7 +1106,7 @@ class Sale(db.Model):
     price = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
-    amount = db.Column(db.Integer, nullable=False) # amount to be paid to the seller (total amount minus contribution) *not* including shipping
+    amount = db.Column(db.Integer, nullable=False) # amount to be paid (total amount minus contribution) *not* including shipping
     shipping_domestic = db.Column(db.Integer, nullable=False)
     shipping_worldwide = db.Column(db.Integer, nullable=False)
 
@@ -977,9 +1115,29 @@ class Sale(db.Model):
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # this is NULL initially, and gets set after the contribution has been received
 
+    @property
+    def timeout_minutes(self):
+        if app.config['ENV'] in ['dev', 'staging']:
+            return 6
+
+        if self.txid:
+            # if we already have a TX (without confirmations though),
+            # we can give it more time to confirm...
+            return 3 * 60 # leave 3 hours for BTC transactions to settle on-chain
+        else:
+            if self.is_auction_sale:
+                winning_bid = db.session.query(Bid).filter_by(id=self.auction.winning_bid_id).first()
+                if winning_bid and winning_bid.settled_at < self.auction.end_date - timedelta(minutes=20):
+                    return 24 * 60 # give them one day, if the winning bid was not in the final 20 minutes
+
+        return 1 * 60 # one hour to get a 0-conf for all other cases
+
     def to_dict(self):
         sale = {
-            'item_title': self.item.title,
+            'item_title': self.item.title if self.item else None,
+            'desired_badge': self.desired_badge,
+            'campaign_key': self.campaign.key if self.campaign else None,
+            'campaign_name': self.campaign.name if self.campaign else None,
             'state': SaleState(self.state).name,
             'price_usd': self.price_usd,
             'price': self.price,
@@ -987,15 +1145,15 @@ class Sale(db.Model):
             'amount': self.amount,
             'shipping_domestic': self.shipping_domestic,
             'shipping_worldwide': self.shipping_worldwide,
-            'seller_nym': self.item.seller.nym,
-            'seller_display_name': self.item.seller.display_name,
-            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
-            'seller_email': self.item.seller.email,
-            'seller_email_verified': self.item.seller.email_verified,
-            'seller_telegram_username': self.item.seller.telegram_username,
-            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
-            'seller_twitter_username': self.item.seller.twitter_username,
-            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'seller_nym': self.item.seller.nym if self.item else None,
+            'seller_display_name': self.item.seller.display_name if self.item else None,
+            'seller_profile_image_url': self.item.seller.twitter_profile_image_url if self.item else None,
+            'seller_email': self.item.seller.email if self.item else None,
+            'seller_email_verified': self.item.seller.email_verified if self.item else False,
+            'seller_telegram_username': self.item.seller.telegram_username if self.item else None,
+            'seller_telegram_username_verified': self.item.seller.telegram_username_verified if self.item else False,
+            'seller_twitter_username': self.item.seller.twitter_username if self.item else None,
+            'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else False,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
@@ -1021,9 +1179,10 @@ class Sale(db.Model):
             pyqrcode.create(self.contribution_payment_request).svg(contribution_payment_qr, omithw=True, scale=4)
             sale['contribution_payment_qr'] = contribution_payment_qr.getvalue().decode('utf-8')
         elif self.state == SaleState.CONTRIBUTION_SETTLED.value:
-            address_qr = BytesIO()
-            pyqrcode.create(self.address).svg(address_qr, omithw=True, scale=4)
-            sale['address_qr'] = address_qr.getvalue().decode('utf-8')
+            for which, shipping in [("", 0), ("_domestic", 1 / app.config['SATS_IN_BTC'] * self.shipping_domestic), ("_worldwide", 1 / app.config['SATS_IN_BTC'] * self.shipping_worldwide)]:
+                qr = BytesIO()
+                pyqrcode.create(f"bitcoin:{self.address}?amount={1 / app.config['SATS_IN_BTC'] * self.amount + shipping}").svg(qr, omithw=True, scale=4)
+                sale[f'qr{which}'] = qr.getvalue().decode('utf-8')
 
         return sale
 

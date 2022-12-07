@@ -103,6 +103,11 @@ def finalize_auctions():
             continue
         for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
             top_bid = auction.get_top_bid()
+
+            while top_bid and db.session.query(m.Sale).filter_by(auction_id=auction.id, buyer_id=top_bid.buyer_id, state=m.SaleState.EXPIRED.value).first():
+                app.logger.info(f"Skipping bidder {top_bid.buyer_id} with expired sale for {auction.id=} and picking the next one!")
+                top_bid = auction.get_top_bid(below=top_bid.amount)
+
             if not top_bid or not auction.reserve_bid_reached:
                 app.logger.info(f"Auction {auction.id=} has no winner!")
                 auction.has_winner = False
@@ -119,12 +124,6 @@ def finalize_auctions():
                 # because for normal auctions we want to set has_winner in the same transaction that generates the sale!
                 db.session.commit()
                 continue
-
-            # NB: we assume that the top bidder is the winner, which works for now,
-            # but we might want to make it so that if the winner failed to pay on time,
-            # has_winner becomes None again (when the Sale state is set to EXPIRED),
-            # and here we would pick the next bidder to be the new winner and give him a chance to buy the item.
-            # In that case, we should check here for an EXPIRED Sale belonging to this auction and to the bidder...
 
             quantity = 1 # always 1 for auctions
 
@@ -167,6 +166,10 @@ def finalize_auctions():
             except IntegrityError:
                 # this should never happen...
                 app.logger.error(f"Address already in use. Will retry next time. {auction.id=}")
+                continue
+
+            m.Message.create_and_send('AUCTION_HAS_WINNER', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
+            m.Message.create_and_send('AUCTION_WON', user=sale.buyer, auction=sale.auction)
 
         if app.config['ENV'] == 'test':
             time.sleep(1)
@@ -243,13 +246,10 @@ def settle_btc_payments():
     app.logger.info(f"Starting to settle BTC payments using {type(btc)}...")
 
     while True:
-        sales_to_settle_filter = (m.Sale.contribution_payment_request == None) | (m.Sale.contribution_settled_at != None)
-        sales_to_expire_filter = m.Sale.requested_at < (datetime.utcnow() - timedelta(minutes=min(app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_LISTING'], app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_AUCTION'])))
-
         try:
-            for sale in db.session.query(m.Sale).filter((m.Sale.settled_at == None) & (m.Sale.expired_at == None) & (sales_to_settle_filter | sales_to_expire_filter)):
-                if app.config['ENV'] == 'test' and sale.requested_at >= (datetime.utcnow() - timedelta(seconds=1)):
-                    # in test mode, require sales to be at least 1 second old, so we don't break the tests
+            for sale in db.session.query(m.Sale).filter((m.Sale.settled_at == None) & (m.Sale.expired_at == None)):
+                if app.config['ENV'] == 'test' and sale.requested_at >= (datetime.utcnow() - timedelta(seconds=3)):
+                    # in test mode, don't settle the sales right away, to give them time to the contribution to settle first
                     app.logger.warning("Waiting...")
                     continue
                 try:
@@ -279,6 +279,11 @@ def settle_btc_payments():
                             sale.txid = tx['txid']
                             sale.tx_value = tx['value']
                             sale.state = m.SaleState.TX_DETECTED.value
+                            if sale.is_badge_sale:
+                                for_campaign = sale.campaign.key if sale.campaign_id else None
+                                if not m.UserBadge.query.filter_by(user_id=sale.buyer_id, badge=sale.desired_badge, icon=for_campaign).first():
+                                    app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} to user {sale.buyer_id}.")
+                                    db.session.add(m.UserBadge(user_id=sale.buyer_id, badge=sale.desired_badge, icon=for_campaign))
                             if tx['confirmed']:
                                 sale.state = m.SaleState.TX_CONFIRMED.value
                                 sale.settled_at = datetime.utcnow()
@@ -287,16 +292,25 @@ def settle_btc_payments():
                         else:
                             app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")
                 else:
-                    is_auction_sale = sale.auction_id is not None
-                    is_listing_sale = sale.listing_id is not None
-                    timeout_minutes = app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_LISTING'] if is_listing_sale else app.config['BTC_TRANSACTION_TIMEOUT_MINUTES_AUCTION']
+                    timeout_minutes = sale.timeout_minutes
                     if sale.requested_at < datetime.utcnow() - timedelta(minutes=timeout_minutes):
                         app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
                         sale.state = m.SaleState.EXPIRED.value
                         sale.expired_at = datetime.utcnow()
-                        listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
-                        listing.available_quantity += sale.quantity
+                        if sale.is_auction_sale:
+                            # expired auction sales will give the next bidder the chance to buy the item
+                            sale.auction.has_winner = None
+                        if sale.is_listing_sale:
+                            # expired listing sales increment the stock with the quantity that was decremented when the sale process was initiated
+                            listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
+                            listing.available_quantity += sale.quantity
                         db.session.commit()
+
+                        # NB: we send messages after the final commit
+                        # because sending messages performa extra commits!
+                        if sale.is_auction_sale:
+                            m.Message.create_and_send('SALE_EXPIRED', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
+                            m.Message.create_and_send('PURCHASE_EXPIRED', user=sale.buyer, auction=sale.auction)
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
@@ -367,12 +381,15 @@ def process_notifications():
             user_notifications = {(un.user_id, un.notification_type): un for un in db.session.query(m.UserNotification).filter(m.UserNotification.user_id.in_(following_user_ids)).all()}
 
             for notification_type, notification in m.NOTIFICATION_TYPES.items():
+                if notification_type not in m.BACKGROUND_PROCESS_NOTIFICATION_TYPES:
+                    continue
                 for user in following_users.values():
-                    if (user.id, notification_type) not in user_notifications:
-                        # this user didn't sign up for this notification type
-                        continue
+                    if (user.id, notification_type) in user_notifications:
+                        action = user_notifications[(user.id, notification_type)].action
+                    else:
+                        action = notification.default_action
 
-                    message_args = notification.get_message_args(user, auction, bid)
+                    message_args = notification.get_message_args(user=user, auction=auction, bid=bid)
                     if not message_args:
                         # notification type does not apply in this case
                         continue
@@ -394,7 +411,6 @@ def process_notifications():
                         # see the comment on sent_notifications above for details
                         continue
 
-                    action = user_notifications[(user.id, notification_type)].action
                     app.logger.info(f"Executing {action=} for {user.id=}!")
                     if m.NOTIFICATION_ACTIONS[action].execute(user, message):
                         app.logger.info(f"Notified {user.id=} with {action=}!")

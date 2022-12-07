@@ -1,10 +1,10 @@
-import { goto } from "$app/navigation";
-import { token, Error } from "$lib/stores";
+import { Error } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, fromJson as userFromJson } from "$lib/types/user";
-import { getApiBaseUrl } from "$lib/utils";
+import { getApiBaseUrl, logout } from "$lib/utils";
+import { error } from '@sveltejs/kit';
 
 export class ErrorHandler {
     setError: boolean;
@@ -43,9 +43,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
             if (response.status === 401) {
                 if (tokenValue) {
                     console.log("Error 401: Unauthorized. Deleting the token.");
-                    token.set(null);
-                    localStorage.removeItem('token');
-                    goto("/login");
+                    logout("/login");
                 }
             } else {
                 checkResponse(response);
@@ -281,19 +279,37 @@ export function hideAuction(tokenValue, auctionKey, successCB: () => void, error
         });
 }
 
-export function postBid(tokenValue, auctionKey, amount, successCB: (paymentRequest, paymentQr, messages: string[]) => void, errorHandler = new ErrorHandler()) {
+export function postBid(tokenValue, auctionKey, amount, skip_invoice, successCB: (paymentRequest, paymentQr, messages: string[]) => void, badgeRequiredCB: (badge: number) => void = (_) => {}, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
-        JSON.stringify({amount}),
+        JSON.stringify({amount, skip_invoice}),
         response => {
             if (response.status === 200) {
-                response.json().then(data => { successCB(data.payment_request, data.qr, data.messages); });
+                response.json().then(data => {
+                    successCB(data.payment_request, data.qr, data.messages);
+                });
+            } else if (response.status === 402) {
+                response.json().then(data => {
+                    badgeRequiredCB(data.required_badge);
+                });
             } else {
                 errorHandler.handle(response);
             }
         });
 }
 
-export function putBuy(tokenValue, listingKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
+export function buyBadge(tokenValue, badge, campaignKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/badges/${badge}/buy`, 'PUT', tokenValue,
+        JSON.stringify({campaign_key: campaignKey}),
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => { successCB(saleFromJson(data.sale)); });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function buyListing(tokenValue, listingKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/listings/${listingKey}/buy`, 'PUT', tokenValue,
         JSON.stringify({}),
         response => {
@@ -303,4 +319,72 @@ export function putBuy(tokenValue, listingKey, successCB: (sale: Sale) => void, 
                 errorHandler.handle(response);
             }
         });
+}
+
+export async function getAuction(key) {
+    const response = await fetch(`${getApiBaseUrl()}api/auctions/${key}`)
+    const auction = await response.json()
+    if (response.ok) {
+        return {
+            itemKey: key,
+            serverLoadedItem: auction.auction
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch auction on the server"
+    );
+}
+
+export async function getListing(key) {
+    const response = await fetch(`${getApiBaseUrl()}api/listings/${key}`)
+    const listing = await response.json()
+    if (response.ok) {
+        return {
+            itemKey: key,
+            serverLoadedItem: listing.listing
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch listing on the server"
+    );
+}
+
+export async function getCampaign(key) {
+    if (!key) {
+        return {
+            campaignKey: null,
+            serverLoadedCampaign: null
+        }
+    }
+
+    const response = await fetch(`${getApiBaseUrl()}api/campaigns/${key}`)
+    const campaign = await response.json()
+    if (response.ok) {
+        return {
+            campaignKey: key,
+            serverLoadedCampaign: campaign.campaign
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch campaign on the server"
+    );
+}
+
+
+export async function getUser(nym) {
+    const response = await fetch(`${getApiBaseUrl()}api/users/${nym}`)
+    const user = await response.json()
+    if (response.ok) {
+        return {
+            stallOwnerNym: nym,
+            serverLoadedUser: user.user
+        }
+    }
+    throw error(
+        response.status,
+        "Could not fetch user on the server"
+    );
 }

@@ -132,7 +132,7 @@
                 <div class="divider"></div>
                 <div class="flex items-center justify-center gap-2">
                     <span>by</span>
-                    <Avatar account={item.seller} inline={true} nymOnly={true} />
+                    <Avatar account={item.seller} inline={true} />
                 </div>
             {/if}
             <div class="markdown-container max-h-52 overflow-hidden">

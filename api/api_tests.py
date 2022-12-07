@@ -29,7 +29,7 @@ class TestApi(unittest.TestCase):
             files = {}
         BASE_URL = app.config['BASE_URL']
         response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers, files=files)
-        return response.status_code, response.json() if response.status_code in (200, 400, 401, 403, 404) else None
+        return response.status_code, response.json() if response.status_code in (200, 400, 401, 402, 403, 404) else None
 
     def get(self, path, params=None, headers=None):
         return self.do(requests.get, path, params=params, headers=headers)
@@ -280,6 +280,19 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
 
+        # bidding too high (above the threshold) will give an error
+        code, response = self.post(f"/api/auctions/{auction_key}/bids",
+            {'amount': ONE_DOLLAR_SATS * 1001},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 402)
+
+        # now try buying the badge
+        code, response = self.put(f"/api/badges/500/buy",
+            {'campaign_key': campaign_key_2},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertAlmostEqual(response['sale']['price'], ONE_DOLLAR_SATS * 50, delta=ONE_DOLLAR_SATS * 50 / 100)
+
         # buying the two items
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_3))
@@ -289,6 +302,12 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         time.sleep(20)
+
+        # we got the badge!!
+        code, response = self.get("/api/users/me", {},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+        self.assertIn(500, [b['badge'] for b in response['user']['badges']])
 
         # the seller has four sales
         code, response = self.get("/api/users/me/sales", {},
@@ -650,7 +669,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertTrue(len(response['notifications']) > 0)
-        self.assertTrue(all(n['action'] == 'NONE' for n in response['notifications']))
+        self.assertTrue(all(n['action'] == 'TWITTER_DM' for n in response['notifications']))
 
         # set a notification for the user
         first_notification_type = response['notifications'][0]['notification_type']
@@ -998,10 +1017,15 @@ class TestApi(unittest.TestCase):
 
         _, token_3 = self.create_user()
 
-        # subscribe to new bid notifications and start following, both with the user that will bid and with a 3rd one
+        # subscribe to new bid notifications, unsubscribe from AUCTION_END_X
+        # and start following, both with the user that will bid and with a 3rd one
         for t in [token_2, token_3]:
-            code, response = self.put("/api/users/me/notifications",
-                {'notifications': [{'notification_type': 'NEW_BID', 'action': 'TWITTER_DM'}]},
+            code, response = self.put("/api/users/me/notifications", {
+                'notifications': [
+                    {'notification_type': 'NEW_BID', 'action': 'TWITTER_DM'},
+                    {'notification_type': 'AUCTION_END_10MIN', 'action': 'NONE'},
+                    {'notification_type': 'AUCTION_END', 'action': 'NONE'},
+                ]},
                 headers=self.get_auth_headers(t))
             self.assertEqual(code, 200)
             code, response = self.put(f"/api/auctions/{auction_key}/follow",
@@ -1042,15 +1066,17 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
         app.logger.warn(f"{response['messages']}")
-        self.assertEqual(len(response['messages']), 1)
-        self.assertIn("new bid", response['messages'][0]['body'].lower())
-        self.assertEqual(response['messages'][0]['notified_via'], 'TWITTER_DM')
+        actual_messages = [m for m in response['messages'] if m['notified_via']]
+        self.assertEqual(len(actual_messages), 1)
+        self.assertIn("new bid", actual_messages[0]['body'].lower())
+        self.assertEqual(actual_messages[0]['notified_via'], 'TWITTER_DM')
 
         # the bidder however was not...
         code, response = self.get("/api/users/me/messages?via=all",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['messages']), 0)
+        actual_messages = [m for m in response['messages'] if m['notified_via']]
+        self.assertEqual(len(actual_messages), 0)
 
         # auction has our settled bid! but no winner decided.
         code, response = self.get(f"/api/auctions/{auction_key}",

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ErrorHandler, putBuy } from "$lib/services/api";
+    import { ErrorHandler, buyListing } from "$lib/services/api";
     import { token } from "$lib/stores";
     import type { Sale } from "$lib/types/sale";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
@@ -11,7 +11,7 @@
     let waitingResponse = false;
     function buy() {
         waitingResponse = true;
-        putBuy($token, item.key,
+        buyListing($token, item.key,
             (sale) => {
                 onSale(sale);
                 waitingResponse = false;
@@ -27,7 +27,7 @@
         <p class="text-3xl text-center pt-12">Price: ~<AmountFormatter usdAmount={item.price_usd} /></p>
         <p class="text-3xl text-center pt-12">{item.available_quantity} items available</p>
         <div class="w-full flex items-center justify-center mt-4">
-            <div class="glowbutton glowbutton-buy mt-2" on:click|preventDefault={buy}></div>
+            <div class="glowbutton glowbutton-buy mt-2" on:click|preventDefault={buy} on:keypress={buy}></div>
         </div>
     {/if}
 </div>

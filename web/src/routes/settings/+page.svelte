@@ -13,6 +13,7 @@
     import V4V from "$lib/components/settings/V4V.svelte";
     import XPUB from "$lib/components/settings/XPUB.svelte";
     import { goto } from '$app/navigation';
+    import { browser } from '$app/environment';
 
     let STALL_PAGE = "My Stall";
     let WALLET_PAGE = "My wallet";
@@ -31,7 +32,9 @@
     }
 
     onMount(async () => {
-        localStorage.removeItem('initial-login-buyer'); // once the user opened settings, we don't want to pop up the verification anymore
+        if (browser) {
+            localStorage.removeItem('initial-login-buyer'); // once the user opened settings, we don't want to pop up the verification anymore
+        }
 
         let parts = $page.url.href.split("#");
         if (parts.length === 2) {

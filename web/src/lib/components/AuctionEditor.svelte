@@ -55,7 +55,7 @@
     onMount(async () => {
         setTitle($user);
         if (isTimeAuction) {
-            auction.duration_hours = 48;
+            auction.duration_hours = isProduction() ? 48 : 0.1;
         }
         customDuration();
     });
@@ -63,7 +63,7 @@
 
 <div class="w-full flex justify-center items-center">    
     <div class="card bg-base-300 w-full lg:p-4 rounded shadow-2xl mt-3">
-        <span class="btn btn-sm btn-circle absolute right-2 top-2" on:click={onCancel}>✕</span>
+        <span class="btn btn-sm btn-circle absolute right-2 top-2" on:click={onCancel} on:keypress={onCancel}>✕</span>
         <div class="card-body items-center">
             <h2 class="card-title text-2xl text-center">{#if auction.key}Edit auction{:else}New auction{/if}</h2>
             <form class="w-full">
@@ -107,7 +107,7 @@
                 {#if !isTimeAuction} <!-- duration -->
                     <div class="form-control mr-2 w-full">
                         <label class="label" for="duration">
-                            <span class="label-text">Auction Duration</span>
+                            <span class="label-text text-lg">Auction Duration</span>
                         </label>
                         <div class="flex flex-wrap">
                             {#each durationOptions as duration, i}
@@ -136,7 +136,7 @@
                     {#if !auction.validate()}
                         <button class="btn mt-1" disabled>Save</button>
                     {:else}
-                        <div class="glowbutton" class:glowbutton-save={!isTimeAuction} class:glowbutton-publish={isTimeAuction} on:click|preventDefault={onSave}></div>
+                        <div class="glowbutton" class:glowbutton-save={!isTimeAuction} class:glowbutton-publish={isTimeAuction} on:click|preventDefault={onSave} on:keypress={onSave}></div>
                     {/if}
                 </div>
             </div>
