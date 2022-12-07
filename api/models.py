@@ -824,9 +824,10 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             auction['reserve_bid'] = self.reserve_bid
 
         if for_user:
-            # NB: we only return sales for the current user, so that the UI can know the sales were settled
-            # sales for other users should be kept private or eventually shown to the seller only!
-            auction['sales'] = [sale.to_dict() for sale in self.item.sales if sale.buyer_id == for_user]
+            # NB: we only return sales for the current user, but for the seller we return all sales
+            auction['sales'] = [sale.to_dict()
+                for sale in self.item.sales
+                if sale.buyer_id == for_user or for_user == self.owner_id]
 
         if auction['has_winner']:
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
