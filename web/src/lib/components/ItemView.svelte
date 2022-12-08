@@ -42,14 +42,16 @@
                 }
 
                 if (item instanceof Auction) {
-                    for (const bid of item.bids) {
-                        if (bidButton && bid.payment_request !== null) {
-                            // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
-                            bidButton.bidConfirmed(bid.payment_request);
-                        }
-                        if (amount && amount <= bid.amount && bidButton.waitingBidSettlement()) {
-                            Error.set("A higher bid just came in.");
-                            bidButton.resetBid();
+                    if (bidButton && bidButton.bidConfirmed && bidButton.waitingBidSettlement && bidButton.resetBid) { // TODO: why are these checks needed? Typescript trying to be smart? Svelte acting stupid? Can we get rid of them?
+                        for (const bid of item.bids) {
+                            if (bid.payment_request !== null) {
+                                // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
+                                bidButton.bidConfirmed(bid.payment_request);
+                            }
+                            if (amount && amount <= bid.amount && bidButton.waitingBidSettlement()) {
+                                Error.set("A higher bid just came in.");
+                                bidButton.resetBid();
+                            }
                         }
                     }
 
@@ -159,28 +161,30 @@
                 </div>
             </div>
         {/if}
-        {#if sale && sale.state === SaleState.EXPIRED}
-            <div class="alert alert-error shadow-lg">
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>
-                        Sale expired. The transaction was not confirmed in time.
-                    </span>
+        {#if !item.is_mine}
+            {#if sale && sale.state === SaleState.EXPIRED}
+                <div class="alert alert-error shadow-lg">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                            Sale expired. The transaction was not confirmed in time.
+                        </span>
+                    </div>
                 </div>
-            </div>
-        {:else if sale && sale.state === SaleState.TX_CONFIRMED}
-            <div class="alert alert-success shadow-lg">
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>
-                        Your payment has been confirmed!
-                    </span>
+            {:else if sale && sale.state === SaleState.TX_CONFIRMED}
+                <div class="alert alert-success shadow-lg">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                            Your payment has been confirmed!
+                        </span>
+                    </div>
                 </div>
-            </div>
+            {/if}
         {/if}
         <div class="grid lg:grid-cols-3 gap-4">
             <div class="p-5">
@@ -204,10 +208,31 @@
                                 <span>The winner is</span>
                                 <Avatar account={item.winner} inline={true} />
                             </div>
+                            {#if sale}
+                                {#if sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}
+                                    <p class="my-4">Please contact the winner using <a class="link" href="https://twitter.com/messages" target="_blank" rel="noreferrer">Twitter DM</a> to discuss further.</p>
+                                    <div class="alert shadow-lg my-4" class:alert-warning={sale.state === SaleState.TX_DETECTED} class:alert-success={sale.state === SaleState.TX_CONFIRMED}>
+                                        <div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            <span>
+                                                TxID: <a class="link break-all" target="_blank" href="https://mempool.space/tx/{sale.txid}" rel="noreferrer">{sale.txid}</a>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {#if item.campaign_name !== null}
+                                        <div class="text-center text-2xl">
+                                            Note: all the money goes from the buyer <strong>directly to</strong>
+                                            <span class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></span>
+                                        </div>
+                                    {/if}
+                                {:else}
+                                    <p class="text-center text-2xl my-4">Waiting for the payment</p>
+                                {/if}
+                            {/if}
                         {/if}
                     {/if}
                 {/if}
-                {#if sale && sale.state !== SaleState.EXPIRED}
+                {#if !item.is_mine && sale && sale.state !== SaleState.EXPIRED}
                     <SaleFlow bind:item={item} bind:sale={sale} />
                 {/if}
                 {#if !item.ended}

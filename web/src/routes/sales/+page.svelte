@@ -7,7 +7,7 @@
 <h3 class="text-4xl my-4 ml-2">My sales</h3>
 
 <ListView
-    loader={{endpoint: `users/me/sales`, responseField: 'sales', fromJson: saleFromJson}}
+    loader={{endpoint: "users/me/sales", responseField: 'sales', fromJson: saleFromJson}}
     columns={["Date", "Buyer", "Item", "Sats / Fiat", "Received sats ($ shipping)", "State"]}
     card={SaleRow}
     editor={null}

@@ -41,8 +41,15 @@
     <p class="my-4">The seller wishes to donate <AmountFormatter satsAmount={sale.contribution_amount} /> sats out of the total price to Plebeian Technology. Please send the amount using the QR code below!</p>
     <QR qr={sale.contribution_payment_qr} protocol="lightning" address={sale.contribution_payment_request} />
 {:else if sale.state === SaleState.CONTRIBUTION_SETTLED}
+    {#if sale.contribution_amount !== 0}
+        <p class="text-xl my-4">
+            Thank you for your contribution!
+        </p>
+    {/if}
     <p class="my-4">
-        Please send the remaining amount of <AmountFormatter satsAmount={sale.amount} />
+        Please send the
+        {#if sale.contribution_amount !== 0}remaining {/if}
+        amount of <AmountFormatter satsAmount={sale.amount} />
         {#if hasShipping}plus shipping {/if}
         directly to
         {#if item.campaign_name !== null}
