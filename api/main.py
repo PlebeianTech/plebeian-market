@@ -102,6 +102,8 @@ def finalize_auctions():
             time.sleep(60)
             continue
         for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
+            app.logger.info(f"Looking at {auction.id=}...")
+
             top_bid = auction.get_top_bid()
 
             while top_bid and db.session.query(m.Sale).filter_by(auction_id=auction.id, buyer_id=top_bid.buyer_id, state=m.SaleState.EXPIRED.value).first():
@@ -111,6 +113,7 @@ def finalize_auctions():
             if not top_bid or not auction.reserve_bid_reached:
                 app.logger.info(f"Auction {auction.id=} has no winner!")
                 auction.has_winner = False
+                auction.winning_bid_id = None
                 db.session.commit()
                 continue
 
