@@ -34,7 +34,7 @@ export class Sale implements IEntity {
     qr: string | null = null;
     qr_domestic: string | null = null;
     qr_worldwide: string | null = null;
-    txid: string = "";
+    txid: string | null = null;
     tx_value?: number = undefined;
     requested_at?: Date = undefined;
     settled_at?: Date = undefined;

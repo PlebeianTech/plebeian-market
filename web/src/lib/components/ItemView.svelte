@@ -203,10 +203,14 @@
                         <h3 class="text-2xl text-center my-2">
                             Auction ended
                         </h3>
-                        {#if item.is_mine && item.has_winner && item.winner}
+                        {#if item.is_mine}
                             <div class="my-8 flex gap-2 items-center justify-center">
-                                <span>The winner is</span>
-                                <Avatar account={item.winner} inline={true} />
+                                {#if item.has_winner && item.winner}
+                                    <span>The winner is</span>
+                                    <Avatar account={item.winner} inline={true} />
+                                {:else}
+                                    <span>The auction doesn't have a winner.</span>
+                                {/if}
                             </div>
                             {#if sale}
                                 {#if sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}
@@ -225,6 +229,21 @@
                                             <span class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></span>
                                         </div>
                                     {/if}
+                                {:else if sale.state === SaleState.EXPIRED}
+                                    <div class="alert alert-error shadow-lg my-4">
+                                        <div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>
+                                                {#if sale.txid !== null}
+                                                    Unfortunately, the transaction did not confirm in time!
+                                                    <br />
+                                                    TxID: <a class="link break-all" target="_blank" href="https://mempool.space/tx/{sale.txid}" rel="noreferrer">{sale.txid}</a>
+                                                {:else}
+                                                    We didn't find a corresponding transaction!
+                                                {/if}
+                                            </span>
+                                        </div>
+                                    </div>
                                 {:else}
                                     <p class="text-center text-2xl my-4">Waiting for the payment</p>
                                 {/if}
