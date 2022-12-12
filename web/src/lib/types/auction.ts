@@ -81,10 +81,15 @@ export class Auction implements IEntity, Item {
     }
 
     public nextBid() {
-        var lastBid = this.topAmount() || this.starting_bid;
+        var lastBid = this.topAmount();
+
+        if (lastBid === 0) {
+            return Number(this.starting_bid);
+        }
+
         var head = String(lastBid).slice(0, 2);
         var rest = String(lastBid).slice(2);
-    
+
         if (head[0] === "1") {
             head = String(Number(head) + 1);
         } else if (head[0] === "2") {
@@ -106,7 +111,7 @@ export class Auction implements IEntity, Item {
                 head = String(Number(head[0]) + 1) + "0";
             }
         }
-    
+
         return Number(head + rest);
     }
 
