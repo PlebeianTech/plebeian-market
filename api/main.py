@@ -258,7 +258,7 @@ def settle_btc_payments():
                 try:
                     funding_txs = btc.get_funding_txs(sale.address)
                 except MempoolSpaceError:
-                    app.logger.warning("Cannot get transactions from mempool API. Taking a 1 minute nap...")
+                    app.logger.warning(f"Cannot get transactions from mempool API. {sale.address=} Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
                 for tx in funding_txs:
@@ -550,12 +550,12 @@ class MempoolSpaceError(Exception):
 class MempoolSpaceBTCClient:
     def get_funding_txs(self, addr):
         try:
-            r = requests.get(f"https://mempool.space/api/address/{addr}/txs")
+            response_json = requests.get(f"https://mempool.space/api/address/{addr}/txs").json()
         except JSONDecodeError as e:
             raise MempoolSpaceError() from e
 
         txs = []
-        for tx in r.json():
+        for tx in response_json:
             vout_for_addr = [vo for vo in tx['vout'] if vo['scriptpubkey_address'] == addr]
             if len(vout_for_addr) > 1:
                 app.logger.warning("Multiple outputs for same address? Strange...")
