@@ -78,9 +78,12 @@ class User(XpubMixin, db.Model):
     # Lightning log in key
     key = db.Column(db.String(128), unique=True, nullable=False, index=True)
 
+    # ask Mr. Schwab about this
+    score = db.Column(db.Integer, nullable=False, default=0)
+
     # ask Pedro about this
     xpub = db.Column(db.String(128), nullable=True)
-    xpub_index = db.Column(db.Integer, nullable=True)
+    xpub_index = db.Column(db.Integer, nullable=True) # we increment this as we generate new addresses
 
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
@@ -116,14 +119,16 @@ class User(XpubMixin, db.Model):
     def is_moderator(self):
         return (self.id in app.config['MODERATOR_USER_IDS']) or ('ALL' in app.config['MODERATOR_USER_IDS'])
 
+    # users can set this to a number depending on how much they love us - % of the sales
+    # PS: it does not influence "Mr. Schwab's number"
     contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)", lazy='dynamic')
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
+    # TODO: should probably be renamed to "purchases" LOL
     sales = db.relationship('Sale', backref='buyer', order_by="Sale.requested_at")
 
     def fetch_twitter_profile_image(self, profile_image_url, s3):
@@ -1115,6 +1120,13 @@ class Sale(db.Model):
     contribution_amount = db.Column(db.Integer, nullable=False)
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # this is NULL initially, and gets set after the contribution has been received
+
+    def settle(self):
+        self.state = SaleState.TX_CONFIRMED.value
+        self.settled_at = datetime.utcnow()
+        self.buyer.score += self.quantity * self.amount
+        if self.item:
+            self.item.seller.score += self.quantity * self.amount
 
     @property
     def timeout_minutes(self):

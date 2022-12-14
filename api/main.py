@@ -270,8 +270,7 @@ def settle_btc_payments():
                                 app.logger.info(f"Transaction txid={tx['txid']} differs from original txid={sale.txid} matching {sale.id=} but we still accept it.")
                                 sale.txid = tx['txid']
                             app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {sale.id=}.")
-                            sale.state = m.SaleState.TX_CONFIRMED.value
-                            sale.settled_at = datetime.utcnow()
+                            sale.settle()
                             db.session.commit()
                             break
                     elif not sale.txid:
@@ -288,8 +287,7 @@ def settle_btc_payments():
                                     app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} to user {sale.buyer_id}.")
                                     db.session.add(m.UserBadge(user_id=sale.buyer_id, badge=sale.desired_badge, icon=for_campaign))
                             if tx['confirmed']:
-                                sale.state = m.SaleState.TX_CONFIRMED.value
-                                sale.settled_at = datetime.utcnow()
+                                sale.settle()
                             db.session.commit()
                             break
                         else:
