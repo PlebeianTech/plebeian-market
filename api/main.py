@@ -549,6 +549,9 @@ class MempoolSpaceError(Exception):
 
 class MempoolSpaceBTCClient:
     def get_funding_txs(self, addr):
+        if addr.startswith("OLD_"): # not a real address, but a placeholder we used for sales from before we started accepting on-chain payments
+            return []
+
         try:
             response_json = requests.get(f"https://mempool.space/api/address/{addr}/txs").json()
         except JSONDecodeError as e:
