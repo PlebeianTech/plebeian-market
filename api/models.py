@@ -1176,6 +1176,14 @@ class Sale(db.Model):
             'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
         }
 
+        if self.auction:
+            sale['item_url'] = f"/auctions/{self.auction.key}"
+        elif self.listing:
+            sale['item_url'] = f"/listings/{self.listing.key}"
+        else:
+            # probably a badge sale
+            sale['item_url'] = None
+
         if self.state == SaleState.REQUESTED.value:
             contribution_payment_qr = BytesIO()
             pyqrcode.create(self.contribution_payment_request).svg(contribution_payment_qr, omithw=True, scale=4)

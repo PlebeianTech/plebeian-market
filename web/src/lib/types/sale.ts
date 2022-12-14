@@ -14,6 +14,7 @@ export class Sale implements IEntity {
     endpoint = "sales";
 
     item_title: string | null = null;
+    item_url: string | null = null;
     desired_badge: number | null = null;
     campaign_key: string | null = null;
     campaign_name: string | null = null;

@@ -25,7 +25,9 @@
     </div>
   </td>
   <td>
-    <span title={sale.item_title}>{short_title}</span>
+    <a href={sale.item_url} class:link={sale.item_url !== null}>
+      <span title={sale.item_title}>{short_title}</span>
+    </a>
   </td>
   <td>
     {sale.amount} / ${sale.price_usd}
