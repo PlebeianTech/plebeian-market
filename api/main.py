@@ -275,9 +275,7 @@ def settle_btc_payments():
                             db.session.commit()
                             break
                     elif not sale.txid:
-                        close_with_domestic = math.isclose(tx['value'], sale.amount + sale.shipping_domestic, rel_tol=0.01)
-                        close_with_worldwide = math.isclose(tx['value'], sale.amount + sale.shipping_worldwide, rel_tol=0.01)
-                        if close_with_domestic or close_with_worldwide:
+                        if tx['value'] >= sale.amount:
                             app.logger.info(f"Found transaction txid={tx['txid']} confirmed={tx['confirmed']} matching {sale.id=}.")
                             sale.txid = tx['txid']
                             sale.tx_value = tx['value']
