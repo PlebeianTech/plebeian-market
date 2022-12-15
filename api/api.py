@@ -215,6 +215,7 @@ def put_me(user):
     try:
         db.session.commit()
     except IntegrityError:
+        app.logger.exception(f"Error while saving user profile. {user.id=}")
         return jsonify({'message': "Please try again!"}), 500
 
     return jsonify({'user': user.to_dict(for_user=user.id)})
