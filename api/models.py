@@ -1058,6 +1058,7 @@ class Bid(db.Model):
         return bid
 
 class SaleState(Enum):
+    OLD = -1 # old sales, from before we used to settle on-chain
     REQUESTED = 0
     CONTRIBUTION_SETTLED = 1
     TX_DETECTED = 2

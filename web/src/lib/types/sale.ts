@@ -2,6 +2,7 @@ import type { IEntity } from "$lib/types/base";
 import type { IAccount } from "$lib/types/user";
 
 export enum SaleState {
+    OLD = 'OLD',
     REQUESTED = 'REQUESTED',
     CONTRIBUTION_SETTLED = 'CONTRIBUTION_SETTLED',
     TX_DETECTED = 'TX_DETECTED',
