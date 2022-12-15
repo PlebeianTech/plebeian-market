@@ -557,7 +557,7 @@ class MempoolSpaceBTCClient:
 
         txs = []
         for tx in response_json:
-            vout_for_addr = [vo for vo in tx['vout'] if vo['scriptpubkey_address'] == addr]
+            vout_for_addr = [vo for vo in tx['vout'] if vo.get('scriptpubkey_address') == addr]
             if len(vout_for_addr) > 1:
                 app.logger.warning("Multiple outputs for same address? Strange...")
             value = sum(vo['value'] for vo in vout_for_addr)
