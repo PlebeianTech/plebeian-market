@@ -1119,21 +1119,11 @@ class Sale(db.Model):
 
     @property
     def timeout_minutes(self):
-        if self.txid:
-            # if we already have a TX (without confirmations though),
-            # we can give it more time to confirm...
-            return 6 * 60 # leave 6 hours for BTC transactions to settle on-chain
-
         if app.config['ENV'] in ['dev', 'staging']:
             return 6 # be quick in dev and staging
 
-        if self.is_auction_sale:
-            winning_bid = db.session.query(Bid).filter_by(id=self.auction.winning_bid_id).first()
-            if winning_bid and winning_bid.settled_at < self.auction.end_date - timedelta(minutes=20):
-                # give them one day, if the winning bid was not in the final 20 minutes (they could be sleeping now)
-                return 24 * 60
-
-        return 1 * 60 # one hour to get a 0-conf for all other cases
+        # give them one day normally
+        return 24 * 60
 
     def to_dict(self):
         sale = {

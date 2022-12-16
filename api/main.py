@@ -293,8 +293,7 @@ def settle_btc_payments():
                         else:
                             app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")
                 else:
-                    timeout_minutes = sale.timeout_minutes
-                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=timeout_minutes):
+                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=sale.timeout_minutes):
                         app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
                         sale.state = m.SaleState.EXPIRED.value
                         sale.expired_at = datetime.utcnow()
