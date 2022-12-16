@@ -148,7 +148,7 @@
 />
 
 {#if item}
-    <div>
+    <div class="lg:w-2/3 mx-auto p-2">
         {#if $user && item.is_mine && !item.started}
             <div class="alert alert-error shadow-lg">
                 <div>
@@ -186,18 +186,76 @@
                 </div>
             {/if}
         {/if}
-        <div class="grid lg:grid-cols-3 gap-4">
-            <div class="p-5">
-                <h2 class="text-3xl text-center mt-2 mb-4 md:mr-2 rounded-t bg-black/5 py-1.5">{item.title}</h2>
-                <div class="text-center mb-4">
-                    {#if item.campaign_name !== null}
-                        <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
-                    {/if}
-                    <Avatar account={item.seller} />
+
+        <div class="grid">
+            <div class="">
+                <h2 class="lg:text-6xl text-3xl font-black text-center mt-2 mb-4 rounded-t py-1.5">{item.title}</h2>
+                
+                <div class="grid lg:grid-cols-2 gap-4 my-20">
+                  <!-- COL -->
+                  <div class="grid border border-gray-700/40 rounded">
+                    <Gallery photos={item.media} />
+                  </div>
+
+                  <!-- COL -->
+                  <div>
+
+                    <div class="">
+                      <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 rounded-t">
+                          <h3 class="mx-1">Product Details</h3>
+                      </span>
+                      {#if item instanceof Auction}
+                          <div class="form-control flex place-items-start">
+                              <label class="label cursor-pointer text-left border border-gray-700/40 rounded p-4">
+                                  <span class="label-text mr-4">Follow auction</span> 
+                                  <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
+                              </label>
+                          </div>
+                      {/if}
+                      <div class="markdown-container">
+                          <SvelteMarkdown source={item.description} />
+                      </div>
+                      {#if item.category !== Category.Time}
+                          <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
+                      {/if}
+                  
+                      {#if item.shipping_from}
+                          <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
+                      {/if}
+                      {#if item.shipping_domestic_usd}
+                          <p class="mt-4 ml-2">Shipping (domestic): ~<AmountFormatter usdAmount={item.shipping_domestic_usd} /></p>
+                      {/if}
+                      {#if item.shipping_worldwide_usd}
+                          <p class="mt-4 ml-2">Shipping (worldwide): ~<AmountFormatter usdAmount={item.shipping_worldwide_usd} /></p>
+                      {/if}
+                      <p class="mt-4 ml-2">
+                          {#if item instanceof Auction}
+                              {#if item.start_date && item.end_date}
+                                  {#if !item.started}
+                                      Auction starts <Countdown untilDate={new Date(item.start_date)} />.
+                                  {:else if item.ended}
+                                      Auction ended.
+                                  {/if}
+                              {:else if !item.is_mine}
+                                  Keep calm, prepare your wallet and wait for the seller to start this auction.
+                              {/if}
+                          {/if}
+                      </p>
+                  </div>
+
+                    <div class="grid">
+                        {#if item.campaign_name !== null}
+                            <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
+                        {/if}
+                        <div class="grid place-content-start">
+                          <Avatar account={item.seller} />
+                        </div>
+                    </div>
+                  </div>
                 </div>
-                <Gallery photos={item.media} />
             </div>
-            <div class="mr-4 p-5">
+            <!-- BIDS -->
+            <div class="p-5 w-full border border-gray-700/40 rounded my-20">
                 {#if item.ended}
                     {#if item instanceof Auction}
                         <h3 class="text-2xl text-center my-2">
@@ -333,48 +391,7 @@
                     {/if}
                 {/if}
             </div>
-            <div class="mr-5 p-5">
-                <span class="flex text-1xl md:text-3xl text-center mr-2 mb-4 mt-2 py-1.5 rounded-t">
-                    <h3 class="mx-1">Product Details</h3>
-                </span>
-                {#if item instanceof Auction}
-                    <div class="form-control">
-                        <label class="label cursor-pointer text-right">
-                            <span class="label-text">Follow auction</span> 
-                            <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
-                        </label>
-                    </div>
-                {/if}
-                <div class="markdown-container">
-                    <SvelteMarkdown source={item.description} />
-                </div>
-                {#if item.category !== Category.Time}
-                    <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
-                {/if}
-                <div class="divider"></div>
-                {#if item.shipping_from}
-                    <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
-                {/if}
-                {#if item.shipping_domestic_usd}
-                    <p class="mt-4 ml-2">Shipping (domestic): ~<AmountFormatter usdAmount={item.shipping_domestic_usd} /></p>
-                {/if}
-                {#if item.shipping_worldwide_usd}
-                    <p class="mt-4 ml-2">Shipping (worldwide): ~<AmountFormatter usdAmount={item.shipping_worldwide_usd} /></p>
-                {/if}
-                <p class="mt-4 ml-2">
-                    {#if item instanceof Auction}
-                        {#if item.start_date && item.end_date}
-                            {#if !item.started}
-                                Auction starts <Countdown untilDate={new Date(item.start_date)} />.
-                            {:else if item.ended}
-                                Auction ended.
-                            {/if}
-                        {:else if !item.is_mine}
-                            Keep calm, prepare your wallet and wait for the seller to start this auction.
-                        {/if}
-                    {/if}
-                </p>
-            </div>
+
         </div>
     </div>
 {/if}
