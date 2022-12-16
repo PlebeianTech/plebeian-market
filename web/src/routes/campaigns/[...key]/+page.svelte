@@ -107,11 +107,11 @@
         <div slot="extra-description" class="mt-4">
             {#if showXpub}
                 <div class="bg-base-300 p-10 rounded mt-6">
-                    Note: all money from the sales in this campaign will go to addresses generated from the following XPUB.
+                    Note: all money from the sales in this campaign will go to addresses generated from the following XPUB provided by Defending BTC team.
                     <div class="text-center">
                         <input value={campaign.xpub} type="text" class="input input-bordered w-full max-w-xs" disabled />
                         <button class="btn ml-2 mt-2 w-20" on:click={copyXpub}>{#if xpubCopied}Copied{:else}Copy!{/if}</button>
-                        <span class="ml-2">Don't trust, verify!</span>
+                        <p class="ml-2">Don't trust, verify!</p>
                     </div>
                 </div>
             {:else}

@@ -133,18 +133,20 @@
     <div class="grid place-items-center">
       <img src={BannerImg} alt="">
     </div>
-    <div class="grid place-items-center w-full my-12">
-      <h1 class="lg:text-4xl font-bold my-8">Get started</h1>
-      <a href="#anchorId" on:click|preventDefault={scrollIntoView} class="btn btn-primary uppercase font-bold">Auction 1-hour of your time</a>
-      <lottie-player
-        src="https://assets1.lottiefiles.com/packages/lf20_vfmyxu76.json"
-        background="transparent"
-        speed="1"
-        loop
-        autoplay
-        class="opacity-50"
-        style="width: 100px; height: 100px"
-      ></lottie-player>
+    <div class="grid place-items-center w-full mt-24">
+      <h1 class="lg:text-4xl font-bold">Get started</h1>
+      <a href="#anchorId" on:click|preventDefault={scrollIntoView} class="btn btn-primary uppercase font-bold my-4">Auction 1-hour of your time</a>
+      <div class="my-4">
+        <lottie-player
+          src="https://assets1.lottiefiles.com/packages/lf20_6mveojb1.json"
+          background="transparent"
+          speed="1"
+          loop
+          autoplay
+          class=""
+          style="width: 100px; height: 100px"
+        ></lottie-player>
+      </div>
     </div>
   </div>
     <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
@@ -159,12 +161,12 @@
                 <Avatar account={owner} size={AvatarSize.L} />
             {/if}
         </div> -->
-        <div class="flex justify-end my-4 border-b border-gray-700/20 py-4">
+        <div class="flex justify-end my-4 border-b border-gray-700/20 py-2">
           {#if editUrl}
               <a href={editUrl} class="btn btn-ghost text-sm uppercase font-bold mt-2">Edit</a>
           {/if}
         </div>
-        <div class="grid lg:grid-cols-2 gap-8 my-20">
+        <div class="grid lg:grid-cols-2 gap-8 my-12">
           <!-- COL -->
             <div class="w-full">
                 <h2 class="lg:text-5xl text-4xl font-bold">{title}</h2>
@@ -215,7 +217,7 @@
                 </div>
             </div>
             <!-- COL -->
-            <div class="grid place-items-center">
+            <div class="grid place-items-center border border-gray-700/40 rounded">
                 <!-- COLLAPSE XPUB -->
                 <h1 class="text-2xl font-bold">Don't Trust, Verify!</h1>
                 <slot name="extra-description" />
@@ -235,7 +237,7 @@
             <Login {onLogin} />
         {/if}
         {#if canAddItems || showActiveAuctions || showPastAuctions}
-            <h3 class="lg:text-8xl font-bold text-center my-8">Auctions</h3>
+            <h3 class="lg:text-8xl text-4xl font-black text-center my-8">Auctions</h3>
             {#if canAddItems}
                 <ListView
                     bind:this={auctionsLists['new']}
@@ -250,11 +252,11 @@
                     <div slot="new-entity" class="grid lg:grid-cols-2 gap-4" let:setCurrent={setCurrent}>
                         {#if isCampaignStall}
                             <div id="auction-hour-1" class="mx-auto my-10 bg-black w-full grid place-items-center h-64 rounded shadow-xl opacity-80 hover:opacity-100 duration-300 cursor-pointer hover:scale-95" on:click|preventDefault={() => newItem(setCurrent, () => new TimeAuction())}>
-                              <p class="lg:text-4xl font-bold text-center text-white">Auction time for 1 hour</p>
+                              <p class="lg:text-4xl text-2xl font-bold text-center text-white">1 Hour of time</p>
                             </div>
                         {/if}
                         <div id="auction-physical" class="mx-auto my-10 bg-black w-full grid place-items-center h-64 rounded shadow-xl opacity-80 hover:opacity-100 duration-300 cursor-pointer hover:scale-95" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}>
-                          <p class="lg:text-4xl font-bold text-center text-white">Auction Item</p>
+                          <p class="lg:text-4xl text-2xl font-bold text-center text-white">Physical Item</p>
                         </div>
                     </div>
                 </ListView>
@@ -281,7 +283,7 @@
             <div class="divider my-20"></div>
         {/if}
         {#if canAddItems || showActiveListings || showPastListings}
-            <h3 class="text-3xl text-center">Fixed price</h3>
+            <h3 class="lg:text-8xl text-4xl font-black text-center">Fixed price</h3>
             {#if canAddItems}
                 <ListView
                     bind:this={listingsLists['new']}
@@ -295,7 +297,7 @@
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
                         <div id="fixed-price" class="lg:w-1/2 mx-auto my-10 bg-black w-full grid place-items-center h-64 rounded shadow-xl opacity-80 hover:opacity-100 duration-300 cursor-pointer hover:scale-95" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}>
-                          <p class="lg:text-4xl font-bold text-center text-white">Sell Item</p>
+                          <p class="lg:text-4xl text-2xl font-bold text-center text-white">Sell Item</p>
                         </div>
                     </div>
                 </ListView>
