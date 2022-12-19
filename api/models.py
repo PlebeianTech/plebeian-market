@@ -1122,6 +1122,11 @@ class Sale(db.Model):
         if app.config['ENV'] in ['dev', 'staging']:
             return 6 # be quick in dev and staging
 
+        if self.txid:
+            # if we already have a TX (without confirmations though),
+            # we can give it more time to confirm...
+            return 48 * 60
+
         # give them one day normally
         return 24 * 60
 
