@@ -41,7 +41,7 @@
     });
 </script>
 
-<div class="h-screen py-20">
+<div class="h-screen py-12">
     <Navbar />
     <div style="min-height: 83.33%">
         <slot />

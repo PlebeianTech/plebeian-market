@@ -100,13 +100,15 @@
 </script>
 
 
-<nav class="bg-neutral text-neutral-content backdrop-blur-md border-b border-white/20 z-50 fixed top-0 w-full">
+<nav class="bg-neutral/90 text-neutral-content backdrop-blur-md border-b border-white/20 z-50 fixed top-0 w-full">
 	<div class="lg:w-2/3 py-2 px-4 mx-auto md:flex md:justify-between md:items-center">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center space-x-2">
         <a href={getBaseUrl()} class="flex items-center mr-2">
           <img src={"/images/new-logo.svg"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
-          <a href="/" class="text-xl font-bold text-neutral-content">Plebeian market</a>
+          <a href="/" class="text-xl font-bold text-neutral-content">
+            <h1 class="hover:text-blue-400 duration-300">Plebeian market</h1>
+          </a>
         </a>
 			</div>
 			<!-- Mobile menu button -->
@@ -148,10 +150,10 @@
       <!-- LINKS -->
 			<div class="lg:flex items-center w-full">
         <p>
-          <a href="/about" class="btn btn-ghost text-xl normal-case">About</a>
+          <a href="/about" class="btn btn-ghost normal-case">About</a>
         </p>
         <p>
-          <a href="/faq" class="btn btn-ghost text-xl normal-case">FAQ</a>
+          <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
         </p>
         {#if ! isProduction() }
             <div class="lg:inline badge badge-primary ml-2">{getEnvironmentInfo()}</div>

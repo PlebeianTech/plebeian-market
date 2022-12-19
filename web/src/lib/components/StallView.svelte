@@ -15,7 +15,7 @@
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
-    import BannerImg from "$lib/images/banner-100.jpg"
+    import SpaceCat from "$lib/images/space-cat-400x400.png"
    
     export let baseUrl: string;
 
@@ -126,29 +126,71 @@
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 </svelte:head>
 
-<div class="w-11/12 md:w-2/3 items-center mx-auto mt-2">
 
-  <!-- HERO -->
-  <div class="grid my-12">
-    <div class="grid place-items-center">
-      <img src={BannerImg} alt="">
-    </div>
-    <div class="grid place-items-center w-full mt-24">
-      <h1 class="lg:text-4xl font-bold">Get started</h1>
-      <a href="#anchorId" on:click|preventDefault={scrollIntoView} class="btn btn-primary uppercase font-bold my-4">Auction 1-hour of your time</a>
-      <div class="my-4">
-        <lottie-player
-          src="https://assets1.lottiefiles.com/packages/lf20_6mveojb1.json"
-          background="transparent"
-          speed="1"
-          loop
-          autoplay
-          class=""
-          style="width: 100px; height: 100px"
-        ></lottie-player>
+<!-- HERO SECTION STATIC CONTENT -->
+<div id="bgHero" class="bg-fixed">
+  <!-- FILTER -->
+  <div class="bg-black/20">
+    <!-- HERO -->
+    <div class="lg:w-2/3 mx-auto grid lg:grid-cols-2 gap-4">
+      <!-- COL -->
+      <div class="mt-20">
+        <!-- FULL WIDTH BANNER -->
+        <!-- <img src={BannerImg} alt=""> -->
+        <h2 class="lg:text-7xl text-4xl font-bold">{title}</h2>
+        <!-- <h1 class="lg:text-2xl font-bold mt-4">Get started</h1> -->
+        <a href="#anchorIdAuctionTime" on:click|preventDefault={scrollIntoView} class="btn btn-primary uppercase font-bold my-8">Auction 1-hour of your time</a>
+        <div class="mb-8">
+          <!-- <p class="text-3xl">OR</p> -->
+          <div class="space-x-1">
+            <a href="#anchorIdAuctionItem" on:click|preventDefault={scrollIntoView} class="btn btn-outline uppercase font-bold my-4">Auction Item</a>
+            <a href="#anchorIdFixedPrice" on:click|preventDefault={scrollIntoView} class="btn btn-outline uppercase font-bold my-4">Fixed Price</a>
+          </div>
+        </div>
+  
+        <!-- AVATARS -->
+        <div class="flex space-x-4">
+          <div class="avatar flex">
+            <div class="w-16 rounded">
+              <img src="https://placeimg.com/192/192/people" alt="image" />
+            </div>
+          </div>
+          <div class="avatar">
+            <div class="w-16 rounded">
+              <img src="https://placeimg.com/192/192/people" alt="Tailwind-CSS-Avatar-component" />
+            </div>
+          </div>
+          <div class="avatar">
+            <div class="w-16 rounded">
+              <img src="https://placeimg.com/192/192/people" alt="Tailwind-CSS-Avatar-component" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="my-4">
+          <!-- <lottie-player
+            src="https://assets1.lottiefiles.com/packages/lf20_6mveojb1.json"
+            background="transparent"
+            speed="1"
+            loop
+            autoplay
+            class=""
+            style="width: 100px; height: 100px"
+          ></lottie-player> -->
+        </div>
       </div>
-    </div>
+  
+      <div class="grid place-content-end">
+        <img src={SpaceCat} alt="hero-image">
+      </div>
+      </div>
+ 
   </div>
+  </div>
+
+<div class="md:w-2/3 items-center mx-auto mt-20">
+
+  
     <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
     <!-- <div class="w-full inline-block relative after:pt-[33.33%] after:block after:content-[''] lg:mt-24 mt-12">
         <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover" style="background-image: url({bannerUrl});" alt=""></div>
@@ -217,13 +259,12 @@
                 </div>
             </div>
             <!-- COL -->
-            <div class="grid place-items-center border border-gray-700/40 rounded">
+            <div id="bgXPUB" class="grid place-items-center border border-gray-700/40 rounded">
                 <!-- COLLAPSE XPUB -->
                 <h1 class="text-2xl font-bold">Don't Trust, Verify!</h1>
                 <slot name="extra-description" />
-
                 <h2 class="text-3xl mt-2">&nbsp;</h2>
-                
+ 
             </div>
         </div>
     </div>    
@@ -231,7 +272,7 @@
 </div>
 
 
-<div id="anchorId" class="md:flex lg:w-2/3 mx-auto my-12">
+<div id="anchorIdAuctionTime" class="md:flex lg:w-2/3 mx-auto my-12">
     <div class="md:grow">
         {#if onLogin !== null}
             <Login {onLogin} />
@@ -255,7 +296,7 @@
                               <p class="lg:text-4xl text-2xl font-bold text-center text-white">1 Hour of time</p>
                             </div>
                         {/if}
-                        <div id="auction-physical" class="mx-auto my-10 bg-black w-full grid place-items-center h-64 rounded shadow-xl opacity-80 hover:opacity-100 duration-300 cursor-pointer hover:scale-95" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}>
+                        <div id="anchorIdAuctionItem" class="auction-physical mx-auto my-10 bg-black w-full grid place-items-center h-64 rounded shadow-xl opacity-80 hover:opacity-100 duration-300 cursor-pointer hover:scale-95" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}>
                           <p class="lg:text-4xl text-2xl font-bold text-center text-white">Physical Item</p>
                         </div>
                     </div>
@@ -283,7 +324,7 @@
             <div class="divider my-20"></div>
         {/if}
         {#if canAddItems || showActiveListings || showPastListings}
-            <h3 class="lg:text-8xl text-4xl font-black text-center">Fixed price</h3>
+            <h3 id="anchorIdFixedPrice" class="lg:text-8xl text-4xl font-black text-center">Fixed price</h3>
             {#if canAddItems}
                 <ListView
                     bind:this={listingsLists['new']}
@@ -336,7 +377,7 @@
     background-size: cover;
   }
 
-  #auction-physical {
+  .auction-physical {
     background-image: url('$lib/images/auction_button2.png');
     background-repeat: no-repeat;
     background-position: center;
@@ -345,6 +386,20 @@
 
   #fixed-price {
     background-image: url('$lib/images/auction_button2.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+  }
+
+  #bgHero {
+    background-image: url('$lib/images/rocketLaunch.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+  }
+
+  #bgXPUB {
+    background-image: url('$lib/images/x-pub-bg-100.jpg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;

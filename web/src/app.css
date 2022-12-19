@@ -1,3 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=Prompt:wght@400;600&display=swap");
+
+/*
+font-family: 'Major Mono Display', monospace;
+font-family: 'Prompt', sans-serif;
+*/
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +12,10 @@
 body {
   overflow-x: hidden;
   scroll-behavior: smooth;
+}
+
+p {
+  font-family: "Prompt", sans-serif;
 }
 
 .qr {
