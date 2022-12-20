@@ -192,7 +192,8 @@
                 <h2 class="lg:text-6xl text-3xl lg:w-1/2 mx-auto font-black text-center mt-2 mb-4 rounded-t py-1.5">{item.title}</h2>
                 <!-- CONTENT -->
                 <div class="grid lg:grid-cols-3 my-20">
-                  <div class="sticky top-64">
+                  <!-- LEFT  -->
+                  <div class="lg:sticky top-24">
                     <!-- IMAGES -->
                     <div class="w-64">
                       <Gallery photos={item.media} />

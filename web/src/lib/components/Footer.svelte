@@ -12,8 +12,8 @@
             <p>&#10003; Bitcoin Only</p>
             <p>&#10003; Lightning Tech</p>
             <p>&#10003; Value-for-Value</p>
-            <p>&#10003; New Features</p>
-            <p>&#10003; New Campaigns & Auctions</p>
+            <!-- <p>&#10003; New Features</p>
+            <p>&#10003; New Campaigns & Auctions</p> -->
             <p></p>
           </div>
         </div>

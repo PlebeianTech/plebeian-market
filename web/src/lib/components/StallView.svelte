@@ -15,7 +15,7 @@
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
-    import HeroImage from "$lib/images/hodlonaut-faketoshi.svg"
+    import Faketoshi from "$lib/images/faketoshi-colour.svg"
    
     export let baseUrl: string;
 
@@ -135,7 +135,7 @@
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
     <!-- FILTER -->
-    <div class="bg-black/20">
+    <div class="bg-gradient-to-r from-gray-700/40 to-gray-100/20">
       <!-- HERO -->
       <div class="lg:w-2/3 mx-auto grid lg:grid-cols-2 gap-4">
         <!-- COL -->
@@ -154,7 +154,7 @@
           </div>
     
           <!-- AVATARS -->
-          <div class="flex space-x-4">
+          <!-- <div class="flex space-x-4">
             <div class="avatar flex">
               <div class="w-16 rounded">
                 <img src="https://placeimg.com/192/192/people" alt="image" />
@@ -170,7 +170,7 @@
                 <img src="https://placeimg.com/192/192/people" alt="Tailwind-CSS-Avatar-component" />
               </div>
             </div>
-          </div>
+          </div> -->
           
           <div class="my-4">
             <!-- <lottie-player
@@ -186,7 +186,7 @@
         </div>
     
         <div class="grid place-items-center">
-          <img src={HeroImage} alt="hero-image">
+          <img src={Faketoshi} alt="hero-image">
         </div>
         </div>
    
