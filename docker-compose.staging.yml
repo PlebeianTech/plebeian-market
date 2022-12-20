@@ -8,6 +8,7 @@ services:
     env_file: .env.staging
     environment:
       - BASE_URL=https://staging.plebeian.market
+      - WWW_BASE_URL=https://staging.plebeian.market
       - S3_FILENAME_PREFIX=STAGING_
       - MODERATOR_USER_IDS=ALL
     volumes:

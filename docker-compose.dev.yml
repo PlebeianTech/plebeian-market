@@ -16,6 +16,7 @@ services:
     env_file: .env.dev
     environment:
       - BASE_URL=http://localhost:5000
+      - WWW_BASE_URL=http://localhost:5173
     ports:
       - "5000:5000"
     volumes:
