@@ -1193,7 +1193,7 @@ class Sale(db.Model):
         elif self.state == SaleState.CONTRIBUTION_SETTLED.value:
             for which, shipping in [("", 0), ("_domestic", 1 / app.config['SATS_IN_BTC'] * self.shipping_domestic), ("_worldwide", 1 / app.config['SATS_IN_BTC'] * self.shipping_worldwide)]:
                 qr = BytesIO()
-                pyqrcode.create(f"bitcoin:{self.address}?amount={1 / app.config['SATS_IN_BTC'] * self.amount + shipping}").svg(qr, omithw=True, scale=4)
+                pyqrcode.create(f"bitcoin:{self.address}?amount={1 / app.config['SATS_IN_BTC'] * self.amount + shipping :.9f}").svg(qr, omithw=True, scale=4)
                 sale[f'qr{which}'] = qr.getvalue().decode('utf-8')
 
         return sale
