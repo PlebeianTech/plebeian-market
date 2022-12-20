@@ -5,6 +5,8 @@ services:
     volumes:
       - target: /var/lib/postgresql/data
         type: tmpfs
+    ports:
+      - "5432:5432"
   api:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/healthcheck"]
