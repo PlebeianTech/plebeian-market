@@ -111,7 +111,7 @@
     </div>
     {#if sale.state === SaleState.TX_DETECTED}
         <p class="text-xl">Your purchase will be completed when the payment is confirmed by the network.</p>
-        <p class="text-xl">In the mean time, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}" rel="noreferrer">mempool.space</a>!</p>
+        <p class="text-xl">In the meantime, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}" rel="noreferrer">mempool.space</a>!</p>
     {:else}
         <p class="text-3xl text-center my-10">Payment confirmed!</p>
         <p class="text-2xl">
