@@ -72,17 +72,20 @@
 
 {#if data.campaignKey === "" || data.campaignKey === null}
     {#if $user && $user.isModerator}
-        <h3 class="text-xl">My campaigns</h3>
-        <ListView
-                loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
-                postEndpoint="users/me/campaigns"
-                card={CampaignCard}
-                editor={CampaignEditor}
-                style={ListViewStyle.List}>
-            <div slot="new-entity" let:setCurrent={setCurrent}>
-                <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => setCurrent(new Campaign())}></div>
-            </div>
-        </ListView>
+    <div class="grid place-items-center py-20">
+
+      <h3 class="lg:text-8xl text-5xl font-bold">My campaigns</h3>
+      <ListView
+              loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
+              postEndpoint="users/me/campaigns"
+              card={CampaignCard}
+              editor={CampaignEditor}
+              style={ListViewStyle.List}>
+          <div slot="new-entity" class="flex justify-center" let:setCurrent={setCurrent}>
+              <div class="mx-auto my-10 btn btn-primary" on:click|preventDefault={() => setCurrent(new Campaign())}>Create a new Campaign</div>
+          </div>
+      </ListView>
+    </div>
     {:else}
         <div class="alert alert-info shadow-lg">
             <div>
@@ -104,21 +107,17 @@
         showItemsOwner={true}
         showItemsCampaign={false}
         canAddItems={true}>
-        <div slot="extra-description" class="mt-4">
-            {#if showXpub}
-                <div class="bg-base-300 p-10 rounded mt-6">
+        <div slot="extra-description" class="">
+         
+                <div class="p-10 rounded mt-6 text-center">
                     Note: all money from the sales in this campaign will go to addresses generated from the following XPUB provided by Defending BTC team.
                     <div class="text-center">
                         <input value={campaign.xpub} type="text" class="input input-bordered w-full max-w-xs" disabled />
                         <button class="btn ml-2 mt-2 w-20" on:click={copyXpub}>{#if xpubCopied}Copied{:else}Copy!{/if}</button>
-                        <p class="ml-2">Don't trust, verify!</p>
+                        <p class="mt-8 text-4xl font-bold">Don't trust, verify!</p>
                     </div>
                 </div>
-            {:else}
-                <div class="flex flex-row-reverse">
-                    <button class="btn btn-sm" on:click={() => showXpub = true}>Show XPUB</button>
-                </div>
-            {/if}
+            
         </div>
     </StallView>
 {/if}

@@ -7,11 +7,14 @@
       
       <div class="lg:flex items-center justify-between mx-auto py-4 border-b border-white/20">
         <div>
-          <h1 class="lg:text-4xl text-3xl font-bold">Get regular updates</h1>
+          <h1 class="lg:text-4xl text-3xl font-bold">Plug in to the P2P Bitcoin Economy</h1>
           <div class="lg:flex lg:space-x-4 my-6">
-            <p>&#10003; Weekly</p>
-            <p>&#10003; New Releases</p>
-            <p>&#10003; New Deals</p>
+            <p>&#10003; Bitcoin Only</p>
+            <p>&#10003; Lightning Tech</p>
+            <p>&#10003; Value-for-Value</p>
+            <p>&#10003; New Features</p>
+            <p>&#10003; New Campaigns & Auctions</p>
+            <p></p>
           </div>
         </div>
         <div class="lg:flex items-center lg:space-x-4 space-y-2">

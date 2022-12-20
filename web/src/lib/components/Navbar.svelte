@@ -107,7 +107,7 @@
         <a href={getBaseUrl()} class="flex items-center mr-2">
           <img src={"/images/new-logo.svg"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
           <a href="/" class="text-xl font-bold text-neutral-content">
-            <h1 class="hover:text-blue-400 duration-300">Plebeian market</h1>
+            <h1 class="hover:text-blue-400 duration-300 w-44">Plebeian Market</h1>
           </a>
         </a>
 			</div>

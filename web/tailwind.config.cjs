@@ -7,13 +7,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'neon-pink': '#ff00ff',
-      }
+        "neon-pink": "#ff00ff",
+      },
     },
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: ['light', 'night'],
-    darkTheme: "night"
+    themes: ["light", "halloween"],
+    darkTheme: "halloween",
   },
-}
+};
