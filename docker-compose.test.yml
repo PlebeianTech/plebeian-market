@@ -19,7 +19,6 @@ services:
     env_file: .env.test
     environment:
       - BASE_URL=http://api:5000
-      - WWW_BASE_URL=http://plebeian.market
     volumes:
       - "./api:/app"
     networks:
