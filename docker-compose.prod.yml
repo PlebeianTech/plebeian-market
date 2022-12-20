@@ -11,6 +11,7 @@ services:
     env_file: .env.prod
     environment:
       - BASE_URL=https://plebeian.market
+      - WWW_BASE_URL=https://plebeian.market
       - S3_FILENAME_PREFIX=P_
       - MODERATOR_USER_IDS=1,5,328
   nginx:

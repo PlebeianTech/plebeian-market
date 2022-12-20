@@ -248,7 +248,7 @@ class AuctionEndNotification(Notification):
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}",
-                'body': f"Auction {auction.item.title} ended!",
+                'body': f"Auction {auction.item.title} ended! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
             }
 
 class AuctionEnd10MinNotification(Notification):
@@ -267,7 +267,7 @@ class AuctionEnd10MinNotification(Notification):
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}",
-                'body': f"Auction {auction.item.title} ending in less than 10 minutes!",
+                'body': f"Auction {auction.item.title} ending in less than 10 minutes! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
             }
 
 class NewBidNotification(Notification):
@@ -285,7 +285,7 @@ class NewBidNotification(Notification):
             return {
                 'user_id': user.id,
                 'key': f"{self.notification_type}_{auction.id}_{bid.id}",
-                'body': f"New bid on {auction.item.title} by {bid.buyer.twitter_username}: {bid.amount} sats!",
+                'body': f"New bid by {bid.buyer.twitter_username}: {bid.amount} sats! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
             }
 
 class SaleExpiredNotification(Notification):
@@ -302,7 +302,7 @@ class SaleExpiredNotification(Notification):
         return {
             'user_id': user.id,
             'key': f"{self.notification_type}_{auction.id}_{buyer.id}",
-            'body': f"The sale to {buyer.nym} of {auction.item.title} has expired!",
+            'body': f"The sale to {buyer.nym} of {auction.item.title} has expired! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
         }
 
 class PurchaseExpiredNotification(Notification):
@@ -336,7 +336,7 @@ class AuctionHasWinnerNotification(Notification):
         return {
             'user_id': user.id,
             'key': f"{self.notification_type}_{auction.id}_{buyer.id}",
-            'body': f"{buyer.nym} is the winner for {auction.item.title}!",
+            'body': f"{buyer.nym} is the winner for {auction.item.title}! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
         }
 
 class AuctionWonNotification(Notification):
@@ -353,7 +353,7 @@ class AuctionWonNotification(Notification):
         return {
             'user_id': user.id,
             'key': f"{self.notification_type}_{auction.id}",
-            'body': f"You are the winner of {auction.item.title}!",
+            'body': f"You are the winner of {auction.item.title}! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
         }
 
 NOTIFICATION_TYPES = OrderedDict([
