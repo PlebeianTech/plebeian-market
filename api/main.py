@@ -258,7 +258,7 @@ def settle_btc_payments():
                 try:
                     funding_txs = btc.get_funding_txs(sale.address)
                 except MempoolSpaceError:
-                    app.logger.warning("Cannot get transactions from mempool API. Taking a 1 minute nap...")
+                    app.logger.warning(f"Cannot get transactions from mempool API. {sale.address=} Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
                 for tx in funding_txs:
@@ -275,9 +275,7 @@ def settle_btc_payments():
                             db.session.commit()
                             break
                     elif not sale.txid:
-                        close_with_domestic = math.isclose(tx['value'], sale.amount + sale.shipping_domestic, rel_tol=0.01)
-                        close_with_worldwide = math.isclose(tx['value'], sale.amount + sale.shipping_worldwide, rel_tol=0.01)
-                        if close_with_domestic or close_with_worldwide:
+                        if tx['value'] >= sale.amount:
                             app.logger.info(f"Found transaction txid={tx['txid']} confirmed={tx['confirmed']} matching {sale.id=}.")
                             sale.txid = tx['txid']
                             sale.tx_value = tx['value']
@@ -295,8 +293,7 @@ def settle_btc_payments():
                         else:
                             app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")
                 else:
-                    timeout_minutes = sale.timeout_minutes
-                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=timeout_minutes):
+                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=sale.timeout_minutes):
                         app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
                         sale.state = m.SaleState.EXPIRED.value
                         sale.expired_at = datetime.utcnow()
@@ -549,14 +546,17 @@ class MempoolSpaceError(Exception):
 
 class MempoolSpaceBTCClient:
     def get_funding_txs(self, addr):
+        if addr.startswith("OLD_"): # not a real address, but a placeholder we used for sales from before we started accepting on-chain payments
+            return []
+
         try:
-            r = requests.get(f"https://mempool.space/api/address/{addr}/txs")
+            response_json = requests.get(f"https://mempool.space/api/address/{addr}/txs").json()
         except JSONDecodeError as e:
             raise MempoolSpaceError() from e
 
         txs = []
-        for tx in r.json():
-            vout_for_addr = [vo for vo in tx['vout'] if vo['scriptpubkey_address'] == addr]
+        for tx in response_json:
+            vout_for_addr = [vo for vo in tx['vout'] if vo.get('scriptpubkey_address') == addr]
             if len(vout_for_addr) > 1:
                 app.logger.warning("Multiple outputs for same address? Strange...")
             value = sum(vo['value'] for vo in vout_for_addr)

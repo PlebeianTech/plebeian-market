@@ -63,7 +63,12 @@
         if (auction.category === Category.Time) {
             publish($token, auction.endpoint, key, false,
                 () => {
-                    Info.set("Your auction is live!");
+                    Info.set({
+                        message: "Your auction is live. Let your audience know!",
+                        duration: 0,
+                        url: "https://twitter.com/intent/tweet?url=" + encodeURIComponent("https://plebeian.market/auctions/" + key) + "&text=" + auction.title,
+                        button: "Tweet!",
+                    });
                     onForceReload();
                 });
         } else {

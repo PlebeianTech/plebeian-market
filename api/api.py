@@ -215,7 +215,11 @@ def put_me(user):
     try:
         db.session.commit()
     except IntegrityError:
-        return jsonify({'message': "Please try again!"}), 500
+        app.logger.exception(f"Error while saving user profile. {user.id=}")
+
+        # there are very few cases where this could happen
+        # namely with some old users that were created before we started saving the "clean" version of nym / twitter in the DB
+        return jsonify({'message': "Please retry or contact support!"}), 500
 
     return jsonify({'user': user.to_dict(for_user=user.id)})
 

@@ -21,7 +21,7 @@
   </td>
   <td>
     <div class="flex items-center space-x-3">
-      <Avatar account={sale.buyer} />
+      <Avatar account={sale.seller} />
     </div>
   </td>
   <td>

@@ -2,6 +2,7 @@ import type { IEntity } from "$lib/types/base";
 import type { IAccount } from "$lib/types/user";
 
 export enum SaleState {
+    OLD = 'OLD',
     REQUESTED = 'REQUESTED',
     CONTRIBUTION_SETTLED = 'CONTRIBUTION_SETTLED',
     TX_DETECTED = 'TX_DETECTED',
@@ -14,6 +15,7 @@ export class Sale implements IEntity {
     endpoint = "sales";
 
     item_title: string | null = null;
+    item_url: string | null = null;
     desired_badge: number | null = null;
     campaign_key: string | null = null;
     campaign_name: string | null = null;

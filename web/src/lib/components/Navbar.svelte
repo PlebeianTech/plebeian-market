@@ -196,6 +196,7 @@
                     {#if $user.isModerator}
                         <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
                     {/if}
+                    <li><a href="/purchases/">My purchases</a></li>
                     <li><a href="/sales/">My sales</a></li>
                     <li><a href="/settings">Settings</a></li>
                     <li><a href="https://t.me/PlebeianMarket" target="_blank" rel="noreferrer">Telegram group</a></li>

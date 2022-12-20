@@ -1058,6 +1058,7 @@ class Bid(db.Model):
         return bid
 
 class SaleState(Enum):
+    OLD = -1 # old sales, from before we used to settle on-chain
     REQUESTED = 0
     CONTRIBUTION_SETTLED = 1
     TX_DETECTED = 2
@@ -1121,18 +1122,19 @@ class Sale(db.Model):
         if self.txid:
             # if we already have a TX (without confirmations though),
             # we can give it more time to confirm...
-            return 6 * 60 # leave 6 hours for BTC transactions to settle on-chain
+
+            match app.config['ENV']:
+                case 'dev':
+                    return 10
+                case 'staging':
+                    return 60 # need more time to confirm - they are real TXes in staging!
+                case _:
+                    return 48 * 60
 
         if app.config['ENV'] in ['dev', 'staging']:
-            return 6 # be quick in dev and staging
-
-        if self.is_auction_sale:
-            winning_bid = db.session.query(Bid).filter_by(id=self.auction.winning_bid_id).first()
-            if winning_bid and winning_bid.settled_at < self.auction.end_date - timedelta(minutes=20):
-                # give them one day, if the winning bid was not in the final 20 minutes (they could be sleeping now)
-                return 24 * 60
-
-        return 1 * 60 # one hour to get a 0-conf for all other cases
+            return 10 # 10 mins should be enough to send a 0-conf
+        else:
+            return 24 * 60 # one day for a 0-conf to appear in the mempool
 
     def to_dict(self):
         sale = {
@@ -1175,6 +1177,14 @@ class Sale(db.Model):
             'tx_value': self.tx_value,
             'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
         }
+
+        if self.auction:
+            sale['item_url'] = f"/auctions/{self.auction.key}"
+        elif self.listing:
+            sale['item_url'] = f"/listings/{self.listing.key}"
+        else:
+            # probably a badge sale
+            sale['item_url'] = None
 
         if self.state == SaleState.REQUESTED.value:
             contribution_payment_qr = BytesIO()
