@@ -118,13 +118,6 @@
     }
 
     onDestroy(stopRefresh);
-
-    let ogImages: {url: string}[] = [];
-    if (serverLoadedItem && serverLoadedItem.media) {
-        serverLoadedItem.media.forEach(element => {
-            ogImages.push({'url': element.url});
-        });
-    }
 </script>
 
 <MetaTags
@@ -136,13 +129,12 @@
         url: $page.url.href,
         title: serverLoadedItem?.title ?? "Plebeian Market item",
         description: serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION,
-        images: ogImages,
+        images: [{ url: serverLoadedItem && serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg" }],
     }}
     twitter={{
         site: import.meta.env.VITE_TWITTER_USER,
         handle: import.meta.env.VITE_TWITTER_USER,
         cardType: "summary_large_image",
-        image: serverLoadedItem && serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg",
         imageAlt: serverLoadedItem?.title ?? "Plebeian Market item",
     }}
 />
@@ -340,7 +332,7 @@
                 {#if item instanceof Auction}
                     <div class="form-control">
                         <label class="label cursor-pointer text-right">
-                            <span class="label-text">Follow auction</span> 
+                            <span class="label-text">Follow auction</span>
                             <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
                         </label>
                     </div>
