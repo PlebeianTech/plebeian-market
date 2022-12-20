@@ -1119,16 +1119,22 @@ class Sale(db.Model):
 
     @property
     def timeout_minutes(self):
-        if app.config['ENV'] in ['dev', 'staging']:
-            return 6 # be quick in dev and staging
-
         if self.txid:
             # if we already have a TX (without confirmations though),
             # we can give it more time to confirm...
-            return 48 * 60
 
-        # give them one day normally
-        return 24 * 60
+            match app.config['ENV']:
+                case 'dev':
+                    return 10
+                case 'staging':
+                    return 60 # need more time to confirm - they are real TXes in staging!
+                case _:
+                    return 48 * 60
+
+        if app.config['ENV'] in ['dev', 'staging']:
+            return 10 # 10 mins should be enough to send a 0-conf
+        else:
+            return 24 * 60 # one day for a 0-conf to appear in the mempool
 
     def to_dict(self):
         sale = {
