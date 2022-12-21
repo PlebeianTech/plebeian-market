@@ -1,5 +1,6 @@
 <script lang="ts">
     import SvelteMarkdown from 'svelte-markdown';
+    import { goto } from "$app/navigation";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import Avatar, { AvatarSize } from "$lib/components/Avatar.svelte";
     import BadgeSVG from "$lib/components/BadgeSVG.svelte";
@@ -70,6 +71,7 @@
                         placement: 'center-center',
                     });
                     onForceReload();
+                    goto(`/auctions/${key}`);
                 });
         } else {
             Info.set("Your auction will start when we verify your tweet!");
