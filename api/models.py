@@ -336,7 +336,7 @@ class AuctionHasWinnerNotification(Notification):
         return {
             'user_id': user.id,
             'key': f"{self.notification_type}_{auction.id}_{buyer.id}",
-            'body': f"{buyer.nym} is the winner for {auction.item.title}! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
+            'body': f"{buyer.nym} is the winner for {auction.item.title}! Contact him! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
         }
 
 class AuctionWonNotification(Notification):

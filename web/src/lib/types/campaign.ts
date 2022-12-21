@@ -14,7 +14,7 @@ export class Campaign implements IEntity {
     xpub: string | null = null;
     owner: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
 
-    public validate() {
+    public validate(forSave: boolean = false) {
         return true;
     }
 

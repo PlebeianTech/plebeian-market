@@ -57,7 +57,11 @@ export class Auction implements IEntity, Item {
     has_winner?: boolean = false;
     winner? : IAccount;
 
-    public validate() {
+    public validate(forSave: boolean = false) {
+        if (forSave && this.category === Category.Time && !confirm("Your auction will start straight away!")) {
+            return false;
+        }
+
         return !(this.title.length === 0 || this.description.length === 0);
     }
 

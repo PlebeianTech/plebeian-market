@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { toasts } from 'svelte-toasts';
     import "../app.css";
-    import { token, Info, Error } from "../lib/stores";
+    import { token, Info, Error, type Placement } from "../lib/stores";
     import Navbar from "$lib/components/Navbar.svelte";
     import Footer from "$lib/components/Footer.svelte";
     import TelegramFixedButton from "$lib/components/TelegramFixedButton.svelte";
@@ -24,16 +24,19 @@
             let duration: number;
             let url: string | null;
             let button: string | undefined;
+            let placement: Placement;
             if (typeof value === 'string') {
                 description = value;
                 duration = 4000;
                 url = null;
                 button = undefined;
+                placement = window.screen.availWidth >= 1024 ? 'top-center' : 'bottom-right';
             } else {
                 description = value.message;
                 duration = value.duration;
                 url = value.url;
                 button = value.button;
+                placement = value.placement;
             }
 
             // HACK: here we use the "title" property of the toast to pass the *button* title to the toast container
@@ -41,7 +44,7 @@
                 title: button,
                 description,
                 duration,
-                placement: window.screen.availWidth >= 1024 ? 'top-center' : 'bottom-right',
+                placement,
                 type: 'info',
                 onClick: () => {
                     if (url) {
