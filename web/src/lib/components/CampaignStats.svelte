@@ -13,7 +13,7 @@
         
     <div class="stat">
       <div class="stat-title">Raised</div>
-      <div class="stat-value text-secondary">£16.6K | 1 BTC</div>
+      <div class="stat-value text-pink-600">£16.6K | 1 BTC</div>
       <div class="stat-desc">{daysRemaining} days remaining</div>
     </div>
     

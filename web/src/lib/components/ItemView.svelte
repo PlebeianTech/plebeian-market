@@ -336,9 +336,9 @@
                                 {#if item.started}
                                     <p class="text-4xl text-center pt-24">
                                         {#if item instanceof Auction}
-                                            Your auction is live! <br /> &#x1FA99; &#x1F528; &#x1F4B0;
+                                            Your auction is live! <br /> 
                                         {:else if item instanceof Listing}
-                                            Your listing is live! <br /> &#x1FA99; &#x1F528; &#x1F4B0;
+                                            Your listing is live! <br />
                                             <br />
                                             Note: You can still edit it, by going to <a class="link" href="/stall/{$user.nym}">My stall</a>!
                                         {/if}

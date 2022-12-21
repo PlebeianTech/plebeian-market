@@ -69,7 +69,7 @@
 <div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 gap-4 my-20">
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
-    <img src="" alt="">
+
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/HodlrDotRocks">Chiefmonkey</a>
     <h3 class="uppercase my-2 font-bold text-sm">Chief</h3>
     <p class="mt-8">About ChiefMonkey</p>
@@ -78,7 +78,7 @@
 
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
-    <img src="" alt="">
+
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/ibz">Ibz</a>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
     <p class="mt-8">About Ibz</p>
@@ -87,7 +87,7 @@
 
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
-    <img src="" alt="">
+
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/BitkoYinowsky">Bitko Yinowsky</a>
     <h3 class="uppercase my-2 font-bold text-sm">Artist</h3>
     <p class="mt-8">About Bitko Yinowsky</p>
@@ -96,7 +96,7 @@
 
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
-    <img src="" alt="">
+
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/btc_remnant">Luis Miguel</a>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
     <p class="mt-8">About Luis</p>
@@ -105,7 +105,7 @@
 
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
-    <img src="" alt="">
+
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/GhostOfBekka">Bekka</a>
     <h3 class="uppercase my-2 font-bold text-sm">Chief</h3>
     <p class="mt-8">About Bekka</p>
@@ -114,8 +114,8 @@
 
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
-    <img src="" alt="">
-    <a class="text-3xl font-bold my-4">Jay Khan</a>
+
+    <a href="https://twitter.com/j__khan" class="text-3xl font-bold my-4">Jay Khan</a>
     <h3 class="uppercase my-2 font-bold text-sm">Front-end Developer</h3>
     <p class="mt-8">About Jay</p>
   </div>
