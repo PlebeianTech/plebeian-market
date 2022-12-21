@@ -7,7 +7,7 @@
       
       <div class="lg:flex items-center justify-between mx-auto py-4 border-b border-white/20">
         <div>
-          <h1 class="lg:text-4xl text-3xl font-bold">Plug in to the Bitcoin Economy</h1>
+          <h1 class="lg:text-4xl text-3xl font-bold">Plug into the Bitcoin Economy</h1>
           <div class="lg:flex lg:space-x-4 my-6">
             <p>&#10003; Bitcoin only</p>
             <p>&#10003; Lightning Tech</p>

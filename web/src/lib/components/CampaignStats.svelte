@@ -7,13 +7,13 @@
     
     <div class="stat">
       <div class="stat-title">Target</div>
-      <div class="stat-value text-primary">$6,000,000</div>
+      <div class="stat-value text-primary">£5M | 360 BTC</div>
       <div class="stat-desc">for the Hodlonaut Campaign</div>
     </div>
         
     <div class="stat">
       <div class="stat-title">Raised</div>
-      <div class="stat-value">$0</div>
+      <div class="stat-value text-secondary">£16.6K | 1 BTC</div>
       <div class="stat-desc">{daysRemaining} days remaining</div>
     </div>
     

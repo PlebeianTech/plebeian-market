@@ -142,7 +142,7 @@
 {#if item}
     <div class="lg:w-2/3 mx-auto p-2">
         {#if $user && item.is_mine && !item.started}
-            <div class="alert alert-error shadow-lg">
+            <div class="alert alert-error shadow-lg mt-12 lg:w-2/3 mx-auto">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -276,9 +276,9 @@
                                             </div>
                                         </div>
                                         {#if item.campaign_name !== null}
-                                            <div class="text-center text-2xl">
-                                                Note: all the money goes from the buyer <strong>directly to</strong>
-                                                <span class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></span>
+                                            <div class="text-center text-2xl my-8">
+                                                <p>Note: all the money goes from the buyer <strong>directly to</strong></p>
+                                                <div class="badge badge-primary my-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
                                             </div>
                                         {/if}
                                     {:else if sale.state === SaleState.EXPIRED}
@@ -336,9 +336,9 @@
                                 {#if item.started}
                                     <p class="text-4xl text-center pt-24">
                                         {#if item instanceof Auction}
-                                            Your auction is active <br /> &#x1FA99; &#x1F528; &#x1F4B0;
+                                            Your auction is live! <br /> &#x1FA99; &#x1F528; &#x1F4B0;
                                         {:else if item instanceof Listing}
-                                            Your listing is active <br /> &#x1FA99; &#x1F528; &#x1F4B0;
+                                            Your listing is live! <br /> &#x1FA99; &#x1F528; &#x1F4B0;
                                             <br />
                                             Note: You can still edit it, by going to <a class="link" href="/stall/{$user.nym}">My stall</a>!
                                         {/if}

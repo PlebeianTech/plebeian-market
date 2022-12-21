@@ -17,7 +17,7 @@
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/bitko-illustration.svg"
-  import CampaignStats from './CampaignStats.svelte';
+    import CampaignStats from './CampaignStats.svelte';
    
     export let baseUrl: string;
 
@@ -131,15 +131,11 @@
     }
 </script>
 
-<svelte:head>
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-</svelte:head>
-
 {#if isCampaignStall}
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
     <!-- FILTER -->
-    <div class="bg-gradient-to-b from-black/60 to-pink-500/70">
+    <div class="bg-gradient-to-b from-pink-700/90 to-pink-500/0">
       <!-- HERO -->
       <div class="lg:w-2/3 mx-auto grid lg:grid-cols-2 gap-4">
         <!-- COL -->
@@ -175,18 +171,6 @@
               </div>
             </div>
           </div>
-          
-          <div class="my-4">
-            <!-- <lottie-player
-              src="https://assets1.lottiefiles.com/packages/lf20_6mveojb1.json"
-              background="transparent"
-              speed="1"
-              loop
-              autoplay
-              class=""
-              style="width: 100px; height: 100px"
-            ></lottie-player> -->
-          </div>
         </div>
     
         <div class="grid place-items-center">
@@ -198,17 +182,17 @@
 
   <CampaignStats />
 {:else}
-<!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
-<div class="lg:w-2/3 mx-auto">
-  <div class="w-full inline-block relative after:pt-[33.33%] after:block after:content-[''] lg:mt-24 mt-12">
-        <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover" style="background-image: url({bannerUrl});" alt=""></div>
-    </div>
-</div>
+  <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
+  <div class="lg:w-2/3 mx-auto">
+    <div class="w-full inline-block relative after:pt-[33.33%] after:block after:content-[''] lg:mt-24 mt-12">
+          <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover" style="background-image: url({bannerUrl});" alt=""></div>
+      </div>
+  </div>
 {/if}
 
 <style>
   #bgHero {
-    background-image: url('$lib/images/spaceship.jpg');
+    background-image: url('$lib/images/');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: bottom;
@@ -270,7 +254,7 @@
               
             </div>
             <!-- COL -->
-            <div id="bgXPUB" class="grid place-items-top border-l border-gray-700/40 rounded p-4">
+            <div id="bgXPUB" class="grid place-items-center border-l border-gray-700/40 rounded p-4">
               {#if isCampaignStall}
                 <slot name="extra-description" />
               {:else}

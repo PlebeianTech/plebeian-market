@@ -1,18 +1,29 @@
+<script lang="ts">
+  function scrollIntoView({ target }) {
+      const el = document.querySelector(target.getAttribute('href'))
+      if (!el) return;
+      el.scrollIntoView({
+        behavior: 'smooth'
+      })
+    }
+</script>
+
 <svelte:head>
     <title>About</title>
 </svelte:head>
 
-<script>
-</script>
 
 <!-- HERO -->
 <div id="aboutHero" class="bg-fixed">
   <div class="bg-gradient-to-b from-white/80 to-pink-500/40">
     <div class="lg:w-2/3 mx-auto py-20 p-4">
-      <div class="lg:w-1/3 text-2xl text-black my-20">
+      <div class="lg:w-1/2 mx-auto lg:text-3xl text-black my-20 text-center">
+        <h1 class="lg:text-8xl font-bold my-4">About</h1>
         <p>Plebeian Market is an MVP and an incidental idea on the way to a fully sovereign version. 
           It's the first piece of a much bigger vision of decentralised sovereign commerce.</p>
-          <button class="btn btn-primary my-8">Go to Team -></button>
+          <!-- <a href="#team" on:click|preventDefault={scrollIntoView}>
+            <button class="btn btn-primary my-8">Go to Team</button>
+          </a> -->
       </div>
     </div>
 
@@ -28,7 +39,7 @@
   }
 </style>
 
-<div class="lg:w-2/3 mx-auto p-4 mt-20">
+<div class="lg:w-1/2 mx-auto p-4 mt-20">
   <blockquote class="lg:text-7xl text-4xl font-bold mt-2 md:mt-10 p-4 italic border-l-4 bg-neutral-100 text-neutral-600 border-neutral-500 quote">
     <p>"You will own your market stall and you will be happy."</p>
   </blockquote>
@@ -53,7 +64,8 @@
 </div>
 
 <!-- TEAM -->
-<h2 class="text-center my-8 lg:text-8xl font-bold text-4xl">Team</h2>
+<div id="team" class="mt-8" />
+<h2 class="text-center my-16 lg:text-8xl font-bold text-4xl">Team</h2>
 <div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 gap-4 my-20">
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
@@ -85,7 +97,7 @@
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
     <img src="" alt="">
-    <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/btc_remnant">Luis</a>
+    <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/btc_remnant">Luis Miguel</a>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
     <p class="mt-8">About Luis</p>
 
