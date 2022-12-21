@@ -12,7 +12,7 @@ export enum Category {
     Time = 'TIME',
 }
 
-export const TIME_ITEM_DESCRIPTION_PLACEHOLDER = "Please describe what the winner can expect. Can they ask anything or are there topics to avoid? What's your format? Zoom, Jitsi, Matrix, Keet?";
+export const TIME_ITEM_DESCRIPTION_PLACEHOLDER = "Please describe what the winner can expect. Can they ask anything or are there topics to avoid? Are $DOGE price predictions not your thing? What's your format? Jitsi, Keet, Zoom?";
 
 export interface Item {
     endpoint: string;

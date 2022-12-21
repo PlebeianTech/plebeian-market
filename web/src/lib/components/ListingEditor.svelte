@@ -15,7 +15,7 @@
 
     function setTitle(user) {
         if (user && user.nym && listing && listing.category === Category.Time) {
-            listing.title = `1 hour one-to-one call with ${user.nym} AMA`;
+            listing.title = `1 hour one-to-one video call with ${user.nym} AMA`;
         }
     }
 

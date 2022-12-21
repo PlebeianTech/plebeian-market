@@ -18,7 +18,7 @@
 
     function setTitle(user) {
         if (user && user.nym && auction && isTimeAuction) {
-            auction.title = `1 hour one-to-one call with ${user.nym} AMA`;
+            auction.title = `1 hour one-to-one video call with ${user.nym} AMA`;
         }
     }
 

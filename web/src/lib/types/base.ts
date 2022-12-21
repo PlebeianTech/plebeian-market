@@ -5,6 +5,6 @@ export interface IEntity {
 
     is_mine: boolean;
 
-    validate: () => boolean;
+    validate: (forSave: boolean) => boolean;
     toJson: () => any;
 }
