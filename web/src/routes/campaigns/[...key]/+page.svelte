@@ -30,7 +30,7 @@
             c => {
                 campaign = c;
                 loading = false;
-            }, 
+            },
             new ErrorHandler(false, () => {
                 loading = false;
             }));
@@ -64,7 +64,6 @@
             site: import.meta.env.VITE_TWITTER_USER,
             handle: import.meta.env.VITE_TWITTER_USER,
             cardType: "summary_large_image",
-            image: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
             imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
         }}
 />
