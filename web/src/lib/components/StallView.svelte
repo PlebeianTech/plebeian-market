@@ -15,7 +15,8 @@
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
-    import Faketoshi from "$lib/images/faketoshi-colour.svg"
+    import Faketoshi from "$lib/images/bitko-illustration.svg"
+  import CampaignStats from './CampaignStats.svelte';
    
     export let baseUrl: string;
 
@@ -135,26 +136,26 @@
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
     <!-- FILTER -->
-    <div class="bg-gradient-to-r from-gray-700/40 to-gray-100/20">
+    <div class="bg-gradient-to-b from-black/60 to-pink-500/70">
       <!-- HERO -->
       <div class="lg:w-2/3 mx-auto grid lg:grid-cols-2 gap-4">
         <!-- COL -->
         <div class="mt-20 p-4">
           <!-- FULL WIDTH BANNER -->
           <!-- <img src={BannerImg} alt=""> -->
-          <h2 class="lg:text-7xl text-4xl font-bold">{title}</h2>
+          <h1 class="lg:text-7xl text-4xl font-bold text-white">{title}</h1>
           <!-- <h1 class="lg:text-2xl font-bold mt-4">Get started</h1> -->
-          <a href="#anchorIdAuctionTime" on:click|preventDefault={scrollIntoView} class="btn btn-primary uppercase font-bold my-8">Auction 1-hour of your time</a>
+          <a href="#anchorId" on:click|preventDefault={scrollIntoView} class="btn btn-primary uppercase font-bold my-8">Auction 1-hour of your time</a>
           <div class="mb-8">
             <!-- <p class="text-3xl">OR</p> -->
             <div class="space-x-1">
-              <a href="#anchorIdAuctionItem" on:click|preventDefault={scrollIntoView} class="btn btn-outline uppercase font-bold my-4">Auction Item</a>
-              <a href="#anchorIdFixedPrice" on:click|preventDefault={scrollIntoView} class="btn btn-outline uppercase font-bold my-4">Fixed Price</a>
+              <a href="#anchorId" on:click|preventDefault={scrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Auction Item</a>
+              <a href="#anchorIdFixedPrice" on:click|preventDefault={scrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
             </div>
           </div>
     
           <!-- AVATARS -->
-          <!-- <div class="flex space-x-4">
+          <div class="flex space-x-4">
             <div class="avatar flex">
               <div class="w-16 rounded">
                 <img src="https://placeimg.com/192/192/people" alt="image" />
@@ -170,7 +171,7 @@
                 <img src="https://placeimg.com/192/192/people" alt="Tailwind-CSS-Avatar-component" />
               </div>
             </div>
-          </div> -->
+          </div>
           
           <div class="my-4">
             <!-- <lottie-player
@@ -189,9 +190,10 @@
           <img src={Faketoshi} alt="hero-image">
         </div>
         </div>
-   
     </div>
-    </div>
+  </div>
+
+  <CampaignStats />
 {:else}
 <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
 <div class="lg:w-2/3 mx-auto">
@@ -201,24 +203,26 @@
 </div>
 {/if}
 
+<style>
+  #bgHero {
+    background-image: url('$lib/images/spaceship.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
+  }
+</style>
+
 
 <div class="md:w-2/3 items-center mx-auto mt-20">
-    <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
-    <!-- <div class="w-full inline-block relative after:pt-[33.33%] after:block after:content-[''] lg:mt-24 mt-12">
-        <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover" style="background-image: url({bannerUrl});" alt=""></div>
-    </div> -->
-
-
     <div class="grid">
-
         <!-- <div class="mt-4 text-center">
             {#if owner}
                 <Avatar account={owner} size={AvatarSize.L} />
             {/if}
         </div> -->
-        <div class="flex justify-end my-4 border-b border-gray-700/20 py-2">
+        <div class="flex justify-center my-4 border-b border-gray-700/20 py-2">
           {#if editUrl}
-              <a href={editUrl} class="btn btn-ghost text-sm uppercase font-bold mt-2">Edit</a>
+              <a href={editUrl} class="btn btn-outline text-sm uppercase font-bold my-2">Edit Page</a>
           {/if}
         </div>
         <div class="grid lg:grid-cols-2 gap-8 my-12 p-4">
@@ -231,7 +235,7 @@
                     </div>
                 {/if}
 
-                <div class="flex flex-col gap-4 border-t border-gray-700/40 w-full py-4 my-4">
+                <div class="flex flex-col gap-4 w-full py-4 my-4">
                   <div class="flex space-x-4">
                       {#if telegramHref}
                           <a href={telegramHref} class="link text-2xl" target="_blank" rel="noreferrer">
@@ -260,20 +264,24 @@
                   </div>
               </div>
                 
-                <div class="flex flex-col gap-4 ml-2">
-                    {#if badges.length !== 0}
-                        <div>Badges</div>
-                        <div class="flex gap-2">
-                            {#each badges as badge}
-                                <BadgeSVG {badge} />
-                            {/each}
-                        </div>
-                    {/if}
-                </div>
+              
             </div>
             <!-- COL -->
-            <div id="bgXPUB" class="grid place-items-top border border-gray-700/40 rounded p-4">
+            <div id="bgXPUB" class="grid place-items-top border-l border-gray-700/40 rounded p-4">
+              {#if isCampaignStall}
                 <slot name="extra-description" />
+              {:else}
+                <div class="flex flex-col gap-4 ml-2">
+                  {#if badges.length !== 0}
+                      <div>Badges</div>
+                      <div class="flex gap-2">
+                          {#each badges as badge}
+                              <BadgeSVG {badge} />
+                          {/each}
+                      </div>
+                  {/if}
+                </div>
+              {/if}
             </div>
         </div>
     </div>    
@@ -287,7 +295,7 @@
             <Login {onLogin} />
         {/if}
         {#if canAddItems || showActiveAuctions || showPastAuctions}
-            <h3 class="lg:text-8xl text-4xl font-black text-center my-8">Auctions</h3>
+            <h3 id="anchorId" class="lg:text-8xl text-4xl font-black text-center my-8 pt-16">Auctions</h3>
             {#if canAddItems}
                 <ListView
                     bind:this={auctionsLists['new']}
@@ -319,7 +327,7 @@
                                                       
                           </div>
                           
-                          <p class="btn btn-secondary font-bold text-center">Physical Item</p>
+                          <p class="btn btn-secondary font-bold text-center">Sell Item</p>
                         </div>
                     </div>
                 </ListView>
@@ -331,7 +339,7 @@
                     {/each}
                 </div>
                 {#each availableFilters as filter}
-                    <div class="bg-base-200" class:hidden={auctionFilter !== filter}>
+                    <div class="" class:hidden={auctionFilter !== filter}>
                         <ListView
                             bind:this={auctionsLists[filter]}
                             loader={{endpoint: `${baseUrl}/auctions?filter=${filter}`, responseField: 'auctions', fromJson: auctionFromJson}}

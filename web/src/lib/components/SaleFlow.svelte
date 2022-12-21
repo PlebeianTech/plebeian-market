@@ -25,17 +25,20 @@
     }
 </script>
 
-<ul class="steps steps-vertical lg:steps-horizontal">
-    <li class="step" class:step-primary={true}>
-        <p class="text-left">Contribution</p>
-    </li>
-    <li class="step" class:step-primary={sale.state === SaleState.CONTRIBUTION_SETTLED || sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}>
-        <p class="text-left">Payment</p>
-    </li>
-    <li class="step" class:step-primary={sale.state === SaleState.TX_CONFIRMED}>
-        <p class="text-left">Confirmation</p>
-    </li>
-</ul>
+<div class="flex justify-center">
+
+  <ul class="steps steps-vertical lg:steps-horizontal">
+      <li class="step" class:step-primary={true}>
+          <p class="text-left">Contribution</p>
+      </li>
+      <li class="step" class:step-primary={sale.state === SaleState.CONTRIBUTION_SETTLED || sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}>
+          <p class="text-left">Payment</p>
+      </li>
+      <li class="step" class:step-primary={sale.state === SaleState.TX_CONFIRMED}>
+          <p class="text-left">Confirmation</p>
+      </li>
+  </ul>
+</div>
 
 {#if sale.state === SaleState.REQUESTED}
     <p class="my-4">The seller wishes to donate <AmountFormatter satsAmount={sale.contribution_amount} /> sats out of the total price to Plebeian Technology. Please send the amount using the QR code below!</p>

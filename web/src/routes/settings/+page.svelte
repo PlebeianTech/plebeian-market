@@ -51,7 +51,7 @@
 </script>
 
 {#if $user}
-    <div class="md:flex py-5">
+    <div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 py-20 p-4">
         <div class="md:grow-0">
             <ul class="menu menu-compact mt-3 bg-base-100 md:w-56 p-2 rounded-box">
                 {#each pages as page, i}
@@ -59,8 +59,8 @@
                 {/each}
             </ul>
         </div>
-        <div class="md:grow mx-10">
-            <div class="md:w-1/2">
+        <div class="lg:w-2/3 col-span-2">
+            <div class="">
                 {#if currentPage === null || currentPage === STALL_PAGE}
                     <Stall onSave={onSaved} />
                 {:else if currentPage === WALLET_PAGE}
