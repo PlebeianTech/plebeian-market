@@ -31,56 +31,53 @@
     });
 </script>
 
-<div class="md:hidden">
-    <Typewriter />
-</div>
-<div class="flex justify-center">
-    <div class="md:flex justify-center mt-0 md:mt-14 md:columns-3 w-3/5">
-        <div class="flex items-center mt-1 justify-center pb-5">
-            <div class="text-7xl md:ml-0 md:text-9xl">1</div>
-            <div class="flex flex-col justify-center">
-                <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48" src="/images/bitko_01.png" alt="Tweet!"></div>
-                <div class="-translate-y-1 md:-translate-y-0 h-full text-xl">Tweet Photos</div>
-            </div>
+<div id="bgHero" class="bg-fixed">
+  <div class="bg-black/80">
+    <div class="grid place-items-center lg:w-2/3 mx-auto h-screen">
+      <div class="grid mt-20">
+        <!-- COL -->
+        <div class="bg-zinc-800/40 rounded-xl shadow-xl backdrop-blur-md p-4 border border-gray-700/40">
+  
+          <div class="flex flex-col items-start">
+            <Typewriter />
+          </div>
+          <h2 class="text-xl mt-8 uppercase text-center text-white">Get the market started</h2>
+          <div class="my-8 w-full btn btn-primary p-4 border rounded flex items-center" on:click={go} on:keypress={go}>
+            Let's go
+           </div>
         </div>
-        <div class="flex -translate-y-3 md:-translate-y-0 items-center mt-1 justify-center mb-2 pr-6">
-            <div class="text-7xl md:ml-0 md:text-9xl">2</div>
-            <div class="flex flex-col">
-                <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48" src="/images/bitko_02.png" alt="Start!"></div>
-                <div class="-translate-y-1 md:-translate-y-0 h-full text-xl">Click Start</div>
-            </div>
-        </div>
-        <div class="flex -translate-y-3 md:-translate-y-0 items-center mt-1 justify-center mb-2 pr-3">
-            <div class="text-7xl md:ml-0 md:text-9xl">3</div>
-            <div class="flex flex-col">
-                <div><img class="max-h-24 ml-4 md:ml-0 md:max-h-48" src="/images/bitko_03.png" alt="Stack!"></div>
-                <div class="-translate-y-1 md:-translate-y-0 h-full text-xl">Stack Sats</div>
-            </div>
-        </div>
+  
+        <!-- COL -->
+      </div>
     </div>
+  </div>
+
 </div>
-<div class="hidden md:flex-container md:ml-20 md:flex md:justify-center md:justify-items-start mt-12 px-8 columns-1 gap-0 md:columns-3 md:w-11/12">
-    <Typewriter />
-</div>
-<div class="md:pt-10 mb-0 md:mb-4 -translate-y-3 md:-translate-y-0 text-2xl flex justify-center">
-    Let's get the market started...
-</div>
-<div class="flex justify-center items-center">
-    <div class="glowbutton glowbutton-go mb-5" on:click={go} on:keypress={go}></div>
-</div>
-<div class="grid grid-cols-1 w-full gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+<div class="lg:w-2/3 mx-auto grid grid-cols-1 w-full gap-4 md:grid-cols-2 lg:grid-cols-3">
     {#if auctions !== null}
         {#each auctions as auction}
-            <div class="h-auto my-3 self-center glowbox">
+            <div class="h-auto my-3 self-center">
                 <ItemCardSmall entity={auction} showCampaign={true} showOwner={true} />
             </div>
         {/each}
     {/if}
     {#if listings !== null}
         {#each listings as listing}
-            <div class="h-auto my-3 self-center glowbox">
+            <div class="h-auto my-3 self-center">
                 <ItemCardSmall entity={listing} showCampaign={true} showOwner={true} />
             </div>
         {/each}
     {/if}
 </div>
+
+
+<style>
+
+#bgHero {
+    background-image: url('$lib/images/golden-gai-tokyo.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+  }
+</style>

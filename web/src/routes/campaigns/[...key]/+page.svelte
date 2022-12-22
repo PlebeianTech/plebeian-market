@@ -10,6 +10,7 @@
     import { token, user } from "$lib/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { page } from "$app/stores";
+  import { getBaseUrl } from '$lib/utils';
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -45,18 +46,18 @@
 
 {#if data.serverLoadedCampaign}
 <MetaTags
-        title={data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!"}
-        description={data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!"}
+        title={data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign"}
+        description={data.serverLoadedCampaign.description ?? "Support the cause and help a Bitcoiner!"}
         openGraph={{
             site_name: "Plebeian Market",
             type: "website",
             url: $page.url.href,
-            title: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
-            description: data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!",
+            title: data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign",
+            description: data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities",
             images: [
               {
-                url: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
-                alt: "My Stall picture"
+                url: getBaseUrl() ?? "https://",
+                alt: "Art by Bitko Yinowsky"
               }
             ],
         }}
@@ -71,19 +72,22 @@
 
 {#if data.campaignKey === "" || data.campaignKey === null}
     {#if $user && $user.isModerator}
-        <h3 class="text-xl">My campaigns</h3>
-        <ListView
-                loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
-                postEndpoint="users/me/campaigns"
-                card={CampaignCard}
-                editor={CampaignEditor}
-                style={ListViewStyle.List}>
-            <div slot="new-entity" let:setCurrent={setCurrent}>
-                <div class="mx-auto my-10 glowbutton glowbutton-new" on:click|preventDefault={() => setCurrent(new Campaign())}></div>
-            </div>
-        </ListView>
+    <div class="grid place-items-center py-20">
+
+      <h3 class="lg:text-8xl text-5xl font-bold">My campaigns</h3>
+      <ListView
+              loader={{endpoint: 'users/me/campaigns', responseField: 'campaigns', fromJson}}
+              postEndpoint="users/me/campaigns"
+              card={CampaignCard}
+              editor={CampaignEditor}
+              style={ListViewStyle.List}>
+          <div slot="new-entity" class="flex justify-center" let:setCurrent={setCurrent}>
+              <div class="mx-auto my-10 btn btn-primary" on:click|preventDefault={() => setCurrent(new Campaign())}>Create a new Campaign</div>
+          </div>
+      </ListView>
+    </div>
     {:else}
-        <div class="alert alert-info shadow-lg">
+        <div class="alert alert-info shadow-lg mt-8">
             <div>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span>Please contact us if you want to launch a campaign!</span>
@@ -103,21 +107,17 @@
         showItemsOwner={true}
         showItemsCampaign={false}
         canAddItems={true}>
-        <div slot="extra-description" class="mt-4">
-            {#if showXpub}
-                <div class="bg-base-300 p-10 rounded mt-6">
-                    Note: all money from the sales in this campaign will go to addresses generated from the following XPUB.
+        <div slot="extra-description" class="">
+         
+                <div class="p-10 rounded mt-4 text-center">
+                    Note: all money from the sales in this campaign will go to addresses generated from the following XPUB provided by Defending BTC team.
                     <div class="text-center">
                         <input value={campaign.xpub} type="text" class="input input-bordered w-full max-w-xs" disabled />
                         <button class="btn ml-2 mt-2 w-20" on:click={copyXpub}>{#if xpubCopied}Copied{:else}Copy!{/if}</button>
-                        <span class="ml-2">Don't trust, verify!</span>
+                        <p class="mt-8 text-4xl font-bold">Don't trust, verify!</p>
                     </div>
                 </div>
-            {:else}
-                <div class="flex flex-row-reverse">
-                    <button class="btn btn-sm" on:click={() => showXpub = true}>Show XPUB</button>
-                </div>
-            {/if}
+            
         </div>
     </StallView>
 {/if}

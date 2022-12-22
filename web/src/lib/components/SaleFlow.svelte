@@ -25,17 +25,20 @@
     }
 </script>
 
-<ul class="steps steps-vertical lg:steps-horizontal">
-    <li class="step" class:step-primary={true}>
-        <p class="text-left">Contribution</p>
-    </li>
-    <li class="step" class:step-primary={sale.state === SaleState.CONTRIBUTION_SETTLED || sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}>
-        <p class="text-left">Payment</p>
-    </li>
-    <li class="step" class:step-primary={sale.state === SaleState.TX_CONFIRMED}>
-        <p class="text-left">Confirmation</p>
-    </li>
-</ul>
+<div class="flex justify-center">
+
+  <ul class="steps steps-vertical lg:steps-horizontal">
+      <li class="step" class:step-primary={true}>
+          <p class="text-left">Contribution</p>
+      </li>
+      <li class="step" class:step-primary={sale.state === SaleState.CONTRIBUTION_SETTLED || sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}>
+          <p class="text-left">Payment</p>
+      </li>
+      <li class="step" class:step-primary={sale.state === SaleState.TX_CONFIRMED}>
+          <p class="text-left">Confirmation</p>
+      </li>
+  </ul>
+</div>
 
 {#if sale.state === SaleState.REQUESTED}
     <p class="my-4">The seller wishes to donate <AmountFormatter satsAmount={sale.contribution_amount} /> sats out of the total price to Plebeian Technology. Please send the amount using the QR code below!</p>
@@ -114,15 +117,17 @@
         <p class="text-xl">In the meantime, you can follow the transaction on <a class="link" target="_blank" href="https://mempool.space/tx/{sale.txid}" rel="noreferrer">mempool.space</a>!</p>
     {:else}
         <p class="text-3xl text-center my-10">Payment confirmed!</p>
-        <p class="text-2xl">
-            Please <a href="/stall/{sale.seller.nym}" class="link">contact</a>
-            the seller directly
-            {#if item.category !== Category.Time}
-                to discuss shipping
-            {/if}
-        </p>
-        <p class="text-center mt-10">
-            <Avatar account={sale.seller} size={AvatarSize.M} />
-        </p>
+        <div class="grid place-items-center space-y-4 mb-8">
+          <p class="text-2xl">
+              Please <a href="/stall/{sale.seller.nym}" class="link">contact</a>
+              the seller directly
+              {#if item.category !== Category.Time}
+                  to discuss shipping
+              {/if}
+          </p>
+          <div class="text-center">
+              <Avatar account={sale.seller} size={AvatarSize.M} />
+          </div>
+        </div>
     {/if}
 {/if}

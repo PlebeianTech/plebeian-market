@@ -4,12 +4,15 @@
     import PurchaseRow from "$lib/components/PurchaseRow.svelte";
 </script>
 
-<h3 class="text-4xl my-4 ml-2">My purchases</h3>
+<h1 class="lg:text-8xl font-bold text-4xl text-center my-20">My purchases</h1>
 
-<ListView
-    loader={{endpoint: "users/me/purchases", responseField: 'purchases', fromJson: saleFromJson}}
-    columns={["Date", "Seller", "Item", "Sats / Fiat", "Sent sats ($ shipping)", "State"]}
-    card={PurchaseRow}
-    editor={null}
-    extraClasses="w-11/12 mt-4"
-    style={ListViewStyle.Table} />
+<div class="lg:w-2/3 mx-auto">
+
+  <ListView
+      loader={{endpoint: "users/me/purchases", responseField: 'purchases', fromJson: saleFromJson}}
+      columns={["Date", "Seller", "Item", "Sats / Fiat", "Sent sats ($ shipping)", "State"]}
+      card={PurchaseRow}
+      editor={null}
+      extraClasses="w-11/12 mt-4"
+      style={ListViewStyle.Table} />
+</div>

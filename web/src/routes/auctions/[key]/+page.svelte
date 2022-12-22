@@ -14,6 +14,7 @@
     });
 </script>
 
+
 {#if data.itemKey !== ""}
     <ItemView
             itemKey={data.itemKey}
@@ -21,3 +22,4 @@
             serverLoadedItem={fromJson(data.serverLoadedItem)}
     />
 {/if}
+

@@ -20,7 +20,7 @@
     export let showItemsCampaign = false;
     export let postEndpoint: string | null = null;
     export let style: ListViewStyle;
-    export let extraClasses: string = "w-11/12 lg:w-3/5";
+    export let extraClasses: string = "w-11/12 lg:w-2/3";
 
     export let columns: string[] = [];
 
@@ -98,7 +98,7 @@
             {/each}
         {:else if style === ListViewStyle.Grid}
             <div>
-                <div class="grid grid-cols-1 md:grid-cols-3">
+                <div class="grid lg:grid-cols-2">
                     {#each entities as entity}
                         <div class="h-auto">
                             <svelte:component this={card} {entity} showOwner={showItemsOwner} showCampaign={showItemsCampaign} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
