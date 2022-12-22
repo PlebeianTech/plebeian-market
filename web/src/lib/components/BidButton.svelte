@@ -13,16 +13,10 @@
     export let amount;
     export let auction: Auction;
 
-    let canRepost = true;
-
     let badgeSale: Sale | null = null;
     let interval: ReturnType<typeof setInterval> | undefined = undefined;
 
     function repostBid() {
-        if (!canRepost) {
-            // don't automatically repost a higher bid (if another even higher bid came in the mean time)
-            return;
-        }
         // repost the bid after we purchased the badge
         postBid($token, auction.key, amount, 'NEW_BADGE',
             (r, q, messages) => {
@@ -47,7 +41,7 @@
                     if (badgeSale && badgeSale.address === purchase.address) {
                         if (purchase.state === SaleState.TX_DETECTED || purchase.state === SaleState.TX_CONFIRMED) {
                             getProfile($token, 'me', u => { user.set(u); });
-                            repostBid();
+                            // repostBid();
                             badgeSale = null;
                         }
                     }
@@ -77,7 +71,7 @@
                     (s) => {
                         waitingResponse = false;
                         if (s.state === SaleState.TX_DETECTED || s.state === SaleState.TX_CONFIRMED) {
-                            repostBid();
+                            // repostBid();
                         } else {
                             badgeSale = s;
                             interval = setInterval(refreshBadgeSale, 1000);
@@ -98,7 +92,6 @@
 
     export function resetBid() {
         paymentQr = paymentRequest = amount = null;
-        canRepost = false;
     }
 
     export function bidConfirmed(r) {
