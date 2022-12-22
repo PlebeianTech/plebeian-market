@@ -654,6 +654,7 @@ def post_bid(user, key):
         # NB: we can skip the lightning invoice in the first minute after we have been awarded a badge,
         # this is so that the frontend can automatically re-place the previous bid which failed due to a badge being required
         payment_request = None
+        auction.extend()
     else:
         response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])
         payment_request = response.payment_request
