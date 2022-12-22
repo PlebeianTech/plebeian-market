@@ -79,7 +79,7 @@ export class Auction implements IEntity, Item {
     public nextBid() {
         var lastBid = this.topAmount();
 
-        if (lastBid === 0) {
+        if (lastBid === 0 && this.starting_bid !== 0) {
             return Number(this.starting_bid);
         }
 
