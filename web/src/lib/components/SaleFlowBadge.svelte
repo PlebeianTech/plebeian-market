@@ -30,5 +30,9 @@
         BTC {formatBTC(sale.amount)}
     </p>
 
+    <p class="text-2xl text-center mb-4">
+        Pay on-chain!
+    </p>
+
     <QR qr={sale.qr} protocol="bitcoin" address={sale.address} />
 {/if}

@@ -129,9 +129,9 @@
                                 {:else}
                                     {#if usdAmount > threshold.bid_amount_usd / 2}
                                         <div class="radial-progress" class:text-info={usdAmount < threshold.bid_amount_usd * 0.75} class:text-warning={usdAmount >= threshold.bid_amount_usd * 0.75 && usdAmount < threshold.bid_amount_usd * 0.85} class:text-error={usdAmount >= threshold.bid_amount_usd * 0.85} style="--value:{usdAmount / threshold.bid_amount_usd * 100};">
-                                            <div class="tooltip" data-tip="Badge required">
+                                            <div class="tooltip" data-tip="Badge required / click for info">
                                                 <label class="cursor-help" for="badge-modal">
-                                                    {threshold.bid_amount_usd}$
+                                                    ${threshold.bid_amount_usd}
                                                 </label>
                                             </div>
                                         </div>

@@ -12,6 +12,6 @@
 </ul>
 {#if campaign_name !== null}
     <p class="py-4">
-        The money will go directly to the <span class="badge badge-primary mb-4">{campaign_name} campaign</span>!
+        The money will go directly to the <span class="badge badge-primary mb-4">{campaign_name} campaign</span>
     </p>
 {/if}

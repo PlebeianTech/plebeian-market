@@ -110,7 +110,7 @@
         <div slot="extra-description" class="">
          
                 <div class="p-10 rounded mt-4 text-center">
-                    Note: all money from the sales in this campaign will go to addresses generated from the following XPUB provided by Defending BTC team.
+                    Note: 100% of the money from the sales in this campaign will go to addresses generated from the following XPUB provided by Defending BTC team.
                     <div class="text-center">
                         <input value={campaign.xpub} type="text" class="input input-bordered w-full max-w-xs" disabled />
                         <button class="btn ml-2 mt-2 w-20" on:click={copyXpub}>{#if xpubCopied}Copied{:else}Copy!{/if}</button>

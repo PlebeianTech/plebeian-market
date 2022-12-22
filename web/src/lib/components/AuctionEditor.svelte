@@ -135,8 +135,12 @@
                 <div class="w-1/2 flex justify-center items-center">
                     {#if !auction.validate()}
                         <button class="btn mt-1" disabled>Save</button>
+                    {:else if isTimeAuction}
+                        <div class="tooltip" data-tip="Your auction will start immediately and there is no turning back!">
+                            <div class="glowbutton glowbutton-publish" on:click|preventDefault={onSave} on:keypress={onSave}></div>
+                        </div>
                     {:else}
-                        <div class="glowbutton" class:glowbutton-save={!isTimeAuction} class:glowbutton-publish={isTimeAuction} on:click|preventDefault={onSave} on:keypress={onSave}></div>
+                        <div class="glowbutton glowbutton-save" on:click|preventDefault={onSave} on:keypress={onSave}></div>                        
                     {/if}
                 </div>
             </div>
