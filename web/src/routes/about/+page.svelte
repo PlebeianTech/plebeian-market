@@ -19,8 +19,7 @@
     <div class="lg:w-2/3 mx-auto py-20 p-4">
       <div class="lg:w-1/2 mx-auto lg:text-3xl text-black my-20 text-center">
         <h1 class="lg:text-8xl text-8xl font-bold my-4">About</h1>
-        <p>Plebeian Market is an MVP and an incidental idea on the way to a fully sovereign version. 
-          It's the first piece of a much bigger vision of decentralised sovereign commerce.</p>
+        <p>Plebeian Market is a distributed self sovereign P2P market place.</p>
           <!-- <a href="#team" on:click|preventDefault={scrollIntoView}>
             <button class="btn btn-primary my-8">Go to Team</button>
           </a> -->
