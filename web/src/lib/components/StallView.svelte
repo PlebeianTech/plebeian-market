@@ -133,7 +133,7 @@
     }
 </script>
 
-<!-- <MetaTags
+<MetaTags
   openGraph={{
     images: [
       {
@@ -150,7 +150,7 @@
     cardType: "summary_large_image",
     imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
 }}
-/> -->
+/>
 
 {#if isCampaignStall}
   <!-- HERO SECTION STATIC CONTENT -->
