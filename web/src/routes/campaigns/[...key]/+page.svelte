@@ -65,6 +65,7 @@
             site: import.meta.env.VITE_TWITTER_USER,
             handle: import.meta.env.VITE_TWITTER_USER,
             cardType: "summary_large_image",
+            image: 'https://plebeian.market/_app/immutable/assets/Bitko-Illustration-Faketoshi-d8d4896c.svg',
             imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
         }}
 />
