@@ -17,7 +17,7 @@
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
-    import Faketoshi from "$lib/images/bitko-illustration.svg"
+    import Faketoshi from "$lib/images/Hodlonaut-Faketoshi-Bitko.svg"
     import { getBaseUrl } from '$lib/utils';
     // import CampaignStats from './CampaignStats.svelte';
    
@@ -137,7 +137,7 @@
   openGraph={{
     images: [
       {
-        url: '$lib/images/faketoshi-colour.svg',
+        url: '$lib/images/Hodlonaut-Faketoshi-Bitko.svg',
         width: 400,
         height: 300,
         alt: 'Illustration by Bitko Yinowsky'
@@ -148,7 +148,7 @@
     site: import.meta.env.VITE_TWITTER_USER,
     handle: import.meta.env.VITE_TWITTER_USER,
     cardType: "summary_large_image",
-    imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+    // imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
 }}
 />
 
@@ -156,7 +156,7 @@
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
     <!-- FILTER -->
-    <div class="bg-gradient-to-b from-pink-700/90 to-pink-500/0">
+    <div class="bg-gradient-to-b from-pink-700/90 to-pink-500/40">
       <!-- HERO -->
       <div class="lg:w-2/3 mx-auto grid lg:grid-cols-2 gap-4">
         <!-- COL -->
@@ -215,12 +215,12 @@
 {/if}
 
 <style>
-  /* #bgHero {
-    background-image: url('$lib/images/');
+  #bgHero {
+    background-image: url('$lib/images/spaceship.jpg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: bottom;
-  } */
+  }
 </style>
 
 
