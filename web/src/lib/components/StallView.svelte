@@ -18,7 +18,7 @@
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Hodlonaut-Faketoshi-Bitko.svg"
-    import { getBaseUrl } from '$lib/utils';
+    // import { getBaseUrl } from '$lib/utils';
     // import CampaignStats from './CampaignStats.svelte';
    
     export let baseUrl: string;
