@@ -142,6 +142,8 @@ def finalize_auctions():
 
             price_sats = top_bid.amount
             contribution_amount = auction.item.seller.get_contribution_amount(price_sats * quantity)
+            if auction.campaign_id:
+                contribution_amount = 0
 
             if contribution_amount != 0:
                 response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY_AUCTION'])
