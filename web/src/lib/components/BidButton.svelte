@@ -13,10 +13,16 @@
     export let amount;
     export let auction: Auction;
 
+    let canRepost = true;
+
     let badgeSale: Sale | null = null;
     let interval: ReturnType<typeof setInterval> | undefined = undefined;
 
     function repostBid() {
+        if (!canRepost) {
+            // don't automatically repost a higher bid (if another even higher bid came in the mean time)
+            return;
+        }
         // repost the bid after we purchased the badge
         postBid($token, auction.key, amount, 'NEW_BADGE',
             (r, q, messages) => {
@@ -86,8 +92,13 @@
         return paymentRequest !== null;
     }
 
+    export function waitingBadgeSale() {
+        return badgeSale !== null;
+    }
+
     export function resetBid() {
         paymentQr = paymentRequest = amount = null;
+        canRepost = false;
     }
 
     export function bidConfirmed(r) {

@@ -42,13 +42,13 @@
                 }
 
                 if (item instanceof Auction) {
-                    if (bidButton && bidButton.bidConfirmed && bidButton.waitingBidSettlement && bidButton.resetBid) { // TODO: why are these checks needed? Typescript trying to be smart? Svelte acting stupid? Can we get rid of them?
+                    if (bidButton && bidButton.bidConfirmed && bidButton.waitingBidSettlement && bidButton.waitingBadgeSale && bidButton.resetBid) { // TODO: why are these checks needed? Typescript trying to be smart? Svelte acting stupid? Can we get rid of them?
                         for (const bid of item.bids) {
                             if (bid.payment_request !== null) {
                                 // NB: payment_request being set on the Bid means this is *my* bid, which has been confirmed
                                 bidButton.bidConfirmed(bid.payment_request);
                             }
-                            if (amount && amount <= bid.amount && bidButton.waitingBidSettlement()) {
+                            if (amount && amount <= bid.amount && (bidButton.waitingBidSettlement() || bidButton.waitingBadgeSale())) {
                                 Error.set("A higher bid just came in.");
                                 bidButton.resetBid();
                             }
