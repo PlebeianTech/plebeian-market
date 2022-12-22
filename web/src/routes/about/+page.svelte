@@ -15,9 +15,9 @@
 
 <!-- HERO -->
 <div id="aboutHero" class="bg-fixed">
-  <div class="bg-gradient-to-b from-white/80 to-pink-500/40">
+  <div class="bg-gradient-to-b from-black/70 to-black/70">
     <div class="lg:w-2/3 mx-auto py-20 p-4">
-      <div class="lg:w-1/2 mx-auto lg:text-3xl text-black my-20 text-center">
+      <div class="lg:w-1/2 mx-auto lg:text-3xl text-white my-20 text-center">
         <h1 class="lg:text-8xl text-8xl font-bold my-4">About</h1>
         <p>Plebeian Market is a distributed self sovereign P2P market place.</p>
           <!-- <a href="#team" on:click|preventDefault={scrollIntoView}>
@@ -31,7 +31,7 @@
 
 <style>
   #aboutHero {
-    background-image: url('$lib/images/abstract1.jpg');
+    background-image: url('$lib/images/golden-gai-tokyo.jpg');
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -71,7 +71,6 @@
 
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/HodlrDotRocks">Chiefmonkey</a>
     <h3 class="uppercase my-2 font-bold text-sm">Chief</h3>
-    <p class="mt-8">About ChiefMonkey</p>
 
   </div>
 
@@ -80,7 +79,6 @@
 
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/ibz">Ibz</a>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
-    <p class="mt-8">About Ibz</p>
 
   </div>
 
@@ -89,7 +87,6 @@
 
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/BitkoYinowsky">Bitko Yinowsky</a>
     <h3 class="uppercase my-2 font-bold text-sm">Artist</h3>
-    <p class="mt-8">About Bitko Yinowsky</p>
 
   </div>
 
@@ -98,7 +95,6 @@
 
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/btc_remnant">Luis Miguel</a>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
-    <p class="mt-8">About Luis</p>
 
   </div>
 
@@ -106,8 +102,7 @@
   <div class="bg-gray-300/20 p-4 rounded">
 
     <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/GhostOfBekka">Bekka</a>
-    <h3 class="uppercase my-2 font-bold text-sm">Chief</h3>
-    <p class="mt-8">About Bekka</p>
+    <h3 class="uppercase my-2 font-bold text-sm">Communications</h3>
 
   </div>
 
@@ -116,6 +111,5 @@
 
     <a href="https://twitter.com/j__khan" class="text-3xl font-bold my-4">Jay Khan</a>
     <h3 class="uppercase my-2 font-bold text-sm">Front-end Developer</h3>
-    <p class="mt-8">About Jay</p>
   </div>
 </div>
