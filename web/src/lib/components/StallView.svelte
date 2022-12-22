@@ -193,8 +193,8 @@
               </div>
             </div>
           </div>
-        </div>
         -->
+        </div>
 
         <div class="grid place-items-center">
           <!-- OG TAGS HERE -->
