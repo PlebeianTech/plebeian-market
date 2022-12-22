@@ -56,7 +56,7 @@
             description: data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities",
             images: [
               {
-                url: getBaseUrl() ?? "https://",
+                url: "https://plebeian.market/_app/immutable/assets/Bitko-Illustration-Faketoshi-d8d4896c.svg",
                 alt: "Art by Bitko Yinowsky"
               }
             ],
