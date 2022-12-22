@@ -17,7 +17,7 @@
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
-    import Faketoshi from "$lib/images/Bitko-Illustration.svg"
+    import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
     // import { getBaseUrl } from '$lib/utils';
     // import CampaignStats from './CampaignStats.svelte';
    
@@ -137,7 +137,7 @@
   openGraph={{
     images: [
       {
-        url: '$lib/images/Bitko-Illustration.svg',
+        url: '$lib/images/Bitko-Illustration-Faketoshi.svg',
         width: 400,
         height: 300,
         alt: 'Illustration by Bitko Yinowsky'
