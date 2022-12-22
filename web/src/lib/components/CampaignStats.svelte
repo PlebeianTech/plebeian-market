@@ -1,5 +1,5 @@
-<script>
-  let daysRemaining = 10
+<script lang="ts">
+  let daysRemaining: number = 10
 </script>
 
 <div class="lg:w-2/3 mx-auto mt-24 flex justify-center">

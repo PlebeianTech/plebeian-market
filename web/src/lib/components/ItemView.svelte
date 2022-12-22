@@ -266,7 +266,7 @@
                                 </div>
                                 {#if sale}
                                     {#if sale.state === SaleState.TX_DETECTED || sale.state === SaleState.TX_CONFIRMED}
-                                        <p class="my-4">Please contact the winner using <a class="link" href="https://twitter.com/direct_messages/create/{sale.buyer.twitterUsername}" target="_blank" rel="noreferrer">Twitter DM</a> to discuss further.</p>
+                                        <p class="my-4 text-center w-full">Please contact the winner using <a class="link" href="https://twitter.com/direct_messages/create/{sale.buyer.twitterUsername}" target="_blank" rel="noreferrer">Twitter DM</a> to discuss further.</p>
                                         <div class="alert shadow-lg my-4" class:alert-warning={sale.state === SaleState.TX_DETECTED} class:alert-success={sale.state === SaleState.TX_CONFIRMED}>
                                             <div>
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

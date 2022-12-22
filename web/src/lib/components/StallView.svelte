@@ -1,5 +1,6 @@
 <script lang="ts">
     import SvelteMarkdown from 'svelte-markdown';
+    import { MetaTags } from 'svelte-meta-tags';
     import { goto } from "$app/navigation";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import Avatar, { AvatarSize } from "$lib/components/Avatar.svelte";
@@ -17,7 +18,8 @@
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/bitko-illustration.svg"
-    import CampaignStats from './CampaignStats.svelte';
+    import { getBaseUrl } from '$lib/utils';
+    // import CampaignStats from './CampaignStats.svelte';
    
     export let baseUrl: string;
 
@@ -131,6 +133,25 @@
     }
 </script>
 
+<!-- <MetaTags
+  openGraph={{
+    images: [
+      {
+        url: '$lib/images/faketoshi-colour.svg',
+        width: 400,
+        height: 300,
+        alt: 'Illustration by Bitko Yinowsky'
+      },
+    ]
+  }}
+  twitter={{
+    site: import.meta.env.VITE_TWITTER_USER,
+    handle: import.meta.env.VITE_TWITTER_USER,
+    cardType: "summary_large_image",
+    imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+}}
+/> -->
+
 {#if isCampaignStall}
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
@@ -174,13 +195,14 @@
         </div>
     
         <div class="grid place-items-center">
+          <!-- OG TAGS HERE -->
           <img src={Faketoshi} alt="hero-image">
         </div>
         </div>
     </div>
   </div>
 
-  <CampaignStats />
+  <!-- <CampaignStats /> -->
 {:else}
   <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
   <div class="lg:w-2/3 mx-auto">
@@ -296,19 +318,19 @@
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="lg:flex justify-center" let:setCurrent={setCurrent}>
                         {#if isCampaignStall}
-                            <div id="auction-hour-1" class="grid place-items-center mx-auto my-10 border border-gray-700/40 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new TimeAuction())}>
+                            <div id="auction-hour-1" class="grid place-items-center mx-auto my-10 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new TimeAuction())}>
                               <div class="w-20 my-8">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-6 h-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" className="w-6 h-6">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                               </div>
                               <p class="btn btn-primary font-bold text-center">1 Hour of time</p>
                             </div>
                         {/if}
-                        <div id="anchorIdAuctionItem" class="grid place-items-center mx-auto my-10 border border-gray-700/40 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}>
+                        <div id="anchorIdAuctionItem" class="grid place-items-center mx-auto my-10 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}>
                           
                           <div class="w-20 my-8">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
                             </svg>
                                                       
@@ -354,9 +376,9 @@
                     card={ItemCard}
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
-                        <div class="mx-auto my-10 grid place-items-center w-full lg:w-1/3 border border-gray-700/40 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}>
+                        <div class="mx-auto my-10 grid place-items-center w-full lg:w-1/3 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}>
                           <div class="w-20 my-8">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
                             </svg>
                                                       
@@ -367,7 +389,7 @@
                 </ListView>
             {/if}
             {#if showActiveListings || showPastListings}
-                <div class="tabs flex justify-center">
+                <div class="tabs flex justify-center mt-8">
                     {#each availableFilters as filter}
                         <a href="#{filter}" class="text-2xl tab tab-lifted" class:tab-active={listingFilter === filter} on:click={() => listingFilter = filter}>{filter}</a>
                     {/each}

@@ -8,7 +8,7 @@
 
 <div class="flex items-center justify-center rounded-md">
     {#if badge && badge.icon === "we-are-all-hodlonaut"}
-    <svg version="1.1" id="design" class="h-12 w-12 fill-current" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+    <svg version="1.1" id="design" class="h-20 w-20 fill-current" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
         width="1187.125px" height="1114.24px" viewBox="0 0 1187.125 1114.24" enable-background="new 0 0 1187.125 1114.24"
         xml:space="preserve">
     <g>

@@ -10,6 +10,7 @@
     import { token, user } from "$lib/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { page } from "$app/stores";
+  import { getBaseUrl } from '$lib/utils';
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -45,18 +46,18 @@
 
 {#if data.serverLoadedCampaign}
 <MetaTags
-        title={data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!"}
-        description={data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!"}
+        title={data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign"}
+        description={data.serverLoadedCampaign.description ?? "Support the cause and help a Bitcoiner!"}
         openGraph={{
             site_name: "Plebeian Market",
             type: "website",
             url: $page.url.href,
-            title: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
-            description: data.serverLoadedCampaign.description ?? "Check the products being sold and auctioned at this Plebeian Market Campaign!",
+            title: data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign",
+            description: data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities",
             images: [
               {
-                url: data.serverLoadedCampaign.banner_url ?? data.serverLoadedCampaign.owner_profile_image_url ?? "",
-                alt: "My Stall picture"
+                url: getBaseUrl() ?? "https://",
+                alt: "Art by Bitko Yinowsky"
               }
             ],
         }}
@@ -86,7 +87,7 @@
       </ListView>
     </div>
     {:else}
-        <div class="alert alert-info shadow-lg">
+        <div class="alert alert-info shadow-lg mt-8">
             <div>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span>Please contact us if you want to launch a campaign!</span>

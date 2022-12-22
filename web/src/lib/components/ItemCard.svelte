@@ -86,7 +86,7 @@
     });
 </script>
 
-<div bind:this={box} class="glowbox">
+<div bind:this={box} class="">
     <div class="card md:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
         <div class="card-body">
             <h2 class="card-title mb-2">
@@ -119,14 +119,14 @@
                     <ul class:lg:steps-horizontal={!item.started} class="steps steps-vertical">
                         <li class="step" class:step-primary={true} class:lg:mb-5={!item.started} class:lg:ml-5={!item.started}>
                             {#if !itemTweeted && !item.started}
-                                <div class="glowbutton glowbutton-tweet ml-2 mr-5 my-5" class:lg:mr-0={!item.started} class:lg:my-0={!item.started} on:click|preventDefault={openTwitter}></div>
+                                <div class="ml-2 mr-5 my-5" class:lg:mr-0={!item.started} class:lg:my-0={!item.started} on:click|preventDefault={openTwitter}></div>
                             {:else}
-                                <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
+                                <button class="btn btn-primary mx-2" on:click={openTwitter}>Tweet</button>
                             {/if}
                         </li>
                         <li class="step" class:lg:mb-5={!item.started} class:step-primary={itemTweeted || item.started}>
                             {#if itemTweeted && !item.started && !starting && hasXpub}
-                                <div class="glowbutton glowbutton-start ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}></div>
+                                <div class="ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}></div>
                             {:else}
                                 <button class="btn btn-disabled mx-2">Start</button>
                             {/if}

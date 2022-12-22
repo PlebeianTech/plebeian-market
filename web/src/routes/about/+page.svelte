@@ -18,7 +18,7 @@
   <div class="bg-gradient-to-b from-white/80 to-pink-500/40">
     <div class="lg:w-2/3 mx-auto py-20 p-4">
       <div class="lg:w-1/2 mx-auto lg:text-3xl text-black my-20 text-center">
-        <h1 class="lg:text-8xl font-bold my-4">About</h1>
+        <h1 class="lg:text-8xl text-8xl font-bold my-4">About</h1>
         <p>Plebeian Market is an MVP and an incidental idea on the way to a fully sovereign version. 
           It's the first piece of a much bigger vision of decentralised sovereign commerce.</p>
           <!-- <a href="#team" on:click|preventDefault={scrollIntoView}>
@@ -66,7 +66,7 @@
 <!-- TEAM -->
 <div id="team" class="mt-8" />
 <h2 class="text-center my-16 lg:text-8xl font-bold text-4xl">Team</h2>
-<div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 gap-4 my-20">
+<div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 gap-4 my-20 p-4">
   <!-- COL -->
   <div class="bg-gray-300/20 p-4 rounded">
 
