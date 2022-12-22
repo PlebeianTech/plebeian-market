@@ -175,6 +175,7 @@
           </div>
     
           <!-- AVATARS -->
+          <!--
           <div class="flex space-x-4">
             <div class="avatar flex">
               <div class="w-16 rounded">
@@ -193,7 +194,8 @@
             </div>
           </div>
         </div>
-    
+        -->
+
         <div class="grid place-items-center">
           <!-- OG TAGS HERE -->
           <img src={Faketoshi} alt="hero-image">
