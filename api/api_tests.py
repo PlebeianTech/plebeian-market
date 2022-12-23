@@ -15,11 +15,11 @@ ONE_PIXEL_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAA
 
 # an XPUB to use for tests and some addresses belonging to it
 XPUB = "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz"
-ADDRESSES = ["1EfgV2Hr5CDjXPavHDpDMjmU33BA2veHy6", "12iNxzdF6KFZ14UyRTYCRuptxkKSSVHzqF", "1CcEugXu9Yf9Qw5cpB8gHUK4X9683WyghM", "15xANZb5vJv5RGL263NFuh8UGgHT7noXeZ", "1PJMBXKBYEBMRDmpAoBRbDff26gHJrawSp", "16ZBYSHkLkRFHAuZvyzosXYgU1UDJxRV1R", "1EHeVKfjjq6FJpix86G2yzFeRbZ6RNg2Zm"]
+ADDRESSES = ["bc1qjh4xdrsry27enkk9fl7ujzyadrjkcw4p2uy76c", "bc1qzt9cgxvxqvl4ajdy5xatuwj8xwd74jquwequst", "bc1q0afc6ehrw3vxd9ylrwvvwtqqvw83d3aqsyyxxp", "bc1qxe8ng3f7wg40ym6lscd2lwm3q5tkah8wyh2cmz", "bc1q7jd276fwrt98m80zw02m25u266t8036d9mpv3u", "bc1q8nht6h0jtaeek5p96c06f03rgmad49la4u7epm", "bc1qjxletyx4euzp94dnlmqjsnt3vjckr3jsu278v3"]
 
 # an XPUB to test campaigns, different from the other one
-CAMPAIGN_XPUB = "xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5WrxhntpcvqJKTVg96dUVL9P7hZ7Kcvqvd"
-CAMPAIGN_ADDRESSES = ["1FbrmmxQGH46x9BqXr5H4p2JK91PRpKkYE", "162cdnDPmqXkuu77PWWi9LugaXuyvsebmP", "1EFfsY9VzwC1RbrfU4xnNCyLfq9NzmeoSh"]
+CAMPAIGN_XPUB = "xpub6D93ecgDqmNjxsM6hN7Qf5Wxt8y5Zv4VmumbMe7xXcmBmE5ti3BRSZfkwrf7nawmzKcgRas978URPQkwBdoBWvsNLPyepEWcCc2kKh2Kk2x"
+CAMPAIGN_ADDRESSES = ["bc1qeauv7festyh2d85ugskzlqucnp594es3t3dhe7", "bc1qenglrz38j2amql5twlt7npaq495hl5n8rqujke", "bc1q3edvv3grv3l0pskxncu9sslv0rv2rlwmlwn6e4"]
 
 ONE_DOLLAR_SATS = usd2sats(1, btc2fiat.get_value('kraken'))
 

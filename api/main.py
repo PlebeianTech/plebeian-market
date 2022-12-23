@@ -135,8 +135,16 @@ def finalize_auctions():
                     address = auction.campaign.get_new_address()
                 else:
                     address = auction.item.seller.get_new_address()
-            except MempoolSpaceError:
-                app.logger.error("Error reading from mempool API! Taking a 1 minute nap...")
+            except AddressGenerationError as e:
+                app.logger.error(f"{auction.id=} " + str(e))
+                # NB: here we commit because we want has_winner and winning_bid_id to be set,
+                # so we never touch this auction again and simply skip generating the corresponding sale
+                # there is really nothing else we can do at this point for this auction,
+                # but at least we picked a winner and stop retrying!
+                db.session.commit()
+                continue
+            except MempoolSpaceError as e:
+                app.logger.error(str(e) + " Taking a 1 minute nap...")
                 time.sleep(60)
                 continue
 
@@ -257,8 +265,8 @@ def settle_btc_payments():
                     continue
                 try:
                     funding_txs = btc.get_funding_txs(sale.address)
-                except MempoolSpaceError:
-                    app.logger.warning(f"Cannot get transactions from mempool API. {sale.address=} Taking a 1 minute nap...")
+                except MempoolSpaceError as e:
+                    app.logger.warning(str(e) + f" {sale.address=} Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
                 for tx in funding_txs:
@@ -542,7 +550,8 @@ class MockBTCClient:
             return []
 
 class MempoolSpaceError(Exception):
-    pass
+    def __str__(self):
+        return "Error reading from mempool API!"
 
 class MempoolSpaceBTCClient:
     def get_funding_txs(self, addr):

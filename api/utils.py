@@ -1,6 +1,8 @@
+import base58
 from base64 import b32encode
 import hashlib
 import magic
+from pycoin.symbols.btc import network as BTC
 import requests
 from os import urandom
 
@@ -43,3 +45,26 @@ def usd2sats(amount, btc2usd):
 def sats2usd(amount, btc2usd):
     from main import app
     return (amount * btc2usd) / app.config['SATS_IN_BTC']
+
+class UnknownKeyTypeError(Exception):
+    def __str__(self):
+        return f"Unknown key type!"
+
+PUB_PREFIXES = {
+    'zpub': '04b24746',
+}
+
+def parse_xpub(xpub):
+    if xpub.lower().startswith('x'):
+        xpub_bip32 = BTC.parse.bip32_pub(xpub)
+        # Convert XPUB to ZPUB
+        decoded_extended_publicKey = base58.b58decode_check(xpub)
+        extended_public_key_no_prefix = decoded_extended_publicKey[4:]
+        extended_public_key_new_prefix = bytes.fromhex(PUB_PREFIXES['zpub']) + extended_public_key_no_prefix
+        zpub = base58.b58encode_check(extended_public_key_new_prefix).decode('UTF-8')
+    elif xpub.lower().startswith('z'):
+        zpub = xpub
+    else:
+        raise UnknownKeyTypeError()
+
+    return BTC.parse.bip84_pub(zpub)
