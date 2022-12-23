@@ -1,6 +1,5 @@
 <script lang="ts">
     import SvelteMarkdown from 'svelte-markdown';
-    import { MetaTags } from 'svelte-meta-tags';
     import { goto } from "$app/navigation";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import Avatar, { AvatarSize } from "$lib/components/Avatar.svelte";
@@ -18,7 +17,6 @@
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
-    // import { getBaseUrl } from '$lib/utils';
     // import CampaignStats from './CampaignStats.svelte';
    
     export let baseUrl: string;
@@ -133,25 +131,6 @@
     }
 </script>
 
-<MetaTags
-  openGraph={{
-    images: [
-      {
-        url: '$lib/images/Bitko-Illustration-Faketoshi.svg',
-        width: 400,
-        height: 300,
-        alt: 'Illustration by Bitko Yinowsky'
-      },
-    ]
-  }}
-  twitter={{
-    site: import.meta.env.VITE_TWITTER_USER,
-    handle: import.meta.env.VITE_TWITTER_USER,
-    cardType: "summary_large_image",
-    // imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
-}}
-/>
-
 {#if isCampaignStall}
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
@@ -197,7 +176,6 @@
         </div>
 
         <div class="grid place-items-center">
-          <!-- OG TAGS HERE -->
           <img src={Faketoshi} alt="hero-image">
         </div>
         </div>
