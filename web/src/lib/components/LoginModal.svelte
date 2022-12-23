@@ -3,10 +3,7 @@
 <script lang="ts">
     export let content;
 
-    export let id = 'modal';
-
-    export let hasHide: boolean = false;
-    export let onHide: (saved: boolean) => void = (_) => { };
+    export let id = 'login-modal';
 
     export function show() {
         let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
@@ -15,26 +12,22 @@
         }
     }
 
-    export function hide(saved: boolean = false) {
+    export function hide() {
         let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
         if (toggle) {
             toggle.checked = false;
         }
-
-        onHide(saved);
     }
 
-    function onSave() {
-        hide(true);
-    }
+    export let onLogin: () => void = () => {};
 </script>
 
 <input type="checkbox" id="{id}-toggle" for="modal-box" class="modal-toggle" />
 <div class="modal">
     <div class="modal-box relative flex justify-center items-center w-10/12 max-w-1xl">
-        <label for="modal-box" class:hidden={!hasHide} class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
+        <label for="modal-box" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
         <div class="w-full">
-            <svelte:component this={content} onSave={onSave} />
+            <svelte:component this={content} {onLogin} />
         </div>
     </div>
 </div>

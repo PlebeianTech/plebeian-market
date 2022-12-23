@@ -3,13 +3,13 @@
     import { MetaTags } from 'svelte-meta-tags';
     import { goto } from "$app/navigation";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
-    import Avatar, { AvatarSize } from "$lib/components/Avatar.svelte";
     import BadgeSVG from "$lib/components/BadgeSVG.svelte";
     import ItemCard from "$lib/components/ItemCard.svelte";
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import Login from "$lib/components/Login.svelte";
+    import LoginModal from "$lib/components/LoginModal.svelte";
     import { publish } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
@@ -20,7 +20,7 @@
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
     // import { getBaseUrl } from '$lib/utils';
     // import CampaignStats from './CampaignStats.svelte';
-   
+
     export let baseUrl: string;
 
     export let bannerUrl: string | null;
@@ -42,6 +42,9 @@
     export let showActiveListings: boolean = true;
     export let showPastListings: boolean = true;
 
+    let loginModal : LoginModal | null;
+    let loginModalVisible = false;
+
     let availableFilters = ['active', 'past'];
     let auctionFilter = 'active';
     let listingFilter = 'active';
@@ -54,6 +57,24 @@
 
     $: twitterUsername = owner ? owner.twitterUsername : null;
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
+
+    function onLogin() {
+        loginModalVisible = false;
+        if (loginModal) {
+            loginModal.hide();
+            if (isCampaignStall) {
+                localStorage.setItem('initial-login-campaign', "1");
+            }
+        }
+    }
+
+    function showLoginModal() {
+        if (loginModal && !loginModalVisible) {
+            loginModalVisible = true;
+            loginModal.content = Login;
+            loginModal.show();
+        }
+    }
 
     function onAuctionCreated(key: string, entity: IEntity) {
         user.update((u) => {
@@ -108,19 +129,11 @@
         }
     }
 
-    let onLogin: ((_: User | null) => void) | null = null;
-
     function newItem(setCurrent: (IEntity) => void, getNewItem: () => IEntity) {
         if ($user && $user.nym) {
             setCurrent(getNewItem());
         } else {
-            onLogin = (_: User | null) => {
-                onLogin = null;
-                setCurrent(getNewItem());
-                if (isCampaignStall) {
-                    localStorage.setItem('initial-login-campaign', "1");
-                }
-            };
+            showLoginModal();
         }
     }
 
@@ -302,9 +315,6 @@
 
 <div id="anchorIdAuctionTime" class="md:flex lg:w-2/3 mx-auto my-12">
     <div class="md:grow">
-        {#if onLogin !== null}
-            <Login {onLogin} />
-        {/if}
         {#if canAddItems || showActiveAuctions || showPastAuctions}
             <h3 id="anchorId" class="lg:text-8xl text-4xl font-black text-center my-8 pt-16">Auctions</h3>
             {#if canAddItems}
@@ -413,3 +423,4 @@
     </div>
 </div>
 
+<LoginModal bind:this={loginModal} {onLogin} content={null} />
