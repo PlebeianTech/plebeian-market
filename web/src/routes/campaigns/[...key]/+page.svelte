@@ -56,7 +56,7 @@
             description: data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities",
             images: [
               {
-                url: "https://plebeian.market/_app/immutable/assets/Bitko-Illustration-Faketoshi-d8d4896c.svg",
+                url: "https://plebeian.market/_app/immutable/assets/Bitko-Illustration-Faketoshi-18b1cac4.png",
                 alt: "Art by Bitko Yinowsky"
               }
             ],
@@ -65,7 +65,6 @@
             site: import.meta.env.VITE_TWITTER_USER,
             handle: import.meta.env.VITE_TWITTER_USER,
             cardType: "summary_large_image",
-            image: 'https://plebeian.market/_app/immutable/assets/Bitko-Illustration-Faketoshi-d8d4896c.svg',
             imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
         }}
 />
@@ -109,7 +108,7 @@
         showItemsCampaign={false}
         canAddItems={true}>
         <div slot="extra-description" class="">
-         
+
                 <div class="p-10 rounded mt-4 text-center">
                     Note: 100% of the money from the sales in this campaign will go to addresses generated from the following XPUB provided by Defending BTC team.
                     <div class="text-center">
@@ -118,7 +117,7 @@
                         <p class="mt-8 text-4xl font-bold">Don't trust, verify!</p>
                     </div>
                 </div>
-            
+
         </div>
     </StallView>
 {/if}
