@@ -17,7 +17,6 @@
 
     let campaign: Campaign;
 
-    let showXpub = false;
     let xpubCopied = false;
     function copyXpub() {
         navigator.clipboard.writeText(campaign.xpub!);
