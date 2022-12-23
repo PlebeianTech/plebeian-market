@@ -53,7 +53,7 @@
 {/if}
 
 <div class="w-full flex items-center justify-center mt-8">
-    <div class="form-control w-full max-w-lg">
+    <div class="form-control w-full">
         <label class="label" for="stallName">
             <span class="label-text">Title</span>
         </label>
@@ -71,7 +71,7 @@
 </div>
 
 <div class="w-full flex items-center justify-center mt-8">
-    <div class="form-control w-full max-w-lg">
+    <div class="form-control w-full">
         <label class="label" for="nym">
             <span class="label-text">Nym</span>
         </label>
