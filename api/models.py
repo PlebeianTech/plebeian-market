@@ -8,7 +8,6 @@ from enum import Enum
 from io import BytesIO
 from itertools import chain
 import math
-from pycoin.symbols.btc import network as BTC
 import pyqrcode
 import random
 from slugify import slugify
@@ -18,18 +17,31 @@ import string
 
 from extensions import db
 from main import app
-from utils import hash_create, store_image
+from utils import hash_create, store_image, parse_xpub, UnknownKeyTypeError
 
 class ValidationError(Exception):
     def __init__(self, message):
         super().__init__()
         self.message = message
 
+class AddressGenerationError(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+
+    def __str__(self):
+        return f"Error generating address: {self.message}"
+
 class XpubMixin:
     def get_new_address(self):
         from main import get_btc_client
         btc = get_btc_client()
-        k = BTC.parse(self.xpub)
+
+        try:
+            k = parse_xpub(self.xpub)
+        except UnknownKeyTypeError as e:
+            raise AddressGenerationError(str(e))
+
         address = None
         while True:
             if self.xpub_index is None:
@@ -631,8 +643,9 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = d[k]
         if for_method == 'POST' and 'xpub' in d: # xpub can only be set once, on POST
-            k = BTC.parse(d['xpub'])
-            if not k:
+            try:
+                k = parse_xpub(d['xpub'])
+            except UnknownKeyTypeError as e:
                 raise ValidationError("Invalid XPUB.")
             try:
                 first_address = k.subkey(0).subkey(0).address()

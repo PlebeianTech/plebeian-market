@@ -10,7 +10,6 @@ from ecdsa.keys import BadSignatureError
 from flask import Blueprint, jsonify, request
 import jwt
 import lnurl
-from pycoin.symbols.btc import network as BTC
 import pyqrcode
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
@@ -21,7 +20,7 @@ import models as m
 from main import app, get_lnd_client, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
-from utils import usd2sats
+from utils import usd2sats, parse_xpub, UnknownKeyTypeError
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -196,8 +195,9 @@ def put_me(user):
         user.contribution_percent = request.json['contribution_percent']
 
     if 'xpub' in request.json:
-        k = BTC.parse(request.json['xpub'])
-        if not k:
+        try:
+            k = parse_xpub(request.json['xpub'])
+        except UnknownKeyTypeError as e:
             return jsonify({'message': "Invalid XPUB."}), 400
         try:
             first_address = k.subkey(0).subkey(0).address()
@@ -712,8 +712,10 @@ def buy_badge(user, badge):
     try:
         address = campaign.get_new_address()
         db.session.commit()
-    except MempoolSpaceError:
-        return jsonify({'message': "Error reading from mempool API!"}), 500
+    except AddressGenerationError as e:
+        return jsonify({'message': str(e)}), 500
+    except MempoolSpaceError as e:
+        return jsonify({'message': str(e)}), 500
 
     amount_usd = app.config['BADGES'][badge]['price_usd']
     amount_sats = usd2sats(amount_usd, btc2usd)
@@ -768,8 +770,10 @@ def buy_listing(user, key):
             address = listing.campaign.get_new_address()
         else:
             address = listing.item.seller.get_new_address()
-    except MempoolSpaceError:
-        return jsonify({'message': "Error reading from mempool API!"}), 500
+    except AddressGenerationError as e:
+        return jsonify({'message': str(e)}), 500
+    except MempoolSpaceError as e:
+        return jsonify({'message': str(e)}), 500
 
     price_sats = usd2sats(listing.price_usd, btc2usd)
     contribution_amount = listing.item.seller.get_contribution_amount(price_sats * quantity)
