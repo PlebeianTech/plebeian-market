@@ -72,7 +72,7 @@
 
 {#if data.campaignKey === "" || data.campaignKey === null}
     {#if $user && $user.isModerator}
-    <div class="grid place-items-center py-20">
+    <div class="grid place-items-center py-20 lg:w-2/3 mx-auto p-2">
 
       <h3 class="lg:text-8xl text-5xl font-bold">My campaigns</h3>
       <ListView
