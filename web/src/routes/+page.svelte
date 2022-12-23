@@ -10,6 +10,8 @@
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import Typewriter from "$lib/components/Typewriter.svelte";
+    import { page } from "$app/stores";
+    import { MetaTags } from "svelte-meta-tags";
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
@@ -20,7 +22,6 @@
         } else {
             window.location.href = `${window.location.protocol}//${window.location.host}/login`;
         }
-        
     }
 
     onMount(async () => {
@@ -31,13 +32,37 @@
     });
 </script>
 
+<MetaTags
+        title="Plebeian Market"
+        description="Plebeian Market is a distributed self sovereign P2P market place."
+        openGraph={{
+            site_name: "Plebeian Market",
+            type: "website",
+            url: $page.url.href,
+            title: "Plebeian Market",
+            description: "Plebeian Market is a distributed self sovereign P2P market place.",
+            images: [
+              {
+                url: "/images/Plebeian_Logo_OpenGraph.png",
+                alt: "Plebeian Market logo"
+              }
+            ],
+        }}
+        twitter={{
+            site: import.meta.env.VITE_TWITTER_USER,
+            handle: import.meta.env.VITE_TWITTER_USER,
+            cardType: "summary_large_image",
+            imageAlt: "Plebeian Market logo",
+        }}
+/>
+
 <div id="bgHero" class="bg-fixed">
   <div class="bg-black/80">
     <div class="grid place-items-center lg:w-2/3 mx-auto h-screen">
       <div class="grid mt-20">
         <!-- COL -->
         <div class="bg-zinc-800/40 rounded-xl shadow-xl backdrop-blur-md p-4 border border-gray-700/40">
-  
+
           <div class="flex flex-col items-start">
             <Typewriter />
           </div>
@@ -46,7 +71,7 @@
             Let's go
            </div>
         </div>
-  
+
         <!-- COL -->
       </div>
     </div>
