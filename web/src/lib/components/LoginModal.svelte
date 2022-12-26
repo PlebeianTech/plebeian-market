@@ -27,7 +27,7 @@
 
 <input type="checkbox" id="{id}-toggle" for="modal-box" class="modal-toggle" />
 <div class="modal">
-    <div class="modal-box relative flex justify-center items-center w-10/12 max-w-1xl">
+    <div class="modal-box relative flex justify-center items-center w-10/12 max-w-2xl">
         <label for="modal-box" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
         <div class="w-full">
             <svelte:component this={content} {onLogin} />
