@@ -111,7 +111,7 @@
         <!-- Text Editor Buttons -->
         <div class="flex m-auto mb-4">
             <div class="btn rounded-full mx-1 lg:mb-0 mb-1 btn-secondary" on:click={addHeader2}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-type-h2" viewBox="0 0 16 16">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-type-h2" viewBox="0 0 8 16">
                     <path d="M7.638 13V3.669H6.38V7.62H1.759V3.67H.5V13h1.258V8.728h4.62V13h1.259zm3.022-6.733v-.048c0-.889.63-1.668" />
                 </svg>
             </div>

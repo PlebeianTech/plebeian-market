@@ -10,14 +10,13 @@
     import { token, user } from "$lib/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { page } from "$app/stores";
-  import { getBaseUrl } from '$lib/utils';
+    import FaketoshiPNG from "$lib/images/Bitko-Illustration-Faketoshi.png?url"
 
     /** @type {import('./$types').PageData} */
     export let data;
 
     let campaign: Campaign;
 
-    let showXpub = false;
     let xpubCopied = false;
     function copyXpub() {
         navigator.clipboard.writeText(campaign.xpub!);
@@ -56,7 +55,7 @@
             description: data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities",
             images: [
               {
-                url: "https://staging.plebeian.market/_app/immutable/assets/Bitko-Illustration-Faketoshi-18b1cac4.png",
+                url: FaketoshiPNG,
                 alt: "Art by Bitko Yinowsky"
               }
             ],
@@ -72,7 +71,7 @@
 
 {#if data.campaignKey === "" || data.campaignKey === null}
     {#if $user && $user.isModerator}
-    <div class="grid place-items-center py-20">
+    <div class="grid place-items-center py-20 lg:w-2/3 mx-auto p-2">
 
       <h3 class="lg:text-8xl text-5xl font-bold">My campaigns</h3>
       <ListView
