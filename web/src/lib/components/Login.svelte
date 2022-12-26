@@ -61,7 +61,8 @@
                     </div>
                 </div>
             {/if}
-            <p class="mb-4 text-center">Scan with <a class="link" href="https://breez.technology/" target="_blank">Breez</a> or
+            <h1 class="text-2xl mb-4 text-center"><b>Login to Plebeian Market</b></h1>
+            <p class="mb-0 text-center">Scan with <a class="link" href="https://breez.technology/" target="_blank">Breez</a> or
                 <a class="link" href="https://zeusln.app/" target="_blank" rel="noreferrer">Zeus,</a> or use
                 <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a>,
             </p>
