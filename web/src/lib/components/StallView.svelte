@@ -1,6 +1,5 @@
 <script lang="ts">
     import SvelteMarkdown from 'svelte-markdown';
-    import { MetaTags } from 'svelte-meta-tags';
     import { goto } from "$app/navigation";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import BadgeSVG from "$lib/components/BadgeSVG.svelte";
@@ -18,7 +17,6 @@
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
-    // import { getBaseUrl } from '$lib/utils';
     // import CampaignStats from './CampaignStats.svelte';
 
     export let baseUrl: string;
@@ -144,25 +142,6 @@
     }
 </script>
 
-<MetaTags
-  openGraph={{
-    images: [
-      {
-        url: '$lib/images/Bitko-Illustration-Faketoshi.svg',
-        width: 400,
-        height: 300,
-        alt: 'Illustration by Bitko Yinowsky'
-      },
-    ]
-  }}
-  twitter={{
-    site: import.meta.env.VITE_TWITTER_USER,
-    handle: import.meta.env.VITE_TWITTER_USER,
-    cardType: "summary_large_image",
-    // imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
-}}
-/>
-
 {#if isCampaignStall}
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
@@ -208,7 +187,6 @@
         </div>
 
         <div class="grid place-items-center">
-          <!-- OG TAGS HERE -->
           <img src={Faketoshi} alt="hero-image">
         </div>
         </div>
@@ -285,9 +263,8 @@
                       {/if}
                   </div>
               </div>
-                
-              
             </div>
+
             <!-- COL -->
             <div id="bgXPUB" class="grid place-items-center border-l border-gray-700/40 p-4">
               {#if isCampaignStall}
@@ -306,8 +283,7 @@
               {/if}
             </div>
         </div>
-    </div>    
-   
+    </div>
 </div>
 
 
@@ -338,14 +314,14 @@
                             </div>
                         {/if}
                         <div id="anchorIdAuctionItem" class="grid place-items-center mx-auto my-10 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}>
-                          
+
                           <div class="w-20 my-8">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
                             </svg>
-                                                      
+
                           </div>
-                          
+
                           <p class="btn btn-secondary font-bold text-center">Sell Item</p>
                         </div>
                     </div>
@@ -391,7 +367,6 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
                             </svg>
-                                                      
                           </div>
                           <p class="btn btn-secondary font-bold text-center">Sell Item</p>
                         </div>
