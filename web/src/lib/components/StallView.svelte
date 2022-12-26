@@ -43,7 +43,6 @@
     export let showPastListings: boolean = true;
 
     let loginModal : LoginModal | null;
-    let loginModalVisible = false;
 
     let availableFilters = ['active', 'past'];
     let auctionFilter = 'active';
@@ -59,7 +58,6 @@
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
 
     function onLogin() {
-        loginModalVisible = false;
         if (loginModal) {
             loginModal.hide();
             if (isCampaignStall) {
@@ -68,9 +66,9 @@
         }
     }
 
-    function showLoginModal() {
-        if (loginModal && !loginModalVisible) {
-            loginModalVisible = true;
+    function showLoginModal(onLoginFunction) {
+        if (loginModal && !loginModal.loginModalVisible) {
+            loginModal.loginModalVisible = true;
             loginModal.content = Login;
             loginModal.show();
         }
@@ -186,7 +184,7 @@
               <a href="#anchorIdFixedPrice" on:click|preventDefault={scrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
             </div>
           </div>
-    
+
           <!-- AVATARS -->
           <!--
           <div class="flex space-x-4">

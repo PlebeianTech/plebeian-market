@@ -5,6 +5,8 @@
 
     export let id = 'login-modal';
 
+    export let loginModalVisible = false;
+
     export function show() {
         let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
         if (toggle) {
@@ -17,6 +19,7 @@
         if (toggle) {
             toggle.checked = false;
         }
+        loginModalVisible = false;
     }
 
     export let onLogin: () => void = () => {};
