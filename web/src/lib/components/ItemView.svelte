@@ -19,6 +19,7 @@
     import Login from "$lib/components/Login.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
+    import { getBaseUrl } from "$lib/utils";
 
     export let loader: ILoader;
     export let itemKey = null;
@@ -32,6 +33,8 @@
     let bidCount = 0;
     let amount: number | null = null;
     let firstUpdate = true;
+
+    let tweetURL = null;
 
     function refreshItem() {
         getItem(loader, $token, itemKey,
@@ -78,6 +81,8 @@
                 if (last_sale) {
                     sale = last_sale;
                 }
+
+                tweetURL = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(getBaseUrl() + 'auctions/' + item?.key) + '&text=' + item?.title;
             },
             new ErrorHandler(false));
     }
@@ -196,14 +201,14 @@
                         <!-- <span class="flex text-1xl text-center mr-2 mb-4 mt-2 py-1.5 rounded-t">
                             <h3 class="mx-1">Auction Details</h3>
                         </span> -->
-                       
+
                         <div class="markdown-container mt-12">
                             <SvelteMarkdown source={item.description} />
                         </div>
                         {#if item.category !== Category.Time}
                             <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
                         {/if}
-                    
+
                         {#if item.shipping_from}
                             <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
                         {/if}
@@ -225,9 +230,9 @@
                                     Keep calm, prepare your wallet and wait for the seller to start this auction.
                                 {/if}
                             {/if}
-                        </p>      
+                        </p>
                     </div>
-  
+
                       <div class="grid">
                           {#if item.campaign_name !== null}
                               <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
@@ -235,11 +240,11 @@
                           <div class="grid place-content-start">
                             <Avatar account={item.seller} />
                           </div>
-  
+
                           {#if item instanceof Auction}
                               <div class="form-control flex place-items-start">
                                   <label class="label cursor-pointer text-left">
-                                      <span class="label-text mr-4">Follow auction</span> 
+                                      <span class="label-text mr-4">Follow auction</span>
                                       <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
                                   </label>
                               </div>
@@ -336,7 +341,19 @@
                                 {#if item.started}
                                     <p class="text-4xl text-center pt-24">
                                         {#if item instanceof Auction}
-                                            Your auction is live! <br /> 
+                                            Your auction is live! <br />
+
+                                            <div class="text-xl text-center my-2 mt-10 mb-10">
+                                                Now let your audience know!
+                                                &nbsp;
+                                                <a class="btn align-middle bg-blue-500 hover:bg-indigo-500" target="_blank" rel="noreferrer" href="{tweetURL}">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" class="fill-current">
+                                                        <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"></path>
+                                                    </svg>
+                                                    &nbsp;
+                                                    Tweet
+                                                </a>
+                                            </div>
                                         {:else if item instanceof Listing}
                                             Your listing is live! <br />
                                             <br />
