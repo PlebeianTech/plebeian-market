@@ -29,7 +29,7 @@
 <div class="modal">
     <div class="modal-box relative flex justify-center items-center w-10/12 max-w-2xl">
         <label for="modal-box" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
-        <div class="w-full">
+        <div class="w-full" style="margin-top: -40px">
             <svelte:component this={content} {onLogin} />
         </div>
     </div>
