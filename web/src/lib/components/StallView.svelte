@@ -68,6 +68,7 @@
         if (loginModal && !loginModal.loginModalVisible) {
             loginModal.loginModalVisible = true;
             loginModal.content = Login;
+            loginModal.onLogin = onLoginFunction;
             loginModal.show();
         }
     }
@@ -125,20 +126,36 @@
         }
     }
 
-    function newItem(setCurrent: (IEntity) => void, getNewItem: () => IEntity) {
+    function loginAndNewItem(setCurrent: (IEntity) => void, getNewItem: () => IEntity) {
         if ($user && $user.nym) {
             setCurrent(getNewItem());
         } else {
-            showLoginModal();
+            showLoginModal(function () {
+                setCurrent(getNewItem());
+
+                onLogin();
+            });
         }
     }
 
-    function scrollIntoView({ target }) {
-      const el = document.querySelector(target.getAttribute('href'))
-      if (!el) return;
-      el.scrollIntoView({
-        behavior: 'smooth'
-      })
+    function loginAndScrollIntoView({ target }) {
+        if ($user && $user.nym) {
+            scrollIntoView(target);
+        } else {
+            showLoginModal(function () {
+                scrollIntoView(target);
+
+                onLogin();
+            });
+        }
+    }
+
+    function scrollIntoView(target) {
+        const el = document.querySelector(target.getAttribute('href'))
+        if (!el) return;
+        el.scrollIntoView({
+            behavior: 'smooth'
+        })
     }
 </script>
 
@@ -155,12 +172,12 @@
           <!-- <img src={BannerImg} alt=""> -->
           <h1 class="lg:text-7xl text-4xl font-bold text-white">{title}</h1>
           <!-- <h1 class="lg:text-2xl font-bold mt-4">Get started</h1> -->
-          <a href="#anchorId" on:click|preventDefault={scrollIntoView} class="btn btn-primary uppercase font-bold my-8">Auction 1-hour of your time</a>
+          <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-primary uppercase font-bold my-8">Auction 1-hour of your time</a>
           <div class="mb-8">
             <!-- <p class="text-3xl">OR</p> -->
             <div class="space-x-1">
-              <a href="#anchorId" on:click|preventDefault={scrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Auction Item</a>
-              <a href="#anchorIdFixedPrice" on:click|preventDefault={scrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
+              <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Auction Item</a>
+              <a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
             </div>
           </div>
 
@@ -304,7 +321,7 @@
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="lg:flex justify-center" let:setCurrent={setCurrent}>
                         {#if isCampaignStall}
-                            <div id="auction-hour-1" class="grid place-items-center mx-auto my-10 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new TimeAuction())}>
+                            <div id="auction-hour-1" class="grid place-items-center mx-auto my-10 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new TimeAuction())}>
                               <div class="w-20 my-8">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" className="w-6 h-6">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -313,7 +330,7 @@
                               <p class="btn btn-primary font-bold text-center">1 Hour of time</p>
                             </div>
                         {/if}
-                        <div id="anchorIdAuctionItem" class="grid place-items-center mx-auto my-10 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new Auction())}>
+                        <div id="anchorIdAuctionItem" class="grid place-items-center mx-auto my-10 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Auction())}>
 
                           <div class="w-20 my-8">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
@@ -362,7 +379,7 @@
                     card={ItemCard}
                     style={ListViewStyle.List}>
                     <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
-                        <div class="mx-auto my-10 grid place-items-center w-full lg:w-1/3 p-4" on:click|preventDefault={() => newItem(setCurrent, () => new Listing())}>
+                        <div class="mx-auto my-10 grid place-items-center w-full lg:w-1/3 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Listing())}>
                           <div class="w-20 my-8">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
