@@ -19,6 +19,8 @@
     import Login from "$lib/components/Login.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
+    import { getBaseUrl } from "$lib/utils";
+    import TweetButton from "$lib/components/TweetButton.svelte";
 
     export let loader: ILoader;
     export let itemKey = null;
@@ -32,6 +34,8 @@
     let bidCount = 0;
     let amount: number | null = null;
     let firstUpdate = true;
+
+    let tweetURL = null;
 
     function refreshItem() {
         getItem(loader, $token, itemKey,
@@ -78,6 +82,8 @@
                 if (last_sale) {
                     sale = last_sale;
                 }
+
+                tweetURL = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(getBaseUrl() + 'auctions/' + item?.key) + '&text=' + item?.title;
             },
             new ErrorHandler(false));
     }
@@ -196,14 +202,14 @@
                         <!-- <span class="flex text-1xl text-center mr-2 mb-4 mt-2 py-1.5 rounded-t">
                             <h3 class="mx-1">Auction Details</h3>
                         </span> -->
-                       
+
                         <div class="markdown-container mt-12">
                             <SvelteMarkdown source={item.description} />
                         </div>
                         {#if item.category !== Category.Time}
                             <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
                         {/if}
-                    
+
                         {#if item.shipping_from}
                             <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
                         {/if}
@@ -225,9 +231,9 @@
                                     Keep calm, prepare your wallet and wait for the seller to start this auction.
                                 {/if}
                             {/if}
-                        </p>      
+                        </p>
                     </div>
-  
+
                       <div class="grid">
                           {#if item.campaign_name !== null}
                               <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
@@ -235,11 +241,11 @@
                           <div class="grid place-content-start">
                             <Avatar account={item.seller} />
                           </div>
-  
+
                           {#if item instanceof Auction}
                               <div class="form-control flex place-items-start">
                                   <label class="label cursor-pointer text-left">
-                                      <span class="label-text mr-4">Follow auction</span> 
+                                      <span class="label-text mr-4">Follow auction</span>
                                       <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
                                   </label>
                               </div>
@@ -336,7 +342,13 @@
                                 {#if item.started}
                                     <p class="text-4xl text-center pt-24">
                                         {#if item instanceof Auction}
-                                            Your auction is live! <br /> 
+                                            Your auction is live! <br />
+
+                                            <div class="text-xl text-center my-2 mt-10 mb-10">
+                                                Now let your audience know!
+                                                &nbsp;
+                                                <TweetButton tweetURL={tweetURL} />
+                                            </div>
                                         {:else if item instanceof Listing}
                                             Your listing is live! <br />
                                             <br />
