@@ -42,7 +42,9 @@
             <span>
                 We use your XPUB to generate addresses for your payments.
                 We strongly suggest you use a separate wallet for Plebeian Market only!
+                <br>
                 RECOMMENDED WALLETS: Blue, Wasabi, Electrum, Sparrow, Samourai
+                <br>
                 DO NOT USE: Muun, Breez or Phoenix (<a class="link" href="/faq" target="_blank" rel="noreferrer">why?</a>)
             </span>
         </div>
