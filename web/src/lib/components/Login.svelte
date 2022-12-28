@@ -13,16 +13,25 @@
     let qr;
     let k1;
 
+    let checkLoginTimeout = null;
+
+    export function stopCheckingLogin() {
+        clearTimeout(checkLoginTimeout);
+    }
+    export function startCheckingLogin() {
+        doLogin();
+    }
+
     function doLogin() {
         getLogin(k1,
             (response) => {
                 k1 = response.k1;
                 lnurl = response.lnurl;
                 qr = response.qr;
-                setTimeout(doLogin, 1000);
+                checkLoginTimeout = setTimeout(doLogin, 1000);
             },
             () => {
-                setTimeout(doLogin, 1000);
+                checkLoginTimeout = setTimeout(doLogin, 1000);
             },
             (response) => {
                 token.set(response.token);
@@ -34,8 +43,6 @@
     onMount(async () => {
         if ($token) {
             onLogin(null);
-        } else {
-            doLogin();
         }
     });
 </script>
