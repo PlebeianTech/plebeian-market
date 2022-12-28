@@ -23,19 +23,15 @@
         k1 = null;  // k1 cannot be used again if logout is done
     }
     export function startCheckingLogin() {
-        doLogin();
-    }
-
-    function doLogin() {
         getLogin(k1,
             (response) => {
                 k1 = response.k1;
                 lnurl = response.lnurl;
                 qr = response.qr;
-                checkLoginTimeout = setTimeout(doLogin, 1000);
+                checkLoginTimeout = setTimeout(startCheckingLogin, 1000);
             },
             () => {
-                checkLoginTimeout = setTimeout(doLogin, 1000);
+                checkLoginTimeout = setTimeout(startCheckingLogin, 1000);
             },
             (response) => {
                 token.set(response.token);
