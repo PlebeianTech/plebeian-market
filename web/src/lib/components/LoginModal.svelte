@@ -15,7 +15,9 @@
         if (!loginModalVisible) {
             loginModalVisible = true;
 
-            onLogin = onLoginFunction;
+            if (typeof onLoginFunction === 'function') {
+                onLogin = onLoginFunction;
+            }
 
             login.startCheckingLogin();
 
