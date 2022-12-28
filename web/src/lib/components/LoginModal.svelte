@@ -4,8 +4,7 @@
     import Login from "$lib/components/Login.svelte";
 
     let login : Login | null;
-
-    export let id = 'login-modal';
+    let isModalOpen = false
 
     export function show(onLoginFunction) {
         if (typeof onLoginFunction === 'function') {
@@ -14,26 +13,19 @@
 
         login.startCheckingLogin();
 
-        let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
-        if (toggle) {
-            toggle.checked = true;
-        }
+        isModalOpen = true;
     }
 
     export function hide() {
         login.stopCheckingLogin();
 
-        let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
-        if (toggle) {
-            toggle.checked = false;
-        }
+        isModalOpen = false;
     }
 
     export let onLogin: () => void = () => {};
 </script>
 
-<input type="checkbox" id="{id}-toggle" for="modal-box" class="modal-toggle" />
-<div class="modal">
+<div class="modal" class:modal-open={isModalOpen}>
     <div class="modal-box relative flex justify-center items-center w-10/12 max-w-2xl">
         <label for="modal-box" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
         <div class="w-full" style="margin-top: -40px">
