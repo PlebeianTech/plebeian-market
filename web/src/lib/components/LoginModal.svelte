@@ -12,6 +12,7 @@
     export let loginModalVisible = false;
 
     export function show() {
+        login.startCheckingLogin();
         let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
         if (toggle) {
             toggle.checked = true;
@@ -19,6 +20,7 @@
     }
 
     export function hide() {
+        login.stopCheckingLogin();
         let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
         if (toggle) {
             toggle.checked = false;
