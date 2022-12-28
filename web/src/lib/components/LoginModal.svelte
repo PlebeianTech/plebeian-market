@@ -9,29 +9,21 @@
 
     export let id = 'login-modal';
 
-    export let loginModalVisible = false;
-
     export function show(onLoginFunction) {
-        if (!loginModalVisible) {
-            loginModalVisible = true;
+        if (typeof onLoginFunction === 'function') {
+            onLogin = onLoginFunction;
+        }
 
-            if (typeof onLoginFunction === 'function') {
-                onLogin = onLoginFunction;
-            }
+        login.startCheckingLogin();
 
-            login.startCheckingLogin();
-
-            let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
-            if (toggle) {
-                toggle.checked = true;
-            }
+        let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
+        if (toggle) {
+            toggle.checked = true;
         }
     }
 
     export function hide() {
         login.stopCheckingLogin();
-
-        loginModalVisible = false;
 
         let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
         if (toggle) {
