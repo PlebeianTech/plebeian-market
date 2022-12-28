@@ -5,8 +5,6 @@
 
     let login : Login | null;
 
-    export let content;
-
     export let id = 'login-modal';
 
     export function show(onLoginFunction) {

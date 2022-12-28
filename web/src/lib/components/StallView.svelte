@@ -397,4 +397,4 @@
     </div>
 </div>
 
-<LoginModal bind:this={loginModal} {onLogin} content={null} />
+<LoginModal bind:this={loginModal} {onLogin} />

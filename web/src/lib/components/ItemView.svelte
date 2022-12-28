@@ -414,5 +414,5 @@
         </div>
     </div>
 
-    <LoginModal bind:this={loginModal} content={null} />
+    <LoginModal bind:this={loginModal} />
 {/if}
