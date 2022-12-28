@@ -7,7 +7,6 @@
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
-    import Login from "$lib/components/Login.svelte";
     import LoginModal from "$lib/components/LoginModal.svelte";
     import { publish } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
@@ -67,7 +66,6 @@
     function showLoginModal(onLoginFunction) {
         if (loginModal && !loginModal.loginModalVisible) {
             loginModal.loginModalVisible = true;
-            loginModal.content = Login;
             loginModal.onLogin = onLoginFunction;
             loginModal.show();
         }
