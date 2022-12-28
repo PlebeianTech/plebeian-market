@@ -12,15 +12,32 @@
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
+    import LoginModal from "$lib/components/LoginModal.svelte";
+
+    let loginModal : LoginModal | null;
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
 
     function go() {
         if ($user && $user.nym) {
-            window.location.href = `${window.location.protocol}//${window.location.host}/stall/${$user.nym}`;
+            goToStall()
         } else {
-            window.location.href = `${window.location.protocol}//${window.location.host}/login`;
+            if (loginModal) {
+                loginModal.show(async function () {
+                    while ($user === null) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+
+                    goToStall()
+                });
+            }
+        }
+    }
+
+    function goToStall() {
+        if ($user && $user.nym) {
+            window.location.href = `${window.location.protocol}//${window.location.host}/stall/${$user.nym}`;
         }
     }
 
@@ -96,6 +113,7 @@
     {/if}
 </div>
 
+<LoginModal bind:this={loginModal} content={null} />
 
 <style>
 

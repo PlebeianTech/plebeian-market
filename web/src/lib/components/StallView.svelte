@@ -7,7 +7,6 @@
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
-    import Login from "$lib/components/Login.svelte";
     import LoginModal from "$lib/components/LoginModal.svelte";
     import { publish } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
@@ -57,19 +56,9 @@
 
     function onLogin() {
         if (loginModal) {
-            loginModal.hide();
             if (isCampaignStall) {
                 localStorage.setItem('initial-login-campaign', "1");
             }
-        }
-    }
-
-    function showLoginModal(onLoginFunction) {
-        if (loginModal && !loginModal.loginModalVisible) {
-            loginModal.loginModalVisible = true;
-            loginModal.content = Login;
-            loginModal.onLogin = onLoginFunction;
-            loginModal.show();
         }
     }
 
@@ -123,11 +112,13 @@
         if ($user && $user.nym) {
             setCurrent(getNewItem());
         } else {
-            showLoginModal(function () {
-                setCurrent(getNewItem());
+            if (loginModal) {
+                loginModal.show(function () {
+                    setCurrent(getNewItem());
 
-                onLogin();
-            });
+                    onLogin();
+                });
+            }
         }
     }
 
@@ -135,11 +126,13 @@
         if ($user && $user.nym) {
             scrollIntoView(target);
         } else {
-            showLoginModal(function () {
-                scrollIntoView(target);
+            if (loginModal) {
+                loginModal.show(function () {
+                    scrollIntoView(target);
 
-                onLogin();
-            });
+                    onLogin();
+                });
+            }
         }
     }
 

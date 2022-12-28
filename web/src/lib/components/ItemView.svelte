@@ -16,11 +16,13 @@
     import BuyButton from "$lib/components/BuyButton.svelte";
     import Countdown from "$lib/components/Countdown.svelte";
     import Gallery from "$lib/components/Gallery.svelte";
-    import Login from "$lib/components/Login.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
     import { getBaseUrl } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
+    import LoginModal from "$lib/components/LoginModal.svelte";
+
+    let loginModal : LoginModal | null;
 
     export let loader: ILoader;
     export let itemKey = null;
@@ -91,6 +93,12 @@
     function onLogin(user: User | null) {
         if (user && user.nym === null) {
             localStorage.setItem('initial-login-buyer', "1");
+        }
+    }
+
+    function showLoginModal() {
+        if (loginModal) {
+            loginModal.show();
         }
     }
 
@@ -359,11 +367,14 @@
                             {/if}
                         {:else}
                             {#if item instanceof Auction && !item.bids.length}
-                                <p class="text-center pt-24">Login below to place a bid!</p>
+                                <p class="text-center pt-24">Login to place a bid!</p>
                             {:else if item instanceof Listing}
-                                <p class="text-center pt-24">Login below to buy this item for <AmountFormatter usdAmount={item.price_usd} />!</p>
+                                <p class="text-center pt-24">Login to buy this item for <AmountFormatter usdAmount={item.price_usd} />!</p>
                             {/if}
-                            <Login {onLogin} />
+
+                            <div class="w-full my-8 grid place-items-center">
+                                <p class="btn btn-primary font-bold text-center" on:click={showLoginModal} on:keypress={showLoginModal}>Login</p>
+                            </div>
                         {/if}
                     {:else} <!-- item.ended -->
                         {#if item instanceof Listing}
@@ -402,4 +413,6 @@
             </div>
         </div>
     </div>
+
+    <LoginModal bind:this={loginModal} content={null} />
 {/if}

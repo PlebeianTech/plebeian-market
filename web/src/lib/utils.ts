@@ -28,10 +28,14 @@ export function getEnvironmentInfo() {
     return import.meta.env.MODE;
 }
 
-export function logout(gotoUrl = "/") {
+export function logout(gotoUrl) {
     token.set(null);
     if ( browser ) {
         localStorage.removeItem('token');
+    }
+
+    if (gotoUrl === false) {
+        return;
     }
 
     if (typeof gotoUrl !== 'string') {

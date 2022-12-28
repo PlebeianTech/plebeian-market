@@ -6,6 +6,9 @@
     import QR from "./QR.svelte";
     import { isDevelopment } from "../utils";
     import type { User } from "../types/user";
+    import { createEventDispatcher } from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     export let onLogin = (user: User | null) => {};
 
@@ -13,20 +16,31 @@
     let qr;
     let k1;
 
+    let checkLoginTimeout = null;
+
+    export function stopCheckingLogin() {
+        clearTimeout(checkLoginTimeout);
+        k1 = null;  // k1 cannot be used again if logout is done
+    }
+    export function startCheckingLogin() {
+        doLogin();
+    }
+
     function doLogin() {
         getLogin(k1,
             (response) => {
                 k1 = response.k1;
                 lnurl = response.lnurl;
                 qr = response.qr;
-                setTimeout(doLogin, 1000);
+                checkLoginTimeout = setTimeout(doLogin, 1000);
             },
             () => {
-                setTimeout(doLogin, 1000);
+                checkLoginTimeout = setTimeout(doLogin, 1000);
             },
             (response) => {
                 token.set(response.token);
                 localStorage.setItem('token', response.token);
+                dispatch('loginEvent', {})
                 onLogin(response.user);
             });
     }
@@ -34,8 +48,6 @@
     onMount(async () => {
         if ($token) {
             onLogin(null);
-        } else {
-            doLogin();
         }
     });
 </script>

@@ -91,7 +91,7 @@
                           }
                       } else {
                           // trying to hide the modal if you didn't set your Twitter username logges you out
-                          logout();
+                          logout(false);
                       }
                   });
           }
