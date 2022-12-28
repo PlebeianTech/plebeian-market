@@ -6,6 +6,9 @@
     import QR from "./QR.svelte";
     import { isDevelopment } from "../utils";
     import type { User } from "../types/user";
+    import { createEventDispatcher } from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     export let onLogin = (user: User | null) => {};
 
@@ -36,6 +39,7 @@
             (response) => {
                 token.set(response.token);
                 localStorage.setItem('token', response.token);
+                dispatch('loginEvent', {})
                 onLogin(response.user);
             });
     }
