@@ -20,6 +20,7 @@
 
     export function stopCheckingLogin() {
         clearTimeout(checkLoginTimeout);
+        k1 = null;  // k1 cannot be used again if logout is done
     }
     export function startCheckingLogin() {
         doLogin();
