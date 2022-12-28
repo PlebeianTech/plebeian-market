@@ -11,21 +11,30 @@
 
     export let loginModalVisible = false;
 
-    export function show() {
-        login.startCheckingLogin();
-        let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
-        if (toggle) {
-            toggle.checked = true;
+    export function show(onLoginFunction) {
+        if (!loginModalVisible) {
+            loginModalVisible = true;
+
+            onLogin = onLoginFunction;
+
+            login.startCheckingLogin();
+
+            let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
+            if (toggle) {
+                toggle.checked = true;
+            }
         }
     }
 
     export function hide() {
         login.stopCheckingLogin();
+
+        loginModalVisible = false;
+
         let toggle = <HTMLInputElement>document.getElementById(`${id}-toggle`);
         if (toggle) {
             toggle.checked = false;
         }
-        loginModalVisible = false;
     }
 
     export let onLogin: () => void = () => {};
