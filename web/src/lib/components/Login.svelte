@@ -38,6 +38,9 @@
                 localStorage.setItem('token', response.token);
                 dispatch('loginEvent', {})
                 onLogin(response.user);
+            },
+            () => {
+                dispatch('loginTokenExpiredEvent', {})
             });
     }
 
