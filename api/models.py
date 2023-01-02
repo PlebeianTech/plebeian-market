@@ -74,7 +74,7 @@ class State(db.Model):
 class LnAuth(db.Model):
     __tablename__ = 'lnauth'
 
-    EXPIRE_MINUTES = 10
+    EXPIRE_MINUTES = 120
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     k1 = db.Column(db.String(128), nullable=False, unique=True, index=True)

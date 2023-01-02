@@ -106,7 +106,7 @@ export interface GetLoginSuccessResponse {
     user: User;
 }
 
-export function getLogin(k1, initialResponseCB: (response: GetLoginInitialResponse) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void) {
+export function getLogin(k1, initialResponseCB: (response: GetLoginInitialResponse) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void, expiredCB: () => void) {
     fetchAPI("/login" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
         response => {
             if (response.status === 200) {
@@ -119,6 +119,12 @@ export function getLogin(k1, initialResponseCB: (response: GetLoginInitialRespon
                         } else {
                             waitResponseCB();
                         }
+                    }
+                );
+            } else if (response.status === 410) {
+                response.json().then(
+                    () => {
+                        expiredCB();
                     }
                 );
             }
