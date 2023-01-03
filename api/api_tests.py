@@ -89,7 +89,7 @@ class TestApi(unittest.TestCase):
         return k1, token
 
     def test_campaigns(self):
-        _, token_1 = self.create_user(contribution_percent=1)
+        _, token_1 = self.create_user(contribution_percent=1, twitter_username='someone')
         _, token_2 = self.create_user()
         _, token_3 = self.create_user(twitter_username='buyer')
 
@@ -213,8 +213,11 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
+        self.assertIsNotNone(response['user']['profile_image_url'])
         self.assertEqual(response['user']['has_items'], True)
         self.assertEqual(response['user']['has_own_items'], False) # campaign items do not count as "own" items
+
+        user_1_avatar = response['user']['profile_image_url']
 
         # same seller, add a listing outside of the campaign
         code, response = self.post(f"/api/users/me/listings",
@@ -253,10 +256,20 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
+        # no "featured" avatars
+        code, response = self.get(f"/api/campaigns/{campaign_key_2}/avatars/featured")
+        self.assertEqual(code, 200)
+        self.assertEqual(response['auction_avatars'], [])
+
         # can start the campaign auction even before setting the XPUB (because it is part of the campaign!)
         code, response = self.put(f"/api/auctions/{auction_key}/publish", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
+
+        # the seller's avatar is "featured" on the campaign page
+        code, response = self.get(f"/api/campaigns/{campaign_key_2}/avatars/featured")
+        self.assertEqual(code, 200)
+        self.assertIn(user_1_avatar, [a['url'] for a in response['auction_avatars']])
 
         # set the xpub
         _, response = self.update_user(token_1, xpub=XPUB)

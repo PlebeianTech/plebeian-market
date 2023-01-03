@@ -100,8 +100,11 @@ class User(XpubMixin, db.Model):
     def display_name(self):
         return f"{self.nym}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else self.nym
 
-    # TODO: rename to profile_image_url
+    # TODO: rename the actual field to profile_image_url
     twitter_profile_image_url = db.Column(db.String(256), nullable=True)
+    @property
+    def profile_image_url(self):
+        return self.twitter_profile_image_url
 
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)

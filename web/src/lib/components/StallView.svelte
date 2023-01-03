@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
     import { goto } from "$app/navigation";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
@@ -8,7 +9,7 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import LoginModal from "$lib/components/LoginModal.svelte";
-    import { publish } from "$lib/services/api";
+    import { publish, getFeaturedAvatars } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
@@ -30,6 +31,7 @@
 
     export let isOwnStall = false;
     export let isCampaignStall = false;
+    export let campaignKey: string | null = null;
 
     export let showItemsOwner: boolean;
     export let showItemsCampaign: boolean;
@@ -143,6 +145,17 @@
             behavior: 'smooth'
         })
     }
+
+    let featuredAuctionAvatars: {url: string}[] = [];
+
+    onMount(async () => {
+        if (isCampaignStall && campaignKey) {
+            getFeaturedAvatars(campaignKey,
+            (auctionAvatars, _) => {
+                featuredAuctionAvatars = auctionAvatars;
+            });
+        }
+    });
 </script>
 
 {#if isCampaignStall}
@@ -167,26 +180,16 @@
             </div>
           </div>
 
-          <!-- AVATARS -->
-          <!--
-          <div class="flex space-x-4">
-            <div class="avatar flex">
-              <div class="w-16 rounded">
-                <img src="https://placeimg.com/192/192/people" alt="image" />
-              </div>
+            <!-- AVATARS -->
+            <div class="grid grid-cols-5 grid-flow-row gap-1">
+                {#each featuredAuctionAvatars as avatar}
+                    <div class="avatar">
+                        <div class="w-16 rounded">
+                            <img src={avatar.url} alt="image" />
+                        </div>
+                    </div>
+                {/each}
             </div>
-            <div class="avatar">
-              <div class="w-16 rounded">
-                <img src="https://placeimg.com/192/192/people" alt="Tailwind-CSS-Avatar-component" />
-              </div>
-            </div>
-            <div class="avatar">
-              <div class="w-16 rounded">
-                <img src="https://placeimg.com/192/192/people" alt="Tailwind-CSS-Avatar-component" />
-              </div>
-            </div>
-          </div>
-        -->
         </div>
 
         <div class="grid place-items-center">

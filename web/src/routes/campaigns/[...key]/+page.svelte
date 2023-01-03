@@ -103,6 +103,7 @@
         title={campaign.name}
         description={campaign.description}
         isCampaignStall={true}
+        campaignKey={campaign.key}
         showItemsOwner={true}
         showItemsCampaign={false}
         canAddItems={true}>

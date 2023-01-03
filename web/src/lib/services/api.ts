@@ -142,6 +142,18 @@ export function getFeatured(loader: ILoader, successCB: (items: any[]) => void) 
             });
 }
 
+export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string}[], listingAvatars: {url: string}[]) => void) {
+    fetchAPI(`/campaigns/${campaignKey}/avatars/featured`, 'GET', null, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(data['auction_avatars'], data['listing_avatars']);
+                });
+            }
+        }
+    );
+}
+
 export function getProfile(tokenValue, nym: string, successCB: (User) => void, errorHandler = new ErrorHandler(false)) {
     fetchAPI(`/users/${nym}`, 'GET', tokenValue, null,
         (response) => {
