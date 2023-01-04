@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { getLogin, type GetLoginInitialResponse, type GetLoginSuccessResponse } from "../services/api";
-    import { token } from "../stores";
+    import {token, user} from "../stores";
     import Loading from "./Loading.svelte";
     import QR from "./QR.svelte";
     import { isDevelopment } from "../utils";
@@ -33,10 +33,15 @@
             () => {
                 checkLoginTimeout = setTimeout(startCheckingLogin, 1000);
             },
-            (response) => {
+            async (response) => {
                 token.set(response.token);
                 localStorage.setItem('token', response.token);
                 dispatch('loginEvent', {})
+
+                while ($user === null) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
                 onLogin(response.user);
             },
             () => {

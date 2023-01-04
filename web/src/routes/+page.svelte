@@ -25,10 +25,6 @@
         } else {
             if (loginModal) {
                 loginModal.show(async function () {
-                    while ($user === null) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-
                     goToStall()
                 });
             }
