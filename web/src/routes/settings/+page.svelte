@@ -32,10 +32,6 @@
     }
 
     onMount(async () => {
-        if (browser) {
-            localStorage.removeItem('initial-login-buyer'); // once the user opened settings, we don't want to pop up the verification anymore
-        }
-
         let parts = $page.url.href.split("#");
         if (parts.length === 2) {
             for (let kv of parts[1].split("&")) {

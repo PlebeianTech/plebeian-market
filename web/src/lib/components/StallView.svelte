@@ -56,14 +56,6 @@
     $: twitterUsername = owner ? owner.twitterUsername : null;
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
 
-    function onLogin() {
-        if (loginModal) {
-            if (isCampaignStall) {
-                localStorage.setItem('initial-login-campaign', "1");
-            }
-        }
-    }
-
     function onAuctionCreated(key: string, entity: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
@@ -117,8 +109,6 @@
             if (loginModal) {
                 loginModal.show(function () {
                     setCurrent(getNewItem());
-
-                    onLogin();
                 });
             }
         }
@@ -131,8 +121,6 @@
             if (loginModal) {
                 loginModal.show(function () {
                     scrollIntoView(target);
-
-                    onLogin();
                 });
             }
         }
@@ -400,4 +388,4 @@
     </div>
 </div>
 
-<LoginModal bind:this={loginModal} {onLogin} />
+<LoginModal bind:this={loginModal} />
