@@ -51,7 +51,10 @@ def login():
 
     lnauth = m.LnAuth.query.filter_by(k1=request.args['k1']).first()
 
-    if not lnauth or lnauth.created_at < datetime.utcnow() - timedelta(minutes=m.LnAuth.EXPIRE_MINUTES):
+    if not lnauth:
+        return jsonify({'message': "Verification failed."}), 400
+
+    if lnauth.created_at < datetime.utcnow() - timedelta(minutes=m.LnAuth.EXPIRE_MINUTES):
         return jsonify({'message': "Login token expired."}), 410
 
     if 'key' in request.args and 'sig' in request.args:
