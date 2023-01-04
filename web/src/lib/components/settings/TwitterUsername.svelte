@@ -26,7 +26,8 @@
                 saving = false;
                 onSave();
 
-                if ($page.url.pathname !== "/settings" && localStorage.getItem('initial-login-buyer') !== "1" && localStorage.getItem('initial-login-campaign') !== "1") {
+                let pathname = $page.url.pathname;
+                if (pathname !== "/settings" && !pathname.startsWith('/auctions/') && !pathname.startsWith('/listings/') && !pathname.startsWith('/campaigns/')) {
                     goto(`/stall/${u.nym}`);
                 }
             },

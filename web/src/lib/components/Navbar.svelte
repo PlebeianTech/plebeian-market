@@ -10,7 +10,6 @@
   import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
   import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
 
-
   let modal : Modal | null;
   let modalVisible = false;
 
@@ -77,17 +76,7 @@
                   (saved) => {
                       if (saved) {
                           if ($user && !$user.twitterUsernameVerified) {
-                              if (localStorage.getItem('initial-login-buyer') === "1") {
-                                  /*
-                                      NB: the only case where we want to automatically show the verification modal
-                                      is when 'initial-login-buyer' is set,
-                                      that is - you logged in with the intent of bidding on an auction.
-                                      Other cases (where we don't want this to happen) are:
-                                          1) log in from the home page (seller intent).
-                                          2) change the twitter account under settings (no need for a modal, as the verification will show on the same page).
-                                  */
-                                  showModal(TwitterVerification, true);
-                              }
+                              showModal(TwitterVerification, true);
                           }
                       } else {
                           // trying to hide the modal if you didn't set your Twitter username logges you out

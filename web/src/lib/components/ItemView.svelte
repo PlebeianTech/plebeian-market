@@ -8,7 +8,6 @@
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
     import { SaleState, type Sale } from "$lib/types/sale";
-    import type { User } from "$lib/types/user";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
     import BidButton from "$lib/components/BidButton.svelte";
@@ -88,12 +87,6 @@
                 tweetURL = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(getBaseUrl() + 'auctions/' + item?.key) + '&text=' + item?.title;
             },
             new ErrorHandler(false));
-    }
-
-    function onLogin(user: User | null) {
-        if (user && user.nym === null) {
-            localStorage.setItem('initial-login-buyer', "1");
-        }
     }
 
     function showLoginModal() {
