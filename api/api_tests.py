@@ -320,7 +320,8 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me", {},
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
-        self.assertIn(500, [b['badge'] for b in response['user']['badges']])
+        self.assertIn((500, campaign_key_2), [(b['badge'], b['icon']) for b in response['user']['badges']])
+        self.assertIn((500, 'SKIN_IN_THE_GAME'), [(b['badge'], b['icon']) for b in response['user']['badges']])
 
         # the seller has four sales
         code, response = self.get("/api/users/me/sales", {},

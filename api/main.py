@@ -291,8 +291,13 @@ def settle_btc_payments():
                             if sale.is_badge_sale:
                                 for_campaign = sale.campaign.key if sale.campaign_id else None
                                 if not m.UserBadge.query.filter_by(user_id=sale.buyer_id, badge=sale.desired_badge, icon=for_campaign).first():
-                                    app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} to user {sale.buyer_id}.")
+                                    app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} with icon={for_campaign} to user {sale.buyer_id}.")
                                     db.session.add(m.UserBadge(user_id=sale.buyer_id, badge=sale.desired_badge, icon=for_campaign))
+                                # awarding the "default icon" version of the badge in addition to the campaign version
+                                icon = app.config['BADGE_DEFAULT_ICON']
+                                if not m.UserBadge.query.filter_by(user_id=sale.buyer_id, badge=sale.desired_badge, icon=icon).first():
+                                    app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} with default icon to user {sale.buyer_id}.")
+                                    db.session.add(m.UserBadge(user_id=sale.buyer_id, badge=sale.desired_badge, icon=icon))
                             if tx['confirmed']:
                                 sale.state = m.SaleState.TX_CONFIRMED.value
                                 sale.settled_at = datetime.utcnow()
