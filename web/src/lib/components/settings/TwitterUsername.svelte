@@ -26,8 +26,7 @@
                 saving = false;
                 onSave();
 
-                let pathname = $page.url.pathname;
-                if (pathname !== "/settings" && !pathname.startsWith('/auctions/') && !pathname.startsWith('/listings/') && !pathname.startsWith('/campaigns/')) {
+                if ($page.url.pathname === "/") {
                     goto(`/stall/${u.nym}`);
                 }
             },
