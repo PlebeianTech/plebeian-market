@@ -172,7 +172,7 @@
             <div class="grid grid-cols-5 grid-flow-row gap-1">
                 {#each featuredAuctionAvatars as avatar}
                     <div class="avatar">
-                        <div class="w-16 rounded">
+                        <div class="w-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                             <img src={avatar.url} alt="image" />
                         </div>
                     </div>
