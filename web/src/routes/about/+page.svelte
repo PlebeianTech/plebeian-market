@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { scale } from "svelte/transition";
+
   function scrollIntoView({ target }) {
       const el = document.querySelector(target.getAttribute('href'))
       if (!el) return;
@@ -29,15 +31,6 @@
   </div>
 </div>
 
-<style>
-  #aboutHero {
-    background-image: url('$lib/images/golden-gai-tokyo.jpg');
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-  }
-</style>
-
 <div class="lg:w-1/2 mx-auto p-4 mt-20">
   <blockquote class="lg:text-7xl text-4xl font-bold mt-2 md:mt-10 p-4 italic border-l-4 bg-neutral-100 text-neutral-600 border-neutral-500 quote">
     <p>"You will own your market stall and you will be happy."</p>
@@ -67,49 +60,62 @@
 <h2 class="text-center my-16 lg:text-8xl font-bold text-4xl">Team</h2>
 <div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 gap-4 my-20 p-4">
   <!-- COL -->
-  <div class="bg-gray-300/20 p-4 rounded">
+  <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/HodlrDotRocks">
 
-    <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/HodlrDotRocks">Chiefmonkey</a>
+    <h2 class="text-3xl font-bold my-4">Chiefmonkey</h2>
     <h3 class="uppercase my-2 font-bold text-sm">Chief</h3>
 
-  </div>
+  </a>
 
   <!-- COL -->
-  <div class="bg-gray-300/20 p-4 rounded">
+  <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/ibz">
 
-    <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/ibz">Ibz</a>
+    <h2 class="text-3xl font-bold my-4">Ibz</h2>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
 
-  </div>
+  </a>
 
   <!-- COL -->
-  <div class="bg-gray-300/20 p-4 rounded">
+  <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/BitkoYinowsky">
 
-    <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/BitkoYinowsky">Bitko Yinowsky</a>
+    <h2 class="text-3xl font-bold my-4">Bitko Yinowsky</h2>
     <h3 class="uppercase my-2 font-bold text-sm">Artist</h3>
 
-  </div>
+  </a>
 
   <!-- COL -->
-  <div class="bg-gray-300/20 p-4 rounded">
+  <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/btc_remnant">
 
-    <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/btc_remnant">Luis Miguel</a>
+    <h2 class="text-3xl font-bold my-4">Luis Miguel</h2>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
 
-  </div>
+  </a>
 
   <!-- COL -->
-  <div class="bg-gray-300/20 p-4 rounded">
+  <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/GhostOfBekka">
 
-    <a class="text-3xl font-bold my-4" target="_blank" rel="noreferrer" href="https://twitter.com/GhostOfBekka">Bekka</a>
+    <h2 class="text-3xl font-bold my-4">Bekka</h2>
     <h3 class="uppercase my-2 font-bold text-sm">Communications</h3>
 
-  </div>
+  </a>
 
   <!-- COL -->
-  <div class="bg-gray-300/20 p-4 rounded">
+  <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" href="https://twitter.com/j__khan" target="_blank" rel="noreferrer">
 
-    <a href="https://twitter.com/j__khan" class="text-3xl font-bold my-4">Jay Khan</a>
+    <h2 class="text-3xl font-bold my-4">Jay Khan</h2>
     <h3 class="uppercase my-2 font-bold text-sm">Front-end Developer</h3>
-  </div>
+  </a>
 </div>
+
+<style>
+  #aboutHero {
+    background-image: url('$lib/images/golden-gai-tokyo.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+  .cardHover:hover {
+    scale: 95%
+  }
+</style>
