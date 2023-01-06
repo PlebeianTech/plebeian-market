@@ -304,7 +304,10 @@
                                             </div>
                                         </div>
                                     {:else}
-                                        <p class="text-center text-2xl my-4">Waiting for the payment</p>
+                                        <p class="text-center text-2xl my-4">Waiting for the payment...</p>
+                                        <p class="text-center text-xl my-6">
+                                            This screen will update. As soon as the payment is detected, you'll receive instructions on what to do on this screen and in your Twitter DM. You can also close this screen and come back to it later.
+                                        </p>
                                     {/if}
                                 {/if}
                             {/if}
