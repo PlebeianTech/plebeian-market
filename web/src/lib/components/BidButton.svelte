@@ -124,16 +124,12 @@
                 <div class="flex gap-4 justify-center items-center">
                     <div class="my-10 glowbutton glowbutton-bid" on:click|preventDefault={placeBid} on:keypress={placeBid}></div>
                     {#if auction.campaign_key}
-                        {#each auction.bid_thresholds as threshold, i}
+                        {#each auction.bid_thresholds as threshold}
                             {#if usdAmount}
-                                {#if usdAmount > threshold.bid_amount_usd && $user && $user.hasBadge(threshold.required_badge)}
-                                    <div class="radial-progress text-success" style="--value:100">
-                                        <BadgeSVG badge={$user.firstBadge(threshold.required_badge)} />
-                                    </div>
-                                {:else}
+                                {#if !($user && $user.hasBadge(threshold.required_badge))}
                                     {#if usdAmount > threshold.bid_amount_usd / 2}
                                         <div class="radial-progress" class:text-info={usdAmount < threshold.bid_amount_usd * 0.75} class:text-warning={usdAmount >= threshold.bid_amount_usd * 0.75 && usdAmount < threshold.bid_amount_usd * 0.85} class:text-error={usdAmount >= threshold.bid_amount_usd * 0.85} style="--value:{usdAmount / threshold.bid_amount_usd * 100};">
-                                            <div class="tooltip" data-tip="Badge required / click for info">
+                                            <div class="tooltip" data-tip="Skin in the game required / click for info">
                                                 <label class="cursor-help" for="badge-modal">
                                                     ${threshold.bid_amount_usd}
                                                 </label>
