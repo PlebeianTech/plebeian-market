@@ -6,7 +6,7 @@
     "@sveltejs/kit": "next",
     "autoprefixer": "10.x",
     "btc2fiat": "*",
-    "daisyui": "2.x",
+    "daisyui": "^2.46.1",
     "eslint": "8.x",
     "eslint-plugin-svelte3": "4.x",
     "npm-run-all": "4.x",
