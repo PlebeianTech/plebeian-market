@@ -168,16 +168,6 @@
             </div>
           </div>
 
-            <!-- AVATARS -->
-            <div class="grid grid-cols-5 grid-flow-row gap-1">
-                {#each featuredAuctionAvatars as avatar}
-                    <div class="avatar">
-                        <div class="w-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                            <img src={avatar.url} alt="image" />
-                        </div>
-                    </div>
-                {/each}
-            </div>
         </div>
 
         <div class="grid place-items-center">
@@ -214,6 +204,17 @@
                 <Avatar account={owner} size={AvatarSize.L} />
             {/if}
         </div> -->
+        <!-- AVATARS -->
+        <div class="grid lg:grid-cols-5 grid-cols-3 gap-4 place-items-center lg:w-1/2 w-full mx-auto">
+            {#each featuredAuctionAvatars as avatar}
+                <div class="avatar">
+                    <div class="w-16 rounded-full ring ring-accent ring-offset-base-100 ring-offset-2">
+                        <img src={avatar.url} alt="image" />
+                    </div>
+                </div>
+            {/each}
+        </div>
+        
         <div class="flex justify-center my-4 border-b border-gray-700/20 py-2">
           {#if editUrl}
               <a href={editUrl} class="btn btn-outline text-sm uppercase font-bold my-2">Edit Page</a>
