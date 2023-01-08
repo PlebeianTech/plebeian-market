@@ -157,14 +157,15 @@
         <div class="mt-20 p-4">
           <!-- FULL WIDTH BANNER -->
           <!-- <img src={BannerImg} alt=""> -->
-          <h1 class="lg:text-7xl text-4xl font-bold text-white">{title}</h1>
-          <!-- <h1 class="lg:text-2xl font-bold mt-4">Get started</h1> -->
-          <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-primary uppercase font-bold my-8">Auction 1-hour of your time</a>
-          <div class="mb-8">
-            <!-- <p class="text-3xl">OR</p> -->
-            <div class="space-x-1">
-              <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Auction Item</a>
-              <a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
+          <h1 class="lg:text-7xl text-4xl font-bold text-white lg:text-left text-center">{title}</h1>
+          
+          <!-- BUTTONS -->
+          <div class="lg:w-2/3 grid place-items-center">
+            <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-primary uppercase font-bold my-8 w-full">Auction 1-hour of your time</a>
+            <p class="text-3xl mb-3 font-bold">OR</p>
+            <div class="mb-8 w-full grid grid-cols-2 gap-4">
+                <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Auction Item</a>
+                <a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
             </div>
           </div>
 
@@ -339,10 +340,10 @@
                     </div>
                 {/each}
             {/if}
-            <div class="divider my-20"></div>
+            <div class="divider my-12"></div>
         {/if}
         {#if canAddItems || showActiveListings || showPastListings}
-            <h3 id="anchorIdFixedPrice" class="lg:text-8xl text-4xl font-black text-center">Fixed price</h3>
+            <h3 id="anchorIdFixedPrice" class="lg:text-8xl text-4xl font-black text-center my-8 pt-16">Fixed price</h3>
             {#if canAddItems}
                 <ListView
                     bind:this={listingsLists['new']}
