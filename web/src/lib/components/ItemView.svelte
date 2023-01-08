@@ -204,7 +204,7 @@
                             <h3 class="mx-1">Auction Details</h3>
                         </span> -->
 
-                        <div class="markdown-container mt-12">
+                        <div class="markdown-container mt-12 lg:w-2/3">
                             <SvelteMarkdown source={item.description} />
                         </div>
                         {#if item.category !== Category.Time}
