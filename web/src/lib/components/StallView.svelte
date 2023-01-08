@@ -323,7 +323,7 @@
             {#if showActiveAuctions || showPastAuctions}
                 <div class="tabs flex justify-center my-12">
                     {#each availableFilters as filter}
-                        <a href="#{filter}" class="text-2xl tab tab-lifted" class:tab-active={auctionFilter === filter} on:click={() => auctionFilter = filter}>{filter}</a>
+                        <a href="#{filter}" class="text-2xl tab tab-bordered" class:tab-active={auctionFilter === filter} on:click={() => auctionFilter = filter}>{filter}</a>
                     {/each}
                 </div>
                 {#each availableFilters as filter}
@@ -369,7 +369,7 @@
             {#if showActiveListings || showPastListings}
                 <div class="tabs flex justify-center mt-20">
                     {#each availableFilters as filter}
-                        <a href="#{filter}" class="text-2xl tab tab-lifted" class:tab-active={listingFilter === filter} on:click={() => listingFilter = filter}>{filter}</a>
+                        <a href="#{filter}" class="text-2xl tab tab-bordered" class:tab-active={listingFilter === filter} on:click={() => listingFilter = filter}>{filter}</a>
                     {/each}
                 </div>
                 {#each availableFilters as filter}
