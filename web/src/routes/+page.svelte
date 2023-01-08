@@ -92,7 +92,7 @@
 
 </div>
 
-<div class="lg:w-2/3 mx-auto grid grid-cols-1 w-full gap-4 md:grid-cols-2 lg:grid-cols-3">
+<div class="lg:w-2/3 mx-auto w-full lg:columns-3 space-y-2 py-20 my-20">
     {#if auctions !== null}
         {#each auctions as auction}
             <div class="h-auto my-3 self-center">
