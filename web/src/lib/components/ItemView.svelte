@@ -328,6 +328,8 @@
                                     {#if !item.ended}
                                         {#if item instanceof Auction}
                                             {#if !item.bids.length}
+                                                <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter satsAmount={item.starting_bid} />.</p>
+                                                <p class="text-2xl text-center pt-2">Be the first to bid!</p>
                                                 <p class="text-center pt-12 mb-4">Place your bid below</p>
                                             {/if}
                                             <div class="flex justify-center items-center">
@@ -396,11 +398,6 @@
                             <div class="mt-2">
                                 <BidList auction={item} />
                             </div>
-                        {:else}
-                            {#if !item.is_mine}
-                                <p class="text-3xl text-center pt-24">Starting bid is <AmountFormatter satsAmount={item.starting_bid} />.</p>
-                                <p class="text-2xl text-center pt-2">Be the first to bid!</p>
-                            {/if}
                         {/if}
                     {/if}
                 </div>
