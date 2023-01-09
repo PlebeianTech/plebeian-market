@@ -317,11 +317,6 @@
                         <SaleFlow bind:item={item} bind:sale={sale} />
                     {/if}
                     {#if !item.ended}
-                        {#if item instanceof Auction && item.end_date_extended}
-                            <h3 class="text-2xl text-center text-warning my-2">
-                                Time Extended
-                            </h3>
-                        {/if}
                         {#if $token && $user}
                             {#if !item.is_mine}
                                 {#if $user.nym !== null && item.started}
@@ -383,6 +378,11 @@
                     {/if}
                     {#if item instanceof Auction}
                         {#if item.start_date && item.end_date}
+                            {#if item.end_date_extended}
+                                <h3 class="text-2xl text-center text-warning my-2">
+                                    Time Extended
+                                </h3>
+                            {/if}
                             {#if item.started && !item.ended}
                                 <div class="py-5">
                                     <Countdown bind:this={finalCountdown} untilDate={new Date(item.end_date)} />
