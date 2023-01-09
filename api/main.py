@@ -281,6 +281,7 @@ def settle_btc_payments():
                             sale.state = m.SaleState.TX_CONFIRMED.value
                             sale.settled_at = datetime.utcnow()
                             db.session.commit()
+                            m.Message.create_and_send('TRANSACTION_CONFIRMED', user=sale.buyer, txid=tx['txid'])
                             break
                     elif not sale.txid:
                         if tx['value'] >= sale.amount:
@@ -302,6 +303,7 @@ def settle_btc_payments():
                                 sale.state = m.SaleState.TX_CONFIRMED.value
                                 sale.settled_at = datetime.utcnow()
                             db.session.commit()
+                            m.Message.create_and_send('TRANSACTION_FOUND', user=sale.buyer, txid=tx['txid'], confirmed=tx['confirmed'])
                             break
                         else:
                             app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")

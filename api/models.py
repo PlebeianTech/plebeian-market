@@ -371,6 +371,40 @@ class AuctionWonNotification(Notification):
             'body': f"You are the winner of {auction.item.title}! {app.config['WWW_BASE_URL']}/auctions/{auction.key}",
         }
 
+class TransactionFoundNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'TRANSACTION_FOUND'
+
+    @property
+    def description(self):
+        return "Transaction found"
+
+    def get_message_args(self, **kwargs):
+        user, txid, confirmed = kwargs['user'], kwargs['txid'], kwargs['confirmed']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{txid}",
+            'body': f"We have found your{' ' if confirmed else ' unconfirmed '}transaction {txid} in mempool.space. https://mempool.space/tx/{txid}",
+        }
+
+class TransactionConfirmedNotification(Notification):
+    @property
+    def notification_type(self):
+        return 'TRANSACTION_CONFIRMED'
+
+    @property
+    def description(self):
+        return "Transaction confirmed"
+
+    def get_message_args(self, **kwargs):
+        user, txid = kwargs['user'], kwargs['txid']
+        return {
+            'user_id': user.id,
+            'key': f"{self.notification_type}_{txid}",
+            'body': f"Your transaction has been confirmed by the network. https://mempool.space/tx/{txid}",
+        }
+
 NOTIFICATION_TYPES = OrderedDict([
     (nt.notification_type, nt) for nt in [
         NewBidNotification(),
@@ -380,6 +414,8 @@ NOTIFICATION_TYPES = OrderedDict([
         PurchaseExpiredNotification(),
         AuctionHasWinnerNotification(),
         AuctionWonNotification(),
+        TransactionFoundNotification(),
+        TransactionConfirmedNotification(),
     ]
 ])
 

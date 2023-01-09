@@ -1184,6 +1184,15 @@ class TestApi(unittest.TestCase):
         self.assertIsNone(response['auction']['sales'][0]['expired_at'])
         self.assertIn(response['auction']['sales'][0]['address'], ADDRESSES)
 
+        # the buyer was notified of the TX
+        code, response = self.get("/api/users/me/messages?via=all",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        actual_messages = [m for m in response['messages'] if m['notified_via']]
+        tx_confirmed_messages = [m for m in actual_messages if m['key'].startswith('TRANSACTION_CONFIRMED')]
+        self.assertEqual(len(tx_confirmed_messages), 1)
+        self.assertIn("https://mempool.space/tx/", tx_confirmed_messages[0]['body'].lower())
+
         # another user however, cannot see the sale (but it can see the auction has a winner)
         code, response = self.get(f"/api/auctions/{auction_key}",
             headers=self.get_auth_headers(token_3))
