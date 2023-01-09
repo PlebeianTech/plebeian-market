@@ -270,7 +270,7 @@
               {:else}
                 <div class="flex flex-col gap-4 ml-2">
                   {#if badges.length !== 0}
-                      <div>Badges</div>
+                      <h2 class="text-2xl font-bold text-center my-4">Badges</h2>
                       <div class="flex gap-2">
                           {#each badges as badge}
                               <BadgeSVG {badge} />
