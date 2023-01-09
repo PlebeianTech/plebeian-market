@@ -381,10 +381,10 @@ class TransactionFoundNotification(Notification):
         return "Transaction found"
 
     def get_message_args(self, **kwargs):
-        user, txid, confirmed = kwargs['user'], kwargs['txid'], kwargs['confirmed']
+        user, sale_id, txid, confirmed = kwargs['user'], kwargs['sale_id'], kwargs['txid'], kwargs['confirmed']
         return {
             'user_id': user.id,
-            'key': f"{self.notification_type}_{txid}",
+            'key': f"{self.notification_type}_{sale_id}",
             'body': f"We have found your{' ' if confirmed else ' unconfirmed '}transaction {txid} in mempool.space. https://mempool.space/tx/{txid}",
         }
 
@@ -398,10 +398,10 @@ class TransactionConfirmedNotification(Notification):
         return "Transaction confirmed"
 
     def get_message_args(self, **kwargs):
-        user, txid = kwargs['user'], kwargs['txid']
+        user, sale_id, txid = kwargs['user'], kwargs['sale_id'], kwargs['txid']
         return {
             'user_id': user.id,
-            'key': f"{self.notification_type}_{txid}",
+            'key': f"{self.notification_type}_{sale_id}",
             'body': f"Your transaction has been confirmed by the network. https://mempool.space/tx/{txid}",
         }
 
