@@ -884,7 +884,12 @@ def get_campaign_featured_avatars(key):
     for which_avatars, entities in [('auction_avatars', campaign.auctions), ('listing_avatars', campaign.listings)]:
         for entity in entities:
             if entity.started and not entity.item.is_hidden:
-                avatars[which_avatars].append({'url': entity.item.seller.profile_image_url, 'featured_sort_key': entity.featured_sort_key()})
+                avatar = {
+                    'url': entity.item.seller.profile_image_url,
+                    'entity_key': entity.key,
+                    'featured_sort_key': entity.featured_sort_key()
+                }
+                avatars[which_avatars].append(avatar)
         avatars[which_avatars].sort(key=lambda a: a['featured_sort_key'], reverse=True)
 
         # NB: we do unique after we have sorted,

@@ -134,7 +134,7 @@
         })
     }
 
-    let featuredAuctionAvatars: {url: string}[] = [];
+    let featuredAuctionAvatars: {url: string, entity_key: string}[] = [];
 
     onMount(async () => {
         if (isCampaignStall && campaignKey) {
@@ -210,7 +210,9 @@
             {#each featuredAuctionAvatars as avatar}
                 <div class="avatar">
                     <div class="w-16 rounded-full ring ring-accent ring-offset-base-100 ring-offset-2">
-                        <img src={avatar.url} alt="image" />
+                        <a href="/auctions/{avatar.entity_key}">
+                            <img src={avatar.url} alt="featured avatar" />
+                        </a>
                     </div>
                 </div>
             {/each}

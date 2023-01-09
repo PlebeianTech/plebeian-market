@@ -142,7 +142,7 @@ export function getFeatured(loader: ILoader, successCB: (items: any[]) => void) 
             });
 }
 
-export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string}[], listingAvatars: {url: string}[]) => void) {
+export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string, entity_key: string}[], listingAvatars: {url: string, entity_key: string}[]) => void) {
     fetchAPI(`/campaigns/${campaignKey}/avatars/featured`, 'GET', null, null,
         response => {
             if (response.status === 200) {
