@@ -42,7 +42,7 @@
 
       <!-- COL -->
       <div>
-        <p class="mt-2 md:mt-10">100% Value4Value business model... 100% donations to this site go into open source bitcoin projects.
+        <p class="mt-2 md:mt-10">100% Value-4-Value business model... 100% donations to this site go into open source bitcoin projects.
           Sellers decide how much of their sale they want to donate. The buyer pays it in settlement of the auction they won or the product they bought.
         </p>
       </div>
@@ -70,7 +70,7 @@
   <!-- COL -->
   <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/ibz">
 
-    <h2 class="text-3xl font-bold my-4">Ibz</h2>
+    <h2 class="text-3xl font-bold my-4">ibz</h2>
     <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
 
   </a>
