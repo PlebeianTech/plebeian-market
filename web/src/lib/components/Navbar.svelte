@@ -139,6 +139,9 @@
       <!-- LINKS -->
 			<div class="lg:flex items-center w-full">
         <p>
+          <a href="/campaigns/we-are-all-hodlonaut" class="btn btn-link normal-case animate-pulse">We are All Hodlonaut Campaign</a>
+        </p>
+        <p>
           <a href="/about" class="btn btn-ghost normal-case">About</a>
         </p>
         <p>
