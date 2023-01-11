@@ -3,7 +3,7 @@
     import SvelteMarkdown from 'svelte-markdown';
     import { MetaTags } from 'svelte-meta-tags';
     import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
-    import { Error, Info, token, user } from "$lib/stores";
+    import { Error, Info, token, user, showLoginModal } from "$lib/stores";
     import { Category, type Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
@@ -19,9 +19,6 @@
     import { page } from "$app/stores";
     import { getBaseUrl } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
-    import LoginModal from "$lib/components/LoginModal.svelte";
-
-    let loginModal : LoginModal | null;
 
     export let loader: ILoader;
     export let itemKey = null;
@@ -90,9 +87,10 @@
     }
 
     function showLoginModal() {
-        if (loginModal) {
-            loginModal.show();
-        }
+        showLoginModal.set({
+            opened: true,
+            callbackFunc: null
+        });
     }
 
     function followAuction() {
@@ -406,6 +404,4 @@
             </div>
         </div>
     </div>
-
-    <LoginModal bind:this={loginModal} />
 {/if}

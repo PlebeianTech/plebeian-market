@@ -8,9 +8,8 @@
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
-    import LoginModal from "$lib/components/LoginModal.svelte";
     import { publish, getFeaturedAvatars } from "$lib/services/api";
-    import { Info, token, user } from "$lib/stores";
+    import {Info, token, user, showLoginModal} from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
@@ -40,8 +39,6 @@
     export let showPastAuctions: boolean = true;
     export let showActiveListings: boolean = true;
     export let showPastListings: boolean = true;
-
-    let loginModal : LoginModal | null;
 
     let availableFilters = ['active', 'past'];
     let auctionFilter = 'active';
@@ -106,11 +103,10 @@
         if ($user && $user.nym) {
             setCurrent(getNewItem());
         } else {
-            if (loginModal) {
-                loginModal.show(function () {
-                    setCurrent(getNewItem());
-                });
-            }
+            showLoginModal.set({
+                opened: true,
+                callbackFunc: function(){ setCurrent(getNewItem()) }
+            });
         }
     }
 
@@ -118,11 +114,10 @@
         if ($user && $user.nym) {
             scrollIntoView(target);
         } else {
-            if (loginModal) {
-                loginModal.show(function () {
-                    scrollIntoView(target);
-                });
-            }
+            showLoginModal.set({
+                opened: true,
+                callbackFunc: function(){ scrollIntoView(target) }
+            });
         }
     }
 
@@ -158,7 +153,7 @@
           <!-- FULL WIDTH BANNER -->
           <!-- <img src={BannerImg} alt=""> -->
           <h1 class="lg:text-7xl text-4xl font-bold text-white lg:text-left text-center">{title}</h1>
-          
+
           <!-- BUTTONS -->
           <div class="lg:w-2/3 grid place-items-center">
             <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-primary uppercase font-bold my-8 w-full">Auction 1-hour of your time</a>
@@ -217,7 +212,7 @@
                 </div>
             {/each}
         </div>
-        
+
         <div class="flex justify-center my-4 border-b border-gray-700/20 py-2">
           {#if editUrl}
               <a href={editUrl} class="btn btn-outline text-sm uppercase font-bold my-2">Edit Page</a>
@@ -391,5 +386,3 @@
         {/if}
     </div>
 </div>
-
-<LoginModal bind:this={loginModal} />

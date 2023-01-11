@@ -5,16 +5,13 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { getFeatured } from "$lib/services/api";
-    import { user } from "$lib/stores";
+    import { user, showLoginModal } from "$lib/stores";
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import LoginModal from "$lib/components/LoginModal.svelte";
-
-    let loginModal : LoginModal | null;
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
@@ -23,11 +20,10 @@
         if ($user && $user.nym) {
             goToStall()
         } else {
-            if (loginModal) {
-                loginModal.show(async function () {
-                    goToStall()
-                });
-            }
+            showLoginModal.set({
+                opened: true,
+                callbackFunc: goToStall
+            });
         }
     }
 
@@ -109,14 +105,11 @@
     {/if}
 </div>
 
-<LoginModal bind:this={loginModal} />
-
 <style>
-
-#bgHero {
-    background-image: url('$lib/images/golden-gai-tokyo.jpg');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-  }
+    #bgHero {
+        background-image: url('$lib/images/golden-gai-tokyo.jpg');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+    }
 </style>
