@@ -51,14 +51,14 @@
 
 {#if serverLoadedUser}
     <MetaTags
-            title={serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")}
-            description={serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!"}
+            title={(serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")).substring(0,69)}
+            description={(serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!").substring(0,199)}
             openGraph={{
                 site_name: "Plebeian Market",
                 type: "website",
                 url: $page.url.href,
-                title: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
-                description: serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!",
+                title: (serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")).substring(0,69),
+                description: (serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!").substring(0,199),
                 images: [
                   {
                     url: serverLoadedUser.stall_banner_url ?? serverLoadedUser.profile_image_url ?? "",
@@ -70,7 +70,7 @@
                 site: import.meta.env.VITE_TWITTER_USER,
                 handle: import.meta.env.VITE_TWITTER_USER,
                 cardType: "summary_large_image",
-                imageAlt: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
+                imageAlt: (serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")).substring(0,419),
             }}
     />
 {/if}

@@ -128,21 +128,21 @@
 </script>
 
 <MetaTags
-    title={serverLoadedItem?.title ?? "Plebeian Market item"}
-    description={serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION}
+    title={(serverLoadedItem?.title ?? "Plebeian Market item").substring(0,69)}
+    description={(serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION).substring(0,199)}
     openGraph={{
         site_name: "Plebeian Market",
         type: 'website',
         url: $page.url.href,
-        title: serverLoadedItem?.title ?? "Plebeian Market item",
-        description: serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION,
+        title: (serverLoadedItem?.title ?? "Plebeian Market item").substring(0,69),
+        description: (serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION).substring(0,199),
         images: [{ url: serverLoadedItem && serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg" }],
     }}
     twitter={{
         site: import.meta.env.VITE_TWITTER_USER,
         handle: import.meta.env.VITE_TWITTER_USER,
         cardType: "summary_large_image",
-        imageAlt: serverLoadedItem?.title ?? "Plebeian Market item",
+        imageAlt: (serverLoadedItem?.title ?? "Plebeian Market item").substring(0,419),
     }}
 />
 

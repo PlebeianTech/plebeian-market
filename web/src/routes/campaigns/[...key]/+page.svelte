@@ -45,14 +45,14 @@
 
 {#if data.serverLoadedCampaign}
 <MetaTags
-        title={data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign"}
-        description={data.serverLoadedCampaign.description ?? "Support the cause and help a Bitcoiner!"}
+        title={(data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign").substring(0,69)}
+        description={(data.serverLoadedCampaign.description ?? "Support the cause and help a Bitcoiner!").substring(0,199)}
         openGraph={{
             site_name: "Plebeian Market",
             type: "website",
             url: $page.url.href,
-            title: data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign",
-            description: data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities",
+            title: (data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign").substring(0,69),
+            description: (data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities").substring(0,199),
             images: [
               {
                 url: FaketoshiPNG,
@@ -64,7 +64,7 @@
             site: import.meta.env.VITE_TWITTER_USER,
             handle: import.meta.env.VITE_TWITTER_USER,
             cardType: "summary_large_image",
-            imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+            imageAlt: (data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!").substring(0,419),
         }}
 />
 {/if}
