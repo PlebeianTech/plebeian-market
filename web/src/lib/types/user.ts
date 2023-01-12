@@ -1,3 +1,5 @@
+import { SHORT_TITLE_LIMIT, SHORT_DESCRIPTION_LIMIT } from "$lib/utils";
+
 export interface IAccount {
     nym: string | null;
     displayName: string | null;
@@ -43,6 +45,22 @@ export class User implements IAccount {
     hasPastListings: boolean = false;
     isModerator: boolean = false;
     badges: Badge[] = [];
+
+    public getShortStallName(): string {
+        if (this.stallName) {
+            return this.stallName.substring(0, SHORT_TITLE_LIMIT);
+        } else {
+            return this.nym + "'s Stall";
+        }
+    }
+
+    public getShortStallDescription(): string {
+        if (this.stallDescription) {
+            return this.stallDescription.substring(0, SHORT_DESCRIPTION_LIMIT);
+        } else {
+            return "Check out my Plebeian Market stall!";
+        }
+    }
 
     public hasBadge(badge) {
         for (const b of this.badges) {

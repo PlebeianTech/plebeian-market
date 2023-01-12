@@ -51,18 +51,18 @@
 
 {#if serverLoadedUser}
     <MetaTags
-            title={(serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")).substring(0,69)}
-            description={(serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!").substring(0,199)}
+            title={serverLoadedUser.getShortStallName()}
+            description={serverLoadedUser.getShortStallDescription()}
             openGraph={{
                 site_name: "Plebeian Market",
                 type: "website",
                 url: $page.url.href,
-                title: (serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")).substring(0,69),
-                description: (serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!").substring(0,199),
+                title: serverLoadedUser.getShortStallName(),
+                description: serverLoadedUser.getShortStallDescription(),
                 images: [
                   {
                     url: serverLoadedUser.stall_banner_url ?? serverLoadedUser.profile_image_url ?? "",
-                    alt: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
+                    alt: serverLoadedUser.getShortStallName(),
                   }
                 ],
             }}
@@ -70,7 +70,7 @@
                 site: import.meta.env.VITE_TWITTER_USER,
                 handle: import.meta.env.VITE_TWITTER_USER,
                 cardType: "summary_large_image",
-                imageAlt: (serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")).substring(0,419),
+                imageAlt: serverLoadedUser.getShortStallName(),
             }}
     />
 {/if}
