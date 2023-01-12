@@ -234,7 +234,7 @@
                 {/if}
 
                 <div class="flex flex-col gap-4 w-full py-4 my-4">
-                  <div class="flex space-x-4">
+                  <div class="lg:flex lg:space-x-4 lg:space-y-0 space-y-2">
                       {#if telegramHref}
                           <a href={telegramHref} class="link text-2xl flex items-center space-x-2" target="_blank" rel="noreferrer">
                               <span class="flex items-center justify-center">
