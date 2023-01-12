@@ -3,7 +3,7 @@
     import SvelteMarkdown from 'svelte-markdown';
     import { MetaTags } from 'svelte-meta-tags';
     import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
-    import { Error, Info, token, user, showLoginModal } from "$lib/stores";
+    import { Error, Info, token, user, loginModalState } from "$lib/stores";
     import { Category, type Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
@@ -87,9 +87,9 @@
     }
 
     function showLoginModal() {
-        showLoginModal.set({
-            opened: true,
-            callbackFunc: null
+        loginModalState.set({
+            openRequested: true,
+            callbackFunc: () => {}
         });
     }
 

@@ -5,7 +5,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { getFeatured } from "$lib/services/api";
-    import { user, showLoginModal } from "$lib/stores";
+    import { user, loginModalState } from "$lib/stores";
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
@@ -20,8 +20,8 @@
         if ($user && $user.nym) {
             goToStall()
         } else {
-            showLoginModal.set({
-                opened: true,
+            loginModalState.set({
+                openRequested: true,
                 callbackFunc: goToStall
             });
         }

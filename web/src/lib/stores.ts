@@ -12,8 +12,10 @@ export const Error: Writable<string | null> = writable(null);
 
 export const BTC2USD: Writable<number | null> = writable(null);
 
-type showLoginInfoType = {
-    opened: boolean;
-    callbackFunc?: object | null;
-};
-export const showLoginModal: Writable<showLoginInfoType | null> = writable(null);
+export const loginModalState: Writable<{
+    openRequested: boolean;
+    callbackFunc: () => void;
+}> = writable({
+    openRequested: false,
+    callbackFunc: () => {}
+});

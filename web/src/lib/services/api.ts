@@ -1,4 +1,4 @@
-import { Error, showLoginModal } from "$lib/stores";
+import { Error, loginModalState } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
@@ -45,9 +45,9 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
                     console.log("Error 401: Unauthorized. Deleting the token.");
                     logout(false);
 
-                    showLoginModal.set({
-                        opened: true,
-                        callbackFunc: null
+                    loginModalState.set({
+                        openRequested: true,
+                        callbackFunc: () => {}
                     });
                 }
             } else {

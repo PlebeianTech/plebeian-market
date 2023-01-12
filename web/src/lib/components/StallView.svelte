@@ -9,7 +9,7 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import { publish, getFeaturedAvatars } from "$lib/services/api";
-    import {Info, token, user, showLoginModal} from "$lib/stores";
+    import {Info, token, user, loginModalState} from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
@@ -103,8 +103,8 @@
         if ($user && $user.nym) {
             setCurrent(getNewItem());
         } else {
-            showLoginModal.set({
-                opened: true,
+            loginModalState.set({
+                openRequested: true,
                 callbackFunc: function(){ setCurrent(getNewItem()) }
             });
         }
@@ -114,8 +114,8 @@
         if ($user && $user.nym) {
             scrollIntoView(target);
         } else {
-            showLoginModal.set({
-                opened: true,
+            loginModalState.set({
+                openRequested: true,
                 callbackFunc: function(){ scrollIntoView(target) }
             });
         }
