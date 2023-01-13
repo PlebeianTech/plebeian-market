@@ -1,4 +1,4 @@
-import { isProduction } from "$lib/utils";
+import { isProduction, SHORT_TITLE_LIMIT, SHORT_DESCRIPTION_LIMIT } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
 import { Category, type Item, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
@@ -59,6 +59,14 @@ export class Auction implements IEntity, Item {
 
     public validate(forSave: boolean = false) {
         return !(this.title.length === 0 || this.description.length === 0);
+    }
+
+    public getShortTitle(): string {
+        return this.title.substring(0, SHORT_TITLE_LIMIT);
+    }
+
+    public getShortDescription(): string {
+        return this.description.substring(0, SHORT_DESCRIPTION_LIMIT);
     }
 
     public topBid() {

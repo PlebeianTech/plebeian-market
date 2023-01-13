@@ -3,6 +3,8 @@ import {goto} from "$app/navigation";
 import {token} from "$lib/stores";
 
 export let SATS_IN_BTC = 100000000;
+export let SHORT_TITLE_LIMIT = 70;
+export let SHORT_DESCRIPTION_LIMIT = 200;
 
 export function isDevelopment() {
     return import.meta.env.MODE === 'development';
