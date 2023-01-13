@@ -421,8 +421,10 @@ def get_put_delete_entity(key, cls, singular, has_item):
         if user.id != entity.owner_id and not is_changing_hidden_state:
             return jsonify({'message': "Unauthorized"}), 401
 
-        if isinstance(entity, m.Auction) and entity.started and not is_changing_hidden_state_only:
-            return jsonify({'message': "Cannot edit auctions once started."}), 403
+        if isinstance(entity, m.Auction) and not is_changing_hidden_state_only:
+            reason = entity.get_not_editable_reason()
+            if reason:
+                return jsonify({'message': reason}), 403
 
         if request.method == 'PUT':
             # reorder media, if requested
@@ -474,8 +476,10 @@ def post_media(key, cls, singular):
     if user.id != entity.item.seller_id:
         return jsonify({'message': "Unauthorized"}), 401
 
-    if isinstance(entity, m.Auction) and entity.started:
-        return jsonify({'message': "Cannot edit auctions once started."}), 403
+    if isinstance(entity, m.Auction):
+        reason = entity.get_not_editable_reason()
+        if reason:
+            return jsonify({'message': reason}), 403
 
     last_index = max([media.index for media in entity.item.media], default=0)
     index = last_index + 1
@@ -514,8 +518,10 @@ def delete_media(key, cls, content_hash):
     if user.id != entity.item.seller_id:
         return jsonify({'message': "Unauthorized"}), 401
 
-    if isinstance(entity, m.Auction) and entity.started:
-        return jsonify({'message': "Cannot edit auctions once started."}), 403
+    if isinstance(entity, m.Auction):
+        reason = entity.get_not_editable_reason()
+        if reason:
+            return jsonify({'message': reason}), 403
 
     media = m.Media.query.filter_by(item_id=entity.item_id, content_hash=content_hash).first()
 

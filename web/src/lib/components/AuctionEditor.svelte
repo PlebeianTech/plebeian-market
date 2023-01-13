@@ -104,7 +104,7 @@
                         bind:shipping_domestic_usd={auction.shipping_domestic_usd}
                         bind:shipping_worldwide_usd={auction.shipping_worldwide_usd} />
                 {/if} <!-- /shipping -->
-                {#if !isTimeAuction} <!-- duration -->
+                {#if !isTimeAuction && (auction.key === null || auction.key === "")} <!-- duration -->
                     <div class="form-control mr-2 w-full">
                         <label class="label" for="duration">
                             <span class="label-text text-lg">Auction Duration</span>

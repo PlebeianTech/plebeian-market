@@ -828,6 +828,12 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     def featured_sort_key(self):
         return len(self.bids)
 
+    def get_not_editable_reason(self):
+        if self.start_date is not None and self.start_date < datetime.utcnow() - timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']):
+            return f"Cannot edit auctions more than {app.config['AUCTION_EDITABLE_MINUTES']} minutes after started."
+        if len(self.bids) > 0:
+            return "Cannot edit auctions that already have bids."
+
     @property
     def reserve_bid_reached(self):
         if self.reserve_bid == 0:
@@ -836,6 +842,18 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         return top_bid.amount >= self.reserve_bid if top_bid else False
 
     def to_dict(self, for_user=None):
+        if not self.started:
+            ends_in_seconds = None
+        elif self.ended:
+            ends_in_seconds = 0
+        else:
+            ends_in_seconds = (self.end_date - datetime.utcnow()).total_seconds()
+        if not self.started:
+            editable_for_seconds = None
+        elif datetime.utcnow() < self.start_date + timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']):
+            editable_for_seconds = (self.start_date + timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']) - datetime.utcnow()).total_seconds()
+        else:
+            editable_for_seconds = 0
         auction = {
             'key': self.key,
             'title': self.item.title,
@@ -847,6 +865,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
             'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date else False,
             'ended': self.ended,
+            'ends_in_seconds': ends_in_seconds,
+            'editable_for_seconds': editable_for_seconds,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,
             'shipping_from': self.item.shipping_from,

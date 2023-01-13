@@ -35,7 +35,4 @@ export interface Item {
     campaign_key: string | null;
     campaign_name: string | null;
     is_mine: boolean;
-
-    getShortTitle(): string;
-    getShortDescription(): string;
 }

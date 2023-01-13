@@ -278,11 +278,13 @@ export function publish(tokenValue, endpoint, key, useTwitter: boolean, successC
     );
 }
 
-export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void) {
+export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null,
         response => {
             if (response.status === 200) {
                 successCB();
+            } else {
+                errorHandler.handle(response);
             }
     });
 }
