@@ -43,7 +43,7 @@
         title="Plebeian Market"
         description="Plebeian Market is a distributed self sovereign P2P market place."
         openGraph={{
-            site_name: "Plebeian Market",
+            site_name: import.meta.env.VITE_SITE_NAME,
             type: "website",
             url: $page.url.href,
             title: "Plebeian Market",

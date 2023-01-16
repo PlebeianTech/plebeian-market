@@ -27,9 +27,9 @@
             {#each auction.bids as bid}
                 <tr>
                     <td>
-                        <div class="flex items-center space-x-3">
+                        <div class="lg:flex items-center space-x-3">
                             <Avatar account={bid.buyer} />
-                            <p class="md:hidden text-xs">
+                            <p class="md:hidden text-xs my-2">
                                 <DateFormatter date={bid.settled_at} style={DateStyle.Short} />
                             </p>
                         </div>

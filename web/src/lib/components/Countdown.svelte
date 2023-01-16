@@ -24,14 +24,18 @@
         if (!untilDate) {
             return;
         }
-        var delta = Math.abs(untilDate.valueOf() - new Date().valueOf()) / 1000;
-        days = Math.floor(delta / 86400);
-        delta -= days * 86400;
-        hours = Math.floor(delta / 3600) % 24;
-        delta -= hours * 3600;
-        minutes = Math.floor(delta / 60) % 60;
-        delta -= minutes * 60;
-        seconds = delta % 60;
+        if (new Date() > untilDate) {
+            days = hours = minutes = seconds = 0;
+        } else {
+            var delta = Math.abs(untilDate.valueOf() - new Date().valueOf()) / 1000;
+            days = Math.floor(delta / 86400);
+            delta -= days * 86400;
+            hours = Math.floor(delta / 3600) % 24;
+            delta -= hours * 3600;
+            minutes = Math.floor(delta / 60) % 60;
+            delta -= minutes * 60;
+            seconds = delta % 60;
+        }
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;

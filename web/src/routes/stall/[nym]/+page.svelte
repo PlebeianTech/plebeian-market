@@ -12,6 +12,7 @@
     import { token, user } from "$lib/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { page } from "$app/stores";
+    import {getShortTitle, getShortDescription} from "$lib/utils";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -46,23 +47,30 @@
         }
     });
 
+    let stallTitle: string = '';
+    let stallDescription: string = '';
+
     let serverLoadedUser = data.serverLoadedUser;
+    if (serverLoadedUser) {
+        stallTitle = serverLoadedUser.stall_name ? getShortTitle(serverLoadedUser.stall_name) : serverLoadedUser.nym + "'s Stall";
+        stallDescription = serverLoadedUser.stall_description ? getShortDescription(serverLoadedUser.stall_description) : "Check out my Plebeian Market stall!"
+    }
 </script>
 
 {#if serverLoadedUser}
     <MetaTags
-            title={serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!")}
-            description={serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!"}
+            title={stallTitle}
+            description={stallDescription}
             openGraph={{
-                site_name: "Plebeian Market",
+                site_name: import.meta.env.VITE_SITE_NAME,
                 type: "website",
                 url: $page.url.href,
-                title: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
-                description: serverLoadedUser.stall_description ?? serverLoadedUser.description ?? "Check the products at this Plebeian Market Stall!",
+                title: stallTitle,
+                description: stallDescription,
                 images: [
                   {
                     url: serverLoadedUser.stall_banner_url ?? serverLoadedUser.profile_image_url ?? "",
-                    alt: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
+                    alt: stallTitle,
                   }
                 ],
             }}
@@ -70,7 +78,7 @@
                 site: import.meta.env.VITE_TWITTER_USER,
                 handle: import.meta.env.VITE_TWITTER_USER,
                 cardType: "summary_large_image",
-                imageAlt: serverLoadedUser.stall_name ?? (serverLoadedUser.nym ? serverLoadedUser.nym + "'s Stall" : "Check this Plebeian Market Campaign!"),
+                imageAlt: stallTitle,
             }}
     />
 {/if}

@@ -3,6 +3,8 @@ import {goto} from "$app/navigation";
 import {token, loginModalState} from "$lib/stores";
 
 export let SATS_IN_BTC = 100000000;
+export let SHORT_TITLE_LIMIT = 70;
+export let SHORT_DESCRIPTION_LIMIT = 200;
 
 export function isDevelopment() {
     return import.meta.env.MODE === 'development';
@@ -70,4 +72,20 @@ export function requestLoginModal(callbackFunc: () => void = () => {}) {
         openRequested: true,
         callbackFunc
     });
+}
+
+export function getShortTitle(longTitle): string {
+    if (longTitle) {
+        return longTitle.substring(0, SHORT_TITLE_LIMIT);
+    }
+
+    return '';
+}
+
+export function getShortDescription(longDescription): string {
+    if (longDescription) {
+        return longDescription.substring(0, SHORT_DESCRIPTION_LIMIT);
+    }
+
+    return '';
 }

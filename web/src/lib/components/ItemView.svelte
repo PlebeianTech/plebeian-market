@@ -17,7 +17,7 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
-    import { getBaseUrl, requestLoginModal } from "$lib/utils";
+    import { getBaseUrl, requestLoginModal, getShortTitle, getShortDescription } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
 
     export let loader: ILoader;
@@ -118,24 +118,26 @@
     onDestroy(stopRefresh);
 </script>
 
+{#if serverLoadedItem}
 <MetaTags
-    title={serverLoadedItem?.title ?? "Plebeian Market item"}
-    description={serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION}
+    title={getShortTitle(serverLoadedItem.title)}
+    description={getShortDescription(serverLoadedItem.description)}
     openGraph={{
-        site_name: "Plebeian Market",
+        site_name: import.meta.env.VITE_SITE_NAME,
         type: 'website',
         url: $page.url.href,
-        title: serverLoadedItem?.title ?? "Plebeian Market item",
-        description: serverLoadedItem?.description ?? import.meta.env.VITE_PM_DESCRIPTION,
-        images: [{ url: serverLoadedItem && serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg" }],
+        title: getShortTitle(serverLoadedItem.title),
+        description: getShortDescription(serverLoadedItem.description),
+        images: [{ url: serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg" }],
     }}
     twitter={{
         site: import.meta.env.VITE_TWITTER_USER,
         handle: import.meta.env.VITE_TWITTER_USER,
         cardType: "summary_large_image",
-        imageAlt: serverLoadedItem?.title ?? "Plebeian Market item",
+        imageAlt: getShortTitle(serverLoadedItem.title),
     }}
 />
+{/if}
 
 {#if item}
     <div class="lg:w-2/3 mx-auto p-2">

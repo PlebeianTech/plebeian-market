@@ -110,6 +110,7 @@
             <div class="overflow-x-auto w-full">
                 <table class="table w-full">
                     <thead>
+                      <th />
                         {#each columns as column}
                             <th>{column}</th>
                         {/each}

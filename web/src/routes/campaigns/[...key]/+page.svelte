@@ -10,6 +10,7 @@
     import { token, user } from "$lib/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { page } from "$app/stores";
+    import {getShortTitle, getShortDescription} from "$lib/utils";
     import FaketoshiPNG from "$lib/images/Bitko-Illustration-Faketoshi.png?url"
 
     /** @type {import('./$types').PageData} */
@@ -45,14 +46,14 @@
 
 {#if data.serverLoadedCampaign}
 <MetaTags
-        title={data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign"}
-        description={data.serverLoadedCampaign.description ?? "Support the cause and help a Bitcoiner!"}
+        title={getShortTitle(data.serverLoadedCampaign.name)}
+        description={getShortDescription(data.serverLoadedCampaign.description)}
         openGraph={{
-            site_name: "Plebeian Market",
+            site_name: import.meta.env.VITE_SITE_NAME,
             type: "website",
             url: $page.url.href,
-            title: data.serverLoadedCampaign.name ?? "We Are All Hodlonaut Campaign",
-            description: data.serverLoadedCampaign.description ?? "A chance to talk with famous Bitcoin personalities",
+            title: getShortTitle(data.serverLoadedCampaign.name),
+            description: getShortDescription(data.serverLoadedCampaign.description),
             images: [
               {
                 url: FaketoshiPNG,
@@ -64,7 +65,7 @@
             site: import.meta.env.VITE_TWITTER_USER,
             handle: import.meta.env.VITE_TWITTER_USER,
             cardType: "summary_large_image",
-            imageAlt: data.serverLoadedCampaign.name ?? "Check this Plebeian Market Campaign!",
+            imageAlt: getShortTitle(data.serverLoadedCampaign.name),
         }}
 />
 {/if}

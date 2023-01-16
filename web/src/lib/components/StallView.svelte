@@ -224,7 +224,7 @@
                 {/if}
 
                 <div class="flex flex-col gap-4 w-full py-4 my-4">
-                  <div class="flex space-x-4">
+                  <div class="lg:flex lg:space-x-4 lg:space-y-0 space-y-2">
                       {#if telegramHref}
                           <a href={telegramHref} class="link text-2xl flex items-center space-x-2" target="_blank" rel="noreferrer">
                               <span class="flex items-center justify-center">
@@ -290,7 +290,7 @@
                     {showItemsOwner} {showItemsCampaign}
                     card={ItemCard}
                     style={ListViewStyle.List}>
-                    <div slot="new-entity" class="grid place-items-center lg:w-2/3 mx-auto lg:grid-cols-2 gap-4" let:setCurrent={setCurrent}>
+                    <div slot="new-entity" class="lg:flex justify-center lg:w-2/3 mx-auto" let:setCurrent={setCurrent}>
                         {#if isCampaignStall}
                             <div id="auction-hour-1" class="grid place-items-center w-full mx-auto my-10 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new TimeAuction())}>
                               <div class="w-full my-8 grid place-items-center">
@@ -301,7 +301,7 @@
                               </div>
                             </div>
                         {/if}
-
+                            
                         <div id="anchorIdAuctionItem" class="grid place-items-center w-full mx-auto my-10 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Auction())}>
                           <div class="grid place-items-center w-full my-8">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24">
