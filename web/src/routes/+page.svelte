@@ -5,13 +5,14 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { getFeatured } from "$lib/services/api";
-    import { user, loginModalState } from "$lib/stores";
+    import { user } from "$lib/stores";
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
+    import {requestLoginModal} from "../lib/utils";
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
@@ -20,10 +21,7 @@
         if ($user && $user.nym) {
             goToStall()
         } else {
-            loginModalState.set({
-                openRequested: true,
-                callbackFunc: goToStall
-            });
+            requestLoginModal(goToStall);
         }
     }
 

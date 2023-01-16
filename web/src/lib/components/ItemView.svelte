@@ -3,7 +3,7 @@
     import SvelteMarkdown from 'svelte-markdown';
     import { MetaTags } from 'svelte-meta-tags';
     import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
-    import { Error, Info, token, user, loginModalState } from "$lib/stores";
+    import { Error, Info, token, user } from "$lib/stores";
     import { Category, type Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
@@ -17,7 +17,7 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
-    import { getBaseUrl } from "$lib/utils";
+    import { getBaseUrl, requestLoginModal } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
 
     export let loader: ILoader;
@@ -84,13 +84,6 @@
                 tweetURL = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(getBaseUrl() + 'auctions/' + item?.key) + '&text=' + item?.title;
             },
             new ErrorHandler(false));
-    }
-
-    function showLoginModal() {
-        loginModalState.set({
-            openRequested: true,
-            callbackFunc: () => {}
-        });
     }
 
     function followAuction() {
@@ -364,7 +357,7 @@
                             {/if}
 
                             <div class="w-full my-8 grid place-items-center">
-                                <p class="btn btn-primary font-bold text-center" on:click={showLoginModal} on:keypress={showLoginModal}>Login</p>
+                                <p class="btn btn-primary font-bold text-center" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</p>
                             </div>
                         {/if}
                     {:else} <!-- item.ended -->

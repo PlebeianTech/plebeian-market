@@ -9,13 +9,14 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import { publish, getFeaturedAvatars } from "$lib/services/api";
-    import {Info, token, user, loginModalState} from "$lib/stores";
+    import {Info, token, user} from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import type { IAccount, Badge, User } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
+    import {requestLoginModal} from "../utils";
     // import CampaignStats from './CampaignStats.svelte';
 
     export let baseUrl: string;
@@ -103,10 +104,7 @@
         if ($user && $user.nym) {
             setCurrent(getNewItem());
         } else {
-            loginModalState.set({
-                openRequested: true,
-                callbackFunc: function(){ setCurrent(getNewItem()) }
-            });
+            requestLoginModal(() => setCurrent(getNewItem()));
         }
     }
 
@@ -114,10 +112,7 @@
         if ($user && $user.nym) {
             scrollIntoView(target);
         } else {
-            loginModalState.set({
-                openRequested: true,
-                callbackFunc: function(){ scrollIntoView(target) }
-            });
+            requestLoginModal(() => scrollIntoView(target));
         }
     }
 
