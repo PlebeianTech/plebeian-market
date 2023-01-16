@@ -66,3 +66,19 @@ export function usd2sats(usd: number, btc2usd: number | null): number | null {
 export function formatBTC(sats: number) {
     return (1 / SATS_IN_BTC * sats).toFixed(9);
 }
+
+export function getShortTitle(longTitle): string {
+    if (longTitle) {
+        return longTitle.substring(0, SHORT_TITLE_LIMIT);
+    }
+
+    return '';
+}
+
+export function getShortDescription(longDescription): string {
+    if (longDescription) {
+        return longDescription.substring(0, SHORT_DESCRIPTION_LIMIT);
+    }
+
+    return '';
+}

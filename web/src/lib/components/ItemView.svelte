@@ -17,7 +17,7 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
-    import { getBaseUrl } from "$lib/utils";
+    import { getBaseUrl, getShortTitle, getShortDescription } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
     import LoginModal from "$lib/components/LoginModal.svelte";
 
@@ -127,24 +127,26 @@
     onDestroy(stopRefresh);
 </script>
 
+{#if serverLoadedItem}
 <MetaTags
-    title={serverLoadedItem?.getShortTitle()}
-    description={serverLoadedItem?.getShortDescription()}
+    title={getShortTitle(serverLoadedItem.title)}
+    description={getShortDescription(serverLoadedItem.description)}
     openGraph={{
         site_name: import.meta.env.VITE_SITE_NAME,
         type: 'website',
         url: $page.url.href,
-        title: serverLoadedItem?.getShortTitle(),
-        description: serverLoadedItem?.getShortDescription(),
-        images: [{ url: serverLoadedItem && serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg" }],
+        title: getShortTitle(serverLoadedItem.title),
+        description: getShortDescription(serverLoadedItem.description),
+        images: [{ url: serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg" }],
     }}
     twitter={{
         site: import.meta.env.VITE_TWITTER_USER,
         handle: import.meta.env.VITE_TWITTER_USER,
         cardType: "summary_large_image",
-        imageAlt: serverLoadedItem?.getShortTitle(),
+        imageAlt: getShortTitle(serverLoadedItem.title),
     }}
 />
+{/if}
 
 {#if item}
     <div class="lg:w-2/3 mx-auto p-2">

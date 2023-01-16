@@ -1,6 +1,5 @@
 import type { IEntity } from "$lib/types/base";
 import type { IAccount } from "$lib/types/user";
-import { SHORT_TITLE_LIMIT, SHORT_DESCRIPTION_LIMIT } from "$lib/utils";
 
 export class Campaign implements IEntity {
     static SAVED_FIELDS = ['name', 'description', 'xpub'];
@@ -14,14 +13,6 @@ export class Campaign implements IEntity {
     is_mine: boolean = true;
     xpub: string | null = null;
     owner: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
-
-    public getShortName(): string {
-        return this.name.substring(0, SHORT_TITLE_LIMIT);
-    }
-
-    public getShortDescription(): string {
-        return this.description.substring(0, SHORT_DESCRIPTION_LIMIT);
-    }
 
     public validate(forSave: boolean = false) {
         return true;
