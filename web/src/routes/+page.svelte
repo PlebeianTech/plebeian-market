@@ -12,9 +12,7 @@
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import LoginModal from "$lib/components/LoginModal.svelte";
-
-    let loginModal : LoginModal | null;
+    import {requestLoginModal} from "../lib/utils";
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
@@ -23,11 +21,7 @@
         if ($user && $user.nym) {
             goToStall()
         } else {
-            if (loginModal) {
-                loginModal.show(async function () {
-                    goToStall()
-                });
-            }
+            requestLoginModal(goToStall);
         }
     }
 
@@ -109,14 +103,11 @@
     {/if}
 </div>
 
-<LoginModal bind:this={loginModal} />
-
 <style>
-
-#bgHero {
-    background-image: url('$lib/images/golden-gai-tokyo.jpg');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-  }
+    #bgHero {
+        background-image: url('$lib/images/golden-gai-tokyo.jpg');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+    }
 </style>

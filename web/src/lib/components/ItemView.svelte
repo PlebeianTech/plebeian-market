@@ -17,11 +17,8 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
-    import { getBaseUrl, getShortTitle, getShortDescription } from "$lib/utils";
+    import { getBaseUrl, requestLoginModal, getShortTitle, getShortDescription } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
-    import LoginModal from "$lib/components/LoginModal.svelte";
-
-    let loginModal : LoginModal | null;
 
     export let loader: ILoader;
     export let itemKey = null;
@@ -87,12 +84,6 @@
                 tweetURL = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(getBaseUrl() + 'auctions/' + item?.key) + '&text=' + item?.title;
             },
             new ErrorHandler(false));
-    }
-
-    function showLoginModal() {
-        if (loginModal) {
-            loginModal.show();
-        }
     }
 
     function followAuction() {
@@ -368,7 +359,7 @@
                             {/if}
 
                             <div class="w-full my-8 grid place-items-center">
-                                <p class="btn btn-primary font-bold text-center" on:click={showLoginModal} on:keypress={showLoginModal}>Login</p>
+                                <p class="btn btn-primary font-bold text-center" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</p>
                             </div>
                         {/if}
                     {:else} <!-- item.ended -->
@@ -408,6 +399,4 @@
             </div>
         </div>
     </div>
-
-    <LoginModal bind:this={loginModal} />
 {/if}

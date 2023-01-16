@@ -11,3 +11,11 @@ export const Info: Writable<string | null | {message: string, duration: number, 
 export const Error: Writable<string | null> = writable(null);
 
 export const BTC2USD: Writable<number | null> = writable(null);
+
+export const loginModalState: Writable<{
+    openRequested: boolean;
+    callbackFunc: () => void;
+}> = writable({
+    openRequested: false,
+    callbackFunc: () => {}
+});

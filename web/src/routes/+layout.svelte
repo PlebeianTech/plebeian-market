@@ -2,12 +2,15 @@
     import { onDestroy, onMount } from 'svelte';
     import { toasts } from 'svelte-toasts';
     import "../app.css";
-    import { token, Info, Error, type Placement } from "../lib/stores";
+    import { token, Info, Error, type Placement } from "$lib/stores";
     import Navbar from "$lib/components/Navbar.svelte";
     import Footer from "$lib/components/Footer.svelte";
     import TelegramFixedButton from "$lib/components/TelegramFixedButton.svelte";
     import ToastContainer from "$lib/components/ToastContainer.svelte";
     import { browser } from '$app/environment';
+    import LoginModal from "$lib/components/LoginModal.svelte";
+
+    let loginModal : LoginModal | null;
 
     function getToastOnClickCB(data) {
         return () => {
@@ -99,3 +102,5 @@
           </div>
     </ToastContainer>
 </div>
+
+<LoginModal bind:this={loginModal} />
