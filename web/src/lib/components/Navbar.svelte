@@ -149,7 +149,7 @@
         <p>
           <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
         </p>
-        <!-- MOBILE VISIBLE -->
+        <!-- MOBILE VISIBLE, DESKTOP HIDDEN -->
         <div class="md:hidden lg:hidden sm:block">
           <ul>
             <li><a rel="external" href="/stall/{$user.nym}" class="btn btn-ghost normal-case">My stall</a></li>
