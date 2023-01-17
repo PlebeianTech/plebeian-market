@@ -130,10 +130,7 @@
 
 		<!-- Mobile Menu open: "block", Menu closed: "hidden" -->
 		<div
-			class="lg:flex lg:flex-row flex-col justify-center mt-4 space-y-2 md:space-y-0 md:space-x-4 md:mt-0 {showMenu
-				? 'flex'
-				: 'hidden'}"
-		>
+			class="lg:flex lg:flex-row flex-col justify-center mt-4 space-y-2 md:space-y-0 md:space-x-4 md:mt-0 {showMenu ? 'flex' : 'hidden'}">
       <!-- LINKS -->
 			<div class="lg:flex items-center w-full">
         {#if ! isProduction() }
