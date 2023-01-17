@@ -136,6 +136,10 @@
 		>
       <!-- LINKS -->
 			<div class="lg:flex items-center w-full">
+        {#if ! isProduction() }
+            <div class="lg:inline badge badge-primary ml-2 lg:mb-0 mb-4">{getEnvironmentInfo()}</div>
+        {/if}
+
         <p>
           <a href="/campaigns/we-are-all-hodlonaut" class="btn btn-link normal-case animate-pulse">We are All Hodlonaut Campaign</a>
         </p>
@@ -145,9 +149,29 @@
         <p>
           <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
         </p>
-        {#if ! isProduction() }
-            <div class="lg:inline badge badge-primary ml-2">{getEnvironmentInfo()}</div>
-        {/if}
+        <!-- MOBILE VISIBLE -->
+        <div class="md:hidden lg:hidden sm:block">
+          <ul>
+            <li><a rel="external" href="/stall/{$user.nym}" class="btn btn-ghost normal-case">My stall</a></li>
+            {#if $user.isModerator}
+                <li><a href={null} on:click|preventDefault={() => goto("/campaigns")} class="btn btn-ghost normal-case">My campaigns</a></li>
+            {/if}
+            <li>
+              <a href="/purchases" class="btn btn-ghost normal-case">My Purchases</a>
+            </li>
+            <li>
+              <a href="/sales" class="btn btn-ghost normal-case">My Sales</a>
+            </li>
+            <li><a href="/settings" class="btn btn-ghost normal-case">Settings</a></li>
+            <li>
+              <a href="https://t.me/PlebeianMarket" target="_blank" rel="noreferrer" class="btn btn-ghost normal-case">Telegram Group</a>
+            </li>
+            <li>
+              <a href={null} on:click={() => logout()} class="modal-button cursor-pointer btn btn-ghost normal-case">Logout</a>
+            </li>
+          </ul>
+        </div>
+        
 			</div>
 
 			<!-- LIGHT MODE AND AVATAR -->
