@@ -107,21 +107,20 @@
                 </div>
             </div>
         {:else if style === ListViewStyle.Table}
-            <div class="overflow-x-auto w-full">
-                <table class="table w-full">
-                    <thead>
-                      <th />
-                        {#each columns as column}
-                            <th>{column}</th>
-                        {/each}
-                    </thead>
-                    <tbody>
-                        {#each entities as entity}
-                            <svelte:component this={card} {entity} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
-                        {/each}
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto w-full p-2">
+            <table class="w-full">
+                <thead class="bg-zinc-700/80">
+                    {#each columns as column}
+                        <th class="text-start text-blue-200 px-4 whitespace-nowrap py-4 text-sm uppercase">{column}</th>
+                    {/each}
+                </thead>
+                <tbody class="w-full whitespace-nowrap">
+                    {#each entities as entity}
+                        <svelte:component this={card} {entity} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
+                    {/each}
+                </tbody>
+            </table>
+        </div>
         {/if}
     {/if}
 </div>
