@@ -2,6 +2,7 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
+    "@playwright/test": "^1.29.2",
     "@sveltejs/adapter-node": "1.x",
     "@sveltejs/kit": "1.x",
     "autoprefixer": "10.x",
