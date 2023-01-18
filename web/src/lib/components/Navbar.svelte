@@ -89,8 +89,8 @@
 </script>
 
 
-<nav class="bg-neutral/90 text-neutral-content backdrop-blur-md border-b border-white/20 z-50 fixed top-0 w-full">
-	<div class="lg:w-2/3 py-2 px-4 mx-auto md:flex md:justify-between md:items-center">
+<nav class="lg:bg-neutral/90 bg-neutral text-neutral-content backdrop-blur-md border-b border-white/20 z-50 fixed top-0 w-full">
+	<div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
 		<div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
                 <a href="/" class="flex items-center mr-2">
@@ -104,7 +104,7 @@
 				on:keydown={() => {
 					toggleNavbar;
 				}}
-				class="flex md:hidden"
+				class="lg:hidden flex justify-end"
 			>
 				<button
 					type="button"
@@ -130,29 +130,31 @@
 
 		<!-- Mobile Menu open: "block", Menu closed: "hidden" -->
 		<div
-			class="lg:flex mt-8 space-y-4 md:space-y-0 md:space-x-4 md:mt-0 {showMenu
-				? 'flex'
-				: 'hidden'}"
-		>
+			class="lg:flex lg:flex-row flex-col justify-center mt-4 space-y-2 md:space-y-0 md:space-x-4 md:mt-0 {showMenu ? 'flex' : 'hidden'}">
       <!-- LINKS -->
 			<div class="lg:flex items-center w-full">
-        <p>
-          <a href="/campaigns/we-are-all-hodlonaut" class="btn btn-link normal-case animate-pulse">We are All Hodlonaut Campaign</a>
-        </p>
-        <p>
-          <a href="/about" class="btn btn-ghost normal-case">About</a>
-        </p>
-        <p>
-          <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
-        </p>
         {#if ! isProduction() }
-            <div class="lg:inline badge badge-primary ml-2">{getEnvironmentInfo()}</div>
+            <div class="lg:inline badge badge-primary ml-2 lg:my-0 mt-4">{getEnvironmentInfo()}</div>
         {/if}
+
+        <p>
+          <a href="/campaigns/we-are-all-hodlonaut" class="btn btn-link normal-case animate-pulse lg:my-0 mt-4">We are All Hodlonaut Campaign</a>
+        </p>
+
+        <div class="lg:flex hidden">
+          <p>
+            <a href="/about" class="btn btn-ghost normal-case">About</a>
+          </p>
+          <p>
+            <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
+          </p>
+        </div>
+        
 			</div>
 
 			<!-- LIGHT MODE AND AVATAR -->
-			<div class="lg:flex items-center justify-center space-x-4">
-        <div class="flex justify-center lg:my-0 my-4">
+			<div class="lg:flex items-center justify-start space-x-4">
+        <div class="flex justify-start lg:my-0 p-4">
           <label class="swap swap-rotate" on:click={toggleTheme} on:keypress={toggleTheme}>
               <input id="theme-toggle" type="checkbox" checked={prefersDark} />
               <!-- sun icon -->
@@ -162,13 +164,13 @@
           </label>
         </div>
         {#if $token && $user}
-            <div class="dropdown dropdown-end">
+            <div class="lg:dropdown lg:dropdown-end">
                 <label role="button" for={null} tabindex="0" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified} class="btn btn-ghost btn-circle avatar">
                     <div class="w-10 rounded-full">
                         <img src={$user.profileImageUrl} alt="Avatar" />
                     </div>
                 </label>
-                <ul role="menuitem" tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-neutral rounded-box w-52 z-40">
+                <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral rounded-box w-52 z-40">
                     {#if !$user.twitterUsernameVerified}
                         <li>
                             <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button">
