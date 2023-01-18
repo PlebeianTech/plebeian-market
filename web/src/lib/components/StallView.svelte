@@ -17,6 +17,9 @@
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
     import {requestLoginModal} from "../utils";
+    import NostrChat from "$lib/components/NostrChat.svelte";
+    import { isProduction } from "$lib/utils";
+    import { getChannelIdFromChannelName } from '$lib/nostr/utils'
     // import CampaignStats from './CampaignStats.svelte';
 
     export let baseUrl: string;
@@ -53,6 +56,14 @@
 
     $: twitterUsername = owner ? owner.twitterUsername : null;
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
+
+    let nostrChannelName = null;
+    let nostrRoomId: string = null;
+    if (owner) {
+        // TODO: we need a unique static ID to use here
+        nostrChannelName = 'Plebeian Market Stall ' + owner.nym + ' (' + import.meta.env.MODE + ')';
+        nostrRoomId = getChannelIdFromChannelName(nostrChannelName);
+    }
 
     function onAuctionCreated(key: string, entity: IEntity) {
         user.update((u) => {
@@ -301,7 +312,7 @@
                               </div>
                             </div>
                         {/if}
-                            
+
                         <div id="anchorIdAuctionItem" class="grid place-items-center w-full mx-auto my-10 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Auction())}>
                           <div class="grid place-items-center w-full my-8">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24">
@@ -378,6 +389,20 @@
                     </div>
                 {/each}
             {/if}
+        {/if}
+
+        {#if !isProduction() }
+            <div class="divider my-20"></div>
+
+            <h3 class="lg:text-8xl text-4xl font-black text-center">Chat on my stall</h3>
+            // let messagesSince = TIMESTAMP_CREATION_STALL (USER?) / 1000
+            <div>
+                <NostrChat
+                    emptyChatShowsLoading={false}
+                    messageLimit={500}
+                    {nostrRoomId}
+                />
+            </div>
         {/if}
     </div>
 </div>

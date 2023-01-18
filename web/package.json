@@ -32,5 +32,8 @@
     "check": "svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "nostr-tools": "^1.1.1"
   }
 }
