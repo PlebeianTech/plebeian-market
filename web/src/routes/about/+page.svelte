@@ -63,7 +63,7 @@
   <a class="bg-gray-300/20 p-4 rounded cardHover duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/HodlrDotRocks">
 
     <h2 class="text-3xl font-bold my-4">Chiefmonkey</h2>
-    <h3 class="uppercase my-2 font-bold text-sm">Chief</h3>
+    <h3 class="uppercase my-2 font-bold text-sm">Founder</h3>
 
   </a>
 
