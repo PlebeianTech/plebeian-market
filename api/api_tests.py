@@ -506,19 +506,11 @@ class TestApi(unittest.TestCase):
         self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats - fifty_cent_sats, delta=((ten_dollars_sats - fifty_cent_sats) / 100))
         self.assertIn(response['sale']['address'], ADDRESSES)
 
-        self.update_user(token_1, contribution_percent=1.0)
-
-        # buying an item again, after the seller has changed the contribution
+        # buying the same item again doesn't work since we now have an active sale
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
             headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        ten_cent_sats = ONE_DOLLAR_SATS / 10
-        ten_dollars_sats = ONE_DOLLAR_SATS * 10
-        self.assertAlmostEqual(response['sale']['contribution_amount'], ten_cent_sats, delta=ten_cent_sats/100)
-        self.assertIn('contribution_payment_request', response['sale'])
-        self.assertIn('contribution_payment_qr', response['sale'])
-        self.assertAlmostEqual(response['sale']['amount'], ten_dollars_sats - ten_cent_sats, delta=((ten_dollars_sats - ten_cent_sats) / 100))
-        self.assertIn(response['sale']['address'], ADDRESSES)
+        self.assertEqual(code, 403)
+        self.assertIn("you already have an active purchase", response['message'].lower())
 
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
@@ -536,8 +528,8 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(response['listing']['available_quantity'], 8)
-        self.assertEqual(len(response['listing']['sales']), 2)
+        self.assertEqual(response['listing']['available_quantity'], 9)
+        self.assertEqual(len(response['listing']['sales']), 1)
         for s in response['listing']['sales']:
             self.assertIsNotNone(s['contribution_settled_at'])
             self.assertIsNotNone(s['settled_at'])
@@ -549,9 +541,8 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me/sales", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 2)
+        self.assertEqual(len(response['sales']), 1)
         self.assertIn(response['sales'][0]['address'], ADDRESSES)
-        self.assertIn(response['sales'][1]['address'], ADDRESSES)
 
         # the buyer has no sales
         code, response = self.get("/api/users/me/sales", {},

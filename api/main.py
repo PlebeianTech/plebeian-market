@@ -213,23 +213,14 @@ def settle_lnd_payments():
                         sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
                         if sale:
                             found_invoice = True
-                            listing = None
-                            if sale.listing_id:
-                                listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
-                            if listing and listing.available_quantity < sale.quantity:
-                                # this should not happen unless, for example,
-                                # two people clicked "buy" while there was only 1 item in stock
-                                # and one of them sent the contribution first - hence "reserved" the item
-                                # so all we can do in this case is mark the sale as "expired" for the 2nd buyer
-                                sale.state = m.SaleState.EXPIRED.value
-                                sale.expired_at = datetime.utcnow()
-                                app.logger.info(f"Expired sale {sale.id=} ahead-of-time due to somebody else sending the contribution first.")
-                            else:
-                                if listing:
-                                    listing.available_quantity -= sale.quantity
+                            if sale.state not in [m.SaleState.TX_DETECTED.value, m.SaleState.TX_CONFIRMED.value]:
+                                # NB: in theory, the contribution should always settle before we get a TX, but you never know...
+                                # it could be that this process, or the lightning node, went down
+                                # and the user managed to get an on-chain TX in first.
+                                # we certainly don't want to change the state in that case!
                                 sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
-                                sale.contribution_settled_at = datetime.utcnow()
-                                app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
+                            sale.contribution_settled_at = datetime.utcnow()
+                            app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
                     if found_invoice:
                         last_settle_index = invoice.settle_index
                         state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
