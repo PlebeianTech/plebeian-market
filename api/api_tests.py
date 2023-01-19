@@ -93,6 +93,12 @@ class TestApi(unittest.TestCase):
         _, token_2 = self.create_user()
         _, token_3 = self.create_user(twitter_username='buyer')
 
+        # verify Twitter for the buyer
+        code, response = self.put("/api/users/me/verify/twitter",
+            {'phrase': "i am ME"},
+            headers=self.get_auth_headers(token_3))
+        self.assertEqual(code, 200)
+
         # creating a campaign requires log in
         code, response = self.post("/api/users/me/campaigns", {})
         self.assertEqual(code, 401)
@@ -1055,7 +1061,19 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['messages']), 0)
 
-        # users can place a bid
+        # users cannot place a bid if they didn't verify Twitter
+        code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 400)
+        self.assertIn("please verify", response['message'].lower())
+
+        # verify Twitter
+        code, response = self.put("/api/users/me/verify/twitter",
+            {'phrase': "i am ME"},
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+
+        # verified users can place a bid
         code, response = self.post(f"/api/auctions/{auction_key}/bids", {'amount': 888},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
