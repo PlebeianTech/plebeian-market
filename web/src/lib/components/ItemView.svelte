@@ -216,9 +216,7 @@
                         <p class="mt-4 ml-2">
                             {#if item instanceof Auction}
                                 {#if item.start_date && item.end_date}
-                                    {#if !item.started}
-                                        Auction starts <Countdown untilDate={new Date(item.start_date)} />.
-                                    {:else if item.ended}
+                                    {#if item.ended}
                                         Auction ended.
                                     {/if}
                                 {:else if !item.is_mine}
@@ -378,7 +376,7 @@
                             {/if}
                             {#if item.started && !item.ended}
                                 <div class="py-5">
-                                    <Countdown bind:this={finalCountdown} untilDate={new Date(item.end_date)} />
+                                    <Countdown bind:this={finalCountdown} totalSeconds={item.ends_in_seconds} />
                                 </div>
                             {/if}
                             {#if !item.reserve_bid_reached}

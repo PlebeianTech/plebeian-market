@@ -53,7 +53,9 @@
     }
 
     onMount(async () => {
-        setTitle($user);
+        if (auction.key === null || auction.key === "") {
+            setTitle($user);
+        }
         if (isTimeAuction) {
             auction.duration_hours = isProduction() ? 48 : 0.1;
         }
@@ -104,7 +106,7 @@
                         bind:shipping_domestic_usd={auction.shipping_domestic_usd}
                         bind:shipping_worldwide_usd={auction.shipping_worldwide_usd} />
                 {/if} <!-- /shipping -->
-                {#if !isTimeAuction} <!-- duration -->
+                {#if !isTimeAuction && (auction.key === null || auction.key === "")} <!-- duration -->
                     <div class="form-control mr-2 w-full">
                         <label class="label" for="duration">
                             <span class="label-text text-lg">Auction Duration</span>
@@ -135,7 +137,7 @@
                 <div class="w-1/2 flex justify-center items-center">
                     {#if !auction.validate()}
                         <button class="btn mt-1" disabled>Save</button>
-                    {:else if isTimeAuction}
+                    {:else if isTimeAuction && (auction.key === null || auction.key === "")}
                         <div class="tooltip" data-tip="Your auction will start immediately and there is no turning back!">
                             <div class="glowbutton glowbutton-publish" on:click|preventDefault={onSave} on:keypress={onSave}></div>
                         </div>

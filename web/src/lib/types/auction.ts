@@ -45,6 +45,8 @@ export class Auction implements IEntity, Item {
     end_date?: Date | null;
     end_date_extended: boolean = false;
     ended: boolean = false;
+    ends_in_seconds: number | null = null;
+    editable_for_seconds: number | null = null;
     duration_str?: string;
     bids: Bid[] = [];
     sales: Sale[] = [];

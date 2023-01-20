@@ -22,7 +22,9 @@
     onDestroy(user.subscribe(setTitle));
 
     onMount(async () => {
-        setTitle($user);
+        if (listing.key === null || listing.key === "") {
+            setTitle($user);
+        }
     });
 </script>
 

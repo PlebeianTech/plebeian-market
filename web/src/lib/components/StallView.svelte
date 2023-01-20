@@ -325,7 +325,7 @@
                             bind:this={auctionsLists[filter]}
                             loader={{endpoint: `${baseUrl}/auctions?filter=${filter}`, responseField: 'auctions', fromJson: auctionFromJson}}
                             {onForceReload}
-                            editor={null}
+                            editor={canAddItems ? AuctionEditor : null}
                             {showItemsOwner} {showItemsCampaign}
                             card={ItemCardSmall}
                             style={ListViewStyle.Grid} />

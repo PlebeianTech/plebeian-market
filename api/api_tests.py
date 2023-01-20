@@ -1013,18 +1013,11 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auctions']), 1)
 
-        # can't EDIT the auction once started
+        # can still EDIT the auction once started
         code, response = self.put(f"/api/auctions/{auction_key}",
             {'starting_bid': 101},
             headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 403)
-        self.assertIn("cannot edit auctions once started", response['message'].lower())
-
-        # also can't DELETE the auction once started
-        code, response = self.delete(f"/api/auctions/{auction_key}",
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 403)
-        self.assertIn("cannot edit auctions once started", response['message'].lower())
+        self.assertEqual(code, 200)
 
         _, token_3 = self.create_user()
 
@@ -1074,6 +1067,19 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['messages']), 1) # no message about follow, since we already did that
 
         bid_payment_request = response['payment_request']
+
+        # cannot EDIT the auction anymore once it has a bid
+        code, response = self.put(f"/api/auctions/{auction_key}",
+            {'starting_bid': 102},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 403)
+        self.assertIn("cannot edit auctions that already have bids", response['message'].lower())
+
+        # also can't DELETE the auction once it has bids
+        code, response = self.delete(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 403)
+        self.assertIn("cannot edit auctions that already have bids", response['message'].lower())
 
         # auction has no (settled) bids... yet
         code, response = self.get(f"/api/auctions/{auction_key}",
