@@ -80,7 +80,7 @@ class TestApi(unittest.TestCase):
 
         code, response = self.get("/api/users/me", headers=self.get_auth_headers(token))
         self.assertEqual(code, 200)
-        app.logger.info(f"Created user: ID={response['user']['id']}")
+        app.logger.info(f"Created user: identity={response['user']['identity']}")
         self.assertIsNone(response['user']['twitter_username'])
         self.assertIsNone(response['user']['contribution_percent'])
 
@@ -624,6 +624,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertTrue(response['user']['is_moderator']) # because this is the first user created, so it has the ID=1
 
+        identity_1 = response['user']['identity']
+
         # set user details
         self.update_user(token_1, twitter_username='username1', contribution_percent=1)
 
@@ -728,6 +730,10 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['email'], "goodemail2@plebeian.market")
         self.assertIsNotNone(response['user']['contribution_percent'])
         self.assertIsNone(response['user'].get('is_moderator'))
+
+        identity_2 = response['user']['identity']
+
+        self.assertNotEqual(identity_1, identity_2)
 
         # create an auction
         code, response = self.post("/api/users/me/auctions",
