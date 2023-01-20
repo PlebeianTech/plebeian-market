@@ -71,16 +71,18 @@
                 d
             {/if}
         {/if}
-        <div>
-            <span class="countdown font-mono" class:text-3xl={style === CountdownStyle.Large}>
-                <span style="--value:{hours};"></span>
-            </span>
-            {#if style !== CountdownStyle.Compact}
-                hours
+        {#if style !== CountdownStyle.Compact || days !== 0 || hours !== 0}
+            <div>
+                <span class="countdown font-mono" class:text-3xl={style === CountdownStyle.Large}>
+                    <span style="--value:{hours};"></span>
+                </span>
+                {#if style !== CountdownStyle.Compact}
+                    hours
+                {/if}
+            </div>
+            {#if style === CountdownStyle.Compact}
+                :
             {/if}
-        </div>
-        {#if style === CountdownStyle.Compact}
-            :
         {/if}
         <div>
             <span class="countdown font-mono" class:text-3xl={style === CountdownStyle.Large}>

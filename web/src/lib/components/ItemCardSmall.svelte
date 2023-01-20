@@ -51,7 +51,7 @@
     <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
         <div class="btn-xs"></div>
         {#if isEditable}
-            {#if item instanceof Listing || (item instanceof Auction && item.editable_for_seconds)}
+            {#if item instanceof Listing || (item instanceof Auction && item.editable_for_seconds && item.bids.length === 0)}
                 <button class="btn btn-primary btn-circle btn-xs" on:click={del}>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" width="512.000000pt" height="512.000000pt" viewBox="0 0 512 512" stroke="currentColor">
                         <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
@@ -69,8 +69,9 @@
                         </g>
                     </svg>            
                 </button>
-                {#if item instanceof Auction && item.editable_for_seconds}
+                {#if item instanceof Auction && item.editable_for_seconds && item.bids.length === 0}
                     <Countdown totalSeconds={item.editable_for_seconds} style={CountdownStyle.Compact} />
+                    <span>editable for</span>
                 {/if}
             {/if}
         {/if}
