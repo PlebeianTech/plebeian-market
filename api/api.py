@@ -758,6 +758,9 @@ def buy_listing(user, key):
     if not listing.started or listing.ended:
         return jsonify({'message': "Listing not active."}), 403
 
+    if m.Sale.query.filter_by(listing_id=listing.id, buyer_id=user.id, state=m.SaleState.REQUESTED.value).first():
+        return jsonify({'message': "You already have an active purchase for this listing."}), 403
+
     # NB: for now the quantity is always 1,
     # but storing this in the DB makes it easy in case we want to change this later on:
     # it would just be a matter of getting a quantity from the UI and sending it here to be used instead of 1.
@@ -765,6 +768,9 @@ def buy_listing(user, key):
 
     if listing.available_quantity < quantity:
         return jsonify({'message': "Not enough items in stock!"}), 400
+
+    # NB: here we "lock" the quantity. it is given back if the sale expires
+    listing.available_quantity -= quantity
 
     try:
         btc2usd = btc2fiat.get_value('kraken')

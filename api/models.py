@@ -1190,8 +1190,11 @@ class Sale(db.Model):
 
         if app.config['ENV'] in ['dev', 'staging']:
             return 10 # 10 mins should be enough to send a 0-conf
-        else:
-            return 24 * 60 # one day for a 0-conf to appear in the mempool
+        else: # prod
+            if self.is_listing_sale or self.is_badge_sale:
+                return 30
+            else: # auction - you might not be around when you win it!
+                return 24 * 60 # one day for a 0-conf to appear in the mempool
 
     def to_dict(self):
         sale = {
