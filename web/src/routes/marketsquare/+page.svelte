@@ -21,7 +21,6 @@
                 {roomData}
                 emptyChatShowsLoading={true}
                 messageLimit={200}
-                messagesSince={1672837281}
                 nostrRoomId={pmChannelNostrRoomId}
             />
         </div>

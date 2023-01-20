@@ -395,7 +395,7 @@
             <div class="divider my-20"></div>
 
             <h3 class="lg:text-8xl text-4xl font-black text-center">Chat on my stall</h3>
-            // let messagesSince = TIMESTAMP_CREATION_STALL (USER?) / 1000
+
             <div>
                 <NostrChat
                     emptyChatShowsLoading={false}
