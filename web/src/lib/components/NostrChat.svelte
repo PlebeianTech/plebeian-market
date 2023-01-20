@@ -17,18 +17,18 @@
 
     let nostrPreferenceCheckboxChecked;
 
-    let textarea
+    let textarea;
 
     let nostrExtensionEnabled;
 
-    let messages = []
-    let sortedMessages = []
+    let messages = [];
+    let sortedMessages = [];
 
-    let profilesToQuery = []
-    let profilesQueried = []
-    let profileImagesMap = new Map()
+    let profilesToQuery = [];
+    let profilesQueried = [];
+    let profileImagesMap = new Map();
 
-    const pool: Pool = new Pool()
+    const pool: Pool = new Pool();
 
     function orderAndVitamineMessages() {
         let lastMessagePublicKey = null
@@ -77,11 +77,11 @@
             }
         }
 
-        messages = messages.concat([newMessage])
+        messages = messages.concat([newMessage]);
 
-        addProfileIfDoesntQueriedAlready(newMessage.pubkey)
+        addProfileIfDoesntQueriedAlready(newMessage.pubkey);
 
-        orderAndVitamineMessages()
+        orderAndVitamineMessages();
     }
 
     function addProfileIfDoesntQueriedAlready(pubKey) {
@@ -96,9 +96,9 @@
             }
         }
 
-        profilesToQuery.push(pubKey)
+        profilesToQuery.push(pubKey);
 
-        queryProfilesToNostrRelaysInBatches()
+        queryProfilesToNostrRelaysInBatches();
     }
 
     function queryProfilesToNostrRelaysInBatches() {
@@ -106,14 +106,14 @@
             return false;
         }
 
-        let profilesToGetLocal = []
+        let profilesToGetLocal = [];
 
         for (let i=0; i<10; i++) {
-            const profile = profilesToQuery.shift()
+            const profile = profilesToQuery.shift();
 
             if (profile) {
-                profilesToGetLocal.push(profile)
-                profilesQueried.push(profile)
+                profilesToGetLocal.push(profile);
+                profilesQueried.push(profile);
             }
         }
 
@@ -123,19 +123,19 @@
                 authors: profilesToGetLocal
             }]);
             sub.on('event', event => {
-                const profileContentJSON = event.content
-                const pubKey = event.pubkey
+                const profileContentJSON = event.content;
+                const pubKey = event.pubkey;
 
                 if (!profileImagesMap.has(pubKey)) {
                     if (profileContentJSON) {
-                        profileImagesMap.set(pubKey, JSON.parse(profileContentJSON))
+                        profileImagesMap.set(pubKey, JSON.parse(profileContentJSON));
 
-                        orderAndVitamineMessages()
+                        orderAndVitamineMessages();
                     }
                 }
             });
 
-            await wait(100)
+            await wait(100);
         })
     }
 
@@ -169,7 +169,7 @@
 
         if (nostrRoomId !== null) {
             await pool.connect(
-                () => pool.subscribeToChannel(nostrRoomId, messageLimit, messagesSince, addMessageIfDoesntExist)
+                () => pool.subscribeToChannel(nostrRoomId, messageLimit, messagesSince, addMessageIfDoesntExist);
             );
         } else {
             console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
@@ -177,22 +177,22 @@
     })
 
     onDestroy(() => {
-        pool.disconnect()
+        pool.disconnect();
     })
 
     const onKeyPress = e => {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            sendMessage()
+            e.preventDefault();
+            sendMessage();
         }
     }
 
     const sendMessage = async () => {
-        const content = textarea.value.trim()
+        const content = textarea.value.trim();
 
         if (content) {
             if (await pool.sendMessage(nostrRoomId, content) !== false) {
-                textarea.value = ''
+                textarea.value = '';
             }
         }
     }
