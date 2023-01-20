@@ -25,20 +25,21 @@
             return;
         }
 
-        totalSeconds--;
+        if (totalSeconds > 0) {
+            totalSeconds--;
 
-        if (totalSeconds < 0) {
+            var delta = totalSeconds;
+            days = Math.floor(delta / 86400);
+            delta -= days * 86400;
+            hours = Math.floor(delta / 3600) % 24;
+            delta -= hours * 3600;
+            minutes = Math.floor(delta / 60) % 60;
+            delta -= minutes * 60;
+            seconds = delta % 60;
+        } else {
             totalSeconds = 0;
+            days = hours = minutes = seconds = 0;
         }
-
-        var delta = totalSeconds;
-        days = Math.floor(delta / 86400);
-        delta -= days * 86400;
-        hours = Math.floor(delta / 3600) % 24;
-        delta -= hours * 3600;
-        minutes = Math.floor(delta / 60) % 60;
-        delta -= minutes * 60;
-        seconds = delta % 60;
     }
 
     let interval: ReturnType<typeof setInterval> | undefined;
