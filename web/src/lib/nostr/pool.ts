@@ -1,6 +1,6 @@
 import type {Event, Relay} from "nostr-tools";
 import {getEventHash, relayInit, signEvent, validateEvent} from "nostr-tools";
-import {timeoutBetweenRelayConnectsMillis, nostrPrivateKey, hasExtension, relayUrlList} from "$lib/nostr/utils";
+import {timeoutBetweenRelayConnectsMillis, nostrPrivateKey, hasExtension, relayUrlList, nostrEventSubscribeToCreateChannel} from "$lib/nostr/utils";
 
 export class Pool {
     relays: Relay[] = [];
@@ -10,9 +10,10 @@ export class Pool {
             const relay: Relay = relayInit(relayUrl)
 
             try {
-                await relay.connect()
+                await relay.connect();
             } catch (e) {
-                console.log("   ** Nostr: CATCH: Couldn't connect to ", relayUrl)
+                console.log("   ** Nostr: CATCH: Couldn't connect to ", relayUrl);
+                continue;
             }
 
             relay.on('connect', () => {
@@ -51,7 +52,7 @@ export class Pool {
         }
 
         let event: Event = {
-            kind: 42,
+            kind: nostrEventSubscribeToCreateChannel,
             content: message,
             created_at: Math.floor(Date.now() / 1000),
             tags: [

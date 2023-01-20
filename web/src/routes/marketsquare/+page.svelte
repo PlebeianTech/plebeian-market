@@ -7,7 +7,7 @@
     import { isProduction } from "$lib/utils";
     import { pmChannelNostrRoomId } from '$lib/nostr/utils'
 
-    let roomData = {
+    const roomData = {
         name: 'Plebeian Market Square',
         about: 'You can discuss here all matters related with Plebeian Market.',
         picture: 'https://staging.plebeian.market/images/new-logo.svg'

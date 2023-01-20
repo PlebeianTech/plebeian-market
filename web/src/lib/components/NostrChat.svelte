@@ -4,14 +4,13 @@
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
     import {hasExtension, wait, formatTimestamp} from '$lib/nostr/utils'
+    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
 
     export let roomData = false;
     export let emptyChatShowsLoading: boolean = false;
     export let nostrRoomId: string;
     export let messageLimit: number = 100;
     export let messagesSince: number = 1672837281;  // January 4th 2023
-
-    const defaultProfileImage: string = 'https://assets.dryicons.com/uploads/icon/svg/5579/0f02d8b8-1178-4c83-a3ff-2ec291c76f73.svg';
 
     const localStorageNostrPreferPMId: string = 'nostr-prefer-pm-identity';
 
@@ -49,7 +48,7 @@
                     if (profileInfo && profileInfo.picture) {
                         message.profileImage = profileInfo.picture
                     } else {
-                        message.profileImage = defaultProfileImage
+                        message.profileImage = profilePicturePlaceHolder
                     }
 
                     if (profileInfo && profileInfo.name) {
@@ -79,12 +78,12 @@
 
         messages = messages.concat([newMessage]);
 
-        addProfileIfDoesntQueriedAlready(newMessage.pubkey);
+        addProfileIfNotQueried(newMessage.pubkey);
 
         orderAndVitamineMessages();
     }
 
-    function addProfileIfDoesntQueriedAlready(pubKey) {
+    function addProfileIfNotQueried(pubKey) {
         for (const profile of profilesToQuery) {
             if (profile === pubKey) {
                 return;
@@ -169,7 +168,7 @@
 
         if (nostrRoomId !== null) {
             await pool.connect(
-                () => pool.subscribeToChannel(nostrRoomId, messageLimit, messagesSince, addMessageIfDoesntExist);
+                () => pool.subscribeToChannel(nostrRoomId, messageLimit, messagesSince, addMessageIfDoesntExist)
             );
         } else {
             console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
