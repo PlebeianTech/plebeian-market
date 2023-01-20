@@ -9,6 +9,7 @@
     "daisyui": "2.x",
     "eslint": "8.x",
     "eslint-plugin-svelte3": "4.x",
+    "nostr-tools": "^1.1.2",
     "npm-run-all": "4.x",
     "postcss": "8.x",
     "svelte": "3.x",
@@ -32,8 +33,5 @@
     "check": "svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
-  },
-  "dependencies": {
-    "nostr-tools": "^1.1.1"
   }
 }
