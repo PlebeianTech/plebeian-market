@@ -251,17 +251,17 @@
         >
             <div class="w-full">
                 {#each sortedMessages as m}
-                    <div class="chat chat-start" class:mt-0={m.samePubKey === true} class:mt-5={m.samePubKey !== true} class:profileInfo={m.samePubKey !== true}>
+                    <div class="chat chat-start" class:mt-0={m.samePubKey} class:mt-5={!m.samePubKey} class:profileInfo={!m.samePubKey}>
                         <div class="chat-image avatar">
-                            <div class="w-12 rounded-full ring-primary ring-offset-base-100 ring-offset-2" class:ring={m.samePubKey !== true}>
-                                {#if m.samePubKey !== true}
-                                    <img src="{m.profileImage}" alt="profile picture" class:profileInfoImage={m.samePubKey !== true} />
+                            <div class="w-12 rounded-full ring-primary ring-offset-base-100 ring-offset-2" class:ring={!m.samePubKey}>
+                                {#if !m.samePubKey}
+                                    <img src="{m.profileImage}" alt="profile picture" class:profileInfoImage={!m.samePubKey} />
                                 {/if}
                             </div>
                         </div>
-                        {#if m.samePubKey !== true}
+                        {#if !m.samePubKey}
                             <div class="chat-header">
-                                <span class="mr-3" class:profileInfoName={m.samePubKey !== true}>{m.profileName}</span>
+                                <span class="mr-3" class:profileInfoName={!m.samePubKey}>{m.profileName}</span>
                             </div>
                         {/if}
                         <div class="chat-bubble">{@html m.content}</div>
