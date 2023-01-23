@@ -279,8 +279,7 @@
                 placeholder="Type the message you want to send to the channel..."
                 bind:this={textarea}
                 on:keypress={onKeyPress}
-                class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none">
-            </textarea>
+                class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
             <div on:click={sendMessage}
                  class="col-span-1 flex flex-col py-2 p-4 justify-center border-l border-solid border-dark
