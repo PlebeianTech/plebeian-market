@@ -17,6 +17,7 @@ export const relayUrlList = [
 
 export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a';
 export const pmChannelNostrRoomId = '25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb';   // 'Nostr' channel
+export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 export const nostrEventKindCreateChannel = 40;
 export const nostrEventSubscribeToCreateChannel = 42;
 export const timeoutBetweenRelayConnectsMillis = 50;

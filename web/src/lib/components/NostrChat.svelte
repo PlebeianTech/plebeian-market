@@ -3,7 +3,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, wait, formatTimestamp} from '$lib/nostr/utils'
+    import {hasExtension, wait, formatTimestamp, localStorageNostrPreferPMId} from '$lib/nostr/utils'
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
 
     export let roomData = false;
@@ -11,8 +11,6 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 100;
     export let messagesSince: number = 1672837281;  // January 4th 2023
-
-    const localStorageNostrPreferPMId: string = 'nostr-prefer-pm-identity';
 
     let nostrPreferenceCheckboxChecked;
 

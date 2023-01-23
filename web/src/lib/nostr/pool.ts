@@ -1,6 +1,6 @@
 import type {Event, Relay} from "nostr-tools";
-import {getEventHash, relayInit, signEvent, validateEvent} from "nostr-tools";
-import {timeoutBetweenRelayConnectsMillis, nostrPrivateKey, hasExtension, relayUrlList, nostrEventSubscribeToCreateChannel} from "$lib/nostr/utils";
+import {getEventHash, relayInit, validateEvent} from "nostr-tools";
+import {timeoutBetweenRelayConnectsMillis, hasExtension, relayUrlList, nostrEventSubscribeToCreateChannel, localStorageNostrPreferPMId} from "$lib/nostr/utils";
 
 export class Pool {
     relays: Relay[] = [];
@@ -64,7 +64,7 @@ export class Pool {
         console.debug('   ** Nostr: event before hashing: ', event)
         event.id = getEventHash(event)
 
-        if (!hasExtension || (hasExtension && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
+        if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
             // TODO: use PM nostr identify if no extension present
             // ??? event.sig = signEvent(event, nostrPrivateKey)
             // ??? event = signEvent(event, nostrPrivateKey)
