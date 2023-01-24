@@ -46,7 +46,7 @@ export function getChannelIdFromChannelName(channelName) {
     console.debug('   ** Nostr: Stall channel name: ', channelName);
 
     // Don't change this, since we're faking channel
-    // creation, but we need the same channel ID every time.
+    // creation, so we need the same channel ID every time
     let created_at = 1672837282;
 
     let event = {
