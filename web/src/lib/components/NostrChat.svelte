@@ -165,9 +165,12 @@
         updateBrowserExtensionCheckbox();
 
         if (nostrRoomId !== null) {
-            await pool.connect(
-                () => pool.subscribeToChannel(nostrRoomId, messageLimit, messagesSince, addMessageIfDoesntExist)
-            );
+            await pool.connectAndSubscribeToChannel({
+                nostrRoomId,
+                messageLimit,
+                messagesSince,
+                'callbackFunction': addMessageIfDoesntExist
+            });
         } else {
             console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
         }

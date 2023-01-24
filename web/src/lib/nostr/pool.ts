@@ -5,7 +5,7 @@ import {timeoutBetweenRelayConnectsMillis, hasExtension, relayUrlList, nostrEven
 export class Pool {
     relays: Relay[] = [];
 
-    public async connect(successConnectionCallback = null) {
+    public async connectAndSubscribeToChannel(channelInfo = null) {
         for (const relayUrl of relayUrlList) {
             const relay: Relay = relayInit(relayUrl)
 
@@ -19,9 +19,16 @@ export class Pool {
             relay.on('connect', () => {
                 this.relays.push(relay);
 
-                if (successConnectionCallback !== null) {
-                    console.debug('   ** Nostr:   -- Connected to relay: ' + relay.url + ' -- Calling callback:')
-                    successConnectionCallback();
+                if (channelInfo !== null) {
+                    console.debug('   ** Nostr:   -- Connected to relay: ' + relay.url + ' -- Channel info:', channelInfo)
+
+                    this.subscribeToChannel(
+                        relay,
+                        channelInfo['nostrRoomId'],
+                        channelInfo['messageLimit'],
+                        channelInfo['since'],
+                        channelInfo['callbackFunction']
+                    );
                 } else {
                     console.debug('   ** Nostr:   -- Connected to relay: ' + relay.url)
                 }
@@ -104,7 +111,7 @@ export class Pool {
     }
 
 
-    public subscribeToChannel(nostrRoomId, messageLimit, since, callbackFunction) {
+    public subscribeToChannelEntirePool(nostrRoomId, messageLimit, since, callbackFunction) {
         this.relays.forEach(async relay => {
             console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url)
 
@@ -120,5 +127,21 @@ export class Pool {
                 callbackFunction(event)
             });
         })
+    }
+
+    public subscribeToChannel(relay, nostrRoomId, messageLimit, since, callbackFunction) {
+        console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url)
+
+        let sub = relay.sub([{
+            kinds: [42],
+            '#e': [nostrRoomId],
+            limit: messageLimit,
+            since: since
+        }]);
+
+        sub.on('event', event => {
+            console.debug('   ** Nostr: Subscribed to channel in relay: ' + relay.url)
+            callbackFunction(event)
+        });
     }
 }
