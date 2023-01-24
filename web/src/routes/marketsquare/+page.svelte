@@ -20,7 +20,7 @@
             <NostrChat
                 {roomData}
                 emptyChatShowsLoading={true}
-                messageLimit={200}
+                messageLimit={100}
                 nostrRoomId={pmChannelNostrRoomId}
             />
         </div>
