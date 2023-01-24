@@ -11,6 +11,8 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 100;
     export let messagesSince: number = 1672837281;  // January 4th 2023
+    const queryProfilesBatchSize = 15;
+    const updateNostrProfilesDelay = 4000;
 
     let nostrPreferenceCheckboxChecked;
 
@@ -94,18 +96,16 @@
         }
 
         profilesToQuery.push(pubKey);
-
-        queryProfilesToNostrRelaysInBatches();
     }
 
     function queryProfilesToNostrRelaysInBatches() {
-        if (profilesToQuery.length < 5) {
-            return false;
+        if (profilesToQuery.length === 0) {
+            return;
         }
 
         let profilesToGetLocal = [];
 
-        for (let i=0; i<10; i++) {
+        for (let i=0; i < queryProfilesBatchSize; i++) {
             const profile = profilesToQuery.shift();
 
             if (profile) {
@@ -157,6 +157,12 @@
         }
     }
 
+    async function updateNostrProfiles() {
+        await new Promise(resolve => setTimeout(resolve, updateNostrProfilesDelay));
+        queryProfilesToNostrRelaysInBatches()
+        await updateNostrProfiles();
+    }
+
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
@@ -172,6 +178,8 @@
         } else {
             console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
         }
+
+        await updateNostrProfiles();
     })
 
     onDestroy(() => {
