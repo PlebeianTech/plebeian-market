@@ -169,7 +169,7 @@
         updateBrowserExtensionCheckbox();
 
         if (nostrRoomId !== null) {
-            await pool.connectAndSubscribeToChannel({
+            pool.connectAndSubscribeToChannel({
                 nostrRoomId,
                 messageLimit,
                 messagesSince,
