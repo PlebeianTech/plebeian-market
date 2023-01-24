@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 import dateutil.parser
 from enum import Enum
+import hashlib
 from io import BytesIO
 from itertools import chain
 import math
@@ -97,6 +98,13 @@ class User(XpubMixin, db.Model):
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     @property
+    def identity(self):
+        sha = hashlib.sha256()
+        sha.update((str(self.id) + app.config['SECRET_KEY']).encode('UTF-8'))
+        id = sha.hexdigest()
+        return f"{id}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else id
+
+    @property
     def display_name(self):
         return f"{self.nym}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else self.nym
 
@@ -173,7 +181,7 @@ class User(XpubMixin, db.Model):
         assert isinstance(for_user, int | None)
 
         d = {
-            'id': self.id,
+            'identity': self.identity,
             'nym': self.nym,
             'display_name': self.display_name,
             'profile_image_url': self.twitter_profile_image_url,
