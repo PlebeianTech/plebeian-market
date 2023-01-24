@@ -123,7 +123,7 @@ export class Pool {
             }]);
 
             sub.on('event', event => {
-                console.debug('   ** Nostr: Subscribed to channel in relay: ' + relay.url)
+                console.debug('   ** Nostr: Event received from channel in relay: ' + relay.url)
                 callbackFunction(event)
             });
         })
@@ -140,7 +140,7 @@ export class Pool {
         }]);
 
         sub.on('event', event => {
-            console.debug('   ** Nostr: Subscribed to channel in relay: ' + relay.url)
+            console.debug('   ** Nostr: Event received from channel in relay: ' + relay.url)
             callbackFunction(event)
         });
     }
