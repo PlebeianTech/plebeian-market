@@ -20,6 +20,7 @@ export function badgeFromJson(json: any): Badge {
 }
 
 export class User implements IAccount {
+    identity: string = '';
     nym: string | null = null;
     displayName: string | null = null;
     profileImageUrl: string | null = null;
@@ -67,6 +68,7 @@ export class User implements IAccount {
 
 export function fromJson(json: any): User {
     var u = new User();
+    u.identity = <string>json.identity;
     u.nym = <string | null>json.nym;
     u.displayName = <string | null>json.display_name;
     u.profileImageUrl = <string | null>json.profile_image_url;
