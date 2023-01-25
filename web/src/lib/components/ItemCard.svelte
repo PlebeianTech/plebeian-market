@@ -87,7 +87,7 @@
 </script>
 
 <div bind:this={box} class="">
-    <div class="card md:card-side bg-base-300 max-w-full overflow-hidden shadow-xl my-3">
+    <div class="card md:card-side bg-base-800 max-w-full overflow-hidden shadow-xl my-3">
         <div class="card-body">
             <h2 class="card-title mb-2">
                 {item.title}
@@ -152,7 +152,7 @@
                     <span>Reserve: <AmountFormatter satsAmount={item.reserve_bid} /></span>
                 {:else if item instanceof Listing}
                     <br />
-                    <span>Price: ~<AmountFormatter usdAmount={item.price_usd} /></span>
+                    <span class="">Price: ~<AmountFormatter usdAmount={item.price_usd} /></span>
                     <br />
                     <span>Avalable quantity: {item.available_quantity}</span>
                 {/if}

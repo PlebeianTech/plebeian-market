@@ -78,7 +78,7 @@
     </div>
     <div class="card bg-base-300 max-w-full overflow-hidden shadow-xl my-3 mx-3">
         <a href={url}>
-            <figure class="h-auto flex justify-center">
+            <figure class="h-full flex justify-center">
                 {#each item.media as photo, i}
                     {#if i === 0}
                         <img class="object-contain" src={photo.url} alt="Item" />
@@ -86,30 +86,41 @@
                 {/each}
             </figure>
         </a>
-        <div class="card-body">
+        <div class="card-body w-full">
+          <div class="mb-8">
             <h2 class="card-title mb-2">
                 <a href={url}>{item.title}</a>
             </h2>
-            {#if showCampaign && item.campaign_name !== null}
-                <div class="badge badge-primary"><a href="/campaigns/{item.campaign_key}"><nobr>{item.campaign_name} campaign</nobr></a></div>
-            {/if}
-            {#if item instanceof Auction}
-                <div class="badge badge-secondary">auction</div>
-            {:else if item instanceof Listing}
-                <div class="badge badge-secondary">fixed price</div>
-            {/if}
-            {#if item instanceof Auction}
-                {#if item.started && !item.ended}
-                    <Countdown totalSeconds={item.ends_in_seconds} style={CountdownStyle.Compact} />
-                {:else if item.ended}
-                    <div class="badge badge-primary">ended</div>
-                {/if}
-            {:else if item instanceof Listing}
-                {#if item.available_quantity === 0}
-                    <div class="badge badge-primary">sold out</div>
-                {/if}
-            {/if}
-            <p class="text-xs">
+            <div class="markdown-container max-h-52 overflow-hidden">
+                <SvelteMarkdown source={item.description} />
+            </div>
+          </div>
+          <div class="flex space-x-2 items-center">
+            
+              {#if showCampaign && item.campaign_name !== null}
+                  <div class="badge badge-primary"><a href="/campaigns/{item.campaign_key}"><nobr>{item.campaign_name} campaign</nobr></a></div>
+              {/if}
+
+              {#if item instanceof Auction}
+                  <div class="badge badge-secondary">auction</div>
+              {:else if item instanceof Listing}
+                  <div class="badge badge-secondary">fixed price</div>
+              {/if}
+         
+ 
+              {#if item instanceof Auction}
+                  {#if item.started && !item.ended}
+                      <Countdown totalSeconds={item.ends_in_seconds} style={CountdownStyle.Compact} />
+                  {:else if item.ended}
+                      <div class="badge badge-primary">ended</div>
+                  {/if}
+              {:else if item instanceof Listing}
+                  {#if item.available_quantity === 0}
+                      <div class="badge badge-primary">sold out</div>
+                  {/if}
+              {/if}
+            </div>
+            <p class="lg:text-3xl text-2xl">
                 {#if item instanceof Auction}
                     {#if item.has_winner && item.winner}
                         Winner: <a rel="external" class="link" href="/stall/{item.winner.nym}">{item.winner.nym}</a>
@@ -141,9 +152,7 @@
                     <Avatar account={item.seller} inline={true} />
                 </div>
             {/if}
-            <div class="markdown-container max-h-52 overflow-hidden">
-                <SvelteMarkdown source={item.description} />
-            </div>
+            
             {#if $user && $user.isModerator}
                 <div class="btn self-center md:float-right" on:click|preventDefault={hide} on:keypress={hide}>Hide from homepage</div>
             {/if}

@@ -23,13 +23,13 @@
                     <img src={account.profileImageUrl} alt="{account.nym}'s avatar" />
                 </div>
             </div>
-            <div class="font-bold flex items-center justify-center" class:text-2xl={size === AvatarSize.L}>
+            <!-- <div class="font-bold flex items-center justify-center" class:text-2xl={size === AvatarSize.L}>
                 {#if nymOnly}
                     {account.nym}
                 {:else}
                     {account.displayName}
                 {/if}
-            </div>
+            </div> -->
         </div>
     </div>
 </a>
