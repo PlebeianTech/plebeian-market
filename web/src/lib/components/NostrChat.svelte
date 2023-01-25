@@ -1,9 +1,10 @@
 <script lang="ts">
+    import NostrNote from "$lib/components/NostrNote.svelte";
     import {onDestroy, onMount} from "svelte";
     import Loading from "$lib/components/Loading.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, wait, formatTimestamp, localStorageNostrPreferPMId} from '$lib/nostr/utils'
+    import {hasExtension, localStorageNostrPreferPMId} from '$lib/nostr/utils'
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
 
     export let roomData = false;
@@ -256,23 +257,8 @@
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
             <div class="w-full">
-                {#each sortedMessages as m}
-                    <div class="chat chat-start" class:mt-0={m.samePubKey} class:mt-5={!m.samePubKey} class:profileInfo={!m.samePubKey}>
-                        <div class="chat-image avatar">
-                            <div class="w-12 rounded-full ring-primary ring-offset-base-100 ring-offset-2" class:ring={!m.samePubKey}>
-                                {#if !m.samePubKey}
-                                    <img src="{m.profileImage}" alt="profile picture" class:profileInfoImage={!m.samePubKey} />
-                                {/if}
-                            </div>
-                        </div>
-                        {#if !m.samePubKey}
-                            <div class="chat-header">
-                                <span class="mr-3" class:profileInfoName={!m.samePubKey}>{m.profileName}</span>
-                            </div>
-                        {/if}
-                        <div class="chat-bubble">{@html m.content}</div>
-                        <div class="chat-footer text-xs opacity-50">{formatTimestamp(m.created_at)}</div>
-                    </div>
+                {#each sortedMessages as message}
+                    <NostrNote {message}></NostrNote>
                 {/each}
             </div>
         </div>
@@ -283,12 +269,12 @@
     {:else}
         <div class="sm:ml-96 sm:mr-96 p-3 bg-black shadow rounded-lg grid grid-cols-8 grid-rows-1 grid-flow-col gap-4">
             <textarea
-                rows="2"
-                autofocus
-                placeholder="Type the message you want to send to the channel..."
-                bind:this={textarea}
-                on:keypress={onKeyPress}
-                class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+                    rows="2"
+                    autofocus
+                    placeholder="Type the message you want to send to the channel..."
+                    bind:this={textarea}
+                    on:keypress={onKeyPress}
+                    class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
             <div on:click={sendMessage}
                  class="col-span-1 flex flex-col py-2 p-4 justify-center border-l border-solid border-dark
