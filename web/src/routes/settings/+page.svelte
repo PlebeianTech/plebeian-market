@@ -13,7 +13,6 @@
     import V4V from "$lib/components/settings/V4V.svelte";
     import XPUB from "$lib/components/settings/XPUB.svelte";
     import { goto } from '$app/navigation';
-    import { browser } from '$app/environment';
 
     let STALL_PAGE = "My Stall";
     let WALLET_PAGE = "My wallet";

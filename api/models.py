@@ -825,8 +825,12 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     def get_top_bid(self, below=None):
         return max((bid for bid in self.bids if bid.settled_at and (below is None or bid.amount < below)), default=None, key=lambda bid: bid.amount)
 
+    def sort_key(self):
+        return self.start_date
+
     def featured_sort_key(self):
-        return len(self.bids)
+        # show auctions with most bids at the top
+        return -len(self.bids)
 
     def get_not_editable_reason(self):
         if self.start_date is not None and self.start_date < datetime.utcnow() - timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']):
@@ -927,6 +931,16 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         return auction
 
     @classmethod
+    def query_all_active(cls):
+        q = (cls.start_date != None) & (cls.start_date <= datetime.utcnow()) & (cls.end_date > datetime.utcnow())
+        return cls.query.filter(q)
+
+    @classmethod
+    def query_all_inactive(cls):
+        q = (cls.start_date != None) & (cls.start_date <= datetime.utcnow()) & (cls.end_date <= datetime.utcnow())
+        return cls.query.filter(q)
+
+    @classmethod
     def validate_dict(cls, d, for_method=None):
         validated = {}
         for k in ['start_date']:
@@ -997,8 +1011,12 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     sales = db.relationship('Sale', backref='listing', order_by="Sale.requested_at")
 
-    def featured_sort_key(self):
+    def sort_key(self):
         return self.start_date
+
+    def featured_sort_key(self):
+        # reverse sort - newer listings show at the top
+        return -self.start_date.timestamp()
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
@@ -1041,6 +1059,16 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             listing['sales'] = [sale.to_dict() for sale in self.item.sales if sale.buyer_id == for_user]
 
         return listing
+
+    @classmethod
+    def query_all_active(cls):
+        q = (cls.start_date != None) & (cls.start_date <= datetime.utcnow()) & (cls.available_quantity != 0)
+        return cls.query.filter(q)
+
+    @classmethod
+    def query_all_inactive(cls):
+        q = (cls.start_date != None) & (cls.start_date <= datetime.utcnow()) & (cls.available_quantity == 0)
+        return cls.query.filter(q)
 
     @classmethod
     def validate_dict(cls, d, for_method=None):

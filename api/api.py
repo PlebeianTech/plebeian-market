@@ -374,20 +374,46 @@ def post_entity(user, cls, singular, has_item, campaign_key):
 
     return jsonify({'key': entity.key, singular: entity.to_dict(for_user=user.id)})
 
+@api_blueprint.route('/api/auctions/active',
+    defaults={'cls': m.Auction, 'plural': 'auctions', 'featured': False},
+    methods=['GET'])
+@api_blueprint.route('/api/listings/active',
+    defaults={'cls': m.Listing, 'plural': 'listings', 'featured': False},
+    methods=['GET'])
 @api_blueprint.route('/api/auctions/featured',
-    defaults={'cls': m.Auction, 'plural': 'auctions'},
+    defaults={'cls': m.Auction, 'plural': 'auctions', 'featured': True},
     methods=['GET'])
 @api_blueprint.route('/api/listings/featured',
+    defaults={'cls': m.Listing, 'plural': 'listings', 'featured': True},
+    methods=['GET'])
+def get_entities(cls, plural, featured):
+    """
+    Active auctions are all auctions currently running.
+    Active listings are all listings that have been published and are still available for sale.
+    Featured auctions / listings are subsets of the two:
+        currently they simply exclude items that the moderators have marked as hidden,
+        but we will eventually have a better algorithm to pick "featured" items.
+    """
+    entities = cls.query_all_active()
+    if featured:
+        entities = entities.filter((cls.item_id == m.Item.id) & ~m.Item.is_hidden)
+    sorted_entities = sorted(entities.all(), key=(cls.featured_sort_key if featured else cls.sort_key))
+    return jsonify({plural: [e.to_dict() for e in sorted_entities]})
+
+@api_blueprint.route('/api/auctions/inactive',
+    defaults={'cls': m.Auction, 'plural': 'auctions'},
+    methods=['GET'])
+@api_blueprint.route('/api/listings/inactive',
     defaults={'cls': m.Listing, 'plural': 'listings'},
     methods=['GET'])
-def get_featured(cls, plural):
-    entities = cls.query.filter((cls.start_date != None) & (cls.start_date <= datetime.utcnow()))
-    entities = entities.filter((cls.item_id == m.Item.id) & ~m.Item.is_hidden)
-    if cls == m.Auction:
-        entities = entities.filter((cls.end_date == None) | (cls.end_date > datetime.utcnow()))
-    elif cls == m.Listing:
-        entities = entities.filter(cls.available_quantity != 0)
-    return jsonify({plural: [e.to_dict() for e in sorted(entities.all(), key=cls.featured_sort_key, reverse=True)]})
+def get_inactive_entities(cls, plural):
+    """
+    Inactive auctions are auctions that ended.
+    Inactive listings are listings that used to be active, but available_quantity reached 0.
+    """
+    entities = cls.query_all_inactive()
+    sorted_entities = sorted(entities.all(), key=cls.sort_key)
+    return jsonify({plural: [e.to_dict() for e in sorted_entities]})
 
 @api_blueprint.route('/api/auctions/<key>',
     defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True},
