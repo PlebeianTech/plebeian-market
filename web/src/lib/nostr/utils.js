@@ -61,22 +61,18 @@ export function getChannelIdFromChannelName(channelName) {
 function createNostrKeys() {
     // hex strings
     let privateKey = generatePrivateKey()
-    let publicKey = getPublicKey(privateKey);
 
     return {
         'private': privateKey,
-        'public': publicKey,
-        'npub': nip19.npubEncode(publicKey)
+        'public': getPublicKey(privateKey),
     };
 }
 
 export function getNostrKeysInitIfNecessary(user, token) {
     if (user.nostr_private_key !== null) {
-        let publicKey = getPublicKey(user.nostr_private_key)
         return {
             'private': user.nostr_private_key,
-            'public': publicKey,
-            'npub': nip19.npubEncode(publicKey)
+            'public': getPublicKey(user.nostr_private_key),
         };
     }
 
