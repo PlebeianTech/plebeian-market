@@ -14,15 +14,15 @@
     }
 </script>
 
-<div class="flex mb-20 ml-60 mr-60">
-    {#if !isProduction() }
-        <div>
+<div class="grid mb-10 ml-2 mr-2 grid-cols-1 md:grid-cols-3">
+    <div class="col-span-3 md:col-start-2 md:col-span-1">
+        {#if !isProduction() }
             <NostrChat
                 {roomData}
                 emptyChatShowsLoading={true}
                 messageLimit={100}
                 nostrRoomId={pmChannelNostrRoomId}
             />
-        </div>
-    {/if}
+        {/if}
+    </div>
 </div>

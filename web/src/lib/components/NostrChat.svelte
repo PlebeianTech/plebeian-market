@@ -229,7 +229,7 @@
 
 <div>
     {#if roomData !== false}
-        <div class="ml-96 mr-96 top-0 pt-6 w-full sm:-ml-56 sm:pl-60 p-4 border-b border-solid border-medium bg-dark flex gap-4">
+        <div class="pt-2 md:pt-10 w-full p-4 border-b border-solid border-medium bg-dark flex gap-4">
             <div class="w-14 h-14 rounded-full bg-cover bg-center shrink-0 border border-solid border-white"
                  style="background-image: url('{roomData.picture}')">
             </div>
@@ -242,8 +242,8 @@
         </div>
     {/if}
 
-    <div class="ml-96 mr-96 flex flex-col py-2">
-        <div class="mt-4 mb-8">
+    <div class="flex flex-col py-2">
+        <div class="mt-4 mb-4 mt:mb-8">
             <div tabindex="0" class="collapse collapse-plus border border-base-300 bg-base-100 rounded-box mb-4">
                 <input type="checkbox" />
                 <div class="collapse-title text-l font-medium bg-info">
@@ -263,7 +263,7 @@
                     </label>
                 </div>
                 {#if nostrPreferenceCheckboxChecked}
-                    <small>You'll be asked to authorize signing messages when you want to write in the channel.</small>
+                    <small>You'll sign messages with your extension when you write in the channel.</small>
                 {:else}
                     <small>You'll be using your Plebeian Market generated Nostr identity. Install a Nostr browser extension
                         (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank">nos2x</a>,
@@ -289,7 +289,7 @@
     {#if emptyChatShowsLoading && sortedMessages.length === 0}
         <Loading />
     {:else}
-        <div class="sm:ml-96 sm:mr-96 p-3 bg-black shadow rounded-lg grid grid-cols-8 grid-rows-1 grid-flow-col gap-4">
+        <div class="p-3 bg-black shadow rounded-lg grid grid-cols-8 grid-rows-1 grid-flow-col gap-4">
             <textarea
                     rows="2"
                     autofocus
