@@ -1,4 +1,5 @@
 <script lang="ts">
+    import NostrNote from "$lib/components/NostrNote.svelte";
     import {onDestroy, onMount} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
@@ -275,12 +276,12 @@
     {:else}
         <div class="sm:ml-96 sm:mr-96 p-3 bg-black shadow rounded-lg grid grid-cols-8 grid-rows-1 grid-flow-col gap-4">
             <textarea
-                rows="2"
-                autofocus
-                placeholder="Type the message you want to send to the channel..."
-                bind:this={textarea}
-                on:keypress={onKeyPress}
-                class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+                    rows="2"
+                    autofocus
+                    placeholder="Type the message you want to send to the channel..."
+                    bind:this={textarea}
+                    on:keypress={onKeyPress}
+                    class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
             <div on:click={sendMessage}
                  class="col-span-1 flex flex-col py-2 p-4 justify-center border-l border-solid border-dark
