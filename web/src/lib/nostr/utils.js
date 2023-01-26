@@ -1,5 +1,5 @@
-import {getEventHash, generatePrivateKey, getPublicKey, nip19} from "nostr-tools";
-import { ErrorHandler, putProfile } from "$lib/services/api";
+import {getEventHash, generatePrivateKey} from "nostr-tools";
+
 export const relayUrlList = [
     "wss://relay.nostr.ro",
     "wss://nostr-relay.alekberg.net",
@@ -58,34 +58,6 @@ export function getChannelIdFromChannelName(channelName) {
     return getEventHash(event);
 }
 
-function createNostrKeys() {
-    // hex strings
-    let privateKey = generatePrivateKey()
-
-    return {
-        'private': privateKey,
-        'public': getPublicKey(privateKey),
-    };
-}
-
-export function getNostrKeysInitIfNecessary(user, token) {
-    if (user.nostr_private_key !== null) {
-        return {
-            'private': user.nostr_private_key,
-            'public': getPublicKey(user.nostr_private_key),
-        };
-    }
-
-    let nostrKeys = createNostrKeys();
-    let nostr_private_key = nostrKeys.private;
-
-    putProfile(token, {nostr_private_key},
-        u => {
-            user.set(u);
-            console.debug('   ** Nostr: keys saved into user', u)
-        },
-        new ErrorHandler(true)
-    );
-
-    return nostrKeys;
+export function createNostrPrivateKey() {
+    return generatePrivateKey();
 }

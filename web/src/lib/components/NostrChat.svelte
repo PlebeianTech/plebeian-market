@@ -5,8 +5,9 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, getNostrKeysInitIfNecessary, localStorageNostrPreferPMId} from '$lib/nostr/utils'
+    import {hasExtension, createNostrPrivateKey, localStorageNostrPreferPMId} from '$lib/nostr/utils'
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
+    import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
     export let emptyChatShowsLoading: boolean = false;
@@ -165,6 +166,24 @@
         await updateNostrProfiles();
     }
 
+    async function checkPMNostrIdentity() {
+        while ($user === null) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        if ($user.nostr_private_key === null) {
+            let nostr_private_key = createNostrPrivateKey();
+
+            putProfile($token, {nostr_private_key},
+                u => {
+                    user.set(u);
+                    console.debug('   ** Nostr: keys saved into user', u)
+                },
+                new ErrorHandler(true)
+            );
+        }
+    }
+
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
@@ -181,12 +200,9 @@
             console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
         }
 
-        await updateNostrProfiles();
+        updateNostrProfiles();
 
-        while ($user === null) {
-            await new Promise(resolve => setTimeout(resolve, 50));
-        }
-        getNostrKeysInitIfNecessary($user, $token);
+        checkPMNostrIdentity();
     })
 
     onDestroy(() => {
