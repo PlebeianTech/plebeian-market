@@ -130,7 +130,6 @@ export class Pool {
         return false;
     }
 
-
     public subscribeToChannelEntirePool(nostrRoomId, messageLimit, since, callbackFunction) {
         this.relays.forEach(async relay => {
             console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url)
