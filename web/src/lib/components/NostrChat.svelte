@@ -3,7 +3,6 @@
     import {onDestroy, onMount} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import NostrNote from "$lib/components/NostrNote.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
     import {hasExtension, getNostrKeysInitIfNecessary, localStorageNostrPreferPMId} from '$lib/nostr/utils'
