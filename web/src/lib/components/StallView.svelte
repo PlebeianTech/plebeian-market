@@ -498,7 +498,7 @@
 
     <!-- NOSTR CHAT  -->
     {#if !isProduction() }
-    <div class="lg:w-3/6 my-2 grid place-items-top lg:h-3/4 sticky top-24 p-4 overflow-y-scroll">
+    <div class="lg:w-3/6 my-2 grid place-items-top lg:h-1/2 sticky top-20 p-4">
       <!-- <h3 class="text-4xl font-black text-center">Nostr Chat</h3> -->
           <NostrChat
               emptyChatShowsLoading={false}
