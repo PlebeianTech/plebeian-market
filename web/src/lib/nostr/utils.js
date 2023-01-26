@@ -1,4 +1,4 @@
-import {getEventHash} from "nostr-tools";
+import {getEventHash, generatePrivateKey} from "nostr-tools";
 
 export const relayUrlList = [
     "wss://relay.nostr.ro",
@@ -6,7 +6,7 @@ export const relayUrlList = [
     "wss://btc.klendazu.com",
     "wss://relay.nostr.info",
     "wss://nostr.onsats.org",
-    "wss://nostr-relay.wlvs.space",
+    "wss://eden.nostr.land",
     "wss://nostr.bitcoiner.social",
     "wss://relay.damus.io",
     "wss://nostr.zebedee.cloud",
@@ -21,8 +21,6 @@ export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 export const nostrEventKindCreateChannel = 40;
 export const nostrEventSubscribeToCreateChannel = 42;
 export const timeoutBetweenRelayConnectsMillis = 50;
-export let nostrPublicKey = null;
-export let nostrPrivateKey = null;
 export let nostrPublicKeyFromExtension = false;
 
 export function hasExtension() {
@@ -46,7 +44,7 @@ export function getChannelIdFromChannelName(channelName) {
     console.debug('   ** Nostr: Stall channel name: ', channelName);
 
     // Don't change this, since we're faking channel
-    // creation, but we need the same channel ID every time.
+    // creation, so we need the same channel ID every time
     let created_at = 1672837282;
 
     let event = {
@@ -58,4 +56,8 @@ export function getChannelIdFromChannelName(channelName) {
     }
 
     return getEventHash(event);
+}
+
+export function createNostrPrivateKey() {
+    return generatePrivateKey();
 }

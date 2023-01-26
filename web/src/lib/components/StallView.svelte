@@ -61,8 +61,7 @@
     let nostrChannelName = null;
     let nostrRoomId: string = null;
     if (owner) {
-        // TODO: we need a unique static ID to use here
-        nostrChannelName = 'Plebeian Market Stall ' + owner.nym + ' (' + import.meta.env.MODE + ')';
+        nostrChannelName = 'Plebeian Market Stall ' + owner.identity + ' (' + import.meta.env.MODE + ')';
         nostrRoomId = getChannelIdFromChannelName(nostrChannelName);
     }
 

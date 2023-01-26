@@ -20,6 +20,7 @@ export function badgeFromJson(json: any): Badge {
 }
 
 export class User implements IAccount {
+    identity: string = '';
     nym: string | null = null;
     displayName: string | null = null;
     profileImageUrl: string | null = null;
@@ -43,6 +44,7 @@ export class User implements IAccount {
     hasPastListings: boolean = false;
     isModerator: boolean = false;
     badges: Badge[] = [];
+    nostr_private_key: string | null = null;
 
     public hasBadge(badge) {
         for (const b of this.badges) {
@@ -67,6 +69,7 @@ export class User implements IAccount {
 
 export function fromJson(json: any): User {
     var u = new User();
+    u.identity = <string>json.identity;
     u.nym = <string | null>json.nym;
     u.displayName = <string | null>json.display_name;
     u.profileImageUrl = <string | null>json.profile_image_url;
@@ -90,5 +93,6 @@ export function fromJson(json: any): User {
     u.xpub = <string | null>json.xpub;
     u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
+    u.nostr_private_key = <string | null>json.nostr_private_key;
     return u;
 }

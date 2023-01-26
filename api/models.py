@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 import dateutil.parser
 from enum import Enum
+import hashlib
 from io import BytesIO
 from itertools import chain
 import math
@@ -97,6 +98,13 @@ class User(XpubMixin, db.Model):
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     @property
+    def identity(self):
+        sha = hashlib.sha256()
+        sha.update((str(self.id) + app.config['SECRET_KEY']).encode('UTF-8'))
+        id = sha.hexdigest()
+        return f"{id}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else id
+
+    @property
     def display_name(self):
         return f"{self.nym}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else self.nym
 
@@ -121,6 +129,8 @@ class User(XpubMixin, db.Model):
     twitter_verification_phrase = db.Column(db.String(32), nullable=True)
     twitter_verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)
     twitter_verification_phrase_check_counter = db.Column(db.Integer, nullable=False, default=0)
+
+    nostr_private_key = db.Column(db.String(64), nullable=True)
 
     def generate_twitter_verification_phrase(self):
         self.twitter_verification_phrase = bip39gen.random_as_string(3)
@@ -173,7 +183,7 @@ class User(XpubMixin, db.Model):
         assert isinstance(for_user, int | None)
 
         d = {
-            'id': self.id,
+            'identity': self.identity,
             'nym': self.nym,
             'display_name': self.display_name,
             'profile_image_url': self.twitter_profile_image_url,
@@ -215,6 +225,7 @@ class User(XpubMixin, db.Model):
             d['contribution_percent'] = self.contribution_percent
             d['xpub'] = self.xpub
             d['xpub_index'] = self.xpub_index
+            d['nostr_private_key'] = self.nostr_private_key
 
         return d
 
