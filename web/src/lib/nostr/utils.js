@@ -6,7 +6,7 @@ export const relayUrlList = [
     "wss://btc.klendazu.com",
     "wss://relay.nostr.info",
     "wss://nostr.onsats.org",
-    "wss://nostr-relay.wlvs.space",
+    "wss://eden.nostr.land",
     "wss://nostr.bitcoiner.social",
     "wss://relay.damus.io",
     "wss://nostr.zebedee.cloud",
