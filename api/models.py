@@ -130,6 +130,8 @@ class User(XpubMixin, db.Model):
     twitter_verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)
     twitter_verification_phrase_check_counter = db.Column(db.Integer, nullable=False, default=0)
 
+    nostr_private_key = db.Column(db.String(64), nullable=True)
+
     def generate_twitter_verification_phrase(self):
         self.twitter_verification_phrase = bip39gen.random_as_string(3)
         self.twitter_verification_phrase_check_counter = 0
@@ -223,6 +225,7 @@ class User(XpubMixin, db.Model):
             d['contribution_percent'] = self.contribution_percent
             d['xpub'] = self.xpub
             d['xpub_index'] = self.xpub_index
+            d['nostr_private_key'] = self.nostr_private_key
 
         return d
 

@@ -1,11 +1,13 @@
 <script lang="ts">
     import NostrNote from "$lib/components/NostrNote.svelte";
     import {onDestroy, onMount} from "svelte";
+    import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, localStorageNostrPreferPMId} from '$lib/nostr/utils'
+    import {hasExtension, createNostrPrivateKey, localStorageNostrPreferPMId} from '$lib/nostr/utils'
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
+    import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
     export let emptyChatShowsLoading: boolean = false;
@@ -164,6 +166,24 @@
         await updateNostrProfiles();
     }
 
+    async function checkPMNostrIdentity() {
+        user.subscribe(
+            () => {
+                if ($user && $user.nostr_private_key === null) {
+                    let nostr_private_key = createNostrPrivateKey();
+
+                    putProfile($token, {nostr_private_key},
+                        u => {
+                            user.set(u);
+                            console.debug('   ** Nostr: keys saved into user', u)
+                        },
+                        new ErrorHandler(true)
+                    );
+                }
+            }
+        );
+    }
+
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
@@ -180,7 +200,9 @@
             console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
         }
 
-        await updateNostrProfiles();
+        updateNostrProfiles();
+
+        checkPMNostrIdentity();
     })
 
     onDestroy(() => {
@@ -198,7 +220,7 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(nostrRoomId, content) !== false) {
+            if (await pool.sendMessage(nostrRoomId, content, $user) !== false) {
                 textarea.value = '';
             }
         }
@@ -228,7 +250,7 @@
                     We use <b>Nostr</b> to power this chat. Click here to see more info
                 </div>
                 <div class="collapse-content bg-info">
-                    <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and subscribe to this channel ID: {nostrRoomId}</p>
+                    <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and introduce this channel ID: {nostrRoomId}</p>
                 </div>
             </div>
 

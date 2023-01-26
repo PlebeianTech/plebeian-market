@@ -169,7 +169,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -188,6 +188,9 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, contr
     }
     if (profile.stallDescription !== undefined) {
         json.stall_description = profile.stallDescription;
+    }
+    if (profile.nostr_private_key !== undefined) {
+        json.nostr_private_key = profile.nostr_private_key;
     }
     fetchAPI("/users/me", 'PUT', tokenValue, JSON.stringify(json),
         response => {

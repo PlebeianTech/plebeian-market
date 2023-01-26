@@ -215,6 +215,9 @@ def put_me(user):
     if 'stall_description' in request.json:
         user.stall_description = bleach.clean(request.json['stall_description'])
 
+    if 'nostr_private_key' in request.json:
+        user.nostr_private_key = request.json['nostr_private_key']
+
     try:
         db.session.commit()
     except IntegrityError:

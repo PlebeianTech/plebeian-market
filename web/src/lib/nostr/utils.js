@@ -1,4 +1,4 @@
-import {getEventHash} from "nostr-tools";
+import {getEventHash, generatePrivateKey} from "nostr-tools";
 
 export const relayUrlList = [
     "wss://relay.nostr.ro",
@@ -21,8 +21,6 @@ export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 export const nostrEventKindCreateChannel = 40;
 export const nostrEventSubscribeToCreateChannel = 42;
 export const timeoutBetweenRelayConnectsMillis = 50;
-export let nostrPublicKey = null;
-export let nostrPrivateKey = null;
 export let nostrPublicKeyFromExtension = false;
 
 export function hasExtension() {
@@ -58,4 +56,8 @@ export function getChannelIdFromChannelName(channelName) {
     }
 
     return getEventHash(event);
+}
+
+export function createNostrPrivateKey() {
+    return generatePrivateKey();
 }
