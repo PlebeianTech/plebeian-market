@@ -166,24 +166,6 @@
         await updateNostrProfiles();
     }
 
-    async function checkPMNostrIdentity() {
-        user.subscribe(
-            () => {
-                if ($user && $user.nostr_private_key === null) {
-                    let nostr_private_key = createNostrPrivateKey();
-
-                    putProfile($token, {nostr_private_key},
-                        u => {
-                            user.set(u);
-                            console.debug('   ** Nostr: keys saved into user', u)
-                        },
-                        new ErrorHandler(true)
-                    );
-                }
-            }
-        );
-    }
-
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
@@ -201,11 +183,26 @@
         }
 
         updateNostrProfiles();
-
-        checkPMNostrIdentity();
     })
 
+    const userUnsubscribe = user.subscribe(
+        () => {
+            if ($user && $user.nostr_private_key === null) {
+                let nostr_private_key = createNostrPrivateKey();
+
+                putProfile($token, {nostr_private_key},
+                    u => {
+                        user.set(u);
+                        console.debug('   ** Nostr: keys saved into user', u)
+                    },
+                    new ErrorHandler(true)
+                );
+            }
+        }
+    );
+
     onDestroy(() => {
+        userUnsubscribe();
         pool.disconnect();
     })
 
