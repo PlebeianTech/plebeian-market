@@ -44,6 +44,7 @@ export class User implements IAccount {
     hasPastListings: boolean = false;
     isModerator: boolean = false;
     badges: Badge[] = [];
+    nostr_private_key: string | null = null;
 
     public hasBadge(badge) {
         for (const b of this.badges) {
@@ -92,5 +93,6 @@ export function fromJson(json: any): User {
     u.xpub = <string | null>json.xpub;
     u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
+    u.nostr_private_key = <string | null>json.nostr_private_key;
     return u;
 }

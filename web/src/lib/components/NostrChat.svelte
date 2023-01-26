@@ -1,9 +1,11 @@
 <script lang="ts">
     import {onDestroy, onMount} from "svelte";
+    import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
+    import NostrNote from "$lib/components/NostrNote.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, wait, formatTimestamp, localStorageNostrPreferPMId} from '$lib/nostr/utils'
+    import {hasExtension, getNostrKeysInitIfNecessary, localStorageNostrPreferPMId} from '$lib/nostr/utils'
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
 
     export let roomData = false;
@@ -180,6 +182,11 @@
         }
 
         await updateNostrProfiles();
+
+        while ($user === null) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        getNostrKeysInitIfNecessary($user, $token);
     })
 
     onDestroy(() => {
@@ -197,7 +204,7 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(nostrRoomId, content) !== false) {
+            if (await pool.sendMessage(nostrRoomId, content, $user) !== false) {
                 textarea.value = '';
             }
         }
@@ -227,7 +234,7 @@
                     We use <b>Nostr</b> to power this chat. Click here to see more info
                 </div>
                 <div class="collapse-content bg-info">
-                    <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and subscribe to this channel ID: {nostrRoomId}</p>
+                    <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and introduce this channel ID: {nostrRoomId}</p>
                 </div>
             </div>
 
@@ -256,23 +263,8 @@
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
             <div class="w-full">
-                {#each sortedMessages as m}
-                    <div class="chat chat-start" class:mt-0={m.samePubKey} class:mt-5={!m.samePubKey} class:profileInfo={!m.samePubKey}>
-                        <div class="chat-image avatar">
-                            <div class="w-12 rounded-full ring-primary ring-offset-base-100 ring-offset-2" class:ring={!m.samePubKey}>
-                                {#if !m.samePubKey}
-                                    <img src="{m.profileImage}" alt="profile picture" class:profileInfoImage={!m.samePubKey} />
-                                {/if}
-                            </div>
-                        </div>
-                        {#if !m.samePubKey}
-                            <div class="chat-header">
-                                <span class="mr-3" class:profileInfoName={!m.samePubKey}>{m.profileName}</span>
-                            </div>
-                        {/if}
-                        <div class="chat-bubble">{@html m.content}</div>
-                        <div class="chat-footer text-xs opacity-50">{formatTimestamp(m.created_at)}</div>
-                    </div>
+                {#each sortedMessages as message}
+                    <NostrNote {message}></NostrNote>
                 {/each}
             </div>
         </div>

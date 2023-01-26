@@ -1,5 +1,5 @@
 import type {Event, Relay} from "nostr-tools";
-import {getEventHash, relayInit, validateEvent} from "nostr-tools";
+import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey} from "nostr-tools";
 import {timeoutBetweenRelayConnectsMillis, hasExtension, relayUrlList, nostrEventSubscribeToCreateChannel, localStorageNostrPreferPMId} from "$lib/nostr/utils";
 
 export class Pool {
@@ -48,14 +48,26 @@ export class Pool {
         })
     }
 
-    public async sendMessage(nostrRoomId, message) {
+    public async sendMessage(nostrRoomId, message, user) {
         let nostrPublicKey;
 
-        try {
-            nostrPublicKey = await window.nostr.getPublicKey()
-        } catch (error) {
-            console.error('   ** Nostr: Error getting public key from extension:', error);
-            return false;
+        if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
+            // PM Nostr identity
+            nostrPublicKey = getPublicKey(user.nostr_private_key);
+
+            if (!nostrPublicKey) {
+                console.debug('   ** Nostr: Not using extension, but PM identity (public key) not available.')
+                return false;
+            }
+
+        } else {
+            // Nostr extension identity
+            try {
+                nostrPublicKey = await window.nostr.getPublicKey()
+            } catch (error) {
+                console.error('   ** Nostr: Error getting public key from extension:', error);
+                return false;
+            }
         }
 
         let event: Event = {
@@ -72,10 +84,18 @@ export class Pool {
         event.id = getEventHash(event)
 
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
-            // TODO: use PM nostr identify if no extension present
-            // ??? event.sig = signEvent(event, nostrPrivateKey)
-            // ??? event = signEvent(event, nostrPrivateKey)
+            // PM Nostr identity
+            let nostrPrivateKey = user.nostr_private_key;
+
+            if (!nostrPrivateKey) {
+                console.debug('   ** Nostr: Not using extension, but PM identity (private key) not available.')
+                return false;
+            }
+
+            event.sig = signEvent(event, nostrPrivateKey)
+            console.debug('   ** Nostr: event after hashing and signing by PM Nostr keys', event);
         } else {
+            // Nostr extension identity
             try {
                 event = await window.nostr.signEvent(event)
             } catch (error) {
@@ -83,7 +103,7 @@ export class Pool {
                 return false;
             }
 
-            console.debug('   ** Nostr: event after hashing and signing', event);
+            console.debug('   ** Nostr: event after hashing and signing by extension', event);
         }
 
         if (validateEvent(event)) {
