@@ -142,6 +142,11 @@
         </p>
 
         <div class="lg:flex hidden">
+          {#if ! isProduction() }
+              <p>
+                  <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
+              </p>
+          {/if}
           <p>
             <a href="/about" class="btn btn-ghost normal-case">About</a>
           </p>
@@ -149,7 +154,7 @@
             <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
           </p>
         </div>
-        
+
 			</div>
 
 			<!-- LIGHT MODE AND AVATAR -->
@@ -183,7 +188,7 @@
                     {/if}
                     <li class="block md:hidden md:h-0"><a href="/" class="modal-button cursor-pointer">Home</a></li>
                     {#if ! isProduction() }
-                        <li class="block md:hidden md:h-0"><a href="/marketsquare" class="btn btn-ghost normal-case text-xl">Market Square</a></li>
+                        <li class="block md:hidden md:h-0"><a href="/marketsquare" class="modal-button cursor-pointer">Market Square</a></li>
                     {/if}
                     <li class="block md:hidden md:h-0"><a href="/about" class="modal-button cursor-pointer">About</a></li>
                     <li class="block md:hidden md:h-0"><a href="/faq" class="modal-button cursor-pointer">FAQ</a></li>
