@@ -183,7 +183,7 @@
                     {/if}
                     <li class="block md:hidden md:h-0"><a href="/" class="modal-button cursor-pointer">Home</a></li>
                     {#if ! isProduction() }
-                        <li class="block md:hidden md:h-0"><a href="/townsquare" class="btn btn-ghost normal-case text-xl">Market Square</a></li>
+                        <li class="block md:hidden md:h-0"><a href="/marketsquare" class="btn btn-ghost normal-case text-xl">Market Square</a></li>
                     {/if}
                     <li class="block md:hidden md:h-0"><a href="/about" class="modal-button cursor-pointer">About</a></li>
                     <li class="block md:hidden md:h-0"><a href="/faq" class="modal-button cursor-pointer">FAQ</a></li>
