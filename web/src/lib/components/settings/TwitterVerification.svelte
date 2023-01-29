@@ -62,7 +62,7 @@
         </div>
         <div class="flex justify-center items-center mt-4 h-24 gap-5">
             {#if !inRequest}
-                <div id="verify-twitter" class="glowbutton glowbutton-verify" on:click|preventDefault={verify}></div>
+                <button id="verify-twitter" class="btn btn-primary" on:click|preventDefault={verify}>Verify</button>
             {:else}
                 <button class="btn" disabled>Verify</button>
             {/if}

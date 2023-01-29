@@ -139,10 +139,10 @@
                         <button class="btn mt-1" disabled>Save</button>
                     {:else if isTimeAuction && (auction.key === null || auction.key === "")}
                         <div class="tooltip" data-tip="Your auction will start immediately and there is no turning back!">
-                            <div class="glowbutton glowbutton-publish" on:click|preventDefault={onSave} on:keypress={onSave}></div>
+                            <button class="btn btn-secondary" on:click|preventDefault={onSave} on:keypress={onSave}>Save</button>
                         </div>
                     {:else}
-                        <div class="glowbutton glowbutton-save" on:click|preventDefault={onSave} on:keypress={onSave}></div>                        
+                        <button class="btn btn-primary" on:click|preventDefault={onSave} on:keypress={onSave}>Save</button>                        
                     {/if}
                 </div>
             </div>
