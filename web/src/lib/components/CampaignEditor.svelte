@@ -49,7 +49,7 @@
                     {#if campaign.xpub === null || campaign.xpub.length === 0 || campaign.name.length === 0 || campaign.description.length === 0}
                         <button class="btn mt-1" disabled>Save</button>
                     {:else}
-                        <div class="glowbutton glowbutton-save" on:click|preventDefault={onSave}></div>
+                        <button class="btn btn-primary" on:click|preventDefault={onSave}>Save</button>
                     {/if}
                 </div>
             </div>

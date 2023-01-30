@@ -119,20 +119,20 @@
                     <ul class:lg:steps-horizontal={!item.started} class="steps steps-vertical">
                         <li class="step" class:step-primary={true} class:lg:mb-5={!item.started} class:lg:ml-5={!item.started}>
                             {#if !itemTweeted && !item.started}
-                                <div class="glowbutton glowbutton-tweet ml-2 mr-5 my-5" class:lg:mr-0={!item.started} class:lg:my-0={!item.started} on:click|preventDefault={openTwitter}></div>
+                                <button class="btn btn-primary ml-2 mr-5 my-5" class:lg:mr-0={!item.started} class:lg:my-0={!item.started} on:click|preventDefault={openTwitter}>Tweet</button>
                             {:else}
                                 <button class="btn mx-2" on:click={openTwitter}>Tweet</button>
                             {/if}
                         </li>
                         <li class="step" class:lg:mb-5={!item.started} class:step-primary={itemTweeted || item.started}>
                             {#if itemTweeted && !item.started && !starting && hasXpub}
-                                <div class="glowbutton glowbutton-start ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}></div>
+                                <button class="btn btn-secondary ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}>Start</button>
                             {:else}
                                 <button class="btn btn-disabled mx-2">Start</button>
                             {/if}
                         </li>
                         <li class="step" class:lg:mb-5={!item.started} class:lg:mr-5={!item.started} class:step-primary={item.started}>
-                            <a class="btn mx-2" href={url}>View</a>
+                            <a class="btn btn-outline mx-2" href={url}>View</a>
                         </li>
                     </ul>
                 </div>

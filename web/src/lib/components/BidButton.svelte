@@ -122,7 +122,7 @@
                 <button class="btn" disabled>Bid</button>
             {:else}
                 <div class="flex gap-4 justify-center items-center">
-                    <div class="my-10 glowbutton glowbutton-bid" on:click|preventDefault={placeBid} on:keypress={placeBid}></div>
+                    <button class="my-10 btn btn-primary" on:click|preventDefault={placeBid} on:keypress={placeBid}>Place Bid</button>
                     {#if auction.campaign_key}
                         {#each auction.bid_thresholds as threshold}
                             {#if usdAmount}

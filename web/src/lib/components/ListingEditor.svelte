@@ -74,7 +74,7 @@
                     {#if !listing.validate()}
                         <button class="btn mt-1" disabled>Save</button>
                     {:else}
-                        <div class="glowbutton glowbutton-save" on:click|preventDefault={onSave} on:keypress={onSave}></div>
+                        <button class="btn btn-secondary" on:click|preventDefault={onSave} on:keypress={onSave}>Save</button>
                     {/if}
                 </div>
             </div>

@@ -82,7 +82,7 @@
 
 <div class="flex justify-center items-center mt-4 h-15">
     {#if saveButtonActive}
-        <div id="save-profile" class="glowbutton glowbutton-save" on:click|preventDefault={save}></div>
+        <button id="save-profile" class="btn btn-primary" on:click|preventDefault={save}>Save</button>
     {:else}
         <button class="btn" disabled>Save</button>
     {/if}
