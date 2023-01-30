@@ -24,9 +24,7 @@ export class ErrorHandler {
     }
 }
 
-function fetchAPI(path, method, tokenValue, json, checkResponse) {
-    var API_BASE = `${getApiBaseUrl()}api`;
-
+function getFetchOptions(method, tokenValue, json) {
     var headers = {};
     if (tokenValue) {
         headers['X-Access-Token'] = tokenValue;
@@ -38,7 +36,13 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
     if (json) {
         fetchOptions['body'] = json;
     }
-    fetch(`${API_BASE}${path}`, fetchOptions).then(
+    return fetchOptions;
+}
+
+function fetchAPI(path, method, tokenValue, json, checkResponse) {
+    var API_BASE = `${getApiBaseUrl()}api`;
+
+    fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, json)).then(
         (response) => {
             if (response.status === 401) {
                 if (tokenValue) {
@@ -52,6 +56,12 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
             }
         }
     );
+}
+
+async function fetchAPIAsync(path, method, tokenValue, json) {
+    var API_BASE = `${getApiBaseUrl()}api`;
+
+    return await fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, json));
 }
 
 export interface ILoader {
@@ -71,6 +81,16 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
                 errorHandler.handle(response);
             }
         });
+}
+
+export async function getEntitiesAsync(loader: ILoader, tokenValue) {
+    const response = await fetchAPIAsync(`/${loader.endpoint}`, 'GET', tokenValue, null);
+    const data = await response.json();
+    if (response.status === 200) {
+        return data[loader.responseField].map(loader.fromJson);
+    } else {
+        throw error(500, `${loader.endpoint}: data.message`);
+    }
 }
 
 export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (key: string) => void, errorHandler = new ErrorHandler()) {
@@ -131,17 +151,6 @@ export function getLogin(k1, initialResponseCB: (response: GetLoginInitialRespon
                 );
             }
         });
-}
-
-export function getFeatured(loader: ILoader, successCB: (items: any[]) => void) {
-    fetchAPI(`/${loader.endpoint}/featured`, 'GET', null, null,
-            response => {
-                if (response.status === 200) {
-                    response.json().then(data => {
-                        successCB(data[loader.responseField].map(loader.fromJson));
-                    });
-                }
-            });
 }
 
 export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string, entity_key: string}[], listingAvatars: {url: string, entity_key: string}[]) => void) {

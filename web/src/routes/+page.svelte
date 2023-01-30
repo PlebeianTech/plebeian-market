@@ -4,7 +4,7 @@
 
 <script lang="ts">
     import { onMount } from "svelte";
-    import { getFeatured } from "$lib/services/api";
+    import { ErrorHandler, getEntities } from "$lib/services/api";
     import { user } from "$lib/stores";
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
@@ -32,10 +32,10 @@
     }
 
     onMount(async () => {
-        getFeatured({endpoint: 'auctions', responseField: 'auctions', fromJson: auctionFromJson},
-            a => { auctions = a; });
-        getFeatured({endpoint: 'listings', responseField: 'listings', fromJson: listingFromJson},
-            a => { listings = a; });
+        getEntities({endpoint: 'auctions/featured', responseField: 'auctions', fromJson: auctionFromJson}, null,
+            a => { auctions = <any[]>a; }, new ErrorHandler(false));
+        getEntities({endpoint: 'listings/featured', responseField: 'listings', fromJson: listingFromJson}, null,
+            a => { listings = <any[]>a; }, new ErrorHandler(false));
     });
 </script>
 
