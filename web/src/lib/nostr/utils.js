@@ -1,4 +1,4 @@
-import {getEventHash, generatePrivateKey} from "nostr-tools";
+import {getEventHash, generatePrivateKey, nip05} from "nostr-tools";
 
 export const relayUrlList = [
     "wss://relay.nostr.ro",
@@ -60,4 +60,21 @@ export function getChannelIdFromChannelName(channelName) {
 
 export function createNostrPrivateKey() {
     return generatePrivateKey();
+}
+
+export async function queryNip05(fullname) {
+    let profile;
+
+    try {
+        profile = await nip05.queryProfile(fullname)
+    } catch (e) {
+        console.debug("   ** Nostr: Problem while trying to verify nip05 (" + fullname + "):", e);
+        return false;
+    }
+
+    if (profile && profile.pubkey) {
+        return profile.pubkey;
+    }
+
+    return false;
 }
