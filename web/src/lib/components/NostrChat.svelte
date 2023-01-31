@@ -5,8 +5,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, createNostrPrivateKey, localStorageNostrPreferPMId} from '$lib/nostr/utils'
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
+    import {hasExtension, createNostrPrivateKey, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -48,20 +47,18 @@
                 } else {
                     const profileInfo = profileImagesMap.get(message.pubkey)
 
-                    if (profileInfo && profileInfo.picture) {
-                        message.profileImage = profileInfo.picture
-                    } else {
-                        message.profileImage = profilePicturePlaceHolder
-                    }
+                    if (profileInfo) {
+                        if (profileInfo.picture) {
+                            message.profileImage = profileInfo.picture
+                        }
 
-                    if (profileInfo && profileInfo.name) {
-                        message.profileName = profileInfo.name
-                    } else {
-                        message.profileName = message.pubkey.slice(0, 8)
-                    }
+                        if (profileInfo.name) {
+                            message.profileName = profileInfo.name
+                        }
 
-                    if (profileInfo && profileInfo.about) {
-                        message.profileAbout = profileInfo.about
+                        if (profileInfo.about) {
+                            message.profileAbout = profileInfo.about
+                        }
                     }
                 }
 
