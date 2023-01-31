@@ -70,13 +70,9 @@
                 } else {
                     const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
 
-                    if (profileInfo !== null && profileInfo !== true) {
+                    if (profileInfo) {
                         if (profileInfo.picture) {
-                            if (nostrMediaCacheEnabled) {
-                                message.profileImage = 'https://media.nostr.band/thumbs/' + message.pubkey.slice(-4) + '/' + message.pubkey + '-picture-64';
-                            } else {
-                                message.profileImage = profileInfo.picture
-                            }
+                            message.profileImage = profileInfo.picture
                         }
 
                         if (profileInfo.name) {
