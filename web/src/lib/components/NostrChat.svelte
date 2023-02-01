@@ -70,7 +70,7 @@
                 } else {
                     const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
 
-                    if (profileInfo) {
+                    if (profileInfo !== null && profileInfo !== true) {
                         if (profileInfo.picture) {
                             message.profileImage = profileInfo.picture
                         }
@@ -171,52 +171,40 @@
 
     function queryNoteInformationInBatches() {
         let noteInfoToGetLocal: string[] = [];
-
         let i=0;
-
         for (const [key, note] of notesMap) {
             if (note === null) {
                 notesMap.set(key, true);
                 noteInfoToGetLocal.push(key);
                 i++;
-
                 if (i == nostrQueriesBatchSize) {
                     break;
                 }
             }
         }
-
         if (noteInfoToGetLocal.length === 0) {
             return;
         }
-
         pool.relays.forEach(relay => {
             let filter: Filter = {
                 kinds: [
-                    nostrEventKinds.note,
-                    nostrEventKinds.replies,
-                    nostrEventKinds.reactions,
+                    Kind.Text,
+                    Kind.Reaction
                 ],
                 '#e': noteInfoToGetLocal
             };
-
             const sub: Sub = relay.sub([filter]);
-
             sub.on('event', event => {
                 const kind = event.kind;
-
                 // TODO: REPLIES AND LIKES
-
-                if (kind === 7) {
+                if (kind === Kind.Reaction) {
                     const id = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
                     const eventReaction: string = event.content;
                     const eventPubkey: string = event.pubkey;
-
                     if (!id) {
                         console.error('EVENT WITHOUT ID !!!');
                         return;
                     }
-
                     for (let message of messages) {
                         if (message.id === id) {
                             let reactions: Map<string, Set<string>> | undefined = message.reactions;
@@ -224,29 +212,24 @@
                                 reactions = new Map();
                                 message.reactions = reactions;
                             }
-
                             let reaction: Set<string> = reactions.get(eventReaction);
                             if (reaction === undefined) {
                                 reaction = new Set();
                                 reactions.set(eventReaction, reaction);
                             }
                             reaction.add(eventPubkey);
-
                             break;
                         }
                     }
                 }
             });
-
             pool.subscriptions.push(sub);
         })
     }
-
     function queryNip05ServersForVerification() {
         nip05.forEach(async (value, key) => {
             if (value === null) {
                 nip05.set(key, true);
-
                 let nip05verificationResult = await queryNip05(key);
                 nip05.set(key, nip05verificationResult);
             }
