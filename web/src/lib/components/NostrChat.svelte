@@ -16,7 +16,7 @@
     const queryProfilesBatchSize = 30;
     const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
-    const nostrMediaCacheEnabled = false;
+    const nostrMediaCacheEnabled = true;
 
     let nostrPreferenceCheckboxChecked;
 
