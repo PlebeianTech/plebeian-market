@@ -40,10 +40,12 @@ export const formatTimestamp = ts => {
     return formatter.format(new Date(ts * 1000));
 }
 
-export function getChannelIdFromChannelName(channelName) {
-    console.debug('   ** Nostr: Stall channel name: ', channelName);
+export function getChannelIdForStallOwner(user) {
+    let stallName = 'Plebeian Market Stall ' + user.identity + ' (' + import.meta.env.MODE + ')';
 
-    // Don't change this, since we're faking channel
+    console.debug('   ** Nostr: Stall channel name: ', stallName);
+
+    // Please, don't change this, since we're faking channel
     // creation, so we need the same channel ID every time
     let created_at = 1672837282;
 
@@ -51,7 +53,7 @@ export function getChannelIdFromChannelName(channelName) {
         kind: nostrEventKindCreateChannel,
         pubkey: pmMasterPublicKey,
         created_at: created_at,
-        content: '{"name": "' + channelName + '", "about": "Plebeian Market Stall Square."}',
+        content: '{"name": "' + stallName + '", "about": "Plebeian Market Stall Square."}',
         tags: [],
     }
 
