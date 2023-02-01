@@ -10,7 +10,6 @@ export const relayUrlList = [
     "wss://nostr.bitcoiner.social",
     "wss://relay.damus.io",
     "wss://nostr.zebedee.cloud",
-    "wss://relay.nostr.info",
     "wss://nostr-pub.semisol.dev",
     "wss://nostr.walletofsatoshi.com",
 ];
