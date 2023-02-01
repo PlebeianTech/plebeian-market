@@ -298,9 +298,9 @@
                     <small>You'll sign messages with your extension when you write in the channel.</small>
                 {:else}
                     <small>You'll be using your Plebeian Market generated Nostr identity. Install a Nostr browser extension
-                        (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank">nos2x</a>,
-                        <a class="link" href="https://getalby.com/" target="_blank">Alby</a> or
-                        <a class="link" href="https://www.blockcore.net/wallet" target="_blank">Blockcore</a>) if you want to use your own Nostr identity:</small>
+                        (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                        <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                        <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) if you want to use your own Nostr identity:</small>
                 {/if}
             </div>
         </div>
