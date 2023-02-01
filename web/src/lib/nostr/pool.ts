@@ -130,24 +130,6 @@ export class Pool {
         return false;
     }
 
-    public subscribeToChannelEntirePool(nostrRoomId, messageLimit, since, callbackFunction) {
-        this.relays.forEach(async relay => {
-            console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url);
-
-            let sub = relay.sub([{
-                kinds: [42],
-                '#e': [nostrRoomId],
-                limit: messageLimit,
-                since: since
-            }]);
-
-            sub.on('event', event => {
-                console.debug('   ** Nostr: Event received from channel in relay: ' + relay.url);
-                callbackFunction(event);
-            });
-        })
-    }
-
     public subscribeToChannel(relay, nostrRoomId, messageLimit, since, callbackFunction) {
         console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url);
 
