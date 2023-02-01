@@ -1,4 +1,4 @@
-import {getEventHash, generatePrivateKey, nip05} from "nostr-tools";
+import {getEventHash, nip05} from "nostr-tools";
 
 export const relayUrlList = [
     "wss://relay.nostr.ro",
