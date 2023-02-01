@@ -58,10 +58,6 @@ export function getChannelIdFromChannelName(channelName) {
     return getEventHash(event);
 }
 
-export function createNostrPrivateKey() {
-    return generatePrivateKey();
-}
-
 export async function queryNip05(fullname) {
     let profile;
 

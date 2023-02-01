@@ -3,9 +3,9 @@
     import {onDestroy, onMount} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import {Event} from "nostr-tools";
+    import {Event, generatePrivateKey} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, createNostrPrivateKey, queryNip05, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -223,7 +223,7 @@
     const userUnsubscribe = user.subscribe(
         () => {
             if ($user && $user.nostr_private_key === null) {
-                let nostr_private_key = createNostrPrivateKey();
+                let nostr_private_key = generatePrivateKey();
 
                 putProfile($token, {nostr_private_key},
                     u => {
