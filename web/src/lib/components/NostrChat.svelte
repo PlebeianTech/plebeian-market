@@ -11,10 +11,12 @@
     export let roomData = false;
     export let emptyChatShowsLoading: boolean = false;
     export let nostrRoomId: string;
-    export let messageLimit: number = 100;
+    export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
-    const queryProfilesBatchSize = 15;
+    const queryProfilesBatchSize = 30;
+    const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
+    const nostrMediaCacheEnabled = false;
 
     let nostrPreferenceCheckboxChecked;
 
@@ -25,10 +27,14 @@
     let messages = [];
     let sortedMessages = [];
 
-    let profilesToQuery = [];
-    let profilesQueried = [];
+    // null: to be requested
+    // true: requested
+    // other: the user profile
     let profileImagesMap = new Map();
 
+    // null: to be requested
+    // false: requested but error (so don't ask again)
+    // other: the nip05 public key
     let nip05 = new Map();
 
     const pool: Pool = new Pool();
@@ -49,7 +55,7 @@
                 } else {
                     const profileInfo = profileImagesMap.get(message.pubkey)
 
-                    if (profileInfo) {
+                    if (profileInfo !== null && profileInfo !== true) {
                         if (profileInfo.picture) {
                             message.profileImage = profileInfo.picture
                         }
@@ -91,42 +97,36 @@
             }
         }
 
-        messages = messages.concat([newMessage]);
+        messages.push(newMessage);
 
         addProfileIfNotQueried(newMessage.pubkey);
-
-        orderAndVitamineMessages();
     }
 
     function addProfileIfNotQueried(pubKey) {
-        for (const profile of profilesToQuery) {
-            if (profile === pubKey) {
-                return;
-            }
+        if (!profileImagesMap.has(pubKey)) {
+            profileImagesMap.set(pubKey, null);
         }
-        for (const profile of profilesQueried) {
-            if (profile === pubKey) {
-                return;
-            }
-        }
-
-        profilesToQuery.push(pubKey);
     }
 
     function queryProfilesToNostrRelaysInBatches() {
-        if (profilesToQuery.length === 0) {
-            return;
-        }
-
         let profilesToGetLocal = [];
 
-        for (let i=0; i < queryProfilesBatchSize; i++) {
-            const profile = profilesToQuery.shift();
+        let i=0;
 
-            if (profile) {
-                profilesToGetLocal.push(profile);
-                profilesQueried.push(profile);
+        for (const [key, profile] of profileImagesMap) {
+            if (profile === null) {
+                profilesToGetLocal.push(key);
+                profileImagesMap.set(key, true);
+                i++;
+
+                if (i == queryProfilesBatchSize) {
+                    break;
+                }
             }
+        }
+
+        if (profilesToGetLocal.length === 0) {
+            return;
         }
 
         pool.relays.forEach(async relay => {
@@ -138,12 +138,8 @@
                 const profileContentJSON = event.content;
                 const pubKey = event.pubkey;
 
-                if (!profileImagesMap.has(pubKey)) {
-                    if (profileContentJSON) {
-                        profileImagesMap.set(pubKey, JSON.parse(profileContentJSON));
-
-                        orderAndVitamineMessages();
-                    }
+                if (profileContentJSON) {
+                    profileImagesMap.set(pubKey, JSON.parse(profileContentJSON));
                 }
             });
         })
@@ -193,6 +189,12 @@
         await updateNip05Verifications();
     }
 
+    async function processMessagesPeriodically() {
+        await new Promise(resolve => setTimeout(resolve, nostrOrderMessagesDelay));
+        orderAndVitamineMessages();
+        await processMessagesPeriodically();
+    }
+
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
@@ -209,9 +211,10 @@
             console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
         }
 
+        processMessagesPeriodically();
         updateNostrProfiles();
         updateNip05Verifications();
-    })
+    });
 
     const userUnsubscribe = user.subscribe(
         () => {
