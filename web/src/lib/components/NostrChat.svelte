@@ -5,7 +5,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, createNostrPrivateKey, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, createNostrPrivateKey, queryNip05, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -14,7 +14,7 @@
     export let messageLimit: number = 100;
     export let messagesSince: number = 1672837281;  // January 4th 2023
     const queryProfilesBatchSize = 15;
-    const updateNostrProfilesDelay = 4000;
+    const nostrBackgroundJobsDelay = 4000;
 
     let nostrPreferenceCheckboxChecked;
 
@@ -28,6 +28,8 @@
     let profilesToQuery = [];
     let profilesQueried = [];
     let profileImagesMap = new Map();
+
+    let nip05 = new Map();
 
     const pool: Pool = new Pool();
 
@@ -58,6 +60,18 @@
 
                         if (profileInfo.about) {
                             message.profileAbout = profileInfo.about
+                        }
+                        if (profileInfo.nip05) {
+                            let nip05verificationPublicKey = nip05.get(profileInfo.nip05);
+
+                            if (nip05verificationPublicKey === undefined) {
+                                nip05.set(profileInfo.nip05, null);
+                            } else if (nip05verificationPublicKey !== null) {
+                                if (message.pubkey === nip05verificationPublicKey) {
+                                    message.nip05verified = true;
+                                    message.nip05 = profileInfo.nip05;
+                                }
+                            }
                         }
                     }
                 }
@@ -134,6 +148,15 @@
         })
     }
 
+    function queryNip05ServersForVerification() {
+        nip05.forEach(async (value, key) => {
+            if (value === null) {
+                let nip05verificationResult = await queryNip05(key);
+                nip05.set(key, nip05verificationResult);
+            }
+        });
+    }
+
     function updateBrowserExtensionCheckbox() {
         let extensionCheckBox = <HTMLInputElement>document.getElementById('use_browser_extension');
         if (!extensionCheckBox) {
@@ -158,9 +181,15 @@
     }
 
     async function updateNostrProfiles() {
-        await new Promise(resolve => setTimeout(resolve, updateNostrProfilesDelay));
-        queryProfilesToNostrRelaysInBatches()
+        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        queryProfilesToNostrRelaysInBatches();
         await updateNostrProfiles();
+    }
+
+    async function updateNip05Verifications() {
+        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        queryNip05ServersForVerification();
+        await updateNip05Verifications();
     }
 
     onMount(async () => {
@@ -180,6 +209,7 @@
         }
 
         updateNostrProfiles();
+        updateNip05Verifications();
     })
 
     const userUnsubscribe = user.subscribe(
@@ -218,6 +248,18 @@
                 textarea.value = '';
             }
         }
+    }
+
+    // SCROLL TO BOTTOM
+    const scrollToBottom = (node: any) => {
+      const scroll = () =>
+        node.scroll({
+          top: node.scrollHeight,
+          behavior: 'smooth'
+        })
+        scroll()
+
+        return { update: scroll }
     }
 </script>
 
@@ -272,7 +314,7 @@
                         gap-2 overflow-x-hidden border bg-cover bg-top p-4"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
-            <div class="w-full">
+            <div class="w-full h-96 overflow-y-scroll" use:scrollToBottom={messages}>
                 {#each sortedMessages as message}
                     <NostrNote {message}></NostrNote>
                 {/each}
