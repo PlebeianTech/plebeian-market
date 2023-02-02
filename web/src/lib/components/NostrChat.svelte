@@ -3,7 +3,7 @@
     import {onDestroy, onMount} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import {Event, generatePrivateKey} from "nostr-tools";
+    import {Event, Sub, generatePrivateKey} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
     import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
@@ -13,7 +13,7 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
-    const queryProfilesBatchSize = 30;
+    const queryProfilesBatchSize = 100;
     const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
     const nostrMediaCacheEnabled = true;
@@ -133,8 +133,8 @@
             return;
         }
 
-        pool.relays.forEach(async relay => {
-            const sub = relay.sub([{
+        pool.relays.forEach(relay => {
+            const sub: Sub = relay.sub([{
                 kinds: [0],
                 authors: profilesToGetLocal
             }]);
@@ -146,6 +146,8 @@
                     profileImagesMap.set(pubKey, JSON.parse(profileContentJSON));
                 }
             });
+
+            pool.subscriptions.push(sub);
         })
     }
 
@@ -238,6 +240,7 @@
 
     onDestroy(() => {
         userUnsubscribe();
+        pool.unsubscribeEverything();
         pool.disconnect();
     })
 
@@ -252,7 +255,7 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(nostrRoomId, content, $user) !== false) {
+            if (await pool.sendMessage(null, content, $user, nostrRoomId)) {
                 textarea.value = '';
             }
         }
