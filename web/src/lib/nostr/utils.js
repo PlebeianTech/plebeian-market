@@ -1,17 +1,19 @@
 import {getEventHash, nip05} from "nostr-tools";
 
 export const relayUrlList = [
+    "wss://nostr-pub.wellorder.net",
+    "wss://nostr-relay.wlvs.space",
+    "wss://nostr.bitcoiner.social",
     "wss://relay.nostr.ro",
     "wss://nostr-relay.alekberg.net",
     "wss://btc.klendazu.com",
     "wss://relay.nostr.info",
-    "wss://nostr.onsats.org",
-    "wss://eden.nostr.land",
-    "wss://nostr.bitcoiner.social",
-    "wss://relay.damus.io",
     "wss://nostr.zebedee.cloud",
     "wss://nostr-pub.semisol.dev",
-    "wss://nostr.walletofsatoshi.com",
+    "wss://relay.damus.io",
+    "wss://nostr.bitcoiner.social", // **
+    "wss://nostr.onsats.org",   // **
+    //"wss://nostr.walletofsatoshi.com",
 ];
 
 export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a';
