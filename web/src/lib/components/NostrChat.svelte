@@ -5,7 +5,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event, generatePrivateKey} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -182,19 +182,19 @@
     }
 
     async function updateNostrProfiles() {
-        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        await wait(nostrBackgroundJobsDelay);
         queryProfilesToNostrRelaysInBatches();
         await updateNostrProfiles();
     }
 
     async function updateNip05Verifications() {
-        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        await wait(nostrBackgroundJobsDelay);
         queryNip05ServersForVerification();
         await updateNip05Verifications();
     }
 
     async function processMessagesPeriodically() {
-        await new Promise(resolve => setTimeout(resolve, nostrOrderMessagesDelay));
+        await wait(nostrOrderMessagesDelay);
         orderAndVitamineMessages();
         await processMessagesPeriodically();
     }
