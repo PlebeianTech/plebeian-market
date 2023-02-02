@@ -61,7 +61,6 @@
                         if (profileInfo.about) {
                             message.profileAbout = profileInfo.about
                         }
-
                         if (profileInfo.nip05) {
                             let nip05verificationPublicKey = nip05.get(profileInfo.nip05);
 
