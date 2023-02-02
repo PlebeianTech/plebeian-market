@@ -17,8 +17,9 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
-    import { getBaseUrl, requestLoginModal, getShortTitle, getShortDescription } from "$lib/utils";
+    import { getBaseUrl, requestLoginModal, getShortTitle, getShortDescription, isProduction } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
+    import NostrButton from "$lib/components/NostrButton.svelte";
 
     export let loader: ILoader;
     export let itemKey = null;
@@ -335,18 +336,20 @@
                                     <p class="text-4xl text-center pt-24">
                                         {#if item instanceof Auction}
                                             Your auction is live! <br />
-
-                                            <div class="text-xl text-center my-2 mt-10 mb-10">
-                                                Now let your audience know!
-                                                &nbsp;
-                                                <TweetButton tweetURL={tweetURL} />
-                                            </div>
                                         {:else if item instanceof Listing}
                                             Your listing is live! <br />
                                             <br />
                                             Note: You can still edit it, by going to <a class="link" href="/stall/{$user.nym}">My stall</a>!
                                         {/if}
                                     </p>
+                                    <div class="text-xl text-center my-2 mt-10 mb-10">
+                                        Now let your audience know!
+                                        &nbsp;
+                                        <TweetButton tweetURL={tweetURL} />
+                                        {#if ! isProduction() }
+                                            <NostrButton pmURL={window.location.href} />
+                                        {/if}
+                                    </div>
                                 {/if}
                             {/if}
                         {:else}
