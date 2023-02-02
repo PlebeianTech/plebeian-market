@@ -5,8 +5,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, createNostrPrivateKey, localStorageNostrPreferPMId} from '$lib/nostr/utils'
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url"
+    import {hasExtension, createNostrPrivateKey, queryNip05, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -15,7 +14,7 @@
     export let messageLimit: number = 100;
     export let messagesSince: number = 1672837281;  // January 4th 2023
     const queryProfilesBatchSize = 15;
-    const updateNostrProfilesDelay = 4000;
+    const nostrBackgroundJobsDelay = 4000;
 
     let nostrPreferenceCheckboxChecked;
 
@@ -29,6 +28,8 @@
     let profilesToQuery = [];
     let profilesQueried = [];
     let profileImagesMap = new Map();
+
+    let nip05 = new Map();
 
     const pool: Pool = new Pool();
 
@@ -48,20 +49,31 @@
                 } else {
                     const profileInfo = profileImagesMap.get(message.pubkey)
 
-                    if (profileInfo && profileInfo.picture) {
-                        message.profileImage = profileInfo.picture
-                    } else {
-                        message.profileImage = profilePicturePlaceHolder
-                    }
+                    if (profileInfo) {
+                        if (profileInfo.picture) {
+                            message.profileImage = profileInfo.picture
+                        }
 
-                    if (profileInfo && profileInfo.name) {
-                        message.profileName = profileInfo.name
-                    } else {
-                        message.profileName = message.pubkey.slice(0, 8)
-                    }
+                        if (profileInfo.name) {
+                            message.profileName = profileInfo.name
+                        }
 
-                    if (profileInfo && profileInfo.about) {
-                        message.profileAbout = profileInfo.about
+                        if (profileInfo.about) {
+                            message.profileAbout = profileInfo.about
+                        }
+
+                        if (profileInfo.nip05) {
+                            let nip05verificationPublicKey = nip05.get(profileInfo.nip05);
+
+                            if (nip05verificationPublicKey === undefined) {
+                                nip05.set(profileInfo.nip05, null);
+                            } else if (nip05verificationPublicKey !== null) {
+                                if (message.pubkey === nip05verificationPublicKey) {
+                                    message.nip05verified = true;
+                                    message.nip05 = profileInfo.nip05;
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -137,6 +149,15 @@
         })
     }
 
+    function queryNip05ServersForVerification() {
+        nip05.forEach(async (value, key) => {
+            if (value === null) {
+                let nip05verificationResult = await queryNip05(key);
+                nip05.set(key, nip05verificationResult);
+            }
+        });
+    }
+
     function updateBrowserExtensionCheckbox() {
         let extensionCheckBox = <HTMLInputElement>document.getElementById('use_browser_extension');
         if (!extensionCheckBox) {
@@ -161,9 +182,15 @@
     }
 
     async function updateNostrProfiles() {
-        await new Promise(resolve => setTimeout(resolve, updateNostrProfilesDelay));
-        queryProfilesToNostrRelaysInBatches()
+        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        queryProfilesToNostrRelaysInBatches();
         await updateNostrProfiles();
+    }
+
+    async function updateNip05Verifications() {
+        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        queryNip05ServersForVerification();
+        await updateNip05Verifications();
     }
 
     onMount(async () => {
@@ -183,6 +210,7 @@
         }
 
         updateNostrProfiles();
+        updateNip05Verifications();
     })
 
     const userUnsubscribe = user.subscribe(
