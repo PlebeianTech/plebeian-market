@@ -19,7 +19,7 @@
     import {requestLoginModal} from "../utils";
     import NostrChat from "$lib/components/NostrChat.svelte";
     import { isProduction } from "$lib/utils";
-    import { getChannelIdFromChannelName } from '$lib/nostr/utils'
+    import { getChannelIdForStallOwner } from '$lib/nostr/utils'
     // import CampaignStats from './CampaignStats.svelte';
 
     export let baseUrl: string;
@@ -57,11 +57,9 @@
     $: twitterUsername = owner ? owner.twitterUsername : null;
     $: twitterHref = owner && twitterUsername ? `https://twitter.com/${owner.twitterUsername}` : null;
 
-    let nostrChannelName = null;
     let nostrRoomId: string = null;
     if (owner) {
-        nostrChannelName = 'Plebeian Market Stall ' + owner.identity + ' (' + import.meta.env.MODE + ')';
-        nostrRoomId = getChannelIdFromChannelName(nostrChannelName);
+        nostrRoomId = getChannelIdForStallOwner(owner);
     }
 
     function onAuctionCreated(key: string, entity: IEntity) {

@@ -3,9 +3,9 @@
     import {onDestroy, onMount} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import {Event} from "nostr-tools";
+    import {Event, Sub, generatePrivateKey} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, createNostrPrivateKey, queryNip05, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -14,7 +14,7 @@
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
 
-    const queryProfilesBatchSize = 30;
+    const queryProfilesBatchSize = 100;
     const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
     const nostrMediaCacheEnabled = true;
@@ -134,8 +134,8 @@
             return;
         }
 
-        pool.relays.forEach(async relay => {
-            const sub = relay.sub([{
+        pool.relays.forEach(relay => {
+            const sub: Sub = relay.sub([{
                 kinds: [0],
                 authors: profilesToGetLocal
             }]);
@@ -147,6 +147,8 @@
                     profileImagesMap.set(pubKey, JSON.parse(profileContentJSON));
                 }
             });
+
+            pool.subscriptions.push(sub);
         })
     }
 
@@ -183,19 +185,19 @@
     }
 
     async function updateNostrProfiles() {
-        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        await wait(nostrBackgroundJobsDelay);
         queryProfilesToNostrRelaysInBatches();
         await updateNostrProfiles();
     }
 
     async function updateNip05Verifications() {
-        await new Promise(resolve => setTimeout(resolve, nostrBackgroundJobsDelay));
+        await wait(nostrBackgroundJobsDelay);
         queryNip05ServersForVerification();
         await updateNip05Verifications();
     }
 
     async function processMessagesPeriodically() {
-        await new Promise(resolve => setTimeout(resolve, nostrOrderMessagesDelay));
+        await wait(nostrOrderMessagesDelay);
         orderAndVitamineMessages();
         await processMessagesPeriodically();
     }
@@ -224,7 +226,7 @@
     const userUnsubscribe = user.subscribe(
         () => {
             if ($user && $user.nostr_private_key === null) {
-                let nostr_private_key = createNostrPrivateKey();
+                let nostr_private_key = generatePrivateKey();
 
                 putProfile($token, {nostr_private_key},
                     u => {
@@ -239,6 +241,7 @@
 
     onDestroy(() => {
         userUnsubscribe();
+        pool.unsubscribeEverything();
         pool.disconnect();
     })
 
@@ -253,7 +256,7 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(nostrRoomId, content, $user) !== false) {
+            if (await pool.sendMessage(null, content, $user, nostrRoomId)) {
                 textarea.value = '';
             }
         }
@@ -311,9 +314,9 @@
                     <small>You'll sign messages with your extension when you write in the channel.</small>
                 {:else}
                     <small>You'll be using your Plebeian Market generated Nostr identity. Install a Nostr browser extension
-                        (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank">nos2x</a>,
-                        <a class="link" href="https://getalby.com/" target="_blank">Alby</a> or
-                        <a class="link" href="https://www.blockcore.net/wallet" target="_blank">Blockcore</a>) if you want to use your own Nostr identity:</small>
+                        (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                        <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                        <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) if you want to use your own Nostr identity:</small>
                 {/if}
             </div>
         </div>
