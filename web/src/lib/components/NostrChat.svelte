@@ -5,7 +5,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, generatePrivateKey} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId, nostrEventKinds} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -27,15 +27,23 @@
     let messages = [];
     let sortedMessages = [];
 
-    // null: to be requested
-    // true: requested
-    // other: the user profile
-    let profileImagesMap = new Map();
+    type UserProfile = {
+        name: string;
+        about: string;
+        picture: string;
+        nip05: string;
+    };
 
     // null: to be requested
-    // false: requested but error (so don't ask again)
-    // other: the nip05 public key
-    let nip05 = new Map();
+    // true: requested
+    // UserProfile: the user profile
+    let profileImagesMap = new Map<string, null | true | UserProfile>();
+
+    // null: to be requested
+    // true: requested
+    // false: the request errored out (so don't ask again)
+    // other: the public key of the user as specified in the nip05 registry
+    let nip05 = new Map<string, null | boolean | string>();
 
     const pool: Pool = new Pool();
 
@@ -53,7 +61,7 @@
                     message.samePubKey = true
                     // No profile picture/name needed
                 } else {
-                    const profileInfo = profileImagesMap.get(message.pubkey)
+                    const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
 
                     if (profileInfo !== null && profileInfo !== true) {
                         if (profileInfo.picture) {
