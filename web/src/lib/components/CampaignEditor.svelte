@@ -2,6 +2,7 @@
     import type { IEntity } from "$lib/types/base";
     import type { Campaign } from "$lib/types/campaign";
     import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
+    import XpubInfo from "$lib/components/XpubInfo.svelte";
 
     export let entity: IEntity;
     $: campaign = <Campaign>entity;
@@ -15,17 +16,7 @@
             <h2 class="card-title mb-4 text-2xl text-center">{#if campaign.key}Edit campaign{:else}New campaign{/if}</h2>
             <form class="w-full">
                 {#if campaign.key === null || campaign.key === ""}
-                    <div class="alert alert-info shadow-lg">
-                        <div>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <span>
-                                We use your XPUB to generate addresses for your payments.
-                                We strongly suggest you use a separate wallet for this campaign only!
-                                RECOMMENDED WALLETS: Blue, Wasabi, Electrum, Sparrow, Samourai
-                                DO NOT USE: Muun, Breez or Phoenix (<a class="link" href="/faq" target="_blank" rel="noreferrer">why?</a>)
-                            </span>
-                        </div>
-                    </div>
+                    <XpubInfo></XpubInfo>
                     <div class="form-control w-full max-w-full">
                         <label class="label" for="xpub">
                             <span class="label-text">XPUB</span>
