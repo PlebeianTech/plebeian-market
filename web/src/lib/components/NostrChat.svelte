@@ -326,7 +326,7 @@
                         gap-2 overflow-x-hidden border bg-cover bg-top p-4"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
-            <div class="w-full h-96 overflow-y-scroll" use:scrollToBottom={messages}>
+            <div class="w-full h-96 overflow-y-scroll" use:scrollToBottom={sortedMessages}>
                 {#each sortedMessages as message}
                     <NostrNote {message}></NostrNote>
                 {/each}
