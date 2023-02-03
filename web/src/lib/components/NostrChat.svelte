@@ -162,6 +162,7 @@
     function queryNip05ServersForVerification() {
         nip05.forEach(async (value, key) => {
             if (value === null) {
+                nip05.set(key, true);
                 let nip05verificationResult = await queryNip05(key);
                 nip05.set(key, nip05verificationResult);
             }
