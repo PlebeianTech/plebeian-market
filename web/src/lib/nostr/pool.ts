@@ -72,7 +72,6 @@ export class Pool {
             } else {
                 try {
                     let newRelay = relayInit(relayUrl);
-                    await newRelay.connect();
 
                     newRelay.on('connect', () => {
                         console.debug('   ** Nostr:   -- Connected to relay: ' + relayUrl);
@@ -83,6 +82,9 @@ export class Pool {
                         console.log(`   ** Nostr: Failed to connect to relay: ${newRelay.url}`);
                         reject("Couldn't connect to relay (onError): " + relayUrl);
                     })
+
+                    await newRelay.connect();
+
                 } catch (e) {
                     reject("Couldn't connect to relay (catch): " + relayUrl);
                 }
