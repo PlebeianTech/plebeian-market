@@ -81,20 +81,3 @@ export async function queryNip05(fullname) {
 
     return false;
 }
-
-export async function queryNip05(fullname) {
-    let profile;
-
-    try {
-        profile = await nip05.queryProfile(fullname)
-    } catch (e) {
-        console.debug("   ** Nostr: Problem while trying to verify nip05 (" + fullname + "):", e);
-        return false;
-    }
-
-    if (profile && profile.pubkey) {
-        return profile.pubkey;
-    }
-
-    return false;
-}
