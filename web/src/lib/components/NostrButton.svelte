@@ -8,7 +8,7 @@
 
     const pool: Pool = new Pool();
 
-    function postToNostr(location) {
+    function postToNostr(location: 'stall' | 'mktSquare' | 'nostrFeed') {
         let message;
 
         let nostrRoomId;
