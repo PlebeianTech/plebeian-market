@@ -14,7 +14,7 @@
         let nostrRoomId;
         switch (location) {
             case 'stall':
-                message = 'Hi people! I just created a new product. Give it a look:';
+                message = 'Hi people! I just listed a new product. Give it a look:';
                 nostrRoomId = getChannelIdForStallOwner($user);
                 break;
             case 'mktSquare':
