@@ -20,6 +20,7 @@ export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75
 export const pmChannelNostrRoomId = '25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb';   // 'Nostr' channel
 export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 export const nostrEventKinds = {
+    'metadata': 0,
     'note': 1,
     'createChannel': 40,
     'channelNote': 42

@@ -135,7 +135,7 @@
 
         pool.relays.forEach(relay => {
             const sub: Sub = relay.sub([{
-                kinds: [0],
+                kinds: [nostrEventKinds.metadata],
                 authors: profilesToGetLocal
             }]);
             sub.on('event', event => {
