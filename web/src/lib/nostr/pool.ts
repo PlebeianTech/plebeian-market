@@ -1,6 +1,6 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
 import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey} from "nostr-tools";
-import {timeoutBetweenRelayConnectsMillis, hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId, wait, pmChannelNostrRoomId} from "$lib/nostr/utils";
+import {hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId, wait, pmChannelNostrRoomId} from "$lib/nostr/utils";
 import {Error, user} from "../stores";
 
 export class Pool {
@@ -57,8 +57,6 @@ export class Pool {
                     }, function(error) {
                         console.error(`   ** Nostr: Failed to connect to relay:`, error);
                     });
-
-                //await wait(timeoutBetweenRelayConnectsMillis);
             }
         }
     }
@@ -70,10 +68,8 @@ export class Pool {
             let relay: Relay | undefined = that.relays.get(relayUrl);
 
             if (relay !== undefined) {
-                console.log('*************** RELAY YA CONECTADO. SE DEVUELVE: ', relayUrl);
                 resolve(relay);
             } else {
-                console.log('*************** CONECTANDO A RELAY POR PRIMERA VEZ !! ', relayUrl);
                 try {
                     let newRelay = relayInit(relayUrl);
                     await newRelay.connect();
