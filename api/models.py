@@ -33,6 +33,37 @@ class AddressGenerationError(Exception):
     def __str__(self):
         return f"Error generating address: {self.message}"
 
+class GeneratedKeyMixin:
+    def generate_key(self):
+        count = db.session.query(func.count(self.__class__.id).label('count')).first().count
+
+        # code taken from https://github.com/supakeen/pinnwand and adapted
+
+        # The amount of bits necessary to store that count times two, then
+        # converted to bytes with a minimum of 1.
+
+        # We double the count so that we always keep half of the space
+        # available (e.g we increase the number of bytes at 127 instead of
+        # 255). This ensures that the probing below can find an empty space
+        # fast in case of collision.
+        necessary = math.ceil(math.log2((count + 1) * 2)) // 8 + 1
+
+        # Now generate random ids in the range with a maximum amount of
+        # retries, continuing until an empty slot is found
+        tries = 0
+
+        get_new_key = getattr(self, 'get_new_key', lambda n, _: hash_create(n))
+
+        key = get_new_key(necessary, tries)
+        while self.__class__.query.filter_by(key=key).one_or_none():
+            app.logger.debug("generate_key: triggered a collision")
+            if tries > 10:
+                raise RuntimeError("We exceeded our retry quota on a collision.")
+            tries += 1
+            key = get_new_key(necessary, tries)
+
+        self.key = key
+
 class XpubMixin:
     def get_new_address(self):
         from main import get_btc_client
@@ -143,6 +174,9 @@ class User(XpubMixin, db.Model):
 
     contribution_percent = db.Column(db.Float, nullable=True)
 
+    skills = db.relationship('UserSkill', backref='user', order_by="UserSkill.added_at")
+    achievements = db.relationship('UserAchievement', backref='user', order_by="UserAchievement.to_year,UserAchievement.to_month")
+
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')
     auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)", lazy='dynamic')
@@ -197,6 +231,7 @@ class User(XpubMixin, db.Model):
             'stall_banner_url': self.stall_banner_url,
             'stall_name': self.stall_name,
             'stall_description': self.stall_description,
+            'skills': [s.skill for s in self.skills],
             'has_items': False,
             'has_own_items': False,
             'has_active_auctions': False,
@@ -228,6 +263,74 @@ class User(XpubMixin, db.Model):
             d['nostr_private_key'] = self.nostr_private_key
 
         return d
+
+class UserSkill(db.Model):
+    __tablename__ = 'user_skills'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    skill = db.Column(db.String(21))
+
+    added_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+class UserAchievement(db.Model, GeneratedKeyMixin):
+    __tablename__ = 'user_achievements'
+
+    REQUIRED_FIELDS = ['achievement']
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key = db.Column(db.String(64), nullable=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    from_year = db.Column(db.Integer, nullable=True)
+    from_month = db.Column(db.Integer, nullable=True)
+    to_year = db.Column(db.Integer, nullable=True)
+    to_month = db.Column(db.Integer, nullable=True)
+    achievement = db.Column(db.String(210), nullable=False)
+
+    def to_dict(self):
+        return {
+            'key': self.key,
+            'achievement': self.achievement,
+            'from_year': self.from_year,
+            'from_month': self.from_month,
+            'to_year': self.to_year,
+            'to_month': self.to_month,
+        }
+
+    @classmethod
+    def validate_dict(cls, d):
+        validated = {}
+        for k in ['achievement']:
+            if k not in d:
+                continue
+            length = len(d[k])
+            max_length = getattr(cls, k).property.columns[0].type.length
+            if length > max_length:
+                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
+            validated[k] = bleach.clean(d[k])
+        for k in ['from_year', 'to_year']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = int(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+            if validated[k] > datetime.utcnow().year:
+                raise ValidationError("Please only list past achievements!")
+            if validated[k] < 1900:
+                raise ValidationError("You can't be that old!")
+        for k in ['from_month', 'to_month']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = int(d[k])
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+            if validated[k] < 1 or validated[k] > 12:
+                raise ValidationError(f"Please use a number between 1 and 12 for {k.replace('_', ' ')}!")
+        return validated
 
 class UserBadge(db.Model):
     __tablename__ = 'user_badges'
@@ -573,37 +676,6 @@ class Message(db.Model):
             'body': self.body,
             'notified_via': self.notified_via,
         }
-
-class GeneratedKeyMixin:
-    def generate_key(self):
-        count = db.session.query(func.count(self.__class__.id).label('count')).first().count
-
-        # code taken from https://github.com/supakeen/pinnwand and adapted
-
-        # The amount of bits necessary to store that count times two, then
-        # converted to bytes with a minimum of 1.
-
-        # We double the count so that we always keep half of the space
-        # available (e.g we increase the number of bytes at 127 instead of
-        # 255). This ensures that the probing below can find an empty space
-        # fast in case of collision.
-        necessary = math.ceil(math.log2((count + 1) * 2)) // 8 + 1
-
-        # Now generate random ids in the range with a maximum amount of
-        # retries, continuing until an empty slot is found
-        tries = 0
-
-        get_new_key = getattr(self, 'get_new_key', lambda n, _: hash_create(n))
-
-        key = get_new_key(necessary, tries)
-        while self.__class__.query.filter_by(key=key).one_or_none():
-            app.logger.debug("generate_key: triggered a collision")
-            if tries > 10:
-                raise RuntimeError("We exceeded our retry quota on a collision.")
-            tries += 1
-            key = get_new_key(necessary, tries)
-
-        self.key = key
 
 class StateMixin:
     @property
