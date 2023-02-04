@@ -275,7 +275,7 @@
     }
 </script>
 
-<div>
+<div class="p-4">
     {#if roomData !== false}
         <div class="pt-2 md:pt-10 w-full p-4 border-b border-solid border-medium bg-dark flex gap-4">
             <div class="w-14 h-14 rounded-full bg-cover bg-center shrink-0 border border-solid border-white"
@@ -304,7 +304,7 @@
 
 
             <div class="flex flex-col">
-                <div class="form-control w-52">
+                <div class="form-control lg:w-52">
                     <label class="cursor-pointer label">
                         <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2" bind:checked={nostrPreferenceCheckboxChecked} on:change={e => {onChangeNostrPreferenceCheckbox(e)}} disabled />
                         <span class="label-text">Use browser extension's identity</span>
@@ -323,10 +323,10 @@
 
         <div class="flex border-base-300 bg-info-content-200 rounded-b-box rounded-tr-box
                         min-h-[6rem] min-w-[18rem] max-w-4xl flex-wrap items-center justify-center
-                        gap-2 overflow-x-hidden border bg-cover bg-top p-4"
+                        gap-2 overflow-x-hidden border bg-cover bg-top p-2"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
-            <div class="w-full h-96 overflow-y-scroll" use:scrollToBottom={messages}>
+            <div class="h-96 overflow-y-scroll overflow-x-auto" use:scrollToBottom={messages}>
                 {#each sortedMessages as message}
                     <NostrNote {message}></NostrNote>
                 {/each}
@@ -337,21 +337,21 @@
     {#if emptyChatShowsLoading && sortedMessages.length === 0}
         <Loading />
     {:else}
-        <div class="p-3 bg-black shadow rounded-lg grid grid-cols-9 md:grid-cols-8 grid-rows-1 grid-flow-col gap-4">
+        <div class="p-2 bg-black shadow rounded-lg flex items-center">
             <textarea
                     rows="2"
                     autofocus
                     placeholder="Type the message you want to send to the channel..."
                     bind:this={textarea}
                     on:keypress={onKeyPress}
-                    class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+                    class="w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
-            <div on:click={sendMessage}
-                 class="col-span-2 md:col-span-1 flex flex-col py-2 p-4 justify-center border-l border-solid border-dark
-                 hover:bg-neutral-focus transition-all cursor-pointer text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" fill="currentColor" class="bi bi-telegram" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294.26.006.549-.1.868-.32 2.179-1.471 3.304-2.214 3.374-2.23.05-.012.12-.026.166.016.047.041.042.12.037.141-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8.154 8.154 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629.093.06.183.125.27.187.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.426 1.426 0 0 0-.013-.315.337.337 0 0 0-.114-.217.526.526 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09z"/>
+            <div on:click={sendMessage} on:keypress={sendMessage}
+                 class="py-2 p-4 justify-center transition-all cursor-pointer text-white">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                 </svg>
+                
             </div>
         </div>
     {/if}
