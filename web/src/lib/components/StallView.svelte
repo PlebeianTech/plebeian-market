@@ -260,8 +260,8 @@
             </label>
             <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
 
-              <li><a>Auction Item</a></li>
-              <li><a>Sell Item</a></li>
+              <li><a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView}>Auction Item</a></li>
+              <li><a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView}>Sell Item</a></li>
             </ul>
           </div>
           {#if editUrl}
