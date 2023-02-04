@@ -3,7 +3,7 @@
     import {onDestroy, onMount} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import {Event, Sub, generatePrivateKey} from "nostr-tools";
+    import {Event, Sub, Filter, generatePrivateKey} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
     import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId, nostrEventKinds} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
@@ -13,7 +13,7 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
-    const queryProfilesBatchSize = 100;
+    const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
     const nostrMediaCacheEnabled = true;
@@ -44,6 +44,10 @@
     // false: the request errored out (so don't ask again)
     // other: the public key of the user as specified in the nip05 registry
     let nip05 = new Map<string, null | boolean | string>();
+
+    // null: to be requested
+    // true: requested
+    let notesMap = new Map();
 
     const pool: Pool = new Pool();
 
@@ -111,12 +115,19 @@
 
         messages.push(newMessage);
 
-        addProfileIfNotQueried(newMessage.pubkey);
+        saveProfilePubkey(newMessage.pubkey);
+        saveNoteId(newMessage.id);
     }
 
-    function addProfileIfNotQueried(pubKey) {
+    function saveProfilePubkey(pubKey) {
         if (!profileImagesMap.has(pubKey)) {
             profileImagesMap.set(pubKey, null);
+        }
+    }
+
+    function saveNoteId(noteId) {
+        if (!notesMap.has(noteId)) {
+            notesMap.set(noteId, null);
         }
     }
 
@@ -127,11 +138,11 @@
 
         for (const [key, profile] of profileImagesMap) {
             if (profile === null) {
-                profilesToGetLocal.push(key);
                 profileImagesMap.set(key, true);
+                profilesToGetLocal.push(key);
                 i++;
 
-                if (i == queryProfilesBatchSize) {
+                if (i == nostrQueriesBatchSize) {
                     break;
                 }
             }

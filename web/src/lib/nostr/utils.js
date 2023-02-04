@@ -22,6 +22,8 @@ export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 export const nostrEventKinds = {
     'metadata': 0,
     'note': 1,
+    'replies': 6,
+    'reactions': 7,
     'createChannel': 40,
     'channelNote': 42
 }
