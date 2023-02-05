@@ -21,22 +21,24 @@
   <div class="items-center w-full border-b border-gray-600 px-4">
       <!-- NAME, BADGES, DATE -->
       <div class="space-y-1">
-        <div class="text-xs opacity-50">{formatTimestamp(message.created_at)}</div>
         {#if !message.samePubKey}
             <div class="chat-header lg:flex items-center space-y-1 lg:space-x-2">
                 <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
                 {#if message.nip05verified}
+                  <div class="lg:flex space-x-2">
                     <div class="badge badge-primary text-xs whitespace-nowrap">NIP-05 verified</div>
                     <div class="badge badge-secondary text-xs whitespace-nowrap">{message.nip05}</div>
+                  </div>
                 {/if}
               </div>
         {/if}
+        <div class="text-xs opacity-50">{formatTimestamp(message.created_at)}</div>
       </div>
 
       <div class="">  
         <!-- MESSAGES AND ICONS -->
         <div>
-          <div class="chat-bubble my-4">{@html message.content}</div>
+          <div class="chat-bubble my-4 break-all">{@html message.content}</div>
           
           <!-- ICONS -->
           <div class="flex items-center w-full justify-between mb-2">
