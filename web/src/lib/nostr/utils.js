@@ -28,9 +28,6 @@ export const nostrEventKinds = {
     'channelNote': 42
 }
 
-export const timeoutBetweenRelayConnectsMillis = 50;
-export let nostrPublicKeyFromExtension = false;
-
 export function hasExtension() {
     return !!window.nostr;
 }

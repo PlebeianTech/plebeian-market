@@ -1,6 +1,6 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
 import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey} from "nostr-tools";
-import {hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId, wait, pmChannelNostrRoomId} from "$lib/nostr/utils";
+import {hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId} from "$lib/nostr/utils";
 import {Error, user} from "../stores";
 
 export class Pool {
@@ -24,8 +24,6 @@ export class Pool {
                             channelInfo['callbackFunction']
                         );
                     }
-
-                    // await wait(timeoutBetweenRelayConnectsMillis);
                 }, function(error) {
                     console.error("*** - connectAndSubscribeToChannel - ", error);
                 });
