@@ -39,14 +39,15 @@ export class Pool {
             return false;
         }
 
-        let signedEvent = await this.signValidateEvent(
-            messageInfo['message'],
-            messageInfo['user'],
-            messageInfo['nostrRoomId']
-        );
+        // 1
+        let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId']);
+
+        // 2
+        let signedEvent = await this.signValidateEvent(event, messageInfo['user']);
 
         let that = this;
 
+        // 3
         if (signedEvent !== false) {
             for (const relayUrl of relayUrlList) {
                 this.getRelayOrConnect(relayUrl)
@@ -107,20 +108,21 @@ export class Pool {
     relay is null.
 
     If you don't need to do any special treatment to the
-    event, you can call `sendMessage` which will do both
-    creating the event (1) and publishing to the relays (2).
+    event, you can call `sendMessage` which will do all the
+    phases: creating the event (1), signing and validating
+    the event (2), and publishing to the relays (3).
      */
 
     async sendMessage(relay: Relay, message: string, user, nostrRoomId) {
         // 1
-        let event: Event = this.getEventToSendNote(message);
+        let event: Event = this.getEventToSendNote(message, nostrRoomId);
 
         // 2
-        let signedEvent = await this.signValidateEvent(event, user);
+        let signedEvent: Event | false = await this.signValidateEvent(event, user);
 
         // 3
         if (signedEvent !== false) {
-            if (await this.publishEvent(relay, <Event>signedEvent)) {
+            if (await this.publishEvent(relay, signedEvent)) {
                 return true;
             }
         }
@@ -128,7 +130,7 @@ export class Pool {
         return false;
     }
 
-    public getEventToSendNote(message: string): Event {
+    public getEventToSendNote(message: string, nostrRoomId): Event {
         let event: Event;
 
         if (nostrRoomId === false) {
@@ -214,7 +216,7 @@ export class Pool {
         return false;
     }
 
-    public async publishEvent(relay: Relay, event: Event) {
+    public async publishEvent(relay: Relay | null, event: Event) {
         if (relay !== null) {
             this.publishEventToRelay(relay, event);
         } else {
@@ -240,6 +242,46 @@ export class Pool {
         pub.on('failed', reason => {
             console.log(`   ** Nostr: failed to publish to ${relay.url}: ${reason}`);
         })
+    }
+
+    public async sendReaction(message, reaction: string) {
+        const noteId = message.id;
+        const notePubkey = message.pubkey;
+
+        console.log('******* SENDING REACTION: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
+
+        if (reaction.length !== 1) {
+            console.error('Trying to send reactions with > 1 character is not allowed by nip-25');
+            return;
+        }
+
+        if (!noteId || !notePubkey) {
+            return false;
+        }
+
+        // 1
+        const event: Event = {
+            kind: 7,
+            content: reaction,
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ['e', noteId],
+                ['p', notePubkey],
+            ],
+            pubkey: "",
+        };
+
+        // 2
+        let signedEvent: Event | false = await this.signValidateEvent(event, user);
+
+        // 3
+        if (signedEvent !== false) {
+            if (await this.publishEvent(null, signedEvent)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public subscribeToChannel(relay: Relay, nostrRoomId, messageLimit, since, callbackFunction) {
