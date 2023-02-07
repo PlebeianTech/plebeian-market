@@ -415,7 +415,7 @@
         >
             <div class="w-full">
                 {#each sortedMessages as message}
-                    <NostrNote {message}></NostrNote>
+                    <NostrNote {message} {pool}></NostrNote>
                 {/each}
             </div>
         </div>
