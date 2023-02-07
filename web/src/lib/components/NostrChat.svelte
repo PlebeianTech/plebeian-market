@@ -1,6 +1,6 @@
 <script lang="ts">
     import NostrNote from "$lib/components/NostrNote.svelte";
-    import {onDestroy, onMount} from "svelte";
+    import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, generatePrivateKey} from "nostr-tools";
@@ -27,6 +27,8 @@
 
     let messages = [];
     let sortedMessages = [];
+    let chatArea;
+    let autoscroll: Boolean = false;
 
     // null: to be requested
     // true: requested
@@ -260,19 +262,26 @@
                 textarea.value = '';
             }
         }
+
+        scrollToBottom(chatArea)
     }
 
     // SCROLL TO BOTTOM
-    const scrollToBottom = (node: any) => {
-      const scroll = () =>
-        node.scroll({
-          top: node.scrollHeight,
-          behavior: 'smooth'
-        })
-        scroll()
-
-        return { update: scroll }
+    const scrollToBottom = async (node: any) => {
+      node.scroll({
+        top: node.scrollHeight,
+        behavior: 'smooth'
+      })
     }
+
+    beforeUpdate(() => {
+      autoscroll = chatArea && chatArea.offsetHeight + chatArea.scrollTop > chatArea.scrollHeight - 1
+    })
+
+    afterUpdate(() => {
+      if(autoscroll) scrollToBottom(chatArea)
+    })
+
 </script>
 
 <div>
@@ -326,7 +335,7 @@
                         gap-2 overflow-x-hidden border bg-cover bg-top p-4"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
-            <div class="w-full h-96 overflow-y-scroll" use:scrollToBottom={sortedMessages}>
+            <div class="w-full h-96 overflow-y-scroll" bind:this={chatArea}>
                 {#each sortedMessages as message}
                     <NostrNote {message}></NostrNote>
                 {/each}
