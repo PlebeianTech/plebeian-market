@@ -112,23 +112,14 @@ export class Pool {
     event, you can call `sendMessage` which will do all the
     phases: creating the event (1), signing and validating
     the event (2), and publishing to the relays (3).
+
+    There is also a function to do steps 2 and 3 in one step
+    called `signValidatePublishEvent`.
      */
 
     async sendMessage(relay: Relay, message: string, user, nostrRoomId) {
-        // 1
         let event: Event = this.getEventToSendNote(message, nostrRoomId);
-
-        // 2
-        let signedEvent: Event | false = await this.signValidateEvent(event, user);
-
-        // 3
-        if (signedEvent !== false) {
-            if (await this.publishEvent(relay, signedEvent)) {
-                return true;
-            }
-        }
-
-        return false;
+        return await this.signValidatePublishEvent(event);
     }
 
     public getEventToSendNote(message: string, nostrRoomId): Event {
@@ -260,8 +251,7 @@ export class Pool {
             return false;
         }
 
-        // 1
-        const event: Event = {
+        return await this.signValidatePublishEvent(<Event>{
             kind: 7,
             content: reaction,
             created_at: Math.floor(Date.now() / 1000),
@@ -269,13 +259,12 @@ export class Pool {
                 ['e', noteId],
                 ['p', notePubkey],
             ],
-            pubkey: "",
-        };
+        });
+    }
 
-        // 2
+    public async signValidatePublishEvent(event: Event) {
         let signedEvent: Event | false = await this.signValidateEvent(event, user);
 
-        // 3
         if (signedEvent !== false) {
             if (await this.publishEvent(null, signedEvent)) {
                 return true;
@@ -283,6 +272,22 @@ export class Pool {
         }
 
         return false;
+    }
+
+    public async deleteNote(message) {
+        const noteId = message.id;
+
+        // TODO: Dialog confirm delete
+
+        return await this.signValidatePublishEvent({
+            kind: 5,
+            content: 'deleted',
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ['e', noteId]
+            ],
+            pubkey: "",
+        });
     }
 
     public subscribeToChannel(relay: Relay, nostrRoomId, messageLimit, since, callbackFunction) {
