@@ -1,3 +1,5 @@
+import type { IEntity } from "$lib/types/base";
+
 export interface IAccount {
     nym: string | null;
     displayName: string | null;
@@ -8,6 +10,33 @@ export interface IAccount {
     telegramUsernameVerified: boolean;
     twitterUsername: string | null;
     twitterUsernameVerified: boolean;
+}
+
+export class UserAchievement implements IEntity {
+    static SAVED_FIELDS = ['achievement', 'from_year', 'from_month', 'to_year', 'to_month'];
+
+    is_mine = true;
+    endpoint: string = "users/me/achievements";
+    key: string = "";
+    achievement: string = "";
+    from_year: number | null = null;
+    from_month: number | null = null;
+    to_year: number | null = null;
+    to_month: number | null = null;
+
+    public validate() {
+        return !(this.achievement.length === 0);
+    }
+
+    public toJson() {
+        var json = {} as Record<string, any>;
+        for (const k in this) {
+            if (UserAchievement.SAVED_FIELDS.indexOf(k) !== -1) {
+                json[k] = this[k];
+            }
+        }
+        return JSON.stringify(json);
+    };
 }
 
 export interface Badge {
@@ -45,6 +74,7 @@ export class User implements IAccount {
     isModerator: boolean = false;
     badges: Badge[] = [];
     nostr_private_key: string | null = null;
+    skills: string[] = [];
 
     public hasBadge(badge) {
         for (const b of this.badges) {
@@ -94,5 +124,18 @@ export function fromJson(json: any): User {
     u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
     u.nostr_private_key = <string | null>json.nostr_private_key;
+    u.skills = <string[]>json.skills;
+
     return u;
+}
+
+export function userAchievementFromJson(json: any): UserAchievement {
+    let achievement = new UserAchievement();
+    achievement.key = <string>json.key;
+    achievement.achievement = <string>json.achievement;
+    achievement.from_year = <number | null>json.from_year;
+    achievement.from_month = <number | null>json.from_month;
+    achievement.to_year = <number | null>json.to_year;
+    achievement.to_month = <number | null>json.to_month;
+    return achievement;
 }

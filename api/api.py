@@ -218,6 +218,21 @@ def put_me(user):
     if 'nostr_private_key' in request.json:
         user.nostr_private_key = request.json['nostr_private_key']
 
+    if 'skills' in request.json:
+        existing_skills = {s.skill for s in user.skills}
+        new_skills = set(request.json['skills'])
+
+        if len(new_skills) > 10:
+            return jsonify({'message': "Please list at most 10 skills."}), 400
+
+        if new_skills != existing_skills:
+            for s in user.skills:
+                if s.skill not in new_skills:
+                    db.session.delete(s)
+            for new_skill in new_skills:
+                if new_skill not in existing_skills:
+                    db.session.add(m.UserSkill(user_id=user.id, skill=new_skill))
+
     try:
         db.session.commit()
     except IntegrityError:
@@ -289,6 +304,48 @@ def user_notifications(user):
                 existing_notifications[notification['notification_type']].action = notification['action']
         db.session.commit()
         return jsonify({})
+
+@api_blueprint.route('/api/users/me/achievements', methods=['GET', 'POST'])
+@user_required
+def user_achievements(user):
+    if request.method == 'GET':
+        return jsonify({'achievements': [s.to_dict() for s in user.achievements]})
+    elif request.method == 'POST':
+        for k in m.UserAchievement.REQUIRED_FIELDS:
+            if k not in request.json:
+                return jsonify({'message': f"Missing key: {k}."}), 400
+
+        try:
+            validated = m.UserAchievement.validate_dict(request.json)
+        except m.ValidationError as e:
+            return jsonify({'message': e.message}), 400
+
+        achievement = m.UserAchievement(**validated)
+        achievement.generate_key()
+        achievement.user = user
+        db.session.add(achievement)
+        db.session.commit()
+
+        return jsonify({'key': achievement.key, 'achievement': achievement.to_dict()})
+
+@api_blueprint.route('/api/users/me/achievements/<key>', methods=['PUT', 'DELETE'])
+@user_required
+def put_delete_achievement(user, key):
+    achievement = m.UserAchievement.query.filter_by(user_id=user.id, key=key).first()
+    if not achievement:
+        return jsonify({'message': "Not found."}), 404
+
+    if request.method == 'PUT':
+        try:
+            for k, v in m.UserAchievement.validate_dict(request.json).items():
+                setattr(achievement, k, v)
+        except m.ValidationError as e:
+            return jsonify({'message': e.message}), 400
+    elif request.method == 'DELETE':
+        db.session.delete(achievement)
+
+    db.session.commit()
+    return jsonify({})
 
 @api_blueprint.route('/api/users/me/messages', methods=['GET'])
 @user_required
