@@ -1,6 +1,6 @@
 <script lang="ts">
     import NostrNote from "$lib/components/NostrNote.svelte";
-    import {onDestroy, onMount} from "svelte";
+    import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, Filter, generatePrivateKey} from "nostr-tools";
@@ -13,6 +13,7 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
+
     const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
@@ -26,6 +27,8 @@
 
     let messages = [];
     let sortedMessages = [];
+    let chatArea;
+    let autoscroll: Boolean = false;
 
     type UserProfile = {
         name: string;
@@ -48,6 +51,11 @@
     // null: to be requested
     // true: requested
     let notesMap = new Map();
+
+    // null: to be requested
+    // false: requested but error (so don't ask again)
+    // other: the nip05 public key
+    let nip05 = new Map();
 
     const pool: Pool = new Pool();
 
@@ -247,6 +255,7 @@
         nip05.forEach(async (value, key) => {
             if (value === null) {
                 nip05.set(key, true);
+
                 let nip05verificationResult = await queryNip05(key);
                 nip05.set(key, nip05verificationResult);
             }
@@ -359,7 +368,26 @@
                 textarea.value = '';
             }
         }
+
+        scrollToBottom(chatArea)
     }
+
+    // SCROLL TO BOTTOM
+    const scrollToBottom = async (node: any) => {
+      node.scroll({
+        top: node.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+
+    beforeUpdate(() => {
+      autoscroll = chatArea && chatArea.offsetHeight + chatArea.scrollTop > chatArea.scrollHeight - 1
+    })
+
+    afterUpdate(() => {
+      if(autoscroll) scrollToBottom(chatArea)
+    })
+
 </script>
 
 <div>
@@ -413,7 +441,7 @@
                         gap-2 overflow-x-hidden border bg-cover bg-top p-4"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
-            <div class="w-full">
+            <div class="w-full h-96 overflow-y-scroll" bind:this={chatArea}>
                 {#each sortedMessages as message}
                     <NostrNote {message} {pool}></NostrNote>
                 {/each}

@@ -1,7 +1,7 @@
 import {getEventHash, nip05} from "nostr-tools";
 
 export const relayUrlList = [
-    "nostr.mwmdev.com", // PT
+    "nostr.mwmdev.com",
     "wss://nostr-relay.alekberg.net",
     "wss://nostr-pub.wellorder.net",
     "wss://relay.current.fyi",
@@ -13,7 +13,7 @@ export const relayUrlList = [
     "wss://relay.nostr.info",
     "wss://nostr.zebedee.cloud",
     "wss://nostr-pub.semisol.dev",
-    "wss://nostr.walletofsatoshi.com",
+    "wss://nostr.walletofsatoshi.com"
 ];
 
 export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a';

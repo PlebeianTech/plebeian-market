@@ -24,6 +24,7 @@ export class Pool {
                             channelInfo['callbackFunction']
                         );
                     }
+
                 }, function(error) {
                     console.error("*** - connectAndSubscribeToChannel - ", error);
                 });

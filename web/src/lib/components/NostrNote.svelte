@@ -43,6 +43,4 @@
             <NostrNoteActions {pool} {message}></NostrNoteActions>
         </div>
     </div>
-
-
 </div>
