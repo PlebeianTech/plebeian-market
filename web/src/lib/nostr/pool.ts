@@ -97,7 +97,9 @@ export class Pool {
 
     1- Create an event of type Event. You can put a blank in
     the pubkey field as it's mandatory, but you probably
-    don't have it yet.
+    don't have it yet. You can do it "manually" by creating
+    an object of type Event or use helper functions like
+    `getEventToSendNote`.
 
     2- `signValidateEvent`: puts the public key into the event,
     then sign it with the key found on your Nostr extension
@@ -129,7 +131,7 @@ export class Pool {
             event = {
                 kind: nostrEventKinds.note,
                 content: message,
-                created_at: Math.floor(Date.now() / 1000),
+                created_at: 0,
                 tags: [],
                 pubkey: ''
             };
@@ -137,7 +139,7 @@ export class Pool {
             event = {
                 kind: nostrEventKinds.channelNote,
                 content: message,
-                created_at: Math.floor(Date.now() / 1000),
+                created_at: 0,
                 tags: [
                     ['e', nostrRoomId, "root"]
                 ],
@@ -171,11 +173,11 @@ export class Pool {
             }
         }
 
+        console.debug('   ** Nostr: event before adding missing properties: ', event);
+
+        event.created_at = Math.floor(Date.now() / 1000);
         event.pubkey = nostrPublicKey;
-
-        console.debug('   ** Nostr: event before hashing: ', event)
-
-        event.id = getEventHash(event)
+        event.id = getEventHash(event);
 
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
             // PM Nostr identity
@@ -254,7 +256,7 @@ export class Pool {
         return await this.signValidatePublishEvent(<Event>{
             kind: nostrEventKinds.reactions,
             content: reaction,
-            created_at: Math.floor(Date.now() / 1000),
+            created_at: 0,
             tags: [
                 ['e', noteId],
                 ['p', notePubkey],
@@ -282,7 +284,7 @@ export class Pool {
         return await this.signValidatePublishEvent({
             kind: nostrEventKinds.delete,
             content: 'deleted',
-            created_at: Math.floor(Date.now() / 1000),
+            created_at: 0,
             tags: [
                 ['e', noteId]
             ],
