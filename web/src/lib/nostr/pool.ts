@@ -1,6 +1,6 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
-import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey} from "nostr-tools";
-import {hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId} from "$lib/nostr/utils";
+import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey, Kind} from "nostr-tools";
+import {hasExtension, relayUrlList, localStorageNostrPreferPMId} from "$lib/nostr/utils";
 import {Error, user} from "../stores";
 
 export class Pool {
@@ -129,7 +129,7 @@ export class Pool {
 
         if (nostrRoomId === false) {
             event = {
-                kind: nostrEventKinds.note,
+                kind: Kind.Text,
                 content: message,
                 created_at: 0,
                 tags: [],
@@ -137,7 +137,7 @@ export class Pool {
             };
         } else {
             event = {
-                kind: nostrEventKinds.channelNote,
+                kind: Kind.ChannelMessage,
                 content: message,
                 created_at: 0,
                 tags: [
@@ -254,7 +254,7 @@ export class Pool {
         }
 
         return await this.signValidatePublishEvent(<Event>{
-            kind: nostrEventKinds.reactions,
+            kind: Kind.Reaction,
             content: reaction,
             created_at: 0,
             tags: [
@@ -282,7 +282,7 @@ export class Pool {
         // TODO: Dialog confirm delete
 
         return await this.signValidatePublishEvent({
-            kind: nostrEventKinds.delete,
+            kind: Kind.EventDeletion,
             content: 'deleted',
             created_at: 0,
             tags: [
@@ -296,7 +296,7 @@ export class Pool {
         console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url);
 
         let sub: Sub = relay.sub([{
-            kinds: [nostrEventKinds.channelNote],
+            kinds: [Kind.ChannelMessage],
             '#e': [nostrRoomId],
             limit: messageLimit,
             since: since

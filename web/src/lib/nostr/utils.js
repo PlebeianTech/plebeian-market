@@ -1,4 +1,4 @@
-import {getEventHash, nip05} from "nostr-tools";
+import {getEventHash, nip05, Kind} from "nostr-tools";
 
 export const relayUrlList = [
     "nostr.mwmdev.com",
@@ -20,15 +20,6 @@ export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75
 export const pmChannelNostrRoomId = '4211fc228be5af10923f56e60b1b11b8e63bf0ac7dbd3e1e3d767392fdaed4a4'; // Directo 2140
 // '25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb';   // 'Nostr' channel
 export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
-export const nostrEventKinds = {
-    'metadata': 0,
-    'note': 1,
-    'delete': 5,
-    'replies': 6,
-    'reactions': 7,
-    'createChannel': 40,
-    'channelNote': 42
-}
 
 export function hasExtension() {
     return !!window.nostr;
@@ -57,7 +48,7 @@ export function getChannelIdForStallOwner(user) {
     let created_at = 1672837282;
 
     let event = {
-        kind: nostrEventKinds.createChannel,
+        kind: Kind.ChannelCreation,
         pubkey: pmMasterPublicKey,
         created_at: created_at,
         content: '{"name": "' + stallName + '", "about": "Plebeian Market Stall Square."}',
