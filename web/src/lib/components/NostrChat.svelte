@@ -3,9 +3,9 @@
     import {onDestroy, onMount} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import {Event, Sub, Filter, generatePrivateKey} from "nostr-tools";
+    import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId, nostrEventKinds} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -154,7 +154,7 @@
 
         pool.relays.forEach(relay => {
             const sub: Sub = relay.sub([{
-                kinds: [nostrEventKinds.metadata],
+                kinds: [Kind.Metadata],
                 authors: profilesToGetLocal
             }]);
             sub.on('event', event => {
@@ -194,9 +194,8 @@
         pool.relays.forEach(relay => {
             let filter: Filter = {
                 kinds: [
-                    nostrEventKinds.note,
-                    nostrEventKinds.replies,
-                    nostrEventKinds.reactions,
+                    Kind.Text,
+                    Kind.Reaction
                 ],
                 '#e': noteInfoToGetLocal
             };
@@ -208,7 +207,7 @@
 
                 // TODO: REPLIES AND LIKES
 
-                if (kind === 7) {
+                if (kind === Kind.Reaction) {
                     const id = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
                     const eventReaction: string = event.content;
                     const eventPubkey: string = event.pubkey;
