@@ -296,11 +296,11 @@
     </div>
 </div>
 
-
-<div id="anchorIdAuctionTime" class="md:flex lg:w-2/3 mx-auto my-12">
-    <div class="md:grow">
+<!-- ITEM LISTS -->
+<div id="anchorIdAuctionTime" class="lg:flex lg:w-2/3 mx-auto my-4">
+    <div class="grid w-full">
         {#if canAddItems || showActiveAuctions || showPastAuctions}
-            <h3 id="anchorId" class="lg:text-8xl text-4xl font-black text-center my-8 pt-16">Auctions</h3>
+            <h3 id="anchorId" class="text-sm uppercase font-black lg:text-start text-center">Auctions</h3>
             {#if canAddItems}
                 <ListView
                     bind:this={auctionsLists['new']}
@@ -312,31 +312,31 @@
                     {showItemsOwner} {showItemsCampaign}
                     card={ItemCard}
                     style={ListViewStyle.List}>
-                    <div slot="new-entity" class="lg:flex justify-center lg:w-2/3 mx-auto" let:setCurrent={setCurrent}>
+                    <div slot="new-entity" class="lg:flex items-center lg:justify-start justify-center" let:setCurrent={setCurrent}>
                         {#if isCampaignStall}
-                            <div id="auction-hour-1" class="grid place-items-center w-full mx-auto my-10 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new TimeAuction())}>
-                              <div class="w-full my-8 grid place-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-24 h-24">
+                            <div id="auction-hour-1" class="" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new TimeAuction())}>
+                              <div class="grid place-items-center">
+                                <!-- <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-24 h-24">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p class="btn btn-primary font-bold text-center">1 Hour of your time</p>
+                                </svg> -->
+                                <button class="btn btn-primary font-bold text-center w-52">1 Hour of your time</button>
                               </div>
                             </div>
                         {/if}
 
-                        <div id="anchorIdAuctionItem" class="grid place-items-center w-full mx-auto my-10 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Auction())}>
-                          <div class="grid place-items-center w-full my-8">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24">
+                        <div id="anchorIdAuctionItem" class="grid lg:place-items-start place-items-center w-full p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Auction())}>
+                          <div class="w-full flex lg:justify-start justify-center">
+                            <!-- <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
-                            </svg>
-                            <p class="btn btn-secondary font-bold text-center w-48">Auction Item</p>
+                            </svg> -->
+                            <button class="btn btn-secondary font-bold text-center w-48">Auction Item</button>
                           </div>
                         </div>
                     </div>
                 </ListView>
             {/if}
             {#if showActiveAuctions || showPastAuctions}
-                <div class="tabs flex justify-center my-12">
+                <div class="tabs lg:flex lg:justify-start justify-center my-8">
                     {#each availableFilters as filter}
                         <a href="#{filter}" class="text-2xl tab tab-bordered" class:tab-active={auctionFilter === filter} on:click={() => auctionFilter = filter}>{filter}</a>
                     {/each}
@@ -357,7 +357,7 @@
             <div class="divider my-12"></div>
         {/if}
         {#if canAddItems || showActiveListings || showPastListings}
-            <h3 id="anchorIdFixedPrice" class="lg:text-8xl text-4xl font-black text-center my-8 pt-16">Fixed price</h3>
+            <h3 id="anchorIdFixedPrice" class="text-sm uppercase font-black lg:text-start text-center">Fixed price</h3>
             {#if canAddItems}
                 <ListView
                     bind:this={listingsLists['new']}
@@ -369,26 +369,26 @@
                     {showItemsOwner} {showItemsCampaign}
                     card={ItemCard}
                     style={ListViewStyle.List}>
-                    <div slot="new-entity" class="flex flex-col md:flex-row" let:setCurrent={setCurrent}>
-                        <div class="mx-auto my-10 grid place-items-center w-full lg:w-1/3 p-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Listing())}>
-                          <div class="w-20 my-8">
+                    <div slot="new-entity" class="flex justify-start" let:setCurrent={setCurrent}>
+                        <div class="my-4 w-full p-4 flex lg:justify-start justify-center" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Listing())}>
+                          <!-- <div class="w-20 my-8">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
                             </svg>
-                          </div>
+                          </div> -->
                           <p class="btn btn-secondary font-bold text-center w-48">Sell Item</p>
                         </div>
                     </div>
                 </ListView>
             {/if}
             {#if showActiveListings || showPastListings}
-                <div class="tabs flex justify-center mt-20">
+                <div class="tabs flex lg:justify-start justify-center my-8">
                     {#each availableFilters as filter}
                         <a href="#{filter}" class="text-2xl tab tab-bordered" class:tab-active={listingFilter === filter} on:click={() => listingFilter = filter}>{filter}</a>
                     {/each}
                 </div>
                 {#each availableFilters as filter}
-                    <div class="bg-base-200" class:hidden={listingFilter !== filter}>
+                    <div class="" class:hidden={listingFilter !== filter}>
                         <ListView
                             bind:this={listingsLists[filter]}
                             loader={{endpoint: `${baseUrl}/listings?filter=${filter}`, responseField: 'listings', fromJson: listingFromJson}}
@@ -402,18 +402,16 @@
             {/if}
         {/if}
 
-        {#if !isProduction() }
-            <div class="divider my-20"></div>
+      </div>
 
-            <h3 class="lg:text-8xl text-4xl font-black text-center">Chat on my stall</h3>
-
-            <div>
-                <NostrChat
-                    emptyChatShowsLoading={false}
-                    messageLimit={500}
-                    {nostrRoomId}
-                />
-            </div>
-        {/if}
-    </div>
+      <!-- NOSTR -->
+      {#if !isProduction() }
+          <div class="lg:w-3/6 my-2 grid place-items-top lg:h-1/2 sticky top-20 px-8">
+              <NostrChat
+                  emptyChatShowsLoading={false}
+                  messageLimit={500}
+                  {nostrRoomId}
+              />
+          </div>
+      {/if}
 </div>
