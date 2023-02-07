@@ -313,23 +313,29 @@ class UserAchievement(db.Model, GeneratedKeyMixin):
         for k in ['from_year', 'to_year']:
             if k not in d:
                 continue
-            try:
-                validated[k] = int(d[k])
-            except (ValueError, TypeError):
-                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
-            if validated[k] > datetime.utcnow().year:
-                raise ValidationError("Please only list past achievements!")
-            if validated[k] < 1900:
-                raise ValidationError("You can't be that old!")
+            if d[k] is None:
+                validated[k] = None
+            else:
+                try:
+                    validated[k] = int(d[k])
+                except (ValueError, TypeError):
+                    raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+                if validated[k] > datetime.utcnow().year:
+                    raise ValidationError("Please only list past achievements!")
+                if validated[k] < 1900:
+                    raise ValidationError("You can't be that old!")
         for k in ['from_month', 'to_month']:
             if k not in d:
                 continue
-            try:
-                validated[k] = int(d[k])
-            except (ValueError, TypeError):
-                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
-            if validated[k] < 1 or validated[k] > 12:
-                raise ValidationError(f"Please use a number between 1 and 12 for {k.replace('_', ' ')}!")
+            if d[k] is None:
+                validated[k] = None
+            else:
+                try:
+                    validated[k] = int(d[k])
+                except (ValueError, TypeError):
+                    raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+                if validated[k] < 1 or validated[k] > 12:
+                    raise ValidationError(f"Please use a number between 1 and 12 for {k.replace('_', ' ')}!")
         return validated
 
 class UserBadge(db.Model):

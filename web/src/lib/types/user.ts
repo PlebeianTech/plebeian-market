@@ -25,13 +25,13 @@ export class UserAchievement implements IEntity {
     to_month: number | null = null;
 
     public validate() {
-        return true;
+        return !(this.achievement.length === 0);
     }
 
     public toJson() {
         var json = {} as Record<string, any>;
         for (const k in this) {
-            if (UserAchievement.SAVED_FIELDS.indexOf(k) !== -1 && this[k] !== null) {
+            if (UserAchievement.SAVED_FIELDS.indexOf(k) !== -1) {
                 json[k] = this[k];
             }
         }
