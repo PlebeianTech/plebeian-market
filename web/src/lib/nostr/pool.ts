@@ -252,7 +252,7 @@ export class Pool {
         }
 
         return await this.signValidatePublishEvent(<Event>{
-            kind: 7,
+            kind: nostrEventKinds.reactions,
             content: reaction,
             created_at: Math.floor(Date.now() / 1000),
             tags: [
@@ -280,7 +280,7 @@ export class Pool {
         // TODO: Dialog confirm delete
 
         return await this.signValidatePublishEvent({
-            kind: 5,
+            kind: nostrEventKinds.delete,
             content: 'deleted',
             created_at: Math.floor(Date.now() / 1000),
             tags: [
