@@ -65,21 +65,19 @@
 
 <div id="bgHero" class="bg-fixed">
   <div class="bg-black/80">
-    <div class="grid place-items-center lg:w-2/3 mx-auto h-screen">
-      <div class="grid mt-20">
+    <div class="grid place-items-center lg:w-2/3 mx-auto py-12">
+      <div class="grid">
         <!-- COL -->
         <div class="bg-zinc-800/40 rounded-xl shadow-xl backdrop-blur-md p-4 border border-gray-700/40">
 
           <div class="flex flex-col items-start">
             <Typewriter />
           </div>
-          <h2 class="text-xl mt-8 uppercase text-center text-white">Get the market started</h2>
+          <!-- <h2 class="text-xl mt-8 uppercase text-center text-white">Get the market started</h2> -->
           <div class="my-8 w-full btn btn-primary p-4 border rounded flex items-center" on:click={go} on:keypress={go}>
             Let's go
            </div>
         </div>
-
-        <!-- COL -->
       </div>
     </div>
   </div>
