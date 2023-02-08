@@ -74,3 +74,45 @@ export async function queryNip05(fullname) {
 
     return false;
 }
+
+export function filterTags(tagsArray, tagToFilter) {
+    return tagsArray.filter(t => {
+        return t[0] === tagToFilter;
+    });
+}
+
+export function findMarkerInTag(eventBeingRepliedToTagsE, tagType, marker) {
+    let found = false;
+
+    eventBeingRepliedToTagsE.forEach(tag => {
+        if (tag[0] === tagType && tag[3] === marker) {
+            found = true;
+        }
+    })
+
+    return found;
+}
+
+export function getEventReplyingTo(event) {
+    if (event.kind !== 1) {
+        return undefined;
+    }
+    const replyTags = event.tags.filter((tag) => tag[0] === 'e');
+    if (replyTags.length === 1) {
+        return replyTags[0][1];
+    }
+    const replyTag = event.tags.find((tag) => tag[0] === 'e' && tag[3] === 'reply');
+    if (replyTag) {
+        return replyTag[1];
+    }
+    if (replyTags.length > 1) {
+        return replyTags[1][1];
+    }
+    return undefined;
+}
+
+export function getBestRelay() {
+    // let relays = getPerson(pubkey)?.relays
+
+    return relayUrlList[0];
+}

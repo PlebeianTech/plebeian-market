@@ -19,7 +19,7 @@
     import { page } from "$app/stores";
     import { getBaseUrl, requestLoginModal, getShortTitle, getShortDescription, isProduction } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
-    import NostrButton from "$lib/components/NostrButton.svelte";
+    import NostrButton from "$lib/components/nostr/Button.svelte";
 
     export let loader: ILoader;
     export let itemKey = null;

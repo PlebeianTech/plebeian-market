@@ -17,7 +17,7 @@
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
     import {requestLoginModal} from "../utils";
-    import NostrChat from "$lib/components/NostrChat.svelte";
+    import NostrChat from "$lib/components/nostr/Chat.svelte";
     import { isProduction } from "$lib/utils";
     import { getChannelIdForStallOwner } from '$lib/nostr/utils'
     // import CampaignStats from './CampaignStats.svelte';

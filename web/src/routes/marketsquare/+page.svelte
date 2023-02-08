@@ -3,7 +3,7 @@
 </svelte:head>
 
 <script lang="ts">
-    import NostrChat from "$lib/components/NostrChat.svelte";
+    import NostrChat from "$lib/components/nostr/Chat.svelte";
     import { isProduction } from "$lib/utils";
     import { pmChannelNostrRoomId } from '$lib/nostr/utils'
 
@@ -20,7 +20,7 @@
             <NostrChat
                 {roomData}
                 emptyChatShowsLoading={true}
-                messageLimit={100}
+                messageLimit={75}
                 nostrRoomId={pmChannelNostrRoomId}
             />
         {/if}

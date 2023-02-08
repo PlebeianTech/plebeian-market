@@ -1,7 +1,7 @@
 <script lang="ts">
-    import NostrNote from "$lib/components/NostrNote.svelte";
+    import NostrNote from "$lib/components/nostr/Note.svelte";
     import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
-    import {token, user} from "$lib/stores";
+    import {token, user, nostrEventBeingRepliedTo} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
@@ -316,7 +316,7 @@
                 'callbackFunction': addMessageIfDoesntExist
             });
         } else {
-            console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
+            console.error('Chat.svelte:onMount - We must have the nostrRoomId at this point');
         }
 
         processMessagesPeriodically();
@@ -358,12 +358,11 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(null, content, $user, nostrRoomId)) {
+            if (await pool.sendMessage(null, content, $user, nostrRoomId, $nostrEventBeingRepliedTo)) {
                 textarea.value = '';
+                scrollToBottom(chatArea);
             }
         }
-
-        scrollToBottom(chatArea)
     }
 
     // SCROLL TO BOTTOM
@@ -449,6 +448,7 @@
         <div class="p-3 bg-black shadow rounded-lg grid grid-cols-9 md:grid-cols-8 grid-rows-1 grid-flow-col gap-4">
             <textarea
                     rows="2"
+                    id="nostrMessageSendText"
                     autofocus
                     placeholder="Type the message you want to send to the channel..."
                     bind:this={textarea}

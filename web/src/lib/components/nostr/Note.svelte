@@ -1,5 +1,5 @@
 <script lang="ts">
-    import NostrNoteActions from "$lib/components/NostrNoteActions.svelte";
+    import NostrNoteActions from "$lib/components/nostr/NoteActions.svelte";
     import {formatTimestamp} from '$lib/nostr/utils';
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url";
 
@@ -26,13 +26,13 @@
             {#if !message.samePubKey}
                 <div class="chat-header lg:flex items-center space-y-1 lg:space-x-2">
                     <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
-                    {#if message.nip05verified}
-                        <div class="lg:flex space-x-2">
-                            <div class="badge badge-primary text-xs whitespace-nowrap">NIP-05 verified</div>
-                            <div class="badge badge-secondary text-xs whitespace-nowrap">{message.nip05}</div>
-                        </div>
-                    {/if}
                 </div>
+                {#if message.nip05verified}
+                    <div class="lg:flex space-x-2">
+                        <div class="badge badge-primary text-xs whitespace-nowrap">NIP-05 verified</div>
+                        <div class="badge badge-secondary text-xs whitespace-nowrap">{message.nip05}</div>
+                    </div>
+                {/if}
             {/if}
             <div class="text-xs opacity-50">{formatTimestamp(message.created_at)}</div>
         </div>

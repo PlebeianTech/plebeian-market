@@ -19,3 +19,5 @@ export const loginModalState: Writable<{
     openRequested: false,
     callbackFunc: () => {}
 });
+
+export const nostrEventBeingRepliedTo: Writable<Event | null> = writable(null);

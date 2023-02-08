@@ -1,11 +1,12 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
 import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey, Kind} from "nostr-tools";
-import {hasExtension, relayUrlList, localStorageNostrPreferPMId} from "$lib/nostr/utils";
+import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, findMarkerInTag, getBestRelay} from "$lib/nostr/utils";
 import {Error, user} from "../stores";
 
 export class Pool {
     relays: Map<string, Relay> = new Map<string, Relay>();
     subscriptions: Sub[] = [];
+    publicKey: string = '';
 
     public async connectAndSubscribeToChannel(channelInfo = null) {
         let that = this;
@@ -41,7 +42,7 @@ export class Pool {
         }
 
         // 1
-        let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId']);
+        let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId'], null);
 
         // 2
         let signedEvent = await this.signValidateEvent(event, messageInfo['user']);
@@ -119,12 +120,12 @@ export class Pool {
     called `signValidatePublishEvent`.
      */
 
-    async sendMessage(relay: Relay, message: string, user, nostrRoomId) {
-        let event: Event = this.getEventToSendNote(message, nostrRoomId);
+    async sendMessage(relay: Relay, message: string, user, nostrRoomId, eventBeingRepliedTo: Event | null) {
+        let event: Event = this.getEventToSendNote(message, nostrRoomId, eventBeingRepliedTo);
         return await this.signValidatePublishEvent(event);
     }
 
-    public getEventToSendNote(message: string, nostrRoomId): Event {
+    public getEventToSendNote(message: string, nostrRoomId, eventBeingRepliedTo: Event | null): Event {
         let event: Event;
 
         if (nostrRoomId === false) {
@@ -147,17 +148,44 @@ export class Pool {
             };
         }
 
+        if (eventBeingRepliedTo !== null && [Kind.Text, Kind.ChannelMessage].includes(eventBeingRepliedTo.kind)) {
+            event.tags = event.tags.concat(this.getReplyTagsToEvent(eventBeingRepliedTo));
+        }
+
         return event;
     }
 
-    public async signValidateEvent(event: Event, user) {
-        let nostrPublicKey;
+    public getReplyTagsToEvent(eventBeingRepliedTo: Event) {
+        let tagsToBeAddedToEvent: Array<Array<string>> = [];
 
+        let url = getBestRelay();
+
+        // ** Tag P
+        //      - Adding all P from the event being replied to
+        const eventBeingRepliedToTagsP = filterTags(eventBeingRepliedTo.tags, 'p');
+        if (eventBeingRepliedToTagsP.length) {
+            tagsToBeAddedToEvent.push(eventBeingRepliedToTagsP);
+        }
+        //      - Adding to P the pubkey of the creator of the event being replied to
+        tagsToBeAddedToEvent.push(["p", eventBeingRepliedTo.pubkey, url]);
+
+        // ** Tag E
+        const eventBeingRepliedToTagsE = filterTags(eventBeingRepliedTo.tags, 'e');
+        if (eventBeingRepliedToTagsE.length === 0 || !findMarkerInTag(eventBeingRepliedToTagsE, 'e', 'reply')) {
+            tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'root']);
+        } else {
+            tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'reply']);
+        }
+
+        return tagsToBeAddedToEvent;
+    }
+
+    public async signValidateEvent(event: Event, user) {
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
             // PM Nostr identity
-            nostrPublicKey = getPublicKey(user.nostr_private_key);
+            this.publicKey = getPublicKey(user.nostr_private_key);
 
-            if (!nostrPublicKey) {
+            if (!this.publicKey) {
                 console.debug('   ** Nostr: Not using extension, but PM identity (public key) not available.');
                 return false;
             }
@@ -165,7 +193,7 @@ export class Pool {
         } else {
             // Nostr extension identity
             try {
-                nostrPublicKey = await window.nostr.getPublicKey();
+                this.publicKey = await window.nostr.getPublicKey();
             } catch (error) {
                 console.error('   ** Nostr: Error getting public key from extension:', error);
                 Error.set("Error getting the Nostr public key from your extension.");
@@ -176,7 +204,7 @@ export class Pool {
         console.debug('   ** Nostr: event before adding missing properties: ', event);
 
         event.created_at = Math.floor(Date.now() / 1000);
-        event.pubkey = nostrPublicKey;
+        event.pubkey = this.publicKey;
         event.id = getEventHash(event);
 
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
@@ -256,7 +284,6 @@ export class Pool {
         return await this.signValidatePublishEvent(<Event>{
             kind: Kind.Reaction,
             content: reaction,
-            created_at: 0,
             tags: [
                 ['e', noteId],
                 ['p', notePubkey],
@@ -268,7 +295,7 @@ export class Pool {
         let signedEvent: Event | false = await this.signValidateEvent(event, user);
 
         if (signedEvent !== false) {
-            if (await this.publishEvent(null, signedEvent)) {
+            if (await this.publishEvent(null, <Event> signedEvent)) {
                 return true;
             }
         }
