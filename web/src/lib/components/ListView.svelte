@@ -98,7 +98,7 @@
             {/each}
         {:else if style === ListViewStyle.Grid}
             <div class="w-full">
-                <div class="grid lg:grid-cols-3 gap-4">
+                <div class="grid lg:grid-cols-2 gap-4">
                     {#each entities as entity}
                         <div class="">
                             <svelte:component this={card} {entity} showOwner={showItemsOwner} showCampaign={showItemsCampaign} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
