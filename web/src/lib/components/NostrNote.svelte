@@ -6,7 +6,7 @@
 </script>
 
 <div class="flex py-2" class:mt-0={message.samePubKey} class:mt-5={!message.samePubKey} class:profileInfo={!message.samePubKey} data-note-id="{message.id}">
-    
+
   <!-- AVATAR -->
   <div class="mr-4">
     <div class="chat-image avatar">
@@ -24,54 +24,54 @@
         {#if !message.samePubKey}
             <div class="chat-header flex items-center space-y-2 lg:space-x-2">
                 <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
-                
-              <div>
+            </div>
+            <div>
                 {#if message.nip05verified}
                   <div class="flex flex-col justify-start space-y-2">
                     <div class="badge badge-primary text-xs whitespace-nowrap">NIP-05 verified</div>
                     <div class="badge badge-secondary text-xs whitespace-nowrap">{message.nip05}</div>
                   </div>
                 {/if}
-              </div>
+            </div>
         {/if}
         <div class="text-xs opacity-50">{formatTimestamp(message.created_at)}</div>
       </div>
 
-      <div class="">  
+      <div class="">
         <!-- MESSAGES AND ICONS -->
         <div>
           <div class="chat-bubble my-4">{@html message.content}</div>
-          
+
           <!-- ICONS -->
           <div class="flex items-center w-full justify-between mb-2">
             <!-- REPOST -->
             <button class="btn btn-ghost tooltip tooltip-right" data-tip="repost">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-              </svg>        
+              </svg>
             </button>
-      
+
             <!-- REPLY -->
             <button class="btn btn-ghost tooltip tooltip-right" data-tip="reply">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-              </svg>        
+              </svg>
             </button>
-    
+
             <!-- LIKE -->
             <button class="btn btn-ghost tooltip tooltip-right" data-tip="like">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-              </svg>          
+              </svg>
             </button>
-    
+
             <!-- EMBED -->
             <button class="btn btn-ghost tooltip tooltip-left" data-tip="embed">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-              </svg>            
+              </svg>
             </button>
-            
+
           </div>
         </div>
       </div>
