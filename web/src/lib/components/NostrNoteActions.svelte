@@ -8,15 +8,13 @@
     let likeCount = 0;
     let dislikeCount = 0;
 
-    onMount(async () => {
-        if (reactions) {
-            let likeReactions: Set<string> = reactions.get('+');
-            let dislikeReactions = reactions.get('-');
+    $: if (reactions) {
+        let likeReactions: Set<string> = reactions.get('+');
+        let dislikeReactions = reactions.get('-');
 
-            if (likeReactions) likeCount = likeReactions.size;
-            if (dislikeReactions) dislikeCount = dislikeReactions.size;
-        }
-    });
+        if (likeReactions) likeCount = likeReactions.size;
+        if (dislikeReactions) dislikeCount = dislikeReactions.size;
+    }
 </script>
 
 <!-- ICONS -->
