@@ -52,11 +52,6 @@
     // true: requested
     let notesMap = new Map();
 
-    // null: to be requested
-    // false: requested but error (so don't ask again)
-    // other: the nip05 public key
-    let nip05 = new Map();
-
     const pool: Pool = new Pool();
 
     function orderAndVitamineMessages() {
