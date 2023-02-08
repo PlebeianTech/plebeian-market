@@ -3,9 +3,9 @@
     import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import {Event, Sub, generatePrivateKey} from "nostr-tools";
+    import {Event, Sub, Filter, generatePrivateKey} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId, nostrEventKinds} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -14,7 +14,7 @@
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
 
-    const queryProfilesBatchSize = 100;
+    const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
     const nostrMediaCacheEnabled = true;
@@ -30,10 +30,27 @@
     let chatArea;
     let autoscroll: Boolean = false;
 
+    type UserProfile = {
+        name: string;
+        about: string;
+        picture: string;
+        nip05: string;
+    };
+
     // null: to be requested
     // true: requested
-    // other: the user profile
-    let profileImagesMap = new Map();
+    // UserProfile: the user profile
+    let profileImagesMap = new Map<string, null | true | UserProfile>();
+
+    // null: to be requested
+    // true: requested
+    // false: the request errored out (so don't ask again)
+    // other: the public key of the user as specified in the nip05 registry
+    let nip05 = new Map<string, null | boolean | string>();
+
+    // null: to be requested
+    // true: requested
+    let notesMap = new Map();
 
     // null: to be requested
     // false: requested but error (so don't ask again)
@@ -56,7 +73,7 @@
                     message.samePubKey = true
                     // No profile picture/name needed
                 } else {
-                    const profileInfo = profileImagesMap.get(message.pubkey)
+                    const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
 
                     if (profileInfo !== null && profileInfo !== true) {
                         if (profileInfo.picture) {
@@ -106,12 +123,19 @@
 
         messages.push(newMessage);
 
-        addProfileIfNotQueried(newMessage.pubkey);
+        saveProfilePubkey(newMessage.pubkey);
+        saveNoteId(newMessage.id);
     }
 
-    function addProfileIfNotQueried(pubKey) {
+    function saveProfilePubkey(pubKey) {
         if (!profileImagesMap.has(pubKey)) {
             profileImagesMap.set(pubKey, null);
+        }
+    }
+
+    function saveNoteId(noteId) {
+        if (!notesMap.has(noteId)) {
+            notesMap.set(noteId, null);
         }
     }
 
@@ -122,11 +146,11 @@
 
         for (const [key, profile] of profileImagesMap) {
             if (profile === null) {
-                profilesToGetLocal.push(key);
                 profileImagesMap.set(key, true);
+                profilesToGetLocal.push(key);
                 i++;
 
-                if (i == queryProfilesBatchSize) {
+                if (i == nostrQueriesBatchSize) {
                     break;
                 }
             }
@@ -138,7 +162,7 @@
 
         pool.relays.forEach(relay => {
             const sub: Sub = relay.sub([{
-                kinds: [0],
+                kinds: [nostrEventKinds.metadata],
                 authors: profilesToGetLocal
             }]);
             sub.on('event', event => {
@@ -154,9 +178,84 @@
         })
     }
 
+    function queryNoteInformationInBatches() {
+        let noteInfoToGetLocal: string[] = [];
+
+        let i=0;
+
+        for (const [key, note] of notesMap) {
+            if (note === null) {
+                notesMap.set(key, true);
+                noteInfoToGetLocal.push(key);
+                i++;
+
+                if (i == nostrQueriesBatchSize) {
+                    break;
+                }
+            }
+        }
+
+        if (noteInfoToGetLocal.length === 0) {
+            return;
+        }
+
+        pool.relays.forEach(relay => {
+            let filter: Filter = {
+                kinds: [
+                    nostrEventKinds.note,
+                    nostrEventKinds.replies,
+                    nostrEventKinds.reactions,
+                ],
+                '#e': noteInfoToGetLocal
+            };
+
+            const sub: Sub = relay.sub([filter]);
+
+            sub.on('event', event => {
+                const kind = event.kind;
+
+                // TODO: REPLIES AND LIKES
+
+                if (kind === 7) {
+                    const id = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
+                    const eventReaction: string = event.content;
+                    const eventPubkey: string = event.pubkey;
+
+                    if (!id) {
+                        console.error('EVENT WITHOUT ID !!!');
+                        return;
+                    }
+
+                    for (let message of messages) {
+                        if (message.id === id) {
+                            let reactions: Map<string, Set<string>> | undefined = message.reactions;
+                            if (reactions === undefined) {
+                                reactions = new Map();
+                                message.reactions = reactions;
+                            }
+
+                            let reaction: Set<string> = reactions.get(eventReaction);
+                            if (reaction === undefined) {
+                                reaction = new Set();
+                                reactions.set(eventReaction, reaction);
+                            }
+                            reaction.add(eventPubkey);
+
+                            break;
+                        }
+                    }
+                }
+            });
+
+            pool.subscriptions.push(sub);
+        })
+    }
+
     function queryNip05ServersForVerification() {
         nip05.forEach(async (value, key) => {
             if (value === null) {
+                nip05.set(key, true);
+
                 let nip05verificationResult = await queryNip05(key);
                 nip05.set(key, nip05verificationResult);
             }
@@ -198,6 +297,12 @@
         await updateNip05Verifications();
     }
 
+    async function getNoteInformation() {
+        await wait(nostrBackgroundJobsDelay);
+        queryNoteInformationInBatches();
+        await getNoteInformation();
+    }
+
     async function processMessagesPeriodically() {
         await wait(nostrOrderMessagesDelay);
         orderAndVitamineMessages();
@@ -223,6 +328,7 @@
         processMessagesPeriodically();
         updateNostrProfiles();
         updateNip05Verifications();
+        getNoteInformation();
     });
 
     const userUnsubscribe = user.subscribe(
@@ -337,7 +443,7 @@
         >
             <div class="w-full h-96 overflow-y-scroll" bind:this={chatArea}>
                 {#each sortedMessages as message}
-                    <NostrNote {message}></NostrNote>
+                    <NostrNote {message} {pool}></NostrNote>
                 {/each}
             </div>
         </div>

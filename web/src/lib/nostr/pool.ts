@@ -1,6 +1,6 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
 import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey} from "nostr-tools";
-import {timeoutBetweenRelayConnectsMillis, hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId, wait, pmChannelNostrRoomId} from "$lib/nostr/utils";
+import {hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId} from "$lib/nostr/utils";
 import {Error, user} from "../stores";
 
 export class Pool {
@@ -25,7 +25,6 @@ export class Pool {
                         );
                     }
 
-                    // await wait(timeoutBetweenRelayConnectsMillis);
                 }, function(error) {
                     console.error("*** - connectAndSubscribeToChannel - ", error);
                 });
@@ -41,24 +40,23 @@ export class Pool {
             return false;
         }
 
-        let event = await this.createEvent(
-            messageInfo['message'],
-            messageInfo['user'],
-            messageInfo['nostrRoomId']
-        );
+        // 1
+        let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId']);
+
+        // 2
+        let signedEvent = await this.signValidateEvent(event, messageInfo['user']);
 
         let that = this;
 
-        if (event !== false) {
+        // 3
+        if (signedEvent !== false) {
             for (const relayUrl of relayUrlList) {
                 this.getRelayOrConnect(relayUrl)
                     .then(async function (relay) {
-                        await that.sendEvent(<Relay> relay, <Event> event);
+                        await that.publishEvent(<Relay> relay, <Event> signedEvent);
                     }, function(error) {
                         console.error(`   ** Nostr: Failed to connect to relay:`, error);
                     });
-
-                //await wait(timeoutBetweenRelayConnectsMillis);
             }
         }
     }
@@ -70,13 +68,10 @@ export class Pool {
             let relay: Relay | undefined = that.relays.get(relayUrl);
 
             if (relay !== undefined) {
-                console.log('*************** RELAY YA CONECTADO. SE DEVUELVE: ', relayUrl);
                 resolve(relay);
             } else {
-                console.log('*************** CONECTANDO A RELAY POR PRIMERA VEZ !! ', relayUrl);
                 try {
                     let newRelay = relayInit(relayUrl);
-                    await newRelay.connect();
 
                     newRelay.on('connect', () => {
                         console.debug('   ** Nostr:   -- Connected to relay: ' + relayUrl);
@@ -87,6 +82,9 @@ export class Pool {
                         console.log(`   ** Nostr: Failed to connect to relay: ${newRelay.url}`);
                         reject("Couldn't connect to relay (onError): " + relayUrl);
                     })
+
+                    await newRelay.connect();
+
                 } catch (e) {
                     reject("Couldn't connect to relay (catch): " + relayUrl);
                 }
@@ -95,28 +93,37 @@ export class Pool {
     }
 
     /*
-    The process of sending Nostr messages have 2 parts:
+    The process of publishing Nostr events have 3 parts:
 
-    1- `createEvent`: it creates the event, put the required
-    properties, sign and validate it.
+    1- Create an event of type Event. You can put a blank in
+    the pubkey field as it's mandatory, but you probably
+    don't have it yet.
 
-    2- `sendEvent`: it publishes the event to the relay
-    specified, or all the relays if relay is null.
+    2- `signValidateEvent`: puts the public key into the event,
+    then sign it with the key found on your Nostr extension
+    (or the Plebeian Market one if you don't have an extension)
+    and validate that it's correct.
+
+    3- `publishEvent`: it publishes the event to the relay
+    specified, or all the connected relays in the pool if
+    relay is null.
 
     If you don't need to do any special treatment to the
-    event, you can call `sendMessage` which will do both
-    creating the event (1) and publishing to the relays (2).
+    event, you can call `sendMessage` which will do all the
+    phases: creating the event (1), signing and validating
+    the event (2), and publishing to the relays (3).
      */
 
     async sendMessage(relay: Relay, message: string, user, nostrRoomId) {
-        let event = await this.createEvent(
-            message,
-            user,
-            nostrRoomId
-        );
+        // 1
+        let event: Event = this.getEventToSendNote(message, nostrRoomId);
 
-        if (event !== false) {
-            if (await this.sendEvent(relay, <Event>event)) {
+        // 2
+        let signedEvent: Event | false = await this.signValidateEvent(event, user);
+
+        // 3
+        if (signedEvent !== false) {
+            if (await this.publishEvent(relay, signedEvent)) {
                 return true;
             }
         }
@@ -124,7 +131,33 @@ export class Pool {
         return false;
     }
 
-    public async createEvent(message: string, user, nostrRoomId) {
+    public getEventToSendNote(message: string, nostrRoomId): Event {
+        let event: Event;
+
+        if (nostrRoomId === false) {
+            event = {
+                kind: nostrEventKinds.note,
+                content: message,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [],
+                pubkey: ''
+            };
+        } else {
+            event = {
+                kind: nostrEventKinds.channelNote,
+                content: message,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [
+                    ['e', nostrRoomId, "root"]
+                ],
+                pubkey: ''
+            };
+        }
+
+        return event;
+    }
+
+    public async signValidateEvent(event: Event, user) {
         let nostrPublicKey;
 
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
@@ -147,29 +180,10 @@ export class Pool {
             }
         }
 
-        let event: Event;
-
-        if (nostrRoomId === false) {
-            event = {
-                kind: nostrEventKinds.note,
-                content: message,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [],
-                pubkey: nostrPublicKey
-            };
-        } else {
-            event = {
-                kind: nostrEventKinds.channelNote,
-                content: message,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [
-                    ['e', nostrRoomId, "root"]
-                ],
-                pubkey: nostrPublicKey
-            };
-        }
+        event.pubkey = nostrPublicKey;
 
         console.debug('   ** Nostr: event before hashing: ', event)
+
         event.id = getEventHash(event)
 
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
@@ -203,7 +217,7 @@ export class Pool {
         return false;
     }
 
-    public async sendEvent(relay: Relay, event: Event) {
+    public async publishEvent(relay: Relay | null, event: Event) {
         if (relay !== null) {
             this.publishEventToRelay(relay, event);
         } else {
@@ -229,6 +243,46 @@ export class Pool {
         pub.on('failed', reason => {
             console.log(`   ** Nostr: failed to publish to ${relay.url}: ${reason}`);
         })
+    }
+
+    public async sendReaction(message, reaction: string) {
+        const noteId = message.id;
+        const notePubkey = message.pubkey;
+
+        console.log('******* SENDING REACTION: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
+
+        if (reaction.length !== 1) {
+            console.error('Trying to send reactions with > 1 character is not allowed by nip-25');
+            return;
+        }
+
+        if (!noteId || !notePubkey) {
+            return false;
+        }
+
+        // 1
+        const event: Event = {
+            kind: 7,
+            content: reaction,
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ['e', noteId],
+                ['p', notePubkey],
+            ],
+            pubkey: "",
+        };
+
+        // 2
+        let signedEvent: Event | false = await this.signValidateEvent(event, user);
+
+        // 3
+        if (signedEvent !== false) {
+            if (await this.publishEvent(null, signedEvent)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public subscribeToChannel(relay: Relay, nostrRoomId, messageLimit, since, callbackFunction) {

@@ -5,7 +5,7 @@
     export let message;
 </script>
 
-<div class="flex py-2" class:mt-0={message.samePubKey} class:mt-5={!message.samePubKey} class:profileInfo={!message.samePubKey}>
+<div class="flex py-2" class:mt-0={message.samePubKey} class:mt-5={!message.samePubKey} class:profileInfo={!message.samePubKey} data-note-id="{message.id}">
     
   <!-- AVATAR -->
   <div class="mr-4">
@@ -25,7 +25,6 @@
             <div class="chat-header flex items-center space-y-2 lg:space-x-2">
                 <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
                 
-              </div>
               <div>
                 {#if message.nip05verified}
                   <div class="flex flex-col justify-start space-y-2">
@@ -41,7 +40,7 @@
       <div class="">  
         <!-- MESSAGES AND ICONS -->
         <div>
-          <div class="chat-bubble my-4 break-all">{@html message.content}</div>
+          <div class="chat-bubble my-4">{@html message.content}</div>
           
           <!-- ICONS -->
           <div class="flex items-center w-full justify-between mb-2">

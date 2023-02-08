@@ -1,32 +1,33 @@
 import {getEventHash, nip05} from "nostr-tools";
 
 export const relayUrlList = [
-    "wss://nostr-pub.wellorder.net",
-    "wss://nostr-relay.wlvs.space",
-    "wss://nostr.bitcoiner.social",
-    "wss://relay.nostr.ro",
+    "nostr.mwmdev.com",
     "wss://nostr-relay.alekberg.net",
-    "wss://btc.klendazu.com",
+    "wss://nostr-pub.wellorder.net",
+    "wss://relay.current.fyi",
+    "wss://nostr.bitcoiner.social",
+    "wss://relay.damus.io",
+    "wss://nostr.kollider.xyz",
+    "relay.nostrich.de",
+    "wss://relay.nostr.ro",
     "wss://relay.nostr.info",
     "wss://nostr.zebedee.cloud",
     "wss://nostr-pub.semisol.dev",
-    "wss://relay.damus.io",
-    "wss://nostr.bitcoiner.social", // **
-    "wss://nostr.onsats.org",   // **
-    //"wss://nostr.walletofsatoshi.com",
+    "wss://nostr.walletofsatoshi.com"
 ];
 
 export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a';
-export const pmChannelNostrRoomId = '25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb';   // 'Nostr' channel
+export const pmChannelNostrRoomId = '4211fc228be5af10923f56e60b1b11b8e63bf0ac7dbd3e1e3d767392fdaed4a4'; // Directo 2140
+// '25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb';   // 'Nostr' channel
 export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 export const nostrEventKinds = {
+    'metadata': 0,
     'note': 1,
+    'replies': 6,
+    'reactions': 7,
     'createChannel': 40,
     'channelNote': 42
 }
-
-export const timeoutBetweenRelayConnectsMillis = 50;
-export let nostrPublicKeyFromExtension = false;
 
 export function hasExtension() {
     return !!window.nostr;

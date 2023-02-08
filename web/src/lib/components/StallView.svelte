@@ -53,7 +53,6 @@
     let auctionsLists: { [key: string]: ListView } = {};
     let listingsLists: { [key: string]: ListView } = {};
 
-
     let nostrRoomId: string = null;
     if (owner) {
         nostrRoomId = getChannelIdForStallOwner(owner);
