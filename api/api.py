@@ -218,6 +218,18 @@ def put_me(user):
     if 'nostr_private_key' in request.json:
         user.nostr_private_key = request.json['nostr_private_key']
 
+    if 'job_title' in request.json:
+        user.job_title = request.json['job_title']
+
+    if 'bio' in request.json:
+        user.bio = request.json['bio']
+
+    if 'desired_salary_usd' in request.json:
+        user.desired_salary_usd = request.json['desired_salary_usd']
+
+    if 'bitcoiner_question' in request.json:
+        user.bitcoiner_question = request.json['bitcoiner_question']
+
     if 'skills' in request.json:
         existing_skills = {s.skill for s in user.skills}
         new_skills = set(request.json['skills'])

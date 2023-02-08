@@ -5,7 +5,7 @@
     import { Category } from "$lib/types/item";
     import type { Listing } from "$lib/types/listing";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
-    import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
+    import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
     import ShippingEditor from "$lib/components/ShippingEditor.svelte";
 
     export let entity: IEntity;
@@ -40,7 +40,7 @@
                     </label>
                     <input bind:value={listing.title} type="text" name="title" class="input input-bordered" />
                 </div>
-                <MarkdownDescriptionEditor bind:value={listing.description} placeholder={listing.descriptionPlaceholder} />
+                <MarkdownEditor bind:value={listing.description} placeholder={listing.descriptionPlaceholder} />
                 <div class="flex mt-3">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="price_usd">

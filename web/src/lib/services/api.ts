@@ -1,4 +1,4 @@
-import { Error } from "$lib/stores";
+import { Error as ErrorStore } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
@@ -17,7 +17,7 @@ export class ErrorHandler {
 
     public handle(response) {
         if (this.setError) {
-            response.json().then(data => { Error.set(data.message); });
+            response.json().then(data => { ErrorStore.set(data.message); });
         }
 
         this.onError();
@@ -89,7 +89,7 @@ export async function getEntitiesAsync(loader: ILoader, tokenValue) {
     if (response.status === 200) {
         return data[loader.responseField].map(loader.fromJson);
     } else {
-        throw error(500, `${loader.endpoint}: data.message`);
+        throw Error(data.message);
     }
 }
 
@@ -104,6 +104,16 @@ export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (ke
                 errorHandler.handle(response);
             }
         });
+}
+
+export async function postEntityAsync(endpoint, tokenValue, entity: IEntity) {
+    const response = await fetchAPIAsync(`/${endpoint}`, 'POST', tokenValue, entity.toJson());
+    const data = await response.json();
+    if (response.status === 200) {
+        return data.key;
+    } else {
+        throw Error(data.message);
+    }
 }
 
 export function putEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
@@ -178,7 +188,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string, skills?: string[]}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string, jobTitle?: string, bio?: string, desiredSalaryUsd?: number, bitcoinerQuestion?: string, skills?: string[]}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -200,6 +210,18 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, contr
     }
     if (profile.nostr_private_key !== undefined) {
         json.nostr_private_key = profile.nostr_private_key;
+    }
+    if (profile.jobTitle !== undefined) {
+        json.job_title = profile.jobTitle;
+    }
+    if (profile.bio !== undefined) {
+        json.bio = profile.bio;
+    }
+    if (profile.desiredSalaryUsd !== undefined) {
+        json.desired_salary_usd = profile.desiredSalaryUsd;
+    }
+    if (profile.bitcoinerQuestion !== undefined) {
+        json.bitcoiner_question = profile.bitcoinerQuestion;
     }
     if (profile.skills !== undefined) {
         json.skills = profile.skills;
@@ -302,6 +324,16 @@ export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void,
                 errorHandler.handle(response);
             }
     });
+}
+
+export async function deleteEntityAsync(tokenValue, entity: IEntity) {
+    const response = await fetchAPIAsync(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null);
+    const data = await response.json();
+    if (response.status === 200) {
+        return true;
+    } else {
+        throw Error(data.message);
+    }
 }
 
 export function hideAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
