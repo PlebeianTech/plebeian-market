@@ -1,7 +1,7 @@
 <script lang="ts">
-    import NostrNote from "$lib/components/NostrNote.svelte";
-    import {onDestroy, onMount} from "svelte";
-    import {token, user} from "$lib/stores";
+    import NostrNote from "$lib/components/nostr/Note.svelte";
+    import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
+    import {token, user, nostrEventBeingRepliedTo} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
@@ -13,6 +13,7 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
+
     const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 2000;
     const nostrBackgroundJobsDelay = 4000;
@@ -26,6 +27,8 @@
 
     let messages = [];
     let sortedMessages = [];
+    let chatArea;
+    let autoscroll: Boolean = false;
 
     type UserProfile = {
         name: string;
@@ -312,7 +315,7 @@
                 'callbackFunction': addMessageIfDoesntExist
             });
         } else {
-            console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
+            console.error('Chat.svelte:onMount - We must have the nostrRoomId at this point');
         }
 
         processMessagesPeriodically();
@@ -354,11 +357,29 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(null, content, $user, nostrRoomId)) {
+            if (await pool.sendMessage(null, content, $user, nostrRoomId, $nostrEventBeingRepliedTo)) {
                 textarea.value = '';
+                scrollToBottom(chatArea);
             }
         }
     }
+
+    // SCROLL TO BOTTOM
+    const scrollToBottom = async (node: any) => {
+      node.scroll({
+        top: node.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+
+    beforeUpdate(() => {
+      autoscroll = chatArea && chatArea.offsetHeight + chatArea.scrollTop > chatArea.scrollHeight - 1
+    })
+
+    afterUpdate(() => {
+      if(autoscroll) scrollToBottom(chatArea)
+    })
+
 </script>
 
 <div>
@@ -412,7 +433,7 @@
                         gap-2 overflow-x-hidden border bg-cover bg-top p-4"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
-            <div class="w-full">
+            <div class="w-full h-96 overflow-y-scroll" bind:this={chatArea}>
                 {#each sortedMessages as message}
                     <NostrNote {message} {pool}></NostrNote>
                 {/each}
@@ -426,6 +447,7 @@
         <div class="p-3 bg-black shadow rounded-lg grid grid-cols-9 md:grid-cols-8 grid-rows-1 grid-flow-col gap-4">
             <textarea
                     rows="2"
+                    id="nostrMessageSendText"
                     autofocus
                     placeholder="Type the message you want to send to the channel..."
                     bind:this={textarea}
