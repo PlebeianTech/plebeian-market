@@ -87,7 +87,7 @@
             </figure>
         </a>
         <div class="card-body">
-            <h2 class="card-title mb-2">
+            <h2 class="card-title mb-2 lg:text-3xl text-2xl font-bold">
                 <a href={url}>{item.title}</a>
             </h2>
             {#if showCampaign && item.campaign_name !== null}
@@ -124,14 +124,37 @@
                             Bidder: <a rel="external" class="link" href="/stall/{topBid.buyer.nym}">{topBid.buyer.nym}</a>
                         {/if}
                     {:else if !item.ended}
-                        Starting bid: <AmountFormatter satsAmount={item.starting_bid} format={AmountFormat.Sats} />
+                      <div>
+                        <p>
+                          Starting bid: 
+                        </p>
+                        <p class="text-2xl font-bold">
+                          <AmountFormatter satsAmount={item.starting_bid} format={AmountFormat.Sats} />
+                        </p>
+                      </div>
                     {/if}
                 {:else if item instanceof Listing}
-                    Price: ${item.price_usd}
-                    <br />
-                    ~<AmountFormatter usdAmount={item.price_usd} format={AmountFormat.Sats} />
-                    <br />
-                    <span>Stock: {item.available_quantity}</span>
+                  <!-- PRICE IN DOLLARS AND SATS -->
+                  <div>
+                    <p>
+                      Price:
+                    </p>
+                    <p class="lg:text-2xl text-xl font-bold">
+                      ${item.price_usd}
+                    </p>
+                    <p class="text-2xl font-bold">
+                      ~<AmountFormatter usdAmount={item.price_usd} format={AmountFormat.Sats} />
+                    </p>
+                  </div>
+                  <!-- STOCK -->
+                  <div class="mt-4">
+                    <p>
+                      Stock: 
+                    </p>
+                    <p class="lg:text-2xl text-xl font-bold">
+                      {item.available_quantity}
+                    </p>
+                  </div>
                 {/if}
             </p>
             {#if showOwner}
@@ -145,7 +168,7 @@
                 <SvelteMarkdown source={item.description} />
             </div>
             {#if $user && $user.isModerator}
-                <div class="btn self-center md:float-right" on:click|preventDefault={hide} on:keypress={hide}>Hide from homepage</div>
+                <div class="btn btn-outline self-center md:float-right" on:click|preventDefault={hide} on:keypress={hide}>Hide from homepage</div>
             {/if}
         </div>
     </div>
