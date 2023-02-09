@@ -28,6 +28,17 @@
         // TODO: scrollToBottom(chatArea);
         document.getElementById('nostrMessageSendText').focus();
     }
+
+    /* Will we support delete functionality?
+    async function deleteNote(message) {
+        if (await pool.deleteNote(message)) {
+            message = null;
+            // TODO:
+            // we're modifying sortedMessages here, but
+            // we need to remove the note from "messages" itself
+        }
+    }
+    */
 </script>
 
 <!-- ICONS -->
