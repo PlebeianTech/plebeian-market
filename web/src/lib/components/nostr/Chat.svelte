@@ -1,5 +1,6 @@
 <script lang="ts">
     import NostrNote from "$lib/components/nostr/Note.svelte";
+    import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
     import {token, user, nostrEventBeingRepliedTo} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
@@ -444,6 +445,12 @@
     {#if emptyChatShowsLoading && sortedMessages.length === 0}
         <Loading />
     {:else}
+        {#if $nostrEventBeingRepliedTo !== null}
+            <div>
+                <NostrReplyNote message={$nostrEventBeingRepliedTo}></NostrReplyNote>
+            </div>
+        {/if}
+
         <div class="p-3 bg-black shadow rounded-lg grid grid-cols-9 md:grid-cols-8 grid-rows-1 grid-flow-col gap-4">
             <textarea
                     rows="2"
