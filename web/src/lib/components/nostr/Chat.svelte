@@ -343,7 +343,7 @@
     onDestroy(async () => {
         userUnsubscribe();
         await pool.unsubscribeEverything();
-        pool.disconnect();
+        await pool.disconnect();
     })
 
     const onKeyPress = e => {
