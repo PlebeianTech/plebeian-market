@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { IEntity } from "$lib/types/base";
     import type { Campaign } from "$lib/types/campaign";
-    import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
+    import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
     import XpubInfo from "$lib/components/XpubInfo.svelte";
 
     export let entity: IEntity;
@@ -30,7 +30,7 @@
                     </label>
                     <input bind:value={campaign.name} type="text" name="name" class="input input-bordered w-full" />
                 </div>
-                <MarkdownDescriptionEditor bind:value={campaign.description} />
+                <MarkdownEditor bind:value={campaign.description} />
             </form>
             <div class="w-full flex justify-center items-center mt-2">
                 <div class="w-1/2 flex justify-center items-center">

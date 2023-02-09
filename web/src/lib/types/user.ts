@@ -25,7 +25,9 @@ export class UserAchievement implements IEntity {
     to_month: number | null = null;
 
     public validate() {
-        return !(this.achievement.length === 0);
+        return !(this.achievement.length === 0)
+            && (this.from_month === null || (this.from_month > 0 && this.from_month <= 12))
+            && (this.to_month === null || (this.to_month > 0 && this.to_month <= 12));
     }
 
     public toJson() {
@@ -74,6 +76,10 @@ export class User implements IAccount {
     isModerator: boolean = false;
     badges: Badge[] = [];
     nostr_private_key: string | null = null;
+    jobTitle: string | null = null;
+    bio: string | null = null;
+    desiredSalaryUsd: number | null = null;
+    bitcoinerQuestion: string | null = null;
     skills: string[] = [];
 
     public hasBadge(badge) {
@@ -124,6 +130,10 @@ export function fromJson(json: any): User {
     u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
     u.nostr_private_key = <string | null>json.nostr_private_key;
+    u.jobTitle = <string | null>json.job_title;
+    u.bio = <string | null>json.bio;
+    u.desiredSalaryUsd = <number | null>json.desired_salary_usd;
+    u.bitcoinerQuestion = <string | null>json.bitcoiner_question;
     u.skills = <string[]>json.skills;
 
     return u;

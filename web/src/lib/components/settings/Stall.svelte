@@ -3,7 +3,7 @@
     import { page } from '$app/stores';
     import { ErrorHandler, putProfile } from "$lib/services/api";
     import { Info, token, user } from "$lib/stores";
-    import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
+    import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
 
     export let onSave: () => void = () => {};
 
@@ -61,7 +61,7 @@
     </div>
 </div>
 
-<MarkdownDescriptionEditor bind:value={stallDescription} />
+<MarkdownEditor bind:value={stallDescription} />
 
 <div class="alert alert-info shadow-lg mt-4">
     <div>

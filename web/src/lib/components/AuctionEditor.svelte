@@ -6,7 +6,7 @@
     import { user } from "$lib/stores";
     import { isProduction } from "$lib/utils";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
-    import MarkdownDescriptionEditor from "$lib/components/MarkdownDescriptionEditor.svelte";
+    import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
     import ShippingEditor from "$lib/components/ShippingEditor.svelte";
 
     export let entity: IEntity;
@@ -75,7 +75,7 @@
                     </label>
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered" />
                 </div>
-                <MarkdownDescriptionEditor bind:value={auction.description} placeholder={auction.descriptionPlaceholder} />
+                <MarkdownEditor bind:value={auction.description} placeholder={auction.descriptionPlaceholder} />
                 {#if !isTimeAuction}
                     <div class="flex mt-3">
                         <div class="form-control w-1/2 max-w-xs mr-1">

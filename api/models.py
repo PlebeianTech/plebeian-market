@@ -174,6 +174,12 @@ class User(XpubMixin, db.Model):
 
     contribution_percent = db.Column(db.Float, nullable=True)
 
+    # resume
+    job_title = db.Column(db.String(210), nullable=True)
+    bio = db.Column(db.String(21000), nullable=True)
+    desired_salary_usd = db.Column(db.Float(), nullable=True)
+    bitcoiner_question = db.Column(db.String(2100), nullable=True)
+
     skills = db.relationship('UserSkill', backref='user', order_by="UserSkill.added_at")
     achievements = db.relationship('UserAchievement', backref='user', order_by="UserAchievement.to_year,UserAchievement.to_month")
 
@@ -231,6 +237,10 @@ class User(XpubMixin, db.Model):
             'stall_banner_url': self.stall_banner_url,
             'stall_name': self.stall_name,
             'stall_description': self.stall_description,
+            'job_title': self.job_title,
+            'bio': self.bio,
+            'desired_salary_usd': self.desired_salary_usd,
+            'bitcoiner_question': self.bitcoiner_question,
             'skills': [s.skill for s in self.skills],
             'has_items': False,
             'has_own_items': False,
@@ -323,7 +333,7 @@ class UserAchievement(db.Model, GeneratedKeyMixin):
                 if validated[k] > datetime.utcnow().year:
                     raise ValidationError("Please only list past achievements!")
                 if validated[k] < 1900:
-                    raise ValidationError("You can't be that old!")
+                    raise ValidationError(f"{validated[k]}? You can't be that old!")
         for k in ['from_month', 'to_month']:
             if k not in d:
                 continue
