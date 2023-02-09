@@ -1,19 +1,20 @@
 import {getEventHash, nip05, Kind} from "nostr-tools";
 
 export const relayUrlList = [
-    "nostr.mwmdev.com",
-    "wss://nostr-relay.alekberg.net",
-    "wss://nostr-pub.wellorder.net",
-    "wss://relay.current.fyi",
-    "wss://nostr.bitcoiner.social",
+    // Amethyst relays
     "wss://relay.damus.io",
-    "wss://nostr.kollider.xyz",
-    "relay.nostrich.de",
-    "wss://relay.nostr.ro",
-    "wss://relay.nostr.info",
-    "wss://nostr.zebedee.cloud",
-    "wss://nostr-pub.semisol.dev",
-    "wss://nostr.walletofsatoshi.com"
+    "wss://relay.nostr.bg",
+    "wss://nostr.mom",
+    "wss://nos.lol",
+    "wss://nostr.bitcoiner.social",
+    "wss://nostr-pub.wellorder.net",
+    "wss://nostr.wine",
+    "wss://eden.nostr.land",
+    "wss://relay.orangepill.dev",
+    "wss://no.str.cr",  // *
+    "wss://puravida.nostr.land",
+    "wss://relay.nostr.com.au",
+    "wss://nostr.inosta.cc",
 ];
 
 export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a';
