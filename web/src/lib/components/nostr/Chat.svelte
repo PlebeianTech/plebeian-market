@@ -15,8 +15,8 @@
     export let messagesSince: number = 1672837281;  // January 4th 2023
 
     const nostrQueriesBatchSize = 100;
-    const nostrOrderMessagesDelay = 2000;
-    const nostrBackgroundJobsDelay = 4000;
+    const nostrOrderMessagesDelay = 1500;
+    const nostrBackgroundJobsDelay = 3000;
     const nostrMediaCacheEnabled = true;
 
     let nostrPreferenceCheckboxChecked;
