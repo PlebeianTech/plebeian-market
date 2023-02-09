@@ -44,7 +44,7 @@
             return;
         }
         if (newSkill.length > 21) {
-                ErrorStore.set("Skill should be less than 21 characters long.");
+                ErrorStore.set("Skill should be 21 characters or less.");
                 return;
         }
         skills = [...skills, newSkill]; // NB: push won't work, as Svelte won't detect the change to the array
