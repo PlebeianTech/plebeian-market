@@ -341,9 +341,9 @@
         }
     );
 
-    onDestroy(() => {
+    onDestroy(async () => {
         userUnsubscribe();
-        pool.unsubscribeEverything();
+        await pool.unsubscribeEverything();
         pool.disconnect();
     })
 
