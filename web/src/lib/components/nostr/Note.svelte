@@ -3,8 +3,9 @@
     import {formatTimestamp} from '$lib/nostr/utils';
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
-    export let message;
     export let pool;
+    export let message;
+    export let onReply;
 </script>
 
 <div class="flex py-2" class:mt-0={message.samePubKey} class:mt-5={!message.samePubKey} class:profileInfo={!message.samePubKey} data-note-id="{message.id}">
@@ -40,7 +41,7 @@
         <div class="">
             <!-- MESSAGES AND ICONS -->
             <div class="chat-bubble my-4">{@html message.content}</div>
-            <NostrNoteActions {pool} {message}></NostrNoteActions>
+            <NostrNoteActions {pool} {message} {onReply}></NostrNoteActions>
         </div>
     </div>
 </div>

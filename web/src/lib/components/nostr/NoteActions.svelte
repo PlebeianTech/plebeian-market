@@ -1,9 +1,10 @@
 <script lang="ts">
     import {Pool} from "$lib/nostr/pool";
-    import {nostrEventBeingRepliedTo} from "$lib/stores";
 
     export let pool: Pool;
     export let message;
+    export let onReply;
+
     $: reactions = message.reactions;
 
     let likeCount = 0;
@@ -24,7 +25,7 @@
     }
 
     function setReplyToThisEvent(message) {
-        nostrEventBeingRepliedTo.set(message);
+        onReply(message);
         // TODO: scrollToBottom(chatArea);
         document.getElementById('nostrMessageSendText').focus();
     }

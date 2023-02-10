@@ -2,7 +2,7 @@
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
-    import {token, user, nostrEventBeingRepliedTo} from "$lib/stores";
+    import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
@@ -14,22 +14,21 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
+    export let onReply = (message) => {nostrEventBeingRepliedTo = message};
+
+    let nostrEventBeingRepliedTo = null;
+    let nostrPreferenceCheckboxChecked;
+    let textarea;
+    let nostrExtensionEnabled;
+    let messages = [];
+    let sortedMessages = [];
+    let chatArea;
+    let autoscroll: Boolean = false;
 
     const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 1500;
     const nostrBackgroundJobsDelay = 3000;
     const nostrMediaCacheEnabled = true;
-
-    let nostrPreferenceCheckboxChecked;
-
-    let textarea;
-
-    let nostrExtensionEnabled;
-
-    let messages = [];
-    let sortedMessages = [];
-    let chatArea;
-    let autoscroll: Boolean = false;
 
     type UserProfile = {
         name: string;
@@ -358,7 +357,8 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(null, content, $user, nostrRoomId, $nostrEventBeingRepliedTo)) {
+            if (await pool.sendMessage(null, content, $user, nostrRoomId, nostrEventBeingRepliedTo)) {
+                nostrEventBeingRepliedTo = null;
                 textarea.value = '';
                 scrollToBottom(chatArea);
             }
@@ -436,7 +436,7 @@
         >
             <div class="w-full h-96 overflow-y-scroll" bind:this={chatArea}>
                 {#each sortedMessages as message}
-                    <NostrNote {message} {pool}></NostrNote>
+                    <NostrNote {pool} {message} {onReply}></NostrNote>
                 {/each}
             </div>
         </div>
@@ -445,9 +445,9 @@
     {#if emptyChatShowsLoading && sortedMessages.length === 0}
         <Loading />
     {:else}
-        {#if $nostrEventBeingRepliedTo !== null}
+        {#if nostrEventBeingRepliedTo !== null}
             <div>
-                <NostrReplyNote message={$nostrEventBeingRepliedTo}></NostrReplyNote>
+                <NostrReplyNote message={nostrEventBeingRepliedTo}></NostrReplyNote>
             </div>
         {/if}
 
