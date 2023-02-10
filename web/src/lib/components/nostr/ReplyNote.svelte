@@ -6,9 +6,9 @@
 
 <div class="flex" class:mt-0={message.samePubKey} class:mt-5={!message.samePubKey}>
     <!-- AVATAR -->
-    <div class="mr-4">
+    <div class="">
         <div class="chat-image avatar">
-            <div class="w-8 ml-2 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
+            <div class="w-10 mx-4 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
                 {#if !message.samePubKey}
                     <img src="{message.profileImage ?? profilePicturePlaceHolder}" alt="profile picture" class:profileInfoImage={!message.samePubKey} />
                 {/if}
@@ -28,7 +28,7 @@
 
         <div class="">
             <!-- MESSAGES AND ICONS -->
-            <div class="chat-bubble my-4">{@html message.content.substring(0,60)}</div>
+            <div class="my-4">{@html message.content.substring(0,60)}</div>
         </div>
     </div>
 </div>
