@@ -11,7 +11,7 @@ export const relayUrlList = [
     "wss://nostr.wine",
     "wss://eden.nostr.land",
     "wss://relay.orangepill.dev",
-    "wss://no.str.cr",  // *
+    "wss://no.str.cr",
     "wss://puravida.nostr.land",
     "wss://relay.nostr.com.au",
     "wss://nostr.inosta.cc",
@@ -116,4 +116,12 @@ export function getBestRelay() {
     // let relays = getPerson(pubkey)?.relays
 
     return relayUrlList[0];
+}
+
+export function getMessage(messages, messageId) {
+    for (const message of messages) {
+        if (message.id === messageId) {
+            return message;
+        }
+    }
 }

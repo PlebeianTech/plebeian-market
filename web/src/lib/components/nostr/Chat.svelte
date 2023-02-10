@@ -6,7 +6,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, filterTags, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, filterTags, getMessage, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -105,12 +105,19 @@
                     }
                 }
 
+                filterTags(message.tags, 'e').forEach(tag => {
+                    const id = tag[1];
+
+                    if (id !== nostrRoomId) {
+                        message.repliedToMessage = getMessage(messages, id) || id;
+                    }
+                })
+
                 lastMessagePublicKey = message.pubkey
 
                 return message;
             });
     }
-
 
     function addMessageIfDoesntExist(newMessage: Event) {
         for (const message of messages) {
