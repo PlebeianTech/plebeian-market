@@ -8,9 +8,9 @@
 <div class="flex py-2" class:mt-0={message.samePubKey} class:mt-5={!message.samePubKey} class:profileInfo={!message.samePubKey} data-note-id="{message.id}">
 
   <!-- AVATAR -->
-  <div class="mr-4">
+  <div class="">
     <div class="chat-image avatar">
-        <div class="w-8 ml-2 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
+        <div class="w-10 mx-4 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
             {#if !message.samePubKey}
                 <img src="{message.profileImage ?? profilePicturePlaceHolder}" alt="profile picture" class:profileInfoImage={!message.samePubKey} />
             {/if}
@@ -46,7 +46,7 @@
       <div class="">
         <!-- MESSAGES AND ICONS -->
         <div>
-          <div class="chat-bubble my-4">{@html message.content}</div>
+          <div class="my-4">{@html message.content}</div>
 
           <!-- ICONS -->
           <div class="flex items-center w-full justify-between mb-2">
