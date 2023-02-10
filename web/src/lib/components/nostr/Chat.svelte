@@ -431,7 +431,7 @@
 
         <div class="flex border-base-300 bg-info-content-200 rounded-b-box rounded-tr-box
                         min-h-[6rem] min-w-[18rem] max-w-4xl flex-wrap items-center justify-center
-                        gap-2 overflow-x-hidden border bg-cover bg-top p-4"
+                        gap-2 overflow-x-hidden border bg-cover bg-top"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
         >
             <div class="w-full h-96 overflow-y-scroll" bind:this={chatArea}>
