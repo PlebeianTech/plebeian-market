@@ -6,7 +6,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, filterTags, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -29,6 +29,9 @@
     const nostrOrderMessagesDelay = 1500;
     const nostrBackgroundJobsDelay = 3000;
     const nostrMediaCacheEnabled = true;
+
+    let timerOrderMessages = null;
+    let timerBackgroundJobs = null;
 
     type UserProfile = {
         name: string;
@@ -278,28 +281,16 @@
         }
     }
 
-    async function updateNostrProfiles() {
-        await wait(nostrBackgroundJobsDelay);
-        queryProfilesToNostrRelaysInBatches();
-        await updateNostrProfiles();
-    }
-
-    async function updateNip05Verifications() {
-        await wait(nostrBackgroundJobsDelay);
-        queryNip05ServersForVerification();
-        await updateNip05Verifications();
-    }
-
-    async function getNoteInformation() {
-        await wait(nostrBackgroundJobsDelay);
-        queryNoteInformationInBatches();
-        await getNoteInformation();
-    }
-
-    async function processMessagesPeriodically() {
-        await wait(nostrOrderMessagesDelay);
+    function processMessagesPeriodically() {
         orderAndVitamineMessages();
-        await processMessagesPeriodically();
+        timerOrderMessages = setTimeout(processMessagesPeriodically, nostrOrderMessagesDelay);
+    }
+
+    function doBackgroundJobsPeriodically() {
+        queryProfilesToNostrRelaysInBatches();
+        queryNoteInformationInBatches();
+        queryNip05ServersForVerification();
+        timerBackgroundJobs = setTimeout(doBackgroundJobsPeriodically, nostrBackgroundJobsDelay);
     }
 
     onMount(async () => {
@@ -319,9 +310,7 @@
         }
 
         processMessagesPeriodically();
-        updateNostrProfiles();
-        updateNip05Verifications();
-        getNoteInformation();
+        doBackgroundJobsPeriodically()
     });
 
     const userUnsubscribe = user.subscribe(
@@ -344,6 +333,9 @@
         userUnsubscribe();
         await pool.unsubscribeEverything();
         await pool.disconnect();
+
+        clearTimeout(timerOrderMessages);
+        clearTimeout(timerBackgroundJobs);
     })
 
     const onKeyPress = e => {
