@@ -1,11 +1,12 @@
 <script lang="ts">
-    import NostrNote from "$lib/components/NostrNote.svelte";
+    import NostrNote from "$lib/components/nostr/Note.svelte";
+    import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
     import {token, user} from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import {Event, Sub, Filter, generatePrivateKey} from "nostr-tools";
+    import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId, nostrEventKinds} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -13,22 +14,21 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
+    export let onReply = (message) => {nostrEventBeingRepliedTo = message};
 
-    const nostrQueriesBatchSize = 100;
-    const nostrOrderMessagesDelay = 2000;
-    const nostrBackgroundJobsDelay = 4000;
-    const nostrMediaCacheEnabled = true;
-
+    let nostrEventBeingRepliedTo = null;
     let nostrPreferenceCheckboxChecked;
-
     let textarea;
-
     let nostrExtensionEnabled;
-
     let messages = [];
     let sortedMessages = [];
     let chatArea;
     let autoscroll: Boolean = false;
+
+    const nostrQueriesBatchSize = 100;
+    const nostrOrderMessagesDelay = 1500;
+    const nostrBackgroundJobsDelay = 3000;
+    const nostrMediaCacheEnabled = true;
 
     type UserProfile = {
         name: string;
@@ -157,7 +157,7 @@
 
         pool.relays.forEach(relay => {
             const sub: Sub = relay.sub([{
-                kinds: [nostrEventKinds.metadata],
+                kinds: [Kind.Metadata],
                 authors: profilesToGetLocal
             }]);
             sub.on('event', event => {
@@ -197,9 +197,8 @@
         pool.relays.forEach(relay => {
             let filter: Filter = {
                 kinds: [
-                    nostrEventKinds.note,
-                    nostrEventKinds.replies,
-                    nostrEventKinds.reactions,
+                    Kind.Text,
+                    Kind.Reaction
                 ],
                 '#e': noteInfoToGetLocal
             };
@@ -211,7 +210,7 @@
 
                 // TODO: REPLIES AND LIKES
 
-                if (kind === 7) {
+                if (kind === Kind.Reaction) {
                     const id = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
                     const eventReaction: string = event.content;
                     const eventPubkey: string = event.pubkey;
@@ -250,7 +249,6 @@
         nip05.forEach(async (value, key) => {
             if (value === null) {
                 nip05.set(key, true);
-
                 let nip05verificationResult = await queryNip05(key);
                 nip05.set(key, nip05verificationResult);
             }
@@ -317,7 +315,7 @@
                 'callbackFunction': addMessageIfDoesntExist
             });
         } else {
-            console.error('NostrChat.svelte:onMount - We must have the nostrRoomId at this point');
+            console.error('Chat.svelte:onMount - We must have the nostrRoomId at this point');
         }
 
         processMessagesPeriodically();
@@ -342,10 +340,10 @@
         }
     );
 
-    onDestroy(() => {
+    onDestroy(async () => {
         userUnsubscribe();
-        pool.unsubscribeEverything();
-        pool.disconnect();
+        await pool.unsubscribeEverything();
+        await pool.disconnect();
     })
 
     const onKeyPress = e => {
@@ -359,12 +357,12 @@
         const content = textarea.value.trim();
 
         if (content) {
-            if (await pool.sendMessage(null, content, $user, nostrRoomId)) {
+            if (await pool.sendMessage(null, content, $user, nostrRoomId, nostrEventBeingRepliedTo)) {
+                nostrEventBeingRepliedTo = null;
                 textarea.value = '';
+                scrollToBottom(chatArea);
             }
         }
-
-        scrollToBottom(chatArea)
     }
 
     // SCROLL TO BOTTOM
@@ -438,7 +436,7 @@
         >
             <div class="w-full h-96 overflow-y-scroll" bind:this={chatArea}>
                 {#each sortedMessages as message}
-                    <NostrNote {message} {pool}></NostrNote>
+                    <NostrNote {pool} {message} {onReply}></NostrNote>
                 {/each}
             </div>
         </div>
@@ -447,20 +445,27 @@
     {#if emptyChatShowsLoading && sortedMessages.length === 0}
         <Loading />
     {:else}
-        <div class="p-3 bg-black hover:shadow-xl duration-300 rounded-lg flex items-center">
+        {#if nostrEventBeingRepliedTo !== null}
+            <div>
+                <NostrReplyNote message={nostrEventBeingRepliedTo}></NostrReplyNote>
+            </div>
+        {/if}
+
+        <div class="p-3 bg-black shadow rounded-lg grid grid-cols-9 md:grid-cols-8 grid-rows-1 grid-flow-col gap-4">
             <textarea
                     rows="2"
+                    id="nostrMessageSendText"
                     autofocus
                     placeholder="Type the message you want to send to the channel..."
                     bind:this={textarea}
                     on:keypress={onKeyPress}
-                    class="w-full p-2 text-white placeholder:text-light outline-0 resize-none"></textarea>
+                    class="col-span-7 w-full p-2 text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
             <div on:click={sendMessage}
-                 class="flex flex-col py-2 p-4 justify-center
-                 hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                 class="col-span-2 md:col-span-1 flex flex-col py-2 p-4 justify-center border-l border-solid border-dark
+                 hover:bg-neutral-focus transition-all cursor-pointer text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" fill="currentColor" class="bi bi-telegram" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294.26.006.549-.1.868-.32 2.179-1.471 3.304-2.214 3.374-2.23.05-.012.12-.026.166.016.047.041.042.12.037.141-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8.154 8.154 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629.093.06.183.125.27.187.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.426 1.426 0 0 0-.013-.315.337.337 0 0 0-.114-.217.526.526 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09z"/>
                 </svg>
             </div>
         </div>

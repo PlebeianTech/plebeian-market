@@ -17,7 +17,7 @@
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
     import {requestLoginModal} from "../utils";
-    import NostrChat from "$lib/components/NostrChat.svelte";
+    import NostrChat from "$lib/components/nostr/Chat.svelte";
     import { isProduction } from "$lib/utils";
     import { getChannelIdForStallOwner } from '$lib/nostr/utils'
     // import CampaignStats from './CampaignStats.svelte';
@@ -140,7 +140,6 @@
     });
 </script>
 
-
 {#if isCampaignStall}
   <!-- HERO SECTION STATIC CONTENT -->
   <div id="bgHero" class="bg-fixed">
@@ -193,7 +192,7 @@
                   <SvelteMarkdown source={description} />
               </div>
           {/if}
-          
+
           <!-- TELEGRAM AND TWITTER -->
           <div>
             <ExternalLinks {owner} />
@@ -218,7 +217,7 @@
         <div>
           <!-- ADD NEW -->
           <div class="dropdown">
-            <label tabindex="0" class="btn btn-primary m-1">Add New 
+            <label tabindex="0" class="btn btn-primary m-1">Add New
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
@@ -250,7 +249,6 @@
     background-size: cover;
     background-position: bottom;
   }
-  
 </style>
 
 
@@ -279,16 +277,16 @@
                         <SvelteMarkdown source={description} />
                     </div>
                 {/if}
-                
+
                 <!-- TELEGRAM AND TWITTER -->
                 <div class="flex flex-col gap-4 w-full py-4 my-4">
                   <ExternalLinks {owner} />
               </div>
             </div>
-            
+
             <!-- COL -->
             <div id="bgXPUB" class="grid place-items-center border-l border-gray-700/40 p-4">
-                <slot name="extra-description" />                
+                <slot name="extra-description" />
             </div>
         </div>
         {/if}

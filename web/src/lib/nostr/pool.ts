@@ -1,11 +1,12 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
-import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey} from "nostr-tools";
-import {hasExtension, relayUrlList, nostrEventKinds, localStorageNostrPreferPMId} from "$lib/nostr/utils";
+import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey, Kind} from "nostr-tools";
+import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, findMarkerInTags, getBestRelay} from "$lib/nostr/utils";
 import {Error, user} from "../stores";
 
 export class Pool {
     relays: Map<string, Relay> = new Map<string, Relay>();
     subscriptions: Sub[] = [];
+    publicKey: string = '';
 
     public async connectAndSubscribeToChannel(channelInfo = null) {
         let that = this;
@@ -41,7 +42,7 @@ export class Pool {
         }
 
         // 1
-        let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId']);
+        let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId'], null);
 
         // 2
         let signedEvent = await this.signValidateEvent(event, messageInfo['user']);
@@ -97,7 +98,9 @@ export class Pool {
 
     1- Create an event of type Event. You can put a blank in
     the pubkey field as it's mandatory, but you probably
-    don't have it yet.
+    don't have it yet. You can do it "manually" by creating
+    an object of type Event or use helper functions like
+    `getEventToSendNote`.
 
     2- `signValidateEvent`: puts the public key into the event,
     then sign it with the key found on your Nostr extension
@@ -112,41 +115,32 @@ export class Pool {
     event, you can call `sendMessage` which will do all the
     phases: creating the event (1), signing and validating
     the event (2), and publishing to the relays (3).
+
+    There is also a function to do steps 2 and 3 in one step
+    called `signValidatePublishEvent`.
      */
 
-    async sendMessage(relay: Relay, message: string, user, nostrRoomId) {
-        // 1
-        let event: Event = this.getEventToSendNote(message, nostrRoomId);
-
-        // 2
-        let signedEvent: Event | false = await this.signValidateEvent(event, user);
-
-        // 3
-        if (signedEvent !== false) {
-            if (await this.publishEvent(relay, signedEvent)) {
-                return true;
-            }
-        }
-
-        return false;
+    async sendMessage(relay: Relay, message: string, user, nostrRoomId, eventBeingRepliedTo: Event | null) {
+        let event: Event = this.getEventToSendNote(message, nostrRoomId, eventBeingRepliedTo);
+        return await this.signValidatePublishEvent(event);
     }
 
-    public getEventToSendNote(message: string, nostrRoomId): Event {
+    public getEventToSendNote(message: string, nostrRoomId, eventBeingRepliedTo: Event | null): Event {
         let event: Event;
 
         if (nostrRoomId === false) {
             event = {
-                kind: nostrEventKinds.note,
+                kind: Kind.Text,
                 content: message,
-                created_at: Math.floor(Date.now() / 1000),
+                created_at: 0,
                 tags: [],
                 pubkey: ''
             };
         } else {
             event = {
-                kind: nostrEventKinds.channelNote,
+                kind: Kind.ChannelMessage,
                 content: message,
-                created_at: Math.floor(Date.now() / 1000),
+                created_at: 0,
                 tags: [
                     ['e', nostrRoomId, "root"]
                 ],
@@ -154,17 +148,44 @@ export class Pool {
             };
         }
 
+        if (eventBeingRepliedTo !== null && [Kind.Text, Kind.ChannelMessage].includes(eventBeingRepliedTo.kind)) {
+            event.tags = event.tags.concat(this.getReplyTagsToEvent(eventBeingRepliedTo));
+        }
+
         return event;
     }
 
-    public async signValidateEvent(event: Event, user) {
-        let nostrPublicKey;
+    public getReplyTagsToEvent(eventBeingRepliedTo: Event) {
+        let tagsToBeAddedToEvent: Array<Array<string>> = [];
 
+        let url = getBestRelay();
+
+        // ** Tag P
+        //      - Adding all P from the event being replied to
+        const eventBeingRepliedToTagsP = filterTags(eventBeingRepliedTo.tags, 'p');
+        if (eventBeingRepliedToTagsP.length) {
+            tagsToBeAddedToEvent.push(eventBeingRepliedToTagsP);
+        }
+        //      - Adding to P the pubkey of the creator of the event being replied to
+        tagsToBeAddedToEvent.push(["p", eventBeingRepliedTo.pubkey, url]);
+
+        // ** Tag E
+        const eventBeingRepliedToTagsE = filterTags(eventBeingRepliedTo.tags, 'e');
+        if (eventBeingRepliedToTagsE.length === 0 || !findMarkerInTags(eventBeingRepliedToTagsE, 'e', 'reply')) {
+            tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'root']);
+        } else {
+            tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'reply']);
+        }
+
+        return tagsToBeAddedToEvent;
+    }
+
+    public async signValidateEvent(event: Event, user) {
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
             // PM Nostr identity
-            nostrPublicKey = getPublicKey(user.nostr_private_key);
+            this.publicKey = getPublicKey(user.nostr_private_key);
 
-            if (!nostrPublicKey) {
+            if (!this.publicKey) {
                 console.debug('   ** Nostr: Not using extension, but PM identity (public key) not available.');
                 return false;
             }
@@ -172,7 +193,7 @@ export class Pool {
         } else {
             // Nostr extension identity
             try {
-                nostrPublicKey = await window.nostr.getPublicKey();
+                this.publicKey = await window.nostr.getPublicKey();
             } catch (error) {
                 console.error('   ** Nostr: Error getting public key from extension:', error);
                 Error.set("Error getting the Nostr public key from your extension.");
@@ -180,11 +201,11 @@ export class Pool {
             }
         }
 
-        event.pubkey = nostrPublicKey;
+        console.debug('   ** Nostr: event before adding missing properties: ', event);
 
-        console.debug('   ** Nostr: event before hashing: ', event)
-
-        event.id = getEventHash(event)
+        event.created_at = Math.floor(Date.now() / 1000);
+        event.pubkey = this.publicKey;
+        event.id = getEventHash(event);
 
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
             // PM Nostr identity
@@ -260,24 +281,21 @@ export class Pool {
             return false;
         }
 
-        // 1
-        const event: Event = {
-            kind: 7,
+        return await this.signValidatePublishEvent(<Event>{
+            kind: Kind.Reaction,
             content: reaction,
-            created_at: Math.floor(Date.now() / 1000),
             tags: [
                 ['e', noteId],
                 ['p', notePubkey],
             ],
-            pubkey: "",
-        };
+        });
+    }
 
-        // 2
+    public async signValidatePublishEvent(event: Event) {
         let signedEvent: Event | false = await this.signValidateEvent(event, user);
 
-        // 3
         if (signedEvent !== false) {
-            if (await this.publishEvent(null, signedEvent)) {
+            if (await this.publishEvent(null, <Event> signedEvent)) {
                 return true;
             }
         }
@@ -285,11 +303,27 @@ export class Pool {
         return false;
     }
 
+    public async deleteNote(message) {
+        const noteId = message.id;
+
+        // TODO: Dialog confirm delete
+
+        return await this.signValidatePublishEvent({
+            kind: Kind.EventDeletion,
+            content: 'deleted',
+            created_at: 0,
+            tags: [
+                ['e', noteId]
+            ],
+            pubkey: "",
+        });
+    }
+
     public subscribeToChannel(relay: Relay, nostrRoomId, messageLimit, since, callbackFunction) {
         console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url);
 
         let sub: Sub = relay.sub([{
-            kinds: [nostrEventKinds.channelNote],
+            kinds: [Kind.ChannelMessage],
             '#e': [nostrRoomId],
             limit: messageLimit,
             since: since
