@@ -82,10 +82,10 @@ export function filterTags(tagsArray, tagToFilter) {
     });
 }
 
-export function findMarkerInTag(eventBeingRepliedToTagsE, tagType, marker) {
+export function findMarkerInTags(tags, tagType, marker) {
     let found = false;
 
-    eventBeingRepliedToTagsE.forEach(tag => {
+    tags.forEach(tag => {
         if (tag[0] === tagType && tag[3] === marker) {
             found = true;
         }

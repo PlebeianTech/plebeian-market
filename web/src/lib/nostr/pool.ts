@@ -1,6 +1,6 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
 import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey, Kind} from "nostr-tools";
-import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, findMarkerInTag, getBestRelay} from "$lib/nostr/utils";
+import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, findMarkerInTags, getBestRelay} from "$lib/nostr/utils";
 import {Error, user} from "../stores";
 
 export class Pool {
@@ -171,7 +171,7 @@ export class Pool {
 
         // ** Tag E
         const eventBeingRepliedToTagsE = filterTags(eventBeingRepliedTo.tags, 'e');
-        if (eventBeingRepliedToTagsE.length === 0 || !findMarkerInTag(eventBeingRepliedToTagsE, 'e', 'reply')) {
+        if (eventBeingRepliedToTagsE.length === 0 || !findMarkerInTags(eventBeingRepliedToTagsE, 'e', 'reply')) {
             tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'root']);
         } else {
             tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'reply']);
