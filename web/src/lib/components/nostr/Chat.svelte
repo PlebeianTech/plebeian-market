@@ -28,7 +28,7 @@
     const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 1500;
     const nostrBackgroundJobsDelay = 3000;
-    const nostrMediaCacheEnabled = true;
+    const nostrMediaCacheEnabled = false;
 
     let timerOrderMessages = null;
     let timerBackgroundJobs = null;
