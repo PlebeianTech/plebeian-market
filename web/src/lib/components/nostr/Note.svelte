@@ -1,7 +1,7 @@
 <script lang="ts">
     import NostrNoteActions from "$lib/components/nostr/NoteActions.svelte";
     import {formatTimestamp} from '$lib/nostr/utils';
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url";
+    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     export let message;
     export let pool;
