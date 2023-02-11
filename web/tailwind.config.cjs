@@ -1,7 +1,7 @@
 module.exports = {
   content: [
     "./src/lib/components/*.svelte",
-    "./src/lib/components/settings/*.svelte",
+    "./src/lib/components/**/*.svelte",
     "./src/routes/**/*.svelte",
   ],
   theme: {

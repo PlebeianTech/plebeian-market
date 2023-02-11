@@ -50,7 +50,7 @@
         <div class="">
             <!-- REPLY TO -->
             {#if message.repliedToMessage}
-                <div class="flex py-2 ml-4">
+                <div class="card card-compact w-96 bg-blue-300 text-primary-content shadow-xl">
                     {#if typeof message.repliedToMessage === 'object'}
                         <NostrReplyNote message={message.repliedToMessage}></NostrReplyNote>
                     {:else}
