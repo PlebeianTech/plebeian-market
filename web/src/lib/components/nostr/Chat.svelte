@@ -109,11 +109,28 @@
                     const id = tag[1];
 
                     if (id !== nostrRoomId) {
-                        message.repliedToMessage = getMessage(messages, id) || id;
-                    }
-                })
+                        let repliedToMessage = getMessage(messages, id);
+                        if (repliedToMessage !== undefined) {
+                            // Adding the reply id of the message to the replied message
+                            let replies: Array<string> = repliedToMessage.replies || [];
 
-                lastMessagePublicKey = message.pubkey
+                            if (!replies.includes(message.id)) {
+                                replies.push(message.id);
+                            }
+
+                            repliedToMessage.replies = replies;
+
+                            // Adding the replied message so we can show it alongside the message
+                            message.repliedToMessage = repliedToMessage;
+                        } else {
+                            // If we don't have the message we're replyint go (yet?), we show
+                            // that this is a reply to a message #id
+                            message.repliedToMessage = id;
+                        }
+                    }
+                });
+
+                lastMessagePublicKey = message.pubkey;
 
                 return message;
             });
