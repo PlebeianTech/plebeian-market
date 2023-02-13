@@ -30,8 +30,8 @@
     const nostrBackgroundJobsDelay = 3000;
     const nostrMediaCacheEnabled = false;
 
-    let timerOrderMessages = null;
-    let timerBackgroundJobs = null;
+    let orderMessagesTimer = null;
+    let backgroundJobsTimer = null;
 
     type UserProfile = {
         name: string;
@@ -307,14 +307,14 @@
 
     function processMessagesPeriodically() {
         orderAndVitamineMessages();
-        timerOrderMessages = setTimeout(processMessagesPeriodically, nostrOrderMessagesDelay);
+        orderMessagesTimer = setTimeout(processMessagesPeriodically, nostrOrderMessagesDelay);
     }
 
     function doBackgroundJobsPeriodically() {
         queryProfilesToNostrRelaysInBatches();
         queryNoteInformationInBatches();
         queryNip05ServersForVerification();
-        timerBackgroundJobs = setTimeout(doBackgroundJobsPeriodically, nostrBackgroundJobsDelay);
+        backgroundJobsTimer = setTimeout(doBackgroundJobsPeriodically, nostrBackgroundJobsDelay);
     }
 
     onMount(async () => {
@@ -358,8 +358,8 @@
         await pool.unsubscribeEverything();
         await pool.disconnect();
 
-        clearTimeout(timerOrderMessages);
-        clearTimeout(timerBackgroundJobs);
+        clearTimeout(orderMessagesTimer);
+        clearTimeout(backgroundJobsTimer);
     })
 
     const onKeyPress = e => {
