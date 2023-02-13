@@ -6,7 +6,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, wait, localStorageNostrPreferPMId} from '$lib/nostr/utils';
+    import {hasExtension, queryNip05, filterTags, getMessage, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
 
     export let roomData = false;
@@ -28,7 +28,10 @@
     const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 1500;
     const nostrBackgroundJobsDelay = 3000;
-    const nostrMediaCacheEnabled = true;
+    const nostrMediaCacheEnabled = false;
+
+    let orderMessagesTimer = null;
+    let backgroundJobsTimer = null;
 
     type UserProfile = {
         name: string;
@@ -102,12 +105,36 @@
                     }
                 }
 
-                lastMessagePublicKey = message.pubkey
+                filterTags(message.tags, 'e').forEach(tag => {
+                    const id = tag[1];
+
+                    if (id !== nostrRoomId) {
+                        let repliedToMessage = getMessage(messages, id);
+                        if (repliedToMessage !== undefined) {
+                            // Adding the reply id of the message to the replied message
+                            let replies: Array<string> = repliedToMessage.replies || [];
+
+                            if (!replies.includes(message.id)) {
+                                replies.push(message.id);
+                            }
+
+                            repliedToMessage.replies = replies;
+
+                            // Adding the replied message so we can show it alongside the message
+                            message.repliedToMessage = repliedToMessage;
+                        } else {
+                            // If we don't have the message we're replyint go (yet?), we show
+                            // that this is a reply to a message #id
+                            message.repliedToMessage = id;
+                        }
+                    }
+                });
+
+                lastMessagePublicKey = message.pubkey;
 
                 return message;
             });
     }
-
 
     function addMessageIfDoesntExist(newMessage: Event) {
         for (const message of messages) {
@@ -278,28 +305,16 @@
         }
     }
 
-    async function updateNostrProfiles() {
-        await wait(nostrBackgroundJobsDelay);
-        queryProfilesToNostrRelaysInBatches();
-        await updateNostrProfiles();
-    }
-
-    async function updateNip05Verifications() {
-        await wait(nostrBackgroundJobsDelay);
-        queryNip05ServersForVerification();
-        await updateNip05Verifications();
-    }
-
-    async function getNoteInformation() {
-        await wait(nostrBackgroundJobsDelay);
-        queryNoteInformationInBatches();
-        await getNoteInformation();
-    }
-
-    async function processMessagesPeriodically() {
-        await wait(nostrOrderMessagesDelay);
+    function processMessagesPeriodically() {
         orderAndVitamineMessages();
-        await processMessagesPeriodically();
+        orderMessagesTimer = setTimeout(processMessagesPeriodically, nostrOrderMessagesDelay);
+    }
+
+    function doBackgroundJobsPeriodically() {
+        queryProfilesToNostrRelaysInBatches();
+        queryNoteInformationInBatches();
+        queryNip05ServersForVerification();
+        backgroundJobsTimer = setTimeout(doBackgroundJobsPeriodically, nostrBackgroundJobsDelay);
     }
 
     onMount(async () => {
@@ -319,9 +334,7 @@
         }
 
         processMessagesPeriodically();
-        updateNostrProfiles();
-        updateNip05Verifications();
-        getNoteInformation();
+        doBackgroundJobsPeriodically()
     });
 
     const userUnsubscribe = user.subscribe(
@@ -344,6 +357,9 @@
         userUnsubscribe();
         await pool.unsubscribeEverything();
         await pool.disconnect();
+
+        clearTimeout(orderMessagesTimer);
+        clearTimeout(backgroundJobsTimer);
     })
 
     const onKeyPress = e => {

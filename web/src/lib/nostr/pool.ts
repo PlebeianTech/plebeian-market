@@ -142,7 +142,7 @@ export class Pool {
                 content: message,
                 created_at: 0,
                 tags: [
-                    ['e', nostrRoomId, "root"]
+                    ['e', nostrRoomId, getBestRelay(), "root"]
                 ],
                 pubkey: ''
             };

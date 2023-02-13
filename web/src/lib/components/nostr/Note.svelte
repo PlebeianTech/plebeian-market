@@ -1,5 +1,6 @@
 <script lang="ts">
     import NostrNoteActions from "$lib/components/nostr/NoteActions.svelte";
+    import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import {formatTimestamp} from '$lib/nostr/utils';
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
@@ -47,6 +48,17 @@
         </div>
 
         <div class="">
+            <!-- REPLY TO -->
+            {#if message.repliedToMessage}
+                <div class="card card-compact w-96 bg-blue-300 text-primary-content shadow-xl">
+                    {#if typeof message.repliedToMessage === 'object'}
+                        <NostrReplyNote message={message.repliedToMessage}></NostrReplyNote>
+                    {:else}
+                        <span>Replying to #{message.repliedToMessage.slice(0, 8)}</span>
+                    {/if}
+                </div>
+            {/if}
+
             <!-- MESSAGES AND ICONS -->
             <div class="my-4">{@html message.content}</div>
             <NostrNoteActions {pool} {message} {onReply}></NostrNoteActions>
