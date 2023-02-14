@@ -9,11 +9,11 @@
     }
 </style>
 
-<div class="text-neutral-content grid place-items-center">
+<div class="text-neutral-content">
   <span>
-      <p class="mt-2 md:mt-0 text-4xl text-center lg:text-8xl md:text-right mr-0 md:mr-1">Sell anything...</p>
+      <p class="text-6xl lg:text-8xl">Sell anything...</p>
   </span>
-  <div class="flex justify-center text-8xl my-4">
+  <div class="flex text-8xl my-4 lg:justify-start justify-center">
       <Typewriter interval={60} cursor={true} mode="loop">
           <span class="text-neon-pink justify-center text-xl lg:text-3xl">
               <p>1 hour of your time</p>

@@ -63,21 +63,16 @@
         }}
 />
 
-<div id="bgHero" class="bg-fixed">
-  <div class="bg-black/80">
-    <div class="grid place-items-center lg:w-2/3 mx-auto py-12">
-      <div class="grid">
-        <!-- COL -->
-        <div class="bg-zinc-800/40 rounded-xl shadow-xl backdrop-blur-md p-4 border border-gray-700/40">
-
-          <div class="flex flex-col items-start">
+<div id="bgHero" class="">
+  <div class="bg-black/30">
+    <div class="grid lg:w-2/3 mx-auto py-12">
+      <div class="grid lg:place-items-start place-items-center py-8">
+          <div class="">
             <Typewriter />
           </div>
-          <!-- <h2 class="text-xl mt-8 uppercase text-center text-white">Get the market started</h2> -->
-          <div class="my-8 w-full btn btn-primary p-4 border rounded flex items-center" on:click={go} on:keypress={go}>
+          <button class="my-8 btn btn-primary w-48 border rounded flex items-center" on:click={go} on:keypress={go}>
             Let's go
-           </div>
-        </div>
+           </button>  
       </div>
     </div>
   </div>
@@ -103,7 +98,7 @@
 
 <style>
     #bgHero {
-        background-image: url('$lib/images/golden-gai-tokyo.jpg');
+        background-image: url('$lib/images/retro-wallpaper.png');
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
