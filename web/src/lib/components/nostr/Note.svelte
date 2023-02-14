@@ -14,7 +14,7 @@
     <!-- AVATAR -->
     <div class="">
         <div class="chat-image avatar">
-            <div class="w-10 mx-4 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
+            <div class="w-14 mx-4 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
                 {#if !message.samePubKey}
                     <img src="{message.profileImage ?? profilePicturePlaceHolder}" alt="profile picture" class:profileInfoImage={!message.samePubKey} />
                 {/if}
