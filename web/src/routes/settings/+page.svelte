@@ -21,7 +21,7 @@
     let TWITTER_PAGE = "Twitter";
     let NOTIFICATIONS_PAGE = "Notifications";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, WALLET_PAGE, RESUME_PAGE, TWITTER_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, WALLET_PAGE, /*RESUME_PAGE,*/ TWITTER_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     let params = {};
