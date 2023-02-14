@@ -64,7 +64,7 @@
 />
 
 <div id="bgHero" class="">
-  <div class="bg-black/30">
+  <div class="bg-gradient-to-r from-zinc-900 to-zinc-900/40">
     <div class="grid lg:w-2/3 mx-auto py-12">
       <div class="grid lg:place-items-start place-items-center py-8">
           <div class="">
@@ -98,7 +98,7 @@
 
 <style>
     #bgHero {
-        background-image: url('$lib/images/retro-wallpaper.png');
+        background-image: url('$lib/images/golden-gai-tokyo.jpg');
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
