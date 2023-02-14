@@ -19,7 +19,6 @@
         {#if !isProduction() }
             <NostrChat
                 {roomData}
-                emptyChatShowsLoading={true}
                 messageLimit={75}
                 nostrRoomId={pmChannelNostrRoomId}
             />

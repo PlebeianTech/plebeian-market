@@ -18,8 +18,7 @@ export const relayUrlList = [
 ];
 
 export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a';
-export const pmChannelNostrRoomId = '4211fc228be5af10923f56e60b1b11b8e63bf0ac7dbd3e1e3d767392fdaed4a4'; // Directo 2140
-// '25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb';   // 'Nostr' channel
+export const pmChannelNostrRoomId = '4211fc228be5af10923f56e60b1b11b8e63bf0ac7dbd3e1e3d767392fdaed4a9';
 export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 
 export function hasExtension() {

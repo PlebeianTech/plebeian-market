@@ -405,7 +405,6 @@
       {#if !isProduction() }
           <div class="lg:w-3/6 my-2 grid place-items-top lg:h-1/2 sticky top-20 lg:px-0 px-2">
               <NostrChat
-                  emptyChatShowsLoading={false}
                   messageLimit={500}
                   {nostrRoomId}
               />
