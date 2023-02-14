@@ -68,37 +68,36 @@
             .map(function(message) {
                 if (lastMessagePublicKey === message.pubkey) {
                     message.samePubKey = true
-                    // No profile picture/name needed
-                } else {
-                    const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
+                }
 
-                    if (profileInfo !== null && profileInfo !== true) {
-                        if (profileInfo.picture) {
-                            if (nostrMediaCacheEnabled) {
-                                message.profileImage = 'https://media.nostr.band/thumbs/' + message.pubkey.slice(-4) + '/' + message.pubkey + '-picture-64';
-                            } else {
-                                message.profileImage = profileInfo.picture
-                            }
+                const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
+
+                if (profileInfo !== null && profileInfo !== true) {
+                    if (profileInfo.picture) {
+                        if (nostrMediaCacheEnabled) {
+                            message.profileImage = 'https://media.nostr.band/thumbs/' + message.pubkey.slice(-4) + '/' + message.pubkey + '-picture-64';
+                        } else {
+                            message.profileImage = profileInfo.picture
                         }
+                    }
 
-                        if (profileInfo.name) {
-                            message.profileName = profileInfo.name
-                        }
+                    if (profileInfo.name) {
+                        message.profileName = profileInfo.name
+                    }
 
-                        if (profileInfo.about) {
-                            message.profileAbout = profileInfo.about
-                        }
+                    if (profileInfo.about) {
+                        message.profileAbout = profileInfo.about
+                    }
 
-                        if (profileInfo.nip05) {
-                            let nip05verificationPublicKey = nip05.get(profileInfo.nip05);
+                    if (profileInfo.nip05) {
+                        let nip05verificationPublicKey = nip05.get(profileInfo.nip05);
 
-                            if (nip05verificationPublicKey === undefined) {
-                                nip05.set(profileInfo.nip05, null);
-                            } else if (nip05verificationPublicKey !== null) {
-                                if (message.pubkey === nip05verificationPublicKey) {
-                                    message.nip05verified = true;
-                                    message.nip05 = profileInfo.nip05;
-                                }
+                        if (nip05verificationPublicKey === undefined) {
+                            nip05.set(profileInfo.nip05, null);
+                        } else if (nip05verificationPublicKey !== null) {
+                            if (message.pubkey === nip05verificationPublicKey) {
+                                message.nip05verified = true;
+                                message.nip05 = profileInfo.nip05;
                             }
                         }
                     }
