@@ -24,7 +24,7 @@
 
         <div class="">
             <!-- MESSAGES AND ICONS -->
-            <div class="my-4">{@html message.content.substring(0,60)}</div>
+            <div class="my-4">{@html message.content.substring(0,60)}{#if message.content.length > 60}...{/if}</div>
         </div>
     </div>
 </div>
