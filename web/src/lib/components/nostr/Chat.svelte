@@ -348,6 +348,8 @@
                     new ErrorHandler(true)
                 );
             }
+
+            pool.user = $user;
         }
     );
 
@@ -423,7 +425,6 @@
                     <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and introduce this channel ID: {nostrRoomId}</p>
                 </div>
             </div>
-
 
             <div class="flex flex-col">
                 <div class="form-control w-52">
