@@ -1,135 +1,44 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { ErrorHandler, putProfile, getEntities, postEntityAsync, deleteEntityAsync } from "$lib/services/api";
-    import { Info, Error as ErrorStore, token, user } from "$lib/stores";
+    import { ErrorHandler, getResume, putResume } from "$lib/services/api";
+    import { Info, token, user } from "$lib/stores";
     import { page } from '$app/stores';
-    import { UserAchievement, userAchievementFromJson } from "$lib/types/user";
-    import { getMonthName } from '$lib/utils';
+    import { UserResumeAchievement, type UserResume } from "$lib/types/user";
     import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
-    import type { HttpError } from '@sveltejs/kit/src/runtime/control';
 
     export let onSave: () => void = () => {};
 
-    let jobTitle: string = "";
-    let bio: string = "";
-    let bitcoinerQuestion: string = "";
+    let resume: UserResume;
 
-    let skills: string[] = [];
-    let newSkill: string = "";
-    $: addedSkills = skills.filter(s => !$user || $user.skills.indexOf(s) === -1);
-    $: removedSkills = $user ? $user.skills.filter(s => skills.indexOf(s) === -1) : [];
+    let newAchievement = new UserResumeAchievement();
 
-    let achievements: UserAchievement[] = [];
-    let newAchievement: UserAchievement = new UserAchievement();
-    let addedAchievements: UserAchievement[] = [];
-    let removedAchievements: UserAchievement[] = [];
-
-    $: saveButtonActive = $user && !saving &&
-        (jobTitle !== ($user.jobTitle || "")
-        || bio !== ($user.bio || "")
-        || bitcoinerQuestion !== ($user.bitcoinerQuestion || "")
-        || addedSkills.length !== 0
-        || removedSkills.length !== 0
-        || addedAchievements.length !== 0
-        || removedAchievements.length !== 0);
-
-    function skillKeyPress(e) {
-        if (e.key === "Enter") {
-            addSkill();
-        }
-    }
-
-    function addSkill() {
-        if (newSkill.length === 0) {
-            return;
-        }
-        if (newSkill.length > 21) {
-                ErrorStore.set("Skill should be 21 characters or less.");
-                return;
-        }
-        skills = [...skills, newSkill]; // NB: push won't work, as Svelte won't detect the change to the array
-        newSkill = "";
-    }
-
-    function removeSkill(skill) {
-        let i = skills.indexOf(skill);
-        skills = skills.slice(0, i).concat(skills.slice(i + 1));
-    }
+    $: saveButtonActive = $user && !saving;
 
     function addAchievement() {
-        achievements = [...achievements, newAchievement];
-        addedAchievements = [...addedAchievements, newAchievement];
-        newAchievement = new UserAchievement();
+        resume.achievements = [...resume.achievements, newAchievement];
+        newAchievement = new UserResumeAchievement();
     }
 
     function removeAchievement(i) {
-        let achievement = achievements[i];
-
-        if (achievement.key === "") {
-            // NB: if we want to remove an achievement that was just added (thus not sent to the API yet),
-            // we should remove it from addedAchievements instead of adding it to removedAchievements :)
-            for (let ii = 0; ii < addedAchievements.length; ii++) {
-                let addedAchievement = addedAchievements[ii];
-                if (addedAchievement.achievement === achievement.achievement) {
-                    addedAchievements = addedAchievements.slice(0, ii).concat(addedAchievements.slice(ii + 1));
-                    break;
-                }
-            }
-        } else {
-            removedAchievements = [...removedAchievements, achievements[i]];
-        }
-        achievements = achievements.slice(0, i).concat(achievements.slice(i + 1));
+        resume.achievements = resume.achievements.slice(0, i).concat(resume.achievements.slice(i + 1));
     }
 
     let saving = false;
     async function save() {
         saving = true;
 
-        let promises: Promise<any>[] = [];
-        for (const achievement of addedAchievements) {
-            promises.push(postEntityAsync("users/me/achievements", $token, achievement));
-        }
-        for (const achievement of removedAchievements) {
-            promises.push(deleteEntityAsync($token, achievement));
-        }
-
-        try {
-            await Promise.all(promises).then(() => {
-                putProfile($token, {jobTitle, bio, bitcoinerQuestion, skills},
-                    u => {
-                        user.set(u);
-                        Info.set("Your résumé has been saved!");
-                        addedAchievements = [];
-                        removedAchievements = [];
-                        getEntities({endpoint: "users/me/achievements", responseField: 'achievements', fromJson: userAchievementFromJson}, $token,
-                            (entities) => {
-                                achievements = <UserAchievement[]>entities;
-                            }
-                        );
-                        saving = false;
-                        onSave();
-                    },
-                    new ErrorHandler(true, () => saving = false));
-            });
-        } catch(error) {
-            saving = false;
-            if (error instanceof Error) {
-                ErrorStore.set(error.message);
-            }
-        }
+        putResume($token, resume,
+            () => {
+                Info.set("Your résumé has been saved!");
+                saving = false;
+                onSave();
+            },
+            new ErrorHandler(true, () => saving = false));
     }
 
     onMount(async () => {
         if ($user) {
-            jobTitle = $user.jobTitle || "";
-            bio = $user.bio || "";
-            bitcoinerQuestion = $user.bitcoinerQuestion || "";
-            skills = $user.skills;
-
-            getEntities({endpoint: "users/me/achievements", responseField: 'achievements', fromJson: userAchievementFromJson}, $token,
-                (entities) => {
-                    achievements = <UserAchievement[]>entities;
-                });
+            getResume($token, (r) => resume = r);
         }
     });
 </script>
@@ -153,15 +62,18 @@
     {/if}
 </div>
 
+{#if resume}
+
 <div class="w-full flex items-center justify-center mt-8">
     <div class="w-full">
         <div class="form-control w-full max-w-full">
             <label class="label" for="title">
                 <span class="label-text">Job title</span>
             </label>
-            <input bind:value={jobTitle} type="text" name="title" class="input input-bordered" />
+            <input bind:value={resume.jobTitle} type="text" name="title" class="input input-bordered" />
         </div>
-        <MarkdownEditor mainTabName="Bio" showEditorButtons={false} bind:value={bio} />
+        <MarkdownEditor mainTabName="Bio" showEditorButtons={false} bind:value={resume.bio} />
+<!--
         <div>
             <div>
                 {#each skills as skill}
@@ -179,6 +91,7 @@
                 </div>
             </div>
         </div>
+-->
     </div>
 </div>
 
@@ -189,17 +102,14 @@
 <div class="overflow-x-auto w-full p-2">
     <table class="w-full">
         <tbody class="w-full whitespace-nowrap">
-            {#each achievements as achievement, i}
+            {#each resume.achievements as achievement, i}
                 <tr>
                     <td class="w-full">
                         {achievement.achievement}
                     </td>
                     <td>
-                        {#if achievement.from_year || achievement.from_month}
-                            from {achievement.from_year} {#if achievement.from_month}({getMonthName(achievement.from_month)}){/if}
-                        {/if}
-                        {#if achievement.to_year || achievement.to_month}
-                            to {achievement.to_year} {#if achievement.to_month}({getMonthName(achievement.to_month)}){/if}
+                        {#if achievement.year}
+                            {achievement.year}
                         {/if}
                     </td>
                     <td>
@@ -223,28 +133,10 @@
         </div>
         <div class="flex flex-row">
             <div class="w-1/2 max-w-xs">
-                <label class="label" for="from_year">
-                    <span class="label-text">from year</span>
+                <label class="label" for="year">
+                    <span class="label-text">year</span>
                 </label>
-                <input bind:value={newAchievement.from_year} type="number" name="from_year" class="input input-bordered w-full max-w-xs" />
-            </div>
-            <div class="w-1/2 max-w-xs ml-2">
-                <label class="label" for="from_month">
-                    <span class="label-text">month (number)</span>
-                </label>
-                <input bind:value={newAchievement.from_month} type="number" name="from_month" class="input input-bordered w-full max-w-xs" />
-            </div>
-            <div class="w-1/2 max-w-xs ml-2">
-                <label class="label" for="to_year">
-                    <span class="label-text">to year</span>
-                </label>
-                <input bind:value={newAchievement.to_year} type="number" name="to_year" class="input input-bordered w-full max-w-xs" />
-            </div>
-            <div class="w-1/2 max-w-xs ml-2">
-                <label class="label" for="to_month">
-                    <span class="label-text">month (number)</span>
-                </label>
-                <input bind:value={newAchievement.to_month} type="number" name="to_month" class="input input-bordered w-full max-w-xs" />
+                <input bind:value={newAchievement.year} type="number" name="year" class="input input-bordered w-full max-w-xs" />
             </div>
         </div>
     </div>
@@ -263,4 +155,6 @@
 
 <div class="divider my-8"></div>
 
-<MarkdownEditor mainTabName="Why do you want to be paid in bitcoin?" showEditorButtons={false} bind:value={bitcoinerQuestion} />
+<MarkdownEditor mainTabName="Why do you want to be paid in bitcoin?" showEditorButtons={false} bind:value={resume.bitcoinerQuestion} />
+
+{/if}

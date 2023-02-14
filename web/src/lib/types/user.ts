@@ -12,33 +12,154 @@ export interface IAccount {
     twitterUsernameVerified: boolean;
 }
 
-export class UserAchievement implements IEntity {
-    static SAVED_FIELDS = ['achievement', 'from_year', 'from_month', 'to_year', 'to_month'];
+export class UserResumeSkill {
+    skill: string = "";
 
-    is_mine = true;
-    endpoint: string = "users/me/achievements";
+    public toJson() {
+        return {skill: this.skill};
+    }
+
+    public static fromJson(json: any): UserResumeSkill {
+        let s = new UserResumeSkill();
+        s.skill = <string>json.skill;
+        return s;
+    }
+}
+
+export class UserResumePortfolio {
+    url: string = "";
+
+    public toJson() {
+        return {url: this.url};
+    }
+
+    public static fromJson(json: any): UserResumePortfolio {
+        let p = new UserResumePortfolio();
+        p.url = <string>json.url;
+        return p;
+    }
+}
+
+export class UserResumeEducation {
     key: string = "";
-    achievement: string = "";
-    from_year: number | null = null;
-    from_month: number | null = null;
-    to_year: number | null = null;
-    to_month: number | null = null;
+    year: number | null = null;
+    education: string = "";
 
     public validate() {
-        return !(this.achievement.length === 0)
-            && (this.from_month === null || (this.from_month > 0 && this.from_month <= 12))
-            && (this.to_month === null || (this.to_month > 0 && this.to_month <= 12));
+        return !(this.education.length === 0);
     }
 
     public toJson() {
-        var json = {} as Record<string, any>;
-        for (const k in this) {
-            if (UserAchievement.SAVED_FIELDS.indexOf(k) !== -1) {
-                json[k] = this[k];
-            }
-        }
-        return JSON.stringify(json);
+        return {key: this.key, year: this.year, education: this.education};
     };
+
+    public static fromJson(json: any): UserResumeEducation {
+        let e = new UserResumeEducation();
+        e.key = <string>json.key;
+        e.education = <string>json.education;
+        return e;
+    }
+}
+
+export class UserResumeExperience {
+    key: string = "";
+    fromYear: number | null = null;
+    fromMonth: number | null = null;
+    toYear: number | null = null;
+    toMonth: number | null = null;
+    jobTitle: string = "";
+    organization: string = "";
+    description: string = "";
+
+    public validate() {
+        return !(this.jobTitle.length === 0) && !(this.organization.length === 0)
+            && (this.fromMonth === null || (this.fromMonth > 0 && this.fromMonth <= 12))
+            && (this.toMonth === null || (this.toMonth > 0 && this.toMonth <= 12));
+    }
+
+    public toJson() {
+        return {
+            key: this.key,
+            from_year: this.fromYear, from_month: this.fromMonth,
+            to_year: this.toYear, to_month: this.toMonth,
+            job_title: this.jobTitle, organization: this.organization, description: this.description
+        };
+    };
+
+    public static fromJson(json: any): UserResumeExperience {
+        let e = new UserResumeExperience();
+        e.key = <string>json.key;
+        e.fromYear = <number | null>json.from_year;
+        e.fromMonth = <number | null>json.from_month;
+        e.toYear = <number | null>json.to_year;
+        e.toMonth = <number | null>json.to_month;
+        e.jobTitle = <string>json.job_title;
+        e.organization = <string>json.organization;
+        e.description = <string>json.description;
+        return e;
+    }
+}
+
+export class UserResumeAchievement {
+    key: string = "";
+    year: number | null = null;
+    achievement: string = "";
+
+    public validate() {
+        return !(this.achievement.length === 0);
+    }
+
+    public toJson() {
+        return {key: this.key, year: this.year, achievement: this.achievement};
+    };
+
+    public static fromJson(json: any): UserResumeAchievement {
+        let a = new UserResumeAchievement();
+        a.key = <string>json.key;
+        a.year = <number | null>json.year;
+        a.achievement = <string>json.achievement;
+        return a;
+    }
+}
+
+export class UserResume {
+    jobTitle: string = "";
+    bio: string = "";
+    desiredSalaryUsd: number | null = null;
+    bitcoinerQuestion: string = "";
+    skills: UserResumeSkill[] = [];
+    portfolio: UserResumePortfolio[] = [];
+    education: UserResumeEducation[] = [];
+    experience: UserResumeExperience[] = [];
+    achievements: UserResumeAchievement[] = [];
+
+    public toJson() {
+        return {
+            job_title: this.jobTitle,
+            bio: this.bio,
+            desired_salary_usd: this.desiredSalaryUsd,
+            bitcoiner_question: this.bitcoinerQuestion,
+            skills: this.skills.map(s => s.toJson()),
+            portfolio: this.portfolio.map(p => p.toJson()),
+            education: this.education.map(e => e.toJson()),
+            experience: this.experience.map(e => e.toJson()),
+            achievements: this.achievements.map(a => a.toJson()),
+        };
+    }
+
+    public static fromJson(json: any): UserResume {
+        let r = new UserResume();
+        r.jobTitle = <string>json.job_title;
+        r.bio = <string>json.bio;
+        r.desiredSalaryUsd = <number | null>json.desired_salary_usd;
+        r.bitcoinerQuestion = <string>json.bitcoiner_question;
+        r.skills = (<any[]>json.skills).map(s => UserResumeSkill.fromJson(s));
+        r.portfolio = (<any[]>json.portfolio).map(p => UserResumePortfolio.fromJson(p));
+        r.education = (<any[]>json.education).map(e => UserResumeEducation.fromJson(e));
+        r.experience = (<any[]>json.experience).map(e => UserResumeExperience.fromJson(e));
+        r.achievements = (<any[]>json.achievements).map(a => UserResumeAchievement.fromJson(a));
+        return r;
+    }
 }
 
 export interface Badge {
@@ -76,11 +197,6 @@ export class User implements IAccount {
     isModerator: boolean = false;
     badges: Badge[] = [];
     nostr_private_key: string | null = null;
-    jobTitle: string | null = null;
-    bio: string | null = null;
-    desiredSalaryUsd: number | null = null;
-    bitcoinerQuestion: string | null = null;
-    skills: string[] = [];
 
     public hasBadge(badge) {
         for (const b of this.badges) {
@@ -130,11 +246,6 @@ export function fromJson(json: any): User {
     u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
     u.nostr_private_key = <string | null>json.nostr_private_key;
-    u.jobTitle = <string | null>json.job_title;
-    u.bio = <string | null>json.bio;
-    u.desiredSalaryUsd = <number | null>json.desired_salary_usd;
-    u.bitcoinerQuestion = <string | null>json.bitcoiner_question;
-    u.skills = <string[]>json.skills;
 
     return u;
 }

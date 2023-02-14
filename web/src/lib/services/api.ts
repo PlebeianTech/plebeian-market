@@ -2,7 +2,7 @@ import { Error as ErrorStore } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
-import { type User, fromJson as userFromJson } from "$lib/types/user";
+import { type User, UserResume, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl, logout, requestLoginModal } from "$lib/utils";
 import { error } from '@sveltejs/kit';
 
@@ -188,7 +188,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string, jobTitle?: string, bio?: string, desiredSalaryUsd?: number, bitcoinerQuestion?: string, skills?: string[]}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -211,27 +211,36 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, contr
     if (profile.nostr_private_key !== undefined) {
         json.nostr_private_key = profile.nostr_private_key;
     }
-    if (profile.jobTitle !== undefined) {
-        json.job_title = profile.jobTitle;
-    }
-    if (profile.bio !== undefined) {
-        json.bio = profile.bio;
-    }
-    if (profile.desiredSalaryUsd !== undefined) {
-        json.desired_salary_usd = profile.desiredSalaryUsd;
-    }
-    if (profile.bitcoinerQuestion !== undefined) {
-        json.bitcoiner_question = profile.bitcoinerQuestion;
-    }
-    if (profile.skills !== undefined) {
-        json.skills = profile.skills;
-    }
     fetchAPI("/users/me", 'PUT', tokenValue, JSON.stringify(json),
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
                     successCB(userFromJson(data.user));
                 });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function getResume(tokenValue, successCB: (resume: UserResume) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/users/me/resume", 'GET', tokenValue, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(UserResume.fromJson(data));
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function putResume(tokenValue, resume: UserResume, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/users/me/resume", 'PUT', tokenValue, JSON.stringify(resume.toJson()),
+        response => {
+            if (response.status === 200) {
+                successCB();
             } else {
                 errorHandler.handle(response);
             }

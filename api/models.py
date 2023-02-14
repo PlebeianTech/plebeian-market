@@ -174,14 +174,16 @@ class User(XpubMixin, db.Model):
 
     contribution_percent = db.Column(db.Float, nullable=True)
 
-    # resume
-    job_title = db.Column(db.String(210), nullable=True)
-    bio = db.Column(db.String(21000), nullable=True)
-    desired_salary_usd = db.Column(db.Float(), nullable=True)
-    bitcoiner_question = db.Column(db.String(2100), nullable=True)
+    resume_job_title = db.Column(db.String(210), nullable=True)
+    resume_bio = db.Column(db.String(21000), nullable=True)
+    resume_desired_salary_usd = db.Column(db.Float(), nullable=True)
+    resume_bitcoiner_question = db.Column(db.String(2100), nullable=True)
 
-    skills = db.relationship('UserSkill', backref='user', order_by="UserSkill.added_at")
-    achievements = db.relationship('UserAchievement', backref='user', order_by="UserAchievement.to_year,UserAchievement.to_month")
+    resume_skills = db.relationship('UserResumeSkill', backref='user', order_by="UserResumeSkill.added_at")
+    resume_portfolio = db.relationship('UserResumePortfolio', backref='user', order_by="UserResumePortfolio.added_at")
+    resume_education = db.relationship('UserResumeEducation', backref='user', order_by="UserResumeEducation.year")
+    resume_experience = db.relationship('UserResumeExperience', backref='user', order_by="UserResumeExperience.to_year,UserResumeExperience.to_month")
+    resume_achievements = db.relationship('UserResumeAchievement', backref='user', order_by="UserResumeAchievement.year")
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')
@@ -237,11 +239,6 @@ class User(XpubMixin, db.Model):
             'stall_banner_url': self.stall_banner_url,
             'stall_name': self.stall_name,
             'stall_description': self.stall_description,
-            'job_title': self.job_title,
-            'bio': self.bio,
-            'desired_salary_usd': self.desired_salary_usd,
-            'bitcoiner_question': self.bitcoiner_question,
-            'skills': [s.skill for s in self.skills],
             'has_items': False,
             'has_own_items': False,
             'has_active_auctions': False,
@@ -274,8 +271,8 @@ class User(XpubMixin, db.Model):
 
         return d
 
-class UserSkill(db.Model):
-    __tablename__ = 'user_skills'
+class UserResumeSkill(db.Model):
+    __tablename__ = 'user_resume_skills'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -284,10 +281,72 @@ class UserSkill(db.Model):
 
     added_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-class UserAchievement(db.Model, GeneratedKeyMixin):
-    __tablename__ = 'user_achievements'
+    def to_dict(self):
+        return {'skill': self.skill}
 
-    REQUIRED_FIELDS = ['achievement']
+class UserResumePortfolio(db.Model):
+    __tablename__ = 'user_resume_portfolio'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    url = db.Column(db.String(210))
+
+    added_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {'url': self.url}
+
+class UserResumeEducation(db.Model, GeneratedKeyMixin):
+    __tablename__ = 'user_resume_education'
+
+    REQUIRED_FIELDS = ['education']
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key = db.Column(db.String(64), nullable=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    year = db.Column(db.Integer, nullable=True)
+    education = db.Column(db.String(210), nullable=False)
+
+    def to_dict(self):
+        return {
+            'key': self.key,
+            'year': self.year,
+            'education': self.education,
+        }
+
+    @classmethod
+    def validate_dict(cls, d):
+        validated = {}
+        for k in ['education']:
+            if k not in d:
+                continue
+            length = len(d[k])
+            max_length = getattr(cls, k).property.columns[0].type.length
+            if length > max_length:
+                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
+            validated[k] = bleach.clean(d[k])
+        for k in ['year']:
+            if k not in d:
+                continue
+            if d[k] is None:
+                validated[k] = None
+            else:
+                try:
+                    validated[k] = int(d[k])
+                except (ValueError, TypeError):
+                    raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+                if validated[k] > datetime.utcnow().year:
+                    raise ValidationError(f"{valicated[k]}? Please only list past education!")
+                if validated[k] < 1900:
+                    raise ValidationError(f"{validated[k]}? You can't be that old!")
+        return validated
+
+class UserResumeExperience(db.Model, GeneratedKeyMixin):
+    __tablename__ = 'user_resume_experience'
+
+    REQUIRED_FIELDS = ['job_title', 'organization', 'description']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     key = db.Column(db.String(64), nullable=False)
@@ -297,22 +356,26 @@ class UserAchievement(db.Model, GeneratedKeyMixin):
     from_month = db.Column(db.Integer, nullable=True)
     to_year = db.Column(db.Integer, nullable=True)
     to_month = db.Column(db.Integer, nullable=True)
-    achievement = db.Column(db.String(210), nullable=False)
+    job_title = db.Column(db.String(210), nullable=False)
+    organization = db.Column(db.String(210), nullable=False)
+    description = db.Column(db.String(2100), nullable=False)
 
     def to_dict(self):
         return {
             'key': self.key,
-            'achievement': self.achievement,
             'from_year': self.from_year,
             'from_month': self.from_month,
             'to_year': self.to_year,
             'to_month': self.to_month,
+            'job_title': self.job_title,
+            'organization': self.organization,
+            'description': self.description,
         }
 
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['achievement']:
+        for k in ['job_title', 'organization', 'description']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -331,7 +394,7 @@ class UserAchievement(db.Model, GeneratedKeyMixin):
                 except (ValueError, TypeError):
                     raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
                 if validated[k] > datetime.utcnow().year:
-                    raise ValidationError("Please only list past achievements!")
+                    raise ValidationError(f"{validated[k]}? Please only list past experience!")
                 if validated[k] < 1900:
                     raise ValidationError(f"{validated[k]}? You can't be that old!")
         for k in ['from_month', 'to_month']:
@@ -346,6 +409,52 @@ class UserAchievement(db.Model, GeneratedKeyMixin):
                     raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
                 if validated[k] < 1 or validated[k] > 12:
                     raise ValidationError(f"Please use a number between 1 and 12 for {k.replace('_', ' ')}!")
+        return validated
+
+class UserResumeAchievement(db.Model, GeneratedKeyMixin):
+    __tablename__ = 'user_resume_achievements'
+
+    REQUIRED_FIELDS = ['achievement']
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key = db.Column(db.String(64), nullable=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    year = db.Column(db.Integer, nullable=True)
+    achievement = db.Column(db.String(210), nullable=False)
+
+    def to_dict(self):
+        return {
+            'key': self.key,
+            'year': self.year,
+            'achievement': self.achievement,
+        }
+
+    @classmethod
+    def validate_dict(cls, d):
+        validated = {}
+        for k in ['achievement']:
+            if k not in d:
+                continue
+            length = len(d[k])
+            max_length = getattr(cls, k).property.columns[0].type.length
+            if length > max_length:
+                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
+            validated[k] = bleach.clean(d[k])
+        for k in ['year']:
+            if k not in d:
+                continue
+            if d[k] is None:
+                validated[k] = None
+            else:
+                try:
+                    validated[k] = int(d[k])
+                except (ValueError, TypeError):
+                    raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
+                if validated[k] > datetime.utcnow().year:
+                    raise ValidationError(f"{validated[k]}? Please only list past achievements!")
+                if validated[k] < 1900:
+                    raise ValidationError(f"{validated[k]}? You can't be that old!")
         return validated
 
 class UserBadge(db.Model):
