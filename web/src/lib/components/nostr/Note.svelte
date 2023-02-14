@@ -50,7 +50,7 @@
         <div class="">
             <!-- REPLY TO -->
             {#if message.repliedToMessage}
-                <div class="card card-compact w-96 bg-blue-300 text-primary-content shadow-xl">
+                <div class="card card-compact border border-gray-400/70 shadow-xl my-4">
                     {#if typeof message.repliedToMessage === 'object'}
                         <NostrReplyNote message={message.repliedToMessage}></NostrReplyNote>
                     {:else}

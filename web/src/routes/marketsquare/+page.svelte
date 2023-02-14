@@ -14,8 +14,8 @@
     }
 </script>
 
-<div class="grid mb-10 ml-2 mr-2 grid-cols-1 md:grid-cols-3">
-    <div class="col-span-3 md:col-start-2 md:col-span-1">
+<div class="lg:w-2/3 mx-auto py-4">
+    <div class="">
         {#if !isProduction() }
             <NostrChat
                 {roomData}
