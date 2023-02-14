@@ -2,12 +2,12 @@
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
-    import {token, user} from "$lib/stores";
-    import Loading from "$lib/components/Loading.svelte";
+    import {token, user, Error} from "$lib/stores";
     import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
     import {hasExtension, queryNip05, filterTags, getMessage, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
+    import {requestLoginModal} from "$lib/utils";
 
     export let roomData = false;
     export let nostrRoomId: string;
@@ -315,6 +315,10 @@
         backgroundJobsTimer = setTimeout(doBackgroundJobsPeriodically, nostrBackgroundJobsDelay);
     }
 
+    $: if (nostrExtensionEnabled || ($token && $user)) {
+        pool.writeEnabled = true;
+    }
+
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
@@ -348,6 +352,8 @@
                     new ErrorHandler(true)
                 );
             }
+
+            pool.user = $user;
         }
     );
 
@@ -370,8 +376,10 @@
     const sendMessage = async () => {
         const content = textarea.value.trim();
 
-        if (content) {
-            if (await pool.sendMessage(null, content, $user, nostrRoomId, nostrEventBeingRepliedTo)) {
+        if (!pool.writeEnabled) {
+            Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
+        } else if (content) {
+            if (await pool.sendMessage(null, content, nostrRoomId, nostrEventBeingRepliedTo)) {
                 nostrEventBeingRepliedTo = null;
                 textarea.value = '';
                 scrollToBottom(chatArea);
@@ -424,21 +432,34 @@
                 </div>
             </div>
 
-
             <div class="flex flex-col">
-                <div class="form-control w-52">
-                    <label class="cursor-pointer label">
-                        <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2" bind:checked={nostrPreferenceCheckboxChecked} on:change={e => {onChangeNostrPreferenceCheckbox(e)}} disabled />
-                        <span class="label-text">Use browser extension's identity</span>
-                    </label>
-                </div>
+                {#if nostrExtensionEnabled}
+                    <div class="form-control w-52">
+                        <label class="cursor-pointer label">
+                            <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2" bind:checked={nostrPreferenceCheckboxChecked} on:change={e => {onChangeNostrPreferenceCheckbox(e)}} disabled />
+                            <span class="label-text">Use browser extension's identity</span>
+                        </label>
+                    </div>
+                {/if}
+
                 {#if nostrPreferenceCheckboxChecked}
                     <small>You'll sign messages with your extension when you write in the channel.</small>
                 {:else}
-                    <small>You'll be using your Plebeian Market generated Nostr identity. Install a Nostr browser extension
-                        (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
-                        <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
-                        <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) if you want to use your own Nostr identity:</small>
+                    {#if $token && $user}
+                        <small>You're using your Plebeian Market generated Nostr identity. It's recommended to install a Nostr browser extension
+                            (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                            <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                            <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) so you use
+                            your own Nostr identity.
+                        </small>
+                    {:else}
+                        <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                            <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                            <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
+                            <a class="font-bold text-center cursor-pointer" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</a>
+                            into Plebeian Market to be able to publish messages.
+                        </small>
+                    {/if}
                 {/if}
             </div>
         </div>

@@ -1,12 +1,15 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
 import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey, Kind} from "nostr-tools";
 import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, findMarkerInTags, getBestRelay} from "$lib/nostr/utils";
-import {Error, user} from "../stores";
+import {Error} from "../stores";
+import type {User} from "$lib/types/user";
 
 export class Pool {
     relays: Map<string, Relay> = new Map<string, Relay>();
     subscriptions: Sub[] = [];
+    user: User | null = null;
     publicKey: string = '';
+    writeEnabled: boolean = false;
 
     public async connectAndSubscribeToChannel(channelInfo = null) {
         let that = this;
@@ -45,7 +48,7 @@ export class Pool {
         let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId'], null);
 
         // 2
-        let signedEvent = await this.signValidateEvent(event, messageInfo['user']);
+        let signedEvent = await this.signValidateEvent(event);
 
         let that = this;
 
@@ -120,7 +123,7 @@ export class Pool {
     called `signValidatePublishEvent`.
      */
 
-    async sendMessage(relay: Relay, message: string, user, nostrRoomId, eventBeingRepliedTo: Event | null) {
+    async sendMessage(relay: Relay, message: string, nostrRoomId, eventBeingRepliedTo: Event | null) {
         let event: Event = this.getEventToSendNote(message, nostrRoomId, eventBeingRepliedTo);
         return await this.signValidatePublishEvent(event);
     }
@@ -179,10 +182,16 @@ export class Pool {
         return tagsToBeAddedToEvent;
     }
 
-    public async signValidateEvent(event: Event, user) {
+    public async signValidateEvent(event: Event) {
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
-            // PM Nostr identity
-            this.publicKey = getPublicKey(user.nostr_private_key);
+            // Using PM Nostr identity
+            let userPrivateKey = this.user?.nostr_private_key || null;
+
+            if (userPrivateKey === null) {
+                return false;
+            }
+
+            this.publicKey = getPublicKey(userPrivateKey);
 
             if (!this.publicKey) {
                 console.debug('   ** Nostr: Not using extension, but PM identity (public key) not available.');
@@ -190,7 +199,7 @@ export class Pool {
             }
 
         } else {
-            // Nostr extension identity
+            // Using Nostr extension identity
             try {
                 this.publicKey = await window.nostr.getPublicKey();
             } catch (error) {
@@ -207,18 +216,18 @@ export class Pool {
         event.id = getEventHash(event);
 
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
-            // PM Nostr identity
-            let nostrPrivateKey = user.nostr_private_key;
+            // Using PM Nostr identity
+            let userPrivateKey = this.user?.nostr_private_key || null;
 
-            if (!nostrPrivateKey) {
+            if (userPrivateKey === null) {
                 console.debug('   ** Nostr: Not using extension, but PM identity (private key) not available.')
                 return false;
             }
 
-            event.sig = signEvent(event, nostrPrivateKey);
+            event.sig = signEvent(event, userPrivateKey);
             console.debug('   ** Nostr: event after hashing and signing by PM Nostr keys', event);
         } else {
-            // Nostr extension identity
+            // Using Nostr extension identity
             try {
                 event = await window.nostr.signEvent(event);
             } catch (error) {
@@ -266,13 +275,18 @@ export class Pool {
     }
 
     public async sendReaction(message, reaction: string) {
+        if (!this.writeEnabled) {
+            Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
+            return;
+        }
+
         const noteId = message.id;
         const notePubkey = message.pubkey;
 
-        console.log('******* SENDING REACTION: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
+        console.debug('   ** Nostr: ******* Sending reaction: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
 
         if (reaction.length !== 1) {
-            console.error('Trying to send reactions with > 1 character is not allowed by nip-25');
+            console.error('   ** Nostr: trying to send reactions with > 1 character is not allowed by nip-25');
             return;
         }
 
@@ -291,7 +305,7 @@ export class Pool {
     }
 
     public async signValidatePublishEvent(event: Event) {
-        let signedEvent: Event | false = await this.signValidateEvent(event, user);
+        let signedEvent: Event | false = await this.signValidateEvent(event);
 
         if (signedEvent !== false) {
             if (await this.publishEvent(null, <Event> signedEvent)) {

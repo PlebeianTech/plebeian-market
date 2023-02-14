@@ -31,7 +31,6 @@
 
         pool.connectAndSendMessage({
             message,
-            user,
             nostrRoomId,
         });
     }
