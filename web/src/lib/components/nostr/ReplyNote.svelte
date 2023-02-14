@@ -4,14 +4,12 @@
     export let message;
 </script>
 
-<div class="flex" class:mt-0={message.samePubKey} class:mt-5={!message.samePubKey}>
+<div class="flex mt-5">
     <!-- AVATAR -->
-    <div class="">
+    <div>
         <div class="chat-image avatar">
             <div class="w-10 mx-4 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
-                {#if !message.samePubKey}
-                    <img src="{message.profileImage ?? profilePicturePlaceHolder}" alt="profile picture" class:profileInfoImage={!message.samePubKey} />
-                {/if}
+                <img src="{message.profileImage ?? profilePicturePlaceHolder}" alt="profile picture" class:profileInfoImage={!message.samePubKey} />
             </div>
         </div>
     </div>
@@ -19,11 +17,9 @@
     <div class="items-center w-full px-4">
         <!-- NAME, BADGES, DATE -->
         <div class="space-y-1">
-            {#if !message.samePubKey}
-                <div class="chat-header lg:flex items-center space-y-1 lg:space-x-2">
-                    <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
-                </div>
-            {/if}
+            <div class="chat-header lg:flex items-center space-y-1 lg:space-x-2">
+                <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
+            </div>
         </div>
 
         <div class="">
