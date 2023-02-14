@@ -14,7 +14,7 @@
     }
 </script>
 
-<div class="lg:w-2/3 mx-auto py-4">
+<div class="lg:w-2/3 mx-auto py-4 lg:p-0 p-2">
     <div class="">
         {#if !isProduction() }
             <NostrChat
