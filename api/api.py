@@ -218,33 +218,6 @@ def put_me(user):
     if 'nostr_private_key' in request.json:
         user.nostr_private_key = request.json['nostr_private_key']
 
-    if 'job_title' in request.json:
-        user.job_title = request.json['job_title']
-
-    if 'bio' in request.json:
-        user.bio = request.json['bio']
-
-    if 'desired_salary_usd' in request.json:
-        user.desired_salary_usd = request.json['desired_salary_usd']
-
-    if 'bitcoiner_question' in request.json:
-        user.bitcoiner_question = request.json['bitcoiner_question']
-
-    if 'skills' in request.json:
-        existing_skills = {s.skill for s in user.skills}
-        new_skills = set(request.json['skills'])
-
-        if len(new_skills) > 10:
-            return jsonify({'message': "Please list at most 10 skills."}), 400
-
-        if new_skills != existing_skills:
-            for s in user.skills:
-                if s.skill not in new_skills:
-                    db.session.delete(s)
-            for new_skill in new_skills:
-                if new_skill not in existing_skills:
-                    db.session.add(m.UserSkill(user_id=user.id, skill=new_skill))
-
     try:
         db.session.commit()
     except IntegrityError:
@@ -317,47 +290,107 @@ def user_notifications(user):
         db.session.commit()
         return jsonify({})
 
-@api_blueprint.route('/api/users/me/achievements', methods=['GET', 'POST'])
+@api_blueprint.route('/api/users/me/resume', methods=['GET', 'PUT'])
 @user_required
-def user_achievements(user):
+def user_resume(user):
     if request.method == 'GET':
-        return jsonify({'achievements': [s.to_dict() for s in user.achievements]})
-    elif request.method == 'POST':
-        for k in m.UserAchievement.REQUIRED_FIELDS:
+        return jsonify({
+            'job_title': user.resume_job_title,
+            'bio': user.resume_bio,
+            'desired_salary_usd': user.resume_desired_salary_usd,
+            'bitcoiner_question': user.resume_bitcoiner_question,
+            'skills': [s.to_dict() for s in user.resume_skills],
+            'portfolio': [p.to_dict() for p in user.resume_portfolio],
+            'education': [e.to_dict() for e in user.resume_education],
+            'experience': [e.to_dict() for e in user.resume_experience],
+            'achievements': [a.to_dict() for a in user.resume_achievements],
+        })
+    elif request.method == 'PUT':
+        for k in ['job_title', 'bio', 'bitcoiner_question']:
             if k not in request.json:
-                return jsonify({'message': f"Missing key: {k}."}), 400
+                continue
+            if request.json[k] is None:
+                setattr(user, f'resume_{k}', None)
+            else:
+                length = len(request.json[k])
+                max_length = getattr(m.User, f'resume_{k}').property.columns[0].type.length
+                if length > max_length:
+                    raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
+                setattr(user, f'resume_{k}', bleach.clean(request.json[k]))
 
-        try:
-            validated = m.UserAchievement.validate_dict(request.json)
-        except m.ValidationError as e:
-            return jsonify({'message': e.message}), 400
+        for k in ['desired_salary_usd']:
+            if k not in request.json:
+                continue
+            if request.json[k] is None:
+                setattr(user, f'resume_{k}', None)
+            else:
+                try:
+                    setattr(user, f'resume_{k}', float(request.json[k]))
+                except (ValueError, TypeError):
+                    raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
 
-        achievement = m.UserAchievement(**validated)
-        achievement.generate_key()
-        achievement.user = user
-        db.session.add(achievement)
+        if 'skills' in request.json:
+            existing_skills = {s.skill for s in user.resume_skills}
+            new_skills = {s['skill'] for s in request.json['skills']}
+
+            if len(new_skills) > 21:
+                return jsonify({'message': "Please list at most 21 skills."}), 400
+
+            if new_skills != existing_skills:
+                for s in user.resume_skills:
+                    if s.skill not in new_skills:
+                        db.session.delete(s)
+                for new_skill in new_skills:
+                    if new_skill not in existing_skills:
+                        db.session.add(m.UserResumeSkill(user_id=user.id, skill=new_skill))
+
+        if 'portfolio' in request.json:
+            existing_portfolio_urls = {p.url for p in user.resume_portfolio}
+            new_portfolio_urls = {p['url'] for p in request.json['portfolio']}
+
+            if len(new_portfolio_urls) > 21:
+                return jsonify({'message': "Please list at most 21 portfolio links."}), 400
+
+            if new_portfolio_urls != existing_portfolio_urls:
+                for p in user.resume_portfolio:
+                    if p.url not in new_portfolio_urls:
+                        db.session.delete(p)
+                for new_url in new_portfolio_urls:
+                    if new_url not in existing_portfolio_urls:
+                        db.session.add(m.UserResumePortfolio(user_id=user.id, url=new_url))
+
+        for (singular, plural, cls) in [('education', 'education', m.UserResumeEducation), ('experience', 'experience', m.UserResumeExperience), ('achievement', 'achievements', m.UserResumeAchievement)]:
+            if plural not in request.json:
+                continue
+            existing_resume_items = {i.key: i for i in getattr(user, f'resume_{plural}')}
+            new_resume_items_to_edit = {i['key']: i for i in request.json[plural] if i['key']}
+            new_resume_items_to_add = [i for i in request.json[plural] if not i['key']]
+
+            for key, i in existing_resume_items.items():
+                if key not in new_resume_items_to_edit:
+                    db.session.delete(i)
+            for key, i in new_resume_items_to_edit.items():
+                existing_item = existing_resume_items.get(key)
+                if existing_item:
+                    try:
+                        for k, v in cls.validate_dict(i).items():
+                            setattr(existing_item, k, v)
+                    except m.ValidationError as e:
+                        return jsonify({'message': e.message}), 400
+            for i in new_resume_items_to_add:
+                try:
+                    validated = cls.validate_dict(i)
+                except m.ValidationError as e:
+                    return jsonify({'message': e.message}), 400
+
+                new_i = cls(**validated)
+                new_i.generate_key()
+                new_i.user = user
+                db.session.add(new_i)
+
         db.session.commit()
 
-        return jsonify({'key': achievement.key, 'achievement': achievement.to_dict()})
-
-@api_blueprint.route('/api/users/me/achievements/<key>', methods=['PUT', 'DELETE'])
-@user_required
-def put_delete_achievement(user, key):
-    achievement = m.UserAchievement.query.filter_by(user_id=user.id, key=key).first()
-    if not achievement:
-        return jsonify({'message': "Not found."}), 404
-
-    if request.method == 'PUT':
-        try:
-            for k, v in m.UserAchievement.validate_dict(request.json).items():
-                setattr(achievement, k, v)
-        except m.ValidationError as e:
-            return jsonify({'message': e.message}), 400
-    elif request.method == 'DELETE':
-        db.session.delete(achievement)
-
-    db.session.commit()
-    return jsonify({})
+        return jsonify({})
 
 @api_blueprint.route('/api/users/me/messages', methods=['GET'])
 @user_required
