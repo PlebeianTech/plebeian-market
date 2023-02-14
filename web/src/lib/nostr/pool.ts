@@ -162,19 +162,18 @@ export class Pool {
 
         // ** Tag P
         //      - Adding all P from the event being replied to
-        const eventBeingRepliedToTagsP = filterTags(eventBeingRepliedTo.tags, 'p');
-        if (eventBeingRepliedToTagsP.length) {
-            tagsToBeAddedToEvent.push(eventBeingRepliedToTagsP);
-        }
-        //      - Adding to P the pubkey of the creator of the event being replied to
-        tagsToBeAddedToEvent.push(["p", eventBeingRepliedTo.pubkey, url]);
+        filterTags(eventBeingRepliedTo.tags, 'p').forEach(tagP => {
+            tagsToBeAddedToEvent.push(tagP);
+        });
+        //      - Adding a P tag with the pubkey of the creator of the event being replied to
+        tagsToBeAddedToEvent.push(['p', eventBeingRepliedTo.pubkey, url]);
 
         // ** Tag E
         const eventBeingRepliedToTagsE = filterTags(eventBeingRepliedTo.tags, 'e');
         if (eventBeingRepliedToTagsE.length === 0 || !findMarkerInTags(eventBeingRepliedToTagsE, 'e', 'reply')) {
-            tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'root']);
+            tagsToBeAddedToEvent.push(['e', eventBeingRepliedTo.id, url, 'root']);
         } else {
-            tagsToBeAddedToEvent.push(["e", eventBeingRepliedTo.id, url, 'reply']);
+            tagsToBeAddedToEvent.push(['e', eventBeingRepliedTo.id, url, 'reply']);
         }
 
         return tagsToBeAddedToEvent;
