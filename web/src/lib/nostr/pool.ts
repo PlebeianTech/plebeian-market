@@ -9,6 +9,7 @@ export class Pool {
     subscriptions: Sub[] = [];
     user: User | null = null;
     publicKey: string = '';
+    writeEnabled: boolean = false;
 
     public async connectAndSubscribeToChannel(channelInfo = null) {
         let that = this;
@@ -274,13 +275,18 @@ export class Pool {
     }
 
     public async sendReaction(message, reaction: string) {
+        if (!this.writeEnabled) {
+            Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
+            return;
+        }
+
         const noteId = message.id;
         const notePubkey = message.pubkey;
 
-        console.log('******* SENDING REACTION: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
+        console.debug('   ** Nostr: ******* Sending reaction: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
 
         if (reaction.length !== 1) {
-            console.error('Trying to send reactions with > 1 character is not allowed by nip-25');
+            console.error('   ** Nostr: trying to send reactions with > 1 character is not allowed by nip-25');
             return;
         }
 

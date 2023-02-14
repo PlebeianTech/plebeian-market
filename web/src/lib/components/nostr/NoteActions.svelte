@@ -1,5 +1,6 @@
 <script lang="ts">
     import {Pool} from "$lib/nostr/pool";
+    import {Error} from "$lib/stores";
 
     export let pool: Pool;
     export let message;
@@ -25,6 +26,11 @@
     }
 
     function setReplyToThisEvent(message) {
+        if (!pool.writeEnabled) {
+            Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
+            return;
+        }
+
         onReply(message);
         // TODO: scrollToBottom(chatArea);
         document.getElementById('nostrMessageSendText').focus();
