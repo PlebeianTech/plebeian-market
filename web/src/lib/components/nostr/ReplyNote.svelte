@@ -18,7 +18,7 @@
         <!-- NAME, BADGES, DATE -->
         <div class="space-y-1">
             <div class="chat-header lg:flex items-center space-y-1 lg:space-x-2">
-                <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
+                <p class="mr-3">{message.profileName ?? message.pubkey.slice(0, 8)}</p>
             </div>
         </div>
 
