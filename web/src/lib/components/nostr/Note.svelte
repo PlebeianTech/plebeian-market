@@ -44,7 +44,7 @@
                     {#if typeof message.repliedToMessage === 'object'}
                         <NostrReplyNote message={message.repliedToMessage}></NostrReplyNote>
                     {:else}
-                        <span>Replying to #{message.repliedToMessage.slice(0, 8)}</span>
+                        <div class="py-4 px-4">Replying to #{message.repliedToMessage.slice(0, 8)}</div>
                     {/if}
                 </div>
             {/if}
