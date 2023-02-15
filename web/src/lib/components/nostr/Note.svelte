@@ -27,7 +27,7 @@
         <!-- NAME, BADGES, DATE -->
         <div class="space-y-1">
             {#if !message.samePubKey}
-                <div class="chat-header lg:flex items-center">
+                <div class="chat-header flex items-center">
                     <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
                     {#if message.nip05verified}
                         <Nip05Checkmark {message}></Nip05Checkmark>

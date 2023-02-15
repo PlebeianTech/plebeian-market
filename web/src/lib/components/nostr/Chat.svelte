@@ -415,7 +415,7 @@
         </div>
 
         <!-- BROWSER EXTENSION -->
-        <div class="form-control">
+        <div class="flex justify-start">
             <label class="cursor-pointer label">
                 <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2 tooltip cursor-help" data-tip="Nostr browser extension not present"
                        bind:checked={nostrPreferenceCheckboxChecked}
@@ -487,10 +487,10 @@
                 rows="1"
                 id="nostrMessageSendText"
                 autofocus
-                placeholder="Type the message you want to send to the channel..."
+                placeholder="Type your message"
                 bind:this={textarea}
                 on:keypress={onKeyPress}
-                class="p-2 w-full text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+                class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
         <div on:click={sendMessage}
              class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
