@@ -9,7 +9,6 @@
     import {ErrorHandler, putProfile} from "$lib/services/api";
     import {requestLoginModal} from "$lib/utils";
 
-    export let roomData = false;
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
@@ -406,25 +405,23 @@
 </script>
 
 <div>
-    {#if roomData !== false}
-        <div class="w-full p-2 bg-dark lg:flex items-center">
-            <div class="w-full">
-                <div class="flex items-center justify-between w-full">
-                    <h1 class="lg:text-6xl text-3xl font-bold">{roomData.name || ''}</h1>
-                </div>
+    <div class="w-full p-2 bg-dark lg:flex items-center">
+        <div class="w-full">
+            <div class="flex items-center justify-between w-full">
+                <h1 class="lg:text-6xl text-3xl font-bold">Plebeian Market Square</h1>
             </div>
-
-            <!-- BROWSER EXTENTSION -->
-            {#if nostrExtensionEnabled}
-                <div class="form-control">
-                    <label class="cursor-pointer label">
-                        <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2" bind:checked={nostrPreferenceCheckboxChecked} on:change={e => {onChangeNostrPreferenceCheckbox(e)}} disabled />
-                        <span class="label-text">Use browser extension's identity</span>
-                    </label>
-                </div>
-            {/if}
         </div>
-    {/if}
+
+        <!-- BROWSER EXTENSION -->
+        {#if nostrExtensionEnabled}
+            <div class="form-control">
+                <label class="cursor-pointer label">
+                    <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2" bind:checked={nostrPreferenceCheckboxChecked} on:change={e => {onChangeNostrPreferenceCheckbox(e)}} disabled />
+                    <span class="label-text">Use browser extension's identity</span>
+                </label>
+            </div>
+        {/if}
+    </div>
 
     <div class="flex flex-col py-2">
         <div class="">
@@ -496,7 +493,7 @@
              class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-            </svg>            
+            </svg>
         </div>
     </div>
 </div>

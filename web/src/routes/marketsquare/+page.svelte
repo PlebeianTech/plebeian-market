@@ -6,19 +6,12 @@
     import NostrChat from "$lib/components/nostr/Chat.svelte";
     import { isProduction } from "$lib/utils";
     import { pmChannelNostrRoomId } from '$lib/nostr/utils'
-
-    const roomData = {
-        name: 'Plebeian Market Square',
-        about: 'You can discuss here all matters related with Plebeian Market.',
-        picture: 'https://staging.plebeian.market/images/logo.svg'
-    }
 </script>
 
 <div class="lg:w-2/3 mx-auto lg:p-0 p-2">
     <div class="py-8">
         {#if !isProduction() }
             <NostrChat
-                {roomData}
                 messageLimit={75}
                 nostrRoomId={pmChannelNostrRoomId}
             />
