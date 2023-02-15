@@ -289,6 +289,8 @@
         if (nostrExtensionEnabled) {
             nostrPreferenceCheckboxChecked = localStorage.getItem(localStorageNostrPreferPMId) === null;
             extensionCheckBox.disabled = false;
+            extensionCheckBox.classList.remove("tooltip");
+            extensionCheckBox.classList.remove("cursor-help");
         } else {
             nostrPreferenceCheckboxChecked = false;
         }
@@ -413,14 +415,15 @@
         </div>
 
         <!-- BROWSER EXTENSION -->
-        {#if nostrExtensionEnabled}
-            <div class="form-control">
-                <label class="cursor-pointer label">
-                    <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2" bind:checked={nostrPreferenceCheckboxChecked} on:change={e => {onChangeNostrPreferenceCheckbox(e)}} disabled />
-                    <span class="label-text">Use browser extension's identity</span>
-                </label>
-            </div>
-        {/if}
+        <div class="form-control">
+            <label class="cursor-pointer label">
+                <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2 tooltip cursor-help" data-tip="Nostr browser extension not present"
+                       bind:checked={nostrPreferenceCheckboxChecked}
+                       on:change={e => {onChangeNostrPreferenceCheckbox(e)}}
+                       disabled />
+                <span class="label-text">Use browser extension's identity</span>
+            </label>
+        </div>
     </div>
 
     <div class="flex flex-col py-2">
@@ -460,7 +463,7 @@
             </div>
         </div>
 
-        <div class="flex border-base-300 bg-info-content-200 
+        <div class="flex border-base-300 bg-info-content-200
                         min-h-[6rem] min-w-[18rem] flex-wrap items-center justify-center
                         gap-2 overflow-x-hidden border bg-cover bg-top"
              style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
