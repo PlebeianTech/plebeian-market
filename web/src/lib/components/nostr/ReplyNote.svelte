@@ -1,5 +1,6 @@
 <script lang="ts">
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url";
+    import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
 
     export let message;
 </script>
@@ -19,6 +20,10 @@
         <div class="space-y-1">
             <div class="chat-header lg:flex items-center space-y-1 lg:space-x-2">
                 <p class="mr-3">{message.profileName ?? message.pubkey.slice(0, 8)}</p>
+
+                {#if message.nip05verified}
+                    <Nip05Checkmark {message}></Nip05Checkmark>
+                {/if}
             </div>
         </div>
 
