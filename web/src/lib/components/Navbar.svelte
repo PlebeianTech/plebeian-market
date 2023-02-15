@@ -94,7 +94,7 @@
 		<div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
                 <a href="/" class="flex items-center mr-2">
-                    <img src={"/images/new-logo.svg"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
+                    <img src={"/images/logo.svg"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
                     <h1 class="text-xl font-bold text-neutral-content hover:text-blue-400 duration-300 w-44">Plebeian Market</h1>
                 </a>
             </div>

@@ -10,7 +10,7 @@
     const roomData = {
         name: 'Plebeian Market Square',
         about: 'You can discuss here all matters related with Plebeian Market.',
-        picture: 'https://staging.plebeian.market/images/new-logo.svg'
+        picture: 'https://staging.plebeian.market/images/logo.svg'
     }
 </script>
 
