@@ -17,8 +17,7 @@ export const relayUrlList = [
     "wss://nostr.inosta.cc",
 ];
 
-export const pmMasterPublicKey = '03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a';
-export const pmChannelNostrRoomId = '4211fc228be5af10923f56e60b1b11b8e63bf0ac7dbd3e1e3d767392fdaed4a9';
+export const pmMasterPublicKey = 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75c4eff1cfb634839bb8';
 export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 
 export function hasExtension() {
@@ -62,7 +61,7 @@ export async function queryNip05(fullname) {
     let profile;
 
     try {
-        profile = await nip05.queryProfile(fullname)
+        profile = await nip05.queryProfile(fullname);
     } catch (e) {
         console.debug("   ** Nostr: Problem while trying to verify nip05 (" + fullname + "):", e);
         return false;
