@@ -10,7 +10,7 @@
     "daisyui": "2.x",
     "eslint": "8.x",
     "eslint-plugin-svelte3": "4.x",
-    "nostr-tools": "^1.3.2",
+    "nostr-tools": "^1.4.2",
     "npm-run-all": "4.x",
     "postcss": "8.x",
     "svelte": "3.x",
