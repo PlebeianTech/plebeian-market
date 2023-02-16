@@ -4,6 +4,8 @@ import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, fin
 import {Error} from "../stores";
 import type {User} from "$lib/types/user";
 
+export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
+
 export class Pool {
     relays: Map<string, Relay> = new Map<string, Relay>();
     subscriptions: Sub[] = [];

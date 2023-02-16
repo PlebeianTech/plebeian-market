@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onDestroy} from "svelte";
-    import {Pool} from "$lib/nostr/pool";
-    import {getChannelIdForStallOwner, pmChannelNostrRoomId} from '$lib/nostr/utils'
+    import {Pool, pmChannelNostrRoomId} from "$lib/nostr/pool";
+    import {getChannelIdForStallOwner} from '$lib/nostr/utils'
     import {user} from "$lib/stores";
 
     export let pmURL: string | null;

@@ -5,7 +5,7 @@
 <script lang="ts">
     import NostrChat from "$lib/components/nostr/Chat.svelte";
     import { isProduction } from "$lib/utils";
-    import { pmChannelNostrRoomId } from '$lib/nostr/utils'
+    import { pmChannelNostrRoomId } from '$lib/nostr/pool'
 </script>
 
 <div class="lg:w-2/3 mx-auto lg:p-0 p-2">
