@@ -142,11 +142,9 @@
         </p>
 
         <div class="lg:flex hidden">
-          {#if ! isProduction() }
-              <p>
-                  <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
-              </p>
-          {/if}
+          <p>
+              <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
+          </p>
           <p>
             <a href="/about" class="btn btn-ghost normal-case">About</a>
           </p>
@@ -187,9 +185,7 @@
                         </li>
                     {/if}
                     <li class="block md:hidden md:h-0"><a href="/" class="modal-button cursor-pointer">Home</a></li>
-                    {#if ! isProduction() }
-                        <li class="block md:hidden md:h-0"><a href="/marketsquare" class="modal-button cursor-pointer">Market Square</a></li>
-                    {/if}
+                    <li class="block md:hidden md:h-0"><a href="/marketsquare" class="modal-button cursor-pointer">Market Square</a></li>
                     <li class="block md:hidden md:h-0"><a href="/about" class="modal-button cursor-pointer">About</a></li>
                     <li class="block md:hidden md:h-0"><a href="/faq" class="modal-button cursor-pointer">FAQ</a></li>
                     <li><a rel="external" href="/stall/{$user.nym}">My stall</a></li>

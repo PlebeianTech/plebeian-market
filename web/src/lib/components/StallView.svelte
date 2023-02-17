@@ -18,7 +18,6 @@
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
     import {requestLoginModal} from "../utils";
     import NostrChat from "$lib/components/nostr/Chat.svelte";
-    import { isProduction } from "$lib/utils";
     import { getChannelIdForStallOwner } from '$lib/nostr/utils'
     // import CampaignStats from './CampaignStats.svelte';
     import Avatar, {AvatarSize} from './Avatar.svelte';
@@ -402,12 +401,10 @@
       </div>
 
       <!-- NOSTR -->
-      {#if !isProduction() }
-          <div class="lg:w-3/6 my-2 grid place-items-top lg:h-1/2 sticky top-20 lg:px-0 px-2">
-              <NostrChat
-                  messageLimit={500}
-                  {nostrRoomId}
-              />
-          </div>
-      {/if}
+      <div class="lg:w-3/6 my-2 grid place-items-top lg:h-1/2 sticky top-20 lg:px-0 px-2">
+          <NostrChat
+              messageLimit={500}
+              {nostrRoomId}
+          />
+      </div>
 </div>
