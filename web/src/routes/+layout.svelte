@@ -9,6 +9,7 @@
     import ToastContainer from "$lib/components/ToastContainer.svelte";
     import { browser } from '$app/environment';
     import LoginModal from "$lib/components/LoginModal.svelte";
+    import { page } from '$app/stores';
 
     let loginModal : LoginModal | null;
 
@@ -85,8 +86,10 @@
     <div style="min-height: 83.33%">
         <slot />
     </div>
-    <TelegramFixedButton />
-    <Footer />
+    {#if $page.url.pathname !== "/marketsquare"}
+        <TelegramFixedButton />
+        <Footer />
+    {/if}
 
     <ToastContainer let:data={data}>
         <div class:alert-error={data.type === 'error'} class:alert-info={data.type === 'info'} class="alert shadow-lg">

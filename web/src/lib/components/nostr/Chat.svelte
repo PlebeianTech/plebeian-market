@@ -398,7 +398,7 @@
             if (await pool.sendMessage(null, content, nostrRoomId, nostrEventBeingRepliedTo)) {
                 nostrEventBeingRepliedTo = null;
                 textarea.value = '';
-                scrollToBottom(chatArea);
+                await scrollToBottom(chatArea);
             }
         }
     }
@@ -418,99 +418,85 @@
     afterUpdate(() => {
       if(autoscroll) scrollToBottom(chatArea)
     })
-
 </script>
 
-<div>
-    <div class="w-full bg-dark lg:flex items-center hidden lg:block">
-        <!-- BROWSER EXTENSION -->
-        <div class="flex justify-start">
-            <label class="cursor-pointer label">
-                <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2 tooltip cursor-help" data-tip="Nostr browser extension not present"
-                       bind:checked={nostrPreferenceCheckboxChecked}
-                       on:change={e => {onChangeNostrPreferenceCheckbox(e)}}
-                       disabled />
-                <span class="label-text">Use browser extension's identity</span>
-            </label>
-        </div>
-    </div>
-
-    <!-- BROWSER EXTENSION INFO -->
-    <div class="flex flex-col hidden lg:grid">
-        {#if nostrPreferenceCheckboxChecked}
-            <small>You'll sign messages with your extension when you write in the channel.</small>
-        {:else}
-            {#if $token && $user}
-                <small>You're using your Plebeian Market generated Nostr identity. It's recommended to install a Nostr browser extension
-                    (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
-                    <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
-                    <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) so you use
-                    your own Nostr identity.
-                </small>
-            {:else}
-                <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
-                    <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
-                    <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
-                    <a class="font-bold text-center cursor-pointer" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</a>
-                    into Plebeian Market to be able to publish messages.
-                </small>
-            {/if}
-        {/if}
-    </div>
-
-    <div class="flex flex-col mt-3">
-        <div class="">
-            <div tabindex="0" class="collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4 hidden lg:grid">
-                <input type="checkbox" />
-                <div class="collapse-title text-l font-medium">
-                    We use <b>Nostr</b> to power this chat. Click here to see more info
-                </div>
-                <div class="collapse-content">
-                    <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and introduce this channel ID: {nostrRoomId}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex border-base-300 bg-info-content-200
-                        min-h-[6rem] min-w-[18rem] flex-wrap items-center justify-center
-                        gap-2 overflow-x-hidden border bg-cover bg-top"
-             style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
-        >
-            <div id="chat-area" class="w-full overflow-y-scroll" bind:this={chatArea}>
-                {#each sortedMessages as message}
-                    <NostrNote {pool} {message} {onReply}></NostrNote>
-                {/each}
-            </div>
-        </div>
-    </div>
-
-    {#if nostrEventBeingRepliedTo !== null}
-        <div>
-            <NostrReplyNote message={nostrEventBeingRepliedTo}></NostrReplyNote>
-        </div>
-    {/if}
-
-    <div class="p-2 bg-black shadow rounded-lg flex items-center">
-        <textarea
-                rows="1"
-                id="nostrMessageSendText"
-                autofocus
-                placeholder="Type your message"
-                bind:this={textarea}
-                on:keypress={onKeyPress}
-                class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
-
-        <div on:click={sendMessage}
-             class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-            </svg>
-        </div>
+<div class="w-full bg-dark lg:flex items-center hidden lg:block">
+    <!-- BROWSER EXTENSION -->
+    <div class="flex justify-start">
+        <label class="cursor-pointer label">
+            <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2 tooltip cursor-help" data-tip="Nostr browser extension not present"
+                   bind:checked={nostrPreferenceCheckboxChecked}
+                   on:change={e => {onChangeNostrPreferenceCheckbox(e)}}
+                   disabled />
+            <span class="label-text">Use browser extension's identity</span>
+        </label>
     </div>
 </div>
 
-<style>
-  #chat-area {
-    height: 525px
-  }
-</style>
+<!-- BROWSER EXTENSION INFO -->
+<div class="flex flex-col hidden lg:grid">
+    {#if nostrPreferenceCheckboxChecked}
+        <small>You'll sign messages with your extension when you write in the channel.</small>
+    {:else}
+        {#if $token && $user}
+            <small>You're using your Plebeian Market generated Nostr identity. It's recommended to install a Nostr browser extension
+                (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) so you use
+                your own Nostr identity.
+            </small>
+        {:else}
+            <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
+                <a class="font-bold text-center cursor-pointer" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</a>
+                into Plebeian Market to be able to publish messages.
+            </small>
+        {/if}
+    {/if}
+</div>
+
+<div tabindex="0" class="mt-3 collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4 hidden lg:grid">
+    <input type="checkbox" />
+    <div class="collapse-title text-l font-medium">
+        We use <b>Nostr</b> to power this chat. Click here to see more info
+    </div>
+    <div class="collapse-content">
+        <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and introduce this channel ID: {nostrRoomId}</p>
+    </div>
+</div>
+
+<div class="flex flex-col mt-2 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-hidden border border-base-300 w-full"
+     style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
+     bind:this={chatArea}
+>
+   <div>
+        {#each sortedMessages as message}
+            <NostrNote {pool} {message} {onReply}></NostrNote>
+        {/each}
+   </div>
+</div>
+
+{#if nostrEventBeingRepliedTo !== null}
+    <div>
+        <NostrReplyNote message={nostrEventBeingRepliedTo}></NostrReplyNote>
+    </div>
+{/if}
+
+<div class="flex p-3 fixed inset-x-0 bottom-0 bg-black shadow rounded-lg items-center">
+    <textarea
+        rows="1"
+        id="nostrMessageSendText"
+        autofocus
+        placeholder="Type your message"
+        bind:this={textarea}
+        on:keypress={onKeyPress}
+        class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+
+    <div on:click={sendMessage}
+         class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+        </svg>
+    </div>
+</div>

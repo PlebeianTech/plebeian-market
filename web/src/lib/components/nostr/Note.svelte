@@ -16,7 +16,7 @@
     <!-- AVATAR -->
     <div>
         <div class="chat-image avatar">
-            <div class="w-14 ml-4 lg:mr-4 rounded-full ring-primary ring-offset-base-100 ring-offset-1" class:ring={!message.samePubKey}>
+            <div class="w-14 ml-4 lg:mr-4 rounded-full">
                 {#if !message.samePubKey}
                     <img src="{message.profileImage ?? profilePicturePlaceHolder}" alt="profile picture" class:profileInfoImage={!message.samePubKey} />
                 {/if}
@@ -38,26 +38,24 @@
             <div class="text-xs opacity-50">{formatTimestamp(message.created_at)}</div>
         </div>
 
-        <div class="">
-            <!-- REPLY TO -->
-            {#if message.repliedToMessage}
-                <div class="card card-compact border border-gray-400/70 my-3 shadow-xl">
-                    {#if typeof message.repliedToMessage === 'object'}
-                        <NostrReplyNote message={message.repliedToMessage}></NostrReplyNote>
-                    {:else}
-                        <div class="py-4 px-4">Replying to #{message.repliedToMessage.slice(0, 8)}</div>
-                    {/if}
-                </div>
-            {/if}
+        <!-- REPLY TO -->
+        {#if message.repliedToMessage}
+            <div class="card card-compact border border-gray-400/70 my-3 shadow-xl">
+                {#if typeof message.repliedToMessage === 'object'}
+                    <NostrReplyNote message={message.repliedToMessage}></NostrReplyNote>
+                {:else}
+                    <div class="py-4 px-4">Replying to #{message.repliedToMessage.slice(0, 8)}</div>
+                {/if}
+            </div>
+        {/if}
 
-            <!-- MESSAGES AND ICONS -->
-            <div class="mt-2 mb-1" style="word-break: break-word;">{@html message.content}</div>
+        <!-- MESSAGES AND ICONS -->
+        <div class="mt-2 mb-1" style="word-break: break-word;">{@html message.content}</div>
 
-            {#if message.imagePreviewUrl}
-                <ImagePreview imagePreviewUrl={message.imagePreviewUrl}></ImagePreview>
-            {/if}
+        {#if message.imagePreviewUrl}
+            <ImagePreview imagePreviewUrl={message.imagePreviewUrl}></ImagePreview>
+        {/if}
 
-            <NostrNoteActions {pool} {message} {onReply}></NostrNoteActions>
-        </div>
+        <NostrNoteActions {pool} {message} {onReply}></NostrNoteActions>
     </div>
 </div>
