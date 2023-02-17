@@ -268,9 +268,6 @@ export class Pool {
         pub.on('ok', () => {
             console.log(`   ** Nostr: ${relay.url} has accepted our event`);
         })
-        pub.on('seen', () => {
-            console.log(`   ** Nostr: we saw the event on ${relay.url}`);
-        })
         pub.on('failed', reason => {
             console.log(`   ** Nostr: failed to publish to ${relay.url}: ${reason}`);
         })
