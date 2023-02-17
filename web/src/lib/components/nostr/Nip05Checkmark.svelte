@@ -10,7 +10,7 @@
     </label>
     <ul tabindex="0" class="dropdown-content translate-x-20">
         <li>
-            <div class="badge badge-secondary text-xs whitespace-nowrap">{message.nip05}</div>
+            <div class="badge badge-secondary whitespace-nowrap">{message.nip05}</div>
         </li>
     </ul>
 </div>

@@ -407,15 +407,9 @@
 </script>
 
 <div>
-    <div class="w-full p-2 bg-dark lg:flex items-center">
-        <div class="w-full">
-            <div class="flex items-center justify-between w-full">
-                <h1 class="lg:text-6xl text-3xl font-bold">Plebeian Market Square</h1>
-            </div>
-        </div>
-
+    <div class="w-full bg-dark lg:flex items-center">
         <!-- BROWSER EXTENSION -->
-        <div class="form-control">
+        <div class="flex justify-start">
             <label class="cursor-pointer label">
                 <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2 tooltip cursor-help" data-tip="Nostr browser extension not present"
                        bind:checked={nostrPreferenceCheckboxChecked}
@@ -426,7 +420,7 @@
         </div>
     </div>
 
-    <div class="flex flex-col py-2">
+    <div class="flex flex-col">
         <div class="">
             <div tabindex="0" class="collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4">
                 <input type="checkbox" />
@@ -487,10 +481,10 @@
                 rows="1"
                 id="nostrMessageSendText"
                 autofocus
-                placeholder="Type the message you want to send to the channel..."
+                placeholder="Type your message"
                 bind:this={textarea}
                 on:keypress={onKeyPress}
-                class="p-2 w-full text-white bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+                class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
         <div on:click={sendMessage}
              class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
@@ -503,6 +497,6 @@
 
 <style>
   #chat-area {
-    height: 550px
+    height: 525px
   }
 </style>
