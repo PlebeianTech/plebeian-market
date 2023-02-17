@@ -173,7 +173,7 @@
                         <img src={$user.profileImageUrl} alt="Avatar" />
                     </div>
                 </label>
-                <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral rounded-box w-52 z-40">
+                <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-52 z-40">
                     {#if !$user.twitterUsernameVerified}
                         <li>
                             <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button">
