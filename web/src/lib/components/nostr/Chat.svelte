@@ -422,7 +422,7 @@
 </script>
 
 <div>
-    <div class="w-full bg-dark lg:flex items-center">
+    <div class="w-full bg-dark lg:flex items-center hidden lg:block">
         <!-- BROWSER EXTENSION -->
         <div class="flex justify-start">
             <label class="cursor-pointer label">
@@ -435,39 +435,38 @@
         </div>
     </div>
 
-    <div class="flex flex-col">
+    <!-- BROWSER EXTENSION INFO -->
+    <div class="flex flex-col hidden lg:grid">
+        {#if nostrPreferenceCheckboxChecked}
+            <small>You'll sign messages with your extension when you write in the channel.</small>
+        {:else}
+            {#if $token && $user}
+                <small>You're using your Plebeian Market generated Nostr identity. It's recommended to install a Nostr browser extension
+                    (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                    <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                    <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) so you use
+                    your own Nostr identity.
+                </small>
+            {:else}
+                <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
+                    <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
+                    <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
+                    <a class="font-bold text-center cursor-pointer" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</a>
+                    into Plebeian Market to be able to publish messages.
+                </small>
+            {/if}
+        {/if}
+    </div>
+
+    <div class="flex flex-col mt-3">
         <div class="">
-            <div tabindex="0" class="collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4">
+            <div tabindex="0" class="collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4 hidden lg:grid">
                 <input type="checkbox" />
                 <div class="collapse-title text-l font-medium">
                     We use <b>Nostr</b> to power this chat. Click here to see more info
                 </div>
                 <div class="collapse-content">
                     <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and introduce this channel ID: {nostrRoomId}</p>
-
-                    <!-- BROWSER EXTENTSION INFO -->
-
-                    <div class="flex flex-col">
-                        {#if nostrPreferenceCheckboxChecked}
-                            <small>You'll sign messages with your extension when you write in the channel.</small>
-                        {:else}
-                            {#if $token && $user}
-                                <small>You're using your Plebeian Market generated Nostr identity. It's recommended to install a Nostr browser extension
-                                    (<a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
-                                    <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
-                                    <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) so you use
-                                    your own Nostr identity.
-                                </small>
-                            {:else}
-                                <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
-                                    <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
-                                    <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
-                                    <a class="font-bold text-center cursor-pointer" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</a>
-                                    into Plebeian Market to be able to publish messages.
-                                </small>
-                            {/if}
-                        {/if}
-                    </div>
                 </div>
             </div>
         </div>

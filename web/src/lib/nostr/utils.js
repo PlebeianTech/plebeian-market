@@ -29,10 +29,21 @@ export async function wait(milliseconds) {
 }
 
 export const formatTimestamp = ts => {
-    const formatter = new Intl.DateTimeFormat('en-US', {
+    const today = new Date().setHours(0, 0, 0, 0);
+    const thatDay = new Date(ts*1000).setHours(0, 0, 0, 0);
+
+    let format = {
         dateStyle: 'medium',
         timeStyle: 'short',
-    });
+    };
+
+    if (today === thatDay) {
+        format = {
+            timeStyle: 'short',
+        };
+    }
+
+    const formatter = new Intl.DateTimeFormat('en-US', format);
 
     return formatter.format(new Date(ts * 1000));
 }
