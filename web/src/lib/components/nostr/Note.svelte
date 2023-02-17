@@ -29,7 +29,7 @@
             {#if !message.samePubKey}
                 <div class="chat-header flex items-center">
                     <p class="mr-3" class:profileInfoName={!message.samePubKey}>{message.profileName ?? message.pubkey.slice(0, 8)}</p>
-                    {#if message.nip05verified}
+                    {#if message.nip05}
                         <Nip05Checkmark {message}></Nip05Checkmark>
                     {/if}
                 </div>

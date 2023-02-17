@@ -71,6 +71,7 @@
 
                 const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
 
+                // Profile info / nip-05 verification
                 if (profileInfo !== null && profileInfo !== true) {
                     if (profileInfo.picture) {
                         if (nostrMediaCacheEnabled) {
@@ -95,13 +96,19 @@
                             nip05.set(profileInfo.nip05, null);
                         } else if (nip05verificationPublicKey !== null) {
                             if (message.pubkey === nip05verificationPublicKey) {
-                                message.nip05verified = true;
-                                message.nip05 = profileInfo.nip05;
+                                let nip05Address = profileInfo.nip05;
+
+                                if (nip05Address.startsWith('_@')) {
+                                    message.nip05 = nip05Address.substring(2);
+                                } else {
+                                    message.nip05 = nip05Address;
+                                }
                             }
                         }
                     }
                 }
 
+                // Tags for message type
                 filterTags(message.tags, 'e').forEach(tag => {
                     const id = tag[1];
 
@@ -120,7 +127,7 @@
                             // Adding the replied message so we can show it alongside the message
                             message.repliedToMessage = repliedToMessage;
                         } else {
-                            // If we don't have the message we're replyint go (yet?), we show
+                            // If we don't have the message we're replying to (yet?), we show
                             // that this is a reply to a message #id
                             message.repliedToMessage = id;
                         }
