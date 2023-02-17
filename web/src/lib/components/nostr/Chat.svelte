@@ -134,6 +134,14 @@
                     }
                 });
 
+                // Image preview
+                const match = message.content.match(/(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg))/i);
+                const url = match ? match[1] : null;
+                if (url !== null) {
+                    message.imagePreviewUrl = url;
+                }
+
+
                 lastMessagePublicKey = message.pubkey;
 
                 return message;
