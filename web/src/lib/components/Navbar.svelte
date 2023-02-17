@@ -89,7 +89,7 @@
 </script>
 
 
-<nav class="backdrop-blur-lg bg-content border-b border-gray-400/70 z-50 fixed top-0 w-full">
+<nav class="backdrop-blur-lg border-b border-gray-400/70 z-50 fixed top-0 w-full">
 	<div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
 		<div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
