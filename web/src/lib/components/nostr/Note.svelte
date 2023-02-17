@@ -2,6 +2,7 @@
     import NostrNoteActions from "$lib/components/nostr/NoteActions.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
+    import ImagePreview from "$lib/components/nostr/ImagePreview.svelte";
     import {formatTimestamp} from '$lib/nostr/utils';
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
@@ -51,6 +52,11 @@
 
             <!-- MESSAGES AND ICONS -->
             <div class="my-4">{@html message.content}</div>
+
+            {#if message.imagePreviewUrl}
+                <ImagePreview imagePreviewUrl={message.imagePreviewUrl}></ImagePreview>
+            {/if}
+
             <NostrNoteActions {pool} {message} {onReply}></NostrNoteActions>
         </div>
     </div>
