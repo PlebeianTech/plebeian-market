@@ -89,13 +89,13 @@
 </script>
 
 
-<nav class="lg:bg-neutral/90 bg-neutral text-neutral-content backdrop-blur-md border-b border-white/20 z-50 fixed top-0 w-full">
+<nav class="backdrop-blur-md border-b border-gray-400/70 z-50 fixed top-0 w-full">
 	<div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
 		<div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
                 <a href="/" class="flex items-center mr-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
-                    <h1 class="text-xl font-bold text-neutral-content hover:text-blue-400 duration-300 w-44">Plebeian Market</h1>
+                    <h1 class="text-xl font-bold hover:text-blue-400 duration-300 w-44">Plebeian Market</h1>
                 </a>
             </div>
 			<!-- Mobile menu button -->
