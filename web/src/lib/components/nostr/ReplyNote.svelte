@@ -21,7 +21,7 @@
             <div class="chat-header lg:flex items-center space-y-1 lg:space-x-2">
                 <p class="mr-3">{message.profileName ?? message.pubkey.slice(0, 8)}</p>
 
-                {#if message.nip05verified}
+                {#if message.nip05}
                     <Nip05Checkmark {message}></Nip05Checkmark>
                 {/if}
             </div>
