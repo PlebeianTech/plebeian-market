@@ -20,8 +20,8 @@
     let nostrExtensionEnabled;
     let messages = [];
     let sortedMessages = [];
-    let chatArea;
-    let autoscroll: Boolean = false;
+    let autoscroll: Boolean = true;
+    let ignoreNextScrollEvent = false;
 
     const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 1500;
@@ -353,6 +353,17 @@
 
         processMessagesPeriodically();
         doBackgroundJobsPeriodically()
+
+        window.addEventListener("scroll", function () {
+            if (ignoreNextScrollEvent) {
+                // Ignore this event because it was done programmatically
+                ignoreNextScrollEvent = false;
+                return;
+            }
+
+            // The user scrolled, so stop auto-scroll
+            autoscroll = false;
+        });
     });
 
     const userUnsubscribe = user.subscribe(
@@ -398,25 +409,20 @@
             if (await pool.sendMessage(null, content, nostrRoomId, nostrEventBeingRepliedTo)) {
                 nostrEventBeingRepliedTo = null;
                 textarea.value = '';
-                await scrollToBottom(chatArea);
+                scrollToBottom();
             }
         }
     }
 
-    // SCROLL TO BOTTOM
-    const scrollToBottom = async (node: any) => {
-      node.scroll({
-        top: node.scrollHeight,
-        behavior: 'smooth'
-      })
+    const scrollToBottom = () => {
+        ignoreNextScrollEvent = true;
+        window.scrollTo(0, document.body.scrollHeight);
     }
 
-    beforeUpdate(() => {
-      autoscroll = chatArea && chatArea.offsetHeight + chatArea.scrollTop > chatArea.scrollHeight - 1
-    })
-
     afterUpdate(() => {
-      if(autoscroll) scrollToBottom(chatArea)
+        if (autoscroll) {
+            scrollToBottom()
+        }
     })
 </script>
 
@@ -467,9 +473,7 @@
 </div>
 
 <div class="flex flex-col mt-2 mb-8 pb-8 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-hidden w-full"
-     style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
-     bind:this={chatArea}
->
+     style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
    <div>
         {#each sortedMessages as message}
             <NostrNote {pool} {message} {onReply}></NostrNote>
