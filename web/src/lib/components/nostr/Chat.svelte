@@ -420,8 +420,8 @@
     })
 </script>
 
+<!-- BROWSER EXTENSION -->
 <div class="w-full bg-dark lg:flex items-center hidden lg:block">
-    <!-- BROWSER EXTENSION -->
     <div class="flex justify-start">
         <label class="cursor-pointer label">
             <input id="use_browser_extension" type="checkbox" class="toggle toggle-primary mr-2 tooltip cursor-help" data-tip="Nostr browser extension not present"
@@ -466,7 +466,7 @@
     </div>
 </div>
 
-<div class="flex flex-col mt-2 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-hidden border border-base-300 w-full"
+<div class="flex flex-col mt-2 mb-8 pb-8 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-hidden w-full"
      style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);"
      bind:this={chatArea}
 >
@@ -483,7 +483,7 @@
     </div>
 {/if}
 
-<div class="flex p-3 fixed inset-x-0 bottom-0 bg-black shadow rounded-lg items-center">
+<div class="flex p-3 fixed inset-x-0 bottom-0 bg-black rounded-lg items-center">
     <textarea
         rows="1"
         id="nostrMessageSendText"
