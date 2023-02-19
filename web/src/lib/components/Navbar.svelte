@@ -89,7 +89,7 @@
 </script>
 
 
-<nav class="backdrop-blur-md border-b border-gray-400/70 z-50 fixed top-0 w-full">
+<nav class="backdrop-blur-lg border-b border-gray-400/70 z-50 fixed top-0 w-full">
 	<div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
 		<div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -173,7 +173,7 @@
                         <img src={$user.profileImageUrl} alt="Avatar" />
                     </div>
                 </label>
-                <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral rounded-box w-52 z-40">
+                <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-52 z-40">
                     {#if !$user.twitterUsernameVerified}
                         <li>
                             <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button">
