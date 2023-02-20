@@ -17,6 +17,9 @@ import logging
 from logging.config import dictConfig
 import magic
 import math
+from nostr.event import EncryptedDirectMessage
+from nostr.key import PrivateKey, PublicKey
+from nostr.relay_manager import RelayManager
 import os
 import random
 import requests
@@ -481,7 +484,16 @@ def get_user_from_token(token):
     except Exception:
         return None
 
-    return m.User.query.filter_by(key=data['user_key']).first()
+    if 'user_key' in data: # older token
+        q = m.User.lnauth_key == data['user_key']
+    elif 'user_lnauth_key' in data:
+        q = m.User.lnauth_key == data['user_lnauth_key']
+    elif 'user_nostr_public_key' in data:
+        q = m.User.nostr_public_key == data['user_nostr_public_key']
+    else:
+        return None
+
+    return m.User.query.filter(q).first()
 
 def user_required(f):
     @wraps(f)
@@ -752,6 +764,40 @@ def get_twitter():
         access_token = twitter_secrets['ACCESS_TOKEN']
         access_token_secret = twitter_secrets['ACCESS_TOKEN_SECRET']
         return Twitter(api_key, api_key_secret, access_token, access_token_secret)
+
+class MockNostr:
+    class MockKey:
+        def __eq__(self, other):
+            return True
+
+    def __init__(self, **__):
+        pass
+
+    def send_dm(self, user_npub, body):
+        app.logger.info(f"Nostr DM for {user_npub}: {body}!")
+        return True
+
+class Nostr:
+    def __init__(self, nsec):
+        self.private_key = PrivateKey.from_nsec(nsec)
+        self.relay_manager = RelayManager()
+        for relay in app.config['NOSTR_RELAYS']:
+            self.relay_manager.add_relay(relay)
+
+    def send_dm(self, user_npub, body):
+        pubkey = PublicKey.from_npub(user_npub)
+        dm = EncryptedDirectMessage(recipient_pubkey=pubkey, cleartext_content=body)
+        self.private_key.sign_event(dm)
+        self.relay_manager.publish_event(dm)
+        return True
+
+def get_nostr():
+    if app.config['MOCK_NOSTR']:
+        return MockNostr()
+    else:
+        with open(app.config['NOSTR_SECRETS']) as f:
+            nostr_secrets = json.load(f)
+        return Nostr(nostr_secrets['NSEC'])
 
 class MockS3:
     def get_url_prefix(self):

@@ -38,6 +38,8 @@ BASE_URL = os.environ.get('BASE_URL')
 WWW_BASE_URL = os.environ.get('WWW_BASE_URL')
 DOMAIN_NAME = "plebeian.market"
 
+JWT_EXPIRE_DAYS = 420
+
 MOCK_BTC = bool(int(os.environ.get("MOCK_BTC", 0)))
 
 MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
@@ -57,6 +59,24 @@ TWITTER_USER_MIN_AGE_DAYS = 210
 TWITTER_USER_MIN_AGE_DAYS_WHITELIST = ["ghostofmtc", "civilbtcsaver"]
 TWITTER_SECRETS = "/secrets/twitter.json"
 TWITTER_USER = "PlebeianMarket"
+
+MOCK_NOSTR = bool(int(os.environ.get("MOCK_NOSTR", 0)))
+NOSTR_SECRETS = "/secrets/nostr.json"
+NOSTR_RELAYS = [ # TODO: find a way to sync these with the client (web/src/lib/nostr/utils.js)
+    "wss://relay.damus.io",
+    "wss://relay.nostr.bg",
+    "wss://nostr.mom",
+    "wss://nos.lol",
+    "wss://nostr.bitcoiner.social",
+    "wss://nostr-pub.wellorder.net",
+    "wss://nostr.wine",
+    "wss://eden.nostr.land",
+    "wss://relay.orangepill.dev",
+    "wss://no.str.cr",
+    "wss://puravida.nostr.land",
+    "wss://relay.nostr.com.au",
+    "wss://nostr.inosta.cc",
+]
 
 MOCK_S3 = bool(int(os.environ.get("MOCK_S3", 0)))
 S3_SECRETS = "/secrets/s3.json"
