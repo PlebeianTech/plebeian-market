@@ -8,7 +8,7 @@
 
     export let pool;
     export let message;
-    export let onReply;
+    export let onReply = (_) => {};
 </script>
 
 <div class="flex py-2 overflow-hidden" class:mt-0={message.samePubKey} class:mt-3={!message.samePubKey} class:profileInfo={!message.samePubKey} data-note-id="{message.id}">
