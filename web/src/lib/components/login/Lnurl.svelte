@@ -1,29 +1,31 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { getLogin, type GetLoginInitialResponse, type GetLoginSuccessResponse } from "../services/api";
-    import {token, user} from "../stores";
-    import Loading from "./Loading.svelte";
-    import QR from "./QR.svelte";
-    import { isDevelopment } from "../utils";
-    import type { User } from "../types/user";
-    import { createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { loginLnurl } from "$lib/services/api";
+    import { token, user } from "$lib/stores";
+    import Loading from "$lib/components/Loading.svelte";
+    import QR from "$lib/components/QR.svelte";
+    import { isDevelopment } from "$lib/utils";
+    import type { User } from "$lib/types/user";
 
     const dispatch = createEventDispatcher();
 
-    export let onLogin = (user: User | null) => {};
+    export let onLogin: (user: User | null) => void = (_) => {};
 
     let lnurl;
     let qr;
-    let k1;
+    let k1: string | null = null;
 
-    let checkLoginTimeout = null;
+    let checkLoginTimeout: ReturnType<typeof setTimeout> | null = null;
 
     export function stopCheckingLogin() {
-        clearTimeout(checkLoginTimeout);
+        if (checkLoginTimeout !== null) {
+            clearTimeout(checkLoginTimeout);
+        }
         k1 = null;  // k1 cannot be used again if logout is done
     }
+
     export function startCheckingLogin() {
-        getLogin(k1,
+        loginLnurl(k1,
             (response) => {
                 k1 = response.k1;
                 lnurl = response.lnurl;
@@ -36,7 +38,7 @@
             async (response) => {
                 token.set(response.token);
                 localStorage.setItem('token', response.token);
-                dispatch('loginEvent', {})
+                dispatch('login', {})
 
                 while ($user === null) {
                     await new Promise(resolve => setTimeout(resolve, 100));
@@ -53,6 +55,12 @@
         if ($token) {
             onLogin(null);
         }
+
+        startCheckingLogin();
+    });
+
+    onDestroy(() => {
+        stopCheckingLogin();
     });
 </script>
 

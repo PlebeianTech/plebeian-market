@@ -1,23 +1,23 @@
+import bleach
 import btc2fiat
 from datetime import datetime, timedelta
-from email_validator import validate_email, EmailNotValidError
-from io import BytesIO
-import os
-import secrets
-import bleach
 import ecdsa
 from ecdsa.keys import BadSignatureError
-from flask import Blueprint, jsonify, request
+from email_validator import validate_email, EmailNotValidError
+from flask import Blueprint, jsonify, redirect, request
+from io import BytesIO
 import jwt
 import lnurl
+import os
 import pyqrcode
+import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 import time
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client, get_s3, get_twitter
+from main import app, get_lnd_client, get_nostr, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from utils import usd2sats, parse_xpub, UnknownKeyTypeError
@@ -28,12 +28,12 @@ api_blueprint = Blueprint('api', __name__)
 def healthcheck(): # TODO: I don't really like this, for some reason, but it is used in "dev" mode by docker-compose
     return jsonify({'success': True})
 
-# TODO: It would be nice to extract this into a separate Python package that can be used by any (Flask?) project.
-@api_blueprint.route('/api/login', methods=['GET'])
-def login():
-    """
-    Log in with a Lightning wallet.
-    """
+# PUT would make more sense than GET, but the lightning wallets only do GET - perhaps we could split this in two parts - the part called by our app and the GET done by the wallet
+@api_blueprint.route('/api/login', methods=['GET'], defaults={'deprecated': True}) # deprecated, but still used by the WP plugin
+@api_blueprint.route('/api/login/lnurl', methods=['GET'], defaults={'deprecated': False})
+def login_lnurl(deprecated):
+    if deprecated:
+        return redirect(f"{app.config['BASE_URL']}/api/login/lnurl", code=301)
 
     if 'k1' not in request.args:
         # first request to /login => we return a challenge (k1) and a QR code
@@ -87,20 +87,55 @@ def login():
         # this is the browser continuously checking whether log in happened by passing in the challenge (k1)
         return jsonify({'success': False})
 
-    # we are now logged in, so find the user, delete the lnauth and return the JWT token
-
-    user = m.User.query.filter_by(key=lnauth.key).first()
+    user = m.User.query.filter_by(lnauth_key=lnauth.key).first()
 
     if not user:
-        user = m.User(key=lnauth.key)
+        user = m.User(lnauth_key=lnauth.key)
         db.session.add(user)
 
     db.session.delete(lnauth)
     db.session.commit()
 
-    token = jwt.encode({'user_key': user.key, 'exp': datetime.utcnow() + timedelta(days=30)}, app.config['SECRET_KEY'], "HS256")
+    token = jwt.encode({'user_lnauth_key': user.lnauth_key, 'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS'])}, app.config['SECRET_KEY'], "HS256")
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
+
+@api_blueprint.route('/api/login/nostr', methods=['PUT'])
+def login_nostr():
+    if 'npub' not in request.json:
+        return jsonify({'message': "Missing npub."}), 400
+
+    if 'verification_phrase' not in request.json:
+        existing_auth = m.NostrAuth.query.filter_by(key=request.json['npub']).first()
+        if existing_auth:
+            db.session.delete(existing_auth)
+            db.session.commit()
+        auth = m.NostrAuth(key=request.json['npub'])
+        auth.generate_verification_phrase()
+        get_nostr().send_dm(user_npub=auth.key, body=auth.verification_phrase)
+        db.session.add(auth)
+        db.session.commit()
+
+        return jsonify({})
+    else:
+        auth = m.NostrAuth.query.filter_by(key=request.json['npub']).first()
+        if not auth:
+            return jsonify({'message': "Verification failed."}), 400
+        if not auth.verification_phrase == request.json['verification_phrase']:
+            return jsonify({'message': "Verification failed.", 'invalid_verification_phrase': True}), 400
+
+        user = m.User.query.filter_by(nostr_public_key=auth.key).first()
+
+        if not user:
+            user = m.User(nostr_public_key=auth.key)
+            db.session.add(user)
+
+        db.session.delete(auth)
+        db.session.commit()
+
+        token = jwt.encode({'user_nostr_public_key': user.nostr_public_key, 'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS'])}, app.config['SECRET_KEY'], "HS256")
+
+        return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/users/<nym>', methods=['GET'])
 def get_profile(nym):
