@@ -13,5 +13,6 @@
     <NostrChat
         messageLimit={75}
         nostrRoomId={pmChannelNostrRoomId}
+        fixedChatBox={true}
     />
 </div>

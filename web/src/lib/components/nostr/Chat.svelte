@@ -12,6 +12,7 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
+    export let fixedChatBox: boolean = false;   // Makes the chatbox fixed to the bottom of the screen
     export let onReply = (message) => {nostrEventBeingRepliedTo = message};
 
     let nostrEventBeingRepliedTo = null;
@@ -487,7 +488,7 @@
     </div>
 {/if}
 
-<div class="flex p-3 fixed inset-x-0 bottom-0 bg-black rounded-lg items-center">
+<div class="flex p-3 bg-black rounded-lg items-center inset-x-0 bottom-0" class:fixed={fixedChatBox}>
     <textarea
         rows="1"
         id="nostrMessageSendText"
