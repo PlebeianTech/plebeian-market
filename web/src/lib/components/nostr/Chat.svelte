@@ -473,7 +473,7 @@
     </div>
 </div>
 
-<div class="flex flex-col mt-2 mb-8 pb-8 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-hidden w-full"
+<div class="flex flex-col mt-2 mb-6 pb-6 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-hidden w-full"
      style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
    <div>
         {#each sortedMessages as message}
@@ -482,26 +482,28 @@
    </div>
 </div>
 
-{#if nostrEventBeingRepliedTo !== null}
-    <div>
-        <NostrReplyNote message={nostrEventBeingRepliedTo}></NostrReplyNote>
-    </div>
-{/if}
+<div class="grid grid-cols-2 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto w-screen lg:w-2/3" class:fixed={fixedChatBox}>
+    {#if nostrEventBeingRepliedTo !== null}
+        <div class="col-span-2">
+            <NostrReplyNote message={nostrEventBeingRepliedTo} closeButton={true} {onReply}></NostrReplyNote>
+        </div>
+    {/if}
 
-<div class="flex p-3 bg-black rounded-lg items-center inset-x-0 bottom-0" class:fixed={fixedChatBox}>
-    <textarea
-        rows="1"
-        id="nostrMessageSendText"
-        autofocus
-        placeholder="Type your message"
-        bind:this={textarea}
-        on:keypress={onKeyPress}
-        class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+    <div class="flex col-span-2">
+        <textarea
+            rows="1"
+            id="nostrMessageSendText"
+            autofocus
+            placeholder="Type your message"
+            bind:this={textarea}
+            on:keypress={onKeyPress}
+            class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
-    <div on:click={sendMessage}
-         class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-        </svg>
+        <div on:click={sendMessage}
+             class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+            </svg>
+        </div>
     </div>
 </div>
