@@ -4,7 +4,7 @@
 
     export let pool: Pool;
     export let message;
-    export let onReply;
+    export let onReply = (_) => {};
 
     $: reactions = message.reactions;
 

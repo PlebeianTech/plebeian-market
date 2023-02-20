@@ -3,7 +3,7 @@
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
 
     export let message;
-    export let onReply = null;
+    export let onReply = (_) => {};
     export let closeButton: boolean = false;
 </script>
 
