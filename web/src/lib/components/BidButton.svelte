@@ -6,7 +6,6 @@
     import { SaleState, type Sale, fromJson as saleFromJson } from "$lib/types/sale";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import BadgeHelp from "$lib/components/BadgeHelp.svelte";
-    import BadgeSVG from "$lib/components/BadgeSVG.svelte";
     import SaleFlowBadge from "$lib/components/SaleFlowBadge.svelte";
     import QR from "$lib/components/QR.svelte";
 

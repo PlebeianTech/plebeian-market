@@ -127,19 +127,13 @@ export function putEntity(tokenValue, entity: IEntity, successCB: () => void, er
         });
 }
 
-export interface GetLoginInitialResponse {
-    k1: string;
-    lnurl: string;
-    qr: string;
-}
-
-export interface GetLoginSuccessResponse {
+interface GetLoginSuccessResponse {
     token: string;
     user: User;
 }
 
-export function getLogin(k1, initialResponseCB: (response: GetLoginInitialResponse) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void, expiredCB: () => void) {
-    fetchAPI("/login" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
+export function loginLnurl(k1, initialResponseCB: (response: {k1: string, lnurl: string, qr: string}) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void, expiredCB: () => void) {
+    fetchAPI("/login/lnurl" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(
@@ -161,6 +155,36 @@ export function getLogin(k1, initialResponseCB: (response: GetLoginInitialRespon
                 );
             }
         });
+}
+
+export function loginNostr(npub: string, verificationPhrase: string | null, initialResponseCB: () => void = () => {}, successResponseCB: (response: GetLoginSuccessResponse) => void = (_) => {}, invalidVerificationPhraseCB: () => void = () => {}) {
+    let params: any = {npub};
+    if (verificationPhrase !== null) {
+        params.verification_phrase = verificationPhrase;
+    }
+    fetchAPI("/login/nostr", 'PUT', null, JSON.stringify(params),
+        response => {
+            if (response.status === 200) {
+                response.json().then(
+                    data => {
+                        if (data.success) {
+                            successResponseCB({token: data.token, user: userFromJson(data.user)});
+                        } else {
+                            initialResponseCB();
+                        }
+                    }
+                );
+            } else if (response.status === 400) {
+                response.json().then(
+                    data => {
+                        if (data.invalid_verification_phrase) {
+                            invalidVerificationPhraseCB();
+                        }
+                    }
+                );
+            }
+        }
+    );
 }
 
 export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string, entity_key: string}[], listingAvatars: {url: string, entity_key: string}[]) => void) {

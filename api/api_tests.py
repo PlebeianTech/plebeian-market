@@ -54,7 +54,7 @@ class TestApi(unittest.TestCase):
         return code, response
 
     def create_user(self, **kwargs):
-        code, response = self.get("/api/login")
+        code, response = self.get("/api/login/lnurl")
         self.assertEqual(code, 200)
         self.assertIn('k1', response)
         self.assertIn('svg', response['qr'])
@@ -64,14 +64,14 @@ class TestApi(unittest.TestCase):
         sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
         sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
 
-        code, response = self.get("/api/login",
+        code, response = self.get("/api/login/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
         self.assertNotIn('token', response)
 
-        code, response = self.get("/api/login",
+        code, response = self.get("/api/login/lnurl",
             {'k1': k1})
         self.assertEqual(code, 200)
         self.assertIn('token', response)
@@ -571,7 +571,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 404)
 
     def test_000_user(self):
-        code, response = self.get("/api/login")
+        code, response = self.get("/api/login/lnurl")
         self.assertEqual(code, 200)
         self.assertIn('k1', response)
         self.assertIn('svg', response['qr'])
@@ -582,7 +582,7 @@ class TestApi(unittest.TestCase):
         sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
 
         # not logged in yet...
-        code, response = self.get("/api/login", {'k1': k1})
+        code, response = self.get("/api/login/lnurl", {'k1': k1})
         self.assertEqual(code, 200)
         self.assertFalse(response['success'])
 
@@ -591,7 +591,7 @@ class TestApi(unittest.TestCase):
         another_k1[0] = (another_k1[0] + 1) % 255
         another_k1 = bytes(another_k1)
         another_sig = sk.sign_digest(another_k1, sigencode=ecdsa.util.sigencode_der)
-        code, response = self.get("/api/login",
+        code, response = self.get("/api/login/lnurl",
             {'k1': another_k1.hex(),
              'key': sk.verifying_key.to_string().hex(),
              'sig': another_sig.hex()})
@@ -599,21 +599,21 @@ class TestApi(unittest.TestCase):
         self.assertIn("verification failed", response['message'].lower())
 
         # try sending a wrong signature
-        code, response = self.get("/api/login",
+        code, response = self.get("/api/login/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': another_sig.hex()})
         self.assertEqual(code, 400)
         self.assertIn("verification failed", response['message'].lower())
 
-        code, response = self.get("/api/login",
+        code, response = self.get("/api/login/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
         self.assertNotIn('token', response)
 
-        code, response = self.get("/api/login",
+        code, response = self.get("/api/login/lnurl",
             {'k1': k1})
         self.assertEqual(code, 200)
         self.assertIn('token', response)
@@ -623,7 +623,7 @@ class TestApi(unittest.TestCase):
         token_1 = response['token']
 
         # can't request the token again if we already got it once
-        code, response = self.get("/api/login",
+        code, response = self.get("/api/login/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()},
