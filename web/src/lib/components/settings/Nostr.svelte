@@ -4,9 +4,7 @@
     import {onMount} from "svelte";
     import {hasExtension} from "$lib/nostr/utils";
 
-    let nostr_private_key = $user.nostr_private_key;
-    let nostr_public_key = getPublicKey(nostr_private_key);
-
+    let nostr_public_key = getPublicKey($user.nostr_private_key);
     let nostrExtensionEnabled: boolean;
 
     onMount(async () => {
@@ -22,7 +20,7 @@
 </div>
 
 <div class="mt-8">
-    {#if nostrExtensionEnabled}
+    {#if !nostrExtensionEnabled}
         <div class="alert alert-success shadow-lg">
             <div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -51,24 +49,12 @@
                 <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>.
             </p>
 
-            <p class="mt-3 text-justify">In the meanwhile, this are your Nostr keys.</p>
+            <p class="mt-3 text-justify">In the meantime, this is your Nostr public key:</p>
         </div>
 
         <div class="w-full flex items-center justify-center mt-4">
             <div class="form-control w-full">
-                <label class="label" for="nostr_public_key">
-                    <span class="label-text">Nostr Public Key</span>
-                </label>
                 <input bind:value={nostr_public_key} type="text" id="nostr_public_key" name="nostr_public_key" class="input input-lg input-bordered" />
-            </div>
-        </div>
-
-        <div class="w-full flex items-center justify-center mt-5 mb-12">
-            <div class="form-control w-full">
-                <label class="label" for="nostr_private_key">
-                    <span class="label-text">Nostr Private Key</span>
-                </label>
-                <input bind:value={nostr_private_key} type="text" id="nostr_private_key" name="nostr_private_key" class="input input-lg input-bordered" />
             </div>
         </div>
     {/if}
@@ -84,6 +70,8 @@
     <ul class="list-disc list-inside">
         <li class="mt-3">Login with Nostr</li>
         <li>Publish your Resumé to Nostr</li>
+        <li>Publish your Products to Nostr</li>
+        <li>Publish your Auctions to Nostr</li>
         <li>Private decentralized communications between market members</li>
         <li>Synchronize with other stores through Nostr</li>
     </ul>
