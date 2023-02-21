@@ -339,6 +339,10 @@
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
+        if (nostrExtensionEnabled) {
+            pool.publicKey = await window.nostr.getPublicKey();
+        }
+
         updateBrowserExtensionCheckbox();
 
         if (nostrRoomId !== null) {
