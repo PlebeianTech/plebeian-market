@@ -18,7 +18,7 @@
     let nostrEventBeingRepliedTo = null;
     let nostrPreferenceCheckboxChecked;
     let textarea;
-    let nostrExtensionEnabled;
+    let nostrExtensionEnabled: boolean;
     let messages = [];
     let sortedMessages = [];
     let autoscroll: Boolean = true;
