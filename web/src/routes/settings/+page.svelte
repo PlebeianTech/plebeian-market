@@ -11,6 +11,7 @@
     import Resume from "$lib/components/settings/Resume.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
+    import Nostr from "$lib/components/settings/Nostr.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
     import XPUB from "$lib/components/settings/XPUB.svelte";
     import { goto } from '$app/navigation';
@@ -19,9 +20,10 @@
     let WALLET_PAGE = "My wallet";
     let RESUME_PAGE = "Résumé";
     let TWITTER_PAGE = "Twitter";
+    let NOSTR_PAGE = "Nostr";
     let NOTIFICATIONS_PAGE = "Notifications";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, WALLET_PAGE, /*RESUME_PAGE,*/ TWITTER_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, WALLET_PAGE, /*RESUME_PAGE,*/ TWITTER_PAGE, NOSTR_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     let params = {};
@@ -71,6 +73,8 @@
                             <TwitterVerification />
                         </div>
                     {/if}
+                {:else if currentPage === NOSTR_PAGE}
+                    <Nostr />
                 {:else if currentPage === NOTIFICATIONS_PAGE}
                     <Notifications />
                 {:else if currentPage === V4V_PAGE}
