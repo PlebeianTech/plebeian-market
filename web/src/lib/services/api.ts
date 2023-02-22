@@ -47,7 +47,7 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
             if (response.status === 401) {
                 if (tokenValue) {
                     console.log("Error 401: Unauthorized. Deleting the token.");
-                    logout(false);
+                    logout();
 
                     requestLoginModal();
                 }
