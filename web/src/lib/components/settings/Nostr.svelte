@@ -1,15 +1,9 @@
 <script lang="ts">
     import {user} from "$lib/stores";
     import {getPublicKey} from "nostr-tools";
-    import {onMount} from "svelte";
     import {hasExtension} from "$lib/nostr/utils";
 
     let nostr_public_key = getPublicKey($user.nostr_private_key);
-    let nostrExtensionEnabled: boolean;
-
-    onMount(async () => {
-        nostrExtensionEnabled = hasExtension();
-    })
 </script>
 
 <div class="text-2xl breadcrumbs">
@@ -20,7 +14,7 @@
 </div>
 
 <div class="mt-8">
-    {#if !nostrExtensionEnabled}
+    {#if hasExtension()}
         <div class="alert alert-success shadow-lg">
             <div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
