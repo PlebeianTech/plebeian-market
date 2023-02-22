@@ -240,6 +240,7 @@ class User(XpubMixin, db.Model):
 
         d = {
             'identity': self.identity,
+            'nostr_public_key': self.nostr_public_key,
             'nym': self.nym,
             'display_name': self.display_name,
             'profile_image_url': self.twitter_profile_image_url,

@@ -30,23 +30,18 @@ export function getEnvironmentInfo() {
     return import.meta.env.MODE;
 }
 
-export function logout(gotoUrl) {
-    Info.set("You're Logged out");
-
+export function logout(gotoUrl?: string) {
     token.set(null);
-    if ( browser ) {
+
+    if (browser) {
         localStorage.removeItem('token');
     }
 
-    if (gotoUrl === false) {
-        return;
-    }
+    Info.set("You're Logged out");
 
-    if (typeof gotoUrl !== 'string') {
-        gotoUrl = "/";
+    if (gotoUrl !== undefined) {
+        goto(gotoUrl);
     }
-
-    goto(gotoUrl);
 }
 
 export function sats2usd(sats: number, btc2usd: number | null): number | null {

@@ -71,7 +71,7 @@
               return;
           }
 
-          if (u.nym === null || u.nym === "") {
+          if ((u.nym === null || u.nym === "") && u.nostrPublicKey === null) {
               showModal(TwitterUsername, true,
                   (saved) => {
                       if (saved) {
@@ -80,7 +80,7 @@
                           }
                       } else {
                           // trying to hide the modal if you didn't set your Twitter username logges you out
-                          logout(false);
+                          logout();
                       }
                   });
           }
@@ -177,7 +177,7 @@
                     </div>
                 </label>
                 <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-52 z-40">
-                    {#if !$user.twitterUsernameVerified}
+                    {#if $user.twitterUsername !== null && !$user.twitterUsernameVerified}
                         <li>
                             <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button">
                                 Verify Twitter
@@ -205,7 +205,7 @@
             </div>
         {:else}
             <div class="lg:dropdown lg:dropdown-end mb-96 lg:mb-2">
-                <button class="btn btn-primary" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</button>
+                <button class="btn btn-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</button>
             </div>
         {/if}
 			</div>
