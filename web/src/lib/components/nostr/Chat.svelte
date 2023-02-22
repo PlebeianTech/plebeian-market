@@ -312,12 +312,14 @@
         }
     }
 
-    function onChangeNostrPreferenceCheckbox(changeEvent) {
+    async function onChangeNostrPreferenceCheckbox(changeEvent) {
         if (changeEvent.target.checked) {
             localStorage.removeItem(localStorageNostrPreferPMId);
         } else {
             localStorage.setItem(localStorageNostrPreferPMId, '1');
         }
+
+        await pool.setPoolPublicKey();
     }
 
     function processMessagesPeriodically() {
@@ -339,9 +341,7 @@
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
-        if (nostrExtensionEnabled) {
-            pool.publicKey = await window.nostr.getPublicKey();
-        }
+        await pool.setPoolPublicKey();
 
         updateBrowserExtensionCheckbox();
 

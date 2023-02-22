@@ -184,11 +184,10 @@ export class Pool {
         return tagsToBeAddedToEvent;
     }
 
-    public async signValidateEvent(event: Event) {
+    public async setPoolPublicKey() {
         if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
             // Using PM Nostr identity
             let userPrivateKey = this.user?.nostr_private_key || null;
-
             if (userPrivateKey === null) {
                 return false;
             }
@@ -199,7 +198,6 @@ export class Pool {
                 console.debug('   ** Nostr: Not using extension, but PM identity (public key) not available.');
                 return false;
             }
-
         } else {
             // Using Nostr extension identity
             try {
@@ -209,6 +207,14 @@ export class Pool {
                 Error.set("Error getting the Nostr public key from your extension.");
                 return false;
             }
+        }
+
+        return true;
+    }
+
+    public async signValidateEvent(event: Event) {
+        if (await this.setPoolPublicKey() === false) {
+            return false;
         }
 
         console.debug('   ** Nostr: event before adding missing properties: ', event);
