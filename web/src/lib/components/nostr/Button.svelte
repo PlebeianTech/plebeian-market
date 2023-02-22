@@ -1,17 +1,18 @@
 <script lang="ts">
     import {onDestroy} from "svelte";
     import {Pool, pmChannelNostrRoomId} from "$lib/nostr/pool";
-    import {getChannelIdForStallOwner} from '$lib/nostr/utils'
+    import {getChannelIdForStallOwner, wait} from '$lib/nostr/utils'
     import {Info, user} from "$lib/stores";
 
     export let pmURL: string | null;
     let nostrRoomId;
 
+    let message: string;
+    let textConfirmationVisible: boolean;
+
     const pool: Pool = new Pool();
 
     function getNostrTextModal(location: 'stall' | 'mktSquare' | 'nostrFeed') {
-        let message;
-
         switch (location) {
             case 'stall':
                 message = 'Hi people! I just listed a new product. Give it a look:';
@@ -29,22 +30,19 @@
 
         message += '\n' + pmURL;
 
-        document.getElementById('nostrTextToSend').value = message;
-        document.getElementById('nostrTextConfirmation').checked = true;
+        textConfirmationVisible = true;
     }
 
     async function postToNostr() {
-        let message = document.getElementById('nostrTextToSend').value || '';
-
         if (message && message !== '') {
             pool.connectAndSendMessage({
                 message,
                 nostrRoomId,
             });
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            document.getElementById('nostrTextConfirmation').checked = false;
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await wait(1000);
+            textConfirmationVisible = false;
+            await wait(1000);
             Info.set('Published to Nostr');
         }
     }
@@ -106,12 +104,12 @@
 </div>
 
 <!-- Nostr text confirmation Modal -->
-<input type="checkbox" id="nostrTextConfirmation" class="modal-toggle" />
+<input type="checkbox" id="nostrTextConfirmation" class="modal-toggle" bind:checked={textConfirmationVisible}/>
 <div class="modal">
     <div class="modal-box relative">
         <label for="nostrTextConfirmation" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
         <h3 class="text-lg font-bold">Sharing this on Nostr:</h3>
-        <textarea class="textarea textarea-secondary textarea-bordered textarea-md w-full max-w-md" id="nostrTextToSend"></textarea>
+        <textarea class="textarea textarea-secondary textarea-bordered textarea-md w-full max-w-md" bind:value={message}></textarea>
         <div class="modal-action justify-center">
             <button class="btn btn-secondary" on:click|preventDefault={postToNostr}>Publish</button>
         </div>

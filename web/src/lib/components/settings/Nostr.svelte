@@ -35,7 +35,7 @@
             <p>You're using your Plebeian Market generated Nostr identity. We created this for you as we detected
                 that you're not using a Nostr browser extension. This is not a problem and you can continue using
                 Plebeian Market this way, but it's highly recommended that you install a Nostr browser extension
-                and create your own Nostr identity so nobody knows your private key.</p>
+                and create your own Nostr identity so nobody else has access to your private key.</p>
 
             <p class="mt-3 text-justify">You can use any of this browser extensions:
                 <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a>,
@@ -63,7 +63,7 @@
     <p class="mt-10">Features <i>coming soon</i>:</p>
     <ul class="list-disc list-inside">
         <li class="mt-3">Login with Nostr</li>
-        <li>Publish your Resumé to Nostr</li>
+        <li>Publish your Résumé to Nostr</li>
         <li>Publish your Products to Nostr</li>
         <li>Publish your Auctions to Nostr</li>
         <li>Private decentralized communications between market members</li>
