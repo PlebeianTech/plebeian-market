@@ -8,9 +8,9 @@ import { error } from '@sveltejs/kit';
 
 export class ErrorHandler {
     setError: boolean;
-    onError: () => void;
+    onError: (response: Response) => void;
 
-    public constructor(setError: boolean = true, onError: () => void = () => {}) {
+    public constructor(setError: boolean = true, onError: (response: Response) => void = () => {}) {
         this.setError = setError;
         this.onError = onError;
     }
@@ -20,7 +20,7 @@ export class ErrorHandler {
             response.json().then(data => { ErrorStore.set(data.message); });
         }
 
-        this.onError();
+        this.onError(response);
     }
 }
 

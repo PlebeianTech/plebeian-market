@@ -67,10 +67,32 @@ export class Pool {
         }
     }
 
+    public async connectAndGetProfile(userPubKey, foundProfileCB: (profile: any) => void) {
+        let that = this;
+        for (const relayUrl of relayUrlList) {
+            this.getRelayOrConnect(relayUrl).then(
+                async (relay) => {
+                    const sub: Sub = relay.sub([{kinds: [Kind.Metadata], authors: [userPubKey]}]);
+                    sub.on('event', event => {
+                        const profileContentJSON = event.content;
+
+                        if (profileContentJSON) {
+                            foundProfileCB(JSON.parse(profileContentJSON));
+                        }
+                    });
+                    that.subscriptions.push(sub);
+                },
+                function(error) {
+                    console.error("*** - connectAndSubscribeToChannel - ", error);
+                }
+            );
+        }
+    }
+
     private getRelayOrConnect(relayUrl: string) {
         let that = this;
 
-        return new Promise(async function (resolve, reject) {
+        return new Promise<Relay>(async function (resolve, reject) {
             let relay: Relay | undefined = that.relays.get(relayUrl);
 
             if (relay !== undefined) {
