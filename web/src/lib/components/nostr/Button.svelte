@@ -5,8 +5,8 @@
     import {Info, user} from "$lib/stores";
 
     export let pmURL: string | null;
-    let nostrRoomId;
 
+    let nostrRoomId;
     let message: string;
     let textConfirmationVisible: boolean;
 
