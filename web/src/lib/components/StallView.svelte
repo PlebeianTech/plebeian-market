@@ -402,6 +402,8 @@
 
       <!-- NOSTR -->
       <div class="lg:w-3/6 my-2 grid place-items-top lg:h-1/2 sticky top-20 lg:px-0 px-2">
+          <h3 class="text-2xl lg:text-4xl fontbold mt-0 lg:mt-8 mb-2">Stall Chat</h3>
+
           <NostrChat
               messageLimit={500}
               {nostrRoomId}
