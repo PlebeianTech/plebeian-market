@@ -3,15 +3,19 @@
   import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import { getValue } from 'btc2fiat';
-  import { getProfile } from "$lib/services/api";
-  import { token, user, BTC2USD } from "$lib/stores";
+  import { Pool } from '$lib/nostr/pool';
+  import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
+  import { token, user, BTC2USD, Info } from "$lib/stores";
   import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
+  import { decodeNpub } from "$lib/nostr/utils";
   import Modal from "$lib/components/Modal.svelte";
   import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
   import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
 
   let modal : Modal | null;
   let modalVisible = false;
+
+  let pool = new Pool();
 
   let prefersDark = true;
 
@@ -44,6 +48,30 @@
       getProfile(tokenValue, 'me', u => { user.set(u); });
   }
 
+  function saveProfile(nym) {
+    putProfile($token, {nym},
+        u => {
+            Info.set("Your nym has been imported from Nostr!");
+            user.set(u);
+        },
+        new ErrorHandler(false,
+            response => {
+                if (response.status === 400) {
+                    response.json().then(
+                        data => {
+                            if (data.field === 'nym' && data.reason === 'duplicated') {
+                                // append a random number and try again... best we can do, I guess,
+                                // slightly nicer would be to append some Bip39 words...
+                                setTimeout(() => { saveProfile(nym + (Math.trunc(Math.random() * 100)).toString()); }, 100);
+                            }
+                        }
+                    );
+                }
+            }
+        )
+    );
+  }
+
   async function fetchFiatRate() {
       BTC2USD.set(await getValue());
   }
@@ -71,19 +99,35 @@
               return;
           }
 
-          if ((u.nym === null || u.nym === "") && u.nostrPublicKey === null) {
-              showModal(TwitterUsername, true,
-                  (saved) => {
-                      if (saved) {
-                          if ($user && !$user.twitterUsernameVerified) {
-                              showModal(TwitterVerification, true);
-                          }
-                      } else {
-                          // trying to hide the modal if you didn't set your Twitter username logges you out
-                          logout();
-                      }
-                  });
-          }
+          if (u.nostrPublicKey === null) {
+            if (u.nym === null || u.nym === "") {
+                showModal(TwitterUsername, true,
+                    (saved) => {
+                        if (saved) {
+                            if ($user && !$user.twitterUsernameVerified) {
+                                showModal(TwitterVerification, true);
+                            }
+                        } else {
+                            // trying to hide the modal if you didn't set your Twitter username logges you out
+                            logout();
+                        }
+                    });
+            }
+        } else {
+            if (u.nym === null || u.nym === "") {
+                console.log(decodeNpub(u.nostrPublicKey));
+                pool.connectAndGetProfile(decodeNpub(u.nostrPublicKey),
+                    nostrProfile => {
+                        let name = <string>nostrProfile.name;
+                        name = name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+                        while (name.length < 3) {
+                            name += "0"; // just pas with zeroes - not ideal, but they can always change it later
+                        }
+
+                        saveProfile(name);
+                    });
+            }
+        }
       });
   onDestroy(userUnsubscribe);
 </script>
