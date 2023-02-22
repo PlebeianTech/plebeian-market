@@ -30,21 +30,16 @@ export function getEnvironmentInfo() {
     return import.meta.env.MODE;
 }
 
-export function logout(gotoUrl) {
+export function logout(gotoUrl?: string) {
     token.set(null);
-    if ( browser ) {
+
+    if (browser) {
         localStorage.removeItem('token');
     }
 
-    if (gotoUrl === false) {
-        return;
+    if (gotoUrl !== undefined) {
+        goto(gotoUrl);
     }
-
-    if (typeof gotoUrl !== 'string') {
-        gotoUrl = "/";
-    }
-
-    goto(gotoUrl);
 }
 
 export function sats2usd(sats: number, btc2usd: number | null): number | null {

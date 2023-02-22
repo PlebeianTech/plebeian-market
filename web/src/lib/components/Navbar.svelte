@@ -5,7 +5,7 @@
   import { getValue } from 'btc2fiat';
   import { getProfile } from "$lib/services/api";
   import { token, user, BTC2USD } from "$lib/stores";
-  import { isProduction, getBaseUrl, getEnvironmentInfo, logout } from "$lib/utils";
+  import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
   import Modal from "$lib/components/Modal.svelte";
   import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
   import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -71,7 +71,7 @@
               return;
           }
 
-          if (u.nym === null || u.nym === "") {
+          if ((u.nym === null || u.nym === "") && u.nostrPublicKey === null) {
               showModal(TwitterUsername, true,
                   (saved) => {
                       if (saved) {
@@ -80,7 +80,7 @@
                           }
                       } else {
                           // trying to hide the modal if you didn't set your Twitter username logges you out
-                          logout(false);
+                          logout();
                       }
                   });
           }
@@ -174,7 +174,7 @@
                     </div>
                 </label>
                 <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-52 z-40">
-                    {#if !$user.twitterUsernameVerified}
+                    {#if $user.twitterUsername !== null && !$user.twitterUsernameVerified}
                         <li>
                             <label for="twitter-verification-modal" on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button">
                                 Verify Twitter

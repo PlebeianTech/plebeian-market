@@ -68,7 +68,7 @@
                     <Resume onSave={onSaved} />
                 {:else if currentPage === TWITTER_PAGE}
                     <TwitterUsername />
-                    {#if !$user.twitterUsernameVerified}
+                    {#if $user.twitterUsername !== null && !$user.twitterUsernameVerified}
                         <div class="mt-4">
                             <TwitterVerification />
                         </div>
