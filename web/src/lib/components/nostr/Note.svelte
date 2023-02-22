@@ -50,7 +50,7 @@
         {/if}
 
         <!-- MESSAGES AND ICONS -->
-        <div class="mt-2 mb-1" style="word-break: break-word;">{@html message.content}</div>
+        <div class="mt-2 mb-1 whitespace-pre-wrap" style="word-break: break-word;">{@html message.content}</div>
 
         {#if message.imagePreviewUrl}
             <ImagePreview imagePreviewUrl={message.imagePreviewUrl}></ImagePreview>
