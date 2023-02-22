@@ -1,4 +1,4 @@
-import {getEventHash, nip05, Kind} from "nostr-tools";
+import {getEventHash, nip05, nip19, Kind} from "nostr-tools";
 
 export const relayUrlList = [
     // Amethyst relays
@@ -133,4 +133,8 @@ export function getMessage(messages, messageId) {
             return message;
         }
     }
+}
+
+export function decodeNpub(npub: string) {
+    return nip19.decode(npub).data;
 }

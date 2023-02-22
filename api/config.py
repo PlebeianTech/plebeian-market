@@ -62,7 +62,7 @@ TWITTER_USER = "PlebeianMarket"
 
 MOCK_NOSTR = bool(int(os.environ.get("MOCK_NOSTR", 0)))
 NOSTR_SECRETS = "/secrets/nostr.json"
-NOSTR_RELAYS = [ # TODO: find a way to sync these with the client (web/src/lib/nostr/utils.js)
+NOSTR_RELAYS = [ # TODO: find a way to sync these with the client (web/src/lib/nostr/utils.ts)
     "wss://relay.damus.io",
     "wss://relay.nostr.bg",
     "wss://nostr.mom",

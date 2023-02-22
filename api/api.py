@@ -162,7 +162,7 @@ def put_me(user):
             if not clean_nym.isalnum():
                 return jsonify({'message': "Your nym can only contain letters and numbers!"}), 400
             if m.User.query.filter_by(nym=clean_nym).one_or_none():
-                return jsonify({'message': "Your nym is already in use!"}), 400
+                return jsonify({'message': "Your nym is already in use!", 'field': 'nym', 'reason': 'duplicated'}), 400
             user.nym = clean_nym
 
     if 'email' in request.json:
