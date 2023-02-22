@@ -129,13 +129,14 @@
         url: $page.url.href,
         title: getShortTitle(serverLoadedItem.title),
         description: getShortDescription(serverLoadedItem.description),
-        images: [{ url: serverLoadedItem.media.length ? serverLoadedItem.media[0].url : "/images/logo.jpg" }],
+        images: [{ url: serverLoadedItem.media.length ? serverLoadedItem.media[0].url : getBaseUrl() + "images/logo.png" }],
     }}
     twitter={{
         site: import.meta.env.VITE_TWITTER_USER,
         handle: import.meta.env.VITE_TWITTER_USER,
         cardType: "summary_large_image",
-        imageAlt: getShortTitle(serverLoadedItem.title),
+        image: serverLoadedItem.media.length ? serverLoadedItem.media[0].url : getBaseUrl() + "images/logo.png",
+        imageAlt: getShortTitle(serverLoadedItem.title)
     }}
 />
 {/if}

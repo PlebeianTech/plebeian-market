@@ -65,6 +65,7 @@
             site: import.meta.env.VITE_TWITTER_USER,
             handle: import.meta.env.VITE_TWITTER_USER,
             cardType: "summary_large_image",
+            image: FaketoshiPNG,
             imageAlt: getShortTitle(data.serverLoadedCampaign.name),
         }}
 />

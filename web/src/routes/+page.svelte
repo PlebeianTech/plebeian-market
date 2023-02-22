@@ -12,7 +12,7 @@
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import {requestLoginModal} from "../lib/utils";
+    import {requestLoginModal, getBaseUrl} from "../lib/utils";
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
@@ -50,7 +50,7 @@
             description: "Plebeian Market is a distributed self sovereign P2P market place.",
             images: [
               {
-                url: "/images/Plebeian_Logo_OpenGraph.png",
+                url: getBaseUrl() + "images/Plebeian_Logo_OpenGraph.png",
                 alt: "Plebeian Market logo"
               }
             ],
@@ -59,6 +59,7 @@
             site: import.meta.env.VITE_TWITTER_USER,
             handle: import.meta.env.VITE_TWITTER_USER,
             cardType: "summary_large_image",
+            image: getBaseUrl() + "images/Plebeian_Logo_OpenGraph.png",
             imageAlt: "Plebeian Market logo",
         }}
 />
