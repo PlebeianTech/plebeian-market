@@ -473,7 +473,7 @@
         We use <b>Nostr</b> to power this chat. Click here to see more info
     </div>
     <div class="collapse-content">
-        <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that support channels and introduce this channel ID: {nostrRoomId}</p>
+        <p class="mb-4">If you prefer to participate in this chat using another Nostr client, you'll need one that supports channels and search for this channel ID: {nostrRoomId}</p>
     </div>
 </div>
 
