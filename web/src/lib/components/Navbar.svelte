@@ -48,11 +48,16 @@
       getProfile(tokenValue, 'me', u => { user.set(u); });
   }
 
-  function saveProfile(nym) {
+  function saveProfile(nym, profileImageUrl) {
     putProfile($token, {nym},
         u => {
             Info.set("Your nym has been imported from Nostr!");
             user.set(u);
+            putProfile($token, {profileImageUrl},
+                u => {
+                    Info.set("Your profile picture has been imported from Nostr!");
+                    user.set(u);
+                });
         },
         new ErrorHandler(false,
             response => {
@@ -62,7 +67,7 @@
                             if (data.field === 'nym' && data.reason === 'duplicated') {
                                 // append a random number and try again... best we can do, I guess,
                                 // slightly nicer would be to append some Bip39 words...
-                                setTimeout(() => { saveProfile(nym + (Math.trunc(Math.random() * 100)).toString()); }, 100);
+                                setTimeout(() => { saveProfile(nym + (Math.trunc(Math.random() * 100)).toString(), profileImageUrl); }, 100);
                             }
                         }
                     );
@@ -115,23 +120,27 @@
             }
         } else {
             if (u.nym === null || u.nym === "") {
-                console.log(decodeNpub(u.nostrPublicKey));
+                let gotProfile = false;
                 pool.connectAndGetProfile(decodeNpub(u.nostrPublicKey),
                     nostrProfile => {
+                        if (gotProfile) {
+                            return;
+                        }
+                        gotProfile = true;
+
                         let name = <string>nostrProfile.name;
                         name = name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
                         while (name.length < 3) {
                             name += "0"; // just pas with zeroes - not ideal, but they can always change it later
                         }
 
-                        saveProfile(name);
+                        saveProfile(name, nostrProfile.picture);
                     });
             }
         }
       });
   onDestroy(userUnsubscribe);
 </script>
-
 
 <nav class="backdrop-blur-lg border-b border-gray-400/70 z-50 fixed top-0 w-full">
 	<div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
