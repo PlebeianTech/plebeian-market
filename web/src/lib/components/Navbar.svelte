@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { browser } from '$app/environment';
-  import { goto } from '$app/navigation';
+  import { afterNavigate, goto } from '$app/navigation';
   import { getValue } from 'btc2fiat';
   import { getProfile } from "$lib/services/api";
   import { token, user, BTC2USD } from "$lib/stores";
-  import { isProduction, getBaseUrl, getEnvironmentInfo, logout } from "$lib/utils";
+  import { isProduction, getEnvironmentInfo, logout, requestLoginModal } from "$lib/utils";
   import Modal from "$lib/components/Modal.svelte";
   import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
   import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -86,6 +86,10 @@
           }
       });
   onDestroy(userUnsubscribe);
+
+  afterNavigate(() => {
+      showMenu = false;
+  })
 </script>
 
 
@@ -198,6 +202,10 @@
                     <li><a href="https://t.me/PlebeianMarket" target="_blank" rel="noreferrer">Telegram group</a></li>
                     <li><a href={null} on:click={() => logout()} class="modal-button cursor-pointer">Logout</a></li>
                 </ul>
+            </div>
+        {:else}
+            <div class="lg:dropdown lg:dropdown-end">
+                <button class="btn btn-primary mb-96" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login to Plebeian Market</button>
             </div>
         {/if}
 			</div>
