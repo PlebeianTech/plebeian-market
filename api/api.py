@@ -165,6 +165,9 @@ def put_me(user):
                 return jsonify({'message': "Your nym is already in use!", 'field': 'nym', 'reason': 'duplicated'}), 400
             user.nym = clean_nym
 
+    if 'profile_image_url' in request.json:
+        user.fetch_external_profile_image(request.json['profile_image_url'], get_s3())
+
     if 'email' in request.json:
         clean_email = (request.json['email'] or "").lower().strip()
         try:
@@ -220,7 +223,7 @@ def put_me(user):
                     if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
                         return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
 
-            if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
+            if not user.fetch_external_profile_image(twitter_user['profile_image_url'], get_s3()):
                 return jsonify({'message': "Error fetching profile picture!"}), 400
 
             if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
@@ -755,7 +758,7 @@ def publish(user, key, cls, singular, plural):
         if not twitter_user:
             return jsonify({'message': "Twitter profile not found!"}), 400
 
-        if not user.fetch_twitter_profile_image(twitter_user['profile_image_url'], get_s3()):
+        if not user.fetch_external_profile_image(twitter_user['profile_image_url'], get_s3()):
             return jsonify({'message': "Error fetching profile picture!"}), 500
 
         if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):

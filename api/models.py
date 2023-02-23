@@ -150,11 +150,7 @@ class User(XpubMixin, db.Model):
     def display_name(self):
         return f"{self.nym}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else self.nym
 
-    # TODO: rename the actual field to profile_image_url
-    twitter_profile_image_url = db.Column(db.String(256), nullable=True)
-    @property
-    def profile_image_url(self):
-        return self.twitter_profile_image_url
+    profile_image_url = db.Column(db.String(256), nullable=True)
 
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
@@ -207,11 +203,11 @@ class User(XpubMixin, db.Model):
 
     sales = db.relationship('Sale', backref='buyer', order_by="Sale.requested_at")
 
-    def fetch_twitter_profile_image(self, profile_image_url, s3):
-        url, _ = store_image(s3, f"user_{self.id}_twitter_profile_image", True, profile_image_url, None)
+    def fetch_external_profile_image(self, external_profile_image_url, s3):
+        url, _ = store_image(s3, f"user_{self.id}_profile_image", True, external_profile_image_url, None)
         if not url:
             return False
-        self.twitter_profile_image_url = url
+        self.profile_image_url = url
         return True
 
     def fetch_twitter_profile_banner(self, profile_banner_url, s3):
@@ -243,7 +239,7 @@ class User(XpubMixin, db.Model):
             'nostr_public_key': self.nostr_public_key,
             'nym': self.nym,
             'display_name': self.display_name,
-            'profile_image_url': self.twitter_profile_image_url,
+            'profile_image_url': self.profile_image_url,
             'email': self.email,
             'email_verified': self.email_verified,
             'telegram_username': self.telegram_username,
@@ -889,7 +885,7 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'is_mine': for_user == self.owner_id,
             'owner_nym': self.owner.nym,
             'owner_display_name': self.owner.display_name,
-            'owner_profile_image_url': self.owner.twitter_profile_image_url,
+            'owner_profile_image_url': self.owner.profile_image_url,
             'owner_email': self.owner.email,
             'owner_email_verified': self.owner.email_verified,
             'owner_telegram_username': self.owner.telegram_username,
@@ -1114,7 +1110,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'is_mine': for_user == self.item.seller_id if for_user else False,
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
-            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
+            'seller_profile_image_url': self.item.seller.profile_image_url,
             'seller_email': self.item.seller.email,
             'seller_email_verified': self.item.seller.email_verified,
             'seller_telegram_username': self.item.seller.telegram_username,
@@ -1127,7 +1123,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             for b, bd in sorted(app.config['BADGES'].items(), key=lambda i: i[1]['threshold_usd'])]
 
         if self.item.category == Category.Time.value:
-            auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.twitter_profile_image_url}]
+            auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.profile_image_url}]
         else:
             auction['media'] = [media.to_dict() for media in self.item.media]
 
@@ -1144,7 +1140,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
             auction['winner_nym'] = winning_bid.buyer.nym
             auction['winner_display_name'] = winning_bid.buyer.display_name
-            auction['winner_profile_image_url'] = winning_bid.buyer.twitter_profile_image_url
+            auction['winner_profile_image_url'] = winning_bid.buyer.profile_image_url
             auction['winner_email'] = winning_bid.buyer.email
             auction['winner_email_verified'] = winning_bid.buyer.email_verified
             auction['winner_telegram_username'] = winning_bid.buyer.telegram_username
@@ -1270,7 +1266,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'is_mine': for_user == self.item.seller_id,
             'seller_nym': self.item.seller.nym,
             'seller_display_name': self.item.seller.display_name,
-            'seller_profile_image_url': self.item.seller.twitter_profile_image_url,
+            'seller_profile_image_url': self.item.seller.profile_image_url,
             'seller_email': self.item.seller.email,
             'seller_email_verified': self.item.seller.email_verified,
             'seller_telegram_username': self.item.seller.telegram_username,
@@ -1279,7 +1275,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
         }
         if self.item.category == Category.Time.value:
-            listing['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.twitter_profile_image_url}]
+            listing['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.profile_image_url}]
         else:
             listing['media'] = [media.to_dict() for media in self.item.media]
 
@@ -1377,7 +1373,7 @@ class Bid(db.Model):
             'amount': self.amount,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
-            'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
+            'buyer_profile_image_url': self.buyer.profile_image_url,
             'buyer_email': self.buyer.email,
             'buyer_email_verified': self.buyer.email_verified,
             'buyer_telegram_username': self.buyer.telegram_username,
@@ -1489,7 +1485,7 @@ class Sale(db.Model):
             'shipping_worldwide': self.shipping_worldwide,
             'seller_nym': self.item.seller.nym if self.item else None,
             'seller_display_name': self.item.seller.display_name if self.item else None,
-            'seller_profile_image_url': self.item.seller.twitter_profile_image_url if self.item else None,
+            'seller_profile_image_url': self.item.seller.profile_image_url if self.item else None,
             'seller_email': self.item.seller.email if self.item else None,
             'seller_email_verified': self.item.seller.email_verified if self.item else False,
             'seller_telegram_username': self.item.seller.telegram_username if self.item else None,
@@ -1498,7 +1494,7 @@ class Sale(db.Model):
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else False,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
-            'buyer_profile_image_url': self.buyer.twitter_profile_image_url,
+            'buyer_profile_image_url': self.buyer.profile_image_url,
             'buyer_email': self.buyer.email,
             'buyer_email_verified': self.buyer.email_verified,
             'buyer_telegram_username': self.buyer.telegram_username,
