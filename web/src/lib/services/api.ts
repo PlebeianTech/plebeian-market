@@ -212,7 +212,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, xpub?: string, nym?: string, profileImageUrl?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -225,6 +225,9 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, contr
     }
     if (profile.nym !== undefined) {
         json.nym = profile.nym;
+    }
+    if (profile.profileImageUrl !== undefined) {
+        json.profile_image_url = profile.profileImageUrl;
     }
     if (profile.stallName !== undefined) {
         json.stall_name = profile.stallName;
