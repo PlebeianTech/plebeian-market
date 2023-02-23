@@ -157,10 +157,12 @@ export function loginLnurl(k1, initialResponseCB: (response: {k1: string, lnurl:
         });
 }
 
-export function loginNostr(npub: string, verificationPhrase: string | null, initialResponseCB: () => void = () => {}, successResponseCB: (response: GetLoginSuccessResponse) => void = (_) => {}, invalidVerificationPhraseCB: () => void = () => {}) {
+export function loginNostr(npub: string, verificationPhrase: string | null, sentVerificationPhraseCB: () => void = () => {}, successCB: (response: GetLoginSuccessResponse) => void = (_) => {}, errorHandler = new ErrorHandler()) {
     let params: any = {npub};
     if (verificationPhrase !== null) {
         params.verification_phrase = verificationPhrase;
+    } else {
+        params.send_verification_phrase = true;
     }
     fetchAPI("/login/nostr", 'PUT', null, JSON.stringify(params),
         response => {
@@ -168,20 +170,14 @@ export function loginNostr(npub: string, verificationPhrase: string | null, init
                 response.json().then(
                     data => {
                         if (data.success) {
-                            successResponseCB({token: data.token, user: userFromJson(data.user)});
-                        } else {
-                            initialResponseCB();
+                            successCB({token: data.token, user: userFromJson(data.user)});
+                        } else if (data.sent) {
+                            sentVerificationPhraseCB();
                         }
                     }
                 );
-            } else if (response.status === 400) {
-                response.json().then(
-                    data => {
-                        if (data.invalid_verification_phrase) {
-                            invalidVerificationPhraseCB();
-                        }
-                    }
-                );
+            } else {
+                errorHandler.handle(response);
             }
         }
     );
