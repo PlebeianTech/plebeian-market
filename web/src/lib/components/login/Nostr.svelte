@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
-    import { loginNostr } from "$lib/services/api";
+    import { createEventDispatcher, onMount } from 'svelte';
+    import { ErrorHandler, loginNostr } from "$lib/services/api";
     import type { User } from "$lib/types/user";
-    import { token, user, Error } from "$lib/stores";
+    import { token, user, Info } from "$lib/stores";
 
     const dispatch = createEventDispatcher();
 
@@ -13,26 +13,33 @@
         SetVerificationPhrase,
     }
 
-    let step = Step.SetKey;
+    let step: Step;
 
     let npub: string | null = null;
     let verificationPhrase: string | null = null;
 
-    function setKey() {
+    function sendVerificationPhrase() {
         if (npub === null) {
             return;
         }
 
-        loginNostr(npub, null, () => { step = Step.SetVerificationPhrase; });
+        loginNostr(npub, null,
+            () => {
+                Info.set("Sent the verification phrase!");
+                step = Step.SetVerificationPhrase;
+            });
     }
 
+    let verifying = false;
     function verify() {
         if (npub === null || verificationPhrase === null) {
             return;
         }
 
-        loginNostr(npub, verificationPhrase, undefined,
+        verifying = true;
+        loginNostr(npub, verificationPhrase, () => verifying = false,
             async (response) => {
+                verifying = false;
                 token.set(response.token);
                 localStorage.setItem('token', response.token);
                 dispatch('login', {})
@@ -43,11 +50,12 @@
 
                 onLogin(response.user);
             },
-            () => {
-                Error.set("Wrong incantation...");
-            }
-        );
+            new ErrorHandler(true, () => verifying = false));
     }
+
+    onMount(() => {
+        step = Step.SetKey;
+    });
 </script>
 
 {#if step === Step.SetKey}
@@ -60,7 +68,7 @@
         </div>
     </div>
     <div class="w-full flex items-center justify-center mt-4">
-        <button class="btn btn-primary" on:click={setKey}>Continue</button>
+        <button class="btn btn-primary" on:click={sendVerificationPhrase}>Continue</button>
     </div>
 {:else if step === Step.SetVerificationPhrase}
     <div class="w-full flex items-center justify-center mt-4">
@@ -72,7 +80,8 @@
         </div>
     </div>
     <div class="w-full flex items-center justify-center mt-4 gap-5">
-        <button class="btn btn-primary" on:click={() => step = Step.SetKey}>Back</button>
-        <button class="btn btn-primary" on:click={verify}>Verify</button>
+        <button class="btn btn-primary" class:btn-disabled={verifying} on:click={verify}>Verify</button>
+        <button class="btn btn-secondary" on:click={() => step = Step.SetKey}>Back</button>
+        <button class="btn btn-secondary" on:click={sendVerificationPhrase}>Resend</button>
     </div>
 {/if}

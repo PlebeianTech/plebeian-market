@@ -105,25 +105,36 @@ def login_nostr():
     if 'npub' not in request.json:
         return jsonify({'message': "Missing npub."}), 400
 
-    if 'verification_phrase' not in request.json:
-        existing_auth = m.NostrAuth.query.filter_by(key=request.json['npub']).first()
-        if existing_auth:
-            db.session.delete(existing_auth)
-            db.session.commit()
-        auth = m.NostrAuth(key=request.json['npub'])
+    auth = m.NostrAuth.query.filter_by(key=request.json['npub']).first()
+
+    if request.json.get('send_verification_phrase'):
+        if auth:
+            if auth.verification_phrase_sent_at and auth.verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
+                return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
+        else:
+            auth = m.NostrAuth(key=request.json['npub'])
+            db.session.add(auth)
+
         auth.generate_verification_phrase()
         get_nostr().send_dm(user_npub=auth.key, body=auth.verification_phrase)
-        db.session.add(auth)
+        auth.verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
 
-        return jsonify({})
-    else:
-        auth = m.NostrAuth.query.filter_by(key=request.json['npub']).first()
-        if not auth:
-            return jsonify({'message': "Verification failed."}), 400
-        if not auth.verification_phrase == request.json['verification_phrase']:
-            return jsonify({'message': "Verification failed.", 'invalid_verification_phrase': True}), 400
+        return jsonify({'sent': True})
 
+    if 'verification_phrase' not in request.json:
+        return jsonify({'message': "Missing verification phrase."}), 400
+
+    if not auth:
+        # this is a strange case - they provide a verification phrase, but there is no log in attempt for the given NPUB - no need to give too much info
+        return jsonify({'message': "Verification failed."}), 400
+
+    if auth.verification_phrase_check_counter > 5:
+        return jsonify({'message': "Please try requesting a new verification phrase!"}), 400
+
+    clean_phrase = ' '.join([w for w in request.json['verification_phrase'].lower().split(' ') if w])
+
+    if auth.verification_phrase == clean_phrase:
         user = m.User.query.filter_by(nostr_public_key=auth.key).first()
 
         if not user:
@@ -131,11 +142,17 @@ def login_nostr():
             db.session.add(user)
 
         db.session.delete(auth)
+
         db.session.commit()
 
         token = jwt.encode({'user_nostr_public_key': user.nostr_public_key, 'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS'])}, app.config['SECRET_KEY'], "HS256")
 
         return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
+    else:
+        time.sleep(2 ** auth.verification_phrase_check_counter)
+        auth.verification_phrase_check_counter += 1
+        db.session.commit()
+        return jsonify({'message': "Wrong incantation..."}), 400
 
 @api_blueprint.route('/api/users/<nym>', methods=['GET'])
 def get_profile(nym):
