@@ -204,8 +204,8 @@
                 </ul>
             </div>
         {:else}
-            <div class="lg:dropdown lg:dropdown-end mb-96 lg:hidden">
-                <button class="btn btn-primary" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login to Plebeian Market</button>
+            <div class="lg:dropdown lg:dropdown-end mb-96 lg:mb-2">
+                <button class="btn btn-primary" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</button>
             </div>
         {/if}
 			</div>

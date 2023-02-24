@@ -5,32 +5,17 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { ErrorHandler, getEntities } from "$lib/services/api";
-    import { user } from "$lib/stores";
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import {requestLoginModal, getBaseUrl} from "../lib/utils";
+    import {getBaseUrl} from "../lib/utils";
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
     $: items = (<(Auction | Listing)[]>[]).concat(auctions || [], listings || []).sort((lhs, rhs) => lhs.start_date !== null && rhs.start_date !== null ? rhs.start_date.getTime() - lhs.start_date.getTime() : 0);
-
-    function go() {
-        if ($user && $user.nym) {
-            goToStall()
-        } else {
-            requestLoginModal(goToStall);
-        }
-    }
-
-    function goToStall() {
-        if ($user && $user.nym) {
-            window.location.href = `${window.location.protocol}//${window.location.host}/stall/${$user.nym}`;
-        }
-    }
 
     onMount(async () => {
         getEntities({endpoint: 'auctions/featured', responseField: 'auctions', fromJson: auctionFromJson}, null,
@@ -72,9 +57,6 @@
           <div class="">
             <Typewriter />
           </div>
-          <button class="my-8 btn btn-primary w-48 border rounded flex items-center" on:click={go} on:keypress={go}>
-            Let's go
-           </button>  
       </div>
     </div>
   </div>
