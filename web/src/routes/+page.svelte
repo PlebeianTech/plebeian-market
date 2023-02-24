@@ -16,6 +16,7 @@
 
     let auctions: Auction[] | null = null;
     let listings: Listing[] | null = null;
+    $: items = (<(Auction | Listing)[]>[]).concat(auctions || [], listings || []).sort((lhs, rhs) => lhs.start_date !== null && rhs.start_date !== null ? rhs.start_date.getTime() - lhs.start_date.getTime() : 0);
 
     function go() {
         if ($user && $user.nym) {
@@ -81,20 +82,11 @@
 </div>
 
 <div class="lg:w-2/3 mx-auto w-full lg:columns-3 space-y-2 py-20 my-20">
-    {#if auctions !== null}
-        {#each auctions as auction}
-            <div class="h-auto my-3 self-center">
-                <ItemCardSmall entity={auction} showCampaign={true} showOwner={true} />
-            </div>
-        {/each}
-    {/if}
-    {#if listings !== null}
-        {#each listings as listing}
-            <div class="h-auto my-3 self-center">
-                <ItemCardSmall entity={listing} showCampaign={true} showOwner={true} />
-            </div>
-        {/each}
-    {/if}
+    {#each items as item}
+        <div class="h-auto my-3 self-center">
+            <ItemCardSmall entity={item} showCampaign={true} showOwner={true} />
+        </div>
+    {/each}
 </div>
 
 <style>

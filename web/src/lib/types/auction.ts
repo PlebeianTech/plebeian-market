@@ -40,7 +40,7 @@ export class Auction implements IEntity, Item {
     shipping_domestic_usd: number = 0;
     shipping_worldwide_usd: number = 0;
     duration_hours: number = isProduction() ? 3 * 24 : 24;
-    start_date?: Date | null;
+    start_date: Date | null = null;
     started: boolean = false;
     end_date?: Date | null;
     end_date_extended: boolean = false;

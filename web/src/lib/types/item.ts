@@ -23,7 +23,7 @@ export interface Item {
     description: string;
     descriptionPlaceholder: string;
     category: string | null;
-    start_date?: Date | null;
+    start_date: Date | null;
     started: boolean;
     end_date?: Date | null;
     ended: boolean;

@@ -20,7 +20,7 @@ export class Listing implements IEntity, Item {
     shipping_worldwide_usd: number = 0;
     price_usd: number = 0;
     available_quantity: number = 0;
-    start_date?: Date | null;
+    start_date: Date | null = null;
     started: boolean = false;
     ended: boolean = false;
     sales: Sale[] = [];

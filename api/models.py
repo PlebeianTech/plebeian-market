@@ -1037,8 +1037,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         return self.start_date
 
     def featured_sort_key(self):
-        # show auctions with most bids at the top
-        return -len(self.bids)
+        # show new auctions at the top
+        return -self.start_date.timestamp()
 
     def get_not_editable_reason(self):
         if self.start_date is not None and self.start_date < datetime.utcnow() - timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']):
