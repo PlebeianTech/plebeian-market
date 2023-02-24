@@ -7,9 +7,7 @@ import { getBaseUrl } from "$lib/utils";
 
 const ROBOTS_TXT = `User-agent: *
 Allow: /
-Disallow: /purchases
-Disallow: /sales
-Disallow: /settings
+Disallow: /account
 Sitemap: ${getBaseUrl()}sitemap.xml
 `;
 

@@ -855,6 +855,13 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
 
     sales = db.relationship('Sale', backref='campaign', order_by="Sale.requested_at")
 
+    def sort_key(self):
+        return self.created_at
+
+    @classmethod
+    def query_all_active(cls):
+        return cls.query
+
     def to_dict(self, for_user=None):
         campaign = {
             'key': self.key,

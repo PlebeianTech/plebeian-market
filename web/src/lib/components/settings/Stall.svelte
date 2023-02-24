@@ -41,7 +41,7 @@
     });
 </script>
 
-{#if $page.url.pathname === "/settings"}
+{#if $page.url.pathname === "/account/settings"}
     <div class="text-2xl breadcrumbs">
         <ul>
             <li>Settings</li>
