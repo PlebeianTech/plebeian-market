@@ -48,9 +48,9 @@
 </script>
 
 <div bind:this={box} class="group">
+    {#if isEditable}
     <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
         <div class="btn-xs"></div>
-        {#if isEditable}
             {#if item instanceof Listing || (item instanceof Auction && item.editable_for_seconds && item.bids.length === 0)}
                 <button class="btn btn-primary btn-circle btn-xs" on:click={del}>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" width="512.000000pt" height="512.000000pt" viewBox="0 0 512 512" stroke="currentColor">
@@ -67,15 +67,16 @@
                         <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
                             <path d="M3861 5110 c-57 -12 -157 -60 -201 -96 -55 -45 -3166 -3188 -3178 -3211 -17 -30 -482 -1665 -482 -1691 0 -53 62 -112 117 -112 10 0 394 108 852 239 l834 240 136 134 c399 393 2734 2707 2897 2871 243 243 279 305 279 476 0 89 -17 155 -58 230 -37 69 -787 823 -858 864 -25 14 -68 33 -95 41 -62 19 -186 27 -243 15z m187 -245 c47 -20 784 -752 814 -810 29 -55 29 -145 0 -200 -11 -22 -139 -158 -286 -305 l-266 -265 -512 513 -513 512 265 266 c170 170 279 273 305 285 49 23 142 25 193 4z m-710 -938 l212 -212 -1119 -1119 -1119 -1119 -85 169 c-47 93 -95 178 -107 189 -19 17 -39 21 -137 23 -63 2 -113 7 -111 12 4 9 2241 2268 2248 2269 3 1 101 -95 218 -212z m800 -807 c-5 -10 -2260 -2245 -2268 -2248 -5 -2 -10 48 -12 111 -2 98 -6 118 -23 137 -11 12 -96 60 -189 107 l-169 85 1119 1119 1119 1119 212 -212 c117 -117 212 -215 211 -218z m-3053 -1708 l110 -217 217 -110 218 -110 0 -152 0 -152 -52 -16 c-29 -8 -154 -44 -278 -80 l-225 -64 -282 282 -282 282 64 225 c36 124 72 249 80 278 l16 52 152 0 152 0 110 -218z m-455 -787 c101 -101 182 -186 180 -188 -10 -8 -513 -148 -517 -144 -5 6 140 517 147 517 3 0 88 -83 190 -185z" />
                         </g>
-                    </svg>            
+                    </svg>
                 </button>
                 {#if item instanceof Auction && item.editable_for_seconds && item.bids.length === 0}
                     <Countdown totalSeconds={item.editable_for_seconds} style={CountdownStyle.Compact} />
                     <span>editable for</span>
                 {/if}
             {/if}
-        {/if}
     </div>
+    {/if}
+
     <div class="card bg-base-300 max-w-full overflow-hidden shadow-xl my-3 mx-3">
         <a href={url}>
             <figure class="h-auto flex justify-center">

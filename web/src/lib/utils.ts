@@ -1,6 +1,6 @@
 import {browser} from "$app/environment";
 import {goto} from "$app/navigation";
-import {token, loginModalState} from "$lib/stores";
+import {token, loginModalState, Info} from "$lib/stores";
 
 export let SATS_IN_BTC = 100000000;
 export let SHORT_TITLE_LIMIT = 70;
@@ -31,6 +31,8 @@ export function getEnvironmentInfo() {
 }
 
 export function logout(gotoUrl) {
+    Info.set("You're Logged out");
+
     token.set(null);
     if ( browser ) {
         localStorage.removeItem('token');

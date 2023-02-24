@@ -63,7 +63,7 @@
 
 </div>
 
-<div class="lg:w-2/3 mx-auto w-full lg:columns-3 space-y-2 py-20 my-20">
+<div class="lg:w-2/3 mx-auto w-full lg:columns-3 space-y-2 py-4">
     {#each items as item}
         <div class="h-auto my-3 self-center">
             <ItemCardSmall entity={item} showCampaign={true} showOwner={true} />
