@@ -138,3 +138,7 @@ export function getMessage(messages, messageId) {
 export function decodeNpub(npub: string) {
     return nip19.decode(npub).data;
 }
+
+export function encodeNpub(key: string) {
+    return nip19.npubEncode(key);
+}

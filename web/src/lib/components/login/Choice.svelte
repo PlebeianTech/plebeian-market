@@ -20,7 +20,7 @@
 
 <div class="w-full flex items-center justify-center mt-4">
     <div class="tabs tabs-boxed">
-        <a class="tab tab-lg" class:tab-active={type === LoginType.Lnurl} href={null} on:click={() => type = LoginType.Lnurl}>LNURL</a>
+        <a class="tab tab-lg" class:tab-active={type === LoginType.Lnurl} href={null} on:click={() => type = LoginType.Lnurl}>Lightning</a>
         {#if !isProduction()}
             <a class="tab tab-lg" class:tab-active={type === LoginType.Nostr} href={null} on:click={() => type = LoginType.Nostr}>Nostr</a>
         {/if}
