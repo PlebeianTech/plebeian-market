@@ -122,11 +122,14 @@
             if (u.nym === null || u.nym === "") {
                 let gotProfile = false;
                 pool.connectAndGetProfile(decodeNpub(u.nostrPublicKey),
-                    nostrProfile => {
+                    async (nostrProfile) => {
                         if (gotProfile) {
                             return;
                         }
                         gotProfile = true;
+
+                        await pool.unsubscribeEverything();
+                        await pool.disconnect();
 
                         let name = <string>nostrProfile.name;
                         name = name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
