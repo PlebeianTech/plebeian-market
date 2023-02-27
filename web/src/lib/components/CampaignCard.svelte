@@ -7,8 +7,8 @@
     import type { Campaign } from "$lib/types/campaign";
     import Confirmation from "$lib/components/Confirmation.svelte";
 
-    // svelte-ignore unused-export-let
     export let isEditable = false;
+
     // svelte-ignore unused-export-let
     export let showCampaign = false;
     // svelte-ignore unused-export-let
@@ -54,8 +54,10 @@
             {#if confirmation}
                 <Confirmation onContinue={confirmation.onContinue} onCancel={() => confirmation = null} />
             {:else}
-                <button class="btn mx-1" on:click={() => onEdit(campaign)}>Edit</button>
-                <button class="btn mx-1" on:click={del}>Delete</button>
+                {#if isEditable}
+                    <button class="btn mx-1" on:click={() => onEdit(campaign)}>Edit</button>
+                    <button class="btn mx-1" on:click={del}>Delete</button>
+                {/if}
                 <button class="btn mx-1" on:click={view}>View</button>
             {/if}
         </div>

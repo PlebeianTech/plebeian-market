@@ -485,6 +485,9 @@ def post_entity(user, cls, singular, has_item, campaign_key):
 @api_blueprint.route('/api/listings/active',
     defaults={'cls': m.Listing, 'plural': 'listings', 'featured': False},
     methods=['GET'])
+@api_blueprint.route('/api/campaigns/active',
+    defaults={'cls': m.Campaign, 'plural': 'campaigns', 'featured': False},
+    methods=['GET'])
 @api_blueprint.route('/api/auctions/featured',
     defaults={'cls': m.Auction, 'plural': 'auctions', 'featured': True},
     methods=['GET'])
@@ -495,9 +498,13 @@ def get_entities(cls, plural, featured):
     """
     Active auctions are all auctions currently running.
     Active listings are all listings that have been published and are still available for sale.
-    Featured auctions / listings are subsets of the two:
+    Active campaigns are currently all campaigns. We don't have a way to mark a campaign as "ended", but that should eventually be added.
+    Featured auctions/listings are subsets of the active auctions/listings:
         currently they simply exclude items that the moderators have marked as hidden,
         but we will eventually have a better algorithm to pick "featured" items.
+    There are no "featured campaigns" because users can't (yet) add their own campaigns, so we only have our own.
+        Also, since Campaign is not related to Items, it would not be able to take advantage of is_hidden.
+        But an is_hiddden flad *could* be added to Campaign if needed.
     """
     entities = cls.query_all_active()
     if featured:

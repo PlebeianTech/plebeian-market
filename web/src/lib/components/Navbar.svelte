@@ -141,11 +141,10 @@
             <div class="lg:inline badge badge-primary ml-2 lg:my-0 mt-4">{getEnvironmentInfo()}</div>
         {/if}
 
-        <p>
-          <a href="/campaigns/we-are-all-hodlonaut" class="btn btn-link normal-case animate-pulse lg:my-0 mt-4">We are All Hodlonaut Campaign</a>
-        </p>
-
         <div class="lg:flex hidden">
+          <p>
+              <a href="/campaigns" class="btn btn-ghost normal-case">Campaigns</a>
+          </p>
           <p>
               <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
           </p>
@@ -189,16 +188,17 @@
                         </li>
                     {/if}
                     <li class="block md:hidden md:h-0"><a href="/" class="modal-button cursor-pointer">Home</a></li>
+                    <li class="block md:hidden md:h-0"><a href="/campaigns" class="modal-button cursor-pointer">Campaigns</a></li>
                     <li class="block md:hidden md:h-0"><a href="/marketsquare" class="modal-button cursor-pointer">Market Square</a></li>
                     <li class="block md:hidden md:h-0"><a href="/about" class="modal-button cursor-pointer">About</a></li>
                     <li class="block md:hidden md:h-0"><a href="/faq" class="modal-button cursor-pointer">FAQ</a></li>
                     <li><a rel="external" href="/stall/{$user.nym}">My stall</a></li>
                     {#if $user.isModerator}
-                        <li><a href={null} on:click|preventDefault={() => goto("/campaigns")}>My campaigns</a></li>
+                        <li><a href="/account/campaigns">My campaigns</a></li>
                     {/if}
-                    <li><a href="/purchases/">My purchases</a></li>
-                    <li><a href="/sales/">My sales</a></li>
-                    <li><a href="/settings">Settings</a></li>
+                    <li><a href="/account/purchases/">My purchases</a></li>
+                    <li><a href="/account/sales/">My sales</a></li>
+                    <li><a href="/account/settings">Settings</a></li>
                     <li><a href="https://t.me/PlebeianMarket" target="_blank" rel="noreferrer">Telegram group</a></li>
                     <li><a href={null} on:click={() => logout()} class="modal-button cursor-pointer">Logout</a></li>
                 </ul>
