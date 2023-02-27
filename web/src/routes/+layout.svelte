@@ -81,7 +81,7 @@
     });
 </script>
 
-<div class="h-screen py-20 mt-2">
+<div class="h-screen pt-12 lg:pt-20 pb-20 mt-2">
     <Navbar />
     <div style="min-height: 83.33%">
         <slot />
