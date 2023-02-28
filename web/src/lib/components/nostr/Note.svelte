@@ -9,16 +9,16 @@
     export let pool;
     export let message;
     export let onReply = (_) => {};
+    export let onImgError = (_) => {};
 </script>
 
 <div class="flex py-2 overflow-hidden" class:mt-0={message.samePubKey} class:mt-3={!message.samePubKey} class:profileInfo={!message.samePubKey} data-note-id="{message.id}">
-
     <!-- AVATAR -->
     <div>
         <div class="chat-image avatar">
             <div class="w-14 ml-4 lg:mr-4 rounded-full">
                 {#if !message.samePubKey}
-                    <img src="{message.profileImage ?? profilePicturePlaceHolder}" alt="profile picture" class:profileInfoImage={!message.samePubKey} />
+                    <img src="{message.profileImage ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement, message, profilePicturePlaceHolder)} alt="profile picture" class:profileInfoImage={!message.samePubKey} />
                 {/if}
             </div>
         </div>

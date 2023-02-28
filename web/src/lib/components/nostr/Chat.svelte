@@ -8,6 +8,7 @@
     import {hasExtension, queryNip05, filterTags, getMessage, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
     import {requestLoginModal} from "$lib/utils";
+    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
@@ -53,6 +54,19 @@
     // null: to be requested
     // true: requested
     let notesMap = new Map();
+
+    export let onImgError = (image, message) => {
+        image.onerror = "";
+        image.src = profilePicturePlaceHolder;
+
+        // If the image is broken, let's put the placeholder image
+        // in the profile so the next re-draws of the note does not
+        // try to put the broken image again
+        let profileInfo = profileImagesMap.get(message.pubkey)
+        if (profileInfo && profileInfo !== null && profileInfo !== true) {
+            profileInfo.picture = profilePicturePlaceHolder;
+        }
+    }
 
     const pool: Pool = new Pool();
 
@@ -481,7 +495,7 @@
      style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
    <div>
         {#each sortedMessages as message}
-            <NostrNote {pool} {message} {onReply}></NostrNote>
+            <NostrNote {pool} {message} {onReply} {onImgError}></NostrNote>
         {/each}
    </div>
 </div>
