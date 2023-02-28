@@ -201,7 +201,6 @@ class User(XpubMixin, db.Model):
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')
-    auctions = db.relationship('Auction', backref='seller', order_by="desc(Auction.created_at)", lazy='dynamic')
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
@@ -985,23 +984,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    ########
-    # TODO: these should be removed, as they are now duplicated in the Item class!
-    seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
-    title = db.Column(db.String(210), nullable=True)
-    description = db.Column(db.String(21000), nullable=True)
-    shipping_from = db.Column(db.String(64), nullable=True)
-    shipping_estimate_domestic = db.Column(db.String(64), nullable=True)
-    shipping_estimate_worldwide = db.Column(db.String(64), nullable=True)
-    ########
-    ########
-    # TODO: these should be removed, as they are now part of Sale!
-    contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
-    contribution_requested_at = db.Column(db.DateTime, nullable=True)
-    contribution_settled_at = db.Column(db.DateTime, nullable=True) # the contribution is settled after the Lightning invoice has been paid
-    contribution_amount = db.Column(db.Integer, nullable=True)
-    ########
-
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
     @property
@@ -1332,9 +1314,6 @@ class Media(db.Model):
     __tablename__ = 'media'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    # TODO: remove this!
-    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
 
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 

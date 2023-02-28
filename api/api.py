@@ -735,7 +735,7 @@ def follow_auction(user, key):
 
     follow = bool(request.json['follow'])
 
-    if auction.seller_id == user.id and not follow:
+    if auction.item.seller_id == user.id and not follow:
         return jsonify({'message': "Can't unfollow your own auctions!"}), 400
 
     user_auction = m.UserAuction.query.filter_by(user_id=user.id, auction_id=auction.id).one_or_none()
