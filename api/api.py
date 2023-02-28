@@ -252,17 +252,17 @@ def put_me(user):
     if 'contribution_percent' in request.json:
         user.contribution_percent = request.json['contribution_percent']
 
-    if 'xpub' in request.json:
+    if 'wallet' in request.json:
         try:
-            k = parse_xpub(request.json['xpub'])
+            k = parse_xpub(request.json['wallet'])
         except UnknownKeyTypeError as e:
-            return jsonify({'message': "Invalid XPUB."}), 400
+            return jsonify({'message': "Invalid wallet."}), 400
         try:
             first_address = k.subkey(0).subkey(0).address()
         except AttributeError:
-            return jsonify({'message': "Invalid XPUB."}), 400
-        user.xpub = request.json['xpub']
-        user.xpub_index = 0
+            return jsonify({'message': "Invalid wallet."}), 400
+        user.wallet = request.json['wallet']
+        user.wallet_index = 0
 
     if 'stall_name' in request.json:
         user.stall_name = bleach.clean(request.json['stall_name'])
@@ -765,8 +765,8 @@ def publish(user, key, cls, singular, plural):
     if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized"}), 401
 
-    if not entity.campaign and not user.xpub:
-        return jsonify({'message': "User did not set an XPUB."}), 400
+    if not entity.campaign and not user.wallet:
+        return jsonify({'message': "User did not configure his wallet."}), 400
 
     if request.json.get('twitter'):
         twitter = get_twitter()

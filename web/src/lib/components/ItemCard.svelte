@@ -21,7 +21,7 @@
     $: item = <Item>(<unknown>entity);
     $: url = item ? `${window.location.protocol}//${window.location.host}/${item.endpoint}/${item.key}` : "";
 
-    $: hasXpub = ($user && $user.xpub !== null) || (item.campaign_name !== null);
+    $: hasWallet = ($user && $user.wallet !== null) || (item.campaign_name !== null);
 
     let itemTweeted;
 
@@ -103,13 +103,13 @@
                             Create a tweet!
                         {/if}
                     {:else}
-                        {#if hasXpub}
+                        {#if hasWallet}
                             Start your sale
                         {:else}
                             <div class="alert alert-error shadow-lg">
                                 <div>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    <span>Please <a href="/account/settings#page=1&onsave=mystall" class="link">set your XPUB</a> before you continue!</span>
+                                    <span>Please <a href="/account/settings#page=1&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>
                                 </div>
                             </div>
                         {/if}
@@ -125,7 +125,7 @@
                             {/if}
                         </li>
                         <li class="step" class:lg:mb-5={!item.started} class:step-primary={itemTweeted || item.started}>
-                            {#if itemTweeted && !item.started && !starting && hasXpub}
+                            {#if itemTweeted && !item.started && !starting && hasWallet}
                                 <button class="btn btn-secondary ml-2 mr-5" class:lg:mr-0={!item.started} on:click|preventDefault={start}>Start</button>
                             {:else}
                                 <button class="btn btn-disabled mx-2">Start</button>

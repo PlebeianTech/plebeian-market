@@ -13,7 +13,7 @@
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import Nostr from "$lib/components/settings/Nostr.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
-    import XPUB from "$lib/components/settings/XPUB.svelte";
+    import Wallet from "$lib/components/settings/Wallet.svelte";
     import { goto } from '$app/navigation';
 
     let STALL_PAGE = "My Stall";
@@ -63,7 +63,7 @@
                 {#if currentPage === null || currentPage === STALL_PAGE}
                     <Stall onSave={onSaved} />
                 {:else if currentPage === WALLET_PAGE}
-                    <XPUB onSave={onSaved} />
+                    <Wallet onSave={onSaved} />
                 {:else if currentPage === RESUME_PAGE}
                     <Resume onSave={onSaved} />
                 {:else if currentPage === TWITTER_PAGE}

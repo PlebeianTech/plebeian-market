@@ -17,10 +17,12 @@
 
     let campaign: Campaign;
 
-    let xpubCopied = false;
-    function copyXpub() {
-        navigator.clipboard.writeText(campaign.xpub!);
-        xpubCopied = true;
+    let walletCopied = false;
+    function copyWallet() {
+        if (campaign.wallet !== null) {
+            navigator.clipboard.writeText(campaign.wallet);
+            walletCopied = true;
+        }
     }
 
     let loading = false;
@@ -98,8 +100,8 @@
             <div class="p-10 rounded mt-4 text-center">
                 Note: 100% of the money from the sales in this campaign will go to addresses generated from the following XPUB provided by Defending BTC team.
                 <div class="text-center">
-                    <input value={campaign.xpub} type="text" class="input input-bordered w-full max-w-xs" disabled />
-                    <button class="btn ml-2 mt-2 w-20" on:click={copyXpub}>{#if xpubCopied}Copied{:else}Copy!{/if}</button>
+                    <input value={campaign.wallet} type="text" class="input input-bordered w-full max-w-xs" disabled />
+                    <button class="btn ml-2 mt-2 w-20" on:click={copyWallet}>{#if walletCopied}Copied{:else}Copy!{/if}</button>
                     <p class="mt-8 text-4xl font-bold">Don't trust, verify!</p>
                 </div>
             </div>

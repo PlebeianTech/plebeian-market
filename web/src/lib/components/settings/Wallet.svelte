@@ -7,22 +7,22 @@
 
     export let onSave: () => void = () => {};
 
-    let xpub: string | null = null;
+    let wallet: string | null = null;
 
-    $: isValidInput = xpub !== null && xpub !== "";
-    $: saveButtonActive = $user && isValidInput && !saving && xpub !== $user.xpub;
+    $: isValidInput = wallet !== null && wallet !== "";
+    $: saveButtonActive = $user && isValidInput && !saving && wallet !== $user.wallet;
 
     let saving = false;
     function save() {
-        if (!xpub) {
+        if (!wallet) {
             // this would happen if somebody tries to call save when isValidInput is false
             return;
         }
         saving = true;
-        putProfile($token, {xpub},
+        putProfile($token, {wallet},
             u => {
                 user.set(u);
-                Info.set("Your XPUB has been saved!");
+                Info.set("Your wallet has been saved!");
                 saving = false;
                 onSave();
             },
@@ -31,7 +31,7 @@
 
     onMount(async () => {
         if ($user) {
-            xpub = $user.xpub ? $user.xpub : "";
+            wallet = $user.wallet ? $user.wallet : "";
         }
     });
 </script>
@@ -49,11 +49,11 @@
     {/if}
 {/if}
 
-<XpubInfo></XpubInfo>
+<XpubInfo />
 
 <div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full max-w-lg">
-        <input bind:value={xpub} id="xpub" name="xpub" type="text" class="input input-bordered input-md w-full" />
+        <input bind:value={wallet} id="wallet" name="wallet" type="text" class="input input-bordered input-md w-full" />
     </div>
 </div>
 

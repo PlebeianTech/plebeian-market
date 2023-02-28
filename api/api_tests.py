@@ -113,7 +113,7 @@ class TestApi(unittest.TestCase):
         # can't create a campaign without name, description or XPUB
         for what in ['name', 'description']:
             code, response = self.post("/api/users/me/campaigns",
-                {k: v for k, v in {'xpub': CAMPAIGN_XPUB, 'name': "T", 'description': "D"}.items() if k != what},
+                {k: v for k, v in {'wallet': CAMPAIGN_XPUB, 'name': "T", 'description': "D"}.items() if k != what},
                 headers=self.get_auth_headers(token_1))
             self.assertEqual(code, 400)
             self.assertIn("missing", response['message'].lower())
@@ -121,7 +121,7 @@ class TestApi(unittest.TestCase):
 
         # finally create a campaign
         code, response = self.post("/api/users/me/campaigns",
-            {'xpub': CAMPAIGN_XPUB,
+            {'wallet': CAMPAIGN_XPUB,
              'name': "My campaign",
              'description': "A very noble cause"},
             headers=self.get_auth_headers(token_1))
@@ -146,7 +146,7 @@ class TestApi(unittest.TestCase):
         code, response = self.post("/api/users/me/campaigns",
             {'name': "His campaign",
              'description': "Another noble cause",
-             'xpub': CAMPAIGN_XPUB},
+             'wallet': CAMPAIGN_XPUB},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertIn('campaign', response)
@@ -165,7 +165,7 @@ class TestApi(unittest.TestCase):
 
         # edit the campaign
         code, response = self.put(f"/api/campaigns/{campaign_key_2}",
-            {'xpub': XPUB, # this will not change!
+            {'wallet': XPUB, # this will not change!
              'name': "His brilliant campaign",
              'description': "Another brilliant cause"},
             headers=self.get_auth_headers(token_2))
@@ -175,7 +175,7 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/api/campaigns/{campaign_key_2}",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(response['campaign']['xpub'], CAMPAIGN_XPUB) # note that the XPUB of a campaign does not change
+        self.assertEqual(response['campaign']['wallet'], CAMPAIGN_XPUB) # note that the XPUB of a campaign does not change
         self.assertEqual(response['campaign']['name'], "His brilliant campaign")
         self.assertEqual(response['campaign']['description'], "Another brilliant cause")
 
@@ -278,8 +278,8 @@ class TestApi(unittest.TestCase):
         self.assertIn(user_1_avatar, [a['url'] for a in response['auction_avatars']])
 
         # set the xpub
-        _, response = self.update_user(token_1, xpub=XPUB)
-        self.assertEqual(response['user']['xpub_index'], 0)
+        _, response = self.update_user(token_1, wallet=XPUB)
+        self.assertEqual(response['user']['wallet_index'], 0)
 
         # start the listing
         code, response = self.put(f"/api/listings/{listing_key_2}/publish", {},
@@ -412,11 +412,11 @@ class TestApi(unittest.TestCase):
         code, response = self.put(f"/api/listings/{listing_key}/publish", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 400)
-        self.assertIn("xpub", response['message'].lower())
+        self.assertIn("wallet", response['message'].lower())
 
         # set the xpub
-        _, response = self.update_user(token_1, xpub=XPUB)
-        self.assertEqual(response['user']['xpub_index'], 0)
+        _, response = self.update_user(token_1, wallet=XPUB)
+        self.assertEqual(response['user']['wallet_index'], 0)
 
         # start the listing
         code, response = self.put(f"/api/listings/{listing_key}/publish", {'twitter': True},
@@ -530,7 +530,7 @@ class TestApi(unittest.TestCase):
 
         code, response = self.get("/api/users/me", headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertTrue(response['user']['xpub_index'] > 0)
+        self.assertTrue(response['user']['wallet_index'] > 0)
 
         time.sleep(5)
 
@@ -775,11 +775,11 @@ class TestApi(unittest.TestCase):
         code, response = self.put(f"/api/auctions/{auction_key}/publish", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 400)
-        self.assertIn("xpub", response['message'].lower())
+        self.assertIn("wallet", response['message'].lower())
 
         # set the xpub
-        _, response = self.update_user(token_2, xpub=XPUB)
-        self.assertEqual(response['user']['xpub_index'], 0)
+        _, response = self.update_user(token_2, wallet=XPUB)
+        self.assertEqual(response['user']['wallet_index'], 0)
 
         # start the auction
         code, response = self.put(f"/api/auctions/{auction_key}/publish", {},
@@ -820,8 +820,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
     def test_auctions(self):
-        _, token_1 = self.create_user(twitter_username='auction_user_1', contribution_percent=1, xpub=XPUB)
-        _, token_2 = self.create_user(twitter_username='auction_user_2', xpub=XPUB)
+        _, token_1 = self.create_user(twitter_username='auction_user_1', contribution_percent=1, wallet=XPUB)
+        _, token_2 = self.create_user(twitter_username='auction_user_2', wallet=XPUB)
 
         # GET user auctions if not logged in is OK
         code, response = self.get("/api/users/auction_user_1/auctions")
