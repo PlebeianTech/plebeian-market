@@ -530,12 +530,6 @@ class MockLNDClient:
                     continue
                 last_settle_index += 1
                 yield MockLNDClient.InvoiceResponse(unsettled_bid.payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
-            for unsettled_contribution in db.session.query(m.Auction).filter(m.Auction.contribution_settled_at == None):
-                if unsettled_contribution.contribution_requested_at is None or unsettled_contribution.contribution_requested_at > datetime.utcnow() - timedelta(seconds=1):
-                    # give it at least a second in test mode
-                    continue
-                last_settle_index += 1
-                yield MockLNDClient.InvoiceResponse(unsettled_contribution.contribution_payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
             for unsettled_sale_contribution in db.session.query(m.Sale).filter(m.Sale.contribution_settled_at == None):
                 if unsettled_sale_contribution.requested_at > datetime.utcnow() - timedelta(seconds=1):
                     # give it at least a second in test mode
