@@ -16,12 +16,12 @@
             <h2 class="card-title mb-4 text-2xl text-center">{#if campaign.key}Edit campaign{:else}New campaign{/if}</h2>
             <form class="w-full">
                 {#if campaign.key === null || campaign.key === ""}
-                    <XpubInfo></XpubInfo>
+                    <XpubInfo />
                     <div class="form-control w-full max-w-full">
-                        <label class="label" for="xpub">
-                            <span class="label-text">XPUB</span>
+                        <label class="label" for="wallet">
+                            <span class="label-text">Wallet (XPUB, ZPUB...)</span>
                         </label>
-                        <input bind:value={campaign.xpub} type="text" name="xpub" class="input input-bordered" />
+                        <input bind:value={campaign.wallet} type="text" name="wallet" class="input input-bordered" />
                     </div>
                 {/if}
                 <div class="form-control w-full max-w-full">
@@ -37,7 +37,7 @@
                     <button class="btn mt-1" on:click|preventDefault={onCancel}>Cancel</button>
                 </div>
                 <div class="w-1/2 flex justify-center items-center">
-                    {#if campaign.xpub === null || campaign.xpub.length === 0 || campaign.name.length === 0 || campaign.description.length === 0}
+                    {#if campaign.wallet === null || campaign.wallet.length === 0 || campaign.name.length === 0 || campaign.description.length === 0}
                         <button class="btn mt-1" disabled>Save</button>
                     {:else}
                         <button class="btn btn-primary" on:click|preventDefault={onSave}>Save</button>

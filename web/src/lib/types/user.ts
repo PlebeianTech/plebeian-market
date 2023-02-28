@@ -188,7 +188,7 @@ export class User implements IAccount {
     stallName: string | null = null;
     stallDescription: string | null = null;
     contributionPercent: number | null = null;
-    xpub: string | null = null;
+    wallet: string | null = null;
     hasItems: boolean = false;
     hasOwnItems: boolean = false;
     hasActiveAuctions: boolean = false;
@@ -249,7 +249,7 @@ export function fromJson(json: any): User {
     u.hasActiveListings = <boolean>json.has_active_listings;
     u.hasPastListings = <boolean>json.has_past_listings;
     u.contributionPercent = <number | null>json.contribution_percent;
-    u.xpub = <string | null>json.xpub;
+    u.wallet = <string | null>json.wallet;
     u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
     u.nostr_private_key = <string | null>json.nostr_private_key;

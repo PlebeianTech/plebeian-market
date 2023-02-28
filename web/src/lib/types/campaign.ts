@@ -2,7 +2,7 @@ import type { IEntity } from "$lib/types/base";
 import type { IAccount } from "$lib/types/user";
 
 export class Campaign implements IEntity {
-    static SAVED_FIELDS = ['name', 'description', 'xpub'];
+    static SAVED_FIELDS = ['name', 'description', 'wallet'];
 
     endpoint = 'campaigns';
 
@@ -11,7 +11,7 @@ export class Campaign implements IEntity {
     name: string = "";
     description: string = "";
     is_mine: boolean = true;
-    xpub: string | null = null;
+    wallet: string | null = null;
     owner: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
 
     public validate(forSave: boolean = false) {
@@ -36,7 +36,7 @@ export function fromJson(json: any): Campaign {
     campaign.name = <string>json.name;
     campaign.description = <string>json.description;
     campaign.is_mine = <boolean>json.is_mine;
-    campaign.xpub = <string | null>json.xpub;
+    campaign.wallet = <string | null>json.wallet;
     campaign.owner = {
         nym: <string>json.owner_nym,
         displayName: <string>json.owner_display_name,

@@ -284,7 +284,7 @@
             </div>
 
             <!-- COL -->
-            <div id="bgXPUB" class="grid place-items-center border-l border-gray-700/40 p-4">
+            <div class="grid place-items-center border-l border-gray-700/40 p-4">
                 <slot name="extra-description" />
             </div>
         </div>

@@ -64,23 +64,23 @@ class GeneratedKeyMixin:
 
         self.key = key
 
-class XpubMixin:
+class WalletMixin:
     def get_new_address(self):
         from main import get_btc_client
         btc = get_btc_client()
 
         try:
-            k = parse_xpub(self.xpub)
+            k = parse_xpub(self.wallet)
         except UnknownKeyTypeError as e:
             raise AddressGenerationError(str(e))
 
         address = None
         while True:
-            if self.xpub_index is None:
-                self.xpub_index = 0
+            if self.wallet_index is None:
+                self.wallet_index = 0
 
-            address = k.subkey(0).subkey(self.xpub_index).address()
-            self.xpub_index += 1
+            address = k.subkey(0).subkey(self.wallet_index).address()
+            self.wallet_index += 1
 
             existing_txs = btc.get_funding_txs(address)
 
@@ -128,7 +128,7 @@ class NostrAuth(db.Model):
         self.verification_phrase_sent_at = None
         self.verification_phrase_check_counter = 0
 
-class User(XpubMixin, db.Model):
+class User(WalletMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -137,9 +137,8 @@ class User(XpubMixin, db.Model):
     lnauth_key = db.Column(db.String(128), unique=True, nullable=True, index=True)
     nostr_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True) # in NPUB format
 
-    # ask Pedro about this
-    xpub = db.Column(db.String(128), nullable=True)
-    xpub_index = db.Column(db.Integer, nullable=True)
+    wallet = db.Column(db.String(128), nullable=True)
+    wallet_index = db.Column(db.Integer, nullable=True)
 
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
@@ -279,8 +278,8 @@ class User(XpubMixin, db.Model):
         if for_user == self.id:
             # only ever show these fields to the actual user
             d['contribution_percent'] = self.contribution_percent
-            d['xpub'] = self.xpub
-            d['xpub_index'] = self.xpub_index
+            d['wallet'] = self.wallet
+            d['wallet_index'] = self.wallet_index
             d['nostr_private_key'] = self.nostr_private_key
 
         return d
@@ -835,10 +834,10 @@ class StateMixin:
         else:
             return self.state == state
 
-class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
+class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'campaigns'
 
-    REQUIRED_FIELDS = ['xpub', 'name', 'description']
+    REQUIRED_FIELDS = ['wallet', 'name', 'description']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -859,8 +858,8 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
     name = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
 
-    xpub = db.Column(db.String(128), nullable=False)
-    xpub_index = db.Column(db.Integer, nullable=False, default=0)
+    wallet = db.Column(db.String(128), nullable=False)
+    wallet_index = db.Column(db.Integer, nullable=False, default=0)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -882,8 +881,8 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'banner_url': self.banner_url,
             'name': self.name,
             'description': self.description,
-            'xpub': self.xpub,
-            'xpub_index': self.xpub_index,
+            'wallet': self.wallet,
+            'wallet_index': self.wallet_index,
             'created_at': self.created_at.isoformat() + "Z",
             'is_mine': for_user == self.owner_id,
             'owner_nym': self.owner.nym,
@@ -910,17 +909,17 @@ class Campaign(XpubMixin, GeneratedKeyMixin, StateMixin, db.Model):
             if length > max_length:
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = d[k]
-        if for_method == 'POST' and 'xpub' in d: # xpub can only be set once, on POST
+        if for_method == 'POST' and 'wallet' in d: # xpub can only be set once, on POST
             try:
-                k = parse_xpub(d['xpub'])
+                k = parse_xpub(d['wallet'])
             except UnknownKeyTypeError as e:
                 raise ValidationError("Invalid XPUB.")
             try:
                 first_address = k.subkey(0).subkey(0).address()
             except AttributeError:
                 raise ValidationError("Invalid XPUB.")
-            validated['xpub'] = d['xpub']
-            validated['xpub_index'] = 0
+            validated['wallet'] = d['wallet']
+            validated['wallet_index'] = 0
         return validated
 
 class Category(Enum):
