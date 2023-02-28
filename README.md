@@ -1,5 +1,9 @@
 # Plebeian Market
 
+<p align="center">
+  <img src="https://plebeian.market/images/logo.png" width="256" title="Plebeian Market">
+</p>
+
 ## About
 
 **Plebeian Market** is the self-sovereign marketplace of the internet, powered by Bitcoin and the Lightning Network for payments and by Nostr for communications.
