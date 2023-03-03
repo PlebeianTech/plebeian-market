@@ -1,0 +1,62 @@
+{
+  "start_url": "https://plebeian.market/",
+  "short_name": "Plebeian Market",
+  "name": "Plebeian Market",
+  "description": "Plebeian Market is a distributed peer-to-peer, value-4-value alternative to Ebay and Amazon for sovereign individuals and merchants who are transitioning to the bitcoin standard.",
+  "categories": ["shopping"],
+  "screenshots": [
+    {
+      "src": "/images/screenshots/screenshot_homepage.jpg",
+      "sizes": "1442x3202",
+      "form_factor": "narrow",
+      "label": "Homepage for Plebeian Market"
+    },
+    {
+      "src": "/images/screenshots/screenshot_market_square.jpg",
+      "sizes": "1442x3202",
+      "form_factor": "narrow",
+      "label": "Plebeian Market Square"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/images/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#ff7c00",
+  "background_color": "#ffffff",
+  "start_url": "https://plebeian.market",
+  "display": "standalone",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Plebeian Market Square",
+      "short_name": "Market Square",
+      "description": "Go into the Market Square to chat with other plebeians about your products, bitcoin or whatever you want!",
+      "url": "/marketsquare",
+      "icons": [{ "src": "/icons/icons/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Frequently Asked Questions",
+      "short_name": "FAQ",
+      "description": "Check the most asked question from our fellow plebeians",
+      "url": "/faq",
+      "icons": [{ "src": "/icons/icons/android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+  /*
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.package.plebeian"
+    }
+  ]
+  */
+}

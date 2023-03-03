@@ -30,7 +30,7 @@
     "build-staging": "vite build --mode staging",
     "build-production": "vite build --mode production",
     "package": "svelte-kit package",
-    "preview": "svelte-kit preview",
+    "preview": "vite preview",
     "check": "svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
