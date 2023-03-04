@@ -27,7 +27,8 @@
     {
       "src": "/images/icons/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "theme_color": "#ff7c00",
@@ -40,14 +41,14 @@
       "short_name": "Market Square",
       "description": "Go into the Market Square to chat with other plebeians about your products, bitcoin or whatever you want!",
       "url": "/marketsquare",
-      "icons": [{ "src": "/icons/icons/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Frequently Asked Questions",
       "short_name": "FAQ",
       "description": "Check the most asked question from our fellow plebeians",
       "url": "/faq",
-      "icons": [{ "src": "/icons/icons/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
