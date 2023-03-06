@@ -20,15 +20,22 @@
   ],
   "icons": [
     {
+      "src": "/images/icons/android-chrome-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/images/icons/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/images/icons/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
   "theme_color": "#ff7c00",
@@ -41,14 +48,24 @@
       "short_name": "Market Square",
       "description": "Go into the Market Square to chat with other plebeians about your products, bitcoin or whatever you want!",
       "url": "/marketsquare",
-      "icons": [{ "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/images/icons/android-chrome-192x192.png", "sizes": "96x96",
+          "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Frequently Asked Questions",
       "short_name": "FAQ",
       "description": "Check the most asked question from our fellow plebeians",
       "url": "/faq",
-      "icons": [{ "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/images/icons/android-chrome-192x192.png", "sizes": "96x96",
+          "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
