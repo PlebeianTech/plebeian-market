@@ -10,7 +10,7 @@
     "daisyui": "^2.50.2",
     "eslint": "^8.34.0",
     "eslint-plugin-svelte3": "4.x",
-    "nostr-tools": "^1.5.0",
+    "nostr-tools": "^1.7.4",
     "npm-run-all": "4.x",
     "postcss": "8.x",
     "svelte": "3.x",
@@ -34,5 +34,8 @@
     "check": "svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "@vite-pwa/sveltekit": "^0.1.3"
   }
 }
