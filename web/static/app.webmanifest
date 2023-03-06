@@ -4,6 +4,7 @@
   "name": "Plebeian Market",
   "description": "Plebeian Market is a distributed peer-to-peer, value-4-value alternative to Ebay and Amazon for sovereign individuals and merchants who are transitioning to the bitcoin standard.",
   "categories": ["shopping"],
+  "orientation": "portrait",
   "screenshots": [
     {
       "src": "/images/screenshots/screenshot_homepage.jpg",
@@ -23,19 +24,37 @@
       "src": "/images/icons/android-chrome-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/images/icons/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/images/icons/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icons/android-chrome-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "theme_color": "#ff7c00",
@@ -50,7 +69,7 @@
       "url": "/marketsquare",
       "icons": [
         {
-          "src": "/images/icons/android-chrome-192x192.png", "sizes": "96x96",
+          "src": "/images/icons/android-chrome-96x96.png", "sizes": "96x96",
           "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192"
         }
       ]
@@ -62,7 +81,7 @@
       "url": "/faq",
       "icons": [
         {
-          "src": "/images/icons/android-chrome-192x192.png", "sizes": "96x96",
+          "src": "/images/icons/android-chrome-96x96.png", "sizes": "96x96",
           "src": "/images/icons/android-chrome-192x192.png", "sizes": "192x192"
         }
       ]
