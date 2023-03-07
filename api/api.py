@@ -42,7 +42,7 @@ def login_lnurl(deprecated):
         db.session.add(m.LnAuth(k1=k1))
         db.session.commit()
 
-        url = app.config['BASE_URL'] + f"/api/login?tag=login&k1={k1}"
+        url = app.config['BASE_URL'] + f"/api/login/lnurl?tag=login&k1={k1}"
         ln_url = lnurl.encode(url).bech32
         qr = BytesIO()
         pyqrcode.create(ln_url).svg(qr, omithw=True, scale=4)
