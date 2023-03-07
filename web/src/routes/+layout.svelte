@@ -10,11 +10,6 @@
     import Navbar from "$lib/components/Navbar.svelte";
     import TelegramFixedButton from "$lib/components/TelegramFixedButton.svelte";
     import ToastContainer from "$lib/components/ToastContainer.svelte";
-    import { pwaInfo } from 'virtual:pwa-info'
-
-    let ReloadPrompt;
-
-    $: webManifest = pwaInfo ? pwaInfo.webManifest.linkTag : ''
 
     function getToastOnClickCB(data) {
         return () => {
@@ -81,8 +76,6 @@
         if (browser) {
             token.set(localStorage.getItem("token"));
         }
-
-        pwaInfo && (ReloadPrompt = (await import('$lib/components/ReloadPrompt.svelte')).default)
     });
 </script>
 
@@ -112,7 +105,3 @@
 </div>
 
 <LoginModal />
-
-{#if ReloadPrompt}
-    <svelte:component this={ReloadPrompt} />
-{/if}

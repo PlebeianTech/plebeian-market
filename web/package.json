@@ -34,8 +34,5 @@
     "check": "svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
-  },
-  "dependencies": {
-    "@vite-pwa/sveltekit": "^0.1.3"
   }
 }
