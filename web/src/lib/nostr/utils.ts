@@ -1,4 +1,4 @@
-import {getEventHash, nip05, nip19, Kind} from "nostr-tools";
+import {getEventHash, nip05, nip19, Kind, getPublicKey} from "nostr-tools";
 
 export const relayUrlList = [
     // Amethyst relays
@@ -22,6 +22,15 @@ export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 
 export function hasExtension() {
     return !!window.nostr;
+}
+
+export async function getPreferredPublicKey(generatedNostrPrivateKey: string | null) {
+    if ((!hasExtension() || localStorage.getItem(localStorageNostrPreferPMId) !== null) && generatedNostrPrivateKey !== null) {
+        // using PM-generated identity
+        return getPublicKey(generatedNostrPrivateKey);
+    } else {
+        return await window.nostr.getPublicKey();
+    }
 }
 
 export async function wait(milliseconds) {
