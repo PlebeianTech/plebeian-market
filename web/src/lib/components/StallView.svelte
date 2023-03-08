@@ -120,6 +120,7 @@
     }
 
     function scrollIntoView(target) {
+        console.log('33333333333333')
         const el = document.querySelector(target.getAttribute('href'))
         if (!el) return;
         el.scrollIntoView({
@@ -174,7 +175,7 @@
   <!-- <CampaignStats /> -->
 {:else}
  <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
- <div class="mx-auto relative lg:mb-0 mb-36">
+ <div class="mx-auto relative lg:mb-0 mb-6">
   <div class="absolute inset-x-0 lg:bottom-20 m-auto left-0 right-0 lg:w-2/3 mx-auto z-40">
     <div class="grid lg:grid-cols-2 gap-4">
       <!-- COL1 -->
@@ -250,47 +251,46 @@
   }
 </style>
 
-
-<div class="md:w-2/3 items-center mx-auto mt-20">
-    <div class="grid">
-        <!-- AVATARS -->
-        <div class="grid lg:grid-cols-5 grid-cols-3 gap-4 place-items-center lg:w-1/2 w-full mx-auto">
-            {#each featuredAuctionAvatars as avatar}
-                <div class="avatar">
-                    <div class="w-16 rounded-full ring ring-accent ring-offset-base-100 ring-offset-2">
-                        <a href="/auctions/{avatar.entity_key}">
-                            <img src={avatar.url} alt="featured avatar" />
-                        </a>
+{#if isCampaignStall}
+    <div class="md:w-2/3 items-center mx-auto mt-20">
+        <div class="grid">
+            <!-- AVATARS -->
+            <div class="grid lg:grid-cols-5 grid-cols-3 gap-4 place-items-center lg:w-1/2 w-full mx-auto">
+                {#each featuredAuctionAvatars as avatar}
+                    <div class="avatar">
+                        <div class="w-16 rounded-full ring ring-accent ring-offset-base-100 ring-offset-2">
+                            <a href="/auctions/{avatar.entity_key}">
+                                <img src={avatar.url} alt="featured avatar" />
+                            </a>
+                        </div>
                     </div>
+                {/each}
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 my-12 p-4">
+              <!-- COL -->
+                <div class="w-full">
+                    <h2 class="lg:text-5xl text-4xl font-bold">{title}</h2>
+                    {#if description}
+                        <div class="markdown-container leading-8 my-4">
+                            <SvelteMarkdown source={description} />
+                        </div>
+                    {/if}
+
+                    <!-- TELEGRAM AND TWITTER -->
+                    <div class="flex flex-col gap-4 w-full py-4 my-4">
+                      <ExternalLinks {owner} />
+                  </div>
                 </div>
-            {/each}
-        </div>
 
-        {#if isCampaignStall}
-        <div class="grid lg:grid-cols-2 gap-8 my-12 p-4">
-          <!-- COL -->
-            <div class="w-full">
-                <h2 class="lg:text-5xl text-4xl font-bold">{title}</h2>
-                {#if description}
-                    <div class="markdown-container leading-8 my-4">
-                        <SvelteMarkdown source={description} />
-                    </div>
-                {/if}
-
-                <!-- TELEGRAM AND TWITTER -->
-                <div class="flex flex-col gap-4 w-full py-4 my-4">
-                  <ExternalLinks {owner} />
-              </div>
-            </div>
-
-            <!-- COL -->
-            <div class="grid place-items-center border-l border-gray-700/40 p-4">
-                <slot name="extra-description" />
+                <!-- COL -->
+                <div class="grid place-items-center border-l border-gray-700/40 p-4">
+                    <slot name="extra-description" />
+                </div>
             </div>
         </div>
-        {/if}
     </div>
-</div>
+{/if}
 
 <!-- ITEM LISTS -->
 <div id="anchorIdAuctionTime" class="lg:flex lg:w-2/3 mx-auto my-4">
@@ -397,12 +397,14 @@
                 {/each}
             {/if}
         {/if}
-
     </div>
 
     <!-- NOSTR -->
     {#if !isCampaignStall}
-        <div class="lg:w-3/6 my-2 grid place-items-top lg:h-1/2 sticky top-20 lg:px-0 px-2">
+        <!--
+        <div class="lg:w-3/6 max-h-96 lg:max-h-screen overflow-auto lg:overflow-y-hidden my-8 grid place-items-top top-20 lg:px-0 px-2">
+        -->
+        <div class="lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden my-2 grid place-items-top top-20 lg:px-0 px-2" id="stallChatContainerDiv">
             <h3 class="text-2xl lg:text-4xl fontbold mt-0 lg:mt-8 mb-2">Stall Chat</h3>
 
             <NostrChat

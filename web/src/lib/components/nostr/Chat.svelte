@@ -435,7 +435,16 @@
 
     const scrollToBottom = () => {
         ignoreNextScrollEvent = true;
-        window.scrollTo(0, document.body.scrollHeight);
+
+        if (fixedChatBox) {
+            window.scrollTo(0, document.body.scrollHeight);
+        } else {
+            const chatDiv = document.getElementById("chatScrollableDiv");
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+
+            const chatDiv2 = document.getElementById("stallChatContainerDiv");
+            chatDiv2.scrollTop = chatDiv2.scrollHeight;
+        }
     }
 
     afterUpdate(() => {
@@ -491,13 +500,13 @@
     </div>
 </div>
 
-<div class="flex flex-col mt-2 mb-6 pb-6 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-hidden w-full"
-     style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
-   <div>
+<div class="flex flex-col mt-2 mb-6 pb-6 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-auto w-full"
+     style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);" id="chatScrollableDiv">
+    <div>
         {#each sortedMessages as message}
             <NostrNote {pool} {message} {onReply} {onImgError}></NostrNote>
         {/each}
-   </div>
+    </div>
 </div>
 
 <div class="grid grid-cols-2 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto w-screen lg:w-2/3" class:fixed={fixedChatBox}>
