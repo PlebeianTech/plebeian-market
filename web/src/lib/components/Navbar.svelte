@@ -204,16 +204,19 @@
 
                 <div class="lg:flex hidden">
                     <p>
-                        <a href="/campaigns" class="btn btn-ghost normal-case">Campaigns</a>
-                    </p>
-                    <p>
                         <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
                     </p>
                     <p>
-                        <a href="/about" class="btn btn-ghost normal-case">About</a>
+                        <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
+                    </p>
+                    <p>
+                        <a href="/campaigns" class="btn btn-ghost normal-case">Campaigns</a>
                     </p>
                     <p>
                         <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
+                    </p>
+                    <p>
+                        <a href="/about" class="btn btn-ghost normal-case">About</a>
                     </p>
                 </div>
             </div>

@@ -15,6 +15,10 @@ export interface IAccount {
 export class UserResumeSkill {
     skill: string = "";
 
+    public validate() {
+        return !(this.skill.length === 0);
+    }
+
     public toJson() {
         return {skill: this.skill};
     }
@@ -29,6 +33,11 @@ export class UserResumeSkill {
 export class UserResumePortfolio {
     url: string = "";
 
+    public validate() {
+        const colonIndex = this.url.indexOf(".");
+        return !(this.url.length === 0) && colonIndex !== -1 && colonIndex !== this.url.length - 1;
+    }
+
     public toJson() {
         return {url: this.url};
     }
@@ -41,28 +50,25 @@ export class UserResumePortfolio {
 }
 
 export class UserResumeEducation {
-    key: string = "";
     year: number | null = null;
     education: string = "";
 
     public validate() {
-        return !(this.education.length === 0);
+        return !(this.education.length === 0) && (this.year === null || (this.year > 1900 && this.year <= new Date().getFullYear()));
     }
 
     public toJson() {
-        return {key: this.key, year: this.year, education: this.education};
+        return {year: this.year, education: this.education};
     };
 
     public static fromJson(json: any): UserResumeEducation {
         let e = new UserResumeEducation();
-        e.key = <string>json.key;
         e.education = <string>json.education;
         return e;
     }
 }
 
 export class UserResumeExperience {
-    key: string = "";
     fromYear: number | null = null;
     fromMonth: number | null = null;
     toYear: number | null = null;
@@ -74,12 +80,13 @@ export class UserResumeExperience {
     public validate() {
         return !(this.jobTitle.length === 0) && !(this.organization.length === 0)
             && (this.fromMonth === null || (this.fromMonth > 0 && this.fromMonth <= 12))
-            && (this.toMonth === null || (this.toMonth > 0 && this.toMonth <= 12));
+            && (this.toMonth === null || (this.toMonth > 0 && this.toMonth <= 12))
+            && (this.fromYear === null || (this.fromYear > 1900 && this.fromYear <= new Date().getFullYear()))
+            && (this.toYear === null || (this.toYear > 1900 && this.toYear <= new Date().getFullYear()));
     }
 
     public toJson() {
         return {
-            key: this.key,
             from_year: this.fromYear, from_month: this.fromMonth,
             to_year: this.toYear, to_month: this.toMonth,
             job_title: this.jobTitle, organization: this.organization, description: this.description
@@ -88,7 +95,6 @@ export class UserResumeExperience {
 
     public static fromJson(json: any): UserResumeExperience {
         let e = new UserResumeExperience();
-        e.key = <string>json.key;
         e.fromYear = <number | null>json.from_year;
         e.fromMonth = <number | null>json.from_month;
         e.toYear = <number | null>json.to_year;
@@ -101,21 +107,19 @@ export class UserResumeExperience {
 }
 
 export class UserResumeAchievement {
-    key: string = "";
     year: number | null = null;
     achievement: string = "";
 
     public validate() {
-        return !(this.achievement.length === 0);
+        return !(this.achievement.length === 0) && (this.year === null || (this.year > 1900 && this.year <= new Date().getFullYear()));
     }
 
     public toJson() {
-        return {key: this.key, year: this.year, achievement: this.achievement};
+        return {year: this.year, achievement: this.achievement};
     };
 
     public static fromJson(json: any): UserResumeAchievement {
         let a = new UserResumeAchievement();
-        a.key = <string>json.key;
         a.year = <number | null>json.year;
         a.achievement = <string>json.achievement;
         return a;
@@ -125,7 +129,8 @@ export class UserResumeAchievement {
 export class UserResume {
     jobTitle: string = "";
     bio: string = "";
-    desiredSalaryUsd: number | null = null;
+    desiredYearlySalaryUsd: number | null = null;
+    hourlyRateUsd: number | null = null;
     bitcoinerQuestion: string = "";
     skills: UserResumeSkill[] = [];
     portfolio: UserResumePortfolio[] = [];
@@ -137,7 +142,8 @@ export class UserResume {
         return {
             job_title: this.jobTitle,
             bio: this.bio,
-            desired_salary_usd: this.desiredSalaryUsd,
+            desired_yearly_salary_usd: this.desiredYearlySalaryUsd,
+            hourly_rate_usd: this.hourlyRateUsd,
             bitcoiner_question: this.bitcoinerQuestion,
             skills: this.skills.map(s => s.toJson()),
             portfolio: this.portfolio.map(p => p.toJson()),
@@ -151,7 +157,8 @@ export class UserResume {
         let r = new UserResume();
         r.jobTitle = <string>json.job_title;
         r.bio = <string>json.bio;
-        r.desiredSalaryUsd = <number | null>json.desired_salary_usd;
+        r.desiredYearlySalaryUsd = <number | null>json.desired_yearly_salary_usd;
+        r.hourlyRateUsd = <number | null>json.hourly_rate_usd;
         r.bitcoinerQuestion = <string>json.bitcoiner_question;
         r.skills = (<any[]>json.skills).map(s => UserResumeSkill.fromJson(s));
         r.portfolio = (<any[]>json.portfolio).map(p => UserResumePortfolio.fromJson(p));
