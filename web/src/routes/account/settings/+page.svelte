@@ -8,7 +8,6 @@
     import { user } from "$lib/stores";
     import Notifications from "$lib/components/settings/Notifications.svelte";
     import Stall from "$lib/components/settings/Stall.svelte";
-    import Resume from "$lib/components/settings/Resume.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import Nostr from "$lib/components/settings/Nostr.svelte";
@@ -18,12 +17,11 @@
 
     let STALL_PAGE = "My Stall";
     let WALLET_PAGE = "My wallet";
-    let RESUME_PAGE = "Résumé";
     let TWITTER_PAGE = "Twitter";
     let NOSTR_PAGE = "Nostr";
     let NOTIFICATIONS_PAGE = "Notifications";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, WALLET_PAGE, /*RESUME_PAGE,*/ TWITTER_PAGE, NOSTR_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     let params = {};
@@ -64,8 +62,6 @@
                     <Stall onSave={onSaved} />
                 {:else if currentPage === WALLET_PAGE}
                     <Wallet onSave={onSaved} />
-                {:else if currentPage === RESUME_PAGE}
-                    <Resume onSave={onSaved} />
                 {:else if currentPage === TWITTER_PAGE}
                     <TwitterUsername />
                     {#if $user.twitterUsername !== null && !$user.twitterUsernameVerified}
