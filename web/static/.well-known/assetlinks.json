@@ -1,0 +1,6 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "market.plebeian.staging.twa",
+    "sha256_cert_fingerprints": ["07:47:FB:F3:6F:B6:33:E5:D0:8A:18:F8:BA:0F:43:9E:A1:24:BE:B0:0E:5E:49:CB:F7:65:26:70:09:0A:B3:69"] }
+}
+]
