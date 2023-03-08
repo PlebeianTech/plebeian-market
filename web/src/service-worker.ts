@@ -48,7 +48,7 @@ self.addEventListener('fetch', (event) => {
         try {
             const response = await fetch(event.request);
 
-            if (response.status === 200) {
+            if (response.status === 200 && !event.request.url.startsWith('chrome-extension')) {
                 cache.put(event.request, response.clone());
             }
 
