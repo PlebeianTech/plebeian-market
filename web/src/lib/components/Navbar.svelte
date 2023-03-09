@@ -194,7 +194,7 @@
                 on:keydown={() => {
                     toggleMobileMenu;
                 }}
-                class="lg:hidden flex justify-end"
+                class="lg:hidden flex justify-end p-1"
             >
                 <button
                     type="button"
