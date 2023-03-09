@@ -439,11 +439,13 @@
         if (fixedChatBox) {
             window.scrollTo(0, document.body.scrollHeight);
         } else {
-            const chatDiv = document.getElementById("chatScrollableDiv");
-            chatDiv.scrollTop = chatDiv.scrollHeight;
+            // One div is for mobile scrolling. The other one is for desktop.
+            // We need to scroll down both divs for now.
+            const chatScrollableDiv = document.getElementById("chatScrollableDiv");
+            chatScrollableDiv.scrollTop = chatScrollableDiv.scrollHeight;
 
-            const chatDiv2 = document.getElementById("stallChatContainerDiv");
-            chatDiv2.scrollTop = chatDiv2.scrollHeight;
+            const stallChatContainerDiv = document.getElementById("stallChatContainerDiv");
+            stallChatContainerDiv.scrollTop = stallChatContainerDiv.scrollHeight;
         }
     }
 
