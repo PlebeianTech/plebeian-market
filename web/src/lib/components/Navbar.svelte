@@ -170,8 +170,8 @@
         class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center"
     >
         <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <a href="/" class="flex items-center mr-2">
+            <a href="/" class="flex items-center mr-2">
+                <div class="flex items-center space-x-2">
                     <img
                         src={"/images/logo.png"}
                         class="mr-3 h-9 rounded"
@@ -182,8 +182,8 @@
                     >
                         Plebeian Market
                     </h1>
-                </a>
-            </div>
+                </div>
+            </a>
             <!-- Mobile menu button -->
             <div
                 on:click={toggleNavbar}
