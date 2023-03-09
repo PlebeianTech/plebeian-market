@@ -9,11 +9,11 @@
         <div>
           <h1 class="lg:text-4xl text-3xl font-bold">Plug into the Bitcoin Economy</h1>
           <div class="lg:flex lg:space-x-4 my-6">
-            <p>&#10003; Building on Nostr</p>
+            <p>&#10003; Built for Nostr</p>
             <p>&#10003; Bitcoin only</p>
-            <p>&#10003; Lightning Tech</p>
+            <p>&#10003; Lightning tech</p>
             <p>&#10003; Value4Value</p>
-            <p>&#10003; Peer-to-Peer</p>
+            <p>&#10003; Peer2Peer</p>
             <p></p>
           </div>
         </div>
