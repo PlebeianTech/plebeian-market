@@ -120,7 +120,6 @@
     }
 
     function scrollIntoView(target) {
-        console.log('33333333333333')
         const el = document.querySelector(target.getAttribute('href'))
         if (!el) return;
         el.scrollIntoView({
