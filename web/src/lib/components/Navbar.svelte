@@ -19,10 +19,14 @@
 
     let prefersDark = true;
 
-    let showMenu = false;
+    let showMobileMenu = false;
 
-    function toggleNavbar() {
-        showMenu = !showMenu;
+    function toggleMobileMenu() {
+        showMobileMenu = !showMobileMenu;
+    }
+
+    function hideMobileMenu() {
+        showMobileMenu = false;
     }
 
     function toggleTheme() {
@@ -159,7 +163,7 @@
     onDestroy(userUnsubscribe);
 
     afterNavigate(() => {
-        showMenu = false;
+        hideMobileMenu();
     });
 </script>
 
@@ -186,9 +190,9 @@
             </a>
             <!-- Mobile menu button -->
             <div
-                on:click={toggleNavbar}
+                on:click={toggleMobileMenu}
                 on:keydown={() => {
-                    toggleNavbar;
+                    toggleMobileMenu;
                 }}
                 class="lg:hidden flex justify-end"
             >
@@ -214,8 +218,8 @@
             </div>
         </div>
 
-        <!-- Mobile Menu open: "block", Menu closed: "hidden" -->
-        <div class:flex={showMenu} class:hidden={!showMenu} class="lg:flex lg:flex-row flex-col justify-center mt-4 space-y-2 md:space-y-0 md:space-x-4 md:mt-0">
+        <!-- Mobile Menu open: "flex", Menu closed: "hidden" -->
+        <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center mt-4 space-y-2 md:space-y-0 md:space-x-4 md:mt-0">
             <!-- LINKS -->
             <div class="lg:flex items-center w-full">
                 {#if !isProduction()}
@@ -301,13 +305,13 @@
                                 <a href="https://t.me/PlebeianMarket" target="_blank" rel="noreferrer">Telegram group</a>
                             </li>
                             <li>
-                                <a href={null} on:click={() => logout()} class="modal-button cursor-pointer">Logout</a>
+                                <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer">Logout</a>
                             </li>
                         </ul>
                     </div>
                 {:else}
                     <div class="lg:dropdown lg:dropdown-end mb-96 lg:mb-2">
-                        <button class="btn btn-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</button>
+                        <button class="btn btn-primary" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>Login</button>
                     </div>
                 {/if}
             </div>
