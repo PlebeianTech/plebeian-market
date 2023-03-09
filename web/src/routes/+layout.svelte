@@ -8,7 +8,6 @@
     import Footer from "$lib/components/Footer.svelte";
     import LoginModal from "$lib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
-    import TelegramFixedButton from "$lib/components/TelegramFixedButton.svelte";
     import ToastContainer from "$lib/components/ToastContainer.svelte";
 
     function getToastOnClickCB(data) {
