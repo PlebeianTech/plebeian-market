@@ -74,7 +74,7 @@
 
     <a class="group bg-gray-300/20 p-4 rounded hover:scale-150 duration-300" href={null}>
         <h2 class="text-3xl font-bold my-4">You?</h2>
-        <p class="visible group-hover:visible lg:invisible lg:group-hover:visible text-xl font-bold my-4"><a class="link" href="https://t.me/PlebeianMarket" target="_blank" rel="noreferrer">Contact us!</a></p>
+        <p class="visible group-hover:visible lg:invisible lg:group-hover:visible text-xl font-bold my-4"><a class="link" href="/contact">Contact us!</a></p>
         <h3 class="uppercase my-2 font-bold text-sm">Bitcoiner, remnant and shadowy super coder</h3>
     </a>
 </div>
