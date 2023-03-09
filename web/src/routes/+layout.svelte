@@ -85,7 +85,6 @@
         <slot />
     </div>
     {#if $page.url.pathname !== "/marketsquare"}
-        <TelegramFixedButton />
         <Footer />
     {/if}
 
