@@ -5,6 +5,7 @@
     import { subscribeResume, publishResume } from "$lib/services/nostr";
     import { Info, user } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
+    import { getMonthName } from "$lib/utils";
     import Plus from "$lib/components/icons/Plus.svelte";
     import X from "$lib/components/icons/X.svelte";
 
@@ -23,6 +24,8 @@
     let newEducation: UserResumeEducation | null = null;
     let newExperience: UserResumeExperience | null = null;
     let newAchievement: UserResumeAchievement | null = null;
+
+    let availableForWork = false;
 
     $: saveButtonActive = $user && !saving;
 
@@ -108,6 +111,7 @@
                     if (rcAt > resumeCreatedAt) {
                         resumeCreatedAt = rcAt;
                         resume = r;
+                        availableForWork = resume.desiredYearlySalaryUsd !== null || resume.hourlyRateUsd !== null;
                     }
                 });
         }
@@ -199,25 +203,25 @@
         </div>
 
         <div class="overflow-x-auto w-full p-2">
-            <table class="w-full">
-                <tbody class="w-full whitespace-nowrap">
-                    {#each resume.education as education, i}
-                        <tr>
-                            <td class="w-full">
+            <ul class="w-full">
+                {#each resume.education as education, i}
+                    <li class="p-3 rounded-md bg-base-300 mt-2">
+                        <div class="flex justify-center items-center gap-2 md:gap-4">
+                            <span class="flex-auto">
                                 {education.education}
-                            </td>
-                            <td>
+                            </span>
+                            <span class="flex-none">
                                 {#if education.year}
                                     {education.year}
                                 {/if}
-                            </td>
-                            <td>
+                            </span>
+                            <span class="flex-none">
                                 <button class="btn btn-circle btn-xs btn-error" on:click={() => removeEducation(i)}><X /></button>
-                            </td>
-                        </tr>
-                    {/each}
-                </tbody>
-            </table>
+                            </span>
+                        </div>
+                    </li>
+                {/each}
+            </ul>
         </div>
 
         {#if newEducation}
@@ -259,38 +263,44 @@
         </div>
 
         <div class="overflow-x-auto w-full p-2">
-            <table class="w-full">
-                <tbody class="w-full whitespace-nowrap">
+            <ul class="w-full">
                     {#each resume.experience as experience, i}
-                        <tr>
-                            <td class="w-full">
-                                {experience.jobTitle} @ {experience.organization}
-                                <p>
-                                    {experience.description}
-                                </p>
-                            </td>
-                            <td>
-                                {#if experience.fromYear}
-                                    {experience.fromYear}
-                                    {#if experience.fromMonth}
-                                        ({experience.fromMonth})
+                        <li class="p-3 rounded-md bg-base-300 mt-2">
+                            <div class="flex justify-center items-center gap-2 md:gap-4">
+                                <div class="flex-auto">
+                                    <span class="text-lg">
+                                        <em>{experience.jobTitle}</em>
+                                    </span>
+                                    <br />
+                                    <span class="text-lg">
+                                        <strong>{experience.organization}</strong>
+                                    </span>
+                                </div>
+                                <span class="flex-auto">
+                                    {#if experience.fromYear}
+                                        {experience.fromYear}
+                                        {#if experience.fromMonth}
+                                            ({getMonthName(experience.fromMonth)})
+                                        {/if}
+                                        &mdash;
                                     {/if}
-                                    &mdash;
-                                {/if}
-                                {#if experience.toYear}
-                                    {experience.toYear}
-                                    {#if experience.toMonth}
-                                        ({experience.toMonth})
+                                    {#if experience.toYear}
+                                        {experience.toYear}
+                                        {#if experience.toMonth}
+                                            ({getMonthName(experience.toMonth)})
+                                        {/if}
                                     {/if}
-                                {/if}
-                            </td>
-                            <td>
-                                <button class="btn btn-circle btn-xs btn-error" on:click={() => removeExperience(i)}><X /></button>
-                            </td>
-                        </tr>
+                                </span>
+                                <span class="flex-none">
+                                    <button class="btn btn-circle btn-xs btn-error" on:click={() => removeExperience(i)}><X /></button>
+                                </span>
+                            </div>
+                            <p class="mt-2">
+                                {experience.description}
+                            </p>
+                        </li>
                     {/each}
-                </tbody>
-            </table>
+            </ul>
         </div>
 
         {#if newExperience}
@@ -364,25 +374,25 @@
         </div>
 
         <div class="overflow-x-auto w-full p-2">
-            <table class="w-full">
-                <tbody class="w-full whitespace-nowrap">
-                    {#each resume.achievements as achievement, i}
-                        <tr>
-                            <td class="w-full">
+            <ul class="w-full">
+                {#each resume.achievements as achievement, i}
+                    <li class="p-3 rounded-md bg-base-300 mt-2">
+                        <div class="flex justify-center items-center gap-2 md:gap-4">
+                            <span class="flex-auto">
                                 {achievement.achievement}
-                            </td>
-                            <td>
+                            </span>
+                            <span class="flex-none">
                                 {#if achievement.year}
                                     {achievement.year}
                                 {/if}
-                            </td>
-                            <td>
+                            </span>
+                            <span class="flex-none">
                                 <button class="btn btn-circle btn-xs btn-error" on:click={() => removeAchievement(i)}><X /></button>
-                            </td>
-                        </tr>
-                    {/each}
-                </tbody>
-            </table>
+                            </span>
+                        </div>
+                    </li>
+                {/each}
+            </ul>
         </div>
 
         {#if newAchievement}
@@ -427,19 +437,35 @@
 
         <div class="divider my-8"></div>
 
-        <div class="flex justify-center items-center">
-            <div>
-                <label class="label" for="desiredYearlySalaryUsd">
-                    <span class="label-text">Desired yearly salary (USD equivalent)</span>
-                </label>
-                <input bind:value={resume.desiredYearlySalaryUsd} type="number" name="desiredYearlySalaryUsd" class="input input-bordered" />
-            </div>
-            <div class="ml-4">
-                <label class="label" for="hourlyRateUsd">
-                    <span class="label-text">Hourly rate (USD equivalent)</span>
-                </label>
-                <input bind:value={resume.hourlyRateUsd} type="number" name="hourlyRateUsd" class="input input-bordered" />
-            </div>
+        <div class="mx-4 md:flex md:justify-center md:items-center md:gap-4">
+            <h3 class="text-2xl">Are you available for work?</h3>
+            <input type="checkbox" name="availableForWork" class="toggle toggle-lg" bind:checked={availableForWork} on:change={() => {if (!availableForWork) { resume.desiredYearlySalaryUsd = null; resume.hourlyRateUsd = null; } }} />
         </div>
+
+        {#if availableForWork}
+            <div class="flex flex-col md:flex-row justify-center items-center">
+                <div>
+                    <label class="label" for="desiredYearlySalaryUsd">
+                        <span class="label-text">Desired yearly salary (USD equivalent)</span>
+                    </label>
+                    <input bind:value={resume.desiredYearlySalaryUsd} type="number" name="desiredYearlySalaryUsd" class="input input-bordered" />
+                </div>
+                <div class="ml-4">
+                    <label class="label" for="hourlyRateUsd">
+                        <span class="label-text">Hourly rate (USD equivalent)</span>
+                    </label>
+                    <input bind:value={resume.hourlyRateUsd} type="number" name="hourlyRateUsd" class="input input-bordered" />
+                </div>
+            </div>
+        {/if}
     </div>
+</div>
+
+<div class="flex justify-center items-center mt-10 h-15 gap-8">
+    {#if saveButtonActive}
+        <button class="btn btn-primary btn-lg" on:click|preventDefault={save}>Save</button>
+    {:else}
+        <button class="btn" disabled>Save</button>
+    {/if}
+    <button class="btn btn-secondary btn-lg" on:click|preventDefault={onEditFinished}>Cancel</button>
 </div>
