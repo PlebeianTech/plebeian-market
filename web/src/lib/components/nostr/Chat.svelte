@@ -191,7 +191,7 @@
     function queryProfilesToNostrRelaysInBatches() {
         let profilesToGetLocal = [];
 
-        let i=0;
+        let i = 0;
 
         for (const [key, profile] of profileImagesMap) {
             if (profile === null) {
@@ -371,7 +371,7 @@
         }
 
         processMessagesPeriodically();
-        doBackgroundJobsPeriodically()
+        doBackgroundJobsPeriodically();
 
         window.addEventListener("scroll", function () {
             if (ignoreNextScrollEvent) {
