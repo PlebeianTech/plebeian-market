@@ -272,24 +272,6 @@
                                     </label>
                                 </li>
                             {/if}
-                            <li class="block md:hidden md:h-0">
-                                <a href="/" class="modal-button cursor-pointer">Home</a>
-                            </li>
-                            <li class="block md:hidden md:h-0">
-                                <a href="/marketsquare" class="modal-button cursor-pointer">Market Square</a>
-                            </li>
-                            <li class="block md:hidden md:h-0">
-                                <a href="/skills" class="modal-button cursor-pointer">Skills Market</a>
-                            </li>
-                            <li class="block md:hidden md:h-0">
-                                <a href="/campaigns" class="modal-button cursor-pointer">Campaigns</a>
-                            </li>
-                            <li class="block md:hidden md:h-0">
-                                <a href="/faq" class="modal-button cursor-pointer">FAQ</a>
-                            </li>
-                            <li class="block md:hidden md:h-0">
-                                <a href="/about" class="modal-button cursor-pointer">About</a>
-                            </li>
                             <li>
                                 <a rel="external" href="/stall/{$user.nym}">My stall</a>
                             </li>
