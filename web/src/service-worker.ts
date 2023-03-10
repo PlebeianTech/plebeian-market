@@ -34,6 +34,9 @@ self.addEventListener('fetch', (event) => {
     // ignore POST requests etc
     if (event.request.method !== 'GET') return;
 
+    // Don't try to cache nip-05 requests (they'll fail)
+    if (event.request.url.includes('nostr.json')) return;
+
     async function respond() {
         const url = new URL(event.request.url);
         const cache = await caches.open(CACHE);

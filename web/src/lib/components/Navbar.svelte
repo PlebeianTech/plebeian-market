@@ -218,6 +218,11 @@
                     <p>
                         <a href="/about" class="btn btn-ghost normal-case">About</a>
                     </p>
+                    {#if !$token || !$user}
+                        <p>
+                            <a href="#" class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
+                        </p>
+                    {/if}
                 </div>
             </div>
 
