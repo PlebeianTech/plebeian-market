@@ -23,7 +23,7 @@
     export let onEntityChanged = () => {};
 
     function view() {
-        window.open(getUrl(), "_blank");
+        window.open(getUrl());
     }
 
     function getUrl() {
