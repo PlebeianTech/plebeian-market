@@ -1,4 +1,4 @@
-import { getEventHash, getPublicKey, signEvent } from 'nostr-tools';
+import { getEventHash, getPublicKey, signEvent, Kind } from 'nostr-tools';
 import type { SimplePool } from 'nostr-tools/pool';
 import { UserResume, type User } from "$lib/types/user";
 import { relayUrlList, hasExtension, localStorageNostrPreferPMId } from "$lib/nostr/utils";
@@ -25,6 +25,10 @@ async function createEvent(kind: number, content: any, user: User) {
     }
 }
 
+export async function closePool(pool: SimplePool) {
+    await pool.close(relayUrlList);
+}
+
 export function subscribeResumes(pool: SimplePool, receivedCB: (pubkey: string, resume: UserResume, createdAt: number) => void) {
     let sub = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME] }]);
     sub.on('event', e => receivedCB(e.pubkey, UserResume.fromJson(JSON.parse(e.content)), e.created_at));
@@ -40,4 +44,9 @@ export async function publishResume(pool: SimplePool, user: User, resume: UserRe
     for (const pub of pool.publish(relayUrlList, event)) {
         pub.on('ok', successCB);
     }
+}
+
+export function subscribeMetadata(pool: SimplePool, pubkeys: string[], receivedCB: (pubkey: string, metadata: {name: string, picture: string, about: string}) => void) {
+    let sub = pool.sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
+    sub.on('event', e => receivedCB(e.pubkey, JSON.parse(e.content)));
 }
