@@ -138,6 +138,15 @@ export class UserResume {
     experience: UserResumeExperience[] = [];
     achievements: UserResumeAchievement[] = [];
 
+    public hasSkill(skill: string) {
+        for (const s of this.skills) {
+            if (s.skill === skill) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public toJson() {
         return {
             job_title: this.jobTitle,
