@@ -5,6 +5,7 @@
     import type { UserResume } from "$lib/types/user";
     import { subscribeResumes, subscribeMetadata, closePool } from "$lib/services/nostr";
     import Loading from "$lib/components/Loading.svelte";
+    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     const QUERY_BATCH_SIZE = 100;
     const CHECK_METADATA_DELAY = 1000;
@@ -79,32 +80,99 @@
     })
 </script>
 
-<div class="mx-auto w-full">
-    {#if Object.keys(resumes).length == 0}
+<div class="mx-auto w-full lg:col7777umns-3 p-2 py-4 h-auto container grid lg:grid-cols-3 gap-4">
+    {#if Object.keys(resumes).length === 0}
         <Loading />
     {:else}
-        <div class="w-full p-2">
-            {#each Object.entries(resumes) as [pubkey, r]}
-                <div class="card bg-base-300 shadow-xl mt-4">
-                    <figure>
-                        <img src={pubkey in metadata ? metadata[pubkey].picture : null} alt="" />
-                    </figure>
-                    <div class="card-body">
-                        <h2 class="card-title">{pubkey in metadata ? metadata[pubkey].name : encodeNpub(pubkey).substring(0, 10) + "..."}</h2>
-                        <h3>{r.resume.jobTitle}</h3>
-                        <div class="flex flex-row gap-2">
-                            {#each r.resume.skills as skill}
-                                <div class="badge badge-primary badge-lg mt-4">{skill.skill}</div>
-                            {/each}
-                        </div>
-                        <p>{r.resume.bio}</p>
-                        <div class="card-actions justify-end">
-                            <button class="btn btn-primary" on:click={() => onView(r.resume, pubkey in metadata ? metadata[pubkey].name : null, pubkey in metadata ? metadata[pubkey].picture : null)}>View</button>
-                            <a class="btn btn-primary" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">Contact</a>
-                        </div>
+        {#each Object.entries(resumes) as [pubkey, r]}
+            <div class="card rounded-box max-w-full xl:w-full gap-4 px-4 mx-3 xl:mx-0 py-6 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-slate-400/70 text-primary-content h-full">
+                <div class="avatar mask mask-squircle h-40 w-40">
+                    <img src={(pubkey in metadata ? metadata[pubkey].picture : null) ?? profilePicturePlaceHolder} alt="" />
+                </div>
+                <div>
+                    <div class="w-full text-center">
+                        <div class="text-lg text-black font-extrabold">{pubkey in metadata ? metadata[pubkey].name : encodeNpub(pubkey).substring(0, 10) + "..."}</div>
+                        <div class="text-sm text-black my-3 ">{r.resume.jobTitle}</div>
+                    </div>
+                    <div class="w-full mt-2 text-center text-black">
+                        {#each r.resume.skills as skill}
+                            <div class="badge badge-primary badge-outline mr-2 mb-1">{skill.skill}</div>
+                        {/each}
+                    </div>
+                    <div class="w-full mt-2 text-center text-black">
+                        <p>{@html r.resume.bio.substring(0,150)}{#if r.resume.bio.length > 150}...{/if}</p>
                     </div>
                 </div>
-            {/each}
-        </div>
+                <div>
+                    <button class="btn btn-primary btn-sm mr-2"
+                            on:click={() => onView(r.resume, pubkey in metadata ? metadata[pubkey].name : null, pubkey in metadata ? metadata[pubkey].picture : null)}>
+                        View
+                    </button>
+                    <a class="btn btn-primary btn-sm" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">
+                        Contact
+                    </a>
+                </div>
+            </div>
+        {/each}
+        {#each Object.entries(resumes) as [pubkey, r]}
+            <div class="card rounded-box max-w-full xl:w-full gap-4 px-4 mx-3 xl:mx-0 py-6 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-slate-400/70 text-primary-content h-full">
+                <div class="avatar mask mask-squircle h-40 w-40">
+                    <img src={(pubkey in metadata ? metadata[pubkey].picture : null) ?? profilePicturePlaceHolder} alt="" />
+                </div>
+                <div>
+                    <div class="w-full text-center">
+                        <div class="text-lg text-black font-extrabold">{pubkey in metadata ? metadata[pubkey].name : encodeNpub(pubkey).substring(0, 10) + "..."}</div>
+                        <div class="text-sm text-black my-3 ">{r.resume.jobTitle}</div>
+                    </div>
+                    <div class="w-full mt-2 text-center text-black">
+                        {#each r.resume.skills as skill}
+                            <div class="badge badge-primary badge-outline mr-2 mb-1">{skill.skill}</div>
+                        {/each}
+                    </div>
+                    <div class="w-full mt-2 text-center text-black">
+                        <p>{@html r.resume.bio.substring(0,150)}{#if r.resume.bio.length > 150}...{/if}</p>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-sm mr-2"
+                            on:click={() => onView(r.resume, pubkey in metadata ? metadata[pubkey].name : null, pubkey in metadata ? metadata[pubkey].picture : null)}>
+                        View
+                    </button>
+                    <a class="btn btn-primary btn-sm" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">
+                        Contact
+                    </a>
+                </div>
+            </div>
+        {/each}
+        {#each Object.entries(resumes) as [pubkey, r]}
+            <div class="card rounded-box max-w-full xl:w-full gap-4 px-4 mx-3 xl:mx-0 py-6 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-slate-400/70 text-primary-content h-full">
+                <div class="avatar mask mask-squircle h-40 w-40">
+                    <img src={(pubkey in metadata ? metadata[pubkey].picture : null) ?? profilePicturePlaceHolder} alt="" />
+                </div>
+                <div>
+                    <div class="w-full text-center">
+                        <div class="text-lg text-black font-extrabold">{pubkey in metadata ? metadata[pubkey].name : encodeNpub(pubkey).substring(0, 10) + "..."}</div>
+                        <div class="text-sm text-black my-3 ">{r.resume.jobTitle}</div>
+                    </div>
+                    <div class="w-full mt-2 text-center text-black">
+                        {#each r.resume.skills as skill}
+                            <div class="badge badge-primary badge-outline mr-2 mb-1">{skill.skill}</div>
+                        {/each}
+                    </div>
+                    <div class="w-full mt-2 text-center text-black">
+                        <p>{@html r.resume.bio.substring(0,150)}{#if r.resume.bio.length > 150}...{/if}</p>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-sm mr-2"
+                            on:click={() => onView(r.resume, pubkey in metadata ? metadata[pubkey].name : null, pubkey in metadata ? metadata[pubkey].picture : null)}>
+                        View
+                    </button>
+                    <a class="btn btn-primary btn-sm" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">
+                        Contact
+                    </a>
+                </div>
+            </div>
+        {/each}
     {/if}
 </div>
