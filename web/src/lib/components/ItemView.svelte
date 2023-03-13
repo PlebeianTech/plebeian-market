@@ -182,70 +182,69 @@
         {/if}
 
         <div class="grid">
-            <div class="py-20">
-                <h2 class="lg:text-6xl text-3xl lg:w-1/2 mx-auto font-black text-center mt-2 mb-4 rounded-t py-1.5">{item.title}</h2>
+            <div class="py-6">
+                <h2 class="lg:text-6xl text-3xl lg:w-1/2 mx-auto font-black text-center my-2 rounded-t py-1.5">{item.title}</h2>
                 <!-- CONTENT -->
-                <div class="grid lg:grid-cols-3 my-20">
+                <div class="grid lg:grid-cols-3 mt-6 mb-2">
                   <!-- LEFT  -->
                   <div class="lg:sticky top-24">
-                    <!-- IMAGES -->
-                    <div class="w-64">
-                      <Gallery photos={item.media} />
-                    </div>
-                    <!-- DETAILS -->
-                    <div>
-                      <div class="">
-                        <!-- <span class="flex text-1xl text-center mr-2 mb-4 mt-2 py-1.5 rounded-t">
-                            <h3 class="mx-1">Auction Details</h3>
-                        </span> -->
+                      <!-- IMAGES -->
+                      <div class="w-full">
+                          <Gallery photos={item.media} />
+                      </div>
 
-                        <div class="markdown-container mt-12 lg:w-2/3">
-                            <SvelteMarkdown source={item.description} />
-                        </div>
-                        {#if item.category !== Category.Time}
-                            <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
-                        {/if}
+                      <!-- DETAILS -->
+                      <div>
+                          <div class="">
+                              <div class="markdown-container mt-12 lg:w-2/3">
+                                  <SvelteMarkdown source={item.description} />
+                              </div>
 
-                        {#if item.shipping_from}
-                            <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
-                        {/if}
-                        {#if item.shipping_domestic_usd}
-                            <p class="mt-4 ml-2">Shipping (domestic): ~<AmountFormatter usdAmount={item.shipping_domestic_usd} /></p>
-                        {/if}
-                        {#if item.shipping_worldwide_usd}
-                            <p class="mt-4 ml-2">Shipping (worldwide): ~<AmountFormatter usdAmount={item.shipping_worldwide_usd} /></p>
-                        {/if}
-                        <p class="mt-4 ml-2">
-                            {#if item instanceof Auction}
-                                {#if item.start_date && item.end_date}
-                                    {#if item.ended}
-                                        Auction ended.
-                                    {/if}
-                                {:else if !item.is_mine}
-                                    Keep calm, prepare your wallet and wait for the seller to start this auction.
-                                {/if}
-                            {/if}
-                        </p>
-                    </div>
+                              {#if item.category !== Category.Time}
+                                  <p class="mt-4 ml-2">NOTE: Please allow for post and packaging.</p>
+                              {/if}
 
-                      <div class="grid">
-                          {#if item.campaign_name !== null}
-                              <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
-                          {/if}
-                          <div class="grid place-content-start">
-                            <Avatar account={item.seller} />
+                              {#if item.shipping_from}
+                                  <h3 class="text-1xl md:text-3xl mt-4 ml-2">Shipping from {item.shipping_from}</h3>
+                              {/if}
+
+                              {#if item.shipping_domestic_usd}
+                                  <p class="mt-4 ml-2">Shipping (domestic): ~<AmountFormatter usdAmount={item.shipping_domestic_usd} /></p>
+                              {/if}
+                              {#if item.shipping_worldwide_usd}
+                                  <p class="mt-4 ml-2">Shipping (worldwide): ~<AmountFormatter usdAmount={item.shipping_worldwide_usd} /></p>
+                              {/if}
+                              <p class="mt-4 ml-2">
+                                  {#if item instanceof Auction}
+                                      {#if item.start_date && item.end_date}
+                                          {#if item.ended}
+                                              Auction ended.
+                                          {/if}
+                                      {:else if !item.is_mine}
+                                          Keep calm, prepare your wallet and wait for the seller to start this auction.
+                                      {/if}
+                                  {/if}
+                              </p>
                           </div>
 
-                          {#if item instanceof Auction}
-                              <div class="form-control flex place-items-start">
-                                  <label class="label cursor-pointer text-left">
-                                      <span class="label-text mr-4">Follow auction</span>
-                                      <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
-                                  </label>
+                          <div class="grid">
+                              {#if item.campaign_name !== null}
+                                  <div class="badge badge-primary mb-4"><a href="/campaigns/{item.campaign_key}">{item.campaign_name} campaign</a></div>
+                              {/if}
+                              <div class="grid place-content-start">
+                                  <Avatar account={item.seller} />
                               </div>
-                          {/if}
+
+                              {#if item instanceof Auction}
+                                  <div class="form-control flex place-items-start">
+                                      <label class="label cursor-pointer text-left">
+                                          <span class="label-text mr-4">Follow auction</span>
+                                          <input type="checkbox" on:click|preventDefault={followAuction} bind:checked={item.following} class="checkbox checkbox-primary checkbox-lg" />
+                                      </label>
+                                  </div>
+                              {/if}
+                          </div>
                       </div>
-                  </div>
                   </div>
 
                   <!-- BIDS -->
@@ -334,7 +333,7 @@
                                 {/if}
                             {:else}
                                 {#if item.started}
-                                    <p class="text-4xl text-center pt-24">
+                                    <p class="text-4xl text-center pt-10">
                                         {#if item instanceof Auction}
                                             Your auction is live! <br />
                                         {:else if item instanceof Listing}
@@ -343,7 +342,7 @@
                                             Note: You can still edit it, by going to <a class="link" href="/stall/{$user.nym}">My stall</a>!
                                         {/if}
                                     </p>
-                                    <div class="text-xl text-center my-2 mt-10 mb-10">
+                                    <div class="text-xl text-center mt-10 mb-1">
                                         Now let your audience know!
                                         &nbsp;
                                         <TweetButton tweetURL={tweetURL} />
