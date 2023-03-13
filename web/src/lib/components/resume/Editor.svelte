@@ -6,6 +6,8 @@
     import { Info, user } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$lib/utils";
+    import MonthPicker from "$lib/components/MonthPicker.svelte";
+    import YearPicker from "$lib/components/YearPicker.svelte";
     import Plus from "$lib/components/icons/Plus.svelte";
     import X from "$lib/components/icons/X.svelte";
 
@@ -168,9 +170,9 @@
                         </div>
                         <div>
                             {#if newSkill.validate()}
-                                <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addSkill}><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addSkill}><Plus /></button>
                             {:else}
-                                <button class="btn btn-xs btn-circle btn-disabled ml-2" disabled><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-disabled ml-2" disabled><Plus /></button>
                             {/if}
                         </div>
                     </div>
@@ -194,9 +196,9 @@
                         </div>
                         <div>
                             {#if newPortfolio.validate()}
-                                <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addPortfolio}><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addPortfolio}><Plus /></button>
                             {:else}
-                                <button class="btn btn-xs btn-circle btn-disabled ml-2" disabled><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-disabled ml-2" disabled><Plus /></button>
                             {/if}
                         </div>
                     </div>
@@ -207,7 +209,7 @@
 
             <div class="flex justify-center items-center gap-4">
                 <h3 class="text-2xl mb-0">Education</h3>
-                <button class="btn btn-circle btn-xs btn-success" on:click={() => newEducation = new UserResumeEducation()}><Plus /></button>
+                <button class="btn btn-circle btn-s btn-ghost" on:click={() => newEducation = new UserResumeEducation()}><Plus /></button>
             </div>
 
             <div class="overflow-x-auto w-full p-2">
@@ -246,15 +248,15 @@
                                 <label class="label" for="year">
                                     <span class="label-text">year</span>
                                 </label>
-                                <input bind:value={newEducation.year} type="number" name="year" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addEducation(); }} />
+                                <YearPicker bind:value={newEducation.year} />
                             </div>
                         </div>
                     </div>
                     <div>
                         {#if newEducation.validate()}
-                            <button class="btn btn-xs btn-circle btn-success" on:click={addEducation}><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-ghost" on:click={addEducation}><Plus /></button>
                         {:else}
-                            <button class="btn btn-xs btn-circle btn-disabled" disabled><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-disabled" disabled><Plus /></button>
                         {/if}
                     </div>
                     <div>
@@ -267,7 +269,7 @@
 
             <div class="flex justify-center items-center gap-4">
                 <h3 class="text-2xl mb-0">Experience</h3>
-                <button class="btn btn-circle btn-xs btn-success" on:click={() => newExperience = new UserResumeExperience()}><Plus /></button>
+                <button class="btn btn-circle btn-s btn-ghost" on:click={() => newExperience = new UserResumeExperience()}><Plus /></button>
             </div>
 
             <div class="overflow-x-auto w-full p-2">
@@ -337,13 +339,13 @@
                                 <label class="label" for="experienceFromYear">
                                     <span class="label-text">from year</span>
                                 </label>
-                                <input bind:value={newExperience.fromYear} type="number" name="experienceFromYear" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <YearPicker bind:value={newExperience.fromYear} />
                             </div>
                             <div class="w-1/2 max-w-xs pl-4">
                                 <label class="label" for="experienceFromMonth">
                                     <span class="label-text">month</span>
                                 </label>
-                                <input bind:value={newExperience.fromMonth} type="number" name="experienceFromMonth" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <MonthPicker bind:value={newExperience.fromMonth} />
                             </div>
                         </div>
                         <div class="flex flex-row">
@@ -351,21 +353,21 @@
                                 <label class="label" for="experienceToYear">
                                     <span class="label-text">to year</span>
                                 </label>
-                                <input bind:value={newExperience.toYear} type="number" name="experienceToYear" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <YearPicker bind:value={newExperience.toYear} />
                             </div>
                             <div class="w-1/2 max-w-xs pl-4">
                                 <label class="label" for="experienceToMonth">
                                     <span class="label-text">month</span>
                                 </label>
-                                <input bind:value={newExperience.toMonth} type="number" name="experienceToMonth" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <MonthPicker bind:value={newExperience.toMonth} />
                             </div>
                         </div>
                     </div>
                     <div>
                         {#if newExperience.validate()}
-                            <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addExperience}><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addExperience}><Plus /></button>
                         {:else}
-                            <button class="btn btn-xs btn-disabled ml-2" disabled><Plus /></button>
+                            <button class="btn btn-s btn-disabled ml-2" disabled><Plus /></button>
                         {/if}
                     </div>
                     <div>
@@ -378,7 +380,7 @@
 
             <div class="flex justify-center items-center gap-4">
                 <h3 class="text-2xl mb-0">Achievements</h3>
-                <button class="btn btn-circle btn-xs btn-success" on:click={() => newAchievement = new UserResumeAchievement()}><Plus /></button>
+                <button class="btn btn-circle btn-s btn-ghost" on:click={() => newAchievement = new UserResumeAchievement()}><Plus /></button>
             </div>
 
             <div class="overflow-x-auto w-full p-2">
@@ -417,15 +419,15 @@
                                 <label class="label" for="year">
                                     <span class="label-text">year</span>
                                 </label>
-                                <input bind:value={newAchievement.year} type="number" name="year" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addAchievement(); }} />
+                                <YearPicker bind:value={newAchievement.year} />
                             </div>
                         </div>
                     </div>
                     <div>
                         {#if newAchievement.validate()}
-                            <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addAchievement}><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addAchievement}><Plus /></button>
                         {:else}
-                            <button class="btn btn-xs btn-disabled ml-2" disabled><Plus /></button>
+                            <button class="btn btn-s btn-disabled ml-2" disabled><Plus /></button>
                         {/if}
                     </div>
                     <div>
