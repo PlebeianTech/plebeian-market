@@ -168,9 +168,9 @@
                         </div>
                         <div>
                             {#if newSkill.validate()}
-                                <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addSkill}><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addSkill}><Plus /></button>
                             {:else}
-                                <button class="btn btn-xs btn-circle btn-disabled ml-2" disabled><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-disabled ml-2" disabled><Plus /></button>
                             {/if}
                         </div>
                     </div>
@@ -194,9 +194,9 @@
                         </div>
                         <div>
                             {#if newPortfolio.validate()}
-                                <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addPortfolio}><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addPortfolio}><Plus /></button>
                             {:else}
-                                <button class="btn btn-xs btn-circle btn-disabled ml-2" disabled><Plus /></button>
+                                <button class="btn btn-s btn-circle btn-disabled ml-2" disabled><Plus /></button>
                             {/if}
                         </div>
                     </div>
@@ -207,7 +207,7 @@
 
             <div class="flex justify-center items-center gap-4">
                 <h3 class="text-2xl mb-0">Education</h3>
-                <button class="btn btn-circle btn-xs btn-success" on:click={() => newEducation = new UserResumeEducation()}><Plus /></button>
+                <button class="btn btn-circle btn-s btn-ghost" on:click={() => newEducation = new UserResumeEducation()}><Plus /></button>
             </div>
 
             <div class="overflow-x-auto w-full p-2">
@@ -252,9 +252,9 @@
                     </div>
                     <div>
                         {#if newEducation.validate()}
-                            <button class="btn btn-xs btn-circle btn-success" on:click={addEducation}><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-ghost" on:click={addEducation}><Plus /></button>
                         {:else}
-                            <button class="btn btn-xs btn-circle btn-disabled" disabled><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-disabled" disabled><Plus /></button>
                         {/if}
                     </div>
                     <div>
@@ -267,7 +267,7 @@
 
             <div class="flex justify-center items-center gap-4">
                 <h3 class="text-2xl mb-0">Experience</h3>
-                <button class="btn btn-circle btn-xs btn-success" on:click={() => newExperience = new UserResumeExperience()}><Plus /></button>
+                <button class="btn btn-circle btn-s btn-ghost" on:click={() => newExperience = new UserResumeExperience()}><Plus /></button>
             </div>
 
             <div class="overflow-x-auto w-full p-2">
@@ -363,9 +363,9 @@
                     </div>
                     <div>
                         {#if newExperience.validate()}
-                            <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addExperience}><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addExperience}><Plus /></button>
                         {:else}
-                            <button class="btn btn-xs btn-disabled ml-2" disabled><Plus /></button>
+                            <button class="btn btn-s btn-disabled ml-2" disabled><Plus /></button>
                         {/if}
                     </div>
                     <div>
@@ -378,7 +378,7 @@
 
             <div class="flex justify-center items-center gap-4">
                 <h3 class="text-2xl mb-0">Achievements</h3>
-                <button class="btn btn-circle btn-xs btn-success" on:click={() => newAchievement = new UserResumeAchievement()}><Plus /></button>
+                <button class="btn btn-circle btn-s btn-ghost" on:click={() => newAchievement = new UserResumeAchievement()}><Plus /></button>
             </div>
 
             <div class="overflow-x-auto w-full p-2">
@@ -423,9 +423,9 @@
                     </div>
                     <div>
                         {#if newAchievement.validate()}
-                            <button class="btn btn-xs btn-circle btn-success ml-2" on:click={addAchievement}><Plus /></button>
+                            <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addAchievement}><Plus /></button>
                         {:else}
-                            <button class="btn btn-xs btn-disabled ml-2" disabled><Plus /></button>
+                            <button class="btn btn-s btn-disabled ml-2" disabled><Plus /></button>
                         {/if}
                     </div>
                     <div>
