@@ -103,12 +103,12 @@
         <div class="flex gap-4">
             {#each Object.entries(skills) as [skill, count]}
                 <div>
-                    <div class="badge badge-primary badge-lg mt-4 cursor-pointer" class:badge-outline={skill != skillFilter} on:click={() => skillFilter = skill} on:keypress={() => skillFilter = skill}>{skill}</div>
+                    <div class="badge badge-primary badge-lg mt-4 cursor-pointer" class:badge-outline={skill !== skillFilter} on:click={() => skillFilter = skill} on:keypress={() => skillFilter = skill}>{skill}</div>
                     <span>x {count}</span>
                 </div>
             {/each}
         </div>
-        <div class="lg:columns-3 p-2 py-4 h-auto container grid lg:grid-cols-3 gap-4">
+        <div class="lg:columns-3 p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 gap-4">
             {#each Object.entries(resumes) as [pubkey, r]}
                 {#if (skillFilter === null) || (r.resume.hasSkill(skillFilter))}
                     <div class="card rounded-box max-w-full xl:w-full gap-4 px-4 mx-3 xl:mx-0 py-6 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-slate-400/70 text-primary-content h-full">
