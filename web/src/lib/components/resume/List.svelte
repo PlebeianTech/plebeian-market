@@ -101,6 +101,9 @@
         <Loading />
     {:else}
         <div class="flex gap-4">
+            <div>
+                <div class="badge badge-primary badge-lg mt-4 cursor-pointer" class:badge-outline={skillFilter !== null} on:click={() => skillFilter = null} on:keypress={() => skillFilter = null}>All</div>
+            </div>
             {#each Object.entries(skills) as [skill, count]}
                 <div>
                     <div class="badge badge-primary badge-lg mt-4 cursor-pointer z-0" class:badge-outline={skill !== skillFilter} on:click={() => {if (skill !== skillFilter) {skillFilter = skill} else {skillFilter = null}} } on:keypress={() => skillFilter = skill}>
