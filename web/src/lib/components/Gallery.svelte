@@ -257,27 +257,19 @@
 
 <div class="gallery hidden md:grid md:w-4/5 grid-cols-1 gap-3">
     {#each photos as photo, i}
-            {#if i < 2}
-                <div class="gallery-item h-auto hover:scale-110 duration-300 hover:-translate-y-1 table">
-            <a class="table-cell align-bottom" href={photo.url} on:click|preventDefault={event => click(event)}>
+        <div class="gallery-item hover:scale-110 duration-300 hover:-translate-y-1 table" class:h-auto={i < 2} class:h-40={i >= 2}>
+            <a class="table-cell " class:align-bottom={i < 2} class:align-top={i >= 2} href={photo.url} on:click|preventDefault={event => click(event)}>
                 <img class="rounded-md" data-lightbox="gallery" src={photo.url} alt="Auctioned item" />
             </a>
-                </div>
-                {:else}
-                <div class="gallery-item h-40 hover:scale-110 hover:translate-y-1 table">
-                <a class="table-cell align-top" href={photo.url} on:click|preventDefault={event => click(event)}>
-                    <img class="rounded-md" data-lightbox="gallery" src={photo.url} alt="Auctioned item" />
-                </a>
-                </div>
-                {/if}
+        </div>
     {/each}
 </div>
 
-<div class=" md:hidden max-h-48 mt-4 gallery carousel carousel-center space-x-4">
+<div class="md:hidden max-h-48 mt-4 gallery carousel carousel-center space-x-4">
     {#each photos as photo}
         <div id="{photo.hash}" class="gallery-item carousel-item">
             <a class="table-cell" href={photo.url} on:click|preventDefault={event => click(event)}>
-            <img class="self-center max-h-48 w-48 object-scale-down rounded-md" src={photo.url} alt="Auctioned object" />
+                <img class="self-center max-h-48 w-48 object-scale-down rounded-md" src={photo.url} alt="Auctioned object" />
             </a>
         </div>
     {/each}
