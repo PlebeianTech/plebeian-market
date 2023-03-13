@@ -45,13 +45,13 @@
         {/if}
 
         {#if resume.hourlyRateUsd}
-            <p class="text-center text-xl mt-4">
+            <p class="text-center text-xl mt-4 whitespace-pre-wrap">
                 Hourly rate (USD equivalent): {resume.hourlyRateUsd}
             </p>
         {/if}
 
         {#if resume.bitcoinerQuestion}
-            <p class="text-center text-lg mt-4">
+            <p class="text-center text-lg mt-4 whitespace-pre-wrap">
                 Why I want to be paid in bitcoin: {resume.bitcoinerQuestion}
             </p>
         {/if}
@@ -75,7 +75,9 @@
             <h2 class="text-center text-3xl">Education</h2>
             <div class="text-center text-xl">
                 {#each resume.education as education}
+                    <p class="whitespace-pre-wrap">
                     {education.education} {#if education.year}({education.year}){/if}
+                    </p>
                 {/each}
             </div>
         {/if}
@@ -104,7 +106,7 @@
                     {:else}
                         ?
                     {/if}
-                    <p>
+                    <p class="whitespace-pre-wrap">
                         {experience.description}
                     </p>
                 {/each}
@@ -117,7 +119,9 @@
             <h2 class="text-center text-3xl">Achievements</h2>
             <div class="text-center text-xl">
                 {#each resume.achievements as achievement}
+                    <p class="whitespace-pre-wrap">
                     {achievement.achievement} {#if achievement.year}({achievement.year}){/if}
+                    </p>
                 {/each}
             </div>
         {/if}
