@@ -41,10 +41,13 @@
                 (pk, m) => {
                     if (!(pk in metadata)) {
                         metadata[pk] = {name: m.name, picture: m.picture};
-                    } else if (m.name !== undefined) {
-                        metadata[pk].name = m.name;
-                    } else if (m.picture !== undefined) {
-                        metadata[pk].picture = m.picture;
+                    } else {
+                        if (m.name !== undefined) {
+                            metadata[pk].name = m.name;
+                        }
+                        if (m.picture !== undefined) {
+                            metadata[pk].picture = m.picture;
+                        }
                     }
             });
         }
