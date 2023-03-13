@@ -6,6 +6,8 @@
     import { Info, user } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$lib/utils";
+    import MonthPicker from "$lib/components/MonthPicker.svelte";
+    import YearPicker from "$lib/components/YearPicker.svelte";
     import Plus from "$lib/components/icons/Plus.svelte";
     import X from "$lib/components/icons/X.svelte";
 
@@ -246,7 +248,7 @@
                                 <label class="label" for="year">
                                     <span class="label-text">year</span>
                                 </label>
-                                <input bind:value={newEducation.year} type="number" name="year" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addEducation(); }} />
+                                <YearPicker bind:value={newEducation.year} />
                             </div>
                         </div>
                     </div>
@@ -337,13 +339,13 @@
                                 <label class="label" for="experienceFromYear">
                                     <span class="label-text">from year</span>
                                 </label>
-                                <input bind:value={newExperience.fromYear} type="number" name="experienceFromYear" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <YearPicker bind:value={newExperience.fromYear} />
                             </div>
                             <div class="w-1/2 max-w-xs pl-4">
                                 <label class="label" for="experienceFromMonth">
                                     <span class="label-text">month</span>
                                 </label>
-                                <input bind:value={newExperience.fromMonth} type="number" name="experienceFromMonth" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <MonthPicker bind:value={newExperience.fromMonth} />
                             </div>
                         </div>
                         <div class="flex flex-row">
@@ -351,13 +353,13 @@
                                 <label class="label" for="experienceToYear">
                                     <span class="label-text">to year</span>
                                 </label>
-                                <input bind:value={newExperience.toYear} type="number" name="experienceToYear" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <YearPicker bind:value={newExperience.toYear} />
                             </div>
                             <div class="w-1/2 max-w-xs pl-4">
                                 <label class="label" for="experienceToMonth">
                                     <span class="label-text">month</span>
                                 </label>
-                                <input bind:value={newExperience.toMonth} type="number" name="experienceToMonth" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addExperience(); }} />
+                                <MonthPicker bind:value={newExperience.toMonth} />
                             </div>
                         </div>
                     </div>
@@ -417,7 +419,7 @@
                                 <label class="label" for="year">
                                     <span class="label-text">year</span>
                                 </label>
-                                <input bind:value={newAchievement.year} type="number" name="year" class="input input-bordered w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addAchievement(); }} />
+                                <YearPicker bind:value={newAchievement.year} />
                             </div>
                         </div>
                     </div>
