@@ -103,7 +103,14 @@
         <div class="flex gap-4">
             {#each Object.entries(skills) as [skill, count]}
                 <div>
-                    <div class="badge badge-primary badge-lg mt-4 cursor-pointer" class:badge-outline={skill !== skillFilter} on:click={() => skillFilter = skill} on:keypress={() => skillFilter = skill}>{skill}</div>
+                    <div class="badge badge-primary badge-lg mt-4 cursor-pointer z-0" class:badge-outline={skill !== skillFilter} on:click={() => {if (skill !== skillFilter) {skillFilter = skill} else {skillFilter = null}} } on:keypress={() => skillFilter = skill}>
+                        {skill}
+                        {#if skillFilter === skill}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 ml-2 mr-0">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        {/if}
+                    </div>
                     <span>x {count}</span>
                 </div>
             {/each}
