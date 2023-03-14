@@ -32,7 +32,7 @@
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector("html");
         let toggle = <HTMLInputElement>document.getElementById("theme-toggle");
-        html.dataset.theme = toggle.checked ? "night" : "light";
+        html.dataset.theme = toggle.checked ? "halloween" : "light";
     }
 
     function showModal(content: any, hasHide: boolean, onHide: (saved: boolean) => void = (_) => {}) {

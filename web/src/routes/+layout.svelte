@@ -80,7 +80,7 @@
 
 <div class="h-screen pt-12 lg:pt-20 pb-20 mt-2">
     <Navbar />
-    <div class="p-2 py-4" style="min-height: 83.33%">
+    <div class="py-4" style="min-height: 83.33%">
         <slot />
     </div>
     {#if $page.url.pathname !== "/marketsquare"}
