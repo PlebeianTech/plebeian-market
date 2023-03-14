@@ -3,7 +3,7 @@
     import { SimplePool } from 'nostr-tools';
     import { getPreferredPublicKey } from "$lib/nostr/utils";
     import { subscribeResume, publishResume } from "$lib/services/nostr";
-    import { Info, user } from "$lib/stores";
+    import { Info } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$lib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";
@@ -29,7 +29,7 @@
 
     let availableForWork = false;
 
-    $: saveButtonActive = $user && !saving;
+    $: saveButtonActive = !saving;
 
     function addSkill() {
         if (newSkill.validate()) {
@@ -88,35 +88,31 @@
 
     let saving = false;
     async function save() {
-        if ($user) {
-            saving = true;
+        saving = true;
 
-            let notified = false;
+        let notified = false;
 
-            await publishResume(pool, $user, resume,
-                () => {
-                    if (!notified) {
-                        notified = true;
-                        saving = false;
-                        Info.set("Your résumé has been saved!");
-                        onEditFinished();
-                    }
-                });
-            // TODO: callback when no relay accepted our resume (so successCB was never called)
-        }
+        await publishResume(pool, resume,
+            () => {
+                if (!notified) {
+                    notified = true;
+                    saving = false;
+                    Info.set("Your résumé has been saved!");
+                    onEditFinished();
+                }
+            });
+        // TODO: callback when no relay accepted our resume (so successCB was never called)
     }
 
     onMount(async () => {
-        if ($user) {
-            subscribeResume(pool, await getPreferredPublicKey($user.nostr_private_key),
-                (r, rcAt) => {
-                    if (rcAt > resumeCreatedAt) {
-                        resumeCreatedAt = rcAt;
-                        resume = r;
-                        availableForWork = resume.desiredYearlySalaryUsd !== null || resume.hourlyRateUsd !== null;
-                    }
-                });
-        }
+        subscribeResume(pool, await getPreferredPublicKey(null),
+            (r, rcAt) => {
+                if (rcAt > resumeCreatedAt) {
+                    resumeCreatedAt = rcAt;
+                    resume = r;
+                    availableForWork = resume.desiredYearlySalaryUsd !== null || resume.hourlyRateUsd !== null;
+                }
+            });
     });
 </script>
 

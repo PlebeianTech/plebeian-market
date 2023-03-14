@@ -5,7 +5,7 @@ import { relayUrlList, hasExtension, localStorageNostrPreferPMId } from "$lib/no
 
 const EVENT_KIND_RESUME = 66;
 
-async function createEvent(kind: number, content: any, user: User) {
+async function createEvent(kind: number, content: any, user: User | null = null) {
     let event: any = {
         kind,
         content,
@@ -39,8 +39,8 @@ export function subscribeResume(pool: SimplePool, pubkey: string, receivedCB: (r
     sub.on('event', e => receivedCB(UserResume.fromJson(JSON.parse(e.content)), e.created_at));
 }
 
-export async function publishResume(pool: SimplePool, user: User, resume: UserResume, successCB: () => void) {
-    const event = await createEvent(EVENT_KIND_RESUME, JSON.stringify(resume.toJson()), user);
+export async function publishResume(pool: SimplePool, resume: UserResume, successCB: () => void) {
+    const event = await createEvent(EVENT_KIND_RESUME, JSON.stringify(resume.toJson()));
     for (const pub of pool.publish(relayUrlList, event)) {
         pub.on('ok', successCB);
     }
