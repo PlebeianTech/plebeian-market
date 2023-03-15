@@ -32,11 +32,15 @@
     </div>
 
     <div class="card bg-base-300 shadow-xl mt-4 pt-6 place-items-center items-center">
-        <figure class="avatar mask mask-squircle h-80 w-80">
-            <img src={resume.picture ?? profilePicturePlaceHolder} alt="" />
-        </figure>
+        {#if resume.picture}
+            <figure class="avatar mask mask-squircle h-80 w-80">
+                <img src={resume.picture} alt="" />
+            </figure>
+        {/if}
         <div class="card-body w-full px-3">
-            <h2 class="text-3xl text-center">{resume.name}</h2>
+            {#if resume.name}
+                <h2 class="text-3xl text-center">{resume.name}</h2>
+            {/if}
 
             <div class="text-center mt-2 text-3xl">
                 {resume.jobTitle}
