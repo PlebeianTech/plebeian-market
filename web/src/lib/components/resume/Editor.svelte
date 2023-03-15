@@ -13,7 +13,7 @@
     import Loading from "$lib/components/Loading.svelte";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
-    export let onEditFinished: () => void = () => {};
+    export let onEditFinished: (resume: UserResume | null) => void = (resume) => {};
 
     let pool = new SimplePool();
 
@@ -88,8 +88,13 @@
         resume.achievements = resume.achievements.slice(0, i).concat(resume.achievements.slice(i + 1));
     }
 
+    enum BackTo {
+        Resume,
+        List,
+    }
+
     let saving = false;
-    async function saveResume(successMessage = "Your résumé has been published to Nostr!", errorMessage = "We couldn't publish your résumé.") {
+    async function saveResume(successMessage="Your résumé has been published to Nostr!", errorMessage="We couldn't publish your résumé.", backTo=BackTo.Resume) {
         let notified = false;
         saving = true;
 
@@ -109,7 +114,7 @@
                     notified = true;
                     saving = false;
                     Info.set(successMessage);
-                    onEditFinished();
+                    onEditFinished(backTo === BackTo.Resume ? resume : null);
                 }
             });
     }
@@ -117,7 +122,7 @@
     async function deleteResume() {
         if (confirm("Are you sure you want to delete your résumé from Nostr?")) {
             resume = new UserResume();
-            await saveResume("Your résumé has been deleted from Nostr!", "We couldn't delete your résumé.");
+            await saveResume("Your résumé has been deleted from Nostr!", "We couldn't delete your résumé.", BackTo.List);
         }
     }
 
@@ -153,7 +158,7 @@
             {:else}
                 <button class="btn" disabled>Save</button>
             {/if}
-            <button class="btn btn-secondary btn-lg" on:click|preventDefault={onEditFinished}>Cancel</button>
+            <button class="btn btn-secondary btn-lg" on:click|preventDefault={() => onEditFinished(null)}>Cancel</button>
             {#if !saving}
                 <button class="btn btn-error btn-lg" on:click|preventDefault={deleteResume}>Delete</button>
             {:else}
@@ -507,7 +512,7 @@
             {:else}
                 <button class="btn" disabled>Save</button>
             {/if}
-            <button class="btn btn-secondary btn-lg" on:click|preventDefault={onEditFinished}>Cancel</button>
+            <button class="btn btn-secondary btn-lg" on:click|preventDefault={() => onEditFinished(null)}>Cancel</button>
             {#if !saving}
                 <button class="btn btn-error btn-lg" on:click|preventDefault={deleteResume}>Delete</button>
             {:else}
