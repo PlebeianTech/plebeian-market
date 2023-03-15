@@ -128,6 +128,9 @@ export class UserResumeAchievement {
 }
 
 export class UserResume {
+    pubkey: string = "";
+    name: string = "";
+    picture: string = "";
     jobTitle: string = "";
     bio: string = "";
     desiredYearlySalaryUsd: number | null = null;
@@ -167,8 +170,9 @@ export class UserResume {
         };
     }
 
-    public static fromJson(json: any): UserResume {
+    public static fromJson(pubkey: string, json: any): UserResume {
         let r = new UserResume();
+        r.pubkey = pubkey;
         r.jobTitle = <string>json.job_title;
         r.bio = <string>json.bio;
         r.desiredYearlySalaryUsd = <number | null>json.desired_yearly_salary_usd;

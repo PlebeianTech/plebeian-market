@@ -10,8 +10,6 @@
 
     let editing = false;
     let viewingResume: UserResume | null = null;
-    let viewingResumeName: string | null = null;
-    let viewingResumePicture: string | null = null;
 </script>
 
 <div class="py-3 lg:pb-14 mx-auto w-screen lg:w-2/3">
@@ -20,7 +18,7 @@
     {#if editing}
         <ResumeEditor onEditFinished={(resume) => { editing = false; viewingResume = resume; }} />
     {:else if viewingResume}
-        <ResumeViewer resume={viewingResume} name={viewingResumeName} picture={viewingResumePicture} onViewFinished={() => viewingResume = null} />
+        <ResumeViewer resume={viewingResume} onViewFinished={(edit) => { viewingResume = null; editing = edit; }} />
     {:else}
         <div class="flex justify-center items-center">
             <button class="btn btn-primary" on:click={() => editing = true}>Edit My Résumé</button>
@@ -29,6 +27,6 @@
         <div class="divider"></div>
         <h2 class="text-2xl lg:text-3xl fontbold mt-0 lg:mt-8 mb-2 text-center">Plebs with résumés</h2>
 
-        <ResumeList onView={(r, n, p) => { viewingResume = r; viewingResumeName = n; viewingResumePicture = p; } } />
+        <ResumeList onView={(resume) => viewingResume = resume } />
     {/if}
 </div>

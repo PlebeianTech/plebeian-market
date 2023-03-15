@@ -2,36 +2,41 @@
     import { onMount } from 'svelte';
     import type { UserResume } from "$lib/types/user";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import Back from "$lib/components/icons/Back.svelte";
+
+    let userPubKey;
 
     export let resume: UserResume;
-    export let name: string | null;
-    export let picture: string | null;
 
-    export let onViewFinished = () => {};
+    export let onViewFinished = (edit: boolean) => {};
 
     onMount(
-        () => {
+        async () => {
+            userPubKey = await window.nostr.getPublicKey();
             document.body.scrollTop = document.documentElement.scrollTop = 0;
         }
     );
 </script>
 
 <div class="mx-auto w-full">
+    {#if resume.pubkey === userPubKey}
+        <div class="flex justify-center items-center mt-4 h-15 gap-8">
+            <button class="btn btn-primary btn-lg" on:click|preventDefault={() => onViewFinished(true)}>Edit</button>
+        </div>
+    {/if}
     <div class="flex items-center mt-4 h-15 gap-8">
-        <button class="btn btn-primary btn-outline" on:click|preventDefault={onViewFinished}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 010-1.953l7.108-4.062A1.125 1.125 0 0121 8.688v8.123zM11.25 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 010-1.953L9.567 7.71a1.125 1.125 0 011.683.977v8.123z" />
-            </svg>
+        <button class="btn btn-primary btn-outline" on:click|preventDefault={() => onViewFinished(false)}>
+            <Back />
             Back to the Skills market
         </button>
     </div>
 
     <div class="card bg-base-300 shadow-xl mt-4 pt-6 place-items-center items-center">
         <figure class="avatar mask mask-squircle h-80 w-80">
-            <img src={picture ?? profilePicturePlaceHolder} alt="" />
+            <img src={resume.picture ?? profilePicturePlaceHolder} alt="" />
         </figure>
         <div class="card-body w-full px-3">
-            <h2 class="text-3xl text-center">{name}</h2>
+            <h2 class="text-3xl text-center">{resume.name}</h2>
 
             <div class="text-center mt-2 text-3xl">
                 {resume.jobTitle}
@@ -136,10 +141,8 @@
     </div>
 
     <div class="flex items-center mt-4 h-15 gap-8">
-        <button class="btn btn-primary btn-outline" on:click|preventDefault={onViewFinished}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 010-1.953l7.108-4.062A1.125 1.125 0 0121 8.688v8.123zM11.25 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 010-1.953L9.567 7.71a1.125 1.125 0 011.683.977v8.123z" />
-            </svg>
+        <button class="btn btn-primary btn-outline" on:click|preventDefault={() => onViewFinished(false)}>
+            <Back />
             Back to the Skills market
         </button>
     </div>
