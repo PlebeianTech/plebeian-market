@@ -26,7 +26,7 @@
         </button>
     </div>
 
-    <div class="card bg-base-300 shadow-xl mt-4 pt-6 place-items-center items-center w-screen">
+    <div class="card bg-base-300 shadow-xl mt-4 pt-6 place-items-center items-center">
         <figure class="avatar mask mask-squircle h-80 w-80">
             <img src={picture ?? profilePicturePlaceHolder} alt="" />
         </figure>
@@ -37,9 +37,9 @@
                 {resume.jobTitle}
             </div>
 
-            <div class="items-center justify-center  w-full mt-2 text-center">
+            <div class="flex flex-wrap items-center justify-center w-full mt-2 text-center gap-2">
                 {#each resume.skills as skill}
-                    <div class="badge badge-outline badge-primary badge-lg mt-4  mr-2 mb-1">{skill.skill}</div>
+                    <div class="badge badge-outline badge-primary badge-lg">{skill.skill}</div>
                 {/each}
             </div>
 

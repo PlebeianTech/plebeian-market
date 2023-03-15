@@ -100,10 +100,10 @@
     {#if Object.keys(resumes).length === 0}
         <Loading />
     {:else}
-        <div class="flex flex-wrap items-center justify-center max-w-full xl:w-full h-full gap-4 px-4 mx-6 xl:mx-2 py-6 mb-3 place-items-center items-center shadow-xl bg-base-300 night:bg-slate-800 text-white-content night:text-primary-content">
+        <div class="flex flex-wrap items-center justify-center max-w-full xl:w-full h-full gap-3 px-4 mx-6 xl:mx-2 py-6 mb-3 place-items-center items-center shadow-xl bg-base-300 night:bg-slate-800 text-white-content night:text-primary-content">
             <div class="w-full items-center justify-center">Filter profiles with this tags:</div>
             {#each Object.entries(skills) as [skill, count]}
-                <div class="float badge badge-primary badge-lg mr-1 cursor-pointer" class:badge-outline={skill !== skillFilter}
+                <div class="float badge badge-primary badge-lg cursor-pointer" class:badge-outline={skill !== skillFilter}
                      on:click={() => {if (skill !== skillFilter) {skillFilter = skill} else {skillFilter = null}}}
                      on:keypress={() => {if (skill !== skillFilter) {skillFilter = skill} else {skillFilter = null}}}>
                     <span>{skill}</span> <span class="ml-2">({count})</span>
