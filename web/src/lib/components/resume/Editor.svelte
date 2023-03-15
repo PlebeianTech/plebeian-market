@@ -154,7 +154,7 @@
     {:else}
         <div class="flex justify-center items-center mt-8 h-15 gap-8">
             {#if !saving && resume.validate()}
-                <button class="btn btn-primary btn-lg" on:click|preventDefault={saveResume}>Save</button>
+                <button class="btn btn-primary btn-lg" on:click|preventDefault={() => saveResume()}>Save</button>
             {:else}
                 <button class="btn" disabled>Save</button>
             {/if}
@@ -507,7 +507,7 @@
 
         <div class="flex justify-center items-center mt-16 h-15 gap-8">
             {#if !saving && resume.validate()}
-                <button class="btn btn-primary btn-lg" on:click|preventDefault={saveResume}>Save</button>
+                <button class="btn btn-primary btn-lg" on:click|preventDefault={() => saveResume()}>Save</button>
             {:else}
                 <button class="btn" disabled>Save</button>
             {/if}

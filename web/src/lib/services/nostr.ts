@@ -31,12 +31,12 @@ export async function closePool(pool: SimplePool) {
 
 export function subscribeResumes(pool: SimplePool, receivedCB: (pubkey: string, resume: UserResume, createdAt: number) => void) {
     let sub = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME] }]);
-    sub.on('event', e => receivedCB(e.pubkey, UserResume.fromJson(JSON.parse(e.content)), e.created_at));
+    sub.on('event', e => receivedCB(e.pubkey, UserResume.fromJson(e.pubkey, JSON.parse(e.content)), e.created_at));
 }
 
 export function subscribeResume(pool: SimplePool, pubkey: string, receivedCB: (resume: UserResume, createdAt: number) => void) {
     let sub = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME], authors: [pubkey] }]);
-    sub.on('event', e => receivedCB(UserResume.fromJson(JSON.parse(e.content)), e.created_at));
+    sub.on('event', e => receivedCB(UserResume.fromJson(e.pubkey, JSON.parse(e.content)), e.created_at));
 }
 
 export async function publishResume(pool: SimplePool, resume: UserResume, successCB: () => void) {
