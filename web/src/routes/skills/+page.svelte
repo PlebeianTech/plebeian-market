@@ -18,7 +18,7 @@
     <h1 class="text-3xl lg:text-6xl fontbold mt-0 lg:mt-2 mb-4 text-center">Skills Market</h1>
 
     {#if editing}
-        <ResumeEditor onEditFinished={() => editing = false} />
+        <ResumeEditor onEditFinished={(resume) => { editing = false; viewingResume = resume; }} />
     {:else if viewingResume}
         <ResumeViewer resume={viewingResume} name={viewingResumeName} picture={viewingResumePicture} onViewFinished={() => viewingResume = null} />
     {:else}
