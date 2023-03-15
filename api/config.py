@@ -56,7 +56,7 @@ CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.s
 
 MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
 TWITTER_USER_MIN_AGE_DAYS = 210
-TWITTER_USER_MIN_AGE_DAYS_WHITELIST = ["ghostofmtc", "civilbtcsaver"]
+TWITTER_USER_MIN_AGE_DAYS_WHITELIST = ["ghostofmtc", "civilbtcsaver", "shoresychirpstv"]
 TWITTER_SECRETS = "/secrets/twitter.json"
 TWITTER_USER = "PlebeianMarket"
 
