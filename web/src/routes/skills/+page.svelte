@@ -14,7 +14,7 @@
     let viewingResumePicture: string | null = null;
 </script>
 
-<div class="py-7 pb-4 lg:pb-14 mx-auto w-screen lg:w-2/3">
+<div class="py-3 lg:pb-14 mx-auto w-screen lg:w-2/3">
     <h1 class="text-3xl lg:text-6xl fontbold mt-0 lg:mt-2 mb-4 text-center">Skills Market</h1>
 
     {#if editing}
