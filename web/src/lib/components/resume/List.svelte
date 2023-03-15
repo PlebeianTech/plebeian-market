@@ -117,7 +117,7 @@
         </div>
         <div class="lg:columns-3 p-2 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-4">
             {#each Object.entries(resumes) as [pubkey, r]}
-                {#if (skillFilter === null) || (r.resume.hasSkill(skillFilter))}
+                {#if (r.resume.jobTitle !== "" && r.resume.skills.length !== 0) && ((skillFilter === null) || (r.resume.hasSkill(skillFilter)))}
                     <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 mx-3 xl:mx-0 py-6 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 night:bg-slate-800 text-white-content night:text-primary-content">
                         <div class="avatar mask mask-squircle h-40 w-40">
                             <img src={(pubkey in metadata ? metadata[pubkey].picture : null) ?? profilePicturePlaceHolder} alt="" />

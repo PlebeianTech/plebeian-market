@@ -138,6 +138,10 @@ export class UserResume {
     experience: UserResumeExperience[] = [];
     achievements: UserResumeAchievement[] = [];
 
+    public validate() {
+        return this.jobTitle !== "" && this.skills.length !== 0;
+    }
+
     public hasSkill(skill: string) {
         for (const s of this.skills) {
             if (s.skill === skill) {
