@@ -3,13 +3,14 @@
     import { SimplePool } from 'nostr-tools';
     import { getPreferredPublicKey } from "$lib/nostr/utils";
     import { subscribeResume, publishResume } from "$lib/services/nostr";
-    import { Info } from "$lib/stores";
+    import { Info, Error } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$lib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";
     import YearPicker from "$lib/components/YearPicker.svelte";
     import Plus from "$lib/components/icons/Plus.svelte";
     import X from "$lib/components/icons/X.svelte";
+    import Loading from "$lib/components/Loading.svelte";
 
     export let onEditFinished: () => void = () => {};
 
@@ -20,6 +21,8 @@
     // timestamp of the Nostr event, so we can always pick the last version
     // NB: initially set to 0, so we pick whatever is in Nostr, if there is anything!
     let resumeCreatedAt = 0;
+    let timeoutPublishResume = 20000;
+    let resumeNotPublishedTimer = null;
 
     let newSkill = new UserResumeSkill();
     let newPortfolio = new UserResumePortfolio();
@@ -88,20 +91,28 @@
 
     let saving = false;
     async function save() {
+        let notified = false;
         saving = true;
 
-        let notified = false;
+        resumeNotPublishedTimer = setTimeout(
+            () => {
+                saving = false;
+                Error.set("We couldn't publish your résumé");
+            },
+            timeoutPublishResume);
 
         await publishResume(pool, resume,
             () => {
+                console.log(' --- publishResume');
                 if (!notified) {
+                    console.log(' --- publishResume !notified');
+                    clearTimeout(resumeNotPublishedTimer);
                     notified = true;
                     saving = false;
                     Info.set("Your résumé has been saved!");
                     onEditFinished();
                 }
             });
-        // TODO: callback when no relay accepted our resume (so successCB was never called)
     }
 
     onMount(async () => {
@@ -475,4 +486,8 @@
         {/if}
         <button class="btn btn-secondary btn-lg" on:click|preventDefault={onEditFinished}>Cancel</button>
     </div>
+
+    {#if saving}
+        <Loading />
+    {/if}
 {/if}
