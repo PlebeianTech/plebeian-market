@@ -30,10 +30,10 @@
         <figure class="avatar mask mask-squircle h-80 w-80">
             <img src={picture ?? profilePicturePlaceHolder} alt="" />
         </figure>
-        <div class="card-body w-full">
+        <div class="card-body w-full px-3">
             <h2 class="text-3xl text-center">{name}</h2>
 
-            <div class="text-center mt-4 text-3xl">
+            <div class="text-center mt-2 text-3xl">
                 {resume.jobTitle}
             </div>
 
