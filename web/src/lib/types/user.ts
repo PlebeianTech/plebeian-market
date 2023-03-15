@@ -63,6 +63,7 @@ export class UserResumeEducation {
 
     public static fromJson(json: any): UserResumeEducation {
         let e = new UserResumeEducation();
+        e.year = <number | null>json.year;
         e.education = <string>json.education;
         return e;
     }
