@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import type { UserResume } from "$lib/types/user";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import Back from "$lib/components/icons/Back.svelte";
+    import { encodeNpub } from "$lib/nostr/utils";
 
     let userPubKey;
 
@@ -19,16 +19,22 @@
 </script>
 
 <div class="mx-auto w-full">
-    {#if resume.pubkey === userPubKey}
-        <div class="flex justify-center items-center mt-4 h-15 gap-8">
-            <button class="btn btn-primary btn-lg" on:click|preventDefault={() => onViewFinished(true)}>Edit</button>
-        </div>
-    {/if}
     <div class="flex items-center mt-4 h-15 gap-8">
         <button class="btn btn-primary btn-outline" on:click|preventDefault={() => onViewFinished(false)}>
             <Back />
             Back to the Skills market
         </button>
+    </div>
+
+    <div class="flex justify-center items-center mt-8 h-15 gap-8">
+        {#if resume.pubkey === userPubKey}
+            <button class="btn btn-primary btn-lg" on:click|preventDefault={() => onViewFinished(true)}>Edit</button>
+        {/if}
+        {#if userPubKey}
+        <a class="btn btn-primary btn-lg" href="https://snort.social/p/{encodeNpub(userPubKey)}" target="_blank" rel="noreferrer">
+            Contact
+        </a>
+        {/if}
     </div>
 
     <div class="card bg-base-300 shadow-xl mt-4 pt-6 place-items-center items-center">
