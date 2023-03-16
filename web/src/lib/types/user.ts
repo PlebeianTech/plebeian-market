@@ -180,9 +180,15 @@ export class UserResume {
         r.bitcoinerQuestion = <string>json.bitcoiner_question;
         r.skills = (<any[]>json.skills).map(s => UserResumeSkill.fromJson(s));
         r.portfolio = (<any[]>json.portfolio).map(p => UserResumePortfolio.fromJson(p));
-        r.education = (<any[]>json.education).map(e => UserResumeEducation.fromJson(e));
-        r.experience = (<any[]>json.experience).map(e => UserResumeExperience.fromJson(e));
-        r.achievements = (<any[]>json.achievements).map(a => UserResumeAchievement.fromJson(a));
+        r.education = (<any[]>json.education)
+            .sort((a, b) => {return a.year <= b.year ? 1 : -1})
+            .map(e => UserResumeEducation.fromJson(e));
+        r.experience = (<any[]>json.experience)
+            .sort((a, b) => {if (b.to_year === null) {return 1}; return a.to_year <= b.to_year ? 1 : -1})
+            .map(e => UserResumeExperience.fromJson(e));
+        r.achievements = (<any[]>json.achievements)
+            .sort((a, b) => {return a.year <= b.year ? 1 : -1})
+            .map(a => UserResumeAchievement.fromJson(a));
         return r;
     }
 }
