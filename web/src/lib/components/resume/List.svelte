@@ -76,6 +76,9 @@
     onMount(async () => {
         subscribeResumes(pool,
             (pk, r, rcAt) => {
+                if (pk === "ec79b568bdea63ca6091f5b84b0c639c10a0919e175fa09a4de3154f82906f25") { // CM
+                    return;
+                }
                 if (pk in resumes) {
                     addSkills(resumes[pk].resume, -1);
                     if (resumes[pk].createdAt < rcAt) {
