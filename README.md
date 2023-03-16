@@ -14,6 +14,28 @@ While we are also running *plebeian.market* - a Plebeian Market instance - other
 
 Our vision of the future involves small communities around the world running their own market places. At the same time, these market places will communicate with each other, which is why we like to call Plebeian Market *the mycelium of free commerce*.
 
+## Skills Market
+
+The *Skills Market* is a place where you can publish your professional CV/résumé or browse CVs other bitcoiners have published. This section of the market place is **entirely powered by the Nostr protocol**, using the event of `kind=66`. This event uses a `content` in JSON format with the following structure:
+
+```
+{
+  job_title: string,
+  bio: string,
+  desired_yearly_salary_usd: number | null,
+  hourly_rate_usd: number | null,
+  bitcoiner_question: string,
+  skills: [{skill: string}, {skill: string}, ...],
+  portfolio: [{url: string}, {url: string}, ...],
+  education: [{education: string, year: number | null}, {education: string, year: number | null}, ...],
+  experience: [{job_title: string, organization: string, description: string, from_year: number | null, from_month: number | null, to_year: number | null, to_month: number | null}, {job_title: string, organization: string, description: string, from_year: number | null, from_month: number | null, to_year: number | null, to_month: number | null}, ...],
+  achievements: [{achievement: string, year: number | null}, {achievement: string, year: number | null}, ...],
+ }
+}
+```
+
+
+
 ## Developement
 
 ### Running the dev environment locally
