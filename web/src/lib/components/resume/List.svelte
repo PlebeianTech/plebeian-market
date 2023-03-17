@@ -10,8 +10,6 @@
     const QUERY_BATCH_SIZE = 100;
     const CHECK_METADATA_DELAY = 1000;
 
-    export let onView = (resume: UserResume) => {};
-
     let pool = new SimplePool();
 
     let checkMetadataTimer: ReturnType<typeof setTimeout> | null = null;
@@ -55,16 +53,12 @@
                 (pk, m) => {
                     if (!(pk in metadata)) {
                         metadata[pk] = {name: m.name, picture: m.picture};
-                        resumes[pk].resume.name = m.name;
-                        resumes[pk].resume.picture = m.picture;
                     } else {
                         if (m.name !== undefined) {
                             metadata[pk].name = m.name;
-                            resumes[pk].resume.name = m.name;
                         }
                         if (m.picture !== undefined) {
                             metadata[pk].picture = m.picture;
-                            resumes[pk].resume.picture = m.picture;
                         }
                     }
             });
@@ -144,13 +138,8 @@
                             </div>
                         </div>
                         <div>
-                            <button class="btn btn-primary btn-sm mr-2"
-                                    on:click={() => onView(r.resume)}>
-                                View
-                            </button>
-                            <a class="btn btn-primary btn-sm" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">
-                                Contact
-                            </a>
+                            <a class="btn btn-primary btn-sm mr-2" href="/p/{pubkey}">View</a>
+                            <a class="btn btn-primary btn-sm" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">Contact</a>
                         </div>
                     </div>
                 {/if}
