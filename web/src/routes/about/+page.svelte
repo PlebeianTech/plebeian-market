@@ -17,13 +17,13 @@
     </div>
 </div>
 
-<div class="lg:w-1/2 mx-auto p-4 mt-20">
+<div class="lg:w-1/2 mx-auto p-4 mt-12">
     <blockquote class="lg:text-7xl text-4xl font-bold mt-2 md:mt-10 p-4 italic border-l-4 quote">
         <p>"You will own your market stall and you will be happy."</p>
     </blockquote>
 </div>
 
-<div class="flex justify-center items-centermy-20 py-20">
+<div class="flex justify-center items-center py-6">
     <div class="mt-10 lg:w-2/3 p-2 grid lg:grid-cols-2 gap-4 leading-10">
         <!-- COL -->
         <div class="mt-2 md:mt-10">
@@ -45,7 +45,8 @@
     </div>
 </div>
 
-<h2 class="text-center my-16 lg:text-8xl font-bold text-4xl">Team</h2>
+<h2 class="text-center my-12 lg:text-8xl font-bold text-4xl">Team</h2>
+
 <div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 gap-4 my-20 p-4">
     <a class="bg-gray-300/20 p-4 rounded hover:scale-95 duration-300" target="_blank" rel="noreferrer" href="https://snort.social/p/npub1a3um269aaf3u5cy37kuykrrrnsg2pyv7za06pxjduv25lq5sdujs2qmdj6">
         <h2 class="text-3xl font-bold my-4">Chiefmonkey</h2>
