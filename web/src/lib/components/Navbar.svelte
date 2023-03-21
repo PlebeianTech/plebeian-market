@@ -23,6 +23,8 @@
 
     function toggleMobileMenu() {
         showMobileMenu = !showMobileMenu;
+
+        document.body.style.overflow = showMobileMenu ? 'hidden' : '';
     }
 
     function hideMobileMenu() {
@@ -167,7 +169,7 @@
     });
 </script>
 
-<nav class="backdrop-blur-lg border-b border-gray-400/70 z-50 fixed top-0 w-full">
+<nav class="backdrop-blur-3xl border-b border-gray-400/70 z-50 fixed top-0 w-full">
     <div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
             <a href="/" class="flex items-center mr-2">
@@ -241,7 +243,7 @@
                     </label>
                 </div>
 
-                <div class="lg:dropdown lg:dropdown-end">
+                <div class="lg:dropdown lg:dropdown-end h-screen">
                     {#if $token && $user}
                         <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified}>
                             <div class="w-10 rounded-full">
