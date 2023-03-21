@@ -243,7 +243,7 @@
                     </label>
                 </div>
 
-                <div class="lg:dropdown lg:dropdown-end h-screen">
+                <div class="lg:dropdown lg:dropdown-end h-screen" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
                     {#if $token && $user}
                         <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified}>
                             <div class="w-10 rounded-full">
