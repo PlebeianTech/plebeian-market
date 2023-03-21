@@ -7,7 +7,7 @@
     "@sveltejs/kit": "^1.7.2",
     "autoprefixer": "10.x",
     "btc2fiat": "*",
-    "daisyui": "^2.50.2",
+    "daisyui": "^2.51.4",
     "eslint": "^8.34.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.5.0",
