@@ -86,8 +86,8 @@
             {#if resume && pubkey === userPubKey}
                 <button class="btn btn-primary btn-lg" on:click|preventDefault={() => edit = true}>Edit</button>
             {/if}
-            {#if userPubKey}
-                <a class="btn btn-primary btn-lg" href="https://snort.social/p/{encodeNpub(userPubKey)}" target="_blank" rel="noreferrer">
+            {#if pubkey}
+                <a class="btn btn-primary btn-lg" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">
                     Contact
                 </a>
             {/if}
