@@ -246,9 +246,7 @@
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
                     {#if $token && $user}
                         <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified}>
-                            <div class="w-10 rounded-full">
-                                <img src={$user.profileImageUrl} alt="Avatar" />
-                            </div>
+                            <img class="w-10 rounded-full" src={$user.profileImageUrl} alt="Avatar" />
                         </label>
                     {/if}
 
