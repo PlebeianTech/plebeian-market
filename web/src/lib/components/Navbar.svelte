@@ -29,6 +29,8 @@
 
     function hideMobileMenu() {
         showMobileMenu = false;
+
+        document.body.style.overflow = '';
     }
 
     function toggleTheme() {
