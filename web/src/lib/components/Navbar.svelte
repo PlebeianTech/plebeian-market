@@ -3,8 +3,6 @@
     import { browser } from "$app/environment";
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
-    import { Pool } from "$lib/nostr/pool";
-    import { decodeNpub } from "$lib/nostr/utils";
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
     import { token, user, nostrUser, BTC2USD, Info } from "$lib/stores";
     import { isProduction, getEnvironmentInfo, logout, requestLoginModal } from "$lib/utils";
@@ -15,8 +13,6 @@
 
     let modal: Modal | null;
     let modalVisible = false;
-
-    let pool = new Pool();
 
     let prefersDark = true;
 
@@ -134,56 +130,20 @@
             return;
         }
 
-        if (u.nostrPublicKey === null) {
-            if (u.nym === null || u.nym === "") {
-                showModal(TwitterUsername, true, (saved) => {
-                    if (saved) {
-                        if ($user && !$user.twitterUsernameVerified) {
-                            showModal(TwitterVerification, true);
-                        }
-                    } else {
-                        // trying to hide the modal if you didn't set your Twitter username logges you out
-                        logout();
+        if (u.nym === null || u.nym === "") {
+            showModal(TwitterUsername, true, (saved) => {
+                if (saved) {
+                    if ($user && !$user.twitterUsernameVerified) {
+                        showModal(TwitterVerification, true);
                     }
-                });
-            }
-        } else {
-            if (u.nym === null || u.nym === "") {
-                let gotProfile = false;
-                pool.connectAndGetProfile(
-                    decodeNpub(u.nostrPublicKey),
-                    async (nostrProfile) => {
-                        if (gotProfile) {
-                            return;
-                        }
-                        gotProfile = true;
-
-                        await pool.unsubscribeEverything();
-                        await pool.disconnect();
-
-                        let name = <string>nostrProfile.name;
-                        name = name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-                        while (name.length < 3) {
-                            name += "0"; // just pas with zeroes - not ideal, but they can always change it later
-                        }
-
-                        saveProfile(name, nostrProfile.picture);
-                    }
-                );
-            }
+                } else {
+                    // trying to hide the modal if you didn't set your Twitter username logges you out
+                    logout();
+                }
+            });
         }
     });
     onDestroy(userUnsubscribe);
-
-    const nostrUserUnsubscribe = nostrUser.subscribe((u) => {
-        if (!u) {
-            console.log('NO U!!');
-            return;
-        }
-
-        console.log('U - ', u);
-    });
-    onDestroy(nostrUserUnsubscribe);
 
     afterNavigate(() => {
         hideMobileMenu();

@@ -10,8 +10,7 @@
     import Navbar from "$lib/components/Navbar.svelte";
     import ToastContainer from "$lib/components/ToastContainer.svelte";
     import {getPublicKey} from "nostr-tools";
-    import { relayUrlList } from "$lib/nostr/utils";
-    import {closePool} from "../lib/services/nostr";
+    import {getProfileInfo, closePool} from "../lib/services/nostr";
 
     function getToastOnClickCB(data) {
         return () => {
@@ -76,6 +75,9 @@
 
     onMount(async () => {
         if (browser) {
+            // Legacy
+            token.set(localStorage.getItem("token"));
+
             // Nostr
             let nosPrivKey = localStorage.getItem('nostrPrivateKey');
 
@@ -86,17 +88,25 @@
                     privateKey: nosPrivKey,
                     publicKey: nosPubKey,
                 });
+
+                await getProfileInfo(
+                    $nostrPool,
+                    nosPubKey,
+                    (profileInfo) => {
+                        nostrUser.set({
+                            privateKey: nosPrivKey,
+                            publicKey: nosPubKey,
+                            picture: profileInfo.picture || null,
+                            displayName: profileInfo.name || null
+                        });
+                    }
+                );
             }
-
-            // Legacy
-            token.set(localStorage.getItem("token"));
         }
-
-        console.log('nostrPool', $nostrPool);
     });
 
     onDestroy(async () => {
-        await closePool(nostrPool);
+        await closePool($nostrPool);
     });
 </script>
 

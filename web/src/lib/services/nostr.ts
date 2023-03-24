@@ -42,3 +42,18 @@ export function subscribeMetadata(pool: SimplePool, pubkeys: string[], receivedC
     let sub = pool.sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
     sub.on('event', e => receivedCB(e.pubkey, JSON.parse(e.content)));
 }
+
+export async function getProfileInfo(pool: SimplePool, userPubKey: string, receivedCB: (profileInfo) => void) {
+    let profileInfoEvent = await pool.get(relayUrlList, {
+        kinds: [Kind.Metadata],
+        authors: [userPubKey]
+    });
+
+    if (profileInfoEvent !== null) {
+        const profileContentJSON = profileInfoEvent.content;
+
+        if (profileContentJSON) {
+            receivedCB(JSON.parse(profileContentJSON));
+        }
+    }
+}
