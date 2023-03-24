@@ -41,7 +41,7 @@ export class Pool {
     Will connect to each Nostr relay in relayUrlList and send them
     the message. It will reuse the connection if already connected.
      */
-    public async connectAndSendMessage(messageInfo = null) {
+    public async connectAndSendMessage(pool: SimplePool, messageInfo = null) {
         if (messageInfo === null) {
             return false;
         }
@@ -56,14 +56,7 @@ export class Pool {
 
         // 3
         if (signedEvent !== false) {
-            for (const relayUrl of relayUrlList) {
-                this.getRelayOrConnect(relayUrl)
-                    .then(async function (relay) {
-                        await that.publishEvent(<Relay> relay, <Event> signedEvent);
-                    }, function(error) {
-                        console.error(`   ** Nostr: Failed to connect to relay:`, error);
-                    });
-            }
+            pool.publish(relayUrlList, signedEvent);
         }
     }
 

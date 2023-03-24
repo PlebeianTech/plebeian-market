@@ -1,8 +1,7 @@
 <script lang="ts">
-    import {onDestroy} from "svelte";
     import {Pool, pmChannelNostrRoomId} from "$lib/nostr/pool";
     import {getChannelIdForStallOwner, wait} from '$lib/nostr/utils'
-    import {Info, user} from "$lib/stores";
+    import {Info, user, nostrPool} from "$lib/stores";
 
     export let pmURL: string | null;
 
@@ -35,7 +34,7 @@
 
     async function postToNostr() {
         if (message && message !== '') {
-            pool.connectAndSendMessage({
+            pool.connectAndSendMessage($nostrPool, {
                 message,
                 nostrRoomId,
             });
@@ -46,10 +45,6 @@
             Info.set('Published to Nostr');
         }
     }
-
-    onDestroy(() => {
-        pool.disconnect();
-    })
 </script>
 
 <div class="dropdown">
