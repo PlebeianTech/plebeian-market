@@ -13,22 +13,22 @@
         Nostr,
     }
 
-    let type = LoginType.Lnurl;
+    let type = LoginType.Nostr;
 
-    onMount(() => { type = LoginType.Lnurl });
+    onMount(() => { type = LoginType.Nostr });
 </script>
 
 <div class="w-full flex items-center justify-center mt-4">
     <div class="tabs tabs-boxed">
-        <a class="tab tab-lg" class:tab-active={type === LoginType.Lnurl} href={null} on:click={() => type = LoginType.Lnurl}>Lightning</a>
         {#if !isProduction()}
             <a class="tab tab-lg" class:tab-active={type === LoginType.Nostr} href={null} on:click={() => type = LoginType.Nostr}>Nostr</a>
         {/if}
+        <a class="tab tab-lg" class:tab-active={type === LoginType.Lnurl} href={null} on:click={() => type = LoginType.Lnurl}>Lightning</a>
     </div>
 </div>
 
-{#if type === LoginType.Lnurl}
-    <LnurlLogin {onLogin} on:login={(_) => dispatch('login', {})} />
-{:else if type === LoginType.Nostr}
+{#if type === LoginType.Nostr}
     <NostrLogin {onLogin} on:login={(_) => dispatch('login', {})} />
+{:else if type === LoginType.Lnurl}
+    <LnurlLogin {onLogin} on:login={(_) => dispatch('login', {})} />
 {/if}

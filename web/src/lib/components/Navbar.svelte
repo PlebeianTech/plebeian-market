@@ -6,11 +6,12 @@
     import { Pool } from "$lib/nostr/pool";
     import { decodeNpub } from "$lib/nostr/utils";
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
-    import { token, user, BTC2USD, Info } from "$lib/stores";
+    import { token, user, nostrUser, BTC2USD, Info } from "$lib/stores";
     import { isProduction, getEnvironmentInfo, logout, requestLoginModal } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
+    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     let modal: Modal | null;
     let modalVisible = false;
@@ -21,6 +22,10 @@
 
     let showMobileMenu = false;
 
+    let haveLegacyLogin = false;
+    let haveNostrLogin = false;
+    let haveLogin = false;
+
     function toggleMobileMenu() {
         showMobileMenu = !showMobileMenu;
 
@@ -29,6 +34,8 @@
 
     function hideMobileMenu() {
         showMobileMenu = false;
+
+        document.body.style.overflow = '';
     }
 
     function toggleTheme() {
@@ -94,6 +101,10 @@
             })
         );
     }
+
+    $: haveLegacyLogin = $token && $user;
+    $: haveNostrLogin = $nostrUser && $nostrUser.publicKey;
+    $: haveLogin = haveNostrLogin || haveLegacyLogin;
 
     async function fetchFiatRate() {
         BTC2USD.set(await getValue());
@@ -164,6 +175,16 @@
     });
     onDestroy(userUnsubscribe);
 
+    const nostrUserUnsubscribe = nostrUser.subscribe((u) => {
+        if (!u) {
+            console.log('NO U!!');
+            return;
+        }
+
+        console.log('U - ', u);
+    });
+    onDestroy(nostrUserUnsubscribe);
+
     afterNavigate(() => {
         hideMobileMenu();
     });
@@ -223,7 +244,7 @@
                     <p>
                         <a href="/about" class="btn btn-ghost normal-case">About</a>
                     </p>
-                    {#if !$token || !$user}
+                    {#if !haveLogin}
                         <p>
                             <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
                         </p>
@@ -244,14 +265,22 @@
                 </div>
 
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
-                    {#if $token && $user}
-                        <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified}>
-                            <img class="w-10 rounded-full" src={$user.profileImageUrl} alt="Avatar" />
-                        </label>
+                    {#if haveLogin}
+                        {#if haveNostrLogin}
+                            <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                                <div class="w-10 rounded-full">
+                                    <img src="{$nostrUser.picture || profilePicturePlaceHolder}" />
+                                </div>
+                            </label>
+                        {:else}
+                            <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified}>
+                                <img class="w-10 rounded-full" src={$user.profileImageUrl} alt="Avatar" />
+                            </label>
+                        {/if}
                     {/if}
 
                     <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-60 z-40 float-right right-2">
-                        {#if !$token || !$user}
+                        {#if !haveLogin}
                             <li class="block md:hidden md:h-0 text-primary">
                                 <a href="#" class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="text-primary" class="w-6 h-6 mr-1 stroke-primary">
@@ -292,38 +321,43 @@
                                 Campaigns
                             </a>
                         </li>
-                        {#if $token && $user}
+                        {#if haveLogin}
                             <li class="menu-title mt-2">
                                 <span class="text-lg">Account</span>
                             </li>
-                            {#if $token && $user && $user.twitterUsername !== null && !$user.twitterUsernameVerified}
-                                <li class="text-red-600">
-                                    <a on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button text-base">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1">
-                                            <path fill="rgb(255,0,0)" d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
-                                        </svg>
-                                        Verify Twitter
-                                    </a>
-                                </li>
-                            {/if}
-                            <li>
-                                <a rel="external" class="text-base" href="/stall/{$user.nym}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
-                                    </svg>
-                                    My stall
-                                </a>
-                            </li>
-                            {#if $user.isModerator}
+                            {#if haveLegacyLogin}
+                                {#if $user.twitterUsername !== null && !$user.twitterUsernameVerified}
+                                    <li class="text-red-600">
+                                        <a on:click|preventDefault={() => showModal(TwitterVerification, true)} on:keypress={() => showModal(TwitterVerification, true)} class="modal-button text-base">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6 mr-1">
+                                                <path fill="rgb(255,0,0)" d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                                            </svg>
+                                            Verify Twitter
+                                        </a>
+                                    </li>
+                                {/if}
+
                                 <li>
-                                    <a class="text-base" href="/account/campaigns">
+                                    <a rel="external" class="text-base" href="/stall/{$user.nym}">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
                                         </svg>
-                                        My campaigns
+                                        My stall
                                     </a>
                                 </li>
+
+                                {#if $user.isModerator}
+                                    <li>
+                                        <a class="text-base" href="/account/campaigns">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                            </svg>
+                                            My campaigns
+                                        </a>
+                                    </li>
+                                {/if}
                             {/if}
+
                             <li>
                                 <a class="text-base" href="/account/purchases/">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">

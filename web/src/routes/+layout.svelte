@@ -4,11 +4,14 @@
     import "../app.css";
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
-    import { token, Info, Error, type Placement } from "$lib/stores";
+    import { token, nostrUser, nostrPool, Info, Error, type Placement } from "$lib/stores";
     import Footer from "$lib/components/Footer.svelte";
     import LoginModal from "$lib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
     import ToastContainer from "$lib/components/ToastContainer.svelte";
+    import {getPublicKey} from "nostr-tools";
+    import { relayUrlList } from "$lib/nostr/utils";
+    import {closePool} from "../lib/services/nostr";
 
     function getToastOnClickCB(data) {
         return () => {
@@ -73,8 +76,27 @@
 
     onMount(async () => {
         if (browser) {
+            // Nostr
+            let nosPrivKey = localStorage.getItem('nostrPrivateKey');
+
+            if (nosPrivKey !== null) {
+                let nosPubKey = getPublicKey(nosPrivKey);
+
+                nostrUser.set({
+                    privateKey: nosPrivKey,
+                    publicKey: nosPubKey,
+                });
+            }
+
+            // Legacy
             token.set(localStorage.getItem("token"));
         }
+
+        console.log('nostrPool', $nostrPool);
+    });
+
+    onDestroy(async () => {
+        await closePool(nostrPool);
     });
 </script>
 

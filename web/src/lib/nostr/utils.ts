@@ -1,9 +1,11 @@
 import {getEventHash, nip05, nip19, Kind, getPublicKey} from "nostr-tools";
 
 export const relayUrlList = [
-    // Amethyst relays
     "wss://relay.damus.io",
     "wss://relay.nostr.bg",
+    'wss://nostr.fmt.wiz.biz/',
+    'wss://relay.nostr.band/',
+    'wss://offchain.pub',
     "wss://nostr.mom",
     "wss://nos.lol",
     "wss://nostr.bitcoiner.social",

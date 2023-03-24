@@ -157,32 +157,6 @@ export function loginLnurl(k1, initialResponseCB: (response: {k1: string, lnurl:
         });
 }
 
-export function loginNostr(npub: string, verificationPhrase: string | null, sentVerificationPhraseCB: () => void = () => {}, successCB: (response: GetLoginSuccessResponse) => void = (_) => {}, errorHandler = new ErrorHandler()) {
-    let params: any = {npub};
-    if (verificationPhrase !== null) {
-        params.verification_phrase = verificationPhrase;
-    } else {
-        params.send_verification_phrase = true;
-    }
-    fetchAPI("/login/nostr", 'PUT', null, JSON.stringify(params),
-        response => {
-            if (response.status === 200) {
-                response.json().then(
-                    data => {
-                        if (data.success) {
-                            successCB({token: data.token, user: userFromJson(data.user)});
-                        } else if (data.sent) {
-                            sentVerificationPhraseCB();
-                        }
-                    }
-                );
-            } else {
-                errorHandler.handle(response);
-            }
-        }
-    );
-}
-
 export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string, entity_key: string}[], listingAvatars: {url: string, entity_key: string}[]) => void) {
     fetchAPI(`/campaigns/${campaignKey}/avatars/featured`, 'GET', null, null,
         response => {

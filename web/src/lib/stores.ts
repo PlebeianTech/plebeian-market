@@ -1,5 +1,7 @@
 import { writable, type Writable } from 'svelte/store';
 import type { User } from "./types/user";
+import type { NostrUser } from "./types/nostrUser";
+import {SimplePool} from "nostr-tools";
 
 export const token: Writable<string | null> = writable(null);
 
@@ -19,3 +21,7 @@ export const loginModalState: Writable<{
     openRequested: false,
     callbackFunc: () => {}
 });
+
+export const nostrUser: Writable<NostrUser | null> = writable(null);
+
+export const nostrPool: Writable<SimplePool> = writable(new SimplePool());
