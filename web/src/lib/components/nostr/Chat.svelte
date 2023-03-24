@@ -1,14 +1,16 @@
 <script lang="ts">
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
-    import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
-    import {token, user, Error} from "$lib/stores";
-    import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
+    import {onDestroy, onMount, afterUpdate} from "svelte";
+    import {token, user, nostrUser, nostrPool, Error} from "$lib/stores";
+    import {subscribeMetadata} from "$lib/services/nostr";
+    import {Event, Sub, Filter, generatePrivateKey, Kind, SimplePool} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
     import {hasExtension, queryNip05, filterTags, getMessage, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
     import {requestLoginModal} from "$lib/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import {subscribeToChannel, subscribeToReactions} from "../../services/nostr";
 
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
@@ -205,26 +207,9 @@
             }
         }
 
-        if (profilesToGetLocal.length === 0) {
-            return;
+        if (profilesToGetLocal.length > 0) {
+            subscribeMetadata($nostrPool, profilesToGetLocal, (pk, m) => { profileImagesMap.set(pk, m); });
         }
-
-        pool.relays.forEach(relay => {
-            const sub: Sub = relay.sub([{
-                kinds: [Kind.Metadata],
-                authors: profilesToGetLocal
-            }]);
-            sub.on('event', event => {
-                const profileContentJSON = event.content;
-                const pubKey = event.pubkey;
-
-                if (profileContentJSON) {
-                    profileImagesMap.set(pubKey, JSON.parse(profileContentJSON));
-                }
-            });
-
-            pool.subscriptions.push(sub);
-        })
     }
 
     function queryNoteInformationInBatches() {
@@ -248,55 +233,42 @@
             return;
         }
 
-        pool.relays.forEach(relay => {
-            let filter: Filter = {
-                kinds: [
-                    Kind.Text,
-                    Kind.Reaction
-                ],
-                '#e': noteInfoToGetLocal
-            };
+        const sub = subscribeToReactions($nostrPool, noteInfoToGetLocal, (event) => {
+            const kind = event.kind;
 
-            const sub: Sub = relay.sub([filter]);
+            // TODO: REPLIES AND LIKES
 
-            sub.on('event', event => {
-                const kind = event.kind;
+            if (kind === Kind.Reaction) {
+                const id = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
+                const eventReaction: string = event.content;
+                const eventPubkey: string = event.pubkey;
 
-                // TODO: REPLIES AND LIKES
+                if (!id) {
+                    console.error('EVENT WITHOUT ID !!!');
+                    return;
+                }
 
-                if (kind === Kind.Reaction) {
-                    const id = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
-                    const eventReaction: string = event.content;
-                    const eventPubkey: string = event.pubkey;
-
-                    if (!id) {
-                        console.error('EVENT WITHOUT ID !!!');
-                        return;
-                    }
-
-                    for (let message of messages) {
-                        if (message.id === id) {
-                            let reactions: Map<string, Set<string>> | undefined = message.reactions;
-                            if (reactions === undefined) {
-                                reactions = new Map();
-                                message.reactions = reactions;
-                            }
-
-                            let reaction: Set<string> = reactions.get(eventReaction);
-                            if (reaction === undefined) {
-                                reaction = new Set();
-                                reactions.set(eventReaction, reaction);
-                            }
-                            reaction.add(eventPubkey);
-
-                            break;
+                for (let message of messages) {
+                    if (message.id === id) {
+                        let reactions: Map<string, Set<string>> | undefined = message.reactions;
+                        if (reactions === undefined) {
+                            reactions = new Map();
+                            message.reactions = reactions;
                         }
+
+                        let reaction: Set<string> = reactions.get(eventReaction);
+                        if (reaction === undefined) {
+                            reaction = new Set();
+                            reactions.set(eventReaction, reaction);
+                        }
+                        reaction.add(eventPubkey);
+
+                        break;
                     }
                 }
-            });
-
-            pool.subscriptions.push(sub);
-        })
+            }
+        });
+        pool.subscriptions.push(sub);
     }
 
     function queryNip05ServersForVerification() {
@@ -360,12 +332,8 @@
         updateBrowserExtensionCheckbox();
 
         if (nostrRoomId !== null) {
-            pool.connectAndSubscribeToChannel({
-                nostrRoomId,
-                messageLimit,
-                messagesSince,
-                'callbackFunction': addMessageIfDoesntExist
-            });
+            const sub = subscribeToChannel($nostrPool, nostrRoomId, messageLimit, messagesSince, addMessageIfDoesntExist);
+            pool.subscriptions.push(sub);
         } else {
             console.error('Chat.svelte:onMount - We must have the nostrRoomId at this point');
         }
@@ -406,7 +374,6 @@
     onDestroy(async () => {
         userUnsubscribe();
         await pool.unsubscribeEverything();
-        await pool.disconnect();
 
         clearTimeout(orderMessagesTimer);
         clearTimeout(backgroundJobsTimer);
@@ -425,7 +392,7 @@
         if (!pool.writeEnabled) {
             Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
         } else if (content) {
-            if (await pool.sendMessage(null, content, nostrRoomId, nostrEventBeingRepliedTo)) {
+            if (await pool.sendMessage(content, nostrRoomId, nostrEventBeingRepliedTo)) {
                 nostrEventBeingRepliedTo = null;
                 textarea.value = '';
                 scrollToBottom();

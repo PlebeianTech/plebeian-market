@@ -1,5 +1,5 @@
 import type {Event, Relay, Sub, Pub} from "nostr-tools";
-import {getEventHash, relayInit, signEvent, validateEvent, getPublicKey, Kind} from "nostr-tools";
+import {getEventHash, signEvent, validateEvent, getPublicKey, Kind, SimplePool} from "nostr-tools";
 import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, findMarkerInTags, getBestRelay} from "$lib/nostr/utils";
 import {Error} from "../stores";
 import type {User} from "$lib/types/user";
@@ -12,30 +12,6 @@ export class Pool {
     user: User | null = null;
     publicKey: string = '';
     writeEnabled: boolean = false;
-
-    public async connectAndSubscribeToChannel(channelInfo = null) {
-        let that = this;
-
-        for (const relayUrl of relayUrlList) {
-            this.getRelayOrConnect(relayUrl)
-                .then(async function (relay) {
-                    if (channelInfo !== null) {
-                        console.debug('   ** Nostr:   -- Connected to relay: ' + relay.url + ' -- Channel info:', channelInfo);
-
-                        that.subscribeToChannel(
-                            relay,
-                            channelInfo['nostrRoomId'],
-                            channelInfo['messageLimit'],
-                            channelInfo['since'],
-                            channelInfo['callbackFunction']
-                        );
-                    }
-
-                }, function(error) {
-                    console.error("*** - connectAndSubscribeToChannel - ", error);
-                });
-        }
-    }
 
     /*
     Will connect to each Nostr relay in relayUrlList and send them
@@ -58,59 +34,6 @@ export class Pool {
         if (signedEvent !== false) {
             pool.publish(relayUrlList, signedEvent);
         }
-    }
-
-    public async connectAndGetProfile(userPubKey, foundProfileCB: (profile: any) => void) {
-        let that = this;
-        for (const relayUrl of relayUrlList) {
-            this.getRelayOrConnect(relayUrl).then(
-                async (relay) => {
-                    const sub: Sub = relay.sub([{kinds: [Kind.Metadata], authors: [userPubKey]}]);
-                    sub.on('event', event => {
-                        const profileContentJSON = event.content;
-
-                        if (profileContentJSON) {
-                            foundProfileCB(JSON.parse(profileContentJSON));
-                        }
-                    });
-                    that.subscriptions.push(sub);
-                },
-                function(error) {
-                    console.error("*** - connectAndSubscribeToChannel - ", error);
-                }
-            );
-        }
-    }
-
-    private getRelayOrConnect(relayUrl: string) {
-        let that = this;
-
-        return new Promise<Relay>(async function (resolve, reject) {
-            let relay: Relay | undefined = that.relays.get(relayUrl);
-
-            if (relay !== undefined) {
-                resolve(relay);
-            } else {
-                try {
-                    let newRelay = relayInit(relayUrl);
-
-                    newRelay.on('connect', () => {
-                        console.debug('   ** Nostr:   -- Connected to relay: ' + relayUrl);
-                        that.relays.set(relayUrl, newRelay);
-                        resolve(newRelay);
-                    })
-                    newRelay.on('error', () => {
-                        console.log(`   ** Nostr: Failed to connect to relay: ${newRelay.url}`);
-                        reject("Couldn't connect to relay (onError): " + relayUrl);
-                    })
-
-                    await newRelay.connect();
-
-                } catch (e) {
-                    reject("Couldn't connect to relay (catch): " + relayUrl);
-                }
-            }
-        });
     }
 
     /*
@@ -140,7 +63,7 @@ export class Pool {
     called `signValidatePublishEvent`.
      */
 
-    async sendMessage(relay: Relay, message: string, nostrRoomId, eventBeingRepliedTo: Event | null) {
+    async sendMessage(message: string, nostrRoomId, eventBeingRepliedTo: Event | null) {
         let event: Event = this.getEventToSendNote(message, nostrRoomId, eventBeingRepliedTo);
         return await this.signValidatePublishEvent(event);
     }
@@ -352,35 +275,10 @@ export class Pool {
         });
     }
 
-    public subscribeToChannel(relay: Relay, nostrRoomId, messageLimit, since, callbackFunction) {
-        console.debug('   ** Nostr: Subscribing to channel in relay: ' + relay.url);
-
-        let sub: Sub = relay.sub([{
-            kinds: [Kind.ChannelMessage],
-            '#e': [nostrRoomId],
-            limit: messageLimit,
-            since: since
-        }]);
-
-        sub.on('event', event => {
-            console.debug('   ** Nostr: Event received from channel in relay: ' + relay.url);
-            callbackFunction(event);
-        });
-
-        this.subscriptions.push(sub);
-    }
-
     public unsubscribeEverything() {
         this.subscriptions.forEach(async subscription => {
             console.debug('   ** Nostr: Unsubscribing');
             await subscription.unsub();
-        })
-    }
-
-    public disconnect() {
-        this.relays.forEach(async relay => {
-            console.debug('   ** Nostr: Closing connection to relay: ' + relay.url);
-            await relay.close();
         })
     }
 }

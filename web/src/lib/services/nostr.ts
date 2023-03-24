@@ -1,10 +1,11 @@
-import { getEventHash, Kind, SimplePool} from 'nostr-tools';
-import { UserResume, type User } from "$lib/types/user";
+import {getEventHash, Kind, SimplePool} from 'nostr-tools';
+import type {Sub} from "nostr-tools";
+import { UserResume } from "$lib/types/user";
 import { relayUrlList } from "$lib/nostr/utils";
 
 const EVENT_KIND_RESUME = 66;
 
-async function createEvent(kind: number, content: any, user: User | null = null) {
+async function createEvent(kind: number, content: any) {
     let event: any = {
         kind,
         content,
@@ -22,13 +23,27 @@ export async function closePool(pool: SimplePool) {
 }
 
 export function subscribeResumes(pool: SimplePool, receivedCB: (pubkey: string, resume: UserResume, createdAt: number) => void) {
-    let sub = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME] }]);
+    let sub: Sub = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME] }]);
     sub.on('event', e => receivedCB(e.pubkey, UserResume.fromJson(JSON.parse(e.content)), e.created_at));
+    sub.on('eose', () => {
+        sub.unsub()
+    })
 }
 
 export function subscribeResume(pool: SimplePool, pubkey: string, receivedCB: (resume: UserResume, createdAt: number) => void) {
-    let sub = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME], authors: [pubkey] }]);
+    let sub: Sub = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME], authors: [pubkey] }]);
     sub.on('event', e => receivedCB(UserResume.fromJson(JSON.parse(e.content)), e.created_at));
+    sub.on('eose', () => {
+        sub.unsub()
+    })
+
+    /*
+    let resumeEvent = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME], authors: [pubkey] }]);
+
+    if (resumeEvent !== null) {
+        receivedCB(UserResume.fromJson(JSON.parse(resumeEvent.content)), resumeEvent.created_at);
+    }
+    */
 }
 
 export async function publishResume(pool: SimplePool, resume: UserResume, successCB: () => void) {
@@ -39,8 +54,11 @@ export async function publishResume(pool: SimplePool, resume: UserResume, succes
 }
 
 export function subscribeMetadata(pool: SimplePool, pubkeys: string[], receivedCB: (pubkey: string, metadata: {name: string, picture: string, about: string}) => void) {
-    let sub = pool.sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
+    let sub: Sub = pool.sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
     sub.on('event', e => receivedCB(e.pubkey, JSON.parse(e.content)));
+    sub.on('eose', () => {
+        sub.unsub()
+    })
 }
 
 export async function getProfileInfo(pool: SimplePool, userPubKey: string, receivedCB: (profileInfo) => void) {
@@ -55,5 +73,39 @@ export async function getProfileInfo(pool: SimplePool, userPubKey: string, recei
         if (profileContentJSON) {
             receivedCB(JSON.parse(profileContentJSON));
         }
+    }
+}
+
+export function subscribeToChannel(pool: SimplePool, nostrRoomId, messageLimit, since, receivedCB): Sub {
+    let sub: Sub = pool.sub(relayUrlList, [{
+        kinds: [Kind.ChannelMessage],
+        '#e': [nostrRoomId],
+        limit: messageLimit,
+        since: since
+    }]);
+
+    sub.on('event', event => { receivedCB(event); });
+
+    return sub;
+}
+
+export function subscribeToReactions(pool: SimplePool, listOfNotesToGetInfo, receivedCB): Sub {
+    let sub: Sub = pool.sub(relayUrlList, [{
+        kinds: [
+            Kind.Text,
+            Kind.Reaction
+        ],
+        '#e': listOfNotesToGetInfo
+    }]);
+
+    sub.on('event', event => { receivedCB(event); });
+
+    return sub;
+}
+
+export async function publishNote(pool: SimplePool, resume: UserResume, successCB: () => void) {
+    const event = await createEvent(EVENT_KIND_RESUME, JSON.stringify(resume.toJson()));
+    for (const pub of pool.publish(relayUrlList, event)) {
+        pub.on('ok', successCB);
     }
 }
