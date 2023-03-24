@@ -1,22 +1,20 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { SimplePool } from 'nostr-tools';
+    import { onMount } from 'svelte';
     import { page } from "$app/stores";
     import type { UserResume } from "$lib/types/user";
     import Loading from "$lib/components/Loading.svelte";
     import Back from "$lib/components/icons/Back.svelte";
     import Editor from "$lib/components/resume/Editor.svelte";
     import { encodeNpub } from "$lib/nostr/utils";
-    import { subscribeResume, subscribeMetadata, closePool } from "$lib/services/nostr";
+    import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import { nostrPool } from "$lib/stores";
 
     export let pubkey: string;
 
     let edit = false;
 
     let userPubKey;
-
-    let pool = new SimplePool();
 
     let resume: UserResume | null = null;
     let resumeCreatedAt: number = 0;
@@ -26,14 +24,14 @@
     let picture: string;
 
     function loadResume() {
-        subscribeResume(pool, pubkey,
+        subscribeResume($nostrPool, pubkey,
                 (r, rcAt) => {
                     if (resumeCreatedAt < rcAt) {
                         resume = r;
                         resumeCreatedAt = rcAt;
                         if (!metadataSubscribed) {
                             metadataSubscribed = true;
-                            subscribeMetadata(pool, [pubkey],
+                            subscribeMetadata($nostrPool, [pubkey],
                                 (_pk, m) => {
                                     if (m.name !== undefined) {
                                         name = m.name;
@@ -61,10 +59,6 @@
             userPubKey = await window.nostr.getPublicKey();
         }
     );
-
-    onDestroy(async () => {
-        await closePool(pool);
-    });
 </script>
 
 <div class="mx-auto w-full">

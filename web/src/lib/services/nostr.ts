@@ -1,5 +1,4 @@
-import { getEventHash, Kind } from 'nostr-tools';
-import type { SimplePool } from 'nostr-tools/pool';
+import { getEventHash, Kind, SimplePool} from 'nostr-tools';
 import { UserResume, type User } from "$lib/types/user";
 import { relayUrlList } from "$lib/nostr/utils";
 

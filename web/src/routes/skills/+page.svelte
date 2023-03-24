@@ -19,7 +19,9 @@
     <h1 class="text-3xl lg:text-6xl fontbold mt-0 lg:mt-2 mb-4 text-center">Skills Market</h1>
 
     <div class="flex justify-center items-center">
-        <a class="btn btn-primary" href="/p/{userPubKey}#edit">Edit My Résumé</a>
+        {#if userPubKey}
+            <a class="btn btn-primary" href="/p/{userPubKey}#edit">Edit My Résumé</a>
+        {/if}
     </div>
 
     <div class="divider"></div>

@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { SimplePool } from 'nostr-tools';
-    import { publishResume, subscribeResume, closePool } from "$lib/services/nostr";
-    import { Info, Error } from "$lib/stores";
+    import { onMount } from 'svelte';
+    import { publishResume, subscribeResume } from "$lib/services/nostr";
+    import { Info, Error, nostrPool } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$lib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";
@@ -15,8 +14,6 @@
     export let pubkey: string;
     export let resume: UserResume;
     export let onEditFinished: () => void = () => {};
-
-    let pool = new SimplePool();
 
     let timeoutPublishResume = 20000;
     let resumeNotPublishedTimer: ReturnType<typeof setTimeout> | null = null;
@@ -97,7 +94,7 @@
             timeoutPublishResume
         );
 
-        await publishResume(pool, resume,
+        await publishResume($nostrPool, resume,
             () => {
                 if (!notified) {
                     if (resumeNotPublishedTimer) {
@@ -119,11 +116,7 @@
     }
 
     onMount(async () => {
-        subscribeResume(pool, pubkey, (_, __) => {});
-    });
-
-    onDestroy(async () => {
-        await closePool(pool);
+        subscribeResume($nostrPool, pubkey, (_, __) => {});
     });
 </script>
 
