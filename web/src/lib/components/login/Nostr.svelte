@@ -3,7 +3,7 @@
     import { ErrorHandler, loginNostr } from "$lib/services/api";
     import type { User } from "$lib/types/user";
     import { Info, Error, nostrUser } from "$lib/stores";
-    import { hasExtension, encodeNpub } from '$lib/nostr/utils';
+    import { hasExtension } from '$lib/nostr/utils';
     import {getPublicKey, nip19} from "nostr-tools";
 
     const dispatch = createEventDispatcher();
@@ -16,13 +16,12 @@
 
     async function getKeyFromExtension() {
         let pubkey = await window.nostr.getPublicKey();
-        npub = encodeNpub(pubkey);
 
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         nostrUser.set({
             privateKey: null,
-            publicKey: npub,
+            publicKey: pubkey,
         });
 
         localStorage.setItem('nostrPublicKey', pubkey);
