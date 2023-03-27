@@ -47,25 +47,10 @@ export async function publishResume(pool: SimplePool, resume: UserResume, succes
 
 export function subscribeMetadata(pool: SimplePool, pubkeys: string[], receivedCB: (pubkey: string, metadata: {name: string, picture: string, about: string}) => void) {
     let sub: Sub = pool.sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
-    sub.on('event', e => receivedCB(e.pubkey, JSON.parse(e.content)));
+    sub.on('event', e => {receivedCB(e.pubkey, JSON.parse(e.content))});
     sub.on('eose', () => {
         sub.unsub()
-    })
-}
-
-export async function getProfileInfo(pool: SimplePool, userPubKey: string, receivedCB: (profileInfo) => void) {
-    let profileInfoEvent = await pool.get(relayUrlList, {
-        kinds: [Kind.Metadata],
-        authors: [userPubKey]
     });
-
-    if (profileInfoEvent !== null) {
-        const profileContentJSON = profileInfoEvent.content;
-
-        if (profileContentJSON) {
-            receivedCB(JSON.parse(profileContentJSON));
-        }
-    }
 }
 
 export function subscribeToChannel(pool: SimplePool, nostrRoomId, messageLimit, since, receivedCB): Sub {

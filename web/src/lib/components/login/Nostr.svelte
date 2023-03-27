@@ -1,6 +1,5 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { ErrorHandler, loginNostr } from "$lib/services/api";
     import type { User } from "$lib/types/user";
     import { Info, Error, nostrUser } from "$lib/stores";
     import { hasExtension } from '$lib/nostr/utils';

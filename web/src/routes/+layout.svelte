@@ -111,13 +111,10 @@
         if (u && u.publicKey) {
             subscribeMetadata($nostrPool, [u.publicKey],
                 (_pk, profileInfo) => {
-                    console.log('55555555555 profileInfo', profileInfo);
-
                     if (
                         u.picture !== profileInfo.picture ||
                         u.displayName !== profileInfo.name
                     ) {
-                        console.log('666666 CHANGING');
                         nostrUser.set({
                             privateKey: u.privateKey,
                             publicKey: u.publicKey,
