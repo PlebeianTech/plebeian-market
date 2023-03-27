@@ -10,7 +10,7 @@
     import Navbar from "$lib/components/Navbar.svelte";
     import ToastContainer from "$lib/components/ToastContainer.svelte";
     import {getPublicKey} from "nostr-tools";
-    import {getProfileInfo, closePool} from "../lib/services/nostr";
+    import {subscribeMetadata, getProfileInfo, closePool} from "../lib/services/nostr";
 
     function getToastOnClickCB(data) {
         return () => {
@@ -79,33 +79,58 @@
             token.set(localStorage.getItem("token"));
 
             // Nostr
+            let nosPubKey;
             let nosPrivKey = localStorage.getItem('nostrPrivateKey');
 
             if (nosPrivKey !== null) {
-                let nosPubKey = getPublicKey(nosPrivKey);
+                nosPubKey = getPublicKey(nosPrivKey);
 
                 nostrUser.set({
                     privateKey: nosPrivKey,
                     publicKey: nosPubKey,
                 });
 
-                await getProfileInfo(
-                    $nostrPool,
-                    nosPubKey,
-                    (profileInfo) => {
-                        nostrUser.set({
-                            privateKey: nosPrivKey,
-                            publicKey: nosPubKey,
-                            picture: profileInfo.picture || null,
-                            displayName: profileInfo.name || null
-                        });
-                    }
-                );
+            } else {
+                nosPubKey = localStorage.getItem('nostrPublicKey');
+
+                if (nosPubKey !== null) {
+                    nostrUser.set({
+                        privateKey: null,
+                        publicKey: nosPubKey,
+                    });
+                }
             }
         }
     });
 
+    const nostrUserUnsubscribe = nostrUser.subscribe(async (u) => {
+        if (!u) {
+            return;
+        }
+
+        if (u && u.publicKey) {
+            subscribeMetadata($nostrPool, [u.publicKey],
+                (_pk, profileInfo) => {
+                    console.log('55555555555 profileInfo', profileInfo);
+
+                    if (
+                        u.picture !== profileInfo.picture ||
+                        u.displayName !== profileInfo.name
+                    ) {
+                        console.log('666666 CHANGING');
+                        nostrUser.set({
+                            privateKey: u.privateKey,
+                            publicKey: u.publicKey,
+                            picture: profileInfo.picture || null,
+                            displayName: profileInfo.name || null
+                        });
+                    }
+                });
+        }
+    });
+
     onDestroy(async () => {
+        nostrUserUnsubscribe();
         await closePool($nostrPool);
     });
 </script>

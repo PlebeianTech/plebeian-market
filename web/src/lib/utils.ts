@@ -37,6 +37,7 @@ export function logout(gotoUrl?: string) {
     if (browser) {
         localStorage.removeItem('token');
         localStorage.removeItem('nostrPrivateKey');
+        localStorage.removeItem('nostrPublicKey');
     }
 
     Info.set("You're Logged out");

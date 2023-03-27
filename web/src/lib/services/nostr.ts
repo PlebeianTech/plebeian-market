@@ -36,14 +36,6 @@ export function subscribeResume(pool: SimplePool, pubkey: string, receivedCB: (r
     sub.on('eose', () => {
         sub.unsub()
     })
-
-    /*
-    let resumeEvent = pool.sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME], authors: [pubkey] }]);
-
-    if (resumeEvent !== null) {
-        receivedCB(UserResume.fromJson(JSON.parse(resumeEvent.content)), resumeEvent.created_at);
-    }
-    */
 }
 
 export async function publishResume(pool: SimplePool, resume: UserResume, successCB: () => void) {
@@ -101,11 +93,4 @@ export function subscribeToReactions(pool: SimplePool, listOfNotesToGetInfo, rec
     sub.on('event', event => { receivedCB(event); });
 
     return sub;
-}
-
-export async function publishNote(pool: SimplePool, resume: UserResume, successCB: () => void) {
-    const event = await createEvent(EVENT_KIND_RESUME, JSON.stringify(resume.toJson()));
-    for (const pub of pool.publish(relayUrlList, event)) {
-        pub.on('ok', successCB);
-    }
 }

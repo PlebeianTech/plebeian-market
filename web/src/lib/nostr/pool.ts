@@ -1,4 +1,4 @@
-import type {Event, Relay, Sub, Pub} from "nostr-tools";
+import type {Event, Sub, Pub} from "nostr-tools";
 import {getEventHash, signEvent, validateEvent, getPublicKey, Kind, SimplePool} from "nostr-tools";
 import {hasExtension, relayUrlList, localStorageNostrPreferPMId, filterTags, findMarkerInTags, getBestRelay} from "$lib/nostr/utils";
 import {Error} from "../stores";
@@ -7,65 +7,105 @@ import type {User} from "$lib/types/user";
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
 
 export class Pool {
-    relays: Map<string, Relay> = new Map<string, Relay>();
     subscriptions: Sub[] = [];
     user: User | null = null;
     publicKey: string = '';
     writeEnabled: boolean = false;
 
-    /*
-    Will connect to each Nostr relay in relayUrlList and send them
-    the message. It will reuse the connection if already connected.
-     */
-    public async connectAndSendMessage(pool: SimplePool, messageInfo = null) {
-        if (messageInfo === null) {
+    public async sendMessage(pool, message: string, nostrRoomId, eventBeingRepliedTo: Event | null) {
+        let event: Event = this.getEventToSendNote(message, nostrRoomId, eventBeingRepliedTo);
+        return await this.signValidatePublishEvent(pool, event);
+    }
+
+    public async sendReaction(pool, message, reaction: string) {
+        if (!this.writeEnabled) {
+            Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
+            return;
+        }
+
+        const noteId = message.id;
+        const notePubkey = message.pubkey;
+
+        console.debug('   ** Nostr: ******* Sending reaction: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
+
+        if (reaction.length !== 1) {
+            console.error('   ** Nostr: trying to send reactions with > 1 character is not allowed by nip-25');
+            return;
+        }
+
+        if (!noteId || !notePubkey) {
             return false;
         }
 
-        // 1
-        let event: Event = this.getEventToSendNote(messageInfo['message'], messageInfo['nostrRoomId'], null);
-
-        // 2
-        let signedEvent = await this.signValidateEvent(event);
-
-        let that = this;
-
-        // 3
-        if (signedEvent !== false) {
-            pool.publish(relayUrlList, signedEvent);
-        }
+        return await this.signValidatePublishEvent(pool, <Event>{
+            kind: Kind.Reaction,
+            content: reaction,
+            tags: [
+                ['e', noteId],
+                ['p', notePubkey],
+            ],
+        });
     }
 
-    /*
-    The process of publishing Nostr events have 3 parts:
+    public async signValidatePublishEvent(pool: SimplePool, event: Event) {
+        let signedEvent: Event | false = await this.signValidateEvent(event);
 
-    1- Create an event of type Event. You can put a blank in
-    the pubkey field as it's mandatory, but you probably
-    don't have it yet. You can do it "manually" by creating
-    an object of type Event or use helper functions like
-    `getEventToSendNote`.
+        if (signedEvent !== false) {
+            console.log('BBBBB - signedEvent', signedEvent);
 
-    2- `signValidateEvent`: puts the public key into the event,
-    then sign it with the key found on your Nostr extension
-    (or the Plebeian Market one if you don't have an extension)
-    and validate that it's correct.
+            let pub = pool.publish(relayUrlList, event);
 
-    3- `publishEvent`: it publishes the event to the relay
-    specified, or all the connected relays in the pool if
-    relay is null.
+            pub.on('ok', () => {console.log('CCCCCCCCCC')});
+            pub.on('failed', reason => {
+                console.error(`failed to publish: ${reason}`)
+            });
 
-    If you don't need to do any special treatment to the
-    event, you can call `sendMessage` which will do all the
-    phases: creating the event (1), signing and validating
-    the event (2), and publishing to the relays (3).
+            return true;
+        }
 
-    There is also a function to do steps 2 and 3 in one step
-    called `signValidatePublishEvent`.
-     */
+        return false;
+    }
 
-    async sendMessage(message: string, nostrRoomId, eventBeingRepliedTo: Event | null) {
-        let event: Event = this.getEventToSendNote(message, nostrRoomId, eventBeingRepliedTo);
-        return await this.signValidatePublishEvent(event);
+    public async signValidateEvent(event: Event) {
+        if (await this.setPoolPublicKey() === false) {
+            return false;
+        }
+
+        console.debug('   ** Nostr: event before adding missing properties: ', event);
+
+        event.created_at = Math.floor(Date.now() / 1000);
+        event.pubkey = this.publicKey;
+        event.id = getEventHash(event);
+
+        if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
+            // Using PM Nostr identity
+            let userPrivateKey = this.user?.nostr_private_key || null;
+
+            if (userPrivateKey === null) {
+                console.debug('   ** Nostr: Not using extension, but PM identity (private key) not available.')
+                return false;
+            }
+
+            event.sig = signEvent(event, userPrivateKey);
+            console.debug('   ** Nostr: event after hashing and signing by PM Nostr keys', event);
+        } else {
+            // Using Nostr extension identity
+            try {
+                event = await window.nostr.signEvent(event);
+            } catch (error) {
+                console.error('   ** Nostr: Error signing event in extension:', error);
+                Error.set("Error getting permissions to sign the message from your Nostr extension.");
+                return false;
+            }
+
+            console.debug('   ** Nostr: event after hashing and signing by extension', event);
+        }
+
+        if (validateEvent(event)) {
+            return event;
+        }
+
+        return false;
     }
 
     public getEventToSendNote(message: string, nostrRoomId, eventBeingRepliedTo: Event | null): Event {
@@ -150,121 +190,12 @@ export class Pool {
         return true;
     }
 
-    public async signValidateEvent(event: Event) {
-        if (await this.setPoolPublicKey() === false) {
-            return false;
-        }
-
-        console.debug('   ** Nostr: event before adding missing properties: ', event);
-
-        event.created_at = Math.floor(Date.now() / 1000);
-        event.pubkey = this.publicKey;
-        event.id = getEventHash(event);
-
-        if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
-            // Using PM Nostr identity
-            let userPrivateKey = this.user?.nostr_private_key || null;
-
-            if (userPrivateKey === null) {
-                console.debug('   ** Nostr: Not using extension, but PM identity (private key) not available.')
-                return false;
-            }
-
-            event.sig = signEvent(event, userPrivateKey);
-            console.debug('   ** Nostr: event after hashing and signing by PM Nostr keys', event);
-        } else {
-            // Using Nostr extension identity
-            try {
-                event = await window.nostr.signEvent(event);
-            } catch (error) {
-                console.error('   ** Nostr: Error signing event in extension:', error);
-                Error.set("Error getting permissions to sign the message from your Nostr extension.");
-                return false;
-            }
-
-            console.debug('   ** Nostr: event after hashing and signing by extension', event);
-        }
-
-        if (validateEvent(event)) {
-            return event;
-        }
-
-        return false;
-    }
-
-    public async publishEvent(relay: Relay | null, event: Event) {
-        if (relay !== null) {
-            this.publishEventToRelay(relay, event);
-        } else {
-            // No relay provided, so send to all the relays in the pool
-            this.relays.forEach(relay => {
-                this.publishEventToRelay(relay, event);
-            })
-        }
-
-        return true;
-    }
-
-    publishEventToRelay(relay: Relay, event: Event) {
-        console.debug('   ** Nostr: Publishing at relay', relay.url);
-        let pub: Pub = relay.publish(event);
-
-        pub.on('ok', () => {
-            console.log(`   ** Nostr: ${relay.url} has accepted our event`);
-        })
-        pub.on('failed', reason => {
-            console.log(`   ** Nostr: failed to publish to ${relay.url}: ${reason}`);
-        })
-    }
-
-    public async sendReaction(message, reaction: string) {
-        if (!this.writeEnabled) {
-            Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
-            return;
-        }
-
-        const noteId = message.id;
-        const notePubkey = message.pubkey;
-
-        console.debug('   ** Nostr: ******* Sending reaction: ' + reaction + ' to note with Id: ' + noteId + ' pubkey: ' + notePubkey);
-
-        if (reaction.length !== 1) {
-            console.error('   ** Nostr: trying to send reactions with > 1 character is not allowed by nip-25');
-            return;
-        }
-
-        if (!noteId || !notePubkey) {
-            return false;
-        }
-
-        return await this.signValidatePublishEvent(<Event>{
-            kind: Kind.Reaction,
-            content: reaction,
-            tags: [
-                ['e', noteId],
-                ['p', notePubkey],
-            ],
-        });
-    }
-
-    public async signValidatePublishEvent(event: Event) {
-        let signedEvent: Event | false = await this.signValidateEvent(event);
-
-        if (signedEvent !== false) {
-            if (await this.publishEvent(null, <Event> signedEvent)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public async deleteNote(message) {
+    public async deleteNote(pool: SimplePool, message) {
         const noteId = message.id;
 
         // TODO: Dialog confirm delete
 
-        return await this.signValidatePublishEvent({
+        return await this.signValidatePublishEvent(pool, <Event>{
             kind: Kind.EventDeletion,
             content: 'deleted',
             created_at: 0,

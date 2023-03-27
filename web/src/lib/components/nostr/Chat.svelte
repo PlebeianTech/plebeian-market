@@ -4,7 +4,7 @@
     import {onDestroy, onMount, afterUpdate} from "svelte";
     import {token, user, nostrUser, nostrPool, Error} from "$lib/stores";
     import {subscribeMetadata} from "$lib/services/nostr";
-    import {Event, Sub, Filter, generatePrivateKey, Kind, SimplePool} from "nostr-tools";
+    import {Event, generatePrivateKey, Kind} from "nostr-tools";
     import {Pool} from "$lib/nostr/pool";
     import {hasExtension, queryNip05, filterTags, getMessage, localStorageNostrPreferPMId} from '$lib/nostr/utils';
     import {ErrorHandler, putProfile} from "$lib/services/api";
@@ -392,7 +392,7 @@
         if (!pool.writeEnabled) {
             Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
         } else if (content) {
-            if (await pool.sendMessage(content, nostrRoomId, nostrEventBeingRepliedTo)) {
+            if (await pool.sendMessage($nostrPool, content, nostrRoomId, nostrEventBeingRepliedTo)) {
                 nostrEventBeingRepliedTo = null;
                 textarea.value = '';
                 scrollToBottom();

@@ -25,7 +25,7 @@
             publicKey: npub,
         });
 
-        // localStorage.setItem('nostrPublicKey', pubkey);
+        localStorage.setItem('nostrPublicKey', pubkey);
 
         loginActions();
     }
@@ -66,7 +66,6 @@
             publicKey: pubKey,
         });
 
-        // TODO localStorage.setItem('nostrPublicKey', pubkey);
         localStorage.setItem('nostrPrivateKey', privKey);
 
         loginActions();
@@ -103,13 +102,13 @@
                 <button class="btn btn-primary" on:click={() => privateKeyLoginMode = true}>Provide private key</button>
             </div>
             <div class="w-full flex items-center justify-center mt-4">
-                {#if ! hasExtension()} <!-- quitar ! -->
+                {#if hasExtension()}
                     You have a Nostr browser extension, so we highly recommend login that way.
                 {:else}
                     <!-- Mobile -->
                     <div class="lg:hidden">You can provide your Nostr private key. It will be stored locally on your device and it will never be transmitted to our servers.</div>
                     <!-- Desktop -->
-                    <div class="hidden lg:block">You don't have a Nostr brow - It's highly advised to use a browser extension (see more).</div>
+                    <div class="hidden lg:block">You don't have a Nostr browser extension enabled - It's highly advised to use a browser extension (<a class="link" href="/faq" target="_blank">see why</a>).</div>
                 {/if}
             </div>
         {/if}

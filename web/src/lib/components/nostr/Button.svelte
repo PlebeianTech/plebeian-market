@@ -34,10 +34,7 @@
 
     async function postToNostr() {
         if (message && message !== '') {
-            pool.connectAndSendMessage($nostrPool, {
-                message,
-                nostrRoomId,
-            });
+            pool.sendMessage($nostrPool, message, nostrRoomId);
 
             await wait(1000);
             textConfirmationVisible = false;
