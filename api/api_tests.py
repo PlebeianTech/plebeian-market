@@ -53,8 +53,8 @@ class TestApi(unittest.TestCase):
             self.assertEqual(code, 200)
         return code, response
 
-    def create_user(self, **kwargs):
-        code, response = self.get("/api/login/lnurl")
+    def auth_user(self, behavior, **kwargs):
+        code, response = self.get(f"/api/{behavior}/lnurl")
         self.assertEqual(code, 200)
         self.assertIn('k1', response)
         self.assertIn('svg', response['qr'])
@@ -64,14 +64,14 @@ class TestApi(unittest.TestCase):
         sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
         sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
 
-        code, response = self.get("/api/login/lnurl",
+        code, response = self.get(f"/api/{behavior}/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
         self.assertNotIn('token', response)
 
-        code, response = self.get("/api/login/lnurl",
+        code, response = self.get(f"/api/{behavior}/lnurl",
             {'k1': k1})
         self.assertEqual(code, 200)
         self.assertIn('token', response)
@@ -89,9 +89,9 @@ class TestApi(unittest.TestCase):
         return k1, token
 
     def test_campaigns(self):
-        _, token_1 = self.create_user(contribution_percent=1, twitter_username='someone')
-        _, token_2 = self.create_user()
-        _, token_3 = self.create_user(twitter_username='buyer')
+        _, token_1 = self.auth_user('signup', contribution_percent=1, twitter_username='someone')
+        _, token_2 = self.auth_user('signup', )
+        _, token_3 = self.auth_user('signup', twitter_username='buyer')
 
         # verify Twitter for the buyer
         code, response = self.put("/api/users/me/verify/twitter",
@@ -346,8 +346,8 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(address_for_campaign_auction, address_for_normal_auction)
 
     def test_listings(self):
-        _, token_1 = self.create_user(twitter_username='fixie')
-        _, token_2 = self.create_user(twitter_username='fixie_buyer')
+        _, token_1 = self.auth_user('signup', twitter_username='fixie')
+        _, token_2 = self.auth_user('signup', twitter_username='fixie_buyer')
 
         # GET listings to see there are none there
         code, response = self.get("/api/users/fixie/listings",
@@ -571,7 +571,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 404)
 
     def test_000_user(self):
-        code, response = self.get("/api/login/lnurl")
+        code, response = self.get("/api/signup/lnurl")
         self.assertEqual(code, 200)
         self.assertIn('k1', response)
         self.assertIn('svg', response['qr'])
@@ -582,7 +582,7 @@ class TestApi(unittest.TestCase):
         sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
 
         # not logged in yet...
-        code, response = self.get("/api/login/lnurl", {'k1': k1})
+        code, response = self.get("/api/signup/lnurl", {'k1': k1})
         self.assertEqual(code, 200)
         self.assertFalse(response['success'])
 
@@ -591,7 +591,7 @@ class TestApi(unittest.TestCase):
         another_k1[0] = (another_k1[0] + 1) % 255
         another_k1 = bytes(another_k1)
         another_sig = sk.sign_digest(another_k1, sigencode=ecdsa.util.sigencode_der)
-        code, response = self.get("/api/login/lnurl",
+        code, response = self.get("/api/signup/lnurl",
             {'k1': another_k1.hex(),
              'key': sk.verifying_key.to_string().hex(),
              'sig': another_sig.hex()})
@@ -599,21 +599,21 @@ class TestApi(unittest.TestCase):
         self.assertIn("verification failed", response['message'].lower())
 
         # try sending a wrong signature
-        code, response = self.get("/api/login/lnurl",
+        code, response = self.get("/api/signup/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': another_sig.hex()})
         self.assertEqual(code, 400)
         self.assertIn("verification failed", response['message'].lower())
 
-        code, response = self.get("/api/login/lnurl",
+        code, response = self.get("/api/signup/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
         self.assertNotIn('token', response)
 
-        code, response = self.get("/api/login/lnurl",
+        code, response = self.get("/api/signup/lnurl",
             {'k1': k1})
         self.assertEqual(code, 200)
         self.assertIn('token', response)
@@ -623,7 +623,7 @@ class TestApi(unittest.TestCase):
         token_1 = response['token']
 
         # can't request the token again if we already got it once
-        code, response = self.get("/api/login/lnurl",
+        code, response = self.get("/api/signup/lnurl",
             {'k1': k1,
              'key': sk.verifying_key.to_string().hex(),
              'sig': sig.hex()},
@@ -709,7 +709,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual([n for n in response['notifications'] if n['notification_type'] == first_notification_type][0]['action'], 'TWITTER_DM')
 
         # create another user
-        k1_2, token_2 = self.create_user(contribution_percent=1)
+        k1_2, token_2 = self.auth_user('signup', contribution_percent=1)
         self.assertNotEqual(k1, k1_2)
         self.assertNotEqual(token_1, token_2)
 
@@ -820,8 +820,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
     def test_auctions(self):
-        _, token_1 = self.create_user(twitter_username='auction_user_1', contribution_percent=1, wallet=XPUB)
-        _, token_2 = self.create_user(twitter_username='auction_user_2', wallet=XPUB)
+        _, token_1 = self.auth_user('signup', twitter_username='auction_user_1', contribution_percent=1, wallet=XPUB)
+        _, token_2 = self.auth_user('signup', twitter_username='auction_user_2', wallet=XPUB)
 
         # GET user auctions if not logged in is OK
         code, response = self.get("/api/users/auction_user_1/auctions")
@@ -1044,7 +1044,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
-        _, token_3 = self.create_user()
+        _, token_3 = self.auth_user('signup')
 
         # subscribe to new bid notifications, unsubscribe from AUCTION_END_X
         # and start following, both with the user that will bid and with a 3rd one

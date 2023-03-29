@@ -1,6 +1,6 @@
 import {browser} from "$app/environment";
 import {goto} from "$app/navigation";
-import {token, loginModalState, Info} from "$lib/stores";
+import {token, Info} from "$lib/stores";
 
 export let SATS_IN_BTC = 100000000;
 export let SHORT_TITLE_LIMIT = 70;
@@ -62,13 +62,6 @@ export function usd2sats(usd: number, btc2usd: number | null): number | null {
 
 export function formatBTC(sats: number) {
     return (1 / SATS_IN_BTC * sats).toFixed(9);
-}
-
-export function requestLoginModal(callbackFunc: () => void = () => {}) {
-    loginModalState.set({
-        openRequested: true,
-        callbackFunc
-    });
 }
 
 export function getShortTitle(longTitle): string {
