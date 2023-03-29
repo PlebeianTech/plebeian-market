@@ -3,7 +3,7 @@
     import SvelteMarkdown from 'svelte-markdown';
     import { MetaTags } from 'svelte-meta-tags';
     import { ErrorHandler, getItem, putAuctionFollow, type ILoader } from "$lib/services/api";
-    import { Error, Info, token, user } from "$lib/stores";
+    import { Error, Info, token, user, AuthRequired } from "$lib/stores";
     import { Category, type Item } from "$lib/types/item";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
@@ -17,9 +17,10 @@
     import Gallery from "$lib/components/Gallery.svelte";
     import SaleFlow from "$lib/components/SaleFlow.svelte";
     import { page } from "$app/stores";
-    import { getBaseUrl, requestLoginModal, getShortTitle, getShortDescription, isProduction } from "$lib/utils";
+    import { getBaseUrl, getShortTitle, getShortDescription } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
     import NostrButton from "$lib/components/nostr/Button.svelte";
+    import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
 
     export let loader: ILoader;
     export let itemKey = null;
@@ -144,29 +145,17 @@
 {#if item}
     <div class="lg:w-2/3 mx-auto p-2">
         {#if $user && item.is_mine && !item.started}
-            <div class="alert alert-error shadow-lg mt-12 lg:w-2/3 mx-auto">
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>
-                        Your sale is not active. Please go to <a class="link" href="/stall/{$user.nym}#item-{item.key}">My stall</a> and click Start!
-                    </span>
-                </div>
+            <div class="mt-12 lg:w-2/3 mx-auto">
+                <ErrorBox>
+                    <span>Your sale is not active. Please go to <a class="link" href="/stall/{$user.nym}#item-{item.key}">My stall</a> and click Start!</span>
+                </ErrorBox>
             </div>
         {/if}
         {#if !item.is_mine}
             {#if sale && sale.state === SaleState.EXPIRED}
-                <div class="alert alert-error shadow-lg">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>
-                            Sale expired. The transaction was not confirmed in time.
-                        </span>
-                    </div>
-                </div>
+                <ErrorBox>
+                    <span>Sale expired. The transaction was not confirmed in time.</span>
+                </ErrorBox>
             {:else if sale && sale.state === SaleState.TX_CONFIRMED}
                 <div class="alert alert-success shadow-lg">
                     <div>
@@ -281,9 +270,8 @@
                                             </div>
                                         {/if}
                                     {:else if sale.state === SaleState.EXPIRED}
-                                        <div class="alert alert-error shadow-lg my-4">
-                                            <div>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <div class="my-4">
+                                            <ErrorBox>
                                                 <span>
                                                     {#if sale.txid !== null}
                                                         Unfortunately, the transaction did not confirm in time!
@@ -293,7 +281,7 @@
                                                         We didn't find a corresponding transaction!
                                                     {/if}
                                                 </span>
-                                            </div>
+                                            </ErrorBox>
                                         </div>
                                     {:else}
                                         <p class="text-center text-2xl my-4">Waiting for the payment...</p>
@@ -358,7 +346,7 @@
                             {/if}
 
                             <div class="w-full my-8 grid place-items-center">
-                                <p class="btn btn-primary font-bold text-center" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</p>
+                                <p class="btn btn-primary font-bold text-center" on:click={() => AuthRequired.set(true)} on:keypress={() => AuthRequired.set(true)}>Login</p>
                             </div>
                         {/if}
                     {:else} <!-- item.ended -->

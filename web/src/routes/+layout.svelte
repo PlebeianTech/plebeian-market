@@ -6,7 +6,7 @@
     import { page } from '$app/stores';
     import { token, Info, Error, type Placement, NostrPool } from "$lib/stores";
     import Footer from "$lib/components/Footer.svelte";
-    import LoginModal from "$lib/components/login/Modal.svelte";
+    import LoginModal from "$lib/components/auth/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
     import { closePool } from "$lib/services/nostr";
 

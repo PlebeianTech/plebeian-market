@@ -9,14 +9,13 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import { publish, getFeaturedAvatars } from "$lib/services/api";
-    import {Info, token, user} from "$lib/stores";
+    import { Info, token, user, AuthRequired } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
-    import type { IAccount, Badge, User } from "$lib/types/user";
+    import type { IAccount, Badge } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
-    import {requestLoginModal} from "../utils";
     import NostrChat from "$lib/components/nostr/Chat.svelte";
     import { getChannelIdForStallOwner } from '$lib/nostr/utils'
     import Avatar, {AvatarSize} from './Avatar.svelte';
@@ -107,7 +106,7 @@
         if ($user && $user.nym) {
             setCurrent(getNewItem());
         } else {
-            requestLoginModal(() => setCurrent(getNewItem()));
+            AuthRequired.set({cb: () => setCurrent(getNewItem())});
         }
     }
 
@@ -115,7 +114,7 @@
         if ($user && $user.nym) {
             scrollIntoView(target);
         } else {
-            requestLoginModal(() => scrollIntoView(target));
+            AuthRequired.set({cb: () => scrollIntoView(target)});
         }
     }
 

@@ -13,13 +13,19 @@ export const Error: Writable<string | null> = writable(null);
 
 export const BTC2USD: Writable<number | null> = writable(null);
 
-export const loginModalState: Writable<{
-    openRequested: boolean;
-    callbackFunc: () => void;
-}> = writable({
-    openRequested: false,
-    callbackFunc: () => {}
-});
+export enum AuthBehavior {
+    Signup = "signup",
+    Login = "login",
+}
+
+export type AuthCallback = () => void;
+
+export type AuthOptions = {
+    default?: AuthBehavior,
+    cb?: AuthCallback,
+}
+
+export const AuthRequired: Writable<AuthOptions | true | false> = writable(false);
 
 export const NostrPool: Writable<SimplePool> = writable(new SimplePool());
 
@@ -27,4 +33,5 @@ export enum NostrKeySource {
     PlebeianMarketUser = "your Plebeian Market account",
     Extension = "your browser extension",
 }
+
 export const NostrPublicKey: Writable<{source: NostrKeySource, key: string | null}> = writable({source: NostrKeySource.PlebeianMarketUser, key: null});
