@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { createEventDispatcher, onDestroy, onMount } from 'svelte';
     import { browser } from "$app/environment";
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import { decodeNpub } from "$lib/nostr/utils";
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
     import { subscribeMetadata } from "$lib/services/nostr";
-    import { token, user, BTC2USD, Info, NostrPool } from "$lib/stores";
-    import { isProduction, getEnvironmentInfo, logout, requestLoginModal } from "$lib/utils";
+    import { token, user, BTC2USD, Info, NostrPool, AuthRequired, AuthBehavior } from "$lib/stores";
+    import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -221,7 +221,10 @@
                     </p>
                     {#if !$token || !$user}
                         <p>
-                            <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
+                            <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => AuthRequired.set({default: AuthBehavior.Login})} on:keypress={() => AuthRequired.set({default: AuthBehavior.Login})}><b>Login</b></a>
+                        </p>
+                        <p>
+                            <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => AuthRequired.set({default: AuthBehavior.Signup})} on:keypress={() => AuthRequired.set({default: AuthBehavior.Signup})}><b>Sign up</b></a>
                         </p>
                     {/if}
                 </div>
@@ -249,11 +252,19 @@
                     <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-60 z-40 float-right right-2">
                         {#if !$token || !$user}
                             <li class="block md:hidden md:h-0 text-primary">
-                                <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
+                                <a href={null} class="modal-button cursor-pointer text-base" on:click={() => AuthRequired.set({default: AuthBehavior.Login})} on:keypress={() => { AuthRequired.set({default: AuthBehavior.Login}); hideMobileMenu(); }}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="text-primary" class="w-6 h-6 mr-1 stroke-primary">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
                                     </svg>
                                     <b>Login</b>
+                                </a>
+                            </li>
+                            <li class="block md:hidden md:h-0 text-primary">
+                                <a href={null} class="modal-button cursor-pointer text-base" on:click={() => AuthRequired.set({default: AuthBehavior.Signup})} on:keypress={() => { AuthRequired.set({default: AuthBehavior.Signup}); hideMobileMenu(); }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="text-primary" class="w-6 h-6 mr-1 stroke-primary">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                                    </svg>
+                                    <b>Sign up</b>
                                 </a>
                             </li>
                         {/if}

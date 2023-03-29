@@ -29,9 +29,10 @@ def healthcheck(): # TODO: I don't really like this, for some reason, but it is 
     return jsonify({'success': True})
 
 # PUT would make more sense than GET, but the lightning wallets only do GET - perhaps we could split this in two parts - the part called by our app and the GET done by the wallet
-@api_blueprint.route('/api/login', methods=['GET'], defaults={'deprecated': True}) # deprecated, but still used by the WP plugin
-@api_blueprint.route('/api/login/lnurl', methods=['GET'], defaults={'deprecated': False})
-def login_lnurl(deprecated):
+@api_blueprint.route('/api/login', methods=['GET'], defaults={'deprecated': True, 'create_user': True}) # deprecated, but still used by the WP plugin
+@api_blueprint.route('/api/login/lnurl', methods=['GET'], defaults={'deprecated': False, 'create_user': False})
+@api_blueprint.route('/api/signup/lnurl', methods=['GET'], defaults={'deprecated': False, 'create_user': True})
+def login_lnurl(deprecated, create_user):
     if deprecated:
         return redirect(f"{app.config['BASE_URL']}/api/login/lnurl", code=301)
 
@@ -90,8 +91,14 @@ def login_lnurl(deprecated):
     user = m.User.query.filter_by(lnauth_key=lnauth.key).first()
 
     if not user:
-        user = m.User(lnauth_key=lnauth.key)
-        db.session.add(user)
+        if create_user:
+            user = m.User(lnauth_key=lnauth.key)
+            db.session.add(user)
+        else:
+            return jsonify({'message': "User not found. Please create an account first."}), 400
+    else:
+        if create_user:
+            return jsonify({'message': "User with this key already exists. Please log in."}), 409
 
     db.session.delete(lnauth)
     db.session.commit()
@@ -100,8 +107,9 @@ def login_lnurl(deprecated):
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
-@api_blueprint.route('/api/login/nostr', methods=['PUT'])
-def login_nostr():
+@api_blueprint.route('/api/login/nostr', methods=['PUT'], defaults={'create_user': False})
+@api_blueprint.route('/api/signup/nostr', methods=['PUT'], defaults={'create_user': True})
+def login_nostr(create_user):
     if 'npub' not in request.json:
         return jsonify({'message': "Missing npub."}), 400
 
@@ -136,6 +144,16 @@ def login_nostr():
 
     if auth.verification_phrase == clean_phrase:
         user = m.User.query.filter_by(nostr_public_key=auth.key).first()
+
+        if not user:
+            if create_user:
+                user = m.User(nostr_public_key=lnauth.key)
+                db.session.add(user)
+            else:
+                return jsonify({'message': "User not found. Please create an account first."}), 400
+        else:
+            if create_user:
+                return jsonify({'message': "User with this key already exists. Please log in."}), 409
 
         if not user:
             user = m.User(nostr_public_key=auth.key)

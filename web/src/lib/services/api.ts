@@ -1,9 +1,9 @@
-import { Error as ErrorStore } from "$lib/stores";
+import { Error as ErrorStore, AuthRequired, AuthBehavior } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type User, UserResume, fromJson as userFromJson } from "$lib/types/user";
-import { getApiBaseUrl, logout, requestLoginModal } from "$lib/utils";
+import { getApiBaseUrl, logout } from "$lib/utils";
 import { error } from '@sveltejs/kit';
 
 export class ErrorHandler {
@@ -46,10 +46,10 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
         (response) => {
             if (response.status === 401) {
                 if (tokenValue) {
-                    console.log("Error 401: Unauthorized. Deleting the token.");
+                    console.error("Error 401: Unauthorized. Deleting the token.");
                     logout();
 
-                    requestLoginModal();
+                    AuthRequired.set(true);
                 }
             } else {
                 checkResponse(response);
@@ -132,8 +132,8 @@ interface GetLoginSuccessResponse {
     user: User;
 }
 
-export function loginLnurl(k1, initialResponseCB: (response: {k1: string, lnurl: string, qr: string}) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void, expiredCB: () => void) {
-    fetchAPI("/login/lnurl" + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
+export function lnurlAuth(behavior: AuthBehavior, k1, initialResponseCB: (response: {k1: string, lnurl: string, qr: string}) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void, expiredCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${behavior}/lnurl` + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(
@@ -153,18 +153,20 @@ export function loginLnurl(k1, initialResponseCB: (response: {k1: string, lnurl:
                         expiredCB();
                     }
                 );
+            } else {
+                errorHandler.handle(response);
             }
         });
 }
 
-export function loginNostr(npub: string, verificationPhrase: string | null, sentVerificationPhraseCB: () => void = () => {}, successCB: (response: GetLoginSuccessResponse) => void = (_) => {}, errorHandler = new ErrorHandler()) {
+export function nostrAuth(behavior: AuthBehavior, npub: string, verificationPhrase: string | null, sentVerificationPhraseCB: () => void = () => {}, successCB: (response: GetLoginSuccessResponse) => void = (_) => {}, errorHandler = new ErrorHandler()) {
     let params: any = {npub};
     if (verificationPhrase !== null) {
         params.verification_phrase = verificationPhrase;
     } else {
         params.send_verification_phrase = true;
     }
-    fetchAPI("/login/nostr", 'PUT', null, JSON.stringify(params),
+    fetchAPI(`${behavior}/nostr`, 'PUT', null, JSON.stringify(params),
         response => {
             if (response.status === 200) {
                 response.json().then(

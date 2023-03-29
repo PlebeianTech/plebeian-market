@@ -1,13 +1,15 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import { ErrorHandler, loginNostr } from "$lib/services/api";
+    import { ErrorHandler, nostrAuth } from "$lib/services/api";
     import type { User } from "$lib/types/user";
-    import { token, user, Info } from "$lib/stores";
+    import { token, user, Info, Error as ErrorStore, AuthBehavior } from "$lib/stores";
     import { hasExtension, encodeNpub } from '$lib/nostr/utils';
     import { isDevelopment } from "$lib/utils";
+    import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
 
     const dispatch = createEventDispatcher();
 
+    export let behavior: AuthBehavior;
     export let onLogin: (user: User | null) => void = (_) => {};
 
     enum Step {
@@ -30,7 +32,7 @@
             return;
         }
 
-        loginNostr(npub, null,
+        nostrAuth(behavior, npub, null,
             () => {
                 Info.set("Sent the verification phrase!");
                 step = Step.SetVerificationPhrase;
@@ -44,7 +46,7 @@
         }
 
         verifying = true;
-        loginNostr(npub, verificationPhrase, () => verifying = false,
+        nostrAuth(behavior, npub, verificationPhrase, () => verifying = false,
             async (response) => {
                 verifying = false;
                 token.set(response.token);
@@ -65,19 +67,17 @@
     });
 </script>
 
-<div class="py-48 flex justify-center items-center">
-    <div>
+<div class="pb-48 pt-20 flex justify-center items-center">
+    <div class="w-full">
         {#if isDevelopment()}
-        <div class="alert alert-error shadow-lg mb-4">
-            <div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <ErrorBox hasDetail={true}>
                 <div>
-                    NOTE: in dev mode, we don't actually send DMs, but rather they get printed in the terminal!
+                    You are in dev mode!
                 </div>
-            </div>
-        </div>
+                <div slot="detail">
+                    We don't actually send DMs in dev mode, but rather they get printed in the terminal!
+                </div>
+            </ErrorBox>
         {/if}
         {#if step === Step.SetKey}
             <div class="w-full flex items-center justify-center mt-4">
@@ -89,9 +89,11 @@
                 </div>
             </div>
             <div class="w-full flex items-center justify-center mt-4 gap-5">
-                <button class="btn btn-primary" on:click={sendVerificationPhrase}>Continue</button>
+                {#if npub !== null && npub !== ""}
+                    <button class="btn btn-primary" on:click={sendVerificationPhrase}>Continue</button>
+                {/if}
                 {#if hasExtension()}
-                    <button class="btn btn-primary" on:click={getKeyFromExtension}>Get from extension</button>
+                    <button class="btn" class:btn-primary={npub === null} class:btn-secondary={npub !== null} on:click={getKeyFromExtension}>Get from extension</button>
                 {/if}
             </div>
         {:else if step === Step.SetVerificationPhrase}

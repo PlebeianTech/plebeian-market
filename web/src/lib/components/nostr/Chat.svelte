@@ -1,14 +1,13 @@
 <script lang="ts">
     import { onDestroy, onMount, afterUpdate } from 'svelte';
-    import { type Event, generatePrivateKey, Kind } from 'nostr-tools';
+    import { generatePrivateKey, Kind } from 'nostr-tools';
     import type { VitaminedMessage } from "$lib/components/nostr/types";
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import { hasExtension, queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
     import { ErrorHandler, putProfile } from "$lib/services/api";
     import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
-    import { token, user, NostrPool, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
-    import { requestLoginModal } from "$lib/utils";
+    import { token, user, NostrPool, NostrPublicKey, Error as ErrorStore, Info as InfoStore, AuthRequired } from "$lib/stores";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     const USE_MEDIA_CACHE = true;
@@ -422,8 +421,8 @@
             <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
                 <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
                 <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
-                <a href={null} class="font-bold text-center cursor-pointer" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</a>
-                into Plebeian Market to be able to publish messages.
+                <a href={null} class="font-bold text-center cursor-pointer" on:click={() => AuthRequired.set(true)} on:keypress={() => AuthRequired.set(true)}>Login</a>
+                to Plebeian Market to be able to publish messages.
             </small>
         {/if}
     {/if}
