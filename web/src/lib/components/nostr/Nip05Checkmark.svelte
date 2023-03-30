@@ -1,5 +1,7 @@
 <script lang="ts">
-    export let message;
+    import type { VitaminedMessage } from "$lib/components/nostr/types";
+
+    export let message: VitaminedMessage;
 </script>
 
 <div class="dropdown dropdown-bottom dropdown-hover dropdown-end">
@@ -10,7 +12,7 @@
     </label>
     <ul tabindex="0" class="dropdown-content translate-x-20">
         <li>
-            <div class="badge badge-secondary whitespace-nowrap">{message.nip05}</div>
+            <div class="badge badge-secondary whitespace-nowrap">{message.nip05VerifiedAddress}</div>
         </li>
     </ul>
 </div>

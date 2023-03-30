@@ -1,4 +1,8 @@
 import {getEventHash, nip05, nip19, Kind, getPublicKey} from "nostr-tools";
+import { NostrPublicKey, Error as ErrorStore, NostrKeySource } from "$lib/stores";
+import type { User } from "$lib/types/user";
+
+export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
 
 export const relayUrlList = [
     // Amethyst relays
@@ -21,7 +25,7 @@ export const pmMasterPublicKey = 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75
 export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 
 export function hasExtension() {
-    return !!window.nostr;
+    return !!(window as any).nostr;
 }
 
 export async function getPreferredPublicKey(generatedNostrPrivateKey: string | null) {
@@ -29,7 +33,7 @@ export async function getPreferredPublicKey(generatedNostrPrivateKey: string | n
         // using PM-generated identity
         return getPublicKey(generatedNostrPrivateKey);
     } else {
-        return await window.nostr.getPublicKey();
+        return await (window as any).nostr.getPublicKey();
     }
 }
 
@@ -39,15 +43,17 @@ export async function wait(milliseconds) {
 
 export const formatTimestamp = ts => {
     const today = new Date().setHours(0, 0, 0, 0);
-    const thatDay = new Date(ts*1000).setHours(0, 0, 0, 0);
+    const thatDay = new Date(ts * 1000).setHours(0, 0, 0, 0);
 
-    let format = {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    };
+    let format;
 
     if (today === thatDay) {
         format = {
+            timeStyle: 'short',
+        };
+    } else {
+       format = {
+            dateStyle: 'medium',
             timeStyle: 'short',
         };
     }
@@ -58,7 +64,7 @@ export const formatTimestamp = ts => {
 }
 
 export function getChannelIdForStallOwner(user) {
-    let stallName = 'Plebeian Market Stall ' + user.identity + ' (' + import.meta.env.MODE + ')';
+    let stallName = `Plebeian Market Stall ${user.identity} (${import.meta.env.MODE})`;
 
     console.debug('   ** Nostr: Stall channel name: ', stallName);
 
@@ -136,18 +142,44 @@ export function getBestRelay() {
     return relayUrlList[0];
 }
 
-export function getMessage(messages, messageId) {
-    for (const message of messages) {
-        if (message.id === messageId) {
-            return message;
-        }
-    }
-}
-
 export function decodeNpub(npub: string) {
-    return nip19.decode(npub).data;
+    let decoded = nip19.decode(npub);
+    if (decoded.type !== "npub" || typeof decoded.data !== 'string') {
+        throw new Error("NPUB expected.");
+    }
+    return <string>decoded.data;
 }
 
 export function encodeNpub(key: string) {
     return nip19.npubEncode(key);
+}
+
+export async function setPublicKey(user: User | null) {
+    if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
+        // Using PM Nostr identity
+        if (!user) {
+            NostrPublicKey.set({source: NostrKeySource.PlebeianMarketUser, key: null});
+            return false;
+        }
+
+        let userPrivateKey = user.nostr_private_key;
+        if (userPrivateKey === null) {
+            NostrPublicKey.set({source: NostrKeySource.PlebeianMarketUser, key: null});
+            return false;
+        }
+
+        let publicKey = getPublicKey(userPrivateKey);
+
+        NostrPublicKey.set({source: NostrKeySource.PlebeianMarketUser, key: publicKey});
+    } else {
+        // Using Nostr extension identity
+        try {
+            NostrPublicKey.set({source: NostrKeySource.Extension, key: await (window as any).nostr.getPublicKey()});
+        } catch (error) {
+            NostrPublicKey.set({source: NostrKeySource.Extension, key: null});
+            return false;
+        }
+    }
+
+    return true;
 }

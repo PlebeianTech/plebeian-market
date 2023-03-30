@@ -1,16 +1,13 @@
 <script lang="ts">
-    import {onDestroy} from "svelte";
-    import {Pool, pmChannelNostrRoomId} from "$lib/nostr/pool";
-    import {getChannelIdForStallOwner, wait} from '$lib/nostr/utils'
-    import {Info, user} from "$lib/stores";
+    import { sendMessage } from "$lib/services/nostr";
+    import { getChannelIdForStallOwner, pmChannelNostrRoomId } from '$lib/nostr/utils'
+    import { Info, user, NostrPool } from "$lib/stores";
 
     export let pmURL: string | null;
 
     let nostrRoomId;
     let message: string;
     let textConfirmationVisible: boolean;
-
-    const pool: Pool = new Pool();
 
     function getNostrTextModal(location: 'stall' | 'mktSquare' | 'nostrFeed') {
         switch (location) {
@@ -35,21 +32,13 @@
 
     async function postToNostr() {
         if (message && message !== '') {
-            pool.connectAndSendMessage({
-                message,
-                nostrRoomId,
+            sendMessage($NostrPool, message, nostrRoomId, null,
+                () => {
+                    textConfirmationVisible = false;
+                    Info.set("¡Published to Nostr!");
             });
-
-            await wait(1000);
-            textConfirmationVisible = false;
-            await wait(1000);
-            Info.set('Published to Nostr');
         }
     }
-
-    onDestroy(() => {
-        pool.disconnect();
-    })
 </script>
 
 <div class="dropdown">

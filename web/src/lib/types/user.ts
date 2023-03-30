@@ -1,5 +1,3 @@
-import type { IEntity } from "$lib/types/base";
-
 export interface IAccount {
     nym: string | null;
     displayName: string | null;

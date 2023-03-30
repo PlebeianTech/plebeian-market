@@ -1,14 +1,17 @@
 <script lang="ts">
+    import { onDestroy, onMount, afterUpdate } from 'svelte';
+    import { type Event, generatePrivateKey, Kind } from 'nostr-tools';
+    import type { VitaminedMessage } from "$lib/components/nostr/types";
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
-    import {onDestroy, onMount, beforeUpdate, afterUpdate} from "svelte";
-    import {token, user, Error} from "$lib/stores";
-    import {Event, Sub, Filter, generatePrivateKey, Kind} from "nostr-tools";
-    import {Pool} from "$lib/nostr/pool";
-    import {hasExtension, queryNip05, filterTags, getMessage, localStorageNostrPreferPMId} from '$lib/nostr/utils';
-    import {ErrorHandler, putProfile} from "$lib/services/api";
-    import {requestLoginModal} from "$lib/utils";
+    import { hasExtension, queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
+    import { ErrorHandler, putProfile } from "$lib/services/api";
+    import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
+    import { token, user, NostrPool, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
+    import { requestLoginModal } from "$lib/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+
+    const USE_MEDIA_CACHE = true;
 
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
@@ -20,30 +23,30 @@
     let nostrPreferenceCheckboxChecked;
     let textarea;
     let nostrExtensionEnabled: boolean;
-    let messages = [];
-    let sortedMessages = [];
+    let messages: VitaminedMessage[] = [];
+    let sortedMessages: VitaminedMessage[] = [];
     let autoscroll: Boolean = true;
     let ignoreNextScrollEvent = false;
+
+    function getMessage(messages: VitaminedMessage[], messageId) {
+        for (const message of messages) {
+            if (message.id === messageId) {
+                return message;
+            }
+        }
+    }
 
     const nostrQueriesBatchSize = 100;
     const nostrOrderMessagesDelay = 1500;
     const nostrBackgroundJobsDelay = 3000;
-    const nostrMediaCacheEnabled = false;
 
-    let orderMessagesTimer = null;
-    let backgroundJobsTimer = null;
-
-    type UserProfile = {
-        name: string;
-        about: string;
-        picture: string;
-        nip05: string;
-    };
+    let orderMessagesTimer: ReturnType<typeof setTimeout> | null = null;
+    let backgroundJobsTimer: ReturnType<typeof setTimeout> | null = null;
 
     // null: to be requested
     // true: requested
     // UserProfile: the user profile
-    let profileImagesMap = new Map<string, null | true | UserProfile>();
+    let profileImagesMap = new Map<string, null | true | UserMetadata>();
 
     // null: to be requested
     // true: requested
@@ -55,9 +58,9 @@
     // true: requested
     let notesMap = new Map();
 
-    export let onImgError = (image, message) => {
-        image.onerror = "";
-        image.src = profilePicturePlaceHolder;
+    export let onImgError = (imgElement, message) => {
+        imgElement.onerror = "";
+        imgElement.src = profilePicturePlaceHolder;
 
         // If the image is broken, let's put the placeholder image
         // in the profile so the next re-draws of the note does not
@@ -68,40 +71,21 @@
         }
     }
 
-    const pool: Pool = new Pool();
-
     function orderAndVitamineMessages() {
-        let lastMessagePublicKey = null
+        let lastMessagePublicKey: string | null = null
 
         sortedMessages = messages
-            .sort((a, b) => {
-                return a.created_at >= b.created_at
-                    ? 1
-                    : -1
-            })
+            .sort((a, b) => a.created_at >= b.created_at ? 1 : -1)
             .map(function(message) {
                 if (lastMessagePublicKey === message.pubkey) {
-                    message.samePubKey = true
+                    message.samePubKey = true;
                 }
 
-                const profileInfo: null | true | UserProfile = profileImagesMap.get(message.pubkey)
+                const profileInfo: null | true | UserMetadata = profileImagesMap.get(message.pubkey) || null;
 
-                // Profile info / nip-05 verification
                 if (profileInfo !== null && profileInfo !== true) {
-                    if (profileInfo.picture) {
-                        if (nostrMediaCacheEnabled) {
-                            message.profileImage = 'https://media.nostr.band/thumbs/' + message.pubkey.slice(-4) + '/' + message.pubkey + '-picture-64';
-                        } else {
-                            message.profileImage = profileInfo.picture
-                        }
-                    }
-
-                    if (profileInfo.name) {
-                        message.profileName = profileInfo.name
-                    }
-
-                    if (profileInfo.about) {
-                        message.profileAbout = profileInfo.about
+                    if (profileInfo.picture && USE_MEDIA_CACHE) {
+                        profileInfo.picture = `https://media.nostr.band/thumbs/${message.pubkey.slice(-4)}/${message.pubkey}-picture-64`;
                     }
 
                     if (profileInfo.nip05) {
@@ -114,13 +98,15 @@
                                 let nip05Address = profileInfo.nip05;
 
                                 if (nip05Address.startsWith('_@')) {
-                                    message.nip05 = nip05Address.substring(2);
+                                    message.nip05VerifiedAddress = nip05Address.substring(2);
                                 } else {
-                                    message.nip05 = nip05Address;
+                                    message.nip05VerifiedAddress = nip05Address;
                                 }
                             }
                         }
                     }
+
+                    message.profile = profileInfo;
                 }
 
                 // Tags for message type
@@ -156,24 +142,10 @@
                     message.imagePreviewUrl = url;
                 }
 
-
                 lastMessagePublicKey = message.pubkey;
 
                 return message;
             });
-    }
-
-    function addMessageIfDoesntExist(newMessage: Event) {
-        for (const message of messages) {
-            if (message.id === newMessage.id) {
-                return;
-            }
-        }
-
-        messages.push(newMessage);
-
-        saveProfilePubkey(newMessage.pubkey);
-        saveNoteId(newMessage.id);
     }
 
     function saveProfilePubkey(pubKey) {
@@ -189,7 +161,7 @@
     }
 
     function queryProfilesToNostrRelaysInBatches() {
-        let profilesToGetLocal = [];
+        let profilesToGetLocal: string[] = [];
 
         let i = 0;
 
@@ -205,32 +177,15 @@
             }
         }
 
-        if (profilesToGetLocal.length === 0) {
-            return;
+        if (profilesToGetLocal.length !== 0) {
+            subscribeMetadata($NostrPool, profilesToGetLocal, (pk, m) => { profileImagesMap[pk] = m; });
         }
-
-        pool.relays.forEach(relay => {
-            const sub: Sub = relay.sub([{
-                kinds: [Kind.Metadata],
-                authors: profilesToGetLocal
-            }]);
-            sub.on('event', event => {
-                const profileContentJSON = event.content;
-                const pubKey = event.pubkey;
-
-                if (profileContentJSON) {
-                    profileImagesMap.set(pubKey, JSON.parse(profileContentJSON));
-                }
-            });
-
-            pool.subscriptions.push(sub);
-        })
     }
 
     function queryNoteInformationInBatches() {
         let noteInfoToGetLocal: string[] = [];
 
-        let i=0;
+        let i = 0;
 
         for (const [key, note] of notesMap) {
             if (note === null) {
@@ -248,55 +203,32 @@
             return;
         }
 
-        pool.relays.forEach(relay => {
-            let filter: Filter = {
-                kinds: [
-                    Kind.Text,
-                    Kind.Reaction
-                ],
-                '#e': noteInfoToGetLocal
-            };
-
-            const sub: Sub = relay.sub([filter]);
-
-            sub.on('event', event => {
-                const kind = event.kind;
-
-                // TODO: REPLIES AND LIKES
-
-                if (kind === Kind.Reaction) {
-                    const id = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
+        subscribeReactions($NostrPool, noteInfoToGetLocal,
+            (event) => {
+                if (event.kind === Kind.Reaction) {
+                    const likedEventId = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
+                    if (!likedEventId) {
+                        return;
+                    }
                     const eventReaction: string = event.content;
                     const eventPubkey: string = event.pubkey;
 
-                    if (!id) {
-                        console.error('EVENT WITHOUT ID !!!');
-                        return;
-                    }
-
-                    for (let message of messages) {
-                        if (message.id === id) {
-                            let reactions: Map<string, Set<string>> | undefined = message.reactions;
-                            if (reactions === undefined) {
-                                reactions = new Map();
-                                message.reactions = reactions;
+                    for (const message of messages) {
+                        if (message.id === likedEventId) {
+                            if (message.reactions === undefined) {
+                                message.reactions = new Map();
                             }
 
-                            let reaction: Set<string> = reactions.get(eventReaction);
-                            if (reaction === undefined) {
-                                reaction = new Set();
-                                reactions.set(eventReaction, reaction);
+                            if (message.reactions.get(eventReaction) === undefined) {
+                                message.reactions[eventReaction] = new Set();
                             }
-                            reaction.add(eventPubkey);
+                            message.reactions[eventReaction].add(eventPubkey);
 
                             break;
                         }
                     }
                 }
             });
-
-            pool.subscriptions.push(sub);
-        })
     }
 
     function queryNip05ServersForVerification() {
@@ -333,7 +265,11 @@
             localStorage.setItem(localStorageNostrPreferPMId, '1');
         }
 
-        await pool.setPoolPublicKey();
+        if (await setPublicKey($user)) {
+            InfoStore.set(`Using the Nostr key from ${$NostrPublicKey.source}`);
+        } else {
+            ErrorStore.set("Error getting the Nostr public key.");
+        }
     }
 
     function processMessagesPeriodically() {
@@ -348,27 +284,24 @@
         backgroundJobsTimer = setTimeout(doBackgroundJobsPeriodically, nostrBackgroundJobsDelay);
     }
 
-    $: if (nostrExtensionEnabled || ($token && $user)) {
-        pool.writeEnabled = true;
-    }
-
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
-        await pool.setPoolPublicKey();
-
         updateBrowserExtensionCheckbox();
 
-        if (nostrRoomId !== null) {
-            pool.connectAndSubscribeToChannel({
-                nostrRoomId,
-                messageLimit,
-                messagesSince,
-                'callbackFunction': addMessageIfDoesntExist
+        subscribeChannel($NostrPool, nostrRoomId, messageLimit, messagesSince,
+            (newMessage) => {
+                for (const message of messages) {
+                    if (message.id === newMessage.id) {
+                        return;
+                    }
+                }
+
+                messages.push(newMessage);
+
+                saveProfilePubkey(newMessage.pubkey);
+                saveNoteId(newMessage.id);
             });
-        } else {
-            console.error('Chat.svelte:onMount - We must have the nostrRoomId at this point');
-        }
 
         processMessagesPeriodically();
         doBackgroundJobsPeriodically();
@@ -398,38 +331,38 @@
                     new ErrorHandler(true)
                 );
             }
-
-            pool.user = $user;
         }
     );
 
     onDestroy(async () => {
         userUnsubscribe();
-        await pool.unsubscribeEverything();
-        await pool.disconnect();
-
-        clearTimeout(orderMessagesTimer);
-        clearTimeout(backgroundJobsTimer);
+        if (orderMessagesTimer !== null) {
+            clearTimeout(orderMessagesTimer);
+        }
+        if (backgroundJobsTimer !== null) {
+            clearTimeout(backgroundJobsTimer);
+        }
     })
 
     const onKeyPress = e => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            send();
         }
     }
 
-    const sendMessage = async () => {
+    async function send() {
         const content = textarea.value.trim();
 
-        if (!pool.writeEnabled) {
-            Error.set('You need to either use a Nostr extension for your browser or register into Plebeian Market so we can provide one for you');
+        if ($NostrPublicKey.key === null) {
+            ErrorStore.set("You need to either use a Nostr browser extension or register to Plebeian Market so we can provide a key for you.");
         } else if (content) {
-            if (await pool.sendMessage(null, content, nostrRoomId, nostrEventBeingRepliedTo)) {
-                nostrEventBeingRepliedTo = null;
-                textarea.value = '';
-                scrollToBottom();
-            }
+            sendMessage($NostrPool, content, nostrRoomId, nostrEventBeingRepliedTo,
+                () => {
+                    nostrEventBeingRepliedTo = null;
+                    textarea.value = '';
+                    scrollToBottom();
+                });
         }
     }
 
@@ -442,16 +375,20 @@
             // One div is for mobile scrolling. The other one is for desktop.
             // We need to scroll down both divs for now.
             const chatScrollableDiv = document.getElementById("chatScrollableDiv");
-            chatScrollableDiv.scrollTop = chatScrollableDiv.scrollHeight;
+            if (chatScrollableDiv !== null) {
+                chatScrollableDiv.scrollTop = chatScrollableDiv.scrollHeight;
+            }
 
             const stallChatContainerDiv = document.getElementById("stallChatContainerDiv");
-            stallChatContainerDiv.scrollTop = stallChatContainerDiv.scrollHeight;
+            if (stallChatContainerDiv !== null) {
+                stallChatContainerDiv.scrollTop = stallChatContainerDiv.scrollHeight;
+            }
         }
     }
 
     afterUpdate(() => {
         if (autoscroll) {
-            scrollToBottom()
+            scrollToBottom();
         }
     })
 </script>
@@ -485,7 +422,7 @@
             <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
                 <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
                 <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
-                <a class="font-bold text-center cursor-pointer" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</a>
+                <a href={null} class="font-bold text-center cursor-pointer" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</a>
                 into Plebeian Market to be able to publish messages.
             </small>
         {/if}
@@ -506,7 +443,7 @@
      style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);" id="chatScrollableDiv">
     <div>
         {#each sortedMessages as message}
-            <NostrNote {pool} {message} {onReply} {onImgError}></NostrNote>
+            <NostrNote {message} {onReply} {onImgError} />
         {/each}
     </div>
 </div>
@@ -514,7 +451,7 @@
 <div class="grid grid-cols-2 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto w-screen lg:w-2/3" class:fixed={fixedChatBox}>
     {#if nostrEventBeingRepliedTo !== null}
         <div class="col-span-2">
-            <NostrReplyNote message={nostrEventBeingRepliedTo} closeButton={true} {onReply}></NostrReplyNote>
+            <NostrReplyNote message={nostrEventBeingRepliedTo} closeButton={true} {onReply} />
         </div>
     {/if}
 
@@ -528,7 +465,7 @@
             on:keypress={onKeyPress}
             class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
-        <div on:click={sendMessage}
+        <div on:click={send} on:keypress={onKeyPress}
              class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />

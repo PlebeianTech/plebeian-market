@@ -19,9 +19,9 @@
     import {requestLoginModal} from "../utils";
     import NostrChat from "$lib/components/nostr/Chat.svelte";
     import { getChannelIdForStallOwner } from '$lib/nostr/utils'
-    // import CampaignStats from './CampaignStats.svelte';
     import Avatar, {AvatarSize} from './Avatar.svelte';
     import ExternalLinks from './externalLinks.svelte';
+    import Spaceship from "$lib/images/spaceship.jpg";
 
     export let baseUrl: string;
 
@@ -52,7 +52,7 @@
     let auctionsLists: { [key: string]: ListView } = {};
     let listingsLists: { [key: string]: ListView } = {};
 
-    let nostrRoomId: string = null;
+    let nostrRoomId: string | null = null;
     if (owner) {
         nostrRoomId = getChannelIdForStallOwner(owner);
     }
@@ -141,7 +141,7 @@
 
 {#if isCampaignStall}
   <!-- HERO SECTION STATIC CONTENT -->
-  <div id="bgHero" class="bg-fixed">
+  <div class="bg-fixed bg-no-repeat bg-cover bg-bottom" style="background-image: url('{Spaceship}')">
     <!-- FILTER -->
     <div class="bg-gradient-to-b from-pink-700/90 to-pink-500/40">
       <!-- HERO -->
@@ -165,7 +165,7 @@
         </div>
 
         <div class="grid place-items-center">
-          <img src={Faketoshi} alt="hero-image">
+          <img src={Faketoshi} alt="Faketoshi being kicked">
         </div>
         </div>
     </div>
@@ -236,19 +236,10 @@
   </div>
   <!-- BG IMAGE -->
   <div id="stallHeroImageHeight" class="lg:h-1/2 h-screen w-full inline-block relative after:pt-[33.33%] after:block after:content-['']">
-        <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover opacity-20" style="background-image: url({bannerUrl});" alt="twitter banner"></div>
+        <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover opacity-20" style="background-image: url('{bannerUrl}')"></div>
     </div>
 </div>
 {/if}
-
-<style>
-  #bgHero {
-    background-image: url('$lib/images/spaceship.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: bottom;
-  }
-</style>
 
 {#if isCampaignStall}
     <div class="md:w-2/3 items-center mx-auto mt-20">
@@ -406,10 +397,11 @@
         <div class="lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden my-2 grid place-items-top top-20 lg:px-0 px-2" id="stallChatContainerDiv">
             <h3 class="text-2xl lg:text-4xl fontbold mt-0 lg:mt-8 mb-2">Stall Chat</h3>
 
-            <NostrChat
-                messageLimit={500}
-                {nostrRoomId}
-            />
+            {#if nostrRoomId !== null}
+                <NostrChat
+                    messageLimit={500}
+                    {nostrRoomId} />
+            {/if}
         </div>
     {/if}
 </div>

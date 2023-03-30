@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { SimplePool } from 'nostr-tools';
-    import { publishResume, subscribeResume, closePool } from "$lib/services/nostr";
-    import { Info, Error } from "$lib/stores";
+    import { onMount } from 'svelte';
+    import { publishResume, subscribeResume } from "$lib/services/nostr";
+    import { Info, Error, NostrPool } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$lib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";
@@ -16,7 +15,7 @@
     export let resume: UserResume;
     export let onEditFinished: () => void = () => {};
 
-    let pool = new SimplePool();
+    $: window_nostr = (window as any).nostr;
 
     let timeoutPublishResume = 20000;
     let resumeNotPublishedTimer: ReturnType<typeof setTimeout> | null = null;
@@ -97,7 +96,7 @@
             timeoutPublishResume
         );
 
-        await publishResume(pool, resume,
+        await publishResume($NostrPool, resume,
             () => {
                 if (!notified) {
                     if (resumeNotPublishedTimer) {
@@ -119,15 +118,11 @@
     }
 
     onMount(async () => {
-        subscribeResume(pool, pubkey, (_, __) => {});
-    });
-
-    onDestroy(async () => {
-        await closePool(pool);
+        subscribeResume($NostrPool, pubkey, (_, __) => {});
     });
 </script>
 
-{#if !window.nostr}
+{#if !window_nostr}
     <div class="alert alert-error shadow-lg">
         <div>
             <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -180,7 +175,7 @@
                     {#each resume.skills as skill, i}
                         <div class="mt-3">
                             <div class="badge badge-primary badge-lg align-top">{skill.skill}</div>
-                            <div class="btn btn-circle btn-xs btn-error ml-1" on:click={() => removeSkill(i)}><X /></div>
+                            <div class="btn btn-circle btn-xs btn-error ml-1" on:click={() => removeSkill(i)} on:keypress={() => removeSkill(i)}><X /></div>
                         </div>
                     {/each}
                     <div class="flex justify-center items-center mt-6 gap-4">

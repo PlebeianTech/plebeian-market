@@ -12,6 +12,5 @@
       columns={["Date", "Buyer", "Item", "Sats / Fiat", "Received sats ($ shipping)", "State"]}
       card={SaleRow}
       editor={null}
-      extraClasses="w-11/12 mt-4"
       style={ListViewStyle.Table} />
 </div>
