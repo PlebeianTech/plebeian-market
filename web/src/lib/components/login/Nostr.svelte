@@ -21,7 +21,7 @@
     let verificationPhrase: string | null = null;
 
     async function getKeyFromExtension() {
-        let pubkey = await window.nostr.getPublicKey();
+        let pubkey = await (window as any).nostr.getPublicKey();
         npub = encodeNpub(pubkey);
     }
 

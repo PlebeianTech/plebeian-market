@@ -55,7 +55,7 @@ export class TimeListing extends Listing {
     }
 }
 
-export function fromJson(json: any): IEntity {
+export function fromJson(json: any): Listing {
     var l = new Listing();
     for (var k in json) {
         if (k === 'start_date') {

@@ -23,7 +23,7 @@
 
     export let loader: ILoader;
     export let itemKey = null;
-    export let serverLoadedItem: Listing;
+    export let serverLoadedItem: Auction | Listing;
 
     let bidButton: BidButton;
 
@@ -34,7 +34,7 @@
     let amount: number | null = null;
     let firstUpdate = true;
 
-    let tweetURL = null;
+    let tweetURL: string | null = null;
 
     function refreshItem() {
         getItem(loader, $token, itemKey,
@@ -346,9 +346,7 @@
                                         Now let your audience know!
                                         &nbsp;
                                         <TweetButton tweetURL={tweetURL} />
-                                        {#if ! isProduction() }
-                                            <NostrButton pmURL={window.location.href} />
-                                        {/if}
+                                        <NostrButton pmURL={window.location.href} />
                                     </div>
                                 {/if}
                             {/if}
@@ -360,7 +358,7 @@
                             {/if}
 
                             <div class="w-full my-8 grid place-items-center">
-                                <p class="btn btn-primary font-bold text-center" on:click={requestLoginModal} on:keypress={requestLoginModal}>Login</p>
+                                <p class="btn btn-primary font-bold text-center" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</p>
                             </div>
                         {/if}
                     {:else} <!-- item.ended -->

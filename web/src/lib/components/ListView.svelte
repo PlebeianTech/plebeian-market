@@ -20,7 +20,6 @@
     export let showItemsCampaign = false;
     export let postEndpoint: string | null = null;
     export let style: ListViewStyle;
-    // export let extraClasses: string = "w-11/12 lg:w-2/3";
 
     export let columns: string[] = [];
 

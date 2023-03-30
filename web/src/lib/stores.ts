@@ -1,5 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
-import type { User } from "./types/user";
+import { SimplePool } from 'nostr-tools';
+import type { User } from "$lib/types/user";
 
 export const token: Writable<string | null> = writable(null);
 
@@ -19,3 +20,11 @@ export const loginModalState: Writable<{
     openRequested: false,
     callbackFunc: () => {}
 });
+
+export const NostrPool: Writable<SimplePool> = writable(new SimplePool());
+
+export enum NostrKeySource {
+    PlebeianMarketUser = "your Plebeian Market account",
+    Extension = "your browser extension",
+}
+export const NostrPublicKey: Writable<{source: NostrKeySource, key: string | null}> = writable({source: NostrKeySource.PlebeianMarketUser, key: null});

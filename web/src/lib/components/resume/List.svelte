@@ -1,22 +1,20 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { SimplePool } from 'nostr-tools';
     import { encodeNpub } from "$lib/nostr/utils";
+    import { NostrPool } from "$lib/stores";
     import type { UserResume } from "$lib/types/user";
-    import { subscribeResumes, subscribeMetadata, closePool } from "$lib/services/nostr";
+    import { subscribeResumes, subscribeMetadata, type UserMetadata } from "$lib/services/nostr";
     import Loading from "$lib/components/Loading.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     const QUERY_BATCH_SIZE = 100;
     const CHECK_METADATA_DELAY = 1000;
 
-    let pool = new SimplePool();
-
     let checkMetadataTimer: ReturnType<typeof setTimeout> | null = null;
 
     let resumes: {[pubkey: string]: {resume: UserResume, createdAt: number}} = {};
     let metadataRequested: string[] = [];
-    let metadata: {[pubkey: string]: {name: string, picture: string}} = {};
+    let metadata: {[pubkey: string]: UserMetadata} = {};
 
     let skills: {[skill: string]: number} = {};
     function addSkills(resume: UserResume, increment: -1 | 1) {
@@ -49,10 +47,10 @@
 
         if (pubkeysToQuery.length !== 0) {
             metadataRequested = [...metadataRequested, ...pubkeysToQuery];
-            subscribeMetadata(pool, pubkeysToQuery,
+            subscribeMetadata($NostrPool, pubkeysToQuery,
                 (pk, m) => {
                     if (!(pk in metadata)) {
-                        metadata[pk] = {name: m.name, picture: m.picture};
+                        metadata[pk] = m;
                     } else {
                         if (m.name !== undefined) {
                             metadata[pk].name = m.name;
@@ -68,7 +66,7 @@
     }
 
     onMount(async () => {
-        subscribeResumes(pool,
+        subscribeResumes($NostrPool,
             (pk, r, rcAt) => {
                 if (pk === "ec79b568bdea63ca6091f5b84b0c639c10a0919e175fa09a4de3154f82906f25") { // CM
                     return;
@@ -93,7 +91,6 @@
         if (checkMetadataTimer) {
             clearTimeout(checkMetadataTimer);
         }
-        await closePool(pool);
     })
 </script>
 

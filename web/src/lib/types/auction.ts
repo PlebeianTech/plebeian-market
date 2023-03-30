@@ -132,7 +132,7 @@ export class TimeAuction extends Auction {
     }
 }
 
-export function fromJson(json: any): IEntity {
+export function fromJson(json: any): Auction {
     var a = new Auction();
     for (var k in json) {
         if (k === 'start_date') {

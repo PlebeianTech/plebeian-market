@@ -58,7 +58,7 @@
 
             loadResume();
 
-            userPubKey = await window.nostr.getPublicKey();
+            userPubKey = await (window as any).nostr.getPublicKey();
         }
     );
 
