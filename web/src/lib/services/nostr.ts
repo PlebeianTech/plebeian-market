@@ -1,4 +1,4 @@
-import { getEventHash, Kind, SimplePool, type Event } from 'nostr-tools';
+import { getEventHash, Kind, SimplePool, type Event, type Sub } from 'nostr-tools';
 import { UserResume } from "$lib/types/user";
 import { relayUrlList, getBestRelay, filterTags, findMarkerInTags } from "$lib/nostr/utils";
 
@@ -10,6 +10,8 @@ export type UserMetadata = {
 };
 
 const EVENT_KIND_RESUME = 66;
+const EVENT_KIND_STALL = 30017;
+const EVENT_KIND_PRODUCT = 30018;
 
 async function createEvent(kind: number, content: any, tags: any = []) {
     let event: any = {
@@ -107,4 +109,31 @@ export async function sendReaction(pool: SimplePool, noteId: string, notePubkey:
     const event = await createEvent(Kind.Reaction, reaction, [['e', noteId], ['p', notePubkey]]);
 
     pool.publish(relayUrlList, event).on('ok', successCB);
+}
+
+// nip-45
+
+export function getStalls(pool: SimplePool, merchant_pubkey: string, receivedCB: (e) => void) {
+    let filter: Filter = { kinds: [EVENT_KIND_STALL] };
+
+    if (merchant_pubkey) {
+        filter.authors = [merchant_pubkey];
+    }
+
+    let sub: Sub = pool.sub(relayUrlList, [filter]);
+    sub.on('event',  e => receivedCB(e));
+    sub.on('eose', () => {
+        sub.unsub()
+    })
+}
+
+export function subscribeProducts(pool: SimplePool, merchant_pubkey: string, receivedCB: (e) => void) {
+    let sub: Sub = pool.sub(relayUrlList, [{
+        kinds: [EVENT_KIND_PRODUCT],
+        authors: [merchant_pubkey]
+    }]);
+    sub.on('event',  e => {receivedCB(e);});
+    sub.on('eose', () => {
+        sub.unsub()
+    })
 }

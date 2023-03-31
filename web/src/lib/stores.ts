@@ -28,3 +28,5 @@ export enum NostrKeySource {
     Extension = "your browser extension",
 }
 export const NostrPublicKey: Writable<{source: NostrKeySource, key: string | null}> = writable({source: NostrKeySource.PlebeianMarketUser, key: null});
+
+export const shoppingCart: Writable<null> = writable(null);

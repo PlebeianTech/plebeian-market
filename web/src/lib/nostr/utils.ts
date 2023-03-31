@@ -118,6 +118,18 @@ export function findMarkerInTags(tags, tagType, marker) {
     return found;
 }
 
+export function getFirstTagValue(tags, tagType) {
+    let tagValue = null;
+
+    tags.forEach(tag => {
+        if (tagValue === null && tag[0] === tagType) {
+            tagValue = tag[1];
+        }
+    })
+
+    return tagValue;
+}
+
 export function getEventReplyingTo(event) {
     if (event.kind !== 1) {
         return undefined;

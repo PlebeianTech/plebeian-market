@@ -11,6 +11,7 @@
     import Modal from "$lib/components/Modal.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
+    import {shoppingCart} from "$lib/stores.js";
 
     let modal: Modal | null;
     let modalVisible = false;
@@ -202,6 +203,9 @@
 
                 <div class="lg:flex hidden">
                     <p>
+                        <a href="/store_browser" class="btn btn-ghost normal-case">Store Browser</a>
+                    </p>
+                    <p>
                         <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
                     </p>
                     <p>
@@ -237,6 +241,26 @@
                         <!-- moon icon -->
                         <svg class="swap-on fill-current w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" /></svg>
                     </label>
+                </div>
+
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0" class="btn btn-ghost btn-circle">
+                        <div class="indicator">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                            </svg>
+                            <span class="badge badge-sm indicator-item">{$shoppingCart ? $shoppingCart.size : 0}</span>
+                        </div>
+                    </label>
+                    <div tabindex="0" class="mt-3 card card-compact dropdown-content w-52 bg-base-100 shadow">
+                        <div class="card-body">
+                            <span class="font-bold text-lg">8 Items</span>
+                            <span class="text-info">Subtotal: $999</span>
+                            <div class="card-actions">
+                                <button class="btn btn-primary btn-block">View cart</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
