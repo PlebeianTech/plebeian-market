@@ -1,9 +1,72 @@
 <script lang="ts">
-    import {user} from "$lib/stores";
-    import {getPublicKey} from "nostr-tools";
-    import {hasExtension} from "$lib/nostr/utils";
+    import { onMount } from 'svelte';
+    import { hasExtension, encodeNpub } from "$lib/nostr/utils";
+    import { ErrorHandler, putProfile, putVerify } from "$lib/services/api";
+    import { user, token, Info } from "$lib/stores";
+    import { ExternalAccountProvider } from "$lib/types/user";
+    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
-    let nostr_public_key = getPublicKey($user.nostr_private_key);
+    export let onSave: () => void = () => {};
+
+    let nostrPublicKey: string = "";
+    let nostrPublicKeyVerified: boolean = false;
+
+    $: isValidInput = nostrPublicKey !== null && nostrPublicKey !== "";
+    $: saveButtonActive = $user && isValidInput && !inRequest && nostrPublicKey !== $user.nostrPublicKey;
+
+    let inRequest = false;
+
+    async function getKeyFromExtension() {
+        let pubkey = await (window as any).nostr.getPublicKey();
+        nostrPublicKey = encodeNpub(pubkey);
+    }
+
+    function save() {
+        if (nostrPublicKey === null) {
+            return;
+        }
+        inRequest = true;
+        putProfile($token, {nostrPublicKey},
+            u => {
+                user.set(u);
+                Info.set("Your Nostr public key has been saved!");
+                inRequest = false;
+                onSave();
+            },
+            new ErrorHandler(true, () => inRequest = false));
+    }
+
+    let phrase: string = "";
+
+    function verify() {
+        inRequest = true;
+        putVerify($token, ExternalAccountProvider.Nostr, false, phrase,
+            () => {
+                user.update(u => { if (u) { u.nostrPublicKeyVerified = true; } return u; });
+                Info.set("Your Nostr key has been verified!");
+                inRequest = false;
+                onSave();
+            },
+            new ErrorHandler(true, () => inRequest = false));
+    }
+
+    function resend() {
+        inRequest = true;
+        putVerify($token, ExternalAccountProvider.Nostr, true, undefined,
+            () => {
+                user.update(u => { if (u) { u.nostrVerificationPhraseSentAt = new Date(); } return u; });
+                Info.set("Check your Nostr DM!");
+                inRequest = false;
+            },
+            new ErrorHandler(true, () => inRequest = false));
+    }
+
+    onMount(async () => {
+        if ($user) {
+            nostrPublicKey = $user.nostrPublicKey || "";
+            nostrPublicKeyVerified = $user.nostrPublicKeyVerified;
+        }
+    });
 </script>
 
 <div class="text-2xl breadcrumbs">
@@ -13,60 +76,70 @@
     </ul>
 </div>
 
-<div class="mt-8">
-    {#if hasExtension()}
-        <div class="alert alert-success shadow-lg">
+{#if $user}
+    {#if $user.nostrPublicKey && $user.nostrPublicKeyVerified && $user.nostrPublicKey === nostrPublicKey}
+        <div class="w-full flex items-center justify-center mt-8">
             <div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>We have detected that you have a Nostr extension in your browser, so you'll be able to use your
-                own identity in the entire Plebeian Market.</span>
+                <div class="text-2xl">Your verified Nostr public key is:</div>
+                <div class="flex justify-center items-center gap-4">
+                    <pre class="my-8 text-lg bg-base-300 text-center">{$user.nostrPublicKey}</pre>
+                    <button class="btn btn-secondary" on:click={() => nostrPublicKey = ""}>Change</button>
+                </div>
+                <div>You can use any Nostr client that supports encrypted direct messages (NIP-04) to log in to the Plebeian Market backend.</div>
             </div>
         </div>
-
     {:else}
-        <div class="alert alert-warning shadow-lg">
-            <div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                <span>You don't have a Nostr extension</span>
+        <div class="w-full flex items-center justify-center mt-8">
+            <div class="form-control w-full max-w-lg">
+                <input bind:value={nostrPublicKey} id="nostr-public-key" name="nostr-public-key" type="text" class="bg-transparent z-10 ml-1.5 input input-bordered input-md w-full" />
             </div>
         </div>
-
-        <div class="mt-4 text-justify">
-            <p>You're using your Plebeian Market generated Nostr identity. We created this for you as we detected
-                that you're not using a Nostr browser extension. This is not a problem and you can continue using
-                Plebeian Market this way, but it's highly recommended that you install a Nostr browser extension
-                and create your own Nostr identity so nobody else has access to your private key.</p>
-
-            <p class="mt-3 text-justify">You can use any of this browser extensions:
-                <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a>,
-                <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a> or
-                <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>.
-            </p>
-
-            <p class="mt-3 text-justify">In the meantime, this is your Nostr public key:</p>
+        <div class="w-full flex items-center justify-center mt-4 gap-5">
+            {#if hasExtension()}
+                <button class="btn" class:btn-primary={nostrPublicKey === null} class:btn-secondary={nostrPublicKey !== null} on:click={getKeyFromExtension}>Get from extension</button>
+            {/if}
         </div>
 
-        <div class="w-full flex items-center justify-center mt-4">
-            <div class="form-control w-full">
-                <input bind:value={nostr_public_key} type="text" id="nostr_public_key" name="nostr_public_key" class="input input-lg input-bordered" />
-            </div>
+        <div class="flex justify-center items-center mt-4 h-15">
+            {#if saveButtonActive}
+                <button id="save-profile" class="btn btn-primary" on:click|preventDefault={save}>Save</button>
+            {:else}
+                <button class="btn" disabled>Save</button>
+            {/if}
         </div>
     {/if}
-</div>
-
-<div class="mt-8">
-    <p>Plebeian Market uses <b>Nostr</b> to support the following functionalities:</p>
-    <ul class="list-disc list-inside">
-        <li class="mt-3">Powering the Market Square and the Stall chat</li>
-    </ul>
-
-    <p class="mt-10">Features <i>coming soon</i>:</p>
-    <ul class="list-disc list-inside">
-        <li class="mt-3">Login with Nostr</li>
-        <li>Publish your Résumé to Nostr</li>
-        <li>Publish your Products to Nostr</li>
-        <li>Publish your Auctions to Nostr</li>
-        <li>Private decentralized communications between market members</li>
-        <li>Synchronize with other stores through Nostr</li>
-    </ul>
-</div>
+    {#if $user.nostrPublicKey && !$user.nostrPublicKeyVerified}
+        <div class="mt-4">
+            {#if $user && !$user.nostrVerificationPhraseSentAt}
+                <InfoBox>
+                    <span>We will send the verification phrase over encrypted DM.</span>
+                </InfoBox>
+                <div class="w-full flex items-center justify-center mt-4">
+                    <div class="form-control w-full max-w-lg">
+                        <button class="btn btn-primary" on:click={resend} disabled={inRequest}>Send</button>
+                    </div>
+                </div>
+            {:else}
+                <InfoBox>
+                    <span>Please enter the three BIP-39 words we sent to you over Nostr DM.</span>
+                </InfoBox>
+                <div class="w-full flex items-center justify-center mt-4">
+                    <div class="form-control w-full max-w-full">
+                        <label class="label" for="title">
+                            <span class="label-text">Verification phrase</span>
+                        </label>
+                        <input bind:value={phrase} type="text" name="phrase" class="input input-lg input-bordered" />
+                    </div>
+                </div>
+                <div class="flex justify-center items-center mt-4 h-24 gap-5">
+                    {#if !inRequest}
+                        <button id="verify-nostr" class="btn btn-primary" on:click|preventDefault={verify}>Verify</button>
+                    {:else}
+                        <button class="btn" disabled>Verify</button>
+                    {/if}
+                    <button class="btn" on:click={resend} disabled={inRequest}>Resend</button>
+                </div>
+            {/if}
+        </div>
+    {/if}
+{/if}

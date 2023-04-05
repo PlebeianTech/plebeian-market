@@ -32,7 +32,7 @@ def healthcheck(): # TODO: I don't really like this, for some reason, but it is 
 @api_blueprint.route('/api/login', methods=['GET'], defaults={'deprecated': True, 'create_user': True}) # deprecated, but still used by the WP plugin
 @api_blueprint.route('/api/login/lnurl', methods=['GET'], defaults={'deprecated': False, 'create_user': False})
 @api_blueprint.route('/api/signup/lnurl', methods=['GET'], defaults={'deprecated': False, 'create_user': True})
-def login_lnurl(deprecated, create_user):
+def auth_lnurl(deprecated, create_user):
     if deprecated:
         return redirect(f"{app.config['BASE_URL']}/api/login/lnurl", code=301)
 
@@ -109,22 +109,25 @@ def login_lnurl(deprecated, create_user):
 
 @api_blueprint.route('/api/login/nostr', methods=['PUT'], defaults={'create_user': False})
 @api_blueprint.route('/api/signup/nostr', methods=['PUT'], defaults={'create_user': True})
-def login_nostr(create_user):
+def auth_nostr(create_user):
     if 'npub' not in request.json:
         return jsonify({'message': "Missing npub."}), 400
 
     auth = m.NostrAuth.query.filter_by(key=request.json['npub']).first()
 
+    nostr = get_nostr()
+
     if request.json.get('send_verification_phrase'):
         if auth:
-            if auth.verification_phrase_sent_at and auth.verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
-                return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
+            if app.config['ENV'] != 'test':
+                if auth.verification_phrase_sent_at and auth.verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
+                    return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
         else:
             auth = m.NostrAuth(key=request.json['npub'])
             db.session.add(auth)
 
         auth.generate_verification_phrase()
-        get_nostr().send_dm(user_npub=auth.key, body=auth.verification_phrase)
+        nostr.send_dm(user_npub=auth.key, body=auth.verification_phrase)
         auth.verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
 
@@ -142,8 +145,8 @@ def login_nostr(create_user):
 
     clean_phrase = ' '.join([w for w in request.json['verification_phrase'].lower().split(' ') if w])
 
-    if auth.verification_phrase == clean_phrase:
-        user = m.User.query.filter_by(nostr_public_key=auth.key).first()
+    if nostr.get_auth_verification_phrase(auth) == clean_phrase:
+        user = m.User.query.filter_by(nostr_public_key=auth.key, nostr_public_key_verified=True).first()
 
         if not user:
             if create_user:
@@ -156,7 +159,7 @@ def login_nostr(create_user):
                 return jsonify({'message': "User with this key already exists. Please log in."}), 409
 
         if not user:
-            user = m.User(nostr_public_key=auth.key)
+            user = m.User(nostr_public_key=auth.key, nostr_public_key_verified=True)
             db.session.add(user)
 
         db.session.delete(auth)
@@ -246,7 +249,7 @@ def put_me(user):
 
             user.twitter_username = clean_username
             user.twitter_username_verified = False
-            user.generate_twitter_verification_phrase()
+            user.generate_verification_phrase('twitter')
 
             twitter = get_twitter()
             twitter_user = twitter.get_user(user.twitter_username)
@@ -266,6 +269,14 @@ def put_me(user):
 
             twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase)
             user.twitter_verification_phrase_sent_at = datetime.utcnow()
+
+    if 'nostr_public_key' in request.json:
+        user.nostr_public_key = request.json['nostr_public_key']
+        user.nostr_public_key_verified = False
+        user.generate_verification_phrase('nostr')
+
+        get_nostr().send_dm(user_npub=user.nostr_public_key, body=user.nostr_verification_phrase)
+        user.nostr_verification_phrase_sent_at = datetime.utcnow()
 
     if 'contribution_percent' in request.json:
         user.contribution_percent = request.json['contribution_percent']
@@ -308,7 +319,7 @@ def verify_twitter(user):
     if request.json.get('resend'):
         if user.twitter_verification_phrase_sent_at and user.twitter_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
             return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
-        user.generate_twitter_verification_phrase()
+        user.generate_verification_phrase('twitter')
         twitter = get_twitter()
         twitter_user = twitter.get_user(user.twitter_username)
         if not twitter_user:
@@ -334,6 +345,36 @@ def verify_twitter(user):
     else:
         time.sleep(2 ** user.twitter_verification_phrase_check_counter)
         user.twitter_verification_phrase_check_counter += 1
+        db.session.commit()
+        return jsonify({'message': "Invalid verification phrase."}), 400
+
+@api_blueprint.route('/api/users/me/verify/nostr', methods=['PUT'])
+@user_required
+def verify_nostr(user):
+    if request.json.get('resend'):
+        if user.nostr_verification_phrase_sent_at and user.nostr_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
+            return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
+        user.generate_verification_phrase('nostr')
+        get_nostr().send_dm(user_npub=user.nostr_public_key, body=user.nostr_verification_phrase)
+        user.nostr_verification_phrase_sent_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({})
+
+    if not request.json.get('phrase'):
+        return jsonify({'message': "Please provide the verification phrase!"}), 400
+
+    if user.nostr_verification_phrase_check_counter > 5:
+        return jsonify({'message': "Please try requesting a new verification phrase!"}), 400
+
+    clean_phrase = ' '.join([w for w in request.json['phrase'].lower().split(' ') if w])
+
+    if get_nostr().get_verification_phrase(user) == clean_phrase:
+        user.nostr_public_key_verified = True
+        db.session.commit()
+        return jsonify({})
+    else:
+        time.sleep(2 ** user.nostr_verification_phrase_check_counter)
+        user.nostr_verification_phrase_check_counter += 1
         db.session.commit()
         return jsonify({'message': "Invalid verification phrase."}), 400
 
