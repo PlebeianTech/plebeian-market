@@ -2,7 +2,7 @@ import { Error as ErrorStore, AuthRequired, AuthBehavior } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
-import { type User, UserResume, fromJson as userFromJson } from "$lib/types/user";
+import { ExternalAccountProvider, type User, UserResume, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl, logout } from "$lib/utils";
 import { error } from '@sveltejs/kit';
 
@@ -166,7 +166,7 @@ export function nostrAuth(behavior: AuthBehavior, npub: string, verificationPhra
     } else {
         params.send_verification_phrase = true;
     }
-    fetchAPI(`${behavior}/nostr`, 'PUT', null, JSON.stringify(params),
+    fetchAPI(`/${behavior}/nostr`, 'PUT', null, JSON.stringify(params),
         response => {
             if (response.status === 200) {
                 response.json().then(
@@ -210,10 +210,13 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, contributionPercent?: string, wallet?: string, nym?: string, profileImageUrl?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, nostrPublicKey?: string, contributionPercent?: string, wallet?: string, nym?: string, profileImageUrl?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
+    }
+    if (profile.nostrPublicKey !== undefined) {
+        json.nostr_public_key = profile.nostrPublicKey;
     }
     if (profile.contributionPercent !== undefined) {
         json.contribution_percent = profile.contributionPercent;
@@ -295,14 +298,14 @@ export function putUserNotifications(tokenValue, notifications: PostUserNotifica
         });
 }
 
-export function putVerifyTwitter(tokenValue, resend: boolean | undefined, phrase: string | undefined, successCB: () => void, errorHandler = new ErrorHandler()) {
+export function putVerify(tokenValue, accountProvider: ExternalAccountProvider, resend: boolean | undefined, phrase: string | undefined, successCB: () => void, errorHandler = new ErrorHandler()) {
     let payload = {};
     if (resend) {
         payload['resend'] = true;
     } else {
         payload['phrase'] = phrase;
     }
-    fetchAPI("/users/me/verify/twitter", 'PUT', tokenValue,
+    fetchAPI(`/users/me/verify/${accountProvider}`, 'PUT', tokenValue,
         JSON.stringify(payload),
         response => {
             if (response.status === 200) {

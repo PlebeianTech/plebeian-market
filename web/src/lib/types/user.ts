@@ -10,6 +10,11 @@ export interface IAccount {
     twitterUsernameVerified: boolean;
 }
 
+export enum ExternalAccountProvider {
+    Nostr = 'nostr',
+    Twitter = 'twitter',
+}
+
 export class UserResumeSkill {
     skill: string = "";
 
@@ -199,6 +204,8 @@ export function badgeFromJson(json: any): Badge {
 export class User implements IAccount {
     identity: string = '';
     nostrPublicKey: string | null = null;
+    nostrPublicKeyVerified: boolean = false;
+    nostrVerificationPhraseSentAt: Date | null = null;
     nym: string | null = null;
     displayName: string | null = null;
     profileImageUrl: string | null = null;
@@ -254,6 +261,8 @@ export function fromJson(json: any): User {
     var u = new User();
     u.identity = <string>json.identity;
     u.nostrPublicKey = <string | null>json.nostr_public_key;
+    u.nostrPublicKeyVerified = <boolean>json.nostr_public_key_verified;
+    u.nostrVerificationPhraseSentAt = json.nostr_verification_phrase_sent_at ? new Date(json.nostr_verification_phrase_sent_at) : null;
     u.nym = <string | null>json.nym;
     u.displayName = <string | null>json.display_name;
     u.profileImageUrl = <string | null>json.profile_image_url;

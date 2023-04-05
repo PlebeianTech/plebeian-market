@@ -760,6 +760,12 @@ class MockNostr:
     def __init__(self, **__):
         pass
 
+    def get_auth_verification_phrase(self, auth):
+        return "identify as myself"
+
+    def get_verification_phrase(self, user):
+        return "i am me"
+
     def send_dm(self, user_npub, body):
         app.logger.info(f"Nostr DM for {user_npub}: {body}!")
         return True
@@ -770,6 +776,12 @@ class Nostr:
         self.relay_manager = RelayManager()
         for relay in app.config['NOSTR_RELAYS']:
             self.relay_manager.add_relay(relay)
+
+    def get_auth_verification_phrase(self, auth):
+        return auth.verification_phrase
+
+    def get_verification_phrase(self, user):
+        return user.nostr_verification_phrase
 
     def send_dm(self, user_npub, body):
         pubkey = PublicKey.from_npub(user_npub)

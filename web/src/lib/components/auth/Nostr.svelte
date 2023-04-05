@@ -2,7 +2,7 @@
     import { createEventDispatcher, onMount } from 'svelte';
     import { ErrorHandler, nostrAuth } from "$lib/services/api";
     import type { User } from "$lib/types/user";
-    import { token, user, Info, Error as ErrorStore, AuthBehavior } from "$lib/stores";
+    import { token, user, Info, AuthBehavior } from "$lib/stores";
     import { hasExtension, encodeNpub } from '$lib/nostr/utils';
     import { isDevelopment } from "$lib/utils";
     import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";

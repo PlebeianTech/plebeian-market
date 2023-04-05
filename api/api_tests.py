@@ -24,6 +24,11 @@ CAMPAIGN_ADDRESSES = ["bc1qeauv7festyh2d85ugskzlqucnp594es3t3dhe7", "bc1qenglrz3
 ONE_DOLLAR_SATS = usd2sats(1, btc2fiat.get_value('kraken'))
 
 class TestApi(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        self.returned_k1s = set()
+        self.returned_tokens = set()
+        super(TestApi, self).__init__(*args, **kwargs)
+
     def do(self, f, path, params=None, json=None, headers=None, files=None):
         if files is None:
             files = {}
@@ -53,7 +58,10 @@ class TestApi(unittest.TestCase):
             self.assertEqual(code, 200)
         return code, response
 
-    def auth_user(self, behavior, **kwargs):
+    def generate_lnauth_key(self):
+        return ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
+
+    def lnurl_auth(self, behavior, key, expect_success=True, **kwargs):
         code, response = self.get(f"/api/{behavior}/lnurl")
         self.assertEqual(code, 200)
         self.assertIn('k1', response)
@@ -61,37 +69,123 @@ class TestApi(unittest.TestCase):
 
         k1 = response['k1']
 
-        sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
-        sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
+        self.assertNotIn(k1, self.returned_k1s)
+        self.returned_k1s.add(k1)
 
+        # not logged in yet...
+        code, response = self.get(f"/api/{behavior}/lnurl", {'k1': k1})
+        self.assertEqual(code, 200)
+        self.assertFalse(response['success'])
+
+        sig = key.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
+
+        # try sending another k1 (but properly signed)...
+        another_k1 = list(bytes.fromhex(k1))
+        another_k1[0] = (another_k1[0] + 1) % 255
+        another_k1 = bytes(another_k1)
+        another_sig = key.sign_digest(another_k1, sigencode=ecdsa.util.sigencode_der)
+        code, response = self.get(f"/api/{behavior}/lnurl",
+            {'k1': another_k1.hex(),
+             'key': key.verifying_key.to_string().hex(),
+             'sig': another_sig.hex()})
+        self.assertEqual(code, 400)
+        self.assertIn("verification failed", response['message'].lower())
+
+        # try sending a wrong signature
         code, response = self.get(f"/api/{behavior}/lnurl",
             {'k1': k1,
-             'key': sk.verifying_key.to_string().hex(),
+             'key': key.verifying_key.to_string().hex(),
+             'sig': another_sig.hex()})
+        self.assertEqual(code, 400)
+        self.assertIn("verification failed", response['message'].lower())
+
+        # send the correct signature
+        code, response = self.get(f"/api/{behavior}/lnurl",
+            {'k1': k1,
+             'key': key.verifying_key.to_string().hex(),
              'sig': sig.hex()})
         self.assertEqual(code, 200)
         self.assertNotIn('token', response)
 
+        # get the token
         code, response = self.get(f"/api/{behavior}/lnurl",
             {'k1': k1})
+
+        if expect_success:
+            self.assertEqual(code, 200)
+            self.assertIn('token', response)
+
+            token = response['token']
+
+            self.assertNotIn(token, self.returned_tokens)
+            self.returned_tokens.add(token)
+
+            # can't request the token again if we already got it once
+            code, response = self.get(f"/api/{behavior}/lnurl",
+                {'k1': k1,
+                'key': key.verifying_key.to_string().hex(),
+                'sig': sig.hex()})
+            self.assertEqual(code, 400)
+
+            if behavior == 'signup':
+                code, response = self.get("/api/users/me", headers=self.get_auth_headers(token))
+                self.assertEqual(code, 200)
+                app.logger.info(f"Created user: identity={response['user']['identity']}")
+                self.assertIsNone(response['user']['twitter_username'])
+                self.assertIsNone(response['user']['contribution_percent'])
+
+            if kwargs:
+                self.update_user(token, **kwargs)
+
+            return token
+        else:
+            self.assertNotEqual(code, 200)
+
+    def nostr_auth(self, behavior, npub, expect_success=True, **kwargs):
+        code, response = self.put(f"/api/{behavior}/nostr",
+            {'npub': npub,
+             'send_verification_phrase': True})
         self.assertEqual(code, 200)
-        self.assertIn('token', response)
+        self.assertTrue(response['sent'])
 
-        token = response['token']
+        # try a wrong phrase first
+        code, response = self.put(f"/api/{behavior}/nostr",
+            {'npub': npub,
+             'verification_phrase': "identify as somebody"})
+        self.assertEqual(code, 400)
 
-        code, response = self.get("/api/users/me", headers=self.get_auth_headers(token))
-        self.assertEqual(code, 200)
-        app.logger.info(f"Created user: identity={response['user']['identity']}")
-        self.assertIsNone(response['user']['twitter_username'])
-        self.assertIsNone(response['user']['contribution_percent'])
+        # now send the right one
+        code, response = self.put(f"/api/{behavior}/nostr",
+            {'npub': npub,
+             'verification_phrase': "identify as myself"})
 
-        self.update_user(token, **kwargs)
+        if expect_success:
+            self.assertEqual(code, 200)
+            self.assertIn('token', response)
 
-        return k1, token
+            token = response['token']
+
+            self.assertNotIn(token, self.returned_tokens)
+            self.returned_tokens.add(token)
+
+            if behavior == 'signup':
+                code, response = self.get("/api/users/me", headers=self.get_auth_headers(token))
+                self.assertEqual(code, 200)
+                app.logger.info(f"Created user: identity={response['user']['identity']}")
+                self.assertIsNone(response['user']['twitter_username'])
+                self.assertIsNone(response['user']['contribution_percent'])
+
+            if kwargs:
+                self.update_user(token, **kwargs)
+
+            return token
+        else:
+            self.assertNotEqual(code, 200)
 
     def test_campaigns(self):
-        _, token_1 = self.auth_user('signup', contribution_percent=1, twitter_username='someone')
-        _, token_2 = self.auth_user('signup', )
-        _, token_3 = self.auth_user('signup', twitter_username='buyer')
+        token_1 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), contribution_percent=1, twitter_username='someone')
+        token_2 = self.lnurl_auth('signup', key=self.generate_lnauth_key())
+        token_3 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='buyer')
 
         # verify Twitter for the buyer
         code, response = self.put("/api/users/me/verify/twitter",
@@ -346,8 +440,8 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(address_for_campaign_auction, address_for_normal_auction)
 
     def test_listings(self):
-        _, token_1 = self.auth_user('signup', twitter_username='fixie')
-        _, token_2 = self.auth_user('signup', twitter_username='fixie_buyer')
+        token_1 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='fixie')
+        token_2 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='fixie_buyer')
 
         # GET listings to see there are none there
         code, response = self.get("/api/users/fixie/listings",
@@ -571,64 +665,9 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 404)
 
     def test_000_user(self):
-        code, response = self.get("/api/signup/lnurl")
-        self.assertEqual(code, 200)
-        self.assertIn('k1', response)
-        self.assertIn('svg', response['qr'])
+        key_1 = self.generate_lnauth_key()
 
-        k1 = response['k1']
-
-        sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
-        sig = sk.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
-
-        # not logged in yet...
-        code, response = self.get("/api/signup/lnurl", {'k1': k1})
-        self.assertEqual(code, 200)
-        self.assertFalse(response['success'])
-
-        # try sending another k1 (but properly signed)...
-        another_k1 = list(bytes.fromhex(k1))
-        another_k1[0] = (another_k1[0] + 1) % 255
-        another_k1 = bytes(another_k1)
-        another_sig = sk.sign_digest(another_k1, sigencode=ecdsa.util.sigencode_der)
-        code, response = self.get("/api/signup/lnurl",
-            {'k1': another_k1.hex(),
-             'key': sk.verifying_key.to_string().hex(),
-             'sig': another_sig.hex()})
-        self.assertEqual(code, 400)
-        self.assertIn("verification failed", response['message'].lower())
-
-        # try sending a wrong signature
-        code, response = self.get("/api/signup/lnurl",
-            {'k1': k1,
-             'key': sk.verifying_key.to_string().hex(),
-             'sig': another_sig.hex()})
-        self.assertEqual(code, 400)
-        self.assertIn("verification failed", response['message'].lower())
-
-        code, response = self.get("/api/signup/lnurl",
-            {'k1': k1,
-             'key': sk.verifying_key.to_string().hex(),
-             'sig': sig.hex()})
-        self.assertEqual(code, 200)
-        self.assertNotIn('token', response)
-
-        code, response = self.get("/api/signup/lnurl",
-            {'k1': k1})
-        self.assertEqual(code, 200)
-        self.assertIn('token', response)
-        self.assertIn('user', response)
-        self.assertIsNone(response['user']['twitter_username'])
-
-        token_1 = response['token']
-
-        # can't request the token again if we already got it once
-        code, response = self.get("/api/signup/lnurl",
-            {'k1': k1,
-             'key': sk.verifying_key.to_string().hex(),
-             'sig': sig.hex()},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 400)
+        token_1 = self.lnurl_auth('signup', key_1)
 
         code, response = self.get("/api/users/me", headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
@@ -650,6 +689,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['has_items'], False)
         self.assertEqual(response['user']['has_own_items'], False)
 
+        # set an email address
         code, response = self.update_user(token_1, False, email="brokenemail")
         self.assertEqual(code, 400)
         self.assertIn("not valid", response['message'])
@@ -708,10 +748,65 @@ class TestApi(unittest.TestCase):
         self.assertTrue(len(response['notifications']) > 0)
         self.assertEqual([n for n in response['notifications'] if n['notification_type'] == first_notification_type][0]['action'], 'TWITTER_DM')
 
+        # can't sign up again with the same key...
+        self.lnurl_auth('signup', key_1, expect_success=False)
+
+        # ... but we can log in with it!
+        self.lnurl_auth('login', key_1, expect_success=True)
+
+        # link Nostr account to this user
+        code, response = self.update_user(token_1, nostr_public_key="JUST A KEY")
+        self.assertEqual(code, 200)
+
+        # key has been set, but not yet verified
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['nostr_public_key'], "JUST A KEY")
+        self.assertFalse(response['user']['nostr_public_key_verified'])
+
+        # try to verify the Nostr key
+        code, response = self.put("/api/users/me/verify/nostr",
+            {'phrase': "i am somebody else"},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 400)
+
+        # it hasn't been verified...
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['nostr_public_key'], "JUST A KEY")
+        self.assertFalse(response['user']['nostr_public_key_verified'])
+
+        # can't log in with that Nostr account!
+        self.nostr_auth('login', "JUST A KEY", expect_success=False)
+
+        # verify the Nostr key for real this time
+        code, response = self.put("/api/users/me/verify/nostr",
+            {'phrase': "I AM ME"},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+
+        # now we can log in with nostr
+        token_1_1 = self.nostr_auth('login', "JUST A KEY", expect_success=True)
+
+        # check user details - it should be the same user as when we authenticated with lnurl!
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['identity'], identity_1)
+        self.assertEqual(response['user']['twitter_username'], 'username1')
+        self.assertTrue(response['user']['twitter_username_verified'])
+
+        # it's verified!!
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(response['user']['nostr_public_key'], "JUST A KEY")
+        self.assertTrue(response['user']['nostr_public_key_verified'])
+
         # create another user
-        k1_2, token_2 = self.auth_user('signup', contribution_percent=1)
-        self.assertNotEqual(k1, k1_2)
-        self.assertNotEqual(token_1, token_2)
+        token_2 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), contribution_percent=1)
 
         # set user details
         code, response = self.update_user(token_2, twitter_username='username2')
@@ -820,8 +915,8 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['auctions']), 0)
 
     def test_auctions(self):
-        _, token_1 = self.auth_user('signup', twitter_username='auction_user_1', contribution_percent=1, wallet=XPUB)
-        _, token_2 = self.auth_user('signup', twitter_username='auction_user_2', wallet=XPUB)
+        token_1 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='auction_user_1', contribution_percent=1, wallet=XPUB)
+        token_2 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='auction_user_2', wallet=XPUB)
 
         # GET user auctions if not logged in is OK
         code, response = self.get("/api/users/auction_user_1/auctions")
@@ -1044,7 +1139,7 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
-        _, token_3 = self.auth_user('signup')
+        token_3 = self.lnurl_auth('signup', key=self.generate_lnauth_key())
 
         # subscribe to new bid notifications, unsubscribe from AUCTION_END_X
         # and start following, both with the user that will bid and with a 3rd one

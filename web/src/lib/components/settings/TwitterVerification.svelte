@@ -1,6 +1,7 @@
 <script lang="ts">
     import { token, user, Info } from "$lib/stores";
-    import { ErrorHandler, putVerifyTwitter } from "$lib/services/api";
+    import { ErrorHandler, putVerify } from "$lib/services/api";
+    import { ExternalAccountProvider } from "$lib/types/user";
 
     let phrase: string = "";
 
@@ -10,7 +11,7 @@
 
     function verify() {
         inRequest = true;
-        putVerifyTwitter($token, false, phrase,
+        putVerify($token, ExternalAccountProvider.Twitter, false, phrase,
             () => {
                 user.update(u => { if (u) { u.twitterUsernameVerified = true; } return u; });
                 Info.set("Your Twitter account has been verified!");
@@ -22,7 +23,7 @@
 
     function resend() {
         inRequest = true;
-        putVerifyTwitter($token, true, undefined,
+        putVerify($token, ExternalAccountProvider.Twitter, true, undefined,
             () => {
                 user.update(u => { if (u) { u.twitterVerificationPhraseSentAt = new Date(); } return u; });
                 Info.set("Check your Twitter DM!");
