@@ -166,7 +166,7 @@
 </div>
 
 <div class="p-2 py-2 pt-8 h-auto container grid align-center mx-auto">
-    <div tabindex="0" class="lg:grid mt-3 mb-4 collapse-open rounded-box collapse collapse-plus border border-gray-400/70 bg-base-100">
+    <div tabindex="0" class="lg:grid mt-3 mb-4 rounded-box collapse collapse-plus border border-gray-400/70 bg-base-100">
         <input type="checkbox" />
         <div class="collapse-title text-l font-medium">
             Filter:
