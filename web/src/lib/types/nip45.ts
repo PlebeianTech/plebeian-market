@@ -53,3 +53,24 @@ export class NostrStall {
     }
 */
 }
+
+/*
+export interface ShoppingCart {
+    stall_id: string;
+    stall: {};
+    products: Map<string, ShoppingCartItem>;
+}
+*/
+export interface ShoppingCartItem {
+    id: string
+    name: string;
+    description: string;
+    price: number;
+    currency: string;
+    image: string;
+    quantity: number;
+    orderQuantity: number;
+    created_at: number;
+    stall_id: string;
+    merchantPubkey: string;
+}

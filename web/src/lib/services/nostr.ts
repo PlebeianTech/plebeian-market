@@ -1,4 +1,4 @@
-import { getEventHash, Kind, SimplePool, type Event, type Sub } from 'nostr-tools';
+import {getEventHash, Kind, SimplePool, type Event, type Sub, Filter} from 'nostr-tools';
 import { UserResume } from "$lib/types/user";
 import { relayUrlList, getBestRelay, filterTags, findMarkerInTags } from "$lib/nostr/utils";
 
@@ -128,10 +128,13 @@ export function getStalls(pool: SimplePool, merchant_pubkey: string, receivedCB:
 }
 
 export function subscribeProducts(pool: SimplePool, merchant_pubkey: string, receivedCB: (e) => void) {
-    let sub: Sub = pool.sub(relayUrlList, [{
-        kinds: [EVENT_KIND_PRODUCT],
-        authors: [merchant_pubkey]
-    }]);
+    let filter: Filter = { kinds: [EVENT_KIND_PRODUCT] };
+
+    if (merchant_pubkey) {
+        filter.authors = [merchant_pubkey];
+    }
+
+    let sub: Sub = pool.sub(relayUrlList, [filter]);
     sub.on('event',  e => {receivedCB(e);});
     sub.on('eose', () => {
         sub.unsub()

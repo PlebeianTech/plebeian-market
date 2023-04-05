@@ -9,6 +9,7 @@
     import LoginModal from "$lib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
     import { closePool } from "$lib/services/nostr";
+    import ShoppingCart from "../lib/components/stores/ShoppingCart.svelte";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -52,11 +53,14 @@
     onMount(async () => {
         if (browser) {
             token.set(localStorage.getItem("token"));
+            //ShoppingCart.set( JSON.parse(localStorage.getItem("shoppingCart")) );
         }
     });
 
     onDestroy(async () => {
-        await closePool($NostrPool);
+        if (browser) {
+            await closePool($NostrPool);
+        }
     });
 </script>
 

@@ -1,6 +1,7 @@
 import { writable, type Writable } from 'svelte/store';
 import { SimplePool } from 'nostr-tools';
 import type { User } from "$lib/types/user";
+import {ShoppingCart, ShoppingCartItem} from "./types/nip45";
 
 export const token: Writable<string | null> = writable(null);
 
@@ -29,4 +30,22 @@ export enum NostrKeySource {
 }
 export const NostrPublicKey: Writable<{source: NostrKeySource, key: string | null}> = writable({source: NostrKeySource.PlebeianMarketUser, key: null});
 
-export const shoppingCart: Writable<null> = writable(null);
+export type ShoppingCartSummary = {
+    numProducts: number,
+    totalQuantity: number,
+    totalAmount: number,
+    currency: string
+}
+
+export const ShoppingCart: Writable<{
+    products: Map<string, Map<string, ShoppingCartItem>> ,
+    summary: ShoppingCartSummary
+}> = writable({
+    products: new Map(),
+    summary: {
+        numProducts: 0,
+        totalQuantity: 0,
+        totalAmount: 0,
+        currency: ''
+    }
+});

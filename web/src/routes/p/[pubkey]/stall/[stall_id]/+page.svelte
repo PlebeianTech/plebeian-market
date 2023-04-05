@@ -1,6 +1,5 @@
 <script lang="ts">
     import ListProducts from "$lib/components/stores/ListProducts.svelte";
-    import Back from "$lib/components/icons/Back.svelte";
 
     /** @type {import('./$types').PageData} */
     export let data;

@@ -1,53 +1,48 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { NostrPool } from "$lib/stores";
+    import { NostrPool, Error } from "$lib/stores";
     import {subscribeProducts} from "../../services/nostr";
-    import {NostrStall} from "../../types/nip45";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
     import {getFirstTagValue} from "../../nostr/utils";
+    import {addToCart, onImgError, onQtyChangeClick} from "../../services/shopping";
 
     export let merchant_pubkey: string;
     export let stall_id: string;
 
     let products: {[product_id: string]: {}} = {};
 
-    let listView = false    ;
+    let listView = false;
 
-    onMount(
-        async () => {
-            subscribeProducts($NostrPool, merchant_pubkey,
-                (productEvent) => {
-                    let content = JSON.parse(productEvent.content);
-                    content.created_at = productEvent.created_at;
-                    content.merchantPubkey = productEvent.pubkey;
+    onMount(async () => {
+        subscribeProducts($NostrPool, merchant_pubkey,
+            (productEvent) => {
+                let content = JSON.parse(productEvent.content);
+                content.created_at = productEvent.created_at;
+                content.merchantPubkey = productEvent.pubkey;
 
-                    if (!content.id) {
-                        let product_id = getFirstTagValue(productEvent.tags, 'd');
-                        if (product_id !== null) {
-                            content.id = product_id;
-                        } else {
-                            return;
-                        }
+                if (!content.id) {
+                    let product_id = getFirstTagValue(productEvent.tags, 'd');
+                    if (product_id !== null) {
+                        content.id = product_id;
+                    } else {
+                        return;
                     }
+                }
 
-//console.log('productEvent content', content);
+                let product_id = content.id;
 
-                    let product_id = content.id;
-
-                    if (content.stall_id === stall_id) {
-//console.log('       ** Viewing content:', content);
-                        if (product_id in products) {
-                            if (products[product_id].createdAt < productEvent.created_at) {
-                                products[product_id] = content;
-                            }
-                        } else {
+                if (content.stall_id === stall_id) {
+                    if (product_id in products) {
+                        if (products[product_id].createdAt < productEvent.created_at) {
                             products[product_id] = content;
                         }
+                    } else {
+                        products[product_id] = content;
                     }
+                }
             });
-        }
-    );
+    });
 </script>
 
 <div class="btn-group btn-group-vertical lg:btn-group-horizontal justify-end">
@@ -69,7 +64,7 @@
             <tr>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Quantity</th>
+                <th>Stock</th>
                 <th>Price</th>
                 <th>Image</th>
                 <th></th>
@@ -78,14 +73,14 @@
 
         <tbody>
             {#each Object.entries(products) as [product_id, product]}
-                <ProductRow {product}></ProductRow>
+                <ProductRow {product} {addToCart} {onImgError} {onQtyChangeClick}></ProductRow>
             {/each}
         </tbody>
     </table>
 {:else}
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-6 place-content-center">
         {#each Object.entries(products) as [product_id, product]}
-            <ProductCard {product}></ProductCard>
+            <ProductCard {product} {addToCart} {onImgError} {onQtyChangeClick}></ProductCard>
         {/each}
     </div>
 {/if}
