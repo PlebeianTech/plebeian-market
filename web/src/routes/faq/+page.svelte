@@ -10,7 +10,6 @@
 
         <h1 class="my-12 text-8xl text-center font-black">FAQ</h1>
 
-        <!-- QUESTION1 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -21,7 +20,6 @@
           </div>
         </div>
 
-        <!-- QUESTION2 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -32,18 +30,31 @@
           </div>
         </div>
 
-        <!-- QUESTION3 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
             <p class="text-2xl">Q: Why do you ask for a Twitter account?</p>
           </div>
           <div class="collapse-content bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content"> 
-            <p class="text-s">A: Eventually, we aim to use a DID (Decentralized ID) reputation system built on lightning, but for now Twitter is a good anchor and provides "proof of human." We don't pull any information from your Twitter account except for your profile picture and the images for your auction. Bitcoin Twitter has a huge network effect and will help you sell your listing!</p>
+            <p class="text-s">A: We are in the process of transitioning to Nostr, but for now Twitter is a good anchor and provides "proof of human." We don't pull any information from your Twitter account except for your profile picture and the images for your auction. Bitcoin Twitter has a huge network effect and will help you sell your listing!</p>
           </div>
         </div>
 
-        <!-- QUESTION4 -->
+        <div class="collapse rounded">
+          <input type="checkbox" class="peer" /> 
+          <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
+            <p class="text-2xl">Q: How do I log in using Nostr?</p>
+          </div>
+          <div class="collapse-content bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content"> 
+            <p class="text-s">A: You can use any of these browser extensions:
+              <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a>,
+              <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a> or
+              <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>!
+              You can either create a fresh account using your Nostr public key or you can link your Nostr public key to your existing account by going to Settings -> Nostr.
+            </p>
+          </div>
+        </div>
+
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -54,7 +65,6 @@
           </div>
         </div>
 
-        <!-- QUESTION5 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -65,7 +75,6 @@
           </div>
         </div>
 
-        <!-- QUESTION6 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -76,7 +85,6 @@
           </div>
         </div>
 
-        <!-- QUESTION7 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -87,7 +95,6 @@
           </div>
         </div>
 
-        <!-- QUESTION8 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -98,7 +105,6 @@
           </div>
         </div>
         
-        <!-- QUESTION9 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -109,7 +115,6 @@
           </div>
         </div>
 
-        <!-- QUESTION10 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -120,7 +125,6 @@
           </div>
         </div>
 
-        <!-- QUESTION11 -->
         <div class="collapse rounded">
           <input type="checkbox" class="peer" /> 
           <div class="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
@@ -130,6 +134,5 @@
             <p class="mb-5 text-s">A: This project has been initially released under the <a class="link" href="https://github.com/PlebeianTech/plebeian-market/blob/master/LICENSE.md">GNU General Public License (GPL)</a>. Once we have completed the MVPs for the other components of the ecosystem we will transition to a more permissive license, most likely MIT.</p>
           </div>
         </div>
-
     </div>
 </div>
