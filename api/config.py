@@ -38,6 +38,7 @@ BASE_URL = os.environ.get('BASE_URL')
 WWW_BASE_URL = os.environ.get('WWW_BASE_URL')
 DOMAIN_NAME = "plebeian.market"
 
+LNAUTH_EXPIRE_MINUTES = 120
 JWT_EXPIRE_DAYS = 420
 
 MOCK_BTC = bool(int(os.environ.get("MOCK_BTC", 0)))
