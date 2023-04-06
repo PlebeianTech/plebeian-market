@@ -75,7 +75,7 @@
                     You are in dev mode!
                 </div>
                 <div slot="detail">
-                    We don't actually send DMs in dev mode, but rather they get printed in the terminal!
+                    Your verification phrase: "IDENTIFY AS MYSELF"!
                 </div>
             </ErrorBox>
         {/if}

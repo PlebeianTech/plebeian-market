@@ -318,6 +318,31 @@ export function putVerify(tokenValue, accountProvider: ExternalAccountProvider, 
         });
 }
 
+export function putVerifyLnurl(tokenValue, k1, initialResponseCB: (response: {k1: string, lnurl: string, qr: string}) => void, waitResponseCB: () => void, successResponseCB: () => void, errorHandler = new ErrorHandler()) {
+    let payload = {};
+    if (k1) {
+        payload['k1'] = k1;
+    }
+    fetchAPI("/users/me/verify/lnurl", 'PUT', tokenValue, JSON.stringify(payload),
+        response => {
+            if (response.status === 200) {
+                response.json().then(
+                    data => {
+                        if (data.success) {
+                            successResponseCB();
+                        } else if (data.k1) {
+                            initialResponseCB({k1: data.k1, lnurl: data.lnurl, qr: data.qr});
+                        } else {
+                            waitResponseCB();
+                        }
+                    }
+                );
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
 export function getItem(loader: ILoader, tokenValue, key, successCB: (item) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/${loader.endpoint}/${key}`, 'GET', tokenValue, null,
         response => {

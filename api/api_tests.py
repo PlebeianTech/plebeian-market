@@ -805,6 +805,58 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['nostr_public_key'], "JUST A KEY")
         self.assertTrue(response['user']['nostr_public_key_verified'])
 
+        # sign up with Nostr
+        token_nostr_user = self.nostr_auth('signup', "JUST ANOTHER KEY")
+
+        # link a lnurl account
+        code, response = self.put("/api/users/me/verify/lnurl", {},
+            headers=self.get_auth_headers(token_nostr_user))
+        self.assertEqual(code, 200)
+        self.assertIn('k1', response)
+        self.assertIn('svg', response['qr'])
+
+        k1 = response['k1']
+
+        self.assertNotIn(k1, self.returned_k1s)
+        self.returned_k1s.add(k1)
+
+        # not verified yet...
+        code, response = self.put(f"/api/users/me/verify/lnurl", {'k1': k1},
+            headers=self.get_auth_headers(token_nostr_user))
+        self.assertEqual(code, 200)
+        self.assertFalse(response['success'])
+
+        # generate a key and sign the k1
+        key = self.generate_lnauth_key()
+        sig = key.sign_digest(bytes.fromhex(k1), sigencode=ecdsa.util.sigencode_der)
+
+        # sign k1 and send the key and signature (note this is a GET request, done by the wallet, without the token!)
+        code, response = self.get(f"/api/users/me/verify/lnurl",
+            {'k1': k1,
+             'key': key.verifying_key.to_string().hex(),
+             'sig': sig.hex()})
+        self.assertEqual(code, 200)
+
+        # yep, we are verified now!
+        code, response = self.put(f"/api/users/me/verify/lnurl", {'k1': k1},
+            headers=self.get_auth_headers(token_nostr_user))
+        self.assertEqual(code, 200)
+        self.assertTrue(response['success'])
+
+        token_nostr_user_logged_in_with_lnauth = self.lnurl_auth('login', key=key)
+
+        # the identity of the user should be the same (whether logged in with nostr or with the newly linked lightning key)
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_nostr_user))
+        self.assertEqual(code, 200)
+        identity_nostr_user = response['user']['identity']
+        code, response = self.get("/api/users/me",
+            headers=self.get_auth_headers(token_nostr_user_logged_in_with_lnauth))
+        self.assertEqual(code, 200)
+        identity_nostr_user_logged_in_with_lnauth = response['user']['identity']
+
+        self.assertEqual(identity_nostr_user, identity_nostr_user_logged_in_with_lnauth)
+
         # create another user
         token_2 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), contribution_percent=1)
 

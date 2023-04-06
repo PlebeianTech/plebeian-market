@@ -203,6 +203,7 @@ export function badgeFromJson(json: any): Badge {
 
 export class User implements IAccount {
     identity: string = '';
+    hasLnauthKey: boolean = false;
     nostrPublicKey: string | null = null;
     nostrPublicKeyVerified: boolean = false;
     nostrVerificationPhraseSentAt: Date | null = null;
@@ -260,6 +261,7 @@ export class User implements IAccount {
 export function fromJson(json: any): User {
     var u = new User();
     u.identity = <string>json.identity;
+    u.hasLnauthKey = <boolean>json.has_lnauth_key;
     u.nostrPublicKey = <string | null>json.nostr_public_key;
     u.nostrPublicKeyVerified = <boolean>json.nostr_public_key_verified;
     u.nostrVerificationPhraseSentAt = json.nostr_verification_phrase_sent_at ? new Date(json.nostr_verification_phrase_sent_at) : null;

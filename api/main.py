@@ -477,14 +477,20 @@ def get_user_from_token(token):
     except Exception:
         return None
 
-    if 'user_key' in data: # older token
-        q = m.User.lnauth_key == data['user_key']
-    elif 'user_lnauth_key' in data:
-        q = m.User.lnauth_key == data['user_lnauth_key']
-    elif 'user_nostr_public_key' in data:
-        q = m.User.nostr_public_key == data['user_nostr_public_key']
+    if 'user_id' in data:
+        q = m.User.id == data['user_id']
     else:
-        return None
+        # NB: we started storing the user id in the JWT token recently,
+        # but we don't want to forcefully log out all users that have old tokens,
+        # so keep this code around for now, but we should get rid of it later!
+        if 'user_key' in data:
+            q = m.User.lnauth_key == data['user_key']
+        elif 'user_lnauth_key' in data:
+            q = m.User.lnauth_key == data['user_lnauth_key']
+        elif 'user_nostr_public_key' in data:
+            q = m.User.nostr_public_key == data['user_nostr_public_key']
+        else:
+            return None
 
     return m.User.query.filter(q).first()
 

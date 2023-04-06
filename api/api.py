@@ -55,7 +55,7 @@ def auth_lnurl(deprecated, create_user):
     if not lnauth:
         return jsonify({'message': "Verification failed."}), 400
 
-    if lnauth.created_at < datetime.utcnow() - timedelta(minutes=m.LnAuth.EXPIRE_MINUTES):
+    if lnauth.created_at < datetime.utcnow() - timedelta(minutes=app.config['LNAUTH_EXPIRE_MINUTES']):
         return jsonify({'message': "Login token expired."}), 410
 
     if 'key' in request.args and 'sig' in request.args:
@@ -103,7 +103,12 @@ def auth_lnurl(deprecated, create_user):
     db.session.delete(lnauth)
     db.session.commit()
 
-    token = jwt.encode({'user_lnauth_key': user.lnauth_key, 'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS'])}, app.config['SECRET_KEY'], "HS256")
+    token_payload = {
+        'user_id': user.id,
+        'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS']),
+        'r': secrets.token_hex(4), # just 4 random bytes, to ensure the tokens are unique (mostly for tests)
+    }
+    token = jwt.encode(token_payload, app.config['SECRET_KEY'], "HS256")
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
@@ -150,7 +155,7 @@ def auth_nostr(create_user):
 
         if not user:
             if create_user:
-                user = m.User(nostr_public_key=lnauth.key)
+                user = m.User(nostr_public_key=auth.key, nostr_public_key_verified=True)
                 db.session.add(user)
             else:
                 return jsonify({'message': "User not found. Please create an account first."}), 400
@@ -166,7 +171,12 @@ def auth_nostr(create_user):
 
         db.session.commit()
 
-        token = jwt.encode({'user_nostr_public_key': user.nostr_public_key, 'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS'])}, app.config['SECRET_KEY'], "HS256")
+        token_payload = {
+            'user_id': user.id,
+            'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS']),
+            'r': secrets.token_hex(4), # just 4 random bytes, to ensure the tokens are unique (mostly for tests)
+        }
+        token = jwt.encode(token_payload, app.config['SECRET_KEY'], "HS256")
 
         return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
     else:
@@ -181,7 +191,7 @@ def get_profile(nym):
     for_user_id = requesting_user.id if requesting_user else None
     user = m.User.query.filter_by(nym=nym).first()
     if not user:
-        return jsonify({'message': "User not found"}), 404
+        return jsonify({'message': "User not found."}), 404
     return jsonify({'user': user.to_dict(for_user=for_user_id)})
 
 @api_blueprint.route('/api/users/me', methods=['GET'])
@@ -377,6 +387,65 @@ def verify_nostr(user):
         user.nostr_verification_phrase_check_counter += 1
         db.session.commit()
         return jsonify({'message': "Invalid verification phrase."}), 400
+
+@api_blueprint.route("/api/users/me/verify/lnurl", methods=['PUT'])
+@user_required
+def verify_lnurl_put(user):
+    if 'k1' not in request.json:
+        # first request => we return a challenge (k1) and a QR code
+        user.new_lnauth_key = None
+        user.new_lnauth_key_k1 = secrets.token_hex(32)
+        user.new_lnauth_key_k1_generated_at = datetime.utcnow()
+        db.session.commit()
+
+        url = app.config['BASE_URL'] + f"/api/users/me/verify/lnurl&k1={user.new_lnauth_key_k1}"
+        ln_url = lnurl.encode(url).bech32
+        qr = BytesIO()
+        pyqrcode.create(ln_url).svg(qr, omithw=True, scale=4)
+
+        return jsonify({'k1': user.new_lnauth_key_k1, 'lnurl': str(ln_url), 'qr': qr.getvalue().decode('utf-8')})
+
+    if request.json['k1'] != user.new_lnauth_key_k1:
+        return jsonify({'message': "Verification failed."}), 400
+
+    if user.new_lnauth_key_k1_generated_at < datetime.utcnow() - timedelta(minutes=app.config['LNAUTH_EXPIRE_MINUTES']):
+        return jsonify({'message': "Auth token expired."}), 410
+
+    return jsonify({'success': user.new_lnauth_key is not None})
+
+# request made by the Lightning wallet, includes a key and a signature
+@api_blueprint.route("/api/users/me/verify/lnurl", methods=['GET'])
+def verify_lnurl_get():
+    if 'key' in request.args and 'sig' in request.args:
+        user = m.User.query.filter_by(new_lnauth_key_k1=request.args['k1']).first()
+
+        if not user:
+            return jsonify({'message': "Verification failed."}), 400
+
+        if user.new_lnauth_key and request.args['key'] != user.new_lnauth_key:
+            # the user should not have a "lnauth_key" here, unless the user scanned the QR code already
+            # but then the key in the request should match the key we saved on the previous scan
+            app.logger.warning(f"Dubious request with a key {request.args['key']} different from the existing key for k1 {user.new_lnauth_key_k1}.")
+            return jsonify({'message': "Verification failed."}), 400
+        if not user.new_lnauth_key:
+            try:
+                k1_bytes, key_bytes, sig_bytes = map(lambda k: bytes.fromhex(request.args[k]), ['k1', 'key', 'sig'])
+            except ValueError:
+                return jsonify({'message': "Invalid parameter."}), 400
+
+            vk = ecdsa.VerifyingKey.from_string(key_bytes, curve=ecdsa.SECP256k1)
+            try:
+                vk.verify_digest(sig_bytes, k1_bytes, sigdecode=ecdsa.util.sigdecode_der)
+            except BadSignatureError:
+                return jsonify({'message': "Verification failed."}), 400
+
+            # at this point, the new key is verified!
+
+            user.new_lnauth_key = user.lnauth_key = request.args['key']
+
+            db.session.commit()
+
+        return jsonify({})
 
 @api_blueprint.route('/api/users/me/notifications', methods=['GET', 'PUT'])
 @user_required

@@ -106,8 +106,6 @@ class State(db.Model):
 class LnAuth(db.Model):
     __tablename__ = 'lnauth'
 
-    EXPIRE_MINUTES = 120
-
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     k1 = db.Column(db.String(128), nullable=False, unique=True, index=True)
@@ -135,6 +133,12 @@ class User(WalletMixin, db.Model):
     registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     lnauth_key = db.Column(db.String(128), unique=True, nullable=True, index=True)
+
+    # fields used when changing the lnauth_key of an existing user
+    # (once verified, lnauth_key will become new_lnauth_key and it will be usable for logging in)
+    new_lnauth_key = db.Column(db.String(128), unique=True, nullable=True, index=True)
+    new_lnauth_key_k1 = db.Column(db.String(128), nullable=True, unique=True, index=True)
+    new_lnauth_key_k1_generated_at = db.Column(db.DateTime, nullable=True)
 
     nostr_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True) # in NPUB format
     nostr_public_key_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -245,6 +249,7 @@ class User(WalletMixin, db.Model):
 
         d = {
             'identity': self.identity,
+            'has_lnauth_key': self.lnauth_key is not None, # no reason to return the actual key to the client - just whether there is one or not
             'nostr_public_key': self.nostr_public_key,
             'nostr_public_key_verified': self.nostr_public_key_verified,
             'nostr_verification_phrase_sent_at': self.nostr_verification_phrase_sent_at.isoformat() + "Z" if self.nostr_verification_phrase_sent_at else None,
