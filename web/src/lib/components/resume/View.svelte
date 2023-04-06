@@ -6,7 +6,6 @@
     import Loading from "$lib/components/Loading.svelte";
     import Back from "$lib/components/icons/Back.svelte";
     import Editor from "$lib/components/resume/Editor.svelte";
-    import { encodeNpub } from "$lib/nostr/utils";
     import { subscribeResume, subscribeMetadata, closePool } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
@@ -87,7 +86,7 @@
                 <button class="btn btn-primary btn-lg" on:click|preventDefault={() => edit = true}>Edit</button>
             {/if}
             {#if pubkey}
-                <a class="btn btn-primary btn-lg" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">
+                <a class="btn btn-primary btn-lg" href="https://snort.social/p/{pubkey}" target="_blank" rel="noreferrer">
                     Contact
                 </a>
             {/if}

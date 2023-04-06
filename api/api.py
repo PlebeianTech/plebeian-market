@@ -115,10 +115,10 @@ def auth_lnurl(deprecated, create_user):
 @api_blueprint.route('/api/login/nostr', methods=['PUT'], defaults={'create_user': False})
 @api_blueprint.route('/api/signup/nostr', methods=['PUT'], defaults={'create_user': True})
 def auth_nostr(create_user):
-    if 'npub' not in request.json:
-        return jsonify({'message': "Missing npub."}), 400
+    if 'key' not in request.json:
+        return jsonify({'message': "Missing key."}), 400
 
-    auth = m.NostrAuth.query.filter_by(key=request.json['npub']).first()
+    auth = m.NostrAuth.query.filter_by(key=request.json['key']).first()
 
     nostr = get_nostr()
 
@@ -128,11 +128,11 @@ def auth_nostr(create_user):
                 if auth.verification_phrase_sent_at and auth.verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
                     return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
         else:
-            auth = m.NostrAuth(key=request.json['npub'])
+            auth = m.NostrAuth(key=request.json['key'])
             db.session.add(auth)
 
         auth.generate_verification_phrase()
-        nostr.send_dm(user_npub=auth.key, body=auth.verification_phrase)
+        nostr.send_dm(recipient_public_key=auth.key, body=auth.verification_phrase)
         auth.verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
 
@@ -142,7 +142,7 @@ def auth_nostr(create_user):
         return jsonify({'message': "Missing verification phrase."}), 400
 
     if not auth:
-        # this is a strange case - they provide a verification phrase, but there is no log in attempt for the given NPUB - no need to give too much info
+        # this is a strange case - they provide a verification phrase, but there is no log in attempt for the given key - no need to give too much info
         return jsonify({'message': "Verification failed."}), 400
 
     if auth.verification_phrase_check_counter > 5:
@@ -285,7 +285,7 @@ def put_me(user):
         user.nostr_public_key_verified = False
         user.generate_verification_phrase('nostr')
 
-        get_nostr().send_dm(user_npub=user.nostr_public_key, body=user.nostr_verification_phrase)
+        get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase)
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
 
     if 'contribution_percent' in request.json:
@@ -365,7 +365,7 @@ def verify_nostr(user):
         if user.nostr_verification_phrase_sent_at and user.nostr_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
             return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
         user.generate_verification_phrase('nostr')
-        get_nostr().send_dm(user_npub=user.nostr_public_key, body=user.nostr_verification_phrase)
+        get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase)
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
         return jsonify({})

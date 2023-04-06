@@ -1,5 +1,5 @@
 import {getEventHash, nip05, nip19, Kind, getPublicKey} from "nostr-tools";
-import { NostrPublicKey, Error as ErrorStore, NostrKeySource } from "$lib/stores";
+import { NostrPublicKey, NostrKeySource } from "$lib/stores";
 import type { User } from "$lib/types/user";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
@@ -142,18 +142,6 @@ export function getBestRelay() {
     return relayUrlList[0];
 }
 
-export function decodeNpub(npub: string) {
-    let decoded = nip19.decode(npub);
-    if (decoded.type !== "npub" || typeof decoded.data !== 'string') {
-        throw new Error("NPUB expected.");
-    }
-    return <string>decoded.data;
-}
-
-export function encodeNpub(key: string) {
-    return nip19.npubEncode(key);
-}
-
 export async function setPublicKey(user: User | null) {
     if (!hasExtension() || (hasExtension() && localStorage.getItem(localStorageNostrPreferPMId) !== null)) {
         // Using PM Nostr identity
@@ -182,4 +170,16 @@ export async function setPublicKey(user: User | null) {
     }
 
     return true;
+}
+
+export function getKeyFromKeyOrNpub(key: string) {
+    if (key.toLowerCase().startsWith("npub")) {
+        let decoded = nip19.decode(key);
+        if (typeof decoded.data !== 'string') {
+            return null;
+        }
+        return decoded.data;
+    }
+
+    return key;
 }

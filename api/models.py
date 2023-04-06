@@ -119,7 +119,7 @@ class NostrAuth(db.Model):
     verification_phrase = db.Column(db.String(32), nullable=False)
     verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)
     verification_phrase_check_counter = db.Column(db.Integer, nullable=False, default=0)
-    key = db.Column(db.String(64), nullable=False, unique=True, index=True) # NPUB
+    key = db.Column(db.String(64), nullable=False, unique=True, index=True)
 
     def generate_verification_phrase(self):
         self.verification_phrase = bip39gen.random_as_string(3)
@@ -140,7 +140,7 @@ class User(WalletMixin, db.Model):
     new_lnauth_key_k1 = db.Column(db.String(128), nullable=True, unique=True, index=True)
     new_lnauth_key_k1_generated_at = db.Column(db.DateTime, nullable=True)
 
-    nostr_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True) # in NPUB format
+    nostr_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     nostr_public_key_verified = db.Column(db.Boolean, nullable=False, default=False)
     nostr_verification_phrase = db.Column(db.String(32), nullable=True)
     nostr_verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)

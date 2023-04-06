@@ -3,7 +3,6 @@
     import { browser } from "$app/environment";
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
-    import { decodeNpub } from "$lib/nostr/utils";
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
     import { subscribeMetadata } from "$lib/services/nostr";
     import { token, user, BTC2USD, Info, NostrPool, AuthRequired, AuthBehavior } from "$lib/stores";
@@ -139,7 +138,7 @@
         } else {
             if (u.nym === null || u.nym === "") {
                 let gotProfile = false;
-                subscribeMetadata($NostrPool, [decodeNpub(u.nostrPublicKey)],
+                subscribeMetadata($NostrPool, [u.nostrPublicKey],
                     (_pk, metadata) => {
                         if (gotProfile) {
                             return;

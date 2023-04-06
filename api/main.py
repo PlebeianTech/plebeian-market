@@ -772,8 +772,8 @@ class MockNostr:
     def get_verification_phrase(self, user):
         return "i am me"
 
-    def send_dm(self, user_npub, body):
-        app.logger.info(f"Nostr DM for {user_npub}: {body}!")
+    def send_dm(self, recipient_public_key, body):
+        app.logger.info(f"Nostr DM for {recipient_public_key}: {body}!")
         return True
 
 class Nostr:
@@ -789,8 +789,8 @@ class Nostr:
     def get_verification_phrase(self, user):
         return user.nostr_verification_phrase
 
-    def send_dm(self, user_npub, body):
-        pubkey = PublicKey.from_npub(user_npub)
+    def send_dm(self, recipient_public_key, body):
+        pubkey = PublicKey(bytes.fromhex(recipient_public_key))
         dm = EncryptedDirectMessage(recipient_pubkey=pubkey, cleartext_content=body)
         self.private_key.sign_event(dm)
         self.relay_manager.publish_event(dm)
