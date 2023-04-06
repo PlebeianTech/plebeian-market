@@ -159,8 +159,8 @@ export function lnurlAuth(behavior: AuthBehavior, k1, initialResponseCB: (respon
         });
 }
 
-export function nostrAuth(behavior: AuthBehavior, npub: string, verificationPhrase: string | null, sentVerificationPhraseCB: () => void = () => {}, successCB: (response: GetLoginSuccessResponse) => void = (_) => {}, errorHandler = new ErrorHandler()) {
-    let params: any = {npub};
+export function nostrAuth(behavior: AuthBehavior, key: string, verificationPhrase: string | null, sentVerificationPhraseCB: () => void = () => {}, successCB: (response: GetLoginSuccessResponse) => void = (_) => {}, errorHandler = new ErrorHandler()) {
+    let params: any = {key};
     if (verificationPhrase !== null) {
         params.verification_phrase = verificationPhrase;
     } else {

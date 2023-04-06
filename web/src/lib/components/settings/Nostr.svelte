@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { hasExtension, encodeNpub } from "$lib/nostr/utils";
+    import { getKeyFromKeyOrNpub, hasExtension } from "$lib/nostr/utils";
     import { ErrorHandler, putProfile, putVerify } from "$lib/services/api";
-    import { user, token, Info } from "$lib/stores";
+    import { user, token, Info, Error } from "$lib/stores";
     import { ExternalAccountProvider } from "$lib/types/user";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
@@ -17,16 +17,23 @@
     let inRequest = false;
 
     async function getKeyFromExtension() {
-        let pubkey = await (window as any).nostr.getPublicKey();
-        nostrPublicKey = encodeNpub(pubkey);
+        nostrPublicKey = await (window as any).nostr.getPublicKey();
     }
 
     function save() {
         if (nostrPublicKey === null) {
             return;
         }
+
+        let cleanKey = getKeyFromKeyOrNpub(nostrPublicKey);
+
+        if (cleanKey === null) {
+            Error.set("Invalid npub!");
+            return;
+        }
+
         inRequest = true;
-        putProfile($token, {nostrPublicKey},
+        putProfile($token, {nostrPublicKey: cleanKey},
             u => {
                 user.set(u);
                 Info.set("Your Nostr public key has been saved!");
@@ -91,6 +98,9 @@
     {:else}
         <div class="w-full flex items-center justify-center mt-8">
             <div class="form-control w-full max-w-lg">
+                <label class="label" for="nostr-public-key">
+                    <span class="label-text">Nostr public key (HEX or NPUB formats accepted)</span>
+                </label>
                 <input bind:value={nostrPublicKey} id="nostr-public-key" name="nostr-public-key" type="text" class="bg-transparent z-10 ml-1.5 input input-bordered input-md w-full" />
             </div>
         </div>

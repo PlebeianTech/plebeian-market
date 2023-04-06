@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { encodeNpub } from "$lib/nostr/utils";
     import { NostrPool } from "$lib/stores";
     import type { UserResume } from "$lib/types/user";
     import { subscribeResumes, subscribeMetadata, type UserMetadata } from "$lib/services/nostr";
@@ -122,7 +121,7 @@
                         </div>
                         <div>
                             <div class="w-full text-center">
-                                <div class="text-xl font-extrabold">{pubkey in metadata ? metadata[pubkey].name : encodeNpub(pubkey).substring(0, 10) + "..."}</div>
+                                <div class="text-xl font-extrabold">{pubkey in metadata ? metadata[pubkey].name : pubkey.substring(0, 10) + "..."}</div>
                                 <div class="text-base my-3 ">{r.resume.jobTitle}</div>
                             </div>
                             <div class="w-full mt-2 text-center">
@@ -136,7 +135,7 @@
                         </div>
                         <div>
                             <a class="btn btn-primary btn-sm mr-2" href="/p/{pubkey}">View</a>
-                            <a class="btn btn-primary btn-sm" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">Contact</a>
+                            <a class="btn btn-primary btn-sm" href="https://snort.social/p/{pubkey}" target="_blank" rel="noreferrer">Contact</a>
                         </div>
                     </div>
                 {/if}

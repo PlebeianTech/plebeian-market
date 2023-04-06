@@ -3,6 +3,7 @@ import btc2fiat
 from datetime import datetime, timedelta
 import dateutil.parser
 import ecdsa
+from nostr.key import PrivateKey
 import requests
 import time
 import unittest
@@ -20,6 +21,10 @@ ADDRESSES = ["bc1qjh4xdrsry27enkk9fl7ujzyadrjkcw4p2uy76c", "bc1qzt9cgxvxqvl4ajdy
 # an XPUB to test campaigns, different from the other one
 CAMPAIGN_XPUB = "xpub6D93ecgDqmNjxsM6hN7Qf5Wxt8y5Zv4VmumbMe7xXcmBmE5ti3BRSZfkwrf7nawmzKcgRas978URPQkwBdoBWvsNLPyepEWcCc2kKh2Kk2x"
 CAMPAIGN_ADDRESSES = ["bc1qeauv7festyh2d85ugskzlqucnp594es3t3dhe7", "bc1qenglrz38j2amql5twlt7npaq495hl5n8rqujke", "bc1q3edvv3grv3l0pskxncu9sslv0rv2rlwmlwn6e4"]
+
+# some random nostr keys
+NOSTR_KEY_1 = PrivateKey().public_key.hex()
+NOSTR_KEY_2 = PrivateKey().public_key.hex()
 
 ONE_DOLLAR_SATS = usd2sats(1, btc2fiat.get_value('kraken'))
 
@@ -141,22 +146,22 @@ class TestApi(unittest.TestCase):
         else:
             self.assertNotEqual(code, 200)
 
-    def nostr_auth(self, behavior, npub, expect_success=True, **kwargs):
+    def nostr_auth(self, behavior, key, expect_success=True, **kwargs):
         code, response = self.put(f"/api/{behavior}/nostr",
-            {'npub': npub,
+            {'key': key,
              'send_verification_phrase': True})
         self.assertEqual(code, 200)
         self.assertTrue(response['sent'])
 
         # try a wrong phrase first
         code, response = self.put(f"/api/{behavior}/nostr",
-            {'npub': npub,
+            {'key': key,
              'verification_phrase': "identify as somebody"})
         self.assertEqual(code, 400)
 
         # now send the right one
         code, response = self.put(f"/api/{behavior}/nostr",
-            {'npub': npub,
+            {'key': key,
              'verification_phrase': "identify as myself"})
 
         if expect_success:
@@ -755,14 +760,14 @@ class TestApi(unittest.TestCase):
         self.lnurl_auth('login', key_1, expect_success=True)
 
         # link Nostr account to this user
-        code, response = self.update_user(token_1, nostr_public_key="JUST A KEY")
+        code, response = self.update_user(token_1, nostr_public_key=NOSTR_KEY_1)
         self.assertEqual(code, 200)
 
         # key has been set, but not yet verified
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['nostr_public_key'], "JUST A KEY")
+        self.assertEqual(response['user']['nostr_public_key'], NOSTR_KEY_1)
         self.assertFalse(response['user']['nostr_public_key_verified'])
 
         # try to verify the Nostr key
@@ -775,11 +780,11 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['nostr_public_key'], "JUST A KEY")
+        self.assertEqual(response['user']['nostr_public_key'], NOSTR_KEY_1)
         self.assertFalse(response['user']['nostr_public_key_verified'])
 
         # can't log in with that Nostr account!
-        self.nostr_auth('login', "JUST A KEY", expect_success=False)
+        self.nostr_auth('login', NOSTR_KEY_1, expect_success=False)
 
         # verify the Nostr key for real this time
         code, response = self.put("/api/users/me/verify/nostr",
@@ -788,7 +793,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         # now we can log in with nostr
-        token_1_1 = self.nostr_auth('login', "JUST A KEY", expect_success=True)
+        token_1_1 = self.nostr_auth('login', NOSTR_KEY_1, expect_success=True)
 
         # check user details - it should be the same user as when we authenticated with lnurl!
         code, response = self.get("/api/users/me",
@@ -802,11 +807,11 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['nostr_public_key'], "JUST A KEY")
+        self.assertEqual(response['user']['nostr_public_key'], NOSTR_KEY_1)
         self.assertTrue(response['user']['nostr_public_key_verified'])
 
         # sign up with Nostr
-        token_nostr_user = self.nostr_auth('signup', "JUST ANOTHER KEY")
+        token_nostr_user = self.nostr_auth('signup', NOSTR_KEY_2)
 
         # link a lnurl account
         code, response = self.put("/api/users/me/verify/lnurl", {},
