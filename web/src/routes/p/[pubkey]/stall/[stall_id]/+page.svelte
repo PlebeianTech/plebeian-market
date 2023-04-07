@@ -1,5 +1,5 @@
 <script lang="ts">
-    import ListProducts from "$lib/components/stores/ListProducts.svelte";
+    import ProductList from "$lib/components/stores/ProductList.svelte";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -16,12 +16,12 @@
 <div class="grid justify-center items-center lg:mx-20 gap-6 place-content-center">
     <!--
     <div class="flex items-center mt-4 h-15 gap-8">
-        <a class="btn btn-primary btn-outline" href="/store_browser">
+        <a class="btn btn-primary btn-outline" href="/stalls">
             <Back />
             Back to the Store Browser
         </a>
     </div>
     -->
 
-    <ListProducts merchant_pubkey={data.pubkey} stall_id={data.stall_id}></ListProducts>
+    <ProductList merchantPubkey={data.pubkey} stallId={data.stallId}></ProductList>
 </div>

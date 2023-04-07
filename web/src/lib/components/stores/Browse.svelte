@@ -2,12 +2,12 @@
     import { onMount } from 'svelte';
     import { NostrPool } from "$lib/stores";
     import {getStalls, subscribeMetadata} from "../../services/nostr";
-    import {NostrStall} from "../../types/nip45";
+    import {NostrStall} from "../../types/stall";
     import {formatTimestamp, getFirstTagValue} from "$lib/nostr/utils.js";
 
-    export let merchant_pubkey: string;
+    export let merchantPubkey: string;
 
-    let stalls: {[stall_id: string]: {}} = {};
+    let stalls: {[stallId: string]: {}} = {};
 
     //let merchantMeta = new Map<string, string>();
     let merchantMeta = [];
@@ -24,12 +24,8 @@
         }
     }
 
-    function openStore(merchantPubkey, stall_id) {
-        window.location.href = "/p/"+merchantPubkey+"/stall/"+stall_id;
-    }
-
     onMount(async () => {
-        getStalls($NostrPool, merchant_pubkey,
+        getStalls($NostrPool, merchantPubkey,
             (stallEvent) => {
                 let content = JSON.parse(stallEvent.content)
                 content.createdAt = stallEvent.created_at;
@@ -53,22 +49,22 @@
                 //console.log('******************** STORE '+content.merchantPubkey+' ********************', stallEvent);
 
                 if (!content.id) {
-                    let stall_id = getFirstTagValue(stallEvent.tags, 'd');
-                    if (stall_id !== null) {
-                        content.id = stall_id;
+                    let stallId = getFirstTagValue(stallEvent.tags, 'd');
+                    if (stallId !== null) {
+                        content.id = stallId;
                     } else {
                         return;
                     }
                 }
 
-                let stall_id = content.id;
+                let stallId = content.id;
 
-                if (stall_id in stalls) {
-                    if (stalls[stall_id].createdAt < stallEvent.created_at) {
-                        stalls[stall_id] = content;
+                if (stallId in stalls) {
+                    if (stalls[stallId].createdAt < stallEvent.created_at) {
+                        stalls[stallId] = content;
                     }
                 } else {
-                    stalls[stall_id] = content;
+                    stalls[stallId] = content;
                 }
             });
 
@@ -102,7 +98,7 @@
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                    <th scope="col" class="px-6 py-3">Shop Name</th>
+                    <th scope="col" class="px-6 py-3">Stall Name</th>
                     <th scope="col" class="px-6 py-3">Description</th>
                     <!--<th>By</th>-->
                     <th scope="col" class="px-6 py-3">Currency</th>
@@ -112,7 +108,7 @@
             </thead>
 
             <tbody class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                {#each Object.entries(stalls) as [stall_id, stall]}
+                {#each Object.entries(stalls) as [stallId, stall]}
                     {#if
                         filter === null ||
                         (
@@ -123,7 +119,7 @@
                             )
                         )
                     }
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover cursor-pointer" on:cl777ick={() => openStore(stall.merchantPubkey, stall.id)}>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover cursor-pointer">
                             <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{#if stall.name}<a href="/p/{stall.merchantPubkey}/stall/{stall.id}">{stall.name}</a>{/if}</th>
                             <td class="px-6 py-4 {stall.description && stall.description.length > 100 ? 'tooltip tooltip-primary' : ''}" data-tip={stall.description && stall.description.length > 100 ? stall.description : ''}>{#if stall.description}{stall.description.substring(0,100)}{#if stall.description.length > 100}...{/if}{/if}</td>
                             <td class="px-6 py-4 text-center">{#if stall.currency}{stall.currency}{/if}</td>

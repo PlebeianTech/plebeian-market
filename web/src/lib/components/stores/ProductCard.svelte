@@ -1,6 +1,6 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import ChangeAmount from "./ChangeAmount.svelte";
+    import Quantity from "./Quantity.svelte";
 
     export let product: string;
     export let addToCart = () => {};
@@ -28,7 +28,7 @@
             <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
         </div>
         <div class="mt-10 justify-end {!product.quantity ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
-            <ChangeAmount {onQtyChangeClick}></ChangeAmount>
+            <Quantity {onQtyChangeClick}></Quantity>
             <button class="btn btn-primary mt-4" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, event)}>
                 Add to cart
             </button>

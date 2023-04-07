@@ -7,7 +7,7 @@
 </script>
 
 <div class="py-3 lg:pb-14 mx-auto w-screen lg:w-2/3">
-    <Browse merchant_pubkey={data.pubkey}></Browse>
+    <Browse merchantPubkey={data.pubkey}></Browse>
 </div>
 
 <div class="py-3 lg:pb-14 mx-auto w-screen lg:w-2/3">

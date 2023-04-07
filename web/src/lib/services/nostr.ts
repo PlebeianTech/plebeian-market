@@ -113,11 +113,11 @@ export async function sendReaction(pool: SimplePool, noteId: string, notePubkey:
 
 // nip-45
 
-export function getStalls(pool: SimplePool, merchant_pubkey: string, receivedCB: (e) => void) {
+export function getStalls(pool: SimplePool, merchantPubkey: string, receivedCB: (e) => void) {
     let filter: Filter = { kinds: [EVENT_KIND_STALL] };
 
-    if (merchant_pubkey) {
-        filter.authors = [merchant_pubkey];
+    if (merchantPubkey) {
+        filter.authors = [merchantPubkey];
     }
 
     let sub: Sub = pool.sub(relayUrlList, [filter]);
@@ -127,11 +127,11 @@ export function getStalls(pool: SimplePool, merchant_pubkey: string, receivedCB:
     })
 }
 
-export function subscribeProducts(pool: SimplePool, merchant_pubkey: string, receivedCB: (e) => void) {
+export function subscribeProducts(pool: SimplePool, merchantPubkey: string, receivedCB: (e) => void) {
     let filter: Filter = { kinds: [EVENT_KIND_PRODUCT] };
 
-    if (merchant_pubkey) {
-        filter.authors = [merchant_pubkey];
+    if (merchantPubkey) {
+        filter.authors = [merchantPubkey];
     }
 
     let sub: Sub = pool.sub(relayUrlList, [filter]);

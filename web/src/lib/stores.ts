@@ -1,7 +1,7 @@
 import { writable, type Writable } from 'svelte/store';
 import { SimplePool } from 'nostr-tools';
 import type { User } from "$lib/types/user";
-import {ShoppingCart, ShoppingCartItem} from "./types/nip45";
+import {ShoppingCart, ShoppingCartItem} from "./types/stall";
 
 export const token: Writable<string | null> = writable(null);
 
@@ -36,9 +36,11 @@ export type ShoppingCartSummary = {
     totalAmount: number,
     currency: string
 }
+type stallId = string;
+type productId = string;
 
 export const ShoppingCart: Writable<{
-    products: Map<string, Map<string, ShoppingCartItem>> ,
+    products: Map<stallId, Map<productId, ShoppingCartItem>> ,
     summary: ShoppingCartSummary
 }> = writable({
     products: new Map(),

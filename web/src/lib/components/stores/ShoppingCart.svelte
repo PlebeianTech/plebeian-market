@@ -1,21 +1,29 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {ShoppingCart} from "../../stores";
-    import {deleteFromCart, onImgError} from "../../services/shopping";
+    import {deleteFromCart, onImgError} from "$lib/shopping";
     import {browser} from "$app/environment";
 
     export let compact: boolean;
 
     $: {
-        // Run only on the compact shopping cart when also viewing full-featured shopping cart
+        // When you are viewing the full-featured-cart, you'll run this code twice: one for the compact cart
+        // that is always visible at the NavBar, and the other one for the Cart page.
+        //
+        // It seems one of the runs interferes with the other one, and they enter a loop. Probably have
+        // something to do with the reactivity: you're updating a store when there are changes in the store,
+        // and then you're making calls to the same store at the same time...
+        //
+        // This "if" makes that this runs just once when viewing the full-featured shopping cart.
+
         if (compact) {
             let numProducts = 0;
             let totalQuantity = 0;
             let totalAmount = 0;
             let currency = '';
 
-            for (const [stall_id, stall] of $ShoppingCart.products) {
-                for (const [product_id, product] of stall) {
+            for (const [stallId, stall] of $ShoppingCart.products) {
+                for (const [productId, product] of stall) {
                     numProducts++;
                     totalQuantity = totalQuantity + product.orderQuantity;
                     totalAmount = totalAmount + (product.orderQuantity * product.price);
@@ -39,7 +47,7 @@
 
 {#if !compact}
     <div class="card-actions justify-end">
-        <a class="btn btn-primary" href="/store_browser">Continue shopping</a>
+        <a class="btn btn-primary" href="/stalls">Continue shopping</a>
     </div>
 {/if}
 
@@ -62,12 +70,12 @@
         </thead>
 
         <tbody>
-        {#each [...$ShoppingCart.products] as [stall_id, products]}
+        {#each [...$ShoppingCart.products] as [stallId, products]}
             <tr>
-                <td colspan="{compact ? 5 : 7}" class="bg-gray-700"><p class="ml-3">Stall: {stall_id}</p></td>
+                <td colspan="{compact ? 5 : 7}" class="bg-gray-700"><p class="ml-3">Stall: {stallId}</p></td>
             </tr>
 
-            {#each [...products] as [product_id, product]}
+            {#each [...products] as [productId, product]}
                 <tr class="text-center">
                     <td>{#if product.name}{product.name}{/if}</td>
                     {#if !compact}
@@ -97,7 +105,7 @@
                         </td>
                     {/if}
                     <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
-                    <td class="hover cursor-pointer" on:click={() => deleteFromCart(stall_id, product.id)}>
+                    <td class="hover cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                         </svg>
@@ -120,13 +128,13 @@
         <!-- <span class="font-bold text-lg">{$ShoppingCart.summary.numProducts} different Items</span> -->
 
         <div class="card-actions justify-end">
-            <a class="btn btn-primary" href="/store_browser">Continue shopping</a>
-            <a class="btn btn-accent" href="/store_browser">Checkout</a>
+            <a class="btn btn-primary" href="/stalls">Continue shopping</a>
+            <a class="btn btn-accent" href="/stalls">Checkout</a>
         </div>
     {/if}
 {:else}
     <div class="p-6 text-lg" class:w-64={compact}>
         <p>The shopping cart is empty.</p>
-        <p class="mt-4">You can <a class="text-blue-500" href="/store_browser">browse stores</a> and buy some products.</p>
+        <p class="mt-4">You can <a class="text-blue-500" href="/stalls">browse stores</a> and buy some products.</p>
     </div>
 {/if}

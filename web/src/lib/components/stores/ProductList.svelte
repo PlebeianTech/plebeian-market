@@ -5,40 +5,40 @@
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
     import {getFirstTagValue} from "../../nostr/utils";
-    import {addToCart, onImgError, onQtyChangeClick} from "../../services/shopping";
+    import {addToCart, onImgError, onQtyChangeClick} from "$lib/shopping";
 
-    export let merchant_pubkey: string;
-    export let stall_id: string;
+    export let merchantPubkey: string;
+    export let stallId: string;
 
-    let products: {[product_id: string]: {}} = {};
+    let products: {[productId: string]: {}} = {};
 
     let listView = false;
 
     onMount(async () => {
-        subscribeProducts($NostrPool, merchant_pubkey,
+        subscribeProducts($NostrPool, merchantPubkey,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
-                content.created_at = productEvent.created_at;
+                content.createdAt = productEvent.created_at;
                 content.merchantPubkey = productEvent.pubkey;
 
                 if (!content.id) {
-                    let product_id = getFirstTagValue(productEvent.tags, 'd');
-                    if (product_id !== null) {
-                        content.id = product_id;
+                    let productId = getFirstTagValue(productEvent.tags, 'd');
+                    if (productId !== null) {
+                        content.id = productId;
                     } else {
                         return;
                     }
                 }
 
-                let product_id = content.id;
+                let productId = content.id;
 
-                if (content.stall_id === stall_id) {
-                    if (product_id in products) {
-                        if (products[product_id].createdAt < productEvent.created_at) {
-                            products[product_id] = content;
+                if (content.stallId === stallId) {
+                    if (productId in products) {
+                        if (products[productId].createdAt < productEvent.created_at) {
+                            products[productId] = content;
                         }
                     } else {
-                        products[product_id] = content;
+                        products[productId] = content;
                     }
                 }
             });
@@ -72,14 +72,14 @@
         </thead>
 
         <tbody>
-            {#each Object.entries(products) as [product_id, product]}
+            {#each Object.entries(products) as [productId, product]}
                 <ProductRow {product} {addToCart} {onImgError} {onQtyChangeClick}></ProductRow>
             {/each}
         </tbody>
     </table>
 {:else}
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-6 place-content-center">
-        {#each Object.entries(products) as [product_id, product]}
+        {#each Object.entries(products) as [productId, product]}
             <ProductCard {product} {addToCart} {onImgError} {onQtyChangeClick}></ProductCard>
         {/each}
     </div>

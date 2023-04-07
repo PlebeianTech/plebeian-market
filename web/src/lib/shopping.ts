@@ -1,5 +1,5 @@
-import type {ShoppingCartItem} from "../types/nip45";
-import {Error, Info, ShoppingCart} from "../stores";
+import type {ShoppingCartItem} from "./types/stall";
+import {Error, Info, ShoppingCart} from "./stores";
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 
 // =============================== Products ====================================
@@ -30,7 +30,7 @@ export function onImgError(image) {
 }
 
 // =============================== Shopping Cart ===============================
-export function addToCart(added_product: ShoppingCartItem, event) {
+export function addToCart(addedProduct: ShoppingCartItem, event) {
     // console.log('Adding to cart: ', product, event);
     const addToCartButton = event.srcElement;
 
@@ -42,31 +42,31 @@ export function addToCart(added_product: ShoppingCartItem, event) {
 
     const quantitySelectorValue = Number(quantitySelector[0].value);
 
-    if (quantitySelectorValue > added_product.quantity) {
-        Error.set('There are just ' + added_product.quantity + ' products. You cannot order ' + quantitySelectorValue);
+    if (quantitySelectorValue > addedProduct.quantity) {
+        Error.set('There are just ' + addedProduct.quantity + ' products. You cannot order ' + quantitySelectorValue);
         return false;
     }
 
     // Vitamin the product object
-    added_product.orderQuantity = quantitySelectorValue;
+    addedProduct.orderQuantity = quantitySelectorValue;
 
     ShoppingCart.update(sc => {
         let stallMap: Map<string, Map<string, ShoppingCartItem>> = sc.products;
 
-        let stall: Map<string, ShoppingCartItem> | undefined = stallMap.get(added_product.stall_id);
+        let stall: Map<string, ShoppingCartItem> | undefined = stallMap.get(addedProduct.stallId);
         if (stall === undefined) {
             // Stall doesn't exist. We create a product and put it in a new stall
             let product = new Map();
-            product.set(added_product.id, added_product);
-            stallMap.set(added_product.stall_id, product);
+            product.set(addedProduct.id, addedProduct);
+            stallMap.set(addedProduct.stallId, product);
         } else {
             // Stall exists. Does the item already exists?
-            let product: ShoppingCartItem | undefined = stall.get(added_product.id);
+            let product: ShoppingCartItem | undefined = stall.get(addedProduct.id);
             if (product === undefined) {
-                stall.set(added_product.id, added_product);
+                stall.set(addedProduct.id, addedProduct);
             } else {
-                console.log('product.orderQuantity: ' + product.orderQuantity + ' - added_product.orderQuantity: ' + added_product.orderQuantity);
-                product.orderQuantity = product.orderQuantity + added_product.orderQuantity;
+                console.log('product.orderQuantity: ' + product.orderQuantity + ' - addedProduct.orderQuantity: ' + addedProduct.orderQuantity);
+                product.orderQuantity = product.orderQuantity + addedProduct.orderQuantity;
             }
         }
 
@@ -75,17 +75,17 @@ export function addToCart(added_product: ShoppingCartItem, event) {
     });
 }
 
-export function deleteFromCart(stall_id, product_id) {
+export function deleteFromCart(stallId, productId) {
     ShoppingCart.update(sc => {
         let stallMap: Map<string, Map<string, ShoppingCartItem>> = sc.products;
 
-        let stall = stallMap.get(stall_id);
+        let stall = stallMap.get(stallId);
 
         if (stall !== undefined) {
-            stall.delete(product_id);
+            stall.delete(productId);
 
             if (stall.size === 0) {
-                stallMap.delete(stall_id);
+                stallMap.delete(stallId);
             }
         }
 

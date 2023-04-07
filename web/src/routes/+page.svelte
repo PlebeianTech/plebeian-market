@@ -13,7 +13,7 @@
     import {subscribeProducts} from "../lib/services/nostr";
     import {filterTags, getFirstTagValue} from "../lib/nostr/utils";
     import {NostrPool} from "../lib/stores";
-    import {addToCart, onImgError, onQtyChangeClick} from "../lib/services/shopping";
+    import {addToCart, onImgError, onQtyChangeClick} from "$lib/shopping";
 
     interface CategoriesAssociativeArray {
         [key: string]: {
@@ -35,9 +35,9 @@
     interface ProductsAssociativeArray {
         [key: string]: {}
     }
-    let products: ProductsAssociativeArray[] = [];   // : {[product_id: string]: {}} = {};
+    let products: ProductsAssociativeArray[] = [];   // : {[productId: string]: {}} = {};
 
-    $: filteredProducts = Object.fromEntries( Object.entries(products).filter(([product_id, product]) => {
+    $: filteredProducts = Object.fromEntries( Object.entries(products).filter(([productId, product]) => {
         if (categories['All'].selected) {
             return true;
         } else {
@@ -60,11 +60,11 @@
                     return;
                 }
 
-                content.created_at = productEvent.created_at;
+                content.createdAt = productEvent.created_at;
                 content.merchantPubkey = productEvent.pubkey;
 
                 if (!content.id) {
-                    let product_id = getFirstTagValue(productEvent.tags, 'd');
+                    let productId = getFirstTagValue(productEvent.tags, 'd');
 
                     let categoryTags = filterTags(productEvent.tags, 't');
                     if (categoryTags.length > 0) {
@@ -94,21 +94,21 @@
                         });
                     }
 
-                    if (product_id !== null) {
-                        content.id = product_id;
+                    if (productId !== null) {
+                        content.id = productId;
                     } else {
                         return;
                     }
                 }
 
-                let product_id = content.id;
+                let productId = content.id;
 
-                if (product_id in products) {
-                    if (products[product_id].createdAt < productEvent.created_at) {
-                        products[product_id] = content;
+                if (productId in products) {
+                    if (products[productId].createdAt < productEvent.created_at) {
+                        products[productId] = content;
                     }
                 } else {
-                    products[product_id] = content;
+                    products[productId] = content;
                 }
 
                 // console.log('products', products);
@@ -168,19 +168,20 @@
 <div class="p-2 py-2 pt-8 h-auto container grid align-center mx-auto">
     <div tabindex="0" class="lg:grid mt-3 mb-4 rounded-box collapse collapse-plus border border-gray-400/70 bg-base-100">
         <input type="checkbox" />
-        <div class="collapse-title text-l font-medium">
-            Filter:
-            {#if categoriesSelected.length > 0}
-                Selected =>
-                {#each categoriesSelected as category}
-                    <span class="align-baseline text-xl">{category}, </span>
-                {/each}
+        <div class="collapse-title text-xl font-medium align-middle">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 inline">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 010 3m0-3a1.5 1.5 0 000 3m0 9.75V10.5" />
+            </svg>
+
+            {#if categoriesSelected.length > 0 && !categoriesSelected.includes('All')}
+                <span class="ml-3">Filtering products from categories => </span>
+                {#each categoriesSelected as category}{category},&nbsp;{/each}
             {/if}
         </div>
         <div class="collapse-content columns-4">
             {#each Object.entries(categories) as [category, data]}
                 <div class="label justify-normal mb-3">
-                    <input type="checkbox" bind:checked={data.selected} on:change={() => toggleCategory(category)} class="checkbox checkbox-md mr-3" />
+                    <input type="checkbox" bind:checked={data.selected} on:change={() => toggleCategory(category)} class="checkbox checkbox-md mr-3" class:checkbox-success={data.selected} />
                     <span class="align-baseline text-xl">{category}</span> <span class="ml-2 text-sm">({data.amount})</span>
                 </div>
             {/each}
@@ -189,7 +190,7 @@
 </div>
 
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 align-center mx-auto">
-    {#each Object.entries(filteredProducts) as [product_id, product]}
+    {#each Object.entries(filteredProducts) as [productId, product]}
         {#if (product.images || product.image) }
             <ProductCard {product} {addToCart} {onImgError} {onQtyChangeClick}></ProductCard>
         {/if}

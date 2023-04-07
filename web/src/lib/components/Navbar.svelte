@@ -204,7 +204,7 @@
 
                 <div class="lg:flex hidden">
                     <p>
-                        <a href="/store_browser" class="btn btn-ghost normal-case">Store Browser</a>
+                        <a href="/stalls" class="btn btn-ghost normal-case">Store Browser</a>
                     </p>
                     <p>
                         <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
