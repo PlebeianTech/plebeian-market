@@ -71,11 +71,7 @@
                     <button class="btn mt-1" on:click|preventDefault={onCancel}>Cancel</button>
                 </div>
                 <div class="w-1/2 flex justify-center items-center">
-                    {#if !listing.validate()}
-                        <button class="btn mt-1" disabled>Save</button>
-                    {:else}
-                        <button class="btn btn-secondary" on:click|preventDefault={onSave} on:keypress={onSave}>Save</button>
-                    {/if}
+                    <button class="btn btn-secondary" class:mt-1={!listing.validate()} class:btn-disabled={!listing.validate()} on:click|preventDefault={onSave} on:keypress={onSave}>Save</button>
                 </div>
             </div>
         </div>

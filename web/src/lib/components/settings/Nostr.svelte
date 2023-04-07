@@ -111,11 +111,7 @@
         </div>
 
         <div class="flex justify-center items-center mt-4 h-15">
-            {#if saveButtonActive}
-                <button id="save-profile" class="btn btn-primary" on:click|preventDefault={save}>Save</button>
-            {:else}
-                <button class="btn" disabled>Save</button>
-            {/if}
+            <button id="save-profile" class="btn btn-primary" class:btn-disabled={!saveButtonActive} on:click|preventDefault={save}>Save</button>
         </div>
     {/if}
     {#if $user.nostrPublicKey && !$user.nostrPublicKeyVerified}
@@ -142,11 +138,7 @@
                     </div>
                 </div>
                 <div class="flex justify-center items-center mt-4 h-24 gap-5">
-                    {#if !inRequest}
-                        <button id="verify-nostr" class="btn btn-primary" on:click|preventDefault={verify}>Verify</button>
-                    {:else}
-                        <button class="btn" disabled>Verify</button>
-                    {/if}
+                    <button id="verify-nostr" class="btn btn-primary" class:btn-disabled={inRequest} on:click|preventDefault={verify}>Verify</button>
                     <button class="btn" on:click={resend} disabled={inRequest}>Resend</button>
                 </div>
             {/if}

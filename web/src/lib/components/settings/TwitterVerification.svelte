@@ -62,11 +62,7 @@
             </div>
         </div>
         <div class="flex justify-center items-center mt-4 h-24 gap-5">
-            {#if !inRequest}
-                <button id="verify-twitter" class="btn btn-primary" on:click|preventDefault={verify}>Verify</button>
-            {:else}
-                <button class="btn" disabled>Verify</button>
-            {/if}
+            <button id="verify-twitter" class="btn btn-primary" class:btn-disabled={inRequest} on:click|preventDefault={verify}>Verify</button>
             <button class="btn" on:click={resend} disabled={inRequest}>Resend</button>
         </div>
     {/if}

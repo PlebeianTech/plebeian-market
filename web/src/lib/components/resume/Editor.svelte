@@ -129,17 +129,9 @@
     </ErrorBox>
 {:else}
     <div class="flex justify-center items-center mt-8 h-15 gap-8">
-        {#if !saving && resume.validate()}
-            <button class="btn btn-primary btn-lg" on:click|preventDefault={() => saveResume()}>Save</button>
-        {:else}
-            <button class="btn" disabled>Save</button>
-        {/if}
+        <button class="btn btn-primary btn-lg" class:btn-disabled={saving || !resume.validate()} on:click|preventDefault={() => saveResume()}>Save</button>
         <a class="btn btn-secondary btn-lg" href="/skills">Cancel</a>
-        {#if !saving}
-            <button class="btn btn-error btn-lg" on:click|preventDefault={deleteResume}>Delete</button>
-        {:else}
-            <button class="btn" disabled>Delete</button>
-        {/if}
+        <button class="btn btn-error btn-lg" class:btn-disabled={saving} on:click|preventDefault={deleteResume}>Delete</button>
     </div>
 
     <div class="mt-4 pt-2 place-items-center items-center p-4">
@@ -181,11 +173,7 @@
                             <input type="text" bind:value={newSkill.skill} placeholder="add a skill" class="input input-bordered input-primary w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addSkill(); }} />
                         </div>
                         <div>
-                            {#if newSkill.validate()}
-                                <button class="btn btn-s btn-circle btn-ghost" on:click={addSkill}><Plus /></button>
-                            {:else}
-                                <button class="btn btn-s btn-circle btn-disabled" disabled><Plus /></button>
-                            {/if}
+                            <button class="btn btn-s btn-circle btn-ghost" class:btn-disabled={!newSkill.validate()} on:click={addSkill}><Plus /></button>
                         </div>
                     </div>
                 </div>
@@ -205,11 +193,7 @@
                             <input type="text" bind:value={newPortfolio.url} placeholder="https://" class="input input-bordered input-primary w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addPortfolio(); }} />
                         </div>
                         <div>
-                            {#if newPortfolio.validate()}
-                                <button class="btn btn-s btn-circle btn-ghost" on:click={addPortfolio}><Plus /></button>
-                            {:else}
-                                <button class="btn btn-s btn-circle btn-disabled" disabled><Plus /></button>
-                            {/if}
+                            <button class="btn btn-s btn-circle btn-ghost" class:btn-disabled={!newPortfolio.validate()} on:click={addPortfolio}><Plus /></button>
                         </div>
                     </div>
                 </div>
@@ -262,11 +246,7 @@
                             </div>
                         </div>
                         <div>
-                            {#if newEducation.validate()}
-                                <button class="btn btn-s btn-circle btn-ghost" on:click={addEducation}><Plus /></button>
-                            {:else}
-                                <button class="btn btn-s btn-circle btn-disabled" disabled><Plus /></button>
-                            {/if}
+                            <button class="btn btn-s btn-circle btn-ghost" class:btn-disabled={!newEducation.validate()} on:click={addEducation}><Plus /></button>
                         </div>
                         <div>
                             <button class="btn btn-xs btn-circle btn-error" on:click={() => newEducation = null}><X /></button>
@@ -373,11 +353,7 @@
                             </div>
                         </div>
                         <div>
-                            {#if newExperience.validate()}
-                                <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addExperience}><Plus /></button>
-                            {:else}
-                                <button class="btn btn-s btn-disabled ml-2" disabled><Plus /></button>
-                            {/if}
+                            <button class="btn btn-s btn-circle btn-ghost ml-2" class:btn-disabled={!newExperience.validate()} on:click={addExperience}><Plus /></button>
                         </div>
                         <div>
                             <button class="btn btn-xs btn-circle btn-error" on:click={() => newExperience = null}><X /></button>
@@ -433,11 +409,7 @@
                             </div>
                         </div>
                         <div>
-                            {#if newAchievement.validate()}
-                                <button class="btn btn-s btn-circle btn-ghost ml-2" on:click={addAchievement}><Plus /></button>
-                            {:else}
-                                <button class="btn btn-s btn-disabled ml-2" disabled><Plus /></button>
-                            {/if}
+                            <button class="btn btn-s btn-circle btn-ghost ml-2" class:btn-disabled={!newAchievement.validate()} on:click={addAchievement}><Plus /></button>
                         </div>
                         <div>
                             <button class="btn btn-xs btn-circle btn-error" on:click={() => newAchievement = null}><X /></button>
@@ -482,17 +454,9 @@
     </div>
 
     <div class="flex justify-center items-center mt-16 h-15 gap-8">
-        {#if !saving && resume.validate()}
-            <button class="btn btn-primary btn-lg" on:click|preventDefault={() => saveResume()}>Save</button>
-        {:else}
-            <button class="btn" disabled>Save</button>
-        {/if}
+        <button class="btn btn-primary btn-lg" class:btn-disabled={saving || !resume.validate()} on:click|preventDefault={() => saveResume()}>Save</button>
         <a class="btn btn-secondary btn-lg" href="/skills">Cancel</a>
-        {#if !saving}
-            <button class="btn btn-error btn-lg" on:click|preventDefault={deleteResume}>Delete</button>
-        {:else}
-            <button class="btn" disabled>Delete</button>
-        {/if}
+        <button class="btn btn-error btn-lg" class:btn-disabled={saving} on:click|preventDefault={deleteResume}>Delete</button>
     </div>
 
     {#if saving}

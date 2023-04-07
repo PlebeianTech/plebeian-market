@@ -63,9 +63,5 @@
 </div>
 
 <div class="flex justify-center items-center mt-4 h-15">
-    {#if saveButtonActive}
-        <button id="save-user-notifications" class="btn btn-primary" on:click|preventDefault={save}>Save</button>
-    {:else}
-        <button class="btn" disabled>Save</button>
-    {/if}
+    <button id="save-user-notifications" class="btn btn-primary" class:btn-disabled={!saveButtonActive} on:click|preventDefault={save}>Save</button>
 </div>
