@@ -2,7 +2,7 @@ import { Error as ErrorStore, AuthRequired, AuthBehavior } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
-import { ExternalAccountProvider, type User, UserResume, fromJson as userFromJson } from "$lib/types/user";
+import { ExternalAccountProvider, type User, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl, logout } from "$lib/utils";
 import { error } from '@sveltejs/kit';
 
@@ -245,30 +245,6 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, nostr
                 response.json().then(data => {
                     successCB(userFromJson(data.user));
                 });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
-export function getResume(tokenValue, successCB: (resume: UserResume) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/users/me/resume", 'GET', tokenValue, null,
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => {
-                    successCB(UserResume.fromJson(data));
-                });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
-export function putResume(tokenValue, resume: UserResume, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/users/me/resume", 'PUT', tokenValue, JSON.stringify(resume.toJson()),
-        response => {
-            if (response.status === 200) {
-                successCB();
             } else {
                 errorHandler.handle(response);
             }
