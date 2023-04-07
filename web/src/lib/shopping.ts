@@ -53,12 +53,12 @@ export function addToCart(addedProduct: ShoppingCartItem, event) {
     ShoppingCart.update(sc => {
         let stallMap: Map<string, Map<string, ShoppingCartItem>> = sc.products;
 
-        let stall: Map<string, ShoppingCartItem> | undefined = stallMap.get(addedProduct.stallId);
+        let stall: Map<string, ShoppingCartItem> | undefined = stallMap.get(addedProduct.stall_id);
         if (stall === undefined) {
             // Stall doesn't exist. We create a product and put it in a new stall
             let product = new Map();
             product.set(addedProduct.id, addedProduct);
-            stallMap.set(addedProduct.stallId, product);
+            stallMap.set(addedProduct.stall_id, product);
         } else {
             // Stall exists. Does the item already exists?
             let product: ShoppingCartItem | undefined = stall.get(addedProduct.id);
