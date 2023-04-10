@@ -392,6 +392,7 @@ def verify_nostr(user):
         db.session.commit()
         return jsonify({'message': "Invalid verification phrase."}), 400
 
+# request made by the browser; note that it requires a logged in user!
 @api_blueprint.route("/api/users/me/verify/lnurl", methods=['PUT'])
 @user_required
 def verify_lnurl_put(user):
@@ -415,7 +416,18 @@ def verify_lnurl_put(user):
     if user.new_lnauth_key_k1_generated_at < datetime.utcnow() - timedelta(minutes=app.config['LNAUTH_EXPIRE_MINUTES']):
         return jsonify({'message': "Auth token expired."}), 410
 
-    return jsonify({'success': user.new_lnauth_key is not None})
+    if user.new_lnauth_key is not None:
+        if user.new_lnauth_key == user.lnauth_key:
+            # new key was verified AND it can be used for logging in now
+            return jsonify({'success': True})
+        else:
+            # the new key was verified, but we didn't manage to set it as the "main" key,
+            # which means it was a duplicate!
+            # ... see the logic in verify_lnurl_get (GET /api/users/me/verify/lnurl) to understand why!
+            return jsonify({'message': "This wallet is already associated with another Plebeian Market user!"}), 400
+    else:
+        # waiting for the user to scan the QR code...
+        return jsonify({'success': False})
 
 # request made by the Lightning wallet, includes a key and a signature
 @api_blueprint.route("/api/users/me/verify/lnurl", methods=['GET'])
@@ -443,11 +455,26 @@ def verify_lnurl_get():
             except BadSignatureError:
                 return jsonify({'message': "Verification failed."}), 400
 
-            # at this point, the new key is verified!
+            # at this point, the new key is verified, so let's save it!
 
-            user.new_lnauth_key = user.lnauth_key = request.args['key']
+            # first, save it under new_lnauth_key, which allows dupes, so it won't fail
+            user.new_lnauth_key = request.args['key']
 
             db.session.commit()
+
+            # now try to save it under the "main" key, which may fail in case of dupes!
+            user.lnauth_key = request.args['key']
+
+            # NB: the reason why we do this "two stage commit" is because we want to show an error message
+            # in the request made by the browser - see verify_lnurl_put (PUT /api/users/me/verify/lnurl)
+            # for an error that occured in this request (which is made by the mobile wallet)
+            # simply returning an error here would leave the user looking at the browser confused
+
+            try:
+                db.session.commit()
+            except IntegrityError:
+                app.logger.warning(f"Attempt to link existing LN key for user {user.id=}.")
+                return jsonify({'message': "User with this key already exists!"}), 400
 
         return jsonify({})
 

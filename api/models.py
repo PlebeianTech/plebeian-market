@@ -136,7 +136,7 @@ class User(WalletMixin, db.Model):
 
     # fields used when changing the lnauth_key of an existing user
     # (once verified, lnauth_key will become new_lnauth_key and it will be usable for logging in)
-    new_lnauth_key = db.Column(db.String(128), unique=True, nullable=True, index=True)
+    new_lnauth_key = db.Column(db.String(128), unique=False, nullable=True, index=True)
     new_lnauth_key_k1 = db.Column(db.String(128), nullable=True, unique=True, index=True)
     new_lnauth_key_k1_generated_at = db.Column(db.DateTime, nullable=True)
 
