@@ -790,10 +790,14 @@ class Nostr:
         return user.nostr_verification_phrase
 
     def send_dm(self, recipient_public_key, body):
-        dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
-        self.private_key.sign_event(dm)
-        self.relay_manager.publish_event(dm)
-        return True
+        try:
+            dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
+            self.private_key.sign_event(dm)
+            self.relay_manager.publish_event(dm)
+            return True
+        except:
+            app.logger.exception("Error while sending Nostr DM.")
+            return False
 
 def get_nostr():
     if app.config['MOCK_NOSTR']:

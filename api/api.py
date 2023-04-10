@@ -132,7 +132,8 @@ def auth_nostr(create_user):
             db.session.add(auth)
 
         auth.generate_verification_phrase()
-        nostr.send_dm(recipient_public_key=auth.key, body=auth.verification_phrase)
+        if not nostr.send_dm(recipient_public_key=auth.key, body=auth.verification_phrase):
+            return jsonify({'message': "Error sending Nostr DM."}), 500
         auth.verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
 
@@ -277,7 +278,8 @@ def put_me(user):
             if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
                 return jsonify({'message': "Error fetching profile banner!"}), 400
 
-            twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase)
+            if not twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase):
+                return jsonify({'message': "Error sending Twitter DM!"}), 500
             user.twitter_verification_phrase_sent_at = datetime.utcnow()
 
     if 'nostr_public_key' in request.json:
@@ -285,7 +287,8 @@ def put_me(user):
         user.nostr_public_key_verified = False
         user.generate_verification_phrase('nostr')
 
-        get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase)
+        if not get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
+            return jsonify({'message': "Error sending Nostr DM!"}), 500
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
 
     if 'contribution_percent' in request.json:
@@ -365,7 +368,8 @@ def verify_nostr(user):
         if user.nostr_verification_phrase_sent_at and user.nostr_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
             return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
         user.generate_verification_phrase('nostr')
-        get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase)
+        if not get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
+            return jsonify({'message': "Error sending Nostr DM!"}), 500
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
         return jsonify({})
