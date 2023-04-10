@@ -1,11 +1,11 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import Quantity from "./Quantity.svelte";
+    import {addToCart} from "$lib/shopping";
 
     export let product: string;
-    export let addToCart = () => {};
     export let onImgError = () => {};
-    export let onQtyChangeClick = () => {};
+    export let orderQuantity = 1;
 </script>
 
 <div class="card w-96 bg-base-100 shadow-xl mx-auto">
@@ -28,8 +28,8 @@
             <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
         </div>
         <div class="mt-10 justify-end {!product.quantity ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
-            <Quantity {onQtyChangeClick}></Quantity>
-            <button class="btn btn-primary mt-4" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, event)}>
+            <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
+            <button class="btn btn-primary mt-4" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
                 Add to cart
             </button>
         </div>

@@ -13,7 +13,7 @@
     import {subscribeProducts} from "../lib/services/nostr";
     import {filterTags, getFirstTagValue} from "../lib/nostr/utils";
     import {NostrPool} from "../lib/stores";
-    import {addToCart, onImgError, onQtyChangeClick} from "$lib/shopping";
+    import {onImgError} from "$lib/shopping";
     import Settings from "../lib/components/icons/Settings.svelte";
 
     interface CategoriesAssociativeArray {
@@ -191,7 +191,7 @@
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 align-center mx-auto">
     {#each Object.entries(filteredProducts) as [productId, product]}
         {#if (product.images || product.image) }
-            <ProductCard {product} {addToCart} {onImgError} {onQtyChangeClick}></ProductCard>
+            <ProductCard {product} {onImgError}></ProductCard>
         {/if}
     {/each}
 </div>

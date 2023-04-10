@@ -32,10 +32,6 @@
                 content.createdAt = stallEvent.created_at;
                 content.merchantPubkey = stallEvent.pubkey;
 
-                /*
-                if (!merchantMeta.has(stallEvent.pubkey)) {
-                    merchantMeta.set(stallEvent.pubkey, null);
-                }*/
                 if (!merchantMeta.includes(stallEvent.pubkey)) {
                     merchantMeta.push(stallEvent.pubkey);
                 }
@@ -46,8 +42,6 @@
                     currencies = currencies;
                 }
                 */
-
-                //console.log('******************** STORE '+content.merchantPubkey+' ********************', stallEvent);
 
                 if (!content.id) {
                     let stallId = getFirstTagValue(stallEvent.tags, 'd');

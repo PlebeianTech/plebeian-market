@@ -8,6 +8,6 @@ export interface ShoppingCartItem {
     quantity: number;
     orderQuantity: number;
     createdAt: number;
-    stallId: string;
+    stall_id: string;
     merchantPubkey: string;
 }
