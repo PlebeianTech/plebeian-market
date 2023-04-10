@@ -18,7 +18,7 @@ from logging.config import dictConfig
 import magic
 import math
 from nostr.event import EncryptedDirectMessage
-from nostr.key import PrivateKey, PublicKey
+from nostr.key import PrivateKey
 from nostr.relay_manager import RelayManager
 import os
 import random
@@ -790,8 +790,7 @@ class Nostr:
         return user.nostr_verification_phrase
 
     def send_dm(self, recipient_public_key, body):
-        pubkey = PublicKey(bytes.fromhex(recipient_public_key))
-        dm = EncryptedDirectMessage(recipient_pubkey=pubkey, cleartext_content=body)
+        dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
         self.private_key.sign_event(dm)
         self.relay_manager.publish_event(dm)
         return True
