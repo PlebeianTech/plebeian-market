@@ -398,7 +398,7 @@ def verify_lnurl_put(user):
         user.new_lnauth_key_k1_generated_at = datetime.utcnow()
         db.session.commit()
 
-        url = app.config['BASE_URL'] + f"/api/users/me/verify/lnurl&k1={user.new_lnauth_key_k1}"
+        url = app.config['BASE_URL'] + f"/api/users/me/verify/lnurl?tag=login&k1={user.new_lnauth_key_k1}"
         ln_url = lnurl.encode(url).bech32
         qr = BytesIO()
         pyqrcode.create(ln_url).svg(qr, omithw=True, scale=4)
