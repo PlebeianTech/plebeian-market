@@ -18,7 +18,7 @@
     <div class="flex items-center mt-4 h-15 gap-8">
         <a class="btn btn-primary btn-outline" href="/stalls">
             <Back />
-            Back to the Store Browser
+            Back to the Stall Browser
         </a>
     </div>
     -->

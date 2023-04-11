@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-    <title>Store Browser</title>
+    <title>Stall Browser</title>
 </svelte:head>
 
 <h1 class="text-center text-3xl lg:text-3xl mt-12 mb-4 lg:mt-12 lg:mb-12 p-4">List of nip-05 compatible stores</h1>

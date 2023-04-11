@@ -113,7 +113,7 @@ export async function sendReaction(pool: SimplePool, noteId: string, notePubkey:
 
 // nip-45
 
-export function getStalls(pool: SimplePool, merchantPubkey: string, receivedCB: (e) => void) {
+export function getStalls(pool: SimplePool, merchantPubkey: string | null, receivedCB: (e) => void) {
     let filter: Filter = { kinds: [EVENT_KIND_STALL] };
 
     if (merchantPubkey) {
@@ -127,7 +127,7 @@ export function getStalls(pool: SimplePool, merchantPubkey: string, receivedCB: 
     })
 }
 
-export function subscribeProducts(pool: SimplePool, merchantPubkey: string, receivedCB: (e) => void) {
+export function subscribeProducts(pool: SimplePool, merchantPubkey: string | null, receivedCB: (e) => void) {
     let filter: Filter = { kinds: [EVENT_KIND_PRODUCT] };
 
     if (merchantPubkey) {
