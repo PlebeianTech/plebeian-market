@@ -5,6 +5,7 @@
     import { user, token, Info, Error } from "$lib/stores";
     import { ExternalAccountProvider } from "$lib/types/user";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
+    import Loading from "$lib/components/Loading.svelte";
 
     export let onSave: () => void = () => {};
 
@@ -143,5 +144,8 @@
                 </div>
             {/if}
         </div>
+    {/if}
+    {#if inRequest}
+        <Loading />
     {/if}
 {/if}
