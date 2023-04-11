@@ -106,7 +106,7 @@
         </div>
         <div class="w-full flex items-center justify-center mt-4 gap-5">
             {#if hasExtension()}
-                <button class="btn" class:btn-primary={nostrPublicKey === null} class:btn-secondary={nostrPublicKey !== null} on:click={getKeyFromExtension}>Get from extension</button>
+                <button class="btn" class:btn-primary={nostrPublicKey === null} class:btn-secondary={nostrPublicKey !== null} class:btn-disabled={inRequest} on:click={getKeyFromExtension}>Get from extension</button>
             {/if}
         </div>
 

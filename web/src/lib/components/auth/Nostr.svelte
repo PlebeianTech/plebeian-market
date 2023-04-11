@@ -6,6 +6,7 @@
     import { getKeyFromKeyOrNpub, hasExtension } from '$lib/nostr/utils';
     import { isDevelopment } from "$lib/utils";
     import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
+    import Loading from "$lib/components/Loading.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -26,6 +27,8 @@
         key = await (window as any).nostr.getPublicKey();
     }
 
+    let inRequest = false;
+
     function sendVerificationPhrase() {
         if (key === null) {
             return;
@@ -38,14 +41,17 @@
             return;
         }
 
+        inRequest = true;
         nostrAuth(behavior, cleanKey, null,
             () => {
+                inRequest = false;
                 Info.set("Sent the verification phrase!");
                 step = Step.SetVerificationPhrase;
-            });
+            },
+            (_) => inRequest = false,
+            new ErrorHandler(true, () => inRequest = false));
     }
 
-    let verifying = false;
     function verify() {
         if (key === null || verificationPhrase === null) {
             return;
@@ -58,10 +64,10 @@
             return;
         }
 
-        verifying = true;
-        nostrAuth(behavior, cleanKey, verificationPhrase, () => verifying = false,
+        inRequest = true;
+        nostrAuth(behavior, cleanKey, verificationPhrase, () => inRequest = false,
             async (response) => {
-                verifying = false;
+                inRequest = false;
                 token.set(response.token);
                 localStorage.setItem('token', response.token);
                 dispatch('login', {})
@@ -72,7 +78,7 @@
 
                 onLogin(response.user);
             },
-            new ErrorHandler(true, () => verifying = false));
+            new ErrorHandler(true, () => inRequest = false));
     }
 
     onMount(() => {
@@ -88,7 +94,7 @@
                     You are in dev mode!
                 </div>
                 <div slot="detail">
-                    Your verification phrase: "IDENTIFY AS MYSELF"!
+                    Your verification phrase: "IDENTIFYING AS MYSELF"!
                 </div>
             </ErrorBox>
         {/if}
@@ -103,12 +109,15 @@
             </div>
             <div class="w-full flex items-center justify-center mt-4 gap-5">
                 {#if key !== null && key !== ""}
-                    <button class="btn btn-primary" on:click={sendVerificationPhrase}>Continue</button>
+                    <button class="btn btn-primary" class:btn-disabled={inRequest} on:click={sendVerificationPhrase}>Continue</button>
                 {/if}
                 {#if hasExtension()}
-                    <button class="btn" class:btn-primary={key === null} class:btn-secondary={key !== null} on:click={getKeyFromExtension}>Get from extension</button>
+                    <button class="btn" class:btn-primary={key === null} class:btn-secondary={key !== null} class:btn-disabled={inRequest} on:click={getKeyFromExtension}>Get from extension</button>
                 {/if}
             </div>
+            {#if inRequest}
+                <Loading />
+            {/if}
         {:else if step === Step.SetVerificationPhrase}
             <div class="w-full flex items-center justify-center mt-4">
                 <div class="form-control w-full max-w-full">
@@ -119,10 +128,13 @@
                 </div>
             </div>
             <div class="w-full flex items-center justify-center mt-4 gap-5">
-                <button class="btn btn-primary" class:btn-disabled={verifying} on:click={verify}>Verify</button>
-                <button class="btn btn-secondary" on:click={() => step = Step.SetKey}>Back</button>
-                <button class="btn btn-secondary" on:click={sendVerificationPhrase}>Resend</button>
+                <button class="btn btn-primary" class:btn-disabled={inRequest} on:click={verify}>Verify</button>
+                <button class="btn btn-secondary" class:btn-disabled={inRequest} on:click={() => step = Step.SetKey}>Back</button>
+                <button class="btn btn-secondary" class:btn-disabled={inRequest} on:click={sendVerificationPhrase}>Resend</button>
             </div>
+            {#if inRequest}
+                <Loading />
+            {/if}
         {/if}
     </div>
 </div>

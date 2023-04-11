@@ -767,7 +767,7 @@ class MockNostr:
         pass
 
     def get_auth_verification_phrase(self, auth):
-        return "identify as myself"
+        return "identifying as myself"
 
     def get_verification_phrase(self, user):
         return "i am me"

@@ -162,7 +162,7 @@ class TestApi(unittest.TestCase):
         # now send the right one
         code, response = self.put(f"/api/{behavior}/nostr",
             {'key': key,
-             'verification_phrase': "identify as myself"})
+             'verification_phrase': "identifying as myself"})
 
         if expect_success:
             self.assertEqual(code, 200)
