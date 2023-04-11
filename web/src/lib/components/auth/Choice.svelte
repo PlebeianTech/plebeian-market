@@ -25,9 +25,7 @@
 <div class="w-full flex items-center justify-center mt-4">
     <div class="tabs tabs-boxed">
         <a class="tab tab-lg" class:tab-active={provider === Provider.Lnurl} href={null} on:click={() => provider = Provider.Lnurl}>Lightning</a>
-        {#if !isProduction()}
-            <a class="tab tab-lg" class:tab-active={provider === Provider.Nostr} href={null} on:click={() => provider = Provider.Nostr}>Nostr</a>
-        {/if}
+        <a class="tab tab-lg" class:tab-active={provider === Provider.Nostr} href={null} on:click={() => provider = Provider.Nostr}>Nostr</a>
     </div>
 </div>
 
