@@ -1,7 +1,3 @@
-<script>
-
-</script>
-
 <p class="mb-0 text-center">
     Scan with
     <a class="link" href="https://breez.technology/" target="_blank" rel="noreferrer">Breez</a> or

@@ -2,7 +2,6 @@
     import { createEventDispatcher, onMount } from "svelte";
     import LnurlAuth from "$lib/components/auth/Lnurl.svelte";
     import NostrAuth from "$lib/components/auth/Nostr.svelte";
-    import { isProduction } from "$lib/utils";
     import { AuthBehavior } from "$lib/stores";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
