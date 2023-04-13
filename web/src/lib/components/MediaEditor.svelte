@@ -19,17 +19,14 @@
 </script>
 
 <div class="form-control mr-2 mt-4 w-full flex flex-row">
-    {#if item.media.length !== 0}
-        <div class="w-1/2">
-            <h3 class="text-xl">Existing media</h3>
-            <Gallery photos={item.media} />
-        </div>
-    {/if}
     <div class="w-1/2">
-        {#if item.added_media.length !== 0}
-        <h3 class="text-xl">Added media</h3>
-            <Gallery photos={item.added_media} />
-        {:else if item.media.length === 0}
+        {#if item.media.length !== 0 || item.added_media.length !== 0}
+            <h3 class="text-xl">Media</h3>
+            <Gallery photos={item.media.concat(item.added_media)} />
+        {/if}
+    </div>
+    <div class="w-1/2">
+        {#if item.media.length === 0 && item.added_media.length === 0}
             <p class="text-xl">Add some pictures...</p>
         {/if}
         {#if item.media.length + item.added_media.length < MAX_MEDIA_COUNT}
