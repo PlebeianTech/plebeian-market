@@ -88,11 +88,9 @@
     <div class="card bg-base-300 max-w-full overflow-hidden shadow-xl my-3 mx-3">
         <a href={url}>
             <figure class="h-auto flex justify-center">
-                {#each item.media as photo, i}
-                    {#if i === 0}
-                        <img class="object-contain" src={photo.url} alt="Item" />
-                    {/if}
-                {/each}
+                {#if item.media.length !== 0}
+                    <img class="object-contain" src={item.media[0].url} alt="Item" />
+                {/if}
             </figure>
         </a>
         <div class="card-body">
