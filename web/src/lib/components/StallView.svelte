@@ -75,7 +75,7 @@
                     goto(`/auctions/${key}`);
                 });
         } else {
-            Info.set("Auction not running!");
+            Info.set("Now hit Publish!");
         }
     }
 
@@ -92,7 +92,7 @@
 
         postMedia($token, listing.endpoint, key, listing.added_media, () => {});
 
-        Info.set("Your listing will become active after we verify your tweet!");
+        Info.set("Now hit Publish!");
     }
 
     function onForceReload() {
