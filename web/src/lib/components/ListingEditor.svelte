@@ -6,6 +6,7 @@
     import type { Listing } from "$lib/types/listing";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
+    import MediaEditor from "$lib/components/MediaEditor.svelte";
     import ShippingEditor from "$lib/components/ShippingEditor.svelte";
 
     export let entity: IEntity;
@@ -65,6 +66,7 @@
                         bind:shipping_domestic_usd={listing.shipping_domestic_usd}
                         bind:shipping_worldwide_usd={listing.shipping_worldwide_usd} />
                 {/if}
+                <MediaEditor item={listing} />
             </form>
             <div class="w-full flex justify-center items-center mt-2">
                 <div class="w-1/2 flex justify-center items-center">

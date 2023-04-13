@@ -734,17 +734,12 @@ def post_media(key, cls, singular):
     last_index = max([media.index for media in entity.item.media], default=0)
     index = last_index + 1
 
-    f = request.files.get('media')
-    if not f:
-        return jsonify({'message': "No media file attached."}), 400
-
-    original_filename = f.filename
-    data = f.read()
-
-    media = m.Media(item_id=entity.item_id, index=index)
-    if not media.store(get_s3(), f"{singular}_{entity.key}_media_{index}", original_filename, data):
-        return jsonify({'message': "Error fetching picture!"}), 400
-    db.session.add(media)
+    for f in request.files.values():
+        media = m.Media(item_id=entity.item_id, index=index)
+        if not media.store(get_s3(), f"{singular}_{entity.key}_media_{index}", f.filename, f.read()):
+            return jsonify({'message': "Error saving picture!"}), 400
+        db.session.add(media)
+        index += 1
     db.session.commit()
 
     return jsonify({'media': media.to_dict()})
@@ -808,62 +803,22 @@ def follow_auction(user, key):
     return jsonify({'message': message})
 
 @api_blueprint.route('/api/auctions/<key>/publish',
-    defaults={'cls': m.Auction, 'singular': 'auction', 'plural': 'auctions'},
+    defaults={'cls': m.Auction},
     methods=['PUT'])
 @api_blueprint.route('/api/listings/<key>/publish',
-    defaults={'cls': m.Listing, 'singular': 'listing', 'plural': 'listings'},
+    defaults={'cls': m.Listing},
     methods=['PUT'])
 @user_required
-def publish(user, key, cls, singular, plural):
+def put_publish(user, key, cls):
     entity = cls.query.filter_by(key=key).first()
     if not entity:
         return jsonify({'message': "Not found."}), 404
 
     if entity.item.seller_id != user.id:
-        return jsonify({'message': "Unauthorized"}), 401
+        return jsonify({'message': "Unauthorized."}), 401
 
     if not entity.campaign and not user.wallet:
-        return jsonify({'message': "User did not configure his wallet."}), 400
-
-    if request.json.get('twitter'):
-        twitter = get_twitter()
-
-        twitter_user = twitter.get_user(user.twitter_username)
-        if not twitter_user:
-            return jsonify({'message': "Twitter profile not found!"}), 400
-
-        if not user.fetch_external_profile_image(twitter_user['profile_image_url'], get_s3()):
-            return jsonify({'message': "Error fetching profile picture!"}), 500
-
-        if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
-            return jsonify({'message': "Error fetching profile banner!"}), 500
-
-        tweets = twitter.get_sale_tweets(twitter_user['id'], plural)
-        tweet = None
-        for t in sorted(tweets, key=lambda t: t['created_at'], reverse=True):
-            # we basically pick the last tweet that matches the auction
-            if t['auction_key'] == entity.key:
-                tweet = t
-                break
-
-        if not tweet:
-            return jsonify({'message': "Tweet not found."}), 400
-
-        if entity.item.category != m.Category.Time.value:
-            if not tweet['photos']:
-                return jsonify({'message': "Tweet does not have any attached pictures."}), 400
-
-            m.Media.query.filter_by(item_id=entity.item.id).delete()
-
-            s3 = get_s3()
-            for i, photo in enumerate(tweet['photos'], 1):
-                media = m.Media(item_id=entity.item.id, index=i, twitter_media_key=photo['media_key'])
-                if not media.store(s3, f"{singular}_{entity.key}_media_{i}", photo['url'], None):
-                    return jsonify({'message': "Error fetching picture!"}), 400
-                db.session.add(media)
-
-        user.twitter_username_verified = True
-        entity.twitter_id = tweet['id']
+        return jsonify({'message': "Wallet not configured."}), 400
 
     entity.start_date = datetime.utcnow()
 

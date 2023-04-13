@@ -6,7 +6,7 @@
     import StallView from "$lib/components/StallView.svelte";
     import { Campaign, fromJson } from "$lib/types/campaign";
     import { getItem, ErrorHandler } from "$lib/services/api";
-    import { token, user } from "$lib/stores";
+    import { token } from "$lib/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { page } from "$app/stores";
     import { getShortTitle, getShortDescription } from "$lib/utils";

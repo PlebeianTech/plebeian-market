@@ -1,5 +1,5 @@
 import type { IEntity } from "$lib/types/base";
-import { Category, type Item, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
+import { Category, type Item, type AddedMedia, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
@@ -25,6 +25,7 @@ export class Listing implements IEntity, Item {
     ended: boolean = false;
     sales: Sale[] = [];
     media: Media[] = [];
+    added_media: AddedMedia[] = [];
     campaign_key: string | null = null;
     campaign_name: string | null = null;
     is_mine: boolean = true;

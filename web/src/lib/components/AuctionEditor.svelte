@@ -7,6 +7,7 @@
     import { isProduction } from "$lib/utils";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
+    import MediaEditor from "$lib/components/MediaEditor.svelte";
     import ShippingEditor from "$lib/components/ShippingEditor.svelte";
 
     export let entity: IEntity;
@@ -129,6 +130,7 @@
                         </div>
                     </div>
                 {/if} <!-- /duration -->
+                <MediaEditor item={auction} />
             </form>
             <div class="w-full flex justify-center items-center mt-2">
                 <div class="w-1/2 flex justify-center items-center">

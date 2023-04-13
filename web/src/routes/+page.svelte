@@ -7,7 +7,7 @@
     import { ErrorHandler, getEntities } from "$lib/services/api";
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
-    import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
+    import ItemCard from "$lib/components/ItemCard.svelte";
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
@@ -67,7 +67,7 @@
 <div class="lg:w-2/3 mx-auto w-full lg:columns-3 space-y-2 py-4">
     {#each items as item}
         <div class="h-auto my-3 self-center">
-            <ItemCardSmall entity={item} showCampaign={true} showOwner={true} />
+            <ItemCard entity={item} showCampaign={true} showOwner={true} showHide={true} />
         </div>
     {/each}
 </div>
