@@ -846,8 +846,8 @@ def post_bid(user, key):
         # TODO: should we change integer to bigint in the models?
         return jsonify({'message': "Max bidding: 21 BTC!"}), 400
 
-    if not user.twitter_username_verified:
-        return jsonify({'message': "Please verify your Twitter account before bidding!"}), 400
+    if not user.twitter_username_verified and not user.nostr_public_key_verified:
+        return jsonify({'message': "Please verify your Nostr or Twitter account before bidding!"}), 400
 
     top_bid = auction.get_top_bid()
     if top_bid and amount <= top_bid.amount:

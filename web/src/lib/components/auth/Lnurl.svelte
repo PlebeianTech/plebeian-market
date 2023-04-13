@@ -43,7 +43,9 @@
                 localStorage.setItem('token', response.token);
                 dispatch('login', {})
 
-                Info.set("¡Hello, you're so early!");
+                if (behavior !== AuthBehavior.Signup) {
+                    Info.set("¡Hello, you're so early!");
+                }
 
                 while ($user === null) {
                     await new Promise(resolve => setTimeout(resolve, 100));
