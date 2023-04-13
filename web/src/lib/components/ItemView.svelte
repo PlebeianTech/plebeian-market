@@ -147,7 +147,7 @@
         {#if $user && item.is_mine && !item.started}
             <div class="mt-12 lg:w-2/3 mx-auto">
                 <ErrorBox>
-                    <span>Your sale is not active. Please go to <a class="link" href="/stall/{$user.nym}#item-{item.key}">My stall</a> and click Start!</span>
+                    <span>Your sale is not active. Please go to <a class="link" href="/stall/{$user.nym}#item-{item.key}">My stall</a> and click Publish!</span>
                 </ErrorBox>
             </div>
         {/if}

@@ -1,10 +1,11 @@
+import { error } from '@sveltejs/kit';
 import { Error as ErrorStore, AuthRequired, AuthBehavior } from "$lib/stores";
 import type { IEntity } from "$lib/types/base";
-import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
+import type { AddedMedia } from "$lib/types/item";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
+import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { ExternalAccountProvider, type User, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl, logout } from "$lib/utils";
-import { error } from '@sveltejs/kit';
 
 export class ErrorHandler {
     setError: boolean;
@@ -24,25 +25,25 @@ export class ErrorHandler {
     }
 }
 
-function getFetchOptions(method, tokenValue, json) {
+function getFetchOptions(method: string, tokenValue: string | null, body: any | null, contentType: string | null) {
     var headers = {};
     if (tokenValue) {
         headers['X-Access-Token'] = tokenValue;
     }
-    if (json) {
-        headers['Content-Type'] = 'application/json';
+    if (contentType) {
+        headers['Content-Type'] = contentType;
     }
     var fetchOptions = {method, headers};
-    if (json) {
-        fetchOptions['body'] = json;
+    if (body) {
+        fetchOptions['body'] = body;
     }
     return fetchOptions;
 }
 
-function fetchAPI(path, method, tokenValue, json, checkResponse) {
+function fetchAPI(path, method, tokenValue, body, contentType, checkResponse) {
     var API_BASE = `${getApiBaseUrl()}api`;
 
-    fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, json)).then(
+    fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, body, contentType)).then(
         (response) => {
             if (response.status === 401) {
                 if (tokenValue) {
@@ -58,10 +59,10 @@ function fetchAPI(path, method, tokenValue, json, checkResponse) {
     );
 }
 
-async function fetchAPIAsync(path, method, tokenValue, json) {
+async function fetchAPIAsync(path, method, tokenValue, body, contentType) {
     var API_BASE = `${getApiBaseUrl()}api`;
 
-    return await fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, json));
+    return await fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, body, contentType));
 }
 
 export interface ILoader {
@@ -71,7 +72,7 @@ export interface ILoader {
 }
 
 export function getEntities(loader: ILoader, tokenValue, successCB: (entities: IEntity[]) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${loader.endpoint}`, 'GET', tokenValue, null,
+    fetchAPI(`/${loader.endpoint}`, 'GET', tokenValue, null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -84,7 +85,7 @@ export function getEntities(loader: ILoader, tokenValue, successCB: (entities: I
 }
 
 export async function getEntitiesAsync(loader: ILoader, tokenValue) {
-    const response = await fetchAPIAsync(`/${loader.endpoint}`, 'GET', tokenValue, null);
+    const response = await fetchAPIAsync(`/${loader.endpoint}`, 'GET', tokenValue, null, null);
     const data = await response.json();
     if (response.status === 200) {
         return data[loader.responseField].map(loader.fromJson);
@@ -94,7 +95,7 @@ export async function getEntitiesAsync(loader: ILoader, tokenValue) {
 }
 
 export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (key: string) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}`, 'POST', tokenValue, entity.toJson(),
+    fetchAPI(`/${endpoint}`, 'POST', tokenValue, entity.toJson(), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -106,8 +107,24 @@ export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (ke
         });
 }
 
+export function postMedia(tokenValue, entityEndpoint, entityKey, media: AddedMedia[], successCB: () => void, errorHandler = new ErrorHandler()) {
+    const data = new FormData();
+    for (const [i, m] of media.entries()) {
+        data.append(`file${i}`, m.file);
+    }
+    fetchAPI(`/${entityEndpoint}/${entityKey}/media`, "POST", tokenValue, data, null,
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                errorHandler.handle(response);
+            }
+        }
+    );
+}
+
 export async function postEntityAsync(endpoint, tokenValue, entity: IEntity) {
-    const response = await fetchAPIAsync(`/${endpoint}`, 'POST', tokenValue, entity.toJson());
+    const response = await fetchAPIAsync(`/${endpoint}`, 'POST', tokenValue, entity.toJson(), "application/json");
     const data = await response.json();
     if (response.status === 200) {
         return data.key;
@@ -117,7 +134,7 @@ export async function postEntityAsync(endpoint, tokenValue, entity: IEntity) {
 }
 
 export function putEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${entity.endpoint}/${entity.key}`, 'PUT', tokenValue, entity.toJson(),
+    fetchAPI(`/${entity.endpoint}/${entity.key}`, 'PUT', tokenValue, entity.toJson(), "application/json",
         response => {
             if (response.status === 200) {
                 successCB();
@@ -133,7 +150,7 @@ interface GetLoginSuccessResponse {
 }
 
 export function lnurlAuth(behavior: AuthBehavior, k1, initialResponseCB: (response: {k1: string, lnurl: string, qr: string}) => void, waitResponseCB: () => void, successResponseCB: (response: GetLoginSuccessResponse) => void, expiredCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${behavior}/lnurl` + (k1 ? `?k1=${k1}` : ""), 'GET', null, null,
+    fetchAPI(`/${behavior}/lnurl` + (k1 ? `?k1=${k1}` : ""), 'GET', null, null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(
@@ -166,7 +183,7 @@ export function nostrAuth(behavior: AuthBehavior, key: string, verificationPhras
     } else {
         params.send_verification_phrase = true;
     }
-    fetchAPI(`/${behavior}/nostr`, 'PUT', null, JSON.stringify(params),
+    fetchAPI(`/${behavior}/nostr`, 'PUT', null, JSON.stringify(params), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(
@@ -186,7 +203,7 @@ export function nostrAuth(behavior: AuthBehavior, key: string, verificationPhras
 }
 
 export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string, entity_key: string}[], listingAvatars: {url: string, entity_key: string}[]) => void) {
-    fetchAPI(`/campaigns/${campaignKey}/avatars/featured`, 'GET', null, null,
+    fetchAPI(`/campaigns/${campaignKey}/avatars/featured`, 'GET', null, null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -198,7 +215,7 @@ export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvata
 }
 
 export function getProfile(tokenValue, nym: string, successCB: (User) => void, errorHandler = new ErrorHandler(false)) {
-    fetchAPI(`/users/${nym}`, 'GET', tokenValue, null,
+    fetchAPI(`/users/${nym}`, 'GET', tokenValue, null, null,
         (response) => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -239,7 +256,7 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, nostr
     if (profile.nostr_private_key !== undefined) {
         json.nostr_private_key = profile.nostr_private_key;
     }
-    fetchAPI("/users/me", 'PUT', tokenValue, JSON.stringify(json),
+    fetchAPI("/users/me", 'PUT', tokenValue, JSON.stringify(json), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -252,7 +269,7 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, nostr
 }
 
 export function getUserNotifications(tokenValue, successCB: (notifications: UserNotification[]) => void) {
-    fetchAPI("/users/me/notifications", 'GET', tokenValue, null,
+    fetchAPI("/users/me/notifications", 'GET', tokenValue, null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -264,7 +281,7 @@ export function getUserNotifications(tokenValue, successCB: (notifications: User
 
 export function putUserNotifications(tokenValue, notifications: PostUserNotification[], successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/users/me/notifications", 'PUT', tokenValue,
-        JSON.stringify({'notifications': notifications.map(n => n.toJson())}),
+        JSON.stringify({'notifications': notifications.map(n => n.toJson())}), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(successCB);
@@ -282,7 +299,7 @@ export function putVerify(tokenValue, accountProvider: ExternalAccountProvider, 
         payload['phrase'] = phrase;
     }
     fetchAPI(`/users/me/verify/${accountProvider}`, 'PUT', tokenValue,
-        JSON.stringify(payload),
+        JSON.stringify(payload), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(_ => {
@@ -299,7 +316,7 @@ export function putVerifyLnurl(tokenValue, k1, initialResponseCB: (response: {k1
     if (k1) {
         payload['k1'] = k1;
     }
-    fetchAPI("/users/me/verify/lnurl", 'PUT', tokenValue, JSON.stringify(payload),
+    fetchAPI("/users/me/verify/lnurl", 'PUT', tokenValue, JSON.stringify(payload), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(
@@ -320,7 +337,7 @@ export function putVerifyLnurl(tokenValue, k1, initialResponseCB: (response: {k1
 }
 
 export function getItem(loader: ILoader, tokenValue, key, successCB: (item) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${loader.endpoint}/${key}`, 'GET', tokenValue, null,
+    fetchAPI(`/${loader.endpoint}/${key}`, 'GET', tokenValue, null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(loader.fromJson(data[loader.responseField])); });
@@ -331,7 +348,7 @@ export function getItem(loader: ILoader, tokenValue, key, successCB: (item) => v
 }
 
 export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean, successCB: (message: string) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}/follow`, 'PUT', tokenValue, JSON.stringify({follow}),
+    fetchAPI(`/auctions/${auctionKey}/follow`, 'PUT', tokenValue, JSON.stringify({follow}), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(data.message); });
@@ -341,8 +358,8 @@ export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean
         });
 }
 
-export function publish(tokenValue, endpoint, key, useTwitter: boolean, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}/${key}/publish`, 'PUT', tokenValue, JSON.stringify({twitter: useTwitter}),
+export function putPublish(tokenValue, endpoint, key, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${endpoint}/${key}/publish`, 'PUT', tokenValue, null, null,
         response => {
             if (response.status === 200) {
                 successCB();
@@ -354,7 +371,7 @@ export function publish(tokenValue, endpoint, key, useTwitter: boolean, successC
 }
 
 export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null,
+    fetchAPI(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null, null,
         response => {
             if (response.status === 200) {
                 successCB();
@@ -365,7 +382,7 @@ export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void,
 }
 
 export async function deleteEntityAsync(tokenValue, entity: IEntity) {
-    const response = await fetchAPIAsync(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null);
+    const response = await fetchAPIAsync(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null, null);
     const data = await response.json();
     if (response.status === 200) {
         return true;
@@ -376,7 +393,7 @@ export async function deleteEntityAsync(tokenValue, entity: IEntity) {
 
 export function hideAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}`, 'PUT', tokenValue,
-        JSON.stringify({"is_hidden": true}),
+        JSON.stringify({"is_hidden": true}), "application/json",
         response => {
             if (response.status === 200) {
                 successCB();
@@ -388,7 +405,7 @@ export function hideAuction(tokenValue, auctionKey, successCB: () => void, error
 
 export function postBid(tokenValue, auctionKey, amount, skip_invoice, successCB: (paymentRequest, paymentQr, messages: string[]) => void, badgeRequiredCB: (badge: number) => void = (_) => {}, errorHandler = new ErrorHandler()) {
     fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
-        JSON.stringify({amount, skip_invoice}),
+        JSON.stringify({amount, skip_invoice}), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -406,7 +423,7 @@ export function postBid(tokenValue, auctionKey, amount, skip_invoice, successCB:
 
 export function buyBadge(tokenValue, badge, campaignKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/badges/${badge}/buy`, 'PUT', tokenValue,
-        JSON.stringify({campaign_key: campaignKey}),
+        JSON.stringify({campaign_key: campaignKey}), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(saleFromJson(data.sale)); });
@@ -418,7 +435,7 @@ export function buyBadge(tokenValue, badge, campaignKey, successCB: (sale: Sale)
 
 export function buyListing(tokenValue, listingKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/listings/${listingKey}/buy`, 'PUT', tokenValue,
-        JSON.stringify({}),
+        JSON.stringify({}), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => { successCB(saleFromJson(data.sale)); });

@@ -811,7 +811,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
 
-    # in the case of Twitter-based auctions, start_date is only set after the tweet is published and the auction starts
+    # this is set on "publish"
     start_date = db.Column(db.DateTime, nullable=True)
 
     @property

@@ -10,7 +10,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { type ILoader, getEntities, postEntity, putEntity } from "$lib/services/api";
     import { token } from "$lib/stores";
-    import type { IEntity } from '$lib/types/base';
+    import type { IEntity } from "$lib/types/base";
     import Loading from "$lib/components/Loading.svelte";
 
     export let loader: ILoader;
@@ -23,7 +23,8 @@
 
     export let columns: string[] = [];
 
-    export let onCreated: (key: string, entity: IEntity) => void = () => { };
+    export let onSave: (key: string, entity: IEntity) => void = () => { };
+
     export let onForceReload = () => {};
 
     let currentEntity: IEntity | undefined;
@@ -51,12 +52,13 @@
         if (currentEntity.key !== "") {
             putEntity($token, currentEntity,
                 () => {
+                    onSave(currentEntity!.key, currentEntity!);
                     fetchEntities(() => { currentEntity = undefined; })
                 });
         } else {
             postEntity(postEndpoint, $token, currentEntity,
                 (key) => {
-                    onCreated(key, currentEntity!);
+                    onSave(key, currentEntity!);
                     fetchEntities(() => { currentEntity = undefined; });
                 });
         }

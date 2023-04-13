@@ -5,10 +5,9 @@
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import BadgeSVG from "$lib/components/BadgeSVG.svelte";
     import ItemCard from "$lib/components/ItemCard.svelte";
-    import ItemCardSmall from "$lib/components/ItemCardSmall.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
-    import { publish, getFeaturedAvatars } from "$lib/services/api";
+    import { putPublish, getFeaturedAvatars, postMedia } from "$lib/services/api";
     import { Info, token, user, AuthRequired } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, TimeAuction, fromJson as auctionFromJson } from "$lib/types/auction";
@@ -56,7 +55,7 @@
         nostrRoomId = getChannelIdForStallOwner(owner);
     }
 
-    function onAuctionCreated(key: string, entity: IEntity) {
+    function onAuctionSave(key: string, entity: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
             if (isOwnStall) {
@@ -64,19 +63,23 @@
             }
             return u;
         });
+
         let auction = entity as Auction;
+
+        postMedia($token, auction.endpoint, key, auction.added_media, () => {});
+
         if (auction.category === Category.Time) {
-            publish($token, auction.endpoint, key, false,
+            putPublish($token, auction.endpoint, key,
                 () => {
                     onForceReload();
                     goto(`/auctions/${key}`);
                 });
         } else {
-            Info.set("Your auction will start when we verify your tweet!");
+            Info.set("Auction not running!");
         }
     }
 
-    function onListingCreated(_: string, __: IEntity) {
+    function onListingSave(key: string, entity: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
             if (isOwnStall) {
@@ -84,6 +87,11 @@
             }
             return u;
         });
+
+        let listing = entity as Listing;
+
+        postMedia($token, listing.endpoint, key, listing.added_media, () => {});
+
         Info.set("Your listing will become active after we verify your tweet!");
     }
 
@@ -139,105 +147,101 @@
 </script>
 
 {#if isCampaignStall}
-  <!-- HERO SECTION STATIC CONTENT -->
-  <div class="bg-fixed bg-no-repeat bg-cover bg-bottom" style="background-image: url('{Spaceship}')">
-    <!-- FILTER -->
-    <div class="bg-gradient-to-b from-pink-700/90 to-pink-500/40">
-      <!-- HERO -->
-      <div class="lg:w-2/3 mx-auto grid lg:grid-cols-2 gap-4">
-        <!-- COL -->
-        <div class="mt-20 p-4">
-          <!-- FULL WIDTH BANNER -->
-          <!-- <img src={BannerImg} alt=""> -->
-          <h1 class="lg:text-7xl text-4xl font-bold text-white lg:text-left text-center">{title}</h1>
+    <!-- HERO SECTION STATIC CONTENT -->
+    <div class="bg-fixed bg-no-repeat bg-cover bg-bottom" style="background-image: url('{Spaceship}')">
+        <!-- FILTER -->
+        <div class="bg-gradient-to-b from-pink-700/90 to-pink-500/40">
+            <!-- HERO -->
+            <div class="lg:w-2/3 mx-auto grid lg:grid-cols-2 gap-4">
+            <!-- COL -->
+            <div class="mt-20 p-4">
+                <!-- FULL WIDTH BANNER -->
+                <!-- <img src={BannerImg} alt=""> -->
+                <h1 class="lg:text-7xl text-4xl font-bold text-white lg:text-left text-center">{title}</h1>
 
-          <!-- BUTTONS -->
-          <div class="lg:w-2/3 grid place-items-center">
-            <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-primary uppercase font-bold my-8 w-full">Auction 1-hour of your time</a>
-            <p class="text-3xl mb-3 font-bold">OR</p>
-            <div class="mb-8 w-full grid grid-cols-2 gap-4">
-                <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Auction Item</a>
-                <a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="grid place-items-center">
-          <img src={Faketoshi} alt="Faketoshi being kicked">
-        </div>
-        </div>
-    </div>
-  </div>
-
-  <!-- <CampaignStats /> -->
-{:else}
- <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
- <div class="mx-auto relative lg:mb-0 mb-6">
-  <div class="absolute inset-x-0 lg:bottom-20 m-auto left-0 right-0 lg:w-2/3 mx-auto z-40">
-    <div class="grid lg:grid-cols-2 gap-4">
-      <!-- COL1 -->
-      <div class="lg:flex space-x-8 items-center w-full">
-        <div class="grid lg:place-items-start place-items-center">
-          <div class="grid place-items-center my-4">
-            {#if owner}
-                <Avatar account={owner} size={AvatarSize.M}  />
-            {/if}
-          </div>
-          <h2 class="lg:text-5xl text-4xl font-bold">{title}</h2>
-          {#if description}
-              <div class="markdown-container leading-8 my-2 lg:text-left text-center p-1">
-                  <SvelteMarkdown source={description} />
-              </div>
-          {/if}
-
-          <!-- TELEGRAM AND TWITTER -->
-          <div>
-            <ExternalLinks {owner} />
-          </div>
-
-          <!-- BADGES -->
-          <div class="grid lg:place-items-start place-items-center my-4 w-full">
-            {#if badges.length !== 0}
-                <h2 class="text-sm uppercase font-bold text-center my-4">Badges</h2>
-                <div class="flex gap-2">
-                    {#each badges as badge}
-                        <BadgeSVG {badge} />
-                    {/each}
+                <!-- BUTTONS -->
+                <div class="lg:w-2/3 grid place-items-center">
+                <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-primary uppercase font-bold my-8 w-full">Auction 1-hour of your time</a>
+                <p class="text-3xl mb-3 font-bold">OR</p>
+                <div class="mb-8 w-full grid grid-cols-2 gap-4">
+                    <a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Auction Item</a>
+                    <a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView} class="btn btn-outline text-white uppercase font-bold my-4">Fixed Price</a>
                 </div>
-            {/if}
-          </div>
+                </div>
 
-        </div>
-      </div>
-      <!-- COL2 -->
-      <div class="grid lg:place-items-end place-items-center">
-        <div>
-          <!-- ADD NEW -->
-          <div class="dropdown">
-            <label tabindex="0" class="btn btn-primary m-1">Add New
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-            </label>
-            <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+            </div>
 
-              <li><a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView}>Auction Item</a></li>
-              <li><a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView}>Sell Item</a></li>
-            </ul>
-          </div>
-          {#if editUrl}
-              <a href={editUrl} class="btn btn-outline text-sm uppercase font-bold my-2">Edit Page</a>
-          {/if}
+            <div class="grid place-items-center">
+                <img src={Faketoshi} alt="Faketoshi being kicked">
+            </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  <!-- BG IMAGE -->
-  <div id="stallHeroImageHeight" class="lg:h-1/2 h-screen w-full inline-block relative after:pt-[33.33%] after:block after:content-['']">
-        <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover opacity-20" style="background-image: url('{bannerUrl}')"></div>
+{:else}
+    <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
+    <div class="mx-auto relative lg:mb-0 mb-6">
+        <div class="absolute inset-x-0 lg:bottom-20 m-auto left-0 right-0 lg:w-2/3 mx-auto z-40">
+            <div class="grid lg:grid-cols-2 gap-4">
+                <!-- COL1 -->
+                <div class="lg:flex space-x-8 items-center w-full">
+                    <div class="grid lg:place-items-start place-items-center">
+                        <div class="grid place-items-center my-4">
+                        {#if owner}
+                            <Avatar account={owner} size={AvatarSize.M}  />
+                        {/if}
+                        </div>
+                        <h2 class="lg:text-5xl text-4xl font-bold">{title}</h2>
+                        {#if description}
+                            <div class="markdown-container leading-8 my-2 lg:text-left text-center p-1">
+                                <SvelteMarkdown source={description} />
+                            </div>
+                        {/if}
+
+                        <!-- TELEGRAM AND TWITTER -->
+                        <div>
+                            <ExternalLinks {owner} />
+                        </div>
+
+                        <!-- BADGES -->
+                        <div class="grid lg:place-items-start place-items-center my-4 w-full">
+                        {#if badges.length !== 0}
+                            <h2 class="text-sm uppercase font-bold text-center my-4">Badges</h2>
+                            <div class="flex gap-2">
+                                {#each badges as badge}
+                                    <BadgeSVG {badge} />
+                                {/each}
+                            </div>
+                        {/if}
+                        </div>
+                    </div>
+                </div>
+                <!-- COL2 -->
+                <div class="grid lg:place-items-end place-items-center">
+                <div>
+                    <!-- ADD NEW -->
+                    <div class="dropdown">
+                    <label tabindex="0" class="btn btn-primary m-1">Add New
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </label>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                        <li><a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView}>Auction Item</a></li>
+                        <li><a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView}>Sell Item</a></li>
+                    </ul>
+                    </div>
+                    {#if editUrl}
+                        <a href={editUrl} class="btn btn-outline text-sm uppercase font-bold my-2">Edit Page</a>
+                    {/if}
+                </div>
+                </div>
+            </div>
+        </div>
+        <!-- BG IMAGE -->
+        <div id="stallHeroImageHeight" class="lg:h-1/2 h-screen w-full inline-block relative after:pt-[33.33%] after:block after:content-['']">
+            <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover opacity-20" style="background-image: url('{bannerUrl}')"></div>
+        </div>
     </div>
-</div>
 {/if}
 
 {#if isCampaignStall}
@@ -291,31 +295,24 @@
                     bind:this={auctionsLists['new']}
                     loader={{endpoint: `${baseUrl}/auctions?filter=new`, responseField: 'auctions', fromJson: auctionFromJson}}
                     postEndpoint={`${baseUrl}/auctions`}
-                    onCreated={onAuctionCreated}
+                    onSave={onAuctionSave}
                     {onForceReload}
                     editor={AuctionEditor}
                     {showItemsOwner} {showItemsCampaign}
                     card={ItemCard}
-                    style={ListViewStyle.List}>
+                    style={ListViewStyle.Grid}>
                     <div slot="new-entity" class="lg:flex items-center lg:justify-start justify-center my-4 lg:space-x-4 lg:space-y-0 space-y-2" let:setCurrent={setCurrent}>
                         {#if isCampaignStall}
-                            <div id="auction-hour-1" class="" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new TimeAuction())}>
-                              <div class="grid place-items-center">
-                                <!-- <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-24 h-24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg> -->
-                                <button class="btn btn-primary font-bold text-center w-52">1 Hour of your time</button>
-                              </div>
+                            <div id="auction-hour-1">
+                                <div class="grid place-items-center">
+                                    <button class="btn btn-primary font-bold text-center w-52" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new TimeAuction())}>1 Hour of your time</button>
+                                </div>
                             </div>
                         {/if}
-
-                        <div id="anchorIdAuctionItem" class="grid lg:place-items-start place-items-center w-full" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Auction())}>
-                          <div class="w-full flex lg:justify-start justify-center">
-                            <!-- <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-24 h-24">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
-                            </svg> -->
-                            <button class="btn btn-secondary font-bold text-center w-48">Auction Item</button>
-                          </div>
+                        <div id="anchorIdAuctionItem" class="grid lg:place-items-start place-items-center w-full">
+                            <div class="w-full flex lg:justify-start justify-center">
+                                <button class="btn btn-secondary font-bold text-center w-48" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Auction())}>Auction Item</button>
+                            </div>
                         </div>
                     </div>
                 </ListView>
@@ -331,10 +328,11 @@
                         <ListView
                             bind:this={auctionsLists[filter]}
                             loader={{endpoint: `${baseUrl}/auctions?filter=${filter}`, responseField: 'auctions', fromJson: auctionFromJson}}
+                            onSave={onAuctionSave}
                             {onForceReload}
                             editor={canAddItems ? AuctionEditor : null}
                             {showItemsOwner} {showItemsCampaign}
-                            card={ItemCardSmall}
+                            card={ItemCard}
                             style={ListViewStyle.Grid} />
                     </div>
                 {/each}
@@ -348,20 +346,15 @@
                     bind:this={listingsLists['new']}
                     loader={{endpoint: `${baseUrl}/listings?filter=new`, responseField: 'listings', fromJson: listingFromJson}}
                     postEndpoint={`${baseUrl}/listings`}
-                    onCreated={onListingCreated}
+                    onSave={onListingSave}
                     {onForceReload}
                     editor={ListingEditor}
                     {showItemsOwner} {showItemsCampaign}
                     card={ItemCard}
-                    style={ListViewStyle.List}>
+                    style={ListViewStyle.Grid}>
                     <div slot="new-entity" class="flex justify-start" let:setCurrent={setCurrent}>
-                        <div class="w-full flex lg:justify-start justify-center" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Listing())}>
-                          <!-- <div class="w-20 my-8">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v16.5M2.25 12h19.5M6.375 17.25a4.875 4.875 0 004.875-4.875V12m6.375 5.25a4.875 4.875 0 01-4.875-4.875V12m-9 8.25h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v13.5a1.5 1.5 0 001.5 1.5zm12.621-9.44c-1.409 1.41-4.242 1.061-4.242 1.061s-.349-2.833 1.06-4.242a2.25 2.25 0 013.182 3.182zM10.773 7.63c1.409 1.409 1.06 4.242 1.06 4.242S9 12.22 7.592 10.811a2.25 2.25 0 113.182-3.182z" />
-                            </svg>
-                          </div> -->
-                          <p class="btn btn-secondary font-bold text-center w-48 my-4">Sell Item</p>
+                        <div class="w-full flex lg:justify-start justify-center">
+                            <button class="btn btn-secondary font-bold text-center w-48 my-4" on:click|preventDefault={() => loginAndNewItem(setCurrent, () => new Listing())}>Sell Item</button>
                         </div>
                     </div>
                 </ListView>
@@ -377,10 +370,11 @@
                         <ListView
                             bind:this={listingsLists[filter]}
                             loader={{endpoint: `${baseUrl}/listings?filter=${filter}`, responseField: 'listings', fromJson: listingFromJson}}
+                            onSave={onListingSave}
                             {onForceReload}
                             editor={canAddItems ? ListingEditor : null}
                             {showItemsOwner} {showItemsCampaign}
-                            card={ItemCardSmall}
+                            card={ItemCard}
                             style={ListViewStyle.Grid} />
                     </div>
                 {/each}
@@ -390,16 +384,11 @@
 
     <!-- NOSTR -->
     {#if !isCampaignStall}
-        <!--
-        <div class="lg:w-3/6 max-h-96 lg:max-h-screen overflow-auto lg:overflow-y-hidden my-8 grid place-items-top top-20 lg:px-0 px-2">
-        -->
         <div class="lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden my-2 grid place-items-top top-20 lg:px-0 px-2" id="stallChatContainerDiv">
             <h3 class="text-2xl lg:text-4xl fontbold mt-0 lg:mt-8 mb-2">Stall Chat</h3>
 
             {#if nostrRoomId !== null}
-                <NostrChat
-                    messageLimit={500}
-                    {nostrRoomId} />
+                <NostrChat messageLimit={500} {nostrRoomId} />
             {/if}
         </div>
     {/if}

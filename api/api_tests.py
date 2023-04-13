@@ -518,7 +518,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['wallet_index'], 0)
 
         # start the listing
-        code, response = self.put(f"/api/listings/{listing_key}/publish", {'twitter': True},
+        code, response = self.put(f"/api/listings/{listing_key}/publish", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -532,17 +532,13 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertIn(listing_key, [l['key'] for l in response['listings']])
 
-        # listing should have 4 images (the ones from Twitter)
-        code, response = self.get(f"/api/listings/{listing_key}")
-        self.assertEqual(len(response['listing']['media']), 4)
-
         # other users cannot add images
         code, response = self.post(f"/api/listings/{listing_key}/media",
             headers=self.get_auth_headers(token_2), json={},
             files={'media': ('one_pixel.png', ONE_PIXEL_PNG)})
         self.assertEqual(code, 401)
         code, response = self.get(f"/api/listings/{listing_key}")
-        self.assertEqual(len(response['listing']['media']), 4)
+        self.assertEqual(len(response['listing']['media']), 0)
 
         # the owner however, can!
         code, response = self.post(f"/api/listings/{listing_key}/media",
@@ -550,11 +546,11 @@ class TestApi(unittest.TestCase):
             files={'media': ('one_pixel.png', ONE_PIXEL_PNG)})
         self.assertEqual(code, 200)
         self.assertTrue(response['media']['url'].endswith('.png'))
-        self.assertEqual(response['media']['index'], 5)
+        self.assertEqual(response['media']['index'], 1)
         media_hash = response['media']['hash']
 
         code, response = self.get(f"/api/listings/{listing_key}")
-        self.assertEqual(len(response['listing']['media']), 5)
+        self.assertEqual(len(response['listing']['media']), 1)
         self.assertIn(media_hash, [m['hash'] for m in response['listing']['media']])
 
         # other users cannot delete images...
@@ -563,7 +559,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 401)
         code, response = self.get(f"/api/listings/{listing_key}")
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['listing']['media']), 5)
+        self.assertEqual(len(response['listing']['media']), 1)
 
         # CAN EDIT the listing once started, unlike auctions!
         code, response = self.put(f"/api/listings/{listing_key}",
@@ -584,10 +580,10 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
-        # and we are back to 4 now!
+        # and we are back to 0 now!
         code, response = self.get(f"/api/listings/{listing_key}")
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['listing']['media']), 4)
+        self.assertEqual(len(response['listing']['media']), 0)
         self.assertNotIn(media_hash, [m['hash'] for m in response['listing']['media']])
 
         # the seller has no sales
@@ -687,9 +683,6 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me",
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'username1')
-        self.assertFalse(response['user']['twitter_username_verified'])
-        self.assertIn("/mock-s3-files/", response['user']['profile_image_url'])
         self.assertEqual(response['user']['contribution_percent'], 1)
         self.assertEqual(response['user']['has_items'], False)
         self.assertEqual(response['user']['has_own_items'], False)
@@ -1318,19 +1311,12 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
 
-        # start the auction and get images from Twitter
-        code, response = self.put(f"/api/auctions/{auction_key_3}/publish", {'twitter': True},
+        # start the auction
+        code, response = self.put(f"/api/auctions/{auction_key_3}/publish", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
 
         time.sleep(1) # this is not needed for the start to work, but we use it to make sure start_date is in the past
-
-        # starting the auction verified the Twitter account (even though the user didn't "like" the pinned tweet)
-        code, response = self.get("/api/users/me",
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'auction_user_2')
-        self.assertTrue(response['user']['twitter_username_verified'])
 
         code, response = self.get(f"/api/auctions/{auction_key_3}",
             headers=self.get_auth_headers(token_2))
@@ -1340,8 +1326,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['auction']['started'], True)
         self.assertEqual(response['auction']['ended'], False)
         self.assertEqual(dateutil.parser.isoparse(response['auction']['start_date']) + timedelta(hours=24), dateutil.parser.isoparse(response['auction']['end_date']))
-        self.assertEqual(len(response['auction']['media']), 4)
-        self.assertIn("/mock-s3-files/", response['auction']['media'][0]['url'])
 
         # Create an auction with malicious input to description
         malicious_desc = '''<script type="text/javascript">alert("malicious")</script>'''
