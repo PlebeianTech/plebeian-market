@@ -11,3 +11,22 @@ export interface ShoppingCartItem {
     stall_id: string;
     merchantPubkey: string;
 }
+
+export type stallOrder = {
+    id: string,
+    type: 0,
+    name?: string,
+    address?: string,
+    message?: string,
+    contact: {
+        nostr?: string,
+        phone?: string,
+        email?: string,
+    },
+    items: [
+        {
+            product_id: string,
+            quantity: number
+        }
+    ]
+}

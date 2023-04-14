@@ -1,4 +1,4 @@
-import {getEventHash, Kind, SimplePool, type Event, type Sub, Filter} from 'nostr-tools';
+import {getEventHash, Kind, SimplePool, type Event, type Sub, type Filter, nip04, getPublicKey, generatePrivateKey} from 'nostr-tools';
 import { UserResume } from "$lib/types/user";
 import { relayUrlList, getBestRelay, filterTags, findMarkerInTags } from "$lib/nostr/utils";
 
@@ -113,11 +113,15 @@ export async function sendReaction(pool: SimplePool, noteId: string, notePubkey:
 
 // nip-45
 
-export function getStalls(pool: SimplePool, merchantPubkey: string | null, receivedCB: (e) => void) {
+export function getStalls(pool: SimplePool, merchantPubkey: string | string[] | null, receivedCB: (e) => void) {
     let filter: Filter = { kinds: [EVENT_KIND_STALL] };
 
     if (merchantPubkey) {
-        filter.authors = [merchantPubkey];
+        if (Array.isArray(merchantPubkey)) {
+            filter.authors = merchantPubkey;
+        } else {
+            filter.authors = [merchantPubkey];
+        }
     }
 
     let sub: Sub = pool.sub(relayUrlList, [filter]);
@@ -139,4 +143,11 @@ export function subscribeProducts(pool: SimplePool, merchantPubkey: string | nul
     sub.on('eose', () => {
         sub.unsub()
     })
+}
+
+export async function sendPrivateMessage(pool: SimplePool, receiverPubkey: string, message: string, successCB) {
+    let cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message)
+    const event = await createEvent(4, cipheredMessage, [['p', receiverPubkey]]);
+    console.log('*** PUBLISHING MESSAGE: ', event);
+    pool.publish(relayUrlList, event).on('ok', successCB);
 }

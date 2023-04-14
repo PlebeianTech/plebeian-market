@@ -4,13 +4,13 @@
   "devDependencies": {
     "@playwright/test": "^1.30.0",
     "@sveltejs/adapter-node": "^1.2.0",
-    "@sveltejs/kit": "^1.15.2",
+    "@sveltejs/kit": "^1.15.5",
     "autoprefixer": "10.x",
     "btc2fiat": "*",
     "daisyui": "^2.51.4",
-    "eslint": "^8.34.0",
+    "eslint": "^8.37.0",
     "eslint-plugin-svelte3": "4.x",
-    "nostr-tools": "^1.8.3",
+    "nostr-tools": "^1.8.4",
     "npm-run-all": "4.x",
     "postcss": "8.x",
     "svelte": "^3.58.0",
@@ -34,5 +34,8 @@
     "check": "svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
   }
 }

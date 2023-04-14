@@ -21,23 +21,20 @@
         if (compact) {
             let numProducts = 0;
             let totalQuantity = 0;
-            let totalAmount = 0;
-            let currency = '';
+            let stalls = 0;
 
             for (const [stallId, stall] of $ShoppingCart.products) {
+                stalls++;
                 for (const [productId, product] of stall) {
                     numProducts++;
                     totalQuantity = totalQuantity + product.orderQuantity;
-                    totalAmount = totalAmount + (product.orderQuantity * product.price);
-                    currency = product.currency;
                 }
             }
 
             $ShoppingCart.summary = {
                 numProducts: numProducts,
                 totalQuantity: totalQuantity,
-                totalAmount: totalAmount,
-                currency: currency
+                stalls: stalls
             };
 
             //if (browser) {
@@ -47,28 +44,22 @@
     }
 </script>
 
-{#if !compact}
-    <div class="card-actions justify-end">
-        <a class="btn btn-primary" href="/stalls">Continue shopping</a>
-    </div>
-{/if}
-
-{#if $ShoppingCart.summary.numProducts > 0}
+{#if $ShoppingCart.summary.numProducts}
     <table class="table table-auto w-full place-content-center" class:table-compact={compact}>
         <thead>
-        <tr class="text-center">
-            <th>Name</th>
-            {#if !compact}
-                <th>Description</th>
-            {/if}
-            <th>Price</th>
-            <th>Quantity</th>
-            {#if !compact}
-                <th>Image</th>
-            {/if}
-            <th>Total</th>
-            <th></th>
-        </tr>
+            <tr class="text-center">
+                <th>Name</th>
+                {#if !compact}
+                    <th>Description</th>
+                {/if}
+                <th>Price</th>
+                <th>Quantity</th>
+                {#if !compact}
+                    <th>Image</th>
+                {/if}
+                <th>Total</th>
+                <th></th>
+            </tr>
         </thead>
 
         <tbody>
@@ -90,7 +81,7 @@
                     {#if !compact}
                         <td>
                             <div class="card bg-base-100 shadow-xl w-full lg:w-32">
-                                <figure><img class="rounded-xl" src="{product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
+                                <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                             </div>
                         </td>
                     {/if}
@@ -105,24 +96,24 @@
     </table>
 
     {#if compact}
-        <span class="text-xl text-white align-right text-right my-2">Subtotal: {$ShoppingCart.summary.totalAmount} {$ShoppingCart.summary.currency}</span>
-
         <div class="card-actions justify-end">
             <a class="btn btn-primary btn-block" href="/cart">See cart details</a>
         </div>
-    {/if}
-
-    {#if !compact}
-        <!-- <span class="font-bold text-lg">{$ShoppingCart.summary.numProducts} different Items</span> -->
-
+    {:else}
         <div class="card-actions justify-end">
             <a class="btn btn-primary" href="/stalls">Continue shopping</a>
-            <a class="btn btn-accent" href="/stalls">Checkout</a>
+            <a class="btn btn-accent" href="/checkout">Checkout</a>
         </div>
     {/if}
 {:else}
     <div class="p-6 text-lg" class:w-64={compact}>
         <p>The shopping cart is empty.</p>
-        <p class="mt-4">You can <a class="text-blue-500" href="/stalls">browse stores</a> and buy some products.</p>
+        <p class="mt-4">You can <a class="text-blue-500" href="/stalls">browse stalls</a> and buy some products.</p>
     </div>
+
+    {#if !compact}
+        <div class="card-actions justify-center" class:justify-end={$ShoppingCart.summary.numProducts}>
+            <a class="btn btn-primary" href="/stalls">Continue shopping</a>
+        </div>
+    {/if}
 {/if}

@@ -33,8 +33,7 @@ export const NostrPublicKey: Writable<{source: NostrKeySource, key: string | nul
 export type ShoppingCartSummary = {
     numProducts: number,
     totalQuantity: number,
-    totalAmount: number,
-    currency: string
+    stalls: number
 }
 type stallId = string;
 type productId = string;
@@ -47,7 +46,6 @@ export const ShoppingCart: Writable<{
     summary: {
         numProducts: 0,
         totalQuantity: 0,
-        totalAmount: 0,
-        currency: ''
+        stalls: 0
     }
 });
