@@ -478,6 +478,31 @@ def verify_lnurl_get():
 
         return jsonify({})
 
+@api_blueprint.route("/api/users/me/relays", methods=['GET', 'POST'])
+@user_required
+def user_relays(user):
+    if request.method == 'GET':
+        return jsonify({'relays': [{'id': ur.relay_id, 'url': ur.relay.url} for ur in m.UserRelay.query.filter_by(user_id=user.id)]})
+    elif request.method == 'POST':
+        relay = m.Relay.query.filter_by(url=request.json['url']).one_or_none()
+        if not relay:
+            relay = m.Relay(url=request.json['url'])
+            db.session.add(relay)
+            db.session.commit()
+        db.session.add(m.UserRelay(user_id=user.id, relay_id=relay.id))
+        db.session.commit()
+        return jsonify({'relay': {'id': relay.id, 'url': relay.url}})
+
+@api_blueprint.route("/api/users/me/relays/<int:relay_id>", methods=['DELETE'])
+@user_required
+def delete_user_relay(user, relay_id):
+    ur = m.UserRelay.query.filter_by(user_id=user.id, relay_id=relay_id).one_or_none()
+    if not ur:
+        return jsonify({'message': "Not found."}), 404
+    db.session.delete(ur)
+    db.session.commit()
+    return jsonify({})
+
 @api_blueprint.route('/api/users/me/notifications', methods=['GET', 'PUT'])
 @user_required
 def user_notifications(user):

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { Error as ErrorStore, AuthRequired, AuthBehavior } from "$lib/stores";
-import type { IEntity } from "$lib/types/base";
+import type { IEntity, IEntityBase } from "$lib/types/base";
 import type { AddedMedia } from "$lib/types/item";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
@@ -95,7 +95,7 @@ export async function getEntitiesAsync(loader: ILoader, tokenValue) {
 }
 
 export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (key: string) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}`, 'POST', tokenValue, entity.toJson(), "application/json",
+    fetchAPI(`/${endpoint}`, 'POST', tokenValue, JSON.stringify(entity.toJson()), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
@@ -370,7 +370,7 @@ export function putPublish(tokenValue, endpoint, key, successCB: () => void, err
     );
 }
 
-export function deleteEntity(tokenValue, entity: IEntity, successCB: () => void, errorHandler = new ErrorHandler()) {
+export function deleteEntity(tokenValue, entity: IEntityBase, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null, null,
         response => {
             if (response.status === 200) {

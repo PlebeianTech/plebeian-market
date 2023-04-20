@@ -297,6 +297,20 @@ class UserBadge(db.Model):
     icon = db.Column(db.String(32), nullable=False)
     awarded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+class Relay(db.Model):
+    __tablename__ = 'relays'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    url = db.Column(db.String(128), nullable=False, unique=True, index=True)
+
+class UserRelay(db.Model):
+    __tablename__ = 'user_relays'
+
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False, primary_key=True)
+    relay_id = db.Column(db.Integer, db.ForeignKey(Relay.id), nullable=False, primary_key=True)
+
+    relay = db.relationship('Relay')
+
 class Notification(abc.ABC):
     @property
     @abc.abstractmethod

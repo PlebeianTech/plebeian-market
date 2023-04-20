@@ -1,11 +1,42 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { getKeyFromKeyOrNpub, hasExtension } from "$lib/nostr/utils";
-    import { ErrorHandler, putProfile, putVerify } from "$lib/services/api";
+    import { ErrorHandler, putProfile, putVerify, getEntities, postEntity, deleteEntity } from "$lib/services/api";
     import { user, token, Info, Error } from "$lib/stores";
-    import { ExternalAccountProvider } from "$lib/types/user";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
     import Loading from "$lib/components/Loading.svelte";
+    import Plus from "$lib/components/icons/Plus.svelte";
+    import X from "$lib/components/icons/X.svelte";
+    import type { IEntity } from "$lib/types/base";
+    import { ExternalAccountProvider } from "$lib/types/user";
+
+    class Relay implements IEntity {
+        id: number | null;
+        url: string;
+
+        key: string;
+        endpoint = "users/me/relays";
+        is_mine = true;
+
+        constructor(id: number | null, url: string) {
+            this.id = id;
+            this.url = url;
+            this.key = id !== null ? id.toString() : "";
+        }
+
+        public validate() {
+            const colonIndex = this.url.indexOf(".");
+            return !(this.url.length === 0) && colonIndex !== -1 && colonIndex !== this.url.length - 1;
+        }
+
+        public toJson() {
+            return {url: this.url};
+        }
+    }
+
+    function relayFromJson(json: any): Relay {
+        return new Relay(<number>json.id, <string>json.url);
+    }
 
     export let onSave: () => void = () => {};
 
@@ -14,6 +45,9 @@
 
     $: isValidInput = nostrPublicKey !== null && nostrPublicKey !== "";
     $: saveButtonActive = $user && isValidInput && !inRequest && nostrPublicKey !== $user.nostrPublicKey;
+
+    let relays: Relay[] = [];
+    let newRelay = new Relay(null, "");
 
     let inRequest = false;
 
@@ -69,10 +103,39 @@
             new ErrorHandler(true, () => inRequest = false));
     }
 
+    function loadRelays() {
+        getEntities({endpoint: "users/me/relays", responseField: 'relays', fromJson: relayFromJson}, $token, e => relays = <Relay[]>e);
+    }
+
+    function addRelay() {
+        if (newRelay.validate()) {
+            inRequest = true;
+            postEntity("users/me/relays", $token, newRelay,
+                () => {
+                    inRequest = false;
+                    Info.set("Relay saved!");
+                    newRelay = new Relay(null, "");
+                    loadRelays();
+                }, new ErrorHandler(true, () => inRequest = false));
+        }
+    }
+
+    function removeRelay(r: Relay) {
+        inRequest = true;
+        deleteEntity($token, r,
+            () => {
+                inRequest = false;
+                Info.set("Relay removed!");
+                loadRelays();
+            },
+            new ErrorHandler(true, () => inRequest = false));
+    }
+
     onMount(async () => {
         if ($user) {
             nostrPublicKey = $user.nostrPublicKey || "";
             nostrPublicKeyVerified = $user.nostrPublicKeyVerified;
+            loadRelays();
         }
     });
 </script>
@@ -83,6 +146,10 @@
         <li>Nostr</li>
     </ul>
 </div>
+
+{#if inRequest}
+    <Loading />
+{/if}
 
 {#if $user}
     {#if $user.nostrPublicKey && $user.nostrPublicKeyVerified && $user.nostrPublicKey === nostrPublicKey}
@@ -145,7 +212,22 @@
             {/if}
         </div>
     {/if}
-    {#if inRequest}
-        <Loading />
-    {/if}
+    <div class="divider"></div>
+    <h2 class="text-3xl">Relays</h2>
+    <div>
+        {#each relays as relay}
+            <div class="mt-3 flex">
+                <pre>{relay.url}</pre>
+                <div class="btn btn-circle btn-xs btn-error ml-1" on:click={() => removeRelay(relay)} on:keypress={() => removeRelay(relay)}><X /></div>
+            </div>
+        {/each}
+        <div class="flex justify-center items-center mt-6 gap-4">
+            <div class="flex flex-col">
+                <input type="text" bind:value={newRelay.url} placeholder="add a relay" class="input input-bordered input-primary w-full max-w-xs" on:keypress={(e) => { if (e.key === "Enter") addRelay(); }} />
+            </div>
+            <div>
+                <button class="btn btn-s btn-circle btn-ghost" class:btn-disabled={!newRelay.validate()} on:click={addRelay}><Plus /></button>
+            </div>
+        </div>
+    </div>
 {/if}
