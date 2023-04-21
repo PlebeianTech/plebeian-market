@@ -30,7 +30,7 @@
         }
 
         public toJson() {
-            return {url: this.url};
+            return JSON.stringify({url: this.url});
         }
     }
 

@@ -60,7 +60,7 @@ export class Auction implements IEntity, Item {
     has_winner?: boolean = false;
     winner? : IAccount;
 
-    public validate(forSave: boolean = false) {
+    public validate() {
         return !(this.title.length === 0 || this.description.length === 0);
     }
 

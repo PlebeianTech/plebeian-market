@@ -17,7 +17,7 @@ import logging
 from logging.config import dictConfig
 import magic
 import math
-from nostr.event import EncryptedDirectMessage
+from nostr.event import Event, EncryptedDirectMessage
 from nostr.key import PrivateKey
 from nostr.relay_manager import RelayManager
 import os
@@ -758,7 +758,7 @@ def get_twitter():
         access_token_secret = twitter_secrets['ACCESS_TOKEN_SECRET']
         return Twitter(api_key, api_key_secret, access_token, access_token_secret)
 
-class MockNostr:
+class MockNostrClient:
     class MockKey:
         def __eq__(self, other):
             return True
@@ -776,11 +776,19 @@ class MockNostr:
         app.logger.info(f"Nostr DM for {recipient_public_key}: {body}!")
         return True
 
-class Nostr:
-    def __init__(self, nsec):
-        self.private_key = PrivateKey.from_nsec(nsec)
+    def publish_stall(self, *args, **kwargs):
+        app.logger.info(f"Nostr Stall: {args=} {kwargs=}")
+        return True
+
+    def publish_product(self, *args, **kwargs):
+        app.logger.info(f"Nostr Product: {args=} {kwargs=}")
+        return True
+
+class NostrClient:
+    def __init__(self, private_key, relays):
+        self.private_key = private_key
         self.relay_manager = RelayManager()
-        for relay in app.config['NOSTR_RELAYS']:
+        for relay in relays:
             self.relay_manager.add_relay(relay)
 
     def get_auth_verification_phrase(self, auth):
@@ -799,13 +807,50 @@ class Nostr:
             app.logger.exception("Error while sending Nostr DM.")
             return False
 
-def get_nostr():
+    def publish_stall(self, id, name, description, currency):
+        try:
+            stall_json = {'id': id, 'name': name, 'description': description, 'currency': currency, 'shipping': []}
+            event = Event(kind=30017, content=json.dumps(stall_json))
+            self.private_key.sign_event(event)
+            self.relay_manager.publish_event(event)
+            return True
+        except:
+            app.logger.exception("Error while publishing Nostr stall.")
+            return False
+
+    def publish_product(self, id, stall_id, name, description, images, currency, price, quantity):
+        try:
+            product_json = {
+                'id': id,
+                'stall_id': stall_id,
+                'name': name,
+                'description': description,
+                'images': images,
+                'currency': currency,
+                'price': price,
+                'quantity': quantity
+            }
+            event = Event(kind=30018, content=json.dumps(product_json))
+            self.private_key.sign_event(event)
+            app.logger.debug(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            self.relay_manager.publish_event(event)
+            return True
+        except:
+            app.logger.exception("Error while publishing Nostr product.")
+            return False
+
+def get_nostr_client(user):
     if app.config['MOCK_NOSTR']:
-        return MockNostr()
+        return MockNostrClient()
     else:
-        with open(app.config['NOSTR_SECRETS']) as f:
-            nostr_secrets = json.load(f)
-        return Nostr(nostr_secrets['NSEC'])
+        if user is None:
+            with open(app.config['NOSTR_SECRETS']) as f:
+                private_key = PrivateKey.from_nsec(json.load(f)['NSEC'])
+            relays = app.config['DEFAULT_NOSTR_RELAYS']
+        else:
+            private_key = PrivateKey(bytes.fromhex(user.stall_private_key))
+            relays = [r['url'] for r in user.get_relays()]
+        return NostrClient(private_key, relays)
 
 class MockS3:
     def get_url_prefix(self):

@@ -43,7 +43,7 @@
     }
 
     function saveCurrentEntity() {
-        if (!currentEntity || !currentEntity.validate(true)) {
+        if (!currentEntity || !currentEntity.validate()) {
             return;
         }
 

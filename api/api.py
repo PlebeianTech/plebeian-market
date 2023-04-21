@@ -17,7 +17,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client, get_nostr, get_s3, get_twitter
+from main import app, get_lnd_client, get_nostr_client, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from utils import usd2sats, parse_xpub, UnknownKeyTypeError
@@ -120,7 +120,7 @@ def auth_nostr(create_user):
 
     auth = m.NostrAuth.query.filter_by(key=request.json['key']).first()
 
-    nostr = get_nostr()
+    nostr = get_nostr_client(None)
 
     if request.json.get('send_verification_phrase'):
         if auth:
@@ -287,7 +287,7 @@ def put_me(user):
         user.nostr_public_key_verified = False
         user.generate_verification_phrase('nostr')
 
-        if not get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
+        if not get_nostr_client(None).send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
             return jsonify({'message': "Error sending Nostr DM!"}), 500
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
 
@@ -306,11 +306,13 @@ def put_me(user):
         user.wallet = request.json['wallet']
         user.wallet_index = 0
 
-    if 'stall_name' in request.json:
-        user.stall_name = bleach.clean(request.json['stall_name'])
-
-    if 'stall_description' in request.json:
-        user.stall_description = bleach.clean(request.json['stall_description'])
+    if 'stall_name' in request.json or 'stall_description' in request.json:
+        if 'stall_name' in request.json:
+            user.stall_name = bleach.clean(request.json['stall_name'])
+        if 'stall_description' in request.json:
+            user.stall_description = bleach.clean(request.json['stall_description'])
+        user.ensure_stall_private_key()
+        get_nostr_client(user).publish_stall(user.identity, user.stall_name, user.stall_description, 'USD')
 
     if 'nostr_private_key' in request.json:
         user.nostr_private_key = request.json['nostr_private_key']
@@ -368,7 +370,7 @@ def verify_nostr(user):
         if user.nostr_verification_phrase_sent_at and user.nostr_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
             return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
         user.generate_verification_phrase('nostr')
-        if not get_nostr().send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
+        if not get_nostr_client(None).send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
             return jsonify({'message': "Error sending Nostr DM!"}), 500
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
@@ -382,7 +384,7 @@ def verify_nostr(user):
 
     clean_phrase = ' '.join([w for w in request.json['phrase'].lower().split(' ') if w])
 
-    if get_nostr().get_verification_phrase(user) == clean_phrase:
+    if get_nostr_client(None).get_verification_phrase(user) == clean_phrase:
         user.nostr_public_key_verified = True
         db.session.commit()
         return jsonify({})
@@ -722,7 +724,14 @@ def get_put_delete_entity(key, cls, singular, has_item):
 
             db.session.commit()
 
-            return jsonify({})
+            nostr = False
+
+            if isinstance(entity, m.Listing) and entity.started:
+                user.ensure_stall_private_key()
+                get_nostr_client(user).publish_product(**entity.to_nostr())
+                nostr = True
+
+            return jsonify({'nostr': nostr})
         elif request.method == 'DELETE':
             if isinstance(entity, m.Auction | m.Listing):
                 for sale in entity.sales:
@@ -759,15 +768,18 @@ def post_media(key, cls, singular):
     last_index = max([media.index for media in entity.item.media], default=0)
     index = last_index + 1
 
+    added_media = []
+
     for f in request.files.values():
         media = m.Media(item_id=entity.item_id, index=index)
         if not media.store(get_s3(), f"{singular}_{entity.key}_media_{index}", f.filename, f.read()):
             return jsonify({'message': "Error saving picture!"}), 400
         db.session.add(media)
         index += 1
+        added_media.append(media)
     db.session.commit()
 
-    return jsonify({'media': media.to_dict()})
+    return jsonify({'media': [media.to_dict() for media in added_media]})
 
 @api_blueprint.route('/api/auctions/<key>/media/<content_hash>',
     defaults={'cls': m.Auction},
@@ -851,6 +863,10 @@ def put_publish(user, key, cls):
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
 
     db.session.commit()
+
+    if isinstance(entity, m.Listing):
+        user.ensure_stall_private_key()
+        get_nostr_client(user).publish_product(**entity.to_nostr())
 
     return jsonify({})
 

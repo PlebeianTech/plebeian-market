@@ -9,6 +9,7 @@ import hashlib
 from io import BytesIO
 from itertools import chain
 import math
+from nostr.key import PrivateKey
 import pyqrcode
 import random
 from slugify import slugify
@@ -155,8 +156,7 @@ class User(WalletMixin, db.Model):
     def identity(self):
         sha = hashlib.sha256()
         sha.update((str(self.id) + app.config['SECRET_KEY']).encode('UTF-8'))
-        id = sha.hexdigest()
-        return f"{id}@{app.config['DOMAIN_NAME']}" if app.config['DOMAIN_NAME'] else id
+        return sha.hexdigest()
 
     @property
     def display_name(self):
@@ -164,9 +164,16 @@ class User(WalletMixin, db.Model):
 
     profile_image_url = db.Column(db.String(256), nullable=True)
 
+    # TODO: move these to a "stalls" table when we decide we need multiple stalls per user
+    stall_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
+
+    # TODO: this will become obsolete if we move stalls to a separate table
+    def ensure_stall_private_key(self):
+        if self.stall_private_key is None:
+            self.stall_private_key = PrivateKey().hex()
 
     email = db.Column(db.String(64), unique=True, nullable=True, index=True)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -232,6 +239,9 @@ class User(WalletMixin, db.Model):
     def get_badges(self):
         return [{'badge': b.badge, 'icon': b.icon, 'awarded_at': b.awarded_at}
             for b in UserBadge.query.filter_by(user_id=self.id).all()]
+
+    def get_relays(self):
+        return [{'url': ur.relay.url for ur in UserRelay.query.filter_by(user_id=self.id).all()}]
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
@@ -1059,6 +1069,18 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     def featured_sort_key(self):
         # reverse sort - newer listings show at the top
         return -self.start_date.timestamp()
+
+    def to_nostr(self):
+        return {
+            'id': self.key,
+            'stall_id': self.item.seller.identity,
+            'name': self.item.title,
+            'description': self.item.description,
+            'images': [media.url for media in self.item.media],
+            'currency': 'USD',
+            'price': self.price_usd,
+            'quantity': self.available_quantity,
+        }
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
