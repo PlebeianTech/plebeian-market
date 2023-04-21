@@ -6,16 +6,15 @@
     import {Error, Info, NostrPool, ShoppingCart} from "$lib/stores";
     import {onImgError} from "$lib/shopping";
     import {onMount} from "svelte";
-    //import {stallOrder} from "$lib/types/stall.ts";
     import { v4 as uuidv4 } from "uuid";
     import {getStalls, sendPrivateMessage} from "$lib/services/nostr.ts";
     import {getFirstTagValue} from "$lib/nostr/utils.ts";
+    import {goto} from "$app/navigation";
 
     let name = null;
     let address = null;
     let message = null;
 
-    // TODO: pick this from the Nostr extension
     let nostrPublicKey = 'fh483279rgf7h2g2ibf76282bo9hf8yv72tv7i';
     let phone = null;
     let email = null;
