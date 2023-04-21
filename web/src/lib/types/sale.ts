@@ -43,7 +43,7 @@ export class Sale implements IEntity {
     expired_at?: Date = undefined;
     is_mine = true;
 
-    public validate(forSave: boolean = false) {
+    public validate() {
         return false; // since we cannot create sales from the UI
     }
 

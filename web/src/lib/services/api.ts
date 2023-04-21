@@ -95,7 +95,7 @@ export async function getEntitiesAsync(loader: ILoader, tokenValue) {
 }
 
 export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (key: string) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/${endpoint}`, 'POST', tokenValue, JSON.stringify(entity.toJson()), "application/json",
+    fetchAPI(`/${endpoint}`, 'POST', tokenValue, entity.toJson(), "application/json",
         response => {
             if (response.status === 200) {
                 response.json().then(data => {

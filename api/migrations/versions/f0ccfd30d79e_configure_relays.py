@@ -30,7 +30,7 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('relay_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['relay_id'], ['relays.id'], )
+    sa.ForeignKeyConstraint(['relay_id'], ['relays.id'], ),
     sa.PrimaryKeyConstraint('user_id', 'relay_id')
     )
     # ### end Alembic commands ###

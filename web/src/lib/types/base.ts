@@ -6,6 +6,6 @@ export interface IEntityBase {
 export interface IEntity extends IEntityBase {
     is_mine: boolean;
 
-    validate: (forSave: boolean) => boolean;
+    validate: () => boolean;
     toJson: () => any;
 }

@@ -14,7 +14,7 @@ export class Campaign implements IEntity {
     wallet: string | null = null;
     owner: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
 
-    public validate(forSave: boolean = false) {
+    public validate() {
         return true;
     }
 

@@ -30,7 +30,7 @@ export class Listing implements IEntity, Item {
     campaign_name: string | null = null;
     is_mine: boolean = true;
 
-    public validate(forSave: boolean = false) {
+    public validate() {
         return !(this.title.length === 0
             || this.description.length === 0
             || this.price_usd === null || this.price_usd === 0
