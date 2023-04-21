@@ -9,6 +9,7 @@ export type UserMetadata = {
     nip05?: string;
 };
 
+const EVENT_KIND_PM = 4;
 const EVENT_KIND_RESUME = 66;
 const EVENT_KIND_STALL = 30017;
 const EVENT_KIND_PRODUCT = 30018;
@@ -150,4 +151,47 @@ export async function sendPrivateMessage(pool: SimplePool, receiverPubkey: strin
     const event = await createEvent(4, cipheredMessage, [['p', receiverPubkey]]);
     console.log('*** PUBLISHING MESSAGE: ', event);
     pool.publish(relayUrlList, event).on('ok', successCB);
+}
+
+export async function getPrivateMessages(pool: SimplePool, receivedCB) {
+    let userPubkey = await (window as any).nostr.getPublicKey();
+
+    let sub = pool.sub(relayUrlList, [
+        {
+            // My messages (output)
+            kinds: [EVENT_KIND_PM],
+            authors: [userPubkey]
+        },
+        {
+            // Replies
+            kinds: [EVENT_KIND_PM],
+            '#p': [userPubkey],
+        },
+    ]);
+    sub.on('event', async (e) => {
+        const content = e.content;
+        const messagePubkey = e.pubkey;
+
+        let sender = e.tags.find(([k, v]) => k === 'p' && v && v !== '')[1];
+
+        let decryptPubkey;
+        if (messagePubkey === userPubkey) {
+            // My messages (output)
+            decryptPubkey = sender;
+        } else {
+            // Replies
+            decryptPubkey = messagePubkey;
+        }
+
+        let message = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
+
+        try {
+            let jsonDecodedMessage = JSON.parse(message);
+            jsonDecodedMessage.created_at = e.created_at;
+            jsonDecodedMessage.pubkey = messagePubkey;
+            receivedCB(jsonDecodedMessage);
+        } catch (e) {
+            receivedCB(message);
+        }
+    });
 }

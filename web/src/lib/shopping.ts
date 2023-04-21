@@ -1,6 +1,10 @@
 import type {ShoppingCartItem} from "./types/stall";
-import {Error, Info, ShoppingCart} from "./stores";
+import {Error, Info, ShoppingCart, stalls} from "./stores";
+import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
+import {getStalls} from "./services/nostr";
+import type {SimplePool} from "nostr-tools";
+import {getFirstTagValue} from "./nostr/utils";
 
 // =============================== Products ====================================
 export function onImgError(image) {
@@ -70,4 +74,60 @@ export function deleteFromCart(stallId, productId) {
         Info.set('Product removed from the shopping cart.');
         return sc;
     });
+}
+
+// =============================== Stalls ====================================
+
+export function refreshStalls(NostrPool: SimplePool) {
+    let now: number = Math.floor(Date.now());
+
+    let currentStallsValue = get(stalls);
+
+    if (currentStallsValue === null || now - currentStallsValue.fetched_at > 60000) {  // 60 seconds
+        console.log('************ refreshStalls - refreshing...',)
+
+        getStalls(NostrPool, null,
+            (stallEvent) => {
+                let content = JSON.parse(stallEvent.content)
+                content.createdAt = stallEvent.created_at;
+                content.merchantPubkey = stallEvent.pubkey;
+
+                if (!content.id) {
+                    let stallId = getFirstTagValue(stallEvent.tags, 'd');
+                    if (stallId !== null) {
+                        content.id = stallId;
+                    } else {
+                        return;
+                    }
+                }
+
+                let stallId = content.id;
+
+                // Get current value
+                let currentStallsValue = get(stalls);
+
+                if (currentStallsValue === null) {
+                    currentStallsValue = {
+                        stalls: {},
+                        fetched_at: now
+                    }
+                } else {
+                    currentStallsValue.fetched_at = now;
+                }
+
+                if (stallId in stalls) {
+                    if (currentStallsValue.stalls[stallId].createdAt < stallEvent.created_at) {
+                        currentStallsValue.stalls[stallId] = content;
+                    }
+                } else {
+                    currentStallsValue.stalls[stallId] = content;
+                }
+
+                // Set new value
+                stalls.set(currentStallsValue);
+            });
+
+    } else {
+        console.log('************ refreshStalls - no need to refresh yet',)
+    }
 }

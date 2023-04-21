@@ -34,7 +34,7 @@
 
                 let productId = content.id;
 
-                if (content.stallId === stallId) {
+                if (content.stall_id === stallId) {
                     if (productId in products) {
                         if (products[productId].createdAt < productEvent.created_at) {
                             products[productId] = content;

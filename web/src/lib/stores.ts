@@ -39,7 +39,7 @@ type stallId = string;
 type productId = string;
 
 export const ShoppingCart: Writable<{
-    products: Map<stallId, Map<productId, ShoppingCartItem>> ,
+    products: Map<stallId, Map<productId, ShoppingCartItem>>,
     summary: ShoppingCartSummary
 }> = writable({
     products: new Map(),
@@ -49,3 +49,8 @@ export const ShoppingCart: Writable<{
         stalls: 0
     }
 });
+
+export const stalls: Writable<{
+    stalls: object,
+    fetched_at: number
+} | null> = writable(null);

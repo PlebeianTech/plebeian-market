@@ -15,6 +15,7 @@
     import {NostrPool} from "../lib/stores";
     import {onImgError} from "$lib/shopping";
     import Settings from "../lib/components/icons/Settings.svelte";
+    import {refreshStalls} from "../lib/shopping";
 
     interface CategoriesAssociativeArray {
         [key: string]: {
@@ -114,6 +115,8 @@
 
                 // console.log('products', products);
             });
+
+        refreshStalls($NostrPool);
     });
 
     function toggleCategory(category) {

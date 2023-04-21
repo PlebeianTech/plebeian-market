@@ -72,7 +72,7 @@
                 <tr class="text-center">
                     <td>{#if product.name}{product.name}{/if}</td>
                     {#if !compact}
-                        <td>{#if product.description}{product.description}{/if}</td>
+                        <td>{#if product.description}{product.description.substring(0,80)}{#if product.description.length > 80}...{/if}{/if}</td>
                     {/if}
                     <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
                     <td>

@@ -53,7 +53,8 @@
 
             const order = {
                 id: uuidv4(),
-                type: 0,
+                stall_id: stallId,
+                type: "0",
                 contact: {
                     nostr: nostrPublicKey
                 },
@@ -81,8 +82,21 @@
             // console.log('************ jsonOrder (stallId='+stallId+'):  ', order);
 
             sendPrivateMessage($NostrPool, stalls[stallId].merchantPubkey, messageOrder,
-                (rucu) => {
-                    console.log('-------- RUCU', rucu);
+                async (relay) => {
+                    console.log('-------- Order accepted by relay:', relay);
+
+                    $ShoppingCart = {
+                        products: new Map(),
+                        summary: {
+                            numProducts: 0,
+                            totalQuantity: 0,
+                            stalls: 0
+                        }
+                    };
+
+                    await new Promise(resolve => setTimeout(resolve, 4000));
+
+                    await goto('/orders');
                 }
             );
         }

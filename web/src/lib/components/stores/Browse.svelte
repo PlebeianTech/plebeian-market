@@ -1,21 +1,29 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { NostrPool } from "$lib/stores";
+    import { NostrPool, stalls } from "$lib/stores";
     import {getStalls, subscribeMetadata} from "../../services/nostr";
     import {NostrStall} from "../../types/stall";
     import {formatTimestamp, getFirstTagValue} from "$lib/nostr/utils.js";
     import Search from "$lib/components/icons/Search.svelte";
+    import {refreshStalls} from "../../shopping";
 
     export let merchantPubkey: string;
 
-    let stalls: {[stallId: string]: {}} = {};
+    let sortedStalls = [];
 
     //let merchantMeta = new Map<string, string>();
     let merchantMeta = [];
     let filter = null;
 
+    $: {
+        if ($stalls && $stalls.stalls) {
+            sortedStalls = Object.entries($stalls.stalls).sort((a, b) => {
+                return b[1].createdAt - a[1].createdAt;
+            });
+        }
+    }
+
     function getMerchantMeta() {
-        console.log('---------------', merchantMeta);
         if (merchantMeta.length > 0) {
             subscribeMetadata($NostrPool, merchantMeta, (pk, m) => {
                 //merchantMeta.set(pk, m);
@@ -26,44 +34,7 @@
     }
 
     onMount(async () => {
-        getStalls($NostrPool, merchantPubkey,
-            (stallEvent) => {
-                let content = JSON.parse(stallEvent.content)
-                content.createdAt = stallEvent.created_at;
-                content.merchantPubkey = stallEvent.pubkey;
-
-                if (!merchantMeta.includes(stallEvent.pubkey)) {
-                    merchantMeta.push(stallEvent.pubkey);
-                }
-
-                /*
-                if (!currencies.includes(content.currency)) {
-                    currencies.push(content.currency);
-                    currencies = currencies;
-                }
-                */
-
-                if (!content.id) {
-                    let stallId = getFirstTagValue(stallEvent.tags, 'd');
-                    if (stallId !== null) {
-                        content.id = stallId;
-                    } else {
-                        return;
-                    }
-                }
-
-                let stallId = content.id;
-
-                if (stallId in stalls) {
-                    if (stalls[stallId].createdAt < stallEvent.created_at) {
-                        stalls[stallId] = content;
-                    }
-                } else {
-                    stalls[stallId] = content;
-                }
-            });
-
-        // setTimeout(getMerchantMeta, 4000);
+        refreshStalls($NostrPool);
     });
 </script>
 
@@ -93,7 +64,7 @@
             </thead>
 
             <tbody class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                {#each Object.entries(stalls) as [stallId, stall]}
+                {#each sortedStalls as [stallId, stall]}
                     {#if
                         filter === null ||
                         (
