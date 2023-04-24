@@ -116,7 +116,6 @@
             </thead>
             <tbody>
                 {#each sortedOrders as [orderId, order]}
-                    {(console.log('order',order), '')}
                     <tr>
                         <td class="">
                             <p class="ml-3">
