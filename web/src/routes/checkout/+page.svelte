@@ -105,16 +105,6 @@
         console.log('---- buyNow end ----');
     }
 
-    $: {
-        if (stalls.length === 0) {
-            console.log("Loading, not available yet.");
-        } else {
-            for (const [stallId, stall] of stalls) {
-                console.log('-------------------'+stallId, stall);
-            }
-        }
-    }
-
     onMount(async () => {
         for (const stall of $ShoppingCart.products.values()) {
             for (const product of stall.values()) {
@@ -125,6 +115,8 @@
                 }
             }
         }
+
+        // refreshStalls($NostrPool);
 
         getStalls($NostrPool, merchantPubkeys,
             (stallEvent) => {

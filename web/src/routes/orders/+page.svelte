@@ -74,7 +74,7 @@
                         if (orderId in orders) {
                             // Because some properties are the same in different types
                             // like "message"
-                            if (type > orders[orderId].type) {
+                            if (privateMessage.created_at > orders[orderId].created_at) {
                                 orders[orderId] = {...orders[orderId], ...privateMessage};
                             } else {
                                 orders[orderId] = {...privateMessage, ...orders[orderId]};
@@ -179,18 +179,23 @@
                                         {/each}
                                     {/if}
                                     {#if order.paid}
-                                        ✅ {order.message}
+                                        ✅ Payment received
                                     {:else}
-                                        ❌ Payment not received.
+                                        ❌ Payment not received
                                     {/if}
                                 </p>
                                 <p>
                                     {#if order.shipped}
-                                        ✅ Order shipped.
+                                        ✅ Order shipped
                                     {:else}
-                                        ❌ Order not shipped yet.
+                                        ❌ Order not shipped yet
                                     {/if}
                                 </p>
+                                {#if !['Payment received.'].includes(order.message)}
+                                    <p>
+                                        🛈 {order.message}
+                                    </p>
+                                {/if}
                             {:else}
                                 <p>Unknown</p>
                             {/if}
