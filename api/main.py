@@ -598,7 +598,7 @@ class MockTwitter:
     def get_verification_phrase(self, user):
         return "i am me"
 
-    def get_user(self, username, banner_only=False):
+    def get_user(self, username):
         if app.config['ENV'] == 'test':
             # hammer staging rather than picsum when running tests
             random_image_small = random_image_large = "https://staging.plebeian.market/images/logo.jpg"
@@ -608,7 +608,6 @@ class MockTwitter:
         return {
             'id': "MOCK_USER_ID",
             'profile_image_url': random_image_small,
-            'profile_banner_url': random_image_large,
             'pinned_tweet_id': "MOCK_PINNED_TWEET",
             'created_at': datetime.now() - timedelta(days=(app.config['TWITTER_USER_MIN_AGE_DAYS'] + 1)),
         }
@@ -663,37 +662,23 @@ class Twitter:
             app.logger.error(f"Error when POSTing to Twitter -> {path}: {response.status_code=} {response.text=}")
             return False
 
-    def get_user(self, username, banner_only=False):
-        profile_banner_url = None
+    def get_user(self, username):
+        response_json = self.get(f"/2/users/by/username/{username}",
+            params={
+                'user.fields': "location,name,profile_image_url,pinned_tweet_id,created_at",
+            })
 
-        if banner_only:
-            twitter_user = {}
-        else:
-            response_json = self.get(f"/2/users/by/username/{username}",
-                params={
-                    'user.fields': "location,name,profile_image_url,pinned_tweet_id,created_at",
-                })
+        if not response_json or response_json.get('errors'):
+            return
 
-            if not response_json or response_json.get('errors'):
-                return
+        twitter_user = response_json['data']
 
-            twitter_user = response_json['data']
+        if '_normal' in twitter_user['profile_image_url']:
+            # pick high-res picture
+            # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
+            twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
 
-            if '_normal' in twitter_user['profile_image_url']:
-                # pick high-res picture
-                # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
-                twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
-
-            twitter_user['created_at'] = dateutil.parser.isoparse(twitter_user['created_at']).replace(tzinfo=None)
-
-        banner_response_json = self.get(f"/1.1/users/profile_banner.json?screen_name={username}")
-        if banner_response_json:
-            sizes = [k for k in banner_response_json['sizes'].keys()
-                if k[0].isdigit() and 'x' in k and len(k.split('x')) == 2]
-            max_size = max(sizes, key=lambda s: int(s.split('x')[0]))
-            profile_banner_url = banner_response_json['sizes'][max_size]['url']
-
-        twitter_user['profile_banner_url'] = profile_banner_url
+        twitter_user['created_at'] = dateutil.parser.isoparse(twitter_user['created_at']).replace(tzinfo=None)
 
         return twitter_user
 
@@ -734,16 +719,7 @@ class Twitter:
         return auction_tweets
 
     def send_dm(self, user_id, body):
-        response_json = self.post(f"/1.1/direct_messages/events/new.json",
-            params_json={
-                'event': {
-                    'type': 'message_create',
-                    'message_create': {
-                        'target': {'recipient_id': user_id},
-                        'message_data': {'text': body},
-                    }
-                }
-            })
+        response_json = self.post(f"/2/dm_conversations/with/{user_id}/messages", params_json={'text': body})
         return bool(response_json)
 
 def get_twitter():
