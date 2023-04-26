@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { NostrPool, Error } from "$lib/stores";
-    import {subscribeProducts} from "../../services/nostr";
+    import {getProducts} from "../../services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
     import {getFirstTagValue} from "../../nostr/utils";
@@ -17,7 +17,7 @@
     let listView = false;
 
     onMount(async () => {
-        subscribeProducts($NostrPool, merchantPubkey,
+        getProducts($NostrPool, merchantPubkey,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
                 content.createdAt = productEvent.created_at;
