@@ -54,3 +54,8 @@ export const stalls: Writable<{
     stalls: object,
     fetched_at: number
 } | null> = writable(null);
+
+export const products: Writable<{
+    products: object,
+    fetched_at: number
+} | null> = writable(null);

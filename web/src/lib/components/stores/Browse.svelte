@@ -23,16 +23,6 @@
         }
     }
 
-    function getMerchantMeta() {
-        if (merchantMeta.length > 0) {
-            subscribeMetadata($NostrPool, merchantMeta, (pk, m) => {
-                //merchantMeta.set(pk, m);
-                console.log('*************  pk', pk);
-                console.log('*************  m', m);
-            });
-        }
-    }
-
     onMount(async () => {
         refreshStalls($NostrPool);
     });

@@ -1,6 +1,6 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {ShoppingCart} from "../../stores";
+    import {ShoppingCart, stalls} from "../../stores";
     import {deleteFromCart, onImgError} from "$lib/shopping";
     import {browser} from "$app/environment";
     import Trash from "../icons/Trash.svelte";
@@ -65,7 +65,15 @@
         <tbody>
         {#each [...$ShoppingCart.products] as [stallId, products]}
             <tr>
-                <td colspan="{compact ? 5 : 7}" class="bg-gray-700"><p class="ml-3">Stall: {stallId}</p></td>
+                <td colspan="{compact ? 5 : 7}" class="bg-gray-700">
+                    <p class="ml-3">
+                        {#if $stalls !== null && $stalls.stalls[stallId]}
+                            Stall: {$stalls.stalls[stallId].name ?? ''}
+                        {:else}
+                            Stall id: {stallId}
+                        {/if}
+                    </p>
+                </td>
             </tr>
 
             {#each [...products] as [productId, product]}

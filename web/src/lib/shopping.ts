@@ -1,10 +1,10 @@
 import type {ShoppingCartItem} from "./types/stall";
-import {Error, Info, ShoppingCart, stalls} from "./stores";
+import {Error, Info, NostrPool, productCategories, products, ShoppingCart, stalls} from "./stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
-import {getStalls} from "./services/nostr";
+import {getProducts, getStalls} from "./services/nostr";
 import type {SimplePool} from "nostr-tools";
-import {getFirstTagValue} from "./nostr/utils";
+import {filterTags, getFirstTagValue} from "./nostr/utils";
 
 // =============================== Products ====================================
 export function onImgError(image) {
@@ -101,8 +101,6 @@ export function refreshStalls(NostrPool: SimplePool) {
                     }
                 }
 
-                let stallId = content.id;
-
                 // Get current value
                 let currentStallsValue = get(stalls);
 
@@ -115,7 +113,9 @@ export function refreshStalls(NostrPool: SimplePool) {
                     currentStallsValue.fetched_at = now;
                 }
 
-                if (stallId in stalls) {
+                let stallId = content.id;
+
+                if (stallId in currentStallsValue.stalls) {
                     if (currentStallsValue.stalls[stallId].createdAt < stallEvent.created_at) {
                         currentStallsValue.stalls[stallId] = content;
                     }
@@ -129,5 +129,75 @@ export function refreshStalls(NostrPool: SimplePool) {
 
     } else {
         console.log('************ refreshStalls - no need to refresh yet',)
+    }
+}
+
+export function refreshProducts(NostrPool: SimplePool) {
+    let now: number = Math.floor(Date.now());
+
+    let currentProductsValue = get(products);
+
+    if (currentProductsValue === null || now - currentProductsValue.fetched_at > 60000) {  // 60 seconds
+        console.log('************ refreshProducts - refreshing...',)
+
+        getProducts(NostrPool, null,
+            (productEvent) => {
+                let content = JSON.parse(productEvent.content);
+
+                if (!content.id) {
+                    let productId = getFirstTagValue(productEvent.tags, 'd');
+                    if (productId === null) {
+                        return;
+                    }
+
+                    content.id = productId;
+                }
+
+                content.createdAt = productEvent.created_at;
+                content.merchantPubkey = productEvent.pubkey;
+
+                let categoryTags = filterTags(productEvent.tags, 't');
+                if (categoryTags.length > 0) {
+                    categoryTags.forEach((category) => {
+                        let tag = category[1].trim().toLowerCase();
+
+                        // vitamin the product with tags
+                        if (content.tags) {
+                            content.tags.push(tag);
+                        } else {
+                            content.tags = [tag];
+                        }
+                    });
+                }
+
+
+                // Get current value
+                let currentProductsValue = get(products);
+
+                if (currentProductsValue === null) {
+                    currentProductsValue = {
+                        products: {},
+                        fetched_at: now
+                    }
+                } else {
+                    currentProductsValue.fetched_at = now;
+                }
+
+                let productId = content.id;
+
+                if (productId in currentProductsValue.products) {
+                    if (currentProductsValue.products[productId].createdAt < productEvent.created_at) {
+                        currentProductsValue.products[productId] = content;
+                    }
+                } else {
+                    currentProductsValue.products[productId] = content;
+                }
+
+                // Set new value
+                products.set(currentProductsValue);
+            });
+
+    } else {
+        console.log('************ refreshProducts - no need to refresh yet',)
     }
 }

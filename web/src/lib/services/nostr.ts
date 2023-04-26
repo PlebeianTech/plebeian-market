@@ -132,7 +132,7 @@ export function getStalls(pool: SimplePool, merchantPubkey: string | string[] | 
     })
 }
 
-export function subscribeProducts(pool: SimplePool, merchantPubkey: string | null, receivedCB: (e) => void) {
+export function getProducts(pool: SimplePool, merchantPubkey: string | null, receivedCB: (e) => void) {
     let filter: Filter = { kinds: [EVENT_KIND_PRODUCT] };
 
     if (merchantPubkey) {

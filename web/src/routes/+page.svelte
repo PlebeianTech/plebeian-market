@@ -10,7 +10,7 @@
     import {getBaseUrl} from "../lib/utils";
     import GoldenGai from "$lib/images/golden-gai-tokyo.jpg";
     import ProductCard from "../lib/components/stores/ProductCard.svelte";
-    import {subscribeProducts} from "../lib/services/nostr";
+    import {getProducts} from "../lib/services/nostr";
     import {filterTags, getFirstTagValue} from "../lib/nostr/utils";
     import {NostrPool} from "../lib/stores";
     import {onImgError} from "$lib/shopping";
@@ -19,8 +19,8 @@
 
     interface CategoriesAssociativeArray {
         [key: string]: {
-            amount: number,
-            selected: boolean
+        amount: number,
+        selected: boolean
         }
     }
 
@@ -30,7 +30,7 @@
         selected: true
     };
 
-    $: categoriesSelected = Object.keys( Object.fromEntries( Object.entries(categories).filter(([category_id, category]) => {
+    $: selectedCategories = Object.keys( Object.fromEntries( Object.entries(categories).filter(([category_id, category]) => {
         return category.selected;
     }) ) );
 
@@ -43,18 +43,18 @@
         if (categories['All'].selected) {
             return true;
         } else {
-            for (var i = 0; i < categoriesSelected.length; i++) {
-                let categorySelected = categoriesSelected[i];
+            for (let i = 0; i < selectedCategories.length; i++) {
+                let categorySelected = selectedCategories[i];
 
                 if (product.tags && product.tags.includes(categorySelected)) {
                     return true;
                 }
             }
         }
-    }) );
+    }));
 
     onMount(async () => {
-        subscribeProducts($NostrPool, null,
+        getProducts($NostrPool, null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
 
@@ -67,40 +67,39 @@
 
                 if (!content.id) {
                     let productId = getFirstTagValue(productEvent.tags, 'd');
-
-                    let categoryTags = filterTags(productEvent.tags, 't');
-                    if (categoryTags.length > 0) {
-                        categoryTags.forEach((category) => {
-                            let tag = category[1].trim().toLowerCase();
-
-                            // vitamin the product with categories
-                            if (content.tags) {
-                                content.tags.push(tag);
-                            } else {
-                                content.tags = [tag];
-                            }
-
-                            // Add to global categories
-                            if (tag in categories) {
-                                categories[tag].amount++;
-                            } else {
-                                categories[tag] = {
-                                    amount: 1,
-                                    selected: false
-                                };
-                            }
-
-                            categories['All'].amount++;
-
-                            categories = categories;
-                        });
-                    }
-
                     if (productId !== null) {
                         content.id = productId;
                     } else {
                         return;
                     }
+                }
+
+                let categoryTags = filterTags(productEvent.tags, 't');
+                if (categoryTags.length > 0) {
+                    categoryTags.forEach((category) => {
+                        let tag = category[1].trim().toLowerCase();
+
+                        // vitamin the product with categories
+                        if (content.tags) {
+                            content.tags.push(tag);
+                        } else {
+                            content.tags = [tag];
+                        }
+
+                        // Add to global categories
+                        if (tag in categories) {
+                            categories[tag].amount++;
+                        } else {
+                            categories[tag] = {
+                                amount: 1,
+                                selected: false
+                            };
+                        }
+
+                        categories['All'].amount++;
+
+                        categories = categories;
+                    });
                 }
 
                 let productId = content.id;
@@ -112,22 +111,22 @@
                 } else {
                     products[productId] = content;
                 }
-
-                // console.log('products', products);
             });
 
         refreshStalls($NostrPool);
     });
 
     function toggleCategory(category) {
-        if (category === 'All') {
+        if (category === 'All' && categories['All'].selected) {
             for (const cat in categories) {
                 if (cat !== 'All') {
                     categories[cat].selected = false;
                 }
             }
         } else {
-            categories['All'].selected = false;
+            if (categories[category].selected) {
+                categories['All'].selected = false;
+            }
         }
     }
 </script>
@@ -175,9 +174,9 @@
         <div class="collapse-title text-xl font-medium align-middle">
             <Settings />
 
-            {#if categoriesSelected.length > 0 && !categoriesSelected.includes('All')}
+            {#if selectedCategories.length > 0 && !selectedCategories.includes('All')}
                 <span class="ml-3">Filtering products from categories => </span>
-                {#each categoriesSelected as category}{category},&nbsp;{/each}
+                {#each selectedCategories as category}{category},&nbsp;{/each}
             {/if}
         </div>
         <div class="collapse-content columns-4">
@@ -193,7 +192,7 @@
 
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 align-center mx-auto">
     {#each Object.entries(filteredProducts) as [productId, product]}
-        {#if (product.images || product.image) }
+        {#if ((product.images && product.images.length > 0) || product.image) }
             <ProductCard {product} {onImgError}></ProductCard>
         {/if}
     {/each}
