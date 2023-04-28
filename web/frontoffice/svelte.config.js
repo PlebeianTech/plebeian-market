@@ -14,7 +14,13 @@ const config = {
 			fallback: null,
 			precompress: false,
 			strict: true
-		})
+		}),
+		alias: {
+			// this will match a directory and its contents
+			// (`my-directory/x` resolves to `path/to/my-directory/x`)
+			'$sharedLib': '../src/lib',
+			'$sharedLibComponents': '../src/lib/components',
+		}
 	},
 	preprocess: sveltePreprocess()
 };
