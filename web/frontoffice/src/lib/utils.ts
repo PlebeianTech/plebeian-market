@@ -32,7 +32,10 @@ export function getEnvironmentInfo() {
 export function logout(gotoUrl?: string) {
     localStorage.removeItem('nostrPublicKey');
     NostrPublicKey.set(null);
-    privateMessages.set(null);
+    privateMessages.set({
+        human: [],
+        automatic: []
+    });
 
     Info.set("You're Logged out");
 

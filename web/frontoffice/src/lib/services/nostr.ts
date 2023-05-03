@@ -153,7 +153,7 @@ export async function sendPrivateMessage(pool: SimplePool, receiverPubkey: strin
     pool.publish(relayUrlList, event).on('ok', successCB);
 }
 
-export async function getPrivateMessages(pool: SimplePool, userPubkey: string, receivedCB) {
+export async function getPrivateMessages(pool: SimplePool, userPubkey: string, receivedCB, eoseCB) {
     let sub = pool.sub(relayUrlList, [
         {
             kinds: [EVENT_KIND_PM],
@@ -164,6 +164,9 @@ export async function getPrivateMessages(pool: SimplePool, userPubkey: string, r
             '#p': [userPubkey],         // Replies (input)
         },
     ]);
+    sub.on('eose', () => {
+        eoseCB();
+    });
     sub.on('event', async (e) => {
         const content = e.content;
         const messagePubkey = e.pubkey;

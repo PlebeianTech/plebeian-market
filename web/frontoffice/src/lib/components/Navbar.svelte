@@ -126,7 +126,7 @@
                         {#if !$NostrPublicKey}
                             <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
                         {:else}
-                            <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => logout()} on:keypress={() => logout()}><b>Logout</b></a>
+                            <a href={null} class="btn btn-ghost normal-case" on:click={() => logout()} on:keypress={() => logout()}><b>Logout</b></a>
                         {/if}
                     </p>
                 </div>
@@ -148,7 +148,7 @@
                     <label tabindex="0" class="btn btn-ghost btn-circle">
                         <div class="indicator">
                             <ShoppingCartIcon />
-                            <span class="badge badge-sm indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
+                            <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
                         </div>
                     </label>
                     <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-100 shadow-xl">

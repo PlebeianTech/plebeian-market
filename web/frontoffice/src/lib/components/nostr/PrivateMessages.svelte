@@ -1,7 +1,7 @@
 <script lang="ts">
     import EmailIcon from "$sharedLibComponents/icons/Email.svelte";
     import {NostrPublicKey, privateMessages, NostrPool} from "../../stores";
-    import {getPrivateMessages} from "../../services/nostr";
+    import {getPrivateMessages, subscribeMetadata} from "../../services/nostr";
     import {decode} from "light-bolt11-decoder";
     import { goto } from "$app/navigation";
 
@@ -66,8 +66,10 @@
                                 $privateMessages.automatic[orderId].type = type;
                             }
                         }
+
+                        // This is needed to fire reactivity when a new message arrives
+                        $privateMessages.automatic[orderId] = $privateMessages.automatic[orderId];
                     } else {
-                        //console.log('----------- privateMessage',privateMessage)
                         // "Human" messages
                         let pubKey = privateMessage.pubkey;
 
@@ -91,7 +93,24 @@
                         } else {
                             $privateMessages.human[pubKey] = [privateMessage];
                         }
+
+                        // This is needed to fire reactivity when a new message arrives
+                        $privateMessages.human[pubKey] = $privateMessages.human[pubKey];
                     }
+                }
+            },
+            getMetadataForHumanPubkeys
+        );
+    }
+
+    export async function getMetadataForHumanPubkeys() {
+        subscribeMetadata($NostrPool, Object.keys($privateMessages.human),
+            (pubKey, m) => {
+                if (m.name !== undefined) {
+                    $privateMessages.human[pubKey].name = m.name;
+                }
+                if (m.picture !== undefined) {
+                    $privateMessages.human[pubKey].picture = m.picture;
                 }
             });
     }
