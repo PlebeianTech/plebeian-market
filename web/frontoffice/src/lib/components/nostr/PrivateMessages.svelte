@@ -5,6 +5,51 @@
     import {decode} from "light-bolt11-decoder";
     import { goto } from "$app/navigation";
 
+    let unreadConversations = 0;
+
+    $: {
+        // We need to "listen" for "human" so this
+        // is called reactively when modifications
+        // are done to messages or sections
+        const reactivity = $privateMessages.human;
+        vitamineHumanConversations();
+    }
+
+    export function vitamineHumanConversations() {
+        // Calculating unread messages
+        unreadConversations = 0;
+
+        for (const [conversationPubkey, conversation] of Object.entries($privateMessages.human)) {
+            let maxTimestamp = 0;
+            let unreadMessages = 0;
+
+            for (const message of conversation) {
+                if (message.created_at > maxTimestamp) {
+                    maxTimestamp = message.created_at;
+                }
+
+                let messagesStorageJson = localStorage.getItem('readMessages');
+                let messagesStorage = JSON.parse(messagesStorageJson) ?? {};
+                let recordedMaxTimestamp = messagesStorage[conversationPubkey] ?? 0;
+
+                if (message.created_at > recordedMaxTimestamp) {
+                    unreadMessages++;
+                }
+            }
+
+            if (unreadMessages > 0) {
+                unreadConversations++;
+            }
+
+            conversation.maxTimestamp = maxTimestamp;
+            conversation.unreadMessages = unreadMessages;
+        }
+
+        // We need this so reactive blocks in messages/+page.svelte
+        // can run again after this function updated unreadMessages
+        $privateMessages.human = $privateMessages.human;
+    }
+
     export async function getNostrDMs() {
         await getPrivateMessages($NostrPool, $NostrPublicKey,
             (privateMessage) => {
@@ -94,6 +139,8 @@
                             $privateMessages.human[pubKey] = [privateMessage];
                         }
 
+                        vitamineHumanConversations();
+
                         // This is needed to fire reactivity when a new message arrives
                         $privateMessages.human[pubKey] = $privateMessages.human[pubKey];
                     }
@@ -127,9 +174,11 @@
         </div>
 
         {#if $NostrPublicKey}
-            <span class="indicator-item badge badge-sm" class:badge-error={Object.entries($privateMessages.human ?? []).length > 0}>
-                {Object.entries($privateMessages.human ?? []).length}
-            </span>
+            {#if unreadConversations}
+                <span class="indicator-item badge badge-sm badge-error">
+                    {unreadConversations}
+                </span>
+            {/if}
         {:else}
             <span class="indicator-item badge badge-sm badge-secondary">!</span>
         {/if}

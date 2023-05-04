@@ -149,7 +149,6 @@ export function getProducts(pool: SimplePool, merchantPubkey: string | null, rec
 export async function sendPrivateMessage(pool: SimplePool, receiverPubkey: string, message: string, successCB) {
     let cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message)
     const event = await createEvent(4, cipheredMessage, [['p', receiverPubkey]]);
-    console.log('*** PUBLISHING MESSAGE: ', event);
     pool.publish(relayUrlList, event).on('ok', successCB);
 }
 
