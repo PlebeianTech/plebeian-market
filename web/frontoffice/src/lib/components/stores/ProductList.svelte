@@ -8,6 +8,8 @@
     import {onImgError} from "$lib/shopping";
     import ViewList from "$sharedLibComponents/icons/ViewList.svelte";
     import ViewCards from "$sharedLibComponents/icons/ViewCards.svelte";
+    import EmailIcon from "$sharedLibComponents/icons/Email.svelte";
+    import {goto} from "$app/navigation";
 
     export let merchantPubkey: string;
     export let stallId: string;
@@ -45,9 +47,20 @@
                 }
             });
     });
+
+    function contactMerchant(merchantPubkey) {
+        goto('/messages?newMessagePubKey=' + merchantPubkey);
+    }
 </script>
 
 <div class="btn-group btn-group-vertical lg:btn-group-horizontal justify-end">
+    <button class="btn gap-2" on:click={() => contactMerchant(merchantPubkey)}>
+        <span class="w-8 h-8">
+            <EmailIcon />
+        </span>
+        Contact the merchant
+    </button>
+    <div class="divider divider-horizontal"></div>
     <button class="btn" class:btn-active={listView} on:click={() => listView=true}>
         <ViewList />
     </button>

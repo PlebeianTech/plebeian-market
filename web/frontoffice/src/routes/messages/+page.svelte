@@ -4,34 +4,21 @@
     import {checkExtensionOrShowDialog, sendMessage, sendPrivateMessage} from "$lib/services/nostr";
     import {nip19} from "nostr-tools";
     import SimpleNote from "$lib/components/nostr/SimpleNote.svelte";
+    import OrderNote from "$lib/components/nostr/OrderNote.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLibComponents/icons/SendMessage.svelte";
+    import { page } from '$app/stores'
 
     let selectedConversationPubkey = null;
-
     let sortedConversations;
     let sortedMessages = [];
     let chatTextarea;
-
-    export let onImgError = (imgElement) => {
-        imgElement.onerror = "";
-        imgElement.src = profilePicturePlaceHolder;
-    }
-
-    onMount(async () => {
-        //localStorage.removeItem('readMessages');
-
-        if (!$NostrPublicKey) {
-            if (checkExtensionOrShowDialog()) {
-                $NostrPublicKey = await window.nostr.getPublicKey();
-            }
-        }
-    });
+    let newConversationPubkey;
 
     // Messages
     $: {
-        if (selectedConversationPubkey) {
-            sortedMessages = Object.entries($privateMessages.human[selectedConversationPubkey]).sort((a, b) => {
+        if (selectedConversationPubkey && $privateMessages.human && $privateMessages.human[selectedConversationPubkey]) {
+            sortedMessages = Object.entries($privateMessages.human[selectedConversationPubkey].messages).sort((a, b) => {
                 return a[1].created_at - b[1].created_at;
             });
 
@@ -78,23 +65,17 @@
         await sendPrivateMessage($NostrPool, selectedConversationPubkey, content,
             async (relay) => {
                 chatTextarea.value = '';
-
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                $privateMessages.human = $privateMessages.human;
-
                 console.log('-------- Private message accepted by relay:', relay);
-
-                await scrollToBottom();
             }
         );
     }
 
-    function selectConversation(privateKey) {
-        if (!privateKey) {
+    function selectConversation(publicKey) {
+        if (!publicKey) {
             return;
         }
 
-        selectedConversationPubkey = privateKey;
+        selectedConversationPubkey = publicKey;
     }
 
     async function scrollToBottom() {
@@ -105,6 +86,28 @@
             chatScrollableDiv.scrollTop = chatScrollableDiv.scrollHeight;
         }
     }
+
+    export let onImgError = (imgElement) => {
+        imgElement.onerror = "";
+        imgElement.src = profilePicturePlaceHolder;
+    }
+
+    onMount(async () => {
+        // localStorage.removeItem('readMessages');
+
+        if (!$NostrPublicKey) {
+            if (checkExtensionOrShowDialog()) {
+                $NostrPublicKey = await window.nostr.getPublicKey();
+            }
+        }
+
+        const newMessagePubKey = $page.url.searchParams.get('newMessagePubKey');
+
+        if (newMessagePubKey && newMessagePubKey.length === 64) {
+            newConversationPubkey = newMessagePubKey;
+            selectConversation(newMessagePubKey);
+        }
+    });
 </script>
 
 <svelte:head>
@@ -117,6 +120,22 @@
 
     <div class="menu card h-auto max-h-full mb-6 gap-2 rounded-box place-items-center w-1/3 p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
         <ul class="p-1">
+            {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
+                <li class="rounded-lg "
+                    class:bg-primary={selectedConversationPubkey === newConversationPubkey}
+                    on:click={() => selectConversation(newConversationPubkey)}
+                >
+                    <div>
+                        <div class="avatar indicator">
+                            <div class="w-16 rounded-full">
+                                <img src="{profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
+                            </div>
+                        </div>
+                        New conversation: {nip19.npubEncode(newConversationPubkey)}
+                    </div>
+                </li>
+            {/if}
+
             {#each sortedConversations as [privateKey, conversation]}
                 <li class="rounded-lg "
                     class:bg-primary={selectedConversationPubkey === privateKey}
@@ -145,12 +164,6 @@
     <div class="flex flex-col flex-grow w-full mb-6 p-4 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto            scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
          id="conversationMessages" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
         {#if selectedConversationPubkey}
-            {#each sortedMessages as [publicKey, message]}
-                {#if typeof message === 'object'}
-                    <SimpleNote {message} />
-                {/if}
-            {/each}
-
             {#each sortedMessages as [publicKey, message]}
                 {#if typeof message === 'object'}
                     <SimpleNote {message} />

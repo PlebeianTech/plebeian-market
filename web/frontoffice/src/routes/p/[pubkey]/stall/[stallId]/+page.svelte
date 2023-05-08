@@ -2,7 +2,7 @@
     import ProductList from "$lib/components/stores/ProductList.svelte";
     import {onMount} from "svelte";
     import {NostrPool, stalls} from "$lib/stores";
-    import {refreshStalls} from "../../../../../lib/shopping";
+    import {refreshStalls} from "$lib/shopping";
 
     /** @type {import('./$types').PageData} */
     export let data;

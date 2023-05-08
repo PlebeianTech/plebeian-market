@@ -23,7 +23,7 @@
             let maxTimestamp = 0;
             let unreadMessages = 0;
 
-            for (const message of conversation) {
+            for (const message of conversation.messages) {
                 if (message.created_at > maxTimestamp) {
                     maxTimestamp = message.created_at;
                 }
@@ -61,7 +61,6 @@
 
                         if (privateMessage.type) {
                             type = Number(privateMessage.type);
-                            privateMessage.type = type;
                         } else {
                             // Workaround until NostrMarket adds the "type" property
                             if (privateMessage.payment_options) {
@@ -72,6 +71,8 @@
                                 type = 0;
                             }
                         }
+
+                        privateMessage.type = type;
 
                         if (type === 1) {
                             for (const paymentOption of privateMessage.payment_options) {
@@ -106,10 +107,6 @@
 
                         } else {
                             $privateMessages.automatic[orderId] = privateMessage;
-
-                            if (!privateMessage.type) {
-                                $privateMessages.automatic[orderId].type = type;
-                            }
                         }
 
                         // This is needed to fire reactivity when a new message arrives
@@ -125,24 +122,24 @@
 
                         if (pubKey in $privateMessages.human) {
                             let includeMessage = true;
-                            for (const message of $privateMessages.human[pubKey]) {
+                            for (const message of $privateMessages.human[pubKey].messages) {
                                 if (privateMessage.id === message.id) {
                                     includeMessage = false;
                                 }
                             }
 
                             if (includeMessage) {
-                                $privateMessages.human[pubKey].push(privateMessage);
+                                $privateMessages.human[pubKey].messages.push(privateMessage);
                             }
 
                         } else {
-                            $privateMessages.human[pubKey] = [privateMessage];
+                            $privateMessages.human[pubKey] = {
+                                messages: [privateMessage]
+                            };
                         }
 
-                        vitamineHumanConversations();
-
                         // This is needed to fire reactivity when a new message arrives
-                        $privateMessages.human[pubKey] = $privateMessages.human[pubKey];
+                        $privateMessages.human = $privateMessages.human;
                     }
                 }
             },
@@ -162,12 +159,18 @@
             });
     }
 
+    function gotoMessages() {
+        if ($NostrPublicKey) {
+            goto('/messages')
+        }
+    }
+
     $: if ($NostrPublicKey) {
         getNostrDMs();
     }
 </script>
 
-<div class="btn btn-ghost btn-circle" on:click={() => goto('/messages')}>
+<div class="btn btn-ghost btn-circle" on:click={gotoMessages}>
     <div class="indicator">
         <div class="w-8 h-8">
             <EmailIcon />
@@ -175,12 +178,16 @@
 
         {#if $NostrPublicKey}
             {#if unreadConversations}
-                <span class="indicator-item badge badge-sm badge-error">
-                    {unreadConversations}
-                </span>
+                <div class="tooltip tooltip-error" data-tip="{unreadConversations} unread conversations">
+                    <span class="indicator-item badge badge-sm badge-error">
+                        {unreadConversations}
+                    </span>
+                </div>
             {/if}
         {:else}
-            <span class="indicator-item badge badge-sm badge-secondary">!</span>
+            <div class="tooltip tooltip-secondary" data-tip="You need to login first">
+                <span class="indicator-item badge badge-sm badge-secondary">!</span>
+            </div>
         {/if}
     </div>
 </div>
