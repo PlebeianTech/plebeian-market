@@ -4,7 +4,6 @@
     import {checkExtensionOrShowDialog, sendMessage, sendPrivateMessage} from "$lib/services/nostr";
     import {nip19} from "nostr-tools";
     import SimpleNote from "$lib/components/nostr/SimpleNote.svelte";
-    import OrderNote from "$lib/components/nostr/OrderNote.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLibComponents/icons/SendMessage.svelte";
     import { page } from '$app/stores'
