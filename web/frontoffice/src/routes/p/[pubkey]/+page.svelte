@@ -10,6 +10,8 @@
     <Browse merchantPubkey={data.pubkey}></Browse>
 </div>
 
+<!--
 <div class="py-3 lg:pb-14 mx-auto w-screen lg:w-2/3">
     <ResumeView pubkey={data.pubkey} />
 </div>
+-->

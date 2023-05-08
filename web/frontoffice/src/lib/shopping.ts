@@ -132,6 +132,22 @@ export function refreshStalls(NostrPool: SimplePool) {
     }
 }
 
+export function getStallsByMerchant(merchantPubkey: string) {
+    let merchantStalls = [];
+
+    let allStalls = get(stalls);
+
+    if (allStalls !== null) {
+        Object.entries(allStalls.stalls).forEach(([stallId, stall]) => {
+            if (merchantPubkey === stall.merchantPubkey) {
+                merchantStalls[stallId] = stall;
+            }
+        });
+    }
+
+    return merchantStalls;
+}
+
 export function refreshProducts(NostrPool: SimplePool) {
     let now: number = Math.floor(Date.now());
 

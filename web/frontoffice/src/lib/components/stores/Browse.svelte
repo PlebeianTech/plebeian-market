@@ -1,17 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { NostrPool, stalls } from "$lib/stores";
-    import {NostrStall} from "../../types/stall";
     import {formatTimestamp, getFirstTagValue} from "$lib/nostr/utils.js";
     import Search from "$sharedLibComponents/icons/Search.svelte"
-    import {refreshStalls} from "../../shopping";
+    import {refreshStalls} from "$lib/shopping";
 
     export let merchantPubkey: string;
 
     let sortedStalls = [];
-
-    //let merchantMeta = new Map<string, string>();
-    let merchantMeta = [];
     let filter = null;
 
     $: {

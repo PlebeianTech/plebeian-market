@@ -4,11 +4,12 @@
     import {getProducts} from "$lib/services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
-    import {getFirstTagValue} from "../../nostr/utils";
+    import {getFirstTagValue} from "$lib/nostr/utils";
     import {onImgError} from "$lib/shopping";
     import ViewList from "$sharedLibComponents/icons/ViewList.svelte";
     import ViewCards from "$sharedLibComponents/icons/ViewCards.svelte";
     import EmailIcon from "$sharedLibComponents/icons/Email.svelte";
+    import Store from "$sharedLibComponents/icons/Store.svelte";
     import {goto} from "$app/navigation";
 
     export let merchantPubkey: string;
@@ -86,10 +87,46 @@
             {#each Object.entries(products) as [productId, product]}
                 <ProductRow {product} {onImgError}></ProductRow>
             {/each}
+            {#each Object.entries(products) as [productId, product]}
+                <ProductRow {product} {onImgError}></ProductRow>
+            {/each}
+            {#each Object.entries(products) as [productId, product]}
+                <ProductRow {product} {onImgError}></ProductRow>
+            {/each}
+            {#each Object.entries(products) as [productId, product]}
+                <ProductRow {product} {onImgError}></ProductRow>
+            {/each}
+            {#each Object.entries(products) as [productId, product]}
+                <ProductRow {product} {onImgError}></ProductRow>
+            {/each}
+            {#each Object.entries(products) as [productId, product]}
+                <ProductRow {product} {onImgError}></ProductRow>
+            {/each}
+            {#each Object.entries(products) as [productId, product]}
+                <ProductRow {product} {onImgError}></ProductRow>
+            {/each}
+            {#each Object.entries(products) as [productId, product]}
+                <ProductRow {product} {onImgError}></ProductRow>
+            {/each}
         </tbody>
     </table>
 {:else}
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-6 place-content-center">
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError}></ProductCard>
+        {/each}
         {#each Object.entries(products) as [productId, product]}
             <ProductCard {product} {onImgError}></ProductCard>
         {/each}

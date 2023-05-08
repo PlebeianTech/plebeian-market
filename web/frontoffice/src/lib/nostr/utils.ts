@@ -64,19 +64,17 @@ export const formatTimestamp = ts => {
     return formatter.format(new Date(ts * 1000));
 }
 
-export function getChannelIdForStallOwner(user) {
+export function getChannelIdForStall(user) {
     let stallName = `Plebeian Market Stall ${user.identity} (${import.meta.env.MODE})`;
 
     console.debug('   ** Nostr: Stall channel name: ', stallName);
 
-    // Please, don't change this, since we're faking channel
+    // Please, don't change any of this, since we're faking channel
     // creation, so we need the same channel ID every time
-    let created_at = 1672837282;
-
     let event = {
         kind: Kind.ChannelCreation,
         pubkey: pmMasterPublicKey,
-        created_at: created_at,
+        created_at: 1672837282,
         content: '{"name": "' + stallName + '", "about": "Plebeian Market Stall Square."}',
         tags: [],
     }
