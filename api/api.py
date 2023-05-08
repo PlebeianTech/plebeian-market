@@ -6,8 +6,10 @@ from ecdsa.keys import BadSignatureError
 from email_validator import validate_email, EmailNotValidError
 from flask import Blueprint, jsonify, redirect, request
 from io import BytesIO
+import json
 import jwt
 import lnurl
+from nostr.key import PrivateKey
 import os
 import pyqrcode
 import secrets
@@ -34,7 +36,7 @@ def healthcheck(): # TODO: I don't really like this, for some reason, but it is 
 @api_blueprint.route('/api/signup/lnurl', methods=['GET'], defaults={'deprecated': False, 'create_user': True})
 def auth_lnurl(deprecated, create_user):
     if deprecated:
-        return redirect(f"{app.config['BASE_URL']}/api/login/lnurl", code=301)
+        return redirect(f"{app.config['API_BASE_URL']}/api/login/lnurl", code=301)
 
     if 'k1' not in request.args:
         # first request to /login => we return a challenge (k1) and a QR code
@@ -43,7 +45,7 @@ def auth_lnurl(deprecated, create_user):
         db.session.add(m.LnAuth(k1=k1))
         db.session.commit()
 
-        url = app.config['BASE_URL'] + f"/api/login/lnurl?tag=login&k1={k1}"
+        url = app.config['API_BASE_URL'] + f"/api/login/lnurl?tag=login&k1={k1}"
         ln_url = lnurl.encode(url).bech32
         qr = BytesIO()
         pyqrcode.create(ln_url).svg(qr, omithw=True, scale=4)
@@ -323,7 +325,7 @@ def put_me(user):
                 user.shipping_worldwide_usd = float(request.json['shipping_worldwide_usd'])
             except (ValueError, TypeError):
                 user.shipping_worldwide_usd = 0
-        user.ensure_stall_private_key()
+        user.ensure_stall_key()
         get_nostr_client(user).publish_stall(user.identity, user.stall_name, user.stall_description, 'USD', user.shipping_from, user.shipping_domestic_usd, user.shipping_worldwide_usd)
 
     if 'nostr_private_key' in request.json:
@@ -417,7 +419,7 @@ def verify_lnurl_put(user):
         user.new_lnauth_key_k1_generated_at = datetime.utcnow()
         db.session.commit()
 
-        url = app.config['BASE_URL'] + f"/api/users/me/verify/lnurl?tag=login&k1={user.new_lnauth_key_k1}"
+        url = app.config['API_BASE_URL'] + f"/api/users/me/verify/lnurl?tag=login&k1={user.new_lnauth_key_k1}"
         ln_url = lnurl.encode(url).bech32
         qr = BytesIO()
         pyqrcode.create(ln_url).svg(qr, omithw=True, scale=4)
@@ -734,20 +736,21 @@ def get_put_delete_entity(key, cls, singular, has_item):
             for k, v in validated.items():
                 setattr(entity, k, v)
 
-            db.session.commit()
-
             nostr = False
-
             if isinstance(entity, m.Listing) and entity.started:
-                user.ensure_stall_private_key()
+                user.ensure_stall_key()
                 get_nostr_client(user).publish_product(**entity.to_nostr())
                 nostr = True
+
+            db.session.commit()
 
             return jsonify({'nostr': nostr})
         elif request.method == 'DELETE':
             if isinstance(entity, m.Auction | m.Listing):
                 for sale in entity.sales:
                     sale.auction = sale.listing = None
+                for order_item in m.OrderItem.query.filter_by(listing_id=entity.id):
+                    order_item.listing_id = None
             db.session.delete(entity)
             db.session.commit()
 
@@ -874,11 +877,11 @@ def put_publish(user, key, cls):
     if isinstance(entity, m.Auction):
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
 
-    db.session.commit()
-
     if isinstance(entity, m.Listing):
-        user.ensure_stall_private_key()
+        user.ensure_stall_key()
         get_nostr_client(user).publish_product(**entity.to_nostr())
+
+    db.session.commit()
 
     return jsonify({})
 
@@ -1176,3 +1179,76 @@ def get_campaign_featured_avatars(key):
         avatars[which_avatars] = unique_avatars
 
     return jsonify(avatars)
+
+@api_blueprint.route("/api/relays", methods=['GET'])
+def get_relays():
+    return jsonify({'relays': [{'url': r.url} for r in m.Relay.query.all()]})
+
+@api_blueprint.route("/api/stalls/<pubkey>/events", methods=['POST'])
+def post_stall_event(pubkey):
+    seller = m.User.query.filter_by(stall_public_key=pubkey).one_or_none()
+    if not seller:
+        return jsonify({'message': "Stall not found!"}), 404
+
+    if request.json['kind'] == 4:
+        # TODO: validate sig?
+
+        sk = PrivateKey(bytes.fromhex(seller.stall_private_key))
+        cleartext_content = json.loads(sk.decrypt_message(request.json['content'], public_key_hex=request.json['pubkey']))
+
+        if cleartext_content['type'] == 0:
+            try:
+                payment_address = seller.get_new_address()
+            except AddressGenerationError as e:
+                return jsonify({'message': str(e)}), 500
+            except MempoolSpaceError as e:
+                return jsonify({'message': str(e)}), 500
+
+            # TODO: validate event date (what to do with old events?)
+
+            order = m.Order(
+                uuid=cleartext_content['id'],
+                event_id=request.json['id'],
+                buyer_public_key=request.json['pubkey'],
+                requested_at=datetime.utcfromtimestamp(request.json['created_at']),
+                payment_address=payment_address)
+            db.session.add(order)
+            db.session.commit()
+
+            for item in cleartext_content['items']:
+                listing = m.Listing.query.filter_by(key=item['product_id']).first()
+
+                quantity = item['quantity']
+
+                if listing.available_quantity < quantity:
+                    # TODO: reply to buyer with a DM?
+                    return jsonify({'message': "Not enough items in stock!"}), 400
+
+                # NB: here we "lock" the quantity. it is given back if the order expires
+                listing.available_quantity -= quantity
+
+                order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
+                db.session.add(order_item)
+                db.session.commit()
+
+                order.total_usd += listing.price_usd * quantity
+
+            try:
+                btc2usd = btc2fiat.get_value('kraken')
+            except Exception:
+                return jsonify({'message': "Error fetching the exchange rate!"}), 500
+
+            order.total = usd2sats(order.total_usd, btc2usd)
+
+            db.session.commit()
+
+            get_nostr_client(sk).send_dm(
+                order.buyer_public_key,
+                json.dumps({
+                    'id': order.uuid,
+                    'type': 1,
+                    'message': f"Please send the amount directly to the seller.",
+                    'payment_options': [{'type': 'btc', 'link': order.payment_address}]
+            }))
+
+    return jsonify({})

@@ -11,14 +11,14 @@ services:
     env_file: .env.test
   process-notifications:
     env_file: .env.test
+  birdwatcher:
+    env_file: .env.test
   test:
     image: plebeianmarket-api
     depends_on:
       api:
         condition: service_healthy
     env_file: .env.test
-    environment:
-      - BASE_URL=http://api:5000
     volumes:
       - "./api:/app"
     networks:

@@ -14,8 +14,6 @@ services:
       timeout: 3s
       retries: 5
     env_file: .env.dev
-    environment:
-      - BASE_URL=http://localhost:5000
     ports:
       - "5000:5000"
     volumes:
@@ -53,3 +51,11 @@ services:
     volumes:
       - "./api:/app"
     command: flask process-notifications
+  birdwatcher:
+    depends_on:
+      api: # because birdwatcher *actually* needs the API to know what to work on!
+        condition: service_healthy
+    env_file: .env.dev
+    volumes:
+      - "./birdwatcher:/app"
+    command: python main.py

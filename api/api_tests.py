@@ -3,13 +3,15 @@ import btc2fiat
 from datetime import datetime, timedelta
 import dateutil.parser
 import ecdsa
+import json
+from nostr.event import EncryptedDirectMessage
 from nostr.key import PrivateKey
 import requests
 import time
 import unittest
 
 from main import app
-from utils import usd2sats
+from utils import hash_create, usd2sats
 
 # just a one-pixel PNG used for testing
 ONE_PIXEL_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P4v5ThPwAG7wKklwQ/bwAAAABJRU5ErkJggg==")
@@ -25,6 +27,7 @@ CAMPAIGN_ADDRESSES = ["bc1qeauv7festyh2d85ugskzlqucnp594es3t3dhe7", "bc1qenglrz3
 # some random nostr keys
 NOSTR_KEY_1 = PrivateKey().public_key.hex()
 NOSTR_KEY_2 = PrivateKey().public_key.hex()
+NOSTR_BUYER_PRIVATE_KEY = PrivateKey()
 
 ONE_DOLLAR_SATS = usd2sats(1, btc2fiat.get_value('kraken'))
 
@@ -37,8 +40,8 @@ class TestApi(unittest.TestCase):
     def do(self, f, path, params=None, json=None, headers=None, files=None):
         if files is None:
             files = {}
-        BASE_URL = app.config['BASE_URL']
-        response = f(f"{BASE_URL}{path}", params=params, json=json, headers=headers, files=files)
+        API_BASE_URL = app.config['API_BASE_URL']
+        response = f(f"{API_BASE_URL}{path}", params=params, json=json, headers=headers, files=files)
         return response.status_code, response.json() if response.status_code in (200, 400, 401, 402, 403, 404) else None
 
     def get(self, path, params=None, headers=None):
@@ -522,6 +525,11 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
+        code, response = self.get(f"/api/listings/{listing_key}")
+        self.assertEqual(code, 200)
+        listing_stall_public_key = response['listing']['stall_public_key']
+        self.assertIsNotNone(listing_stall_public_key)
+
         # the listing appears under "active listings" now
         code, response = self.get("/api/listings/active")
         self.assertEqual(code, 200)
@@ -545,9 +553,9 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1), json={},
             files={'media': ('one_pixel.png', ONE_PIXEL_PNG)})
         self.assertEqual(code, 200)
-        self.assertTrue(response['media']['url'].endswith('.png'))
-        self.assertEqual(response['media']['index'], 1)
-        media_hash = response['media']['hash']
+        self.assertTrue(response['media'][0]['url'].endswith('.png'))
+        self.assertEqual(response['media'][0]['index'], 1)
+        media_hash = response['media'][0]['hash']
 
         code, response = self.get(f"/api/listings/{listing_key}")
         self.assertEqual(len(response['listing']['media']), 1)
@@ -617,6 +625,13 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 403)
         self.assertIn("you already have an active purchase", response['message'].lower())
 
+        # buying 2 items over nostr
+        purchase_event = {'type': 0, 'id': hash_create(4), 'items': [{'product_id': listing_key, 'quantity': 2}]}
+        dm = EncryptedDirectMessage(recipient_pubkey=listing_stall_public_key, cleartext_content=json.dumps(purchase_event))
+        NOSTR_BUYER_PRIVATE_KEY.sign_event(dm)
+        code, response = self.post(f"/api/stalls/{listing_stall_public_key}/events", json.loads(dm.to_message())[1])
+        self.assertEqual(code, 200)
+
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
@@ -633,7 +648,7 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(response['listing']['available_quantity'], 9)
+        self.assertEqual(response['listing']['available_quantity'], 7)
         self.assertEqual(len(response['listing']['sales']), 1)
         for s in response['listing']['sales']:
             self.assertIsNotNone(s['contribution_settled_at'])

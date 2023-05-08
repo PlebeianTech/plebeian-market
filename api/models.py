@@ -166,6 +166,7 @@ class User(WalletMixin, db.Model):
 
     # TODO: move these to a "stalls" table when we decide we need multiple stalls per user
     stall_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    stall_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
@@ -175,10 +176,12 @@ class User(WalletMixin, db.Model):
     shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
 
-    # TODO: this will become obsolete if we move stalls to a separate table
-    def ensure_stall_private_key(self):
+    # TODO: this will become obsolete after we move stalls to a separate table
+    def ensure_stall_key(self):
         if self.stall_private_key is None:
             self.stall_private_key = PrivateKey().hex()
+        if self.stall_public_key is None:
+            self.stall_public_key = PrivateKey(bytes.fromhex(self.stall_private_key)).public_key.hex()
 
     email = db.Column(db.String(64), unique=True, nullable=True, index=True)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -1094,6 +1097,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
         assert isinstance(for_user, int | None)
 
         listing = {
+            'stall_public_key': self.item.seller.stall_public_key,
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
@@ -1230,6 +1234,42 @@ class Bid(db.Model):
             # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
             bid['payment_request'] = self.payment_request
         return bid
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    uuid = db.Column(db.String(36), unique=True, nullable=False, index=True)
+
+    event_id = db.Column(db.String(64), nullable=False, index=True)
+    buyer_public_key = db.Column(db.String(64), nullable=False, index=True)
+
+    requested_at = db.Column(db.DateTime, nullable=False)
+
+    payment_address = db.Column(db.String(128), nullable=False, unique=True, index=True)
+
+    txid = db.Column(db.String(128), nullable=True)
+    tx_value = db.Column(db.Integer, nullable=True)
+    tx_confirmed = db.Column(db.Boolean, nullable=False, default=False)
+
+    expired_at = db.Column(db.DateTime, nullable=True)
+
+    shipping_usd = db.Column(db.Float, nullable=False, default=0)
+
+    total_usd = db.Column(db.Float, nullable=False, default=0)
+    total = db.Column(db.Integer, nullable=False, default=0)
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+    listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
+
+    quantity = db.Column(db.Integer, nullable=False)
 
 class SaleState(Enum):
     OLD = -1 # old sales, from before we used to settle on-chain

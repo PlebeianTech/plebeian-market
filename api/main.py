@@ -847,7 +847,7 @@ def get_nostr_client(user):
 
 class MockS3:
     def get_url_prefix(self):
-        return app.config['BASE_URL'] + "/mock-s3-files/"
+        return app.config['API_BASE_URL'] + "/mock-s3-files/"
 
     def get_filename_prefix(self):
         return ""
@@ -883,7 +883,7 @@ def get_s3():
 if __name__ == '__main__':
     import lnurl
     try:
-        lnurl.encode(app.config['BASE_URL'])
+        lnurl.encode(app.config['API_BASE_URL'])
     except lnurl.exceptions.InvalidUrl:
         # HACK: allow URLs with http:// and no TLD in development mode (http://localhost)
         from pydantic import AnyHttpUrl
@@ -891,7 +891,7 @@ if __name__ == '__main__':
             pass
         app.logger.warning("Patching lnurl.types.ClearnetUrl!")
         lnurl.types.ClearnetUrl = ClearnetUrl
-        lnurl.encode(app.config['BASE_URL']) # try parsing again to check that the patch worked
+        lnurl.encode(app.config['API_BASE_URL']) # try parsing again to check that the patch worked
 
     @app.route("/mock-s3-files/<string:filename>", methods=['GET'])
     def mock_s3(filename):

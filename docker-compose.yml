@@ -58,6 +58,16 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
+  birdwatcher:
+    build:
+      context: ./
+      dockerfile: ./birdwatcher/Dockerfile
+    image: plebeianmarket-birdwatcher
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 1m
+    networks:
+      - db_network
 networks:
   db_network:
     driver: bridge
