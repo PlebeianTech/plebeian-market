@@ -1,13 +1,12 @@
 <script lang="ts">
     import { onDestroy, onMount, afterUpdate } from 'svelte';
-    import { type Event, generatePrivateKey, Kind } from 'nostr-tools';
+    import { Kind } from 'nostr-tools';
     import type { VitaminedMessage } from "$lib/components/nostr/types";
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import { hasExtension, queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
-    import { ErrorHandler, putProfile } from "$lib/services/api";
     import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
-    import { token, user, NostrPool, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
+    import { user, NostrPool, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
     import { requestLoginModal } from "$lib/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLibComponents/icons/SendMessage.svelte";
@@ -299,24 +298,7 @@
         });
     });
 
-    const userUnsubscribe = user.subscribe(
-        () => {
-            if ($user && $user.nostr_private_key === null) {
-                let nostr_private_key = generatePrivateKey();
-
-                putProfile($token, {nostr_private_key},
-                    u => {
-                        user.set(u);
-                        console.debug('   ** Nostr: keys saved into user', u)
-                    },
-                    new ErrorHandler(true)
-                );
-            }
-        }
-    );
-
     onDestroy(async () => {
-        userUnsubscribe();
         if (orderMessagesTimer !== null) {
             clearTimeout(orderMessagesTimer);
         }

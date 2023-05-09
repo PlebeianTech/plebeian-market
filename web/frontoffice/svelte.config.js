@@ -1,4 +1,3 @@
-//import adapter from '@sveltejs/adapter-node';
 import adapter from '@sveltejs/adapter-static';
 import sveltePreprocess from 'svelte-preprocess';
 
@@ -20,6 +19,13 @@ const config = {
 			// (`my-directory/x` resolves to `path/to/my-directory/x`)
 			'$sharedLib': '../src/lib',
 			'$sharedLibComponents': '../src/lib/components',
+		},
+		prerender: {
+			entries: [
+				'*',
+				'/p/[pubkey]',
+				'/p/[pubkey]/stall/[stallId]'
+			]
 		}
 	},
 	preprocess: sveltePreprocess()

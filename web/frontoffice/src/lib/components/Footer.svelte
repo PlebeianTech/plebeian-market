@@ -7,7 +7,7 @@
 </script>
 
 <footer class="text-neutral-content bg-neutral border-t border-white/20 p-4 pb-0">
-    <div class="lg:w-2/3 mx-auto w-full lg:flex items-center justify-between mx-auto py-4 pb-0">
+    <div class="lg:w-2/3 mx-auto w-full lg:flex items-center justify-between py-4 pb-0">
         <div>
             <h1 class="lg:text-4xl text-3xl font-bold">Plug into the Bitcoin Economy</h1>
             <div class="lg:flex lg:space-x-4 my-6">

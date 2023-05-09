@@ -64,8 +64,8 @@ export const formatTimestamp = ts => {
     return formatter.format(new Date(ts * 1000));
 }
 
-export function getChannelIdForStall(user) {
-    let stallName = `Plebeian Market Stall ${user.identity} (${import.meta.env.MODE})`;
+export function getChannelIdForStall(stallPubkey) {
+    let stallName = `Plebeian Market Stall ${stallPubkey}`;
 
     console.debug('   ** Nostr: Stall channel name: ', stallName);
 

@@ -8,10 +8,11 @@
     import {NostrPool, stalls} from "$lib/stores";
     import {getStallsByMerchant, refreshStalls} from "$lib/shopping";
     import {getChannelIdForStall} from "$lib/nostr/utils";
-    import {goto} from "$app/navigation";
+    import { goto } from '$app/navigation';
 
     /** @type {import('./$types').PageData} */
     export let data;
+    export let pubkey;
 
     let nostrRoomId: string | null = getChannelIdForStall(data.stallId) ?? null;
     let bigChat: boolean = false;
@@ -30,6 +31,10 @@
     onMount(async () => {
         refreshStalls($NostrPool);
     });
+
+    function gotoStall(url) {
+        goto('/messages')
+    }
 </script>
 
 <svelte:head>
@@ -47,11 +52,6 @@
 {#if numStallsThisMerchant > 1}
     <div class="text-center text-sm mb-8">
         This merchant has {numStallsThisMerchant} stores. Visit them <a on:click|preventDefault={() => showStallsByMerchantModal = true} class="underline decoration-indigo-500 hover:decoration-2 hover:font-bold">here</a>.
-        <!--
-        <button class="btn gap-2" on:click={() => goto('/p/' + data.pubkey)}>
-
-        </button>
-        -->
     </div>
 {/if}
 
@@ -83,7 +83,6 @@
     {/if}
 </div>
 
-<!-- Nostr text confirmation Modal -->
 <input type="checkbox" id="stallsByThisMerchant" class="modal-toggle" bind:checked={showStallsByMerchantModal}/>
 <div class="modal">
     <div class="modal-box relative">
@@ -96,7 +95,7 @@
         <ul class="list-disc list-inside">
             {#each Object.entries(merchantStalls) as [stallId, stall]}
                 <li class="mt-4 ml-4">
-                    <a class="underline hover:decoration-2 hover:font-bold" href="/p/{stall.merchantPubkey}/stall/{stallId}">
+                    <a class="underline hover:decoration-2 hover:font-bold" href="/p/{stall.merchantPubkey}/stall/{stallId}" on:click={() => showStallsByMerchantModal = false}>
                         {stall.name}
                     </a> - {stall.description}
                 </li>
