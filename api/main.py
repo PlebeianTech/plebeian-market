@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
 from flask_migrate import Migrate
 from functools import wraps
+import hashlib
 import io
 from itertools import chain
 import json
@@ -783,9 +784,25 @@ class NostrClient:
             app.logger.exception("Error while sending Nostr DM.")
             return False
 
-    def publish_stall(self, id, name, description, currency):
+    def publish_stall(self, id, name, description, currency, shipping_from, shipping_domestic_usd, shipping_worldwide_usd):
         try:
-            stall_json = {'id': id, 'name': name, 'description': description, 'currency': currency, 'shipping': []}
+            stall_json = {
+                'id': id,
+                'name': name,
+                'description': description,
+                'currency': currency,
+                'shipping': [
+                    {
+                        'id': hashlib.sha256(shipping_from.encode('utf-8')).hexdigest(),
+                        'cost': shipping_domestic_usd,
+                        'countries': [shipping_from],
+                    },
+                    {
+                        'id': 'WORLD',
+                        'cost': shipping_worldwide_usd,
+                        'countries': ["Worldwide"],
+                    },
+                ]}
             event = Event(kind=30017, content=json.dumps(stall_json))
             self.private_key.sign_event(event)
             self.relay_manager.publish_event(event)
