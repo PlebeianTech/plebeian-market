@@ -61,7 +61,7 @@
         <div class="grid top-20 px-4 lg:px-0 my-2 px-2 w-fit lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden place-items-top text-center">
             <h3 class="text-2xl lg:text-3xl ">Stall Chat</h3>
 
-            <div class="btn-group float-right hidden md:visible">
+            <div class="btn-group float-right hidden md:block">
                 <button class="btn btn-secondary" class:btn-active={bigChat} on:click={() => bigChat = !bigChat}>
                     {#if bigChat}
                         <div class="w-6"><Contract /></div>
