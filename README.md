@@ -59,6 +59,8 @@ The *Skills Market* is a place where you can publish your professional CV/résum
 
 ## Non-standard nip-15 extension
 
+### Stall chat
+
 In order to have Stall chats, we fake a Nostr channel creation (kind = 40) but don't send the event to the network.
 In this way, we're able to have chat rooms without polluting the chat room list in the clients. So if you want to
 use this chat room in your client, you'll have to copy the channel id manually instead of searching for it.
