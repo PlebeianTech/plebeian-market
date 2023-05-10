@@ -62,11 +62,11 @@
         </span>
         Contact the merchant
     </button>
-    <div class="divider divider-horizontal"></div>
-    <button class="btn" class:btn-active={listView} on:click={() => listView=true}>
+    <div class="divider divider-horizontal hidden md:visible"></div>
+    <button class="btn hidden md:visible" class:btn-active={listView} on:click={() => listView=true}>
         <ViewList />
     </button>
-    <button class="btn" class:btn-active={!listView} on:click={() => listView=false}>
+    <button class="btn hidden md:visible" class:btn-active={!listView} on:click={() => listView=false}>
         <ViewCards />
     </button>
 </div>
@@ -93,7 +93,19 @@
 {:else}
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-6 place-content-center">
         {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall="true"></ProductCard>
+            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
+        {/each}
+        {#each Object.entries(products) as [productId, product]}
+            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
         {/each}
     </div>
 {/if}

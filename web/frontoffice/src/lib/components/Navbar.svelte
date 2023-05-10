@@ -11,6 +11,7 @@
     import ShoppingCartIcon from "$sharedLibComponents/icons/ShoppingCart.svelte";
     import PrivateMessages from "$lib/components/nostr/PrivateMessages.svelte";
     import ProfilePicture from "$lib/components/nostr/ProfilePicture.svelte";
+    import Store from "$sharedLibComponents/icons/Store.svelte";
 
     let modal: Modal | null;
     let modalVisible = false;
@@ -122,6 +123,7 @@
                         <a href="/orders" class="btn btn-ghost normal-case">Orders</a>
                     </p>
 
+                    <!--
                     <p>
                         {#if !$NostrPublicKey}
                             <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
@@ -129,6 +131,7 @@
                             <a href={null} class="btn btn-ghost normal-case" on:click={() => logout()} on:keypress={() => logout()}><b>Logout</b></a>
                         {/if}
                     </p>
+                    -->
                 </div>
             </div>
 
@@ -164,6 +167,7 @@
                     <ProfilePicture />
 
                     <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-60 z-40 float-right right-2">
+                        <!--
                         {#if !$NostrPublicKey}
                             <li class="block md:hidden md:h-0 text-primary">
                                 <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
@@ -174,10 +178,19 @@
                                 </a>
                             </li>
                         {/if}
+                        -->
                         <li class="block md:hidden md:h-0">
                             <a href="/" class="modal-button cursor-pointer text-base">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                                 Home
+                            </a>
+                        </li>
+                        <li class="block md:hidden md:h-0">
+                            <a href="/stalls" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1">
+                                    <Store />
+                                </div>
+                                Stall Browser
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
@@ -207,6 +220,7 @@
                                     </svg>
                                     Orders</a>
                             </li>
+
                             <li>
                                 <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer text-base">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">

@@ -8,7 +8,6 @@
     import {NostrPool, stalls} from "$lib/stores";
     import {getStallsByMerchant, refreshStalls} from "$lib/shopping";
     import {getChannelIdForStall} from "$lib/nostr/utils";
-    import { goto } from '$app/navigation';
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -31,10 +30,6 @@
     onMount(async () => {
         refreshStalls($NostrPool);
     });
-
-    function gotoStall(url) {
-        goto('/messages')
-    }
 </script>
 
 <svelte:head>
@@ -55,18 +50,18 @@
     </div>
 {/if}
 
-<div class="flex flex-row md:columns-2">
-    <div class="{bigChat ? 'lg:basis-2/4' : 'lg:basis-3/4'}  lg:overflow-y-hidden my-2 grid place-items-top top-20 lg:px-0 px-2">
+<div class="lg:flex mx-auto my-4">
+    <div class="w-full px-4">
         <div class="grid justify-center items-center lg:mx-20 gap-6 place-content-center">
             <ProductList merchantPubkey={data.pubkey} stallId={data.stallId}></ProductList>
         </div>
     </div>
 
     {#if nostrRoomId !== null}
-        <div class="{bigChat ? 'lg:basis-2/4' : 'lg:basis-1/4'} max-h-screen overflow-y-auto lg:overflow-y-hidden my-2 grid place-items-top top-20 lg:px-0 px-2">
-            <h3 class="text-2xl lg:text-3xl fontbold mt-0 lg:mt-2 text-center">Stall Chat</h3>
+        <div class="grid top-20 px-4 lg:px-0 my-2 px-2 w-fit lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden place-items-top text-center">
+            <h3 class="text-2xl lg:text-3xl ">Stall Chat</h3>
 
-            <div class="btn-group float-right text-center">
+            <div class="btn-group float-right hidden md:visible">
                 <button class="btn btn-secondary" class:btn-active={bigChat} on:click={() => bigChat = !bigChat}>
                     {#if bigChat}
                         <div class="w-6"><Contract /></div>

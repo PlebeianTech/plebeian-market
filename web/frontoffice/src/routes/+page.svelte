@@ -59,7 +59,6 @@
                 let content = JSON.parse(productEvent.content);
 
                 if (content.name.toLowerCase().includes('test') || content.description.toLowerCase().includes('test')) {
-                    console.log('Test product!')
                     return;
                 }
 
@@ -198,7 +197,7 @@
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 align-center mx-auto">
     {#each Object.entries(filteredProducts) as [productId, product]}
         {#if ((product.images && product.images.length > 0) || product.image) }
-            <ProductCard {product} {onImgError}></ProductCard>
+            <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
         {/if}
     {/each}
 </div>

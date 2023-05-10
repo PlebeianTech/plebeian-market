@@ -12,7 +12,7 @@
     export let orderQuantity = 1;
 </script>
 
-<div class="card w-96 bg-base-100 shadow-xl mx-auto">
+<div class="card w-96 bg-base-100 shadow-xl mx-auto mb-16 md:4">
     <figure><img src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
     <div class="card-body items-center text-center">
         <h2 class="card-title">
