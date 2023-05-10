@@ -306,13 +306,25 @@ def put_me(user):
         user.wallet = request.json['wallet']
         user.wallet_index = 0
 
-    if 'stall_name' in request.json or 'stall_description' in request.json:
+    if 'stall_name' in request.json or 'stall_description' in request.json or 'shipping_from' in request.json or 'shipping_domestic_usd' in request.json or 'shipping_worldwide_usd' in request.json:
         if 'stall_name' in request.json:
             user.stall_name = bleach.clean(request.json['stall_name'])
         if 'stall_description' in request.json:
             user.stall_description = bleach.clean(request.json['stall_description'])
+        if 'shipping_from' in request.json:
+            user.shipping_from = bleach.clean(request.json['shipping_from'])
+        if 'shipping_domestic_usd' in request.json:
+            try:
+                user.shipping_domestic_usd = float(request.json['shipping_domestic_usd'])
+            except (ValueError, TypeError):
+                user.shipping_domestic_usd = 0
+        if 'shipping_worldwide_usd' in request.json:
+            try:
+                user.shipping_worldwide_usd = float(request.json['shipping_worldwide_usd'])
+            except (ValueError, TypeError):
+                user.shipping_worldwide_usd = 0
         user.ensure_stall_private_key()
-        get_nostr_client(user).publish_stall(user.identity, user.stall_name, user.stall_description, 'USD')
+        get_nostr_client(user).publish_stall(user.identity, user.stall_name, user.stall_description, 'USD', user.shipping_from, user.shipping_domestic_usd, user.shipping_worldwide_usd)
 
     if 'nostr_private_key' in request.json:
         user.nostr_private_key = request.json['nostr_private_key']

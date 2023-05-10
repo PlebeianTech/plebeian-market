@@ -170,6 +170,11 @@ class User(WalletMixin, db.Model):
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
 
+    # TODO: extract these into (per stall?) "shipping zones" as defined in NIP-15
+    shipping_from = db.Column(db.String(64), nullable=True)
+    shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
+    shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
+
     # TODO: this will become obsolete if we move stalls to a separate table
     def ensure_stall_private_key(self):
         if self.stall_private_key is None:
@@ -294,6 +299,9 @@ class User(WalletMixin, db.Model):
             d['wallet'] = self.wallet
             d['wallet_index'] = self.wallet_index
             d['nostr_private_key'] = self.nostr_private_key
+            d['shipping_from'] = self.shipping_from
+            d['shipping_domestic_usd'] = self.shipping_domestic_usd
+            d['shipping_worldwide_usd'] = self.shipping_worldwide_usd
 
         return d
 

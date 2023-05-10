@@ -10,8 +10,11 @@
     let nym: string | null = null;
     let stallName: string = "";
     let stallDescription: string = "";
+    let shippingFrom: string = "";
+    let shippingDomesticUsd: number = 0;
+    let shippingWorldwideUsd: number = 0;
 
-    $: saveButtonActive = $user && !saving && nym !== null && nym !== "" && (nym !== $user.nym || stallName !== $user.stallName || stallDescription !== $user.stallDescription);
+    $: saveButtonActive = $user && !saving && nym !== null && nym !== "" && (nym !== $user.nym || stallName !== $user.stallName || stallDescription !== $user.stallDescription || shippingFrom !== $user.shippingFrom || shippingDomesticUsd !== $user.shippingDomesticUsd || shippingWorldwideUsd !== $user.shippingWorldwideUsd);
 
     let saving = false;
     function save() {
@@ -19,13 +22,16 @@
             return;
         }
         saving = true;
-        putProfile($token, {nym, stallName, stallDescription},
+        putProfile($token, {nym, stallName, stallDescription, shippingFrom, shippingDomesticUsd, shippingWorldwideUsd},
             u => {
                 user.set(u);
                 Info.set("Your stall details have been saved!");
                 nym = u.nym || "";
                 stallName = u.stallName || "";
                 stallDescription = u.stallDescription || "";
+                shippingFrom = u.shippingFrom || "";
+                shippingDomesticUsd = u.shippingDomesticUsd || 0;
+                shippingWorldwideUsd = u.shippingWorldwideUsd || 0;
                 saving = false;
                 onSave();
             },
@@ -37,6 +43,9 @@
             nym = $user.nym;
             stallName = $user.stallName || "";
             stallDescription = $user.stallDescription || "";
+            shippingFrom = $user.shippingFrom || "";
+            shippingDomesticUsd = $user.shippingDomesticUsd || 0;
+            shippingWorldwideUsd = $user.shippingWorldwideUsd || 0;
         }
     });
 </script>
@@ -58,6 +67,33 @@
             <span class="label-text">Title</span>
         </label>
         <input bind:value={stallName} id="stallName" name="stallName" type="text" class="input input-bordered input-md w-full" />
+    </div>
+</div>
+
+<div class="w-full flex items-center justify-center mt-8">
+    <div class="form-control w-full">
+        <label class="label" for="shippingFrom">
+            <span class="label-text">Shipping from</span>
+        </label>
+        <input bind:value={shippingFrom} id="shippingFrom" name="shippingFrom" type="text" class="input input-bordered input-md w-full" />
+    </div>
+</div>
+
+<div class="w-full flex items-center justify-center mt-8">
+    <div class="form-control w-full">
+        <label class="label" for="shippingDomesticUsd">
+            <span class="label-text">Domestic shipping ($)</span>
+        </label>
+        <input bind:value={shippingDomesticUsd} type="number" name="shippingDomesticUsd" class="input input-bordered w-full max-w-xs" />
+    </div>
+</div>
+
+<div class="w-full flex items-center justify-center mt-8">
+    <div class="form-control w-full">
+        <label class="label" for="shippingWorldwideUsd">
+            <span class="label-text">Worldwide shipping ($)</span>
+        </label>
+        <input bind:value={shippingWorldwideUsd} type="number" name="shippingWorldwideUsd" class="input input-bordered w-full max-w-xs" />
     </div>
 </div>
 

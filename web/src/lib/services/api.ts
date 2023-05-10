@@ -227,7 +227,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
         });
 }
 
-export function putProfile(tokenValue, profile: {twitterUsername?: string, nostrPublicKey?: string, contributionPercent?: string, wallet?: string, nym?: string, profileImageUrl?: string, stallName?: string, stallDescription?: string, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: {twitterUsername?: string, nostrPublicKey?: string, contributionPercent?: string, wallet?: string, nym?: string, profileImageUrl?: string, stallName?: string, stallDescription?: string, shippingFrom?: string, shippingDomesticUsd?: number, shippingWorldwideUsd?: number, nostr_private_key?: string}, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -252,6 +252,15 @@ export function putProfile(tokenValue, profile: {twitterUsername?: string, nostr
     }
     if (profile.stallDescription !== undefined) {
         json.stall_description = profile.stallDescription;
+    }
+    if (profile.shippingFrom !== undefined) {
+        json.shipping_from = profile.shippingFrom;
+    }
+    if (profile.shippingDomesticUsd !== undefined) {
+        json.shipping_domestic_usd = profile.shippingDomesticUsd;
+    }
+    if (profile.shippingWorldwideUsd !== undefined) {
+        json.shipping_worldwide_usd = profile.shippingWorldwideUsd;
     }
     if (profile.nostr_private_key !== undefined) {
         json.nostr_private_key = profile.nostr_private_key;

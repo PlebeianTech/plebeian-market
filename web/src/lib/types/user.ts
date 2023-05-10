@@ -220,6 +220,9 @@ export class User implements IAccount {
     stallBannerUrl: string | null = null;
     stallName: string | null = null;
     stallDescription: string | null = null;
+    shippingFrom: string | null = null;
+    shippingDomesticUsd: number | null = null;
+    shippingWorldwideUsd: number | null = null;
     contributionPercent: number | null = null;
     wallet: string | null = null;
     hasItems: boolean = false;
@@ -278,6 +281,9 @@ export function fromJson(json: any): User {
     u.stallBannerUrl = <string | null>json.stall_banner_url;
     u.stallName = <string | null>json.stall_name;
     u.stallDescription = <string | null>json.stall_description;
+    u.shippingFrom = <string | null>json.shipping_from;
+    u.shippingDomesticUsd = <number | null>json.shipping_domestic_usd;
+    u.shippingWorldwideUsd = <number | null>json.shipping_worldwide_usd;
     u.hasItems = <boolean>json.has_items;
     u.hasOwnItems = <boolean>json.has_own_items;
     u.hasActiveAuctions = <boolean>json.has_active_auctions;
