@@ -36,7 +36,7 @@ The *Skills Market* is a place where you can publish your professional CV/résum
 
 
 
-## Developement
+## Development
 
 ### Running the dev environment locally
 
@@ -55,3 +55,12 @@ The *Skills Market* is a place where you can publish your professional CV/résum
 ```settle-btc-payments``` - monitors on-chain payments that are "pending" in our database and looks up the corresponding transactions in the mempool or on-chain
 
 ```process-notifications``` - sends notifications
+
+
+## Non-standard nip-15 extension
+
+In order to have Stall chats, we fake a Nostr channel creation (kind = 40) but don't send the event to the network.
+In this way, we're able to have chat rooms without polluting the chat room list in the clients. So if you want to
+use this chat room in your client, you'll have to copy the channel id manually instead of searching for it.
+
+Give a look to the `getChannelIdForStall` function to know how we're generating the Channel id.
