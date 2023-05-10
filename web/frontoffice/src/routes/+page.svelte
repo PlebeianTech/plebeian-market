@@ -7,15 +7,15 @@
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import {getBaseUrl} from "../lib/utils";
+    import {getBaseUrl} from "$lib/utils";
     import GoldenGai from "$lib/images/golden-gai-tokyo.jpg";
-    import ProductCard from "../lib/components/stores/ProductCard.svelte";
+    import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import {getProducts} from "$lib/services/nostr";
-    import {filterTags, getFirstTagValue} from "../lib/nostr/utils";
-    import {NostrPool} from "../lib/stores";
+    import {filterTags, getFirstTagValue} from "$lib/nostr/utils";
+    import {NostrPool} from "$lib/stores";
     import {onImgError} from "$lib/shopping";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
-    import {refreshStalls} from "../lib/shopping";
+    import {refreshStalls} from "$lib/shopping";
 
     interface CategoriesAssociativeArray {
         [key: string]: {
