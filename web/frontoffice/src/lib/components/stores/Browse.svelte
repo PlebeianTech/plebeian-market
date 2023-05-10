@@ -4,6 +4,7 @@
     import {formatTimestamp} from "$lib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
     import {refreshStalls} from "$lib/shopping";
+    import { goto } from "$app/navigation";
 
     export let merchantPubkey: string;
 
@@ -61,8 +62,8 @@
                             )
                         )
                     }
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover cursor-pointer">
-                            <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{#if stall.name}<a href="/p/{stall.merchantPubkey}/stall/{stall.id}">{stall.name}</a>{/if}</th>
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover cursor-pointer"  on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
+                            <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{#if stall.name}{stall.name}{/if}</th>
                             <td class="px-6 py-4 {stall.description && stall.description.length > 100 ? 'tooltip tooltip-primary' : ''}" data-tip={stall.description && stall.description.length > 100 ? stall.description : ''}>{#if stall.description}{stall.description.substring(0,100)}{#if stall.description.length > 100}...{/if}{/if}</td>
                             <td class="px-6 py-4 text-center">{#if stall.currency}{stall.currency}{/if}</td>
                             <td class="px-6 py-4">
@@ -95,10 +96,10 @@
                         )
                     )
                 }
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover">
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
                         <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             <div>
-                                <div class="font-bold">{#if stall.name}<a href="/p/{stall.merchantPubkey}/stall/{stall.id}">{stall.name}</a>{/if}</div>
+                                <div class="font-bold">{#if stall.name}{stall.name}{/if}</div>
                                 <div class="text-sm opacity-50">{#if stall.description}{stall.description.substring(0,100)}{#if stall.description.length > 100}...{/if}{/if}</div>
                                 <div class="text-sm opacity-50">
                                     {#if stall.shipping}
