@@ -31,8 +31,8 @@
     "build-production": "vite build --mode production",
     "package": "svelte-kit package",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./jsconfig.json",
-    "check:watch": "svelte-check --tsconfig ./jsconfig.json --watch",
+    "check": "svelte-check --tsconfig jsconfig.json",
+    "check:watch": "svelte-check --tsconfig jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
   }
 }

@@ -12,7 +12,7 @@ FROM node:16-alpine
 
 WORKDIR /app
 COPY --from=builder /web/build .
-COPY --from=builder /web/package.json .
+COPY --from=builder /web/backoffice/package.json .
 COPY --from=builder /web/node_modules ./node_modules
 
 EXPOSE 3000
