@@ -93,7 +93,7 @@
 {:else}
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-6 place-content-center">
         {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError}></ProductCard>
+            <ProductCard {product} {onImgError} isOnStall="true"></ProductCard>
         {/each}
     </div>
 {/if}

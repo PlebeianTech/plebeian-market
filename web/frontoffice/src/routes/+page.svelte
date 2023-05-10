@@ -58,6 +58,11 @@
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
 
+                if (content.name.toLowerCase().includes('test') || content.description.toLowerCase().includes('test')) {
+                    console.log('Test product!')
+                    return;
+                }
+
                 if (!content.images && !content.image) {
                     return;
                 }

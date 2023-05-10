@@ -3,9 +3,12 @@
     import Quantity from "./Quantity.svelte";
     import {addToCart} from "$lib/shopping";
     import {stalls} from "$lib/stores";
+    import Store from "$sharedLibComponents/icons/Store.svelte";
+    import { goto } from "$app/navigation";
 
     export let product: string;
     export let onImgError = () => {};
+    export let isOnStall: boolean;
     export let orderQuantity = 1;
 </script>
 
@@ -15,9 +18,18 @@
         <h2 class="card-title">
             {#if product.name}{product.name}{/if}
         </h2>
-        {#if $stalls !== null && $stalls.stalls[product.stall_id]}
-            <a class="badge badge-secondary tooltip tooltip-left tooltip-primary" data-tip="Visit stall" href="/p/{product.merchantPubkey}/stall/{product.stall_id}">{$stalls.stalls[product.stall_id].name}</a>
+
+        {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}
+            <div class="alert bg-purple-500 tooltip tooltip-left tooltip-primary cursor-pointer" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.merchantPubkey+'/stall/'+product.stall_id)}>
+                    <span class="text-sm">
+                        <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
+                            <Store />
+                        </div>
+                        {$stalls.stalls[product.stall_id].name}
+                    </span>
+            </div>
         {/if}
+
         <div class="mb-4">{#if product.description}{product.description}{/if}</div>
         {#if product.tags}
             <div class="card-actions justify-end mb-4">
