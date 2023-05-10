@@ -1,7 +1,7 @@
 <script>
-    import {Error, Info, NostrPool, NostrPublicKey, products, ShoppingCart, stalls} from "$lib/stores";
+    import {NostrPool, NostrPublicKey, products, stalls} from "$lib/stores";
     import {onMount} from "svelte";
-    import {getPrivateMessages, checkExtensionOrShowDialog, sendPrivateMessage} from "$lib/services/nostr";
+    import {getPrivateMessages, checkExtensionOrShowDialog} from "$lib/services/nostr";
     import {formatTimestamp} from "$lib/nostr/utils.ts";
     import {decode} from "light-bolt11-decoder";
     import QRLocal from "$lib/components/QRLocal.svelte";

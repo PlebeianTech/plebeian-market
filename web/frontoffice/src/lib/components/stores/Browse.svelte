@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { NostrPool, stalls } from "$lib/stores";
-    import {formatTimestamp, getFirstTagValue} from "$lib/nostr/utils.js";
+    import {formatTimestamp} from "$lib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
     import {refreshStalls} from "$lib/shopping";
 

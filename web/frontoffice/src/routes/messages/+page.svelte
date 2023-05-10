@@ -1,7 +1,7 @@
 <script>
-    import {NostrPool, NostrPublicKey, privateMessages, ShoppingCart, stalls} from "$lib/stores";
+    import {NostrPool, NostrPublicKey, privateMessages} from "$lib/stores";
     import {onMount} from "svelte";
-    import {checkExtensionOrShowDialog, sendMessage, sendPrivateMessage} from "$lib/services/nostr";
+    import {checkExtensionOrShowDialog, sendPrivateMessage} from "$lib/services/nostr";
     import {nip19} from "nostr-tools";
     import SimpleNote from "$lib/components/nostr/SimpleNote.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
