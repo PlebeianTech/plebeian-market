@@ -1,13 +1,12 @@
 <script lang="ts">
     import Browse from "$lib/components/stores/Browse.svelte";
+    import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 </script>
 
 <svelte:head>
     <title>Stall Browser</title>
 </svelte:head>
 
-<h1 class="text-center text-3xl lg:text-3xl mt-12 mb-4 lg:mt-12 lg:mb-12 p-4">List of nip-05 compatible stores</h1>
+<Titleh1>List of nip-15 compatible stores</Titleh1>
 
-<div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-20 place-content-center">
-    <Browse merchantPubkey={null}></Browse>
-</div>
+<Browse merchantPubkey={null}></Browse>

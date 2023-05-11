@@ -2,7 +2,6 @@
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {ShoppingCart, stalls} from "../../stores";
     import {deleteFromCart, onImgError} from "$lib/shopping";
-    import {browser} from "$app/environment";
     import Trash from "$sharedLib/components/icons/Trash.svelte";
     import Quantity from "./Quantity.svelte";
 
@@ -45,7 +44,10 @@
 </script>
 
 {#if $ShoppingCart.summary.numProducts}
-    <table class="table table-auto w-full place-content-center" class:table-compact={compact}>
+    <!-- Desktop -->
+
+    <!--
+    <table class="hidden md:block table table-auto w-full place-content-center" class:table-compact={compact}>
         <thead>
             <tr class="text-center">
                 <th>Name</th>
@@ -102,13 +104,98 @@
         {/each}
         </tbody>
     </table>
+-->
+    <!-- Mobile -->
+    <table class="w-fit rounded-md md:hidden text-sm text-left" class:table-compact={compact}>
+        <thead>
+            <tr class="text-center">
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
 
+        <tbody class="text-xs">
+        {#each [...$ShoppingCart.products] as [stallId, products]}
+            <tr class="bg-gray-700">
+                <td colspan="5">
+                    <p class="ml-3">
+                        {#if $stalls !== null && $stalls.stalls[stallId]}
+                            Stall: {$stalls.stalls[stallId].name ?? ''}
+                        {:else}
+                            Stall id: {stallId}
+                        {/if}
+                    </p>
+                </td>
+            </tr>
+
+            {#each [...products] as [productId, product]}
+                <tr class="text-center">
+                    <td class="text-xs">{#if product.name}{product.name}{/if}</td>
+                    <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                    <td>
+                        <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
+                    </td>
+                    <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                    <td class="hover cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
+                        <Trash />
+                    </td>
+                </tr>
+            {/each}
+        {/each}
+        </tbody>
+    </table>
+<!--
+    <table class="md:hidden table-auto text-sm text-left text-gray-500 dark:text-gray-400 w-fit pr-4" class:table-compact={compact}>
+        <thead>
+        <tr class="text-center">
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+            <th></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {#each [...$ShoppingCart.products] as [stallId, products]}
+            <tr>
+                <td colspan="{compact ? 5 : 7}" class="bg-gray-700">
+                    <p class="ml-3">
+                        {#if $stalls !== null && $stalls.stalls[stallId]}
+                            Stall: {$stalls.stalls[stallId].name ?? ''}
+                        {:else}
+                            Stall id: {stallId}
+                        {/if}
+                    </p>
+                </td>
+            </tr>
+
+            {#each [...products] as [productId, product]}
+                <tr class="text-center">
+                    <td>{#if product.name}{product.name}{/if}</td>
+                    <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                    <td>
+                        <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
+                    </td>
+                    <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                    <td class="hover cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
+                        <Trash />
+                    </td>
+                </tr>
+            {/each}
+        {/each}
+        </tbody>
+    </table>
+-->
     {#if compact}
-        <div class="card-actions justify-end">
+        <div class="mt-6 card-actions justify-center">
             <a class="btn btn-primary btn-block" href="/cart">See cart details</a>
         </div>
     {:else}
-        <div class="card-actions justify-end">
+        <div class="mt-6 card-actions justify-center">
             <a class="btn btn-primary" href="/stalls">Continue shopping</a>
             <a class="btn btn-accent" href="/checkout">Checkout</a>
         </div>
@@ -121,7 +208,7 @@
     </div>
 
     {#if !compact}
-        <div class="card-actions justify-center" class:justify-end={$ShoppingCart.summary.numProducts}>
+        <div class="mt-6 card-actions justify-center" class:justify-end={$ShoppingCart.summary.numProducts}>
             <a class="btn btn-primary" href="/stalls">Continue shopping</a>
         </div>
     {/if}

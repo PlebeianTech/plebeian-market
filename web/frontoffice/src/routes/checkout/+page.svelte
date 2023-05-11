@@ -9,6 +9,7 @@
     import { v4 as uuidv4 } from "uuid";
     import {sendPrivateMessage, getPrivateMessages, checkExtensionOrShowDialog} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
+    import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 
     let name = null;
     let address = null;
@@ -80,7 +81,7 @@
             }
 
             let messageOrder = JSON.stringify(order);
-            // console.log('************ jsonOrder (stallId='+stallId+'):  ', order);
+            console.log('************ jsonOrder:  ', order);
 
             sendPrivateMessage($NostrPool, $stalls.stalls[stallId].merchantPubkey, messageOrder,
                 async (relay) => {
@@ -144,10 +145,9 @@
     <title>Checkout</title>
 </svelte:head>
 
-<h1 class="text-center text-3xl lg:text-3xl mt-12 mb-4 lg:mt-12 lg:mb-12 p-4">Checkout</h1>
+<Titleh1>Checkout</Titleh1>
 
 {#if $ShoppingCart.summary.numProducts}
-    <div class="flex flex-col w-full lg:flex-row px-12">
         <div class="grid flex-grow card bg-base-300 rounded-box place-items-center p-8 w-full lg:w-2/4">
             <h2 class="card-title">Shipping information</h2>
             <p>If you're purchasing a physical product, include all the info required so the merchant can send you the products.</p>
@@ -186,59 +186,58 @@
             <div class="grid gap-5">
                 <div class="form-control">
                     <label class="input-group input-group-lg">
-                        <span>
-                            <div class="w-9 h-9"><Nostr /></div>
-                        </span>
+                    <span>
+                        <div class="w-9 h-9"><Nostr /></div>
+                    </span>
                         <input bind:value={$NostrPublicKey} type="text" class="input input-bordered input-warning w-full max-w-lg" />
                     </label>
                 </div>
                 <div class="form-control">
                     <label class="input-group input-group-lg">
-                        <span>
-                            <div class="w-9 h-9"><Email /></div>
-                        </span>
+                    <span>
+                        <div class="w-9 h-9"><Email /></div>
+                    </span>
                         <input bind:value={email} type="text" class="input input-bordered input-warning w-full max-w-lg" />
                     </label>
                 </div>
                 <div class="form-control">
                     <label class="input-group input-group-lg">
-                        <span>
-                            <div class="w-9 h-9"><Phone /></div>
-                        </span>
+                    <span>
+                        <div class="w-9 h-9"><Phone /></div>
+                    </span>
                         <input bind:value={phone} type="text" class="input input-bordered input-warning w-full max-w-lg" />
                     </label>
                 </div>
             </div>
         </div>
-    </div>
 
     <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-20 place-content-center">
         <span class="font-bold text-lg mt-10">You're ordering {$ShoppingCart.summary.totalQuantity} products from {$ShoppingCart.summary.stalls} merchants. Check and choose the shipping options for each one of them:</span>
 
         <table class="table table-auto w-full place-content-center">
             <thead>
-                <tr class="text-center">
-                    <th>Name</th>
-                    <th>Image</th>
-                    <th>Total</th>
-                </tr>
+            <tr class="text-center">
+                <th>Name</th>
+                <th>Image</th>
+                <th>Total</th>
+            </tr>
             </thead>
 
             <tbody>
             {#each [...$ShoppingCart.products] as [stallId, products], i}
                 <tr>
-                    <td colspan="3" class="bg-gray-700"><p class="ml-3">
+                    <td colspan="3" class="bg-gray-700">
+                        <p class="ml-3">
                         {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
                             Order {i+1}: {$stalls.stalls[stallId].name}
                         {:else}
                             Order {i+1}
                         {/if}
-                    </p></td>
-                </tr>
-                <tr>
-                    <td colspan="3" class="bg-gray-700 ml-4">
-                        {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
-                            <p class="ml-3">Shipping:
+                        </p>
+
+                        <p class="ml-3 mt-3">
+                            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
+                                Shipping:
                                 <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-primary w-full max-w-lg ml-1">
                                     {#if $stalls.stalls[stallId].shipping.length > 1}
                                         <option disabled selected value="0">Choose a shipping option:</option>
@@ -246,20 +245,22 @@
 
                                     {#each $stalls.stalls[stallId].shipping as shippingOption}
                                         <option value="{shippingOption.id}">
-                                            {shippingOption.name} -
+                                            {#if shippingOption.name}
+                                                {shippingOption.name} -
+                                            {/if}
                                             {#if shippingOption.countries}
                                                 {#if !(shippingOption.countries.length === 1 && shippingOption.countries[0] === shippingOption.name)}
                                                     ({shippingOption.countries.join(', ')}) -
                                                 {/if}
                                             {/if}
-                                            {shippingOption.cost} {shippingOption.currency}
+                                            {shippingOption.cost} {$stalls.stalls[stallId].currency}
                                         </option>
                                     {/each}
                                 </select>
-                            </p>
-                        {:else}
-                            Loading shipping options...
-                        {/if}
+                            {:else}
+                                Loading shipping options...
+                            {/if}
+                        </p>
                     </td>
                 </tr>
 
@@ -267,7 +268,7 @@
                     <tr class="text-center">
                         <td>{#if product.name}{product.name}{/if}</td>
                         <td>
-                            <div class="card bg-base-100 shadow-xl w-full lg:w-32">
+                            <div class="card bg-base-100 shadow-xl w-28 md:w-32">
                                 <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                             </div>
                         </td>
@@ -278,7 +279,7 @@
             </tbody>
         </table>
 
-        <div class="card-actions justify-center">
+        <div class="card-actions justify-center mb-10">
             <a class="btn btn-primary" on:click|preventDefault={buyNow}>Buy now</a>
         </div>
     </div>

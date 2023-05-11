@@ -8,6 +8,7 @@
     import {NostrPool, stalls} from "$lib/stores";
     import {getStallsByMerchant, refreshStalls} from "$lib/shopping";
     import {getChannelIdForStall} from "$lib/nostr/utils";
+    import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -36,13 +37,13 @@
     <title>Product Browser</title>
 </svelte:head>
 
-<h1 class="text-center text-3xl lg:text-3xl mt-8 mb-0 p-4">
+<Titleh1>
     {#if $stalls !== null && $stalls.stalls[data.stallId]}
         {$stalls.stalls[data.stallId].name}
     {:else}
         Products in the store
     {/if}
-</h1>
+</Titleh1>
 
 {#if numStallsThisMerchant > 1}
     <div class="text-center text-sm mb-8">
@@ -50,33 +51,29 @@
     </div>
 {/if}
 
-<div class="lg:flex mx-auto my-4">
-    <div class="w-full px-4">
-        <div class="grid justify-center items-center lg:mx-20 gap-6 place-content-center">
-            <ProductList merchantPubkey={data.pubkey} stallId={data.stallId}></ProductList>
+<div class="grid justify-center items-center lg:mx-20 gap-6 place-content-center">
+    <ProductList merchantPubkey={data.pubkey} stallId={data.stallId}></ProductList>
+</div>
+
+{#if nostrRoomId !== null}
+    <div class="grid top-20 my-2 w-fit lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden place-items-top text-center">
+        <h3 class="text-2xl lg:text-3xl">Stall Chat</h3>
+
+        <div class="btn-group float-right hidden md:block">
+            <button class="btn btn-secondary" class:btn-active={bigChat} on:click={() => bigChat = !bigChat}>
+                {#if bigChat}
+                    <div class="w-6"><Contract /></div>
+                {:else}
+                    <div class="w-6"><Expand /></div>
+                {/if}
+            </button>
         </div>
     </div>
 
-    {#if nostrRoomId !== null}
-        <div class="grid top-20 px-4 lg:px-0 my-2 px-2 w-fit lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden place-items-top text-center">
-            <h3 class="text-2xl lg:text-3xl ">Stall Chat</h3>
-
-            <div class="btn-group float-right hidden md:block">
-                <button class="btn btn-secondary" class:btn-active={bigChat} on:click={() => bigChat = !bigChat}>
-                    {#if bigChat}
-                        <div class="w-6"><Contract /></div>
-                    {:else}
-                        <div class="w-6"><Expand /></div>
-                    {/if}
-                </button>
-            </div>
-
-            <NostrChat
-                    messageLimit={500}
-                    {nostrRoomId} />
-        </div>
-    {/if}
-</div>
+    <NostrChat
+            messageLimit={500}
+            {nostrRoomId} />
+{/if}
 
 <input type="checkbox" id="stallsByThisMerchant" class="modal-toggle" bind:checked={showStallsByMerchantModal}/>
 <div class="modal">

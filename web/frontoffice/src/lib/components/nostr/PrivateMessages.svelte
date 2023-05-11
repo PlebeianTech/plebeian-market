@@ -168,24 +168,22 @@
     }
 </script>
 
-<div class="btn btn-ghost btn-circle" on:click={gotoMessages}>
-    <div class="indicator">
-        <div class="w-8 h-8">
-            <EmailIcon />
-        </div>
+<div class="indicator" on:click={gotoMessages}>
+    <div class="w-8 h-8">
+        <EmailIcon />
+    </div>
 
-        {#if $NostrPublicKey}
-            {#if unreadConversations}
-                <div class="tooltip tooltip-error" data-tip="{unreadConversations} unread conversations">
-                    <span class="indicator-item badge badge-sm badge-error">
-                        {unreadConversations}
-                    </span>
-                </div>
-            {/if}
-        {:else}
-            <div class="tooltip tooltip-secondary" data-tip="Login clicking here">
-                <span class="indicator-item badge badge-sm badge-secondary">!</span>
+    {#if $NostrPublicKey}
+        {#if unreadConversations}
+            <div class="tooltip tooltip-error" data-tip="{unreadConversations} unread conversations">
+                <span class="indicator-item badge badge-sm badge-error">
+                    {unreadConversations}
+                </span>
             </div>
         {/if}
-    </div>
+    {:else}
+        <div class="tooltip tooltip-secondary" data-tip="Login clicking here">
+            <span class="indicator-item badge badge-sm badge-secondary">!</span>
+        </div>
+    {/if}
 </div>

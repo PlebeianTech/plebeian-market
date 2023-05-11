@@ -59,7 +59,7 @@
                 let content = JSON.parse(productEvent.content);
 
                 if (content.name.toLowerCase().includes('test') || content.description.toLowerCase().includes('test')) {
-                    return;
+//                    return;
                 }
 
                 if (!content.images && !content.image) {

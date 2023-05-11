@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { NostrPool, Error } from "$lib/stores";
+    import {NostrPool} from "$lib/stores";
     import {getProducts} from "$lib/services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";

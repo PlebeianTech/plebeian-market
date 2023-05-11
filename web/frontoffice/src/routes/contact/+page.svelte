@@ -1,11 +1,12 @@
 <script lang="ts">
+    import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 </script>
 
 <svelte:head>
     <title>Contact</title>
 </svelte:head>
 
-<h1 class="text-center text-3xl lg:text-6xl mt-12 mb-4 lg:mt-32 lg:mb-32 p-4">Keep in touch with us using the following...</h1>
+<Titleh1>Keep in touch with us using the following...</Titleh1>
 
 <div class="grid grid-cols-2 lg:grid-cols-4 justify-center items-center lg:mx-20 gap-6 lg:gap-20 place-content-center">
     <a class="p-10 mx-auto" target="_blank" rel="noreferrer" href="https://snort.social/p/npub1market6g3zl4mxwx5ugw56hfg0f7dy7jnnw8t380788mvdyrnwuqgep7hd">

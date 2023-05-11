@@ -91,7 +91,7 @@ export function refreshStalls(NostrPool: SimplePool) {
                 let content = JSON.parse(stallEvent.content)
 
                 if (content.name.toLowerCase().includes('test') || content.description.toLowerCase().includes('test')) {
-                    return;
+//                    return;
                 }
 
                 content.createdAt = stallEvent.created_at;

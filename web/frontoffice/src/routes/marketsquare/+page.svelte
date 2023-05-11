@@ -1,14 +1,13 @@
+<script lang="ts">
+    import NostrChat from "$lib/components/nostr/Chat.svelte";
+    import { pmChannelNostrRoomId } from "$lib/nostr/utils"
+    import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
+</script>
+
 <svelte:head>
     <title>Market Square</title>
 </svelte:head>
 
-<script lang="ts">
-    import NostrChat from "$lib/components/nostr/Chat.svelte";
-    import { pmChannelNostrRoomId } from "$lib/nostr/utils"
-</script>
+<Titleh1>Market Square</Titleh1>
 
-<div class="px-2 pb-14 mx-auto w-screen lg:w-2/3">
-    <h1 class="text-3xl lg:text-6xl fontbold mt-0 lg:mt-8 mb-2">Market Square</h1>
-
-    <NostrChat messageLimit={75} nostrRoomId={pmChannelNostrRoomId} fixedChatBox={true} />
-</div>
+<NostrChat messageLimit={75} nostrRoomId={pmChannelNostrRoomId} fixedChatBox={true} />
