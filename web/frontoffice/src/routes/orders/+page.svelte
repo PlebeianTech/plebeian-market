@@ -162,7 +162,7 @@
             refreshProducts($NostrPool);
 
             await new Promise(resolve => setTimeout(resolve, 2500));
-//            showAutomaticPayments = true;
+            showAutomaticPayments = true;
         }
     });
 </script>
