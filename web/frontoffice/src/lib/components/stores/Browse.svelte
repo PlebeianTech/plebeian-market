@@ -75,7 +75,11 @@
                                 </ul>
                             {/if}
                         </td>
-                        <th class="px-6 py-4">{#if stall.createdAt}{formatTimestamp(stall.createdAt)}{/if}</th>
+                        <td class="px-6 py-4">
+                            <p class="mr-1">
+                                {#if stall.createdAt}{formatTimestamp(stall.createdAt)}{/if}
+                            </p>
+                        </td>
                     </tr>
                 {/if}
             {/each}

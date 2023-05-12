@@ -116,10 +116,10 @@
 
 <Titleh1>Private Messages</Titleh1>
 
-<div class="menu card h-auto max-h-full gap-2 rounded-box place-items-center w-1/3 p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
-    <ul class="p-1">
+<div class="flex h-[46rem]">
+    <div class="w-1/3 menu card h-auto max-h-full gap-2 rounded-box p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
         {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
-            <li class="rounded-lg "
+            <li class="rounded-lg w-full"
                 class:bg-primary={selectedConversationPubkey === newConversationPubkey}
                 on:click={() => selectConversation(newConversationPubkey)}
             >
@@ -135,11 +135,11 @@
         {/if}
 
         {#each sortedConversations as [privateKey, conversation]}
-            <li class="rounded-lg "
+            <li class="rounded-lg w-full"
                 class:bg-primary={selectedConversationPubkey === privateKey}
                 on:click={() => selectConversation(privateKey)}
             >
-                <div>
+                <div class="w-full">
                     <div class="avatar indicator">
                         {#if conversation.unreadMessages}
                             <span class="indicator-item badge badge-sm badge-error">
@@ -154,38 +154,38 @@
                 </div>
             </li>
         {/each}
-    </ul>
-</div>
+    </div>
 
-<div class="divider lg:divider-horizontal"></div>
+    <div class="divider lg:divider-horizontal"></div>
 
-<div class="flex flex-col flex-grow w-full p-4 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto            scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
-     id="conversationMessages" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
-    {#if selectedConversationPubkey}
-        {#each sortedMessages as [publicKey, message]}
-            {#if typeof message === 'object'}
-                <SimpleNote {message} />
-            {/if}
-        {/each}
+    <div class="flex flex-col flex-grow w-full p-4 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto            scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
+         id="conversationMessages" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
+        {#if selectedConversationPubkey}
+            {#each sortedMessages as [publicKey, message]}
+                {#if typeof message === 'object'}
+                    <SimpleNote {message} />
+                {/if}
+            {/each}
 
-        <div class="grid grid-cols-2 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto w-screen lg:w-2/3 mt-8">
-            <div class="flex col-span-2">
-                <textarea
-                        rows="1"
-                        id="nostrMessageSendText"
-                        autofocus
-                        placeholder="Type your message"
-                        bind:this={chatTextarea}
-                        on:keypress={onKeyPress}
-                        class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+            <div class="grid grid-cols-2 w-screen lg:w-2/3 mt-8 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto">
+                <div class="flex col-span-2">
+                    <textarea
+                            rows="1"
+                            id="nostrMessageSendText"
+                            autofocus
+                            placeholder="Type your message"
+                            bind:this={chatTextarea}
+                            on:keypress={onKeyPress}
+                            class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
-                <div on:click={send} on:keypress={onKeyPress}
-                     class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-                    <div class="w-6 h-6"><SendMessage /></div>
+                    <div on:click={send} on:keypress={onKeyPress}
+                         class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
+                        <div class="w-6 h-6"><SendMessage /></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    {:else}
-        <p class="m-6">Choose a conversation to see the messages.</p>
-    {/if}
+        {:else}
+            <p class="m-6">Choose a conversation to see the messages.</p>
+        {/if}
+    </div>
 </div>

@@ -16,7 +16,7 @@
     export let nostrRoomId: string;
     export let messageLimit: number = 60;
     export let messagesSince: number = 1672837281;  // January 4th 2023
-    export let fixedChatBox: boolean = false;   // Makes the chatbox fixed to the bottom of the screen
+    export let isMarketSquare: boolean = false;   // Makes the chatbox fixed to the bottom of the screen
     export let onReply = (message) => {nostrEventBeingRepliedTo = message};
 
     let nostrEventBeingRepliedTo = null;
@@ -332,7 +332,7 @@
     const scrollToBottom = () => {
         ignoreNextScrollEvent = true;
 
-        if (fixedChatBox) {
+        if (isMarketSquare) {
             window.scrollTo(0, document.body.scrollHeight);
         } else {
             // One div is for mobile scrolling. The other one is for desktop.
@@ -350,7 +350,7 @@
     }
 
     afterUpdate(() => {
-        if (autoscroll) {
+        if (autoscroll && isMarketSquare) {
             scrollToBottom();
         }
     })
@@ -385,7 +385,7 @@
     </div>
 </div>
 
-<div class="grid grid-cols-2 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto w-screen lg:w-2/3" class:fixed={fixedChatBox}>
+<div class="grid grid-cols-2 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto w-screen lg:w-2/3" class:fixed={isMarketSquare}>
     {#if nostrEventBeingRepliedTo !== null}
         <div class="col-span-2">
             <NostrReplyNote message={nostrEventBeingRepliedTo} closeButton={true} {onReply} />
@@ -396,7 +396,7 @@
         <textarea
             rows="1"
             id="nostrMessageSendText"
-            autofocus
+            autofocus={isMarketSquare}
             placeholder="Type your message"
             bind:this={textarea}
             on:keypress={onKeyPress}

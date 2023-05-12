@@ -7,6 +7,6 @@
     <title>Stall Browser</title>
 </svelte:head>
 
-<Titleh1>List of nip-15 compatible stores</Titleh1>
+<Titleh1>Stall Browser</Titleh1>
 
 <Browse merchantPubkey={null}></Browse>

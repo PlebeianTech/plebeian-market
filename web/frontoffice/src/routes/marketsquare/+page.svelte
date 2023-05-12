@@ -10,4 +10,4 @@
 
 <Titleh1>Market Square</Titleh1>
 
-<NostrChat messageLimit={75} nostrRoomId={pmChannelNostrRoomId} fixedChatBox={true} />
+<NostrChat messageLimit={75} nostrRoomId={pmChannelNostrRoomId} isMarketSquare={true} />

@@ -60,7 +60,7 @@
 <div class="h-screen pt-12 lg:pt-20 pb-20 mt-2">
     <Navbar />
 
-    <div class="mx-auto lg:mx-20 gap-6 lg:gap-20 mb-6 py-4 { $page.url.pathname === '/' ? 'w-screen' : 'w-11/12' }" style="min-height: 83.33%">
+    <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/' ? 'w-screen' : 'w-11/12 md:w-10/12' }">
         <slot />
     </div>
 

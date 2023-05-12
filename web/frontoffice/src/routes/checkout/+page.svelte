@@ -56,7 +56,7 @@
             const order = {
                 id: uuidv4(),
                 stall_id: stallId,
-                type: "0",
+                type: 0,
                 contact: {
                     nostr: $NostrPublicKey
                 },
@@ -148,6 +148,7 @@
 <Titleh1>Checkout</Titleh1>
 
 {#if $ShoppingCart.summary.numProducts}
+    <div class="flex flex-col md:flex-row w-full md:px-12">
         <div class="grid flex-grow card bg-base-300 rounded-box place-items-center p-8 w-full lg:w-2/4">
             <h2 class="card-title">Shipping information</h2>
             <p>If you're purchasing a physical product, include all the info required so the merchant can send you the products.</p>
@@ -210,11 +211,85 @@
                 </div>
             </div>
         </div>
+    </div>
 
-    <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-20 place-content-center">
-        <span class="font-bold text-lg mt-10">You're ordering {$ShoppingCart.summary.totalQuantity} products from {$ShoppingCart.summary.stalls} merchants. Check and choose the shipping options for each one of them:</span>
 
-        <table class="table table-auto w-full place-content-center">
+
+    <div class="md:grid justify-center mt-10 mb-10">
+        <table class="w-fit md:w-full rounded-md">
+            <thead>
+                <tr class="bg-gray-700 text-center">
+                    <th>Name</th>
+                    <th>Image</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody class="text-base">
+                {#each [...$ShoppingCart.products] as [stallId, products], i}
+                    <tr>
+                        <td colspan="3" class="bg-gray-700/60">
+                            <p class="mx-3">
+                                Order #{i+1}
+                            </p>
+                            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
+                                <p class="mx-3 mt-3">
+                                    {$stalls.stalls[stallId].name}
+                                </p>
+                            {/if}
+
+                            <p class="mx-3 mt-3">
+                                {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
+                                    Shipping:
+                                    <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-sm select-primary max-w-lg ml-1">
+                                        {#if $stalls.stalls[stallId].shipping.length > 1}
+                                            <option disabled selected value="0">Choose a shipping option:</option>
+                                        {/if}
+
+                                        {#each $stalls.stalls[stallId].shipping as shippingOption}
+                                            <option value="{shippingOption.id}">
+                                                {#if shippingOption.name}
+                                                    {shippingOption.name} -
+                                                {/if}
+                                                {#if shippingOption.countries}
+                                                    {#if !(shippingOption.countries.length === 1 && shippingOption.countries[0] === shippingOption.name)}
+                                                        ({shippingOption.countries.join(', ')}) -
+                                                    {/if}
+                                                {/if}
+                                                {shippingOption.cost} {$stalls.stalls[stallId].currency}
+                                            </option>
+                                        {/each}
+                                    </select>
+                                {:else}
+                                    Loading shipping options...
+                                {/if}
+                            </p>
+                        </td>
+                    </tr>
+
+                    {#each [...products] as [productId, product]}
+                        <tr class="text-center">
+                            <td>
+                                <p class="px-1">{#if product.name}{product.name}{/if}</p>
+                            </td>
+                            <td>
+                                <div class="card bg-base-100 shadow-xl w-24 md:w-32">
+                                    <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
+                                </div>
+                            </td>
+                            <td>
+                                <p class="px-1">
+                                    {product.price} x {product.orderQuantity} = {(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}
+                                </p>
+                            </td>
+                        </tr>
+                    {/each}
+                {/each}
+            </tbody>
+        </table>
+
+        <!-- Mobile -->
+        <!--
+        <table class="w-fit rounded-md md:hidden text-sm text-left">
             <thead>
             <tr class="text-center">
                 <th>Name</th>
@@ -223,63 +298,63 @@
             </tr>
             </thead>
 
-            <tbody>
-            {#each [...$ShoppingCart.products] as [stallId, products], i}
-                <tr>
-                    <td colspan="3" class="bg-gray-700">
-                        <p class="ml-3">
-                        {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
-                            Order {i+1}: {$stalls.stalls[stallId].name}
-                        {:else}
-                            Order {i+1}
-                        {/if}
-                        </p>
+            <tbody class="text-xs">
+                {#each [...$ShoppingCart.products] as [stallId, products], i}
+                    <tr>
+                        <td colspan="3" class="bg-gray-700">
+                            <p class="ml-3">
+                                {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
+                                    Order {i+1}: {$stalls.stalls[stallId].name}
+                                {:else}
+                                    Order {i+1}
+                                {/if}
+                            </p>
 
-                        <p class="ml-3 mt-3">
-                            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
-                                Shipping:
-                                <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-primary w-full max-w-lg ml-1">
-                                    {#if $stalls.stalls[stallId].shipping.length > 1}
-                                        <option disabled selected value="0">Choose a shipping option:</option>
-                                    {/if}
+                            <p class="ml-3 mt-3">
+                                {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
+                                    Shipping:
+                                    <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-sm select-primary max-w-lg ml-1">
+                                        {#if $stalls.stalls[stallId].shipping.length > 1}
+                                            <option disabled selected value="0">Choose a shipping option:</option>
+                                        {/if}
 
-                                    {#each $stalls.stalls[stallId].shipping as shippingOption}
-                                        <option value="{shippingOption.id}">
-                                            {#if shippingOption.name}
-                                                {shippingOption.name} -
-                                            {/if}
-                                            {#if shippingOption.countries}
-                                                {#if !(shippingOption.countries.length === 1 && shippingOption.countries[0] === shippingOption.name)}
-                                                    ({shippingOption.countries.join(', ')}) -
+                                        {#each $stalls.stalls[stallId].shipping as shippingOption}
+                                            <option value="{shippingOption.id}">
+                                                {#if shippingOption.name}
+                                                    {shippingOption.name} -
                                                 {/if}
-                                            {/if}
-                                            {shippingOption.cost} {$stalls.stalls[stallId].currency}
-                                        </option>
-                                    {/each}
-                                </select>
-                            {:else}
-                                Loading shipping options...
-                            {/if}
-                        </p>
-                    </td>
-                </tr>
-
-                {#each [...products] as [productId, product]}
-                    <tr class="text-center">
-                        <td>{#if product.name}{product.name}{/if}</td>
-                        <td>
-                            <div class="card bg-base-100 shadow-xl w-28 md:w-32">
-                                <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
-                            </div>
+                                                {#if shippingOption.countries}
+                                                    {#if !(shippingOption.countries.length === 1 && shippingOption.countries[0] === shippingOption.name)}
+                                                        ({shippingOption.countries.join(', ')}) -
+                                                    {/if}
+                                                {/if}
+                                                {shippingOption.cost} {$stalls.stalls[stallId].currency}
+                                            </option>
+                                        {/each}
+                                    </select>
+                                {:else}
+                                    Loading shipping options...
+                                {/if}
+                            </p>
                         </td>
-                        <td>{product.price} x {product.orderQuantity} = <div></div><div>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</div></td>
                     </tr>
-                {/each}
-            {/each}
-            </tbody>
-        </table>
 
-        <div class="card-actions justify-center mb-10">
+                    {#each [...products] as [productId, product]}
+                        <tr class="text-center">
+                            <td>{#if product.name}{product.name}{/if}</td>
+                            <td>
+                                <div class="card bg-base-100 shadow-xl w-28 md:w-32">
+                                    <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
+                                </div>
+                            </td>
+                            <td>{product.price} x {product.orderQuantity} = <div></div><div>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</div></td>
+                        </tr>
+                    {/each}
+                {/each}
+            </tbody>
+        </table>-->
+
+        <div class="card-actions justify-center mt-16">
             <a class="btn btn-primary" on:click|preventDefault={buyNow}>Buy now</a>
         </div>
     </div>
