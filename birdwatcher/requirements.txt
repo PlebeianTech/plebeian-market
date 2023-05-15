@@ -1,4 +1,4 @@
 aiohttp
-git+https://github.com/jeffthibault/python-nostr.git#egg=nostr
+nostr
 requests
 websockets

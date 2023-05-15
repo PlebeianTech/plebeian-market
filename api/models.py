@@ -249,7 +249,7 @@ class User(WalletMixin, db.Model):
             for b in UserBadge.query.filter_by(user_id=self.id).all()]
 
     def get_relays(self):
-        return [{'url': ur.relay.url for ur in UserRelay.query.filter_by(user_id=self.id).all()}]
+        return [{'url': ur.relay.url} for ur in UserRelay.query.filter_by(user_id=self.id).all()]
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)

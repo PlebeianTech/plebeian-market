@@ -1184,6 +1184,14 @@ def get_campaign_featured_avatars(key):
 def get_relays():
     return jsonify({'relays': [{'url': r.url} for r in m.Relay.query.all()]})
 
+@api_blueprint.route("/api/stalls/<pubkey>", methods=['GET'])
+def get_stall(pubkey):
+    seller = m.User.query.filter_by(stall_public_key=pubkey).one_or_none()
+    if not seller:
+        return jsonify({'message': "Stall not found!"}), 404
+
+    return jsonify({'name': seller.stall_name, 'description': seller.stall_description})
+
 @api_blueprint.route("/api/stalls/<pubkey>/events", methods=['POST'])
 def post_stall_event(pubkey):
     seller = m.User.query.filter_by(stall_public_key=pubkey).one_or_none()
@@ -1196,15 +1204,16 @@ def post_stall_event(pubkey):
         sk = PrivateKey(bytes.fromhex(seller.stall_private_key))
         cleartext_content = json.loads(sk.decrypt_message(request.json['content'], public_key_hex=request.json['pubkey']))
 
-        if cleartext_content['type'] == 0:
+        if int(cleartext_content['type']) == 0:
+            if m.Order.query.filter_by(uuid=cleartext_content['id']).one_or_none():
+                return jsonify({'message': "Order already exists!"}), 409
+
             try:
                 payment_address = seller.get_new_address()
             except AddressGenerationError as e:
                 return jsonify({'message': str(e)}), 500
             except MempoolSpaceError as e:
                 return jsonify({'message': str(e)}), 500
-
-            # TODO: validate event date (what to do with old events?)
 
             order = m.Order(
                 uuid=cleartext_content['id'],
@@ -1242,7 +1251,7 @@ def post_stall_event(pubkey):
 
             db.session.commit()
 
-            get_nostr_client(sk).send_dm(
+            get_nostr_client(seller).send_dm(
                 order.buyer_public_key,
                 json.dumps({
                     'id': order.uuid,
