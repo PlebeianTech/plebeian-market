@@ -128,7 +128,7 @@ export function getStalls(pool: SimplePool, merchantPubkey: string | string[] | 
     let sub: Sub = pool.sub(relayUrlList, [filter]);
     sub.on('event',  e => receivedCB(e));
     sub.on('eose', () => {
-        sub.unsub()
+        // sub.unsub()
     })
 }
 
@@ -142,7 +142,7 @@ export function getProducts(pool: SimplePool, merchantPubkey: string | null, rec
     let sub: Sub = pool.sub(relayUrlList, [filter]);
     sub.on('event',  e => {receivedCB(e);});
     sub.on('eose', () => {
-        sub.unsub()
+        // sub.unsub()
     })
 }
 
