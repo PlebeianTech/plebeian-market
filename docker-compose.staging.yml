@@ -27,6 +27,8 @@ services:
       - api
     networks:
       - proxy
+    volumes:
+      - "buyer-app-static-content:/buyer-app"
   nginx:
     build:
       context: ./
@@ -38,6 +40,8 @@ services:
       - api
     networks:
       - proxy
+    volumes:
+      - "buyer-app-static-content:/buyer-app"
   finalize-auctions:
     env_file: .env.staging
     volumes:
@@ -70,3 +74,6 @@ services:
 networks:
   proxy:
     external: true
+
+volumes:
+  buyer-app-static-content:
