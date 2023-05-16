@@ -1,8 +1,5 @@
 __pycache__
 *.egg-info
 venv
-node_modules
-.svelte-kit
-web/build
 *.DS_Store
 /.idea

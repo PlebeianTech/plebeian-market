@@ -20,7 +20,7 @@ services:
   web:
     build:
       context: ./
-      dockerfile: ./web/Dockerfile
+      dockerfile: web/backoffice/Dockerfile
       args:
         - BUILD_MODE=-staging
     depends_on:
