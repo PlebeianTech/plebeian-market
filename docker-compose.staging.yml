@@ -5,9 +5,13 @@ services:
     volumes:
       - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
   api:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://staging.plebeian.market/api/healthcheck"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
     env_file: .env.staging
     environment:
-      - BASE_URL=https://staging.plebeian.market
       - S3_FILENAME_PREFIX=STAGING_
       - MODERATOR_USER_IDS=ALL
     volumes:
@@ -54,6 +58,14 @@ services:
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask process-notifications
+  birdwatcher:
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file: .env.staging
+    volumes:
+      - "/home/www/plebeian-market-secrets:/secrets"
+    command: python main.py
 
 networks:
   proxy:

@@ -1,0 +1,4 @@
+aiohttp
+nostr
+requests
+websockets
