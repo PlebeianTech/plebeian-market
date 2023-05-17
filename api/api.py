@@ -275,9 +275,6 @@ def put_me(user):
             if not user.fetch_external_profile_image(twitter_user['profile_image_url'], get_s3()):
                 return jsonify({'message': "Error fetching profile picture!"}), 400
 
-            if not user.fetch_twitter_profile_banner(twitter_user['profile_banner_url'], get_s3()):
-                return jsonify({'message': "Error fetching profile banner!"}), 400
-
             if not twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase):
                 return jsonify({'message': "Error sending Twitter DM!"}), 500
             user.twitter_verification_phrase_sent_at = datetime.utcnow()

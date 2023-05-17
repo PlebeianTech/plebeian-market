@@ -6,3 +6,5 @@ node_modules
 web/build
 *.DS_Store
 /.idea
+.svelte-kit/
+node_modules/
