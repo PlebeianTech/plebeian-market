@@ -72,9 +72,6 @@
 
 <nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50">
     <div class="lg:w-3/4 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
-
-        <!-- TODO 2/3 -->
-
         <div class="flex items-center justify-between">
             <a href="/" class="flex items-center mr-2">
                 <div class="flex items-center space-x-2">

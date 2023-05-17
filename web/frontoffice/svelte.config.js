@@ -12,8 +12,6 @@ const config = {
 			strict: true
 		}),
 		alias: {
-			// this will match a directory and its contents
-			// (`my-directory/x` resolves to `path/to/my-directory/x`)
 			'$sharedLib': '../shared/lib',
 		},
 		prerender: {
@@ -21,7 +19,15 @@ const config = {
 				'*',
 				'/p/[pubkey]',
 				'/p/[pubkey]/stall/[stallId]'
-			]
+			],
+			handleHttpError: ({ path, referrer, message }) => {
+				if (path === '/admin') {
+					return;
+				}
+
+				// otherwise fail the build
+				throw new Error(message);
+			}
 		},
 		paths: {
 			base: ''

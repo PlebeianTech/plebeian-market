@@ -7,6 +7,9 @@ const config = {
 		adapter: adapter({
 			out: 'build'
 		}),
+		alias: {
+			'$sharedLib': '../shared/lib',
+		},
 		paths: {
 			base: '/admin'
 		}
