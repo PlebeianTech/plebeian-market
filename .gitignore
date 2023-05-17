@@ -3,3 +3,5 @@ __pycache__
 venv
 *.DS_Store
 /.idea
+.svelte-kit/
+node_modules/

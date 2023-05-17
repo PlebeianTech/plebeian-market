@@ -227,16 +227,6 @@ class User(WalletMixin, db.Model):
         self.profile_image_url = url
         return True
 
-    def fetch_twitter_profile_banner(self, profile_banner_url, s3):
-        if profile_banner_url:
-            url, _ = store_image(s3, f"user_{self.id}_stall_banner", True, profile_banner_url, None)
-            if not url:
-                return False
-        else:
-            url = None
-        self.stall_banner_url = url
-        return True
-
     def get_contribution_amount(self, for_amount):
         contribution_percent = self.contribution_percent if self.contribution_percent is not None else app.config['CONTRIBUTION_PERCENT_DEFAULT']
         contribution_amount = int(contribution_percent / 100 * for_amount)
