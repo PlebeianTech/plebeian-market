@@ -92,6 +92,9 @@
 
                 <div class="hidden lg:flex">
                     <p>
+                        <a href="/universe" class="btn btn-ghost normal-case">Universe</a>
+                    </p>
+                    <p>
                         <a href="/stalls" class="btn btn-ghost normal-case">Stall Browser</a>
                     </p>
                     <p>
