@@ -95,17 +95,5 @@
         {#each Object.entries(products) as [productId, product]}
             <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
         {/each}
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
     </div>
 {/if}
