@@ -107,6 +107,9 @@
                         <a href="/orders" class="btn btn-ghost normal-case">Orders</a>
                     </p>
                     <p>
+                        <a href="/admin" class="btn btn-ghost normal-case">Sell items</a>
+                    </p>
+                    <p>
                         {#if !$NostrPublicKey}
                             <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
                         {:else}

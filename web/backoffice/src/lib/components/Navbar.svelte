@@ -217,13 +217,7 @@
                         <a href="/campaigns" class="btn btn-ghost normal-case">Campaigns</a>
                     </p>
                     <p>
-                        <a href="/faq" class="btn btn-ghost normal-case">FAQ</a>
-                    </p>
-                    <p>
-                        <a href="/contact" class="btn btn-ghost normal-case">Contact</a>
-                    </p>
-                    <p>
-                        <a href="/about" class="btn btn-ghost normal-case">About</a>
+                        <a href="/" class="btn btn-ghost normal-case">Buy items</a>
                     </p>
                     {#if !$token || !$user}
                         <p>

@@ -5,7 +5,7 @@
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
     import { token, Info, Error, type Placement, NostrPool } from "$lib/stores";
-    import Footer from "$lib/components/Footer.svelte";
+    import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModal from "$lib/components/auth/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
     import { closePool } from "$lib/services/nostr";
@@ -62,9 +62,11 @@
 
 <div class="h-screen pt-12 lg:pt-20 pb-20 mt-2">
     <Navbar />
-    <div class="py-4" style="min-height: 83.33%">
+
+    <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/admin' ? 'w-screen' : 'w-11/12 md:w-10/12' }">
         <slot />
     </div>
+
     {#if $page.url.pathname !== "/marketsquare"}
         <Footer />
     {/if}
