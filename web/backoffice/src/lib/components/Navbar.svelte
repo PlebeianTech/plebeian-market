@@ -299,6 +299,11 @@
                                 </a>
                             </li>
                             <li>
+                                <a class="text-base" href="/account/orders/">
+                                    <span class="w-6 h-6"><Stats /></span> My received orders
+                                </a>
+                            </li>
+                            <li>
                                 <a class="text-base" href="/account/settings">
                                     <span class="w-6 h-6"><Settings /></span> Settings
                                 </a>
