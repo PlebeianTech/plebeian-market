@@ -625,12 +625,34 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 403)
         self.assertIn("you already have an active purchase", response['message'].lower())
 
+        # the seller has no orders
+        code, response = self.get("/api/users/me/orders", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['orders']), 0)
+
         # buying 2 items over nostr
-        purchase_event = {'type': 0, 'id': hash_create(4), 'items': [{'product_id': listing_key, 'quantity': 2}]}
+        purchase_event = {
+            'type': 0,
+            'id': hash_create(4),
+            'name': "JOHN APPLESEEDPHRASE",
+            'address': "7 Záhony u. Budapest, 1031 Hungary",
+            'message': "Please deliver to this point: 47.5607, 19.0544",
+            'contact': {'email': "test@plebeian.market"},
+            'items': [{'product_id': listing_key, 'quantity': 2}]
+        }
         dm = EncryptedDirectMessage(recipient_pubkey=listing_stall_public_key, cleartext_content=json.dumps(purchase_event))
         NOSTR_BUYER_PRIVATE_KEY.sign_event(dm)
         code, response = self.post(f"/api/stalls/{listing_stall_public_key}/events", json.loads(dm.to_message())[1])
         self.assertEqual(code, 200)
+
+        # the order is there!
+        code, response = self.get("/api/users/me/orders", {},
+            headers=self.get_auth_headers(token_1))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['orders']), 1)
+        self.assertEqual(response['orders'][0]['uuid'], purchase_event['id'])
+        self.assertEqual(response['orders'][0]['buyer']['name'], purchase_event['name'])
 
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))

@@ -557,6 +557,13 @@ def get_messages(user):
 
     return jsonify({'messages': [m.to_dict() for m in messages]})
 
+@api_blueprint.route('/api/users/me/orders', methods=['GET'])
+@user_required
+def get_orders(user):
+    orders = m.Order.query.filter_by(seller_id=user.id).order_by(desc(m.Order.requested_at)).all()
+
+    return jsonify({'orders': [o.to_dict() for o in orders]})
+
 @api_blueprint.route('/api/users/me/sales', methods=['GET'])
 @user_required
 def get_sales(user):
@@ -982,7 +989,7 @@ def buy_badge(user, badge):
     try:
         address = campaign.get_new_address()
         db.session.commit()
-    except AddressGenerationError as e:
+    except m.AddressGenerationError as e:
         return jsonify({'message': str(e)}), 500
     except MempoolSpaceError as e:
         return jsonify({'message': str(e)}), 500
@@ -1046,7 +1053,7 @@ def buy_listing(user, key):
             address = listing.campaign.get_new_address()
         else:
             address = listing.item.seller.get_new_address()
-    except AddressGenerationError as e:
+    except m.AddressGenerationError as e:
         return jsonify({'message': str(e)}), 500
     except MempoolSpaceError as e:
         return jsonify({'message': str(e)}), 500
@@ -1207,15 +1214,20 @@ def post_stall_event(pubkey):
 
             try:
                 payment_address = seller.get_new_address()
-            except AddressGenerationError as e:
+            except m.AddressGenerationError as e:
                 return jsonify({'message': str(e)}), 500
             except MempoolSpaceError as e:
                 return jsonify({'message': str(e)}), 500
 
             order = m.Order(
                 uuid=cleartext_content['id'],
+                seller_id=seller.id,
                 event_id=request.json['id'],
                 buyer_public_key=request.json['pubkey'],
+                buyer_name=cleartext_content.get('name'),
+                buyer_address=cleartext_content.get('address'),
+                buyer_message=cleartext_content.get('message'),
+                buyer_contact=cleartext_content.get('contact'),
                 requested_at=datetime.utcfromtimestamp(request.json['created_at']),
                 payment_address=payment_address)
             db.session.add(order)
@@ -1223,6 +1235,9 @@ def post_stall_event(pubkey):
 
             for item in cleartext_content['items']:
                 listing = m.Listing.query.filter_by(key=item['product_id']).first()
+
+                if not listing:
+                    return jsonify({'message': "Listing not found!"}), 404
 
                 quantity = item['quantity']
 

@@ -13,6 +13,7 @@ from nostr.key import PrivateKey
 import pyqrcode
 import random
 from slugify import slugify
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 import string
@@ -1226,16 +1227,26 @@ class Bid(db.Model):
         return bid
 
 class Order(db.Model):
+    """
+        Orders come in via Nostr NIP-15.
+        The difference from old-style "Sales" is mostly that the buyer doesn't need to be a user in our backend,
+        and an order can have more than one item being sold at the same time.
+    """
+
     __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
     uuid = db.Column(db.String(36), unique=True, nullable=False, index=True)
+
+    seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
     event_id = db.Column(db.String(64), nullable=False, index=True)
     buyer_public_key = db.Column(db.String(64), nullable=False, index=True)
 
-    requested_at = db.Column(db.DateTime, nullable=False)
+    buyer_name = db.Column(db.String(64), nullable=True)
+    buyer_address = db.Column(db.String(256), nullable=True)
+    buyer_message = db.Column(db.String(512), nullable=True)
+    buyer_contact = db.Column(JSON, nullable=True)
 
     payment_address = db.Column(db.String(128), nullable=False, unique=True, index=True)
 
@@ -1243,12 +1254,30 @@ class Order(db.Model):
     tx_value = db.Column(db.Integer, nullable=True)
     tx_confirmed = db.Column(db.Boolean, nullable=False, default=False)
 
+    requested_at = db.Column(db.DateTime, nullable=False)
     expired_at = db.Column(db.DateTime, nullable=True)
 
     shipping_usd = db.Column(db.Float, nullable=False, default=0)
 
     total_usd = db.Column(db.Float, nullable=False, default=0)
     total = db.Column(db.Integer, nullable=False, default=0)
+
+    def to_dict(self):
+        return {
+            'uuid': self.uuid,
+            'event_id': self.event_id,
+            'buyer': {
+                'public_key': self.buyer_public_key,
+                'name': self.buyer_name,
+                'address': self.buyer_address,
+                'message': self.buyer_message,
+                'contact': self.buyer_contact,
+            },
+            'txid': self.txid,
+            'requested_at': (self.requested_at.isoformat() + "Z"),
+            'total_usd': self.total_usd,
+            'total': self.total,
+        }
 
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
@@ -1270,6 +1299,11 @@ class SaleState(Enum):
     EXPIRED = 4
 
 class Sale(db.Model):
+    """
+        Sales are old-style (pre-NIP-15) orders, used to purchase items directly from our API.
+        They are also used for items purchased via auctions (since auctions are not migrated to Nostr yet).
+    """
+
     __tablename__ = 'sales'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

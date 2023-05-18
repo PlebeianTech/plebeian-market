@@ -132,7 +132,7 @@ def finalize_auctions():
                     address = auction.campaign.get_new_address()
                 else:
                     address = auction.item.seller.get_new_address()
-            except AddressGenerationError as e:
+            except m.AddressGenerationError as e:
                 app.logger.error(f"{auction.id=} " + str(e))
                 # NB: here we commit because we want has_winner and winning_bid_id to be set,
                 # so we never touch this auction again and simply skip generating the corresponding sale
