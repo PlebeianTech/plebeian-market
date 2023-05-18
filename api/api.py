@@ -5,6 +5,7 @@ import ecdsa
 from ecdsa.keys import BadSignatureError
 from email_validator import validate_email, EmailNotValidError
 from flask import Blueprint, jsonify, redirect, request
+from hashlib import sha256
 from io import BytesIO
 import json
 import jwt
@@ -12,6 +13,7 @@ import lnurl
 from nostr.key import PrivateKey
 import os
 import pyqrcode
+import secp256k1
 import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
@@ -1202,9 +1204,22 @@ def post_stall_event(pubkey):
     if not seller:
         return jsonify({'message': "Stall not found!"}), 404
 
-    if request.json['kind'] == 4:
-        # TODO: validate sig?
+    event_data = [0, request.json['pubkey'], request.json['created_at'], request.json['kind'], request.json['tags'], request.json['content']]
+    event_data_str = json.dumps(event_data, separators=(",", ":"), ensure_ascii=False)
+    serialized_event = event_data_str.encode()
+    expected_event_id = sha256(serialized_event).hexdigest()
 
+    if request.json['id'] != expected_event_id:
+        return jsonify({'message': "Invalid event ID!"}), 400
+
+    try:
+        pub_key = secp256k1.PublicKey(bytes.fromhex("02" + request.json['pubkey']), True) # 02 for Schnorr (BIP340)
+        if not pub_key.schnorr_verify(bytes.fromhex(request.json['id']), bytes.fromhex(request.json['sig']), None, raw=True):
+            return jsonify({'message': "Invalid event signature!"}), 400
+    except ValueError:
+        return jsonify({'message': "Invalid event signature!"}), 400
+
+    if request.json['kind'] == 4:
         sk = PrivateKey(bytes.fromhex(seller.stall_private_key))
         cleartext_content = json.loads(sk.decrypt_message(request.json['content'], public_key_hex=request.json['pubkey']))
 

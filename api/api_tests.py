@@ -643,7 +643,21 @@ class TestApi(unittest.TestCase):
         }
         dm = EncryptedDirectMessage(recipient_pubkey=listing_stall_public_key, cleartext_content=json.dumps(purchase_event))
         NOSTR_BUYER_PRIVATE_KEY.sign_event(dm)
-        code, response = self.post(f"/api/stalls/{listing_stall_public_key}/events", json.loads(dm.to_message())[1])
+        signed_event = json.loads(dm.to_message())[1]
+
+        copy_of_signed_event = dict(signed_event)
+        copy_of_signed_event['sig'] = "12345"
+        code, response = self.post(f"/api/stalls/{listing_stall_public_key}/events", copy_of_signed_event)
+        self.assertEqual(code, 400)
+        self.assertIn("invalid event signature", response['message'].lower())
+
+        copy_of_signed_event = dict(signed_event)
+        copy_of_signed_event['kind'] = 1 # trying to change the event kind after it was signed...
+        code, response = self.post(f"/api/stalls/{listing_stall_public_key}/events", copy_of_signed_event)
+        self.assertEqual(code, 400)
+        self.assertIn("invalid event id", response['message'].lower())
+
+        code, response = self.post(f"/api/stalls/{listing_stall_public_key}/events", signed_event)
         self.assertEqual(code, 200)
 
         # the order is there!

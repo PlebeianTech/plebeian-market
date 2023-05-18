@@ -22,3 +22,4 @@ python-magic
 python-slugify
 requests
 requests_oauthlib
+secp256k1
