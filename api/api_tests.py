@@ -639,7 +639,8 @@ class TestApi(unittest.TestCase):
             'address': "7 Záhony u. Budapest, 1031 Hungary",
             'message': "Please deliver to this point: 47.5607, 19.0544",
             'contact': {'email': "test@plebeian.market"},
-            'items': [{'product_id': listing_key, 'quantity': 2}]
+            'items': [{'product_id': listing_key, 'quantity': 2}],
+            'shipping_id': 'WORLD',
         }
         dm = EncryptedDirectMessage(recipient_pubkey=listing_stall_public_key, cleartext_content=json.dumps(purchase_event))
         NOSTR_BUYER_PRIVATE_KEY.sign_event(dm)

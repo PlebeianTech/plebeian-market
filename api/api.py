@@ -1248,16 +1248,18 @@ def post_stall_event(pubkey):
             db.session.add(order)
             db.session.commit()
 
+            nostr_client = get_nostr_client(seller)
+
             for item in cleartext_content['items']:
                 listing = m.Listing.query.filter_by(key=item['product_id']).first()
 
                 if not listing:
-                    return jsonify({'message': "Listing not found!"}), 404
+                    return jsonify({'message': "Item not found!"}), 404
 
                 quantity = item['quantity']
 
                 if listing.available_quantity < quantity:
-                    # TODO: reply to buyer with a DM?
+                    nostr_client.send_dm(order.buyer_public_key, "Not enough items in stock!")
                     return jsonify({'message': "Not enough items in stock!"}), 400
 
                 # NB: here we "lock" the quantity. it is given back if the order expires
@@ -1269,6 +1271,19 @@ def post_stall_event(pubkey):
 
                 order.total_usd += listing.price_usd * quantity
 
+            shipping_id = cleartext_content['shipping_id']
+            if shipping_id == 'WORLD':
+                order.shipping_usd = seller.shipping_worldwide_usd
+            else:
+                shipping_domestic_id = sha256(seller.shipping_from.encode('utf-8')).hexdigest()
+                if shipping_id == shipping_domestic_id:
+                    order.shipping_usd = seller.shipping_domestic_usd
+                else:
+                    nostr_client.send_dm(order.buyer_public_key, "Invalid shipping zone!")
+                    return jsonify({'message': "Invalid shipping zone!"}), 400
+
+            order.total_usd += order.shipping_usd
+
             try:
                 btc2usd = btc2fiat.get_value('kraken')
             except Exception:
@@ -1278,12 +1293,12 @@ def post_stall_event(pubkey):
 
             db.session.commit()
 
-            get_nostr_client(seller).send_dm(
+            nostr_client.send_dm(
                 order.buyer_public_key,
                 json.dumps({
                     'id': order.uuid,
                     'type': 1,
-                    'message': f"Please send the amount directly to the seller.",
+                    'message': f"Please send the {1 / app.config['SATS_IN_BTC'] * order.total} sats ({order.total:.9f} BTC) directly to the seller.",
                     'payment_options': [{'type': 'btc', 'link': order.payment_address}]
             }))
 
