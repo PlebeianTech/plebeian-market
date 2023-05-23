@@ -3,6 +3,7 @@ from base64 import b32encode
 import hashlib
 import magic
 from pycoin.symbols.btc import network as BTC
+from pycoin.symbols.xtn import network as TESTNET
 import requests
 from os import urandom
 
@@ -55,6 +56,7 @@ PUB_PREFIXES = {
 }
 
 def parse_xpub(xpub):
+    coin = BTC
     if xpub.lower().startswith('x'):
         xpub_bip32 = BTC.parse.bip32_pub(xpub)
         # Convert XPUB to ZPUB
@@ -64,7 +66,10 @@ def parse_xpub(xpub):
         zpub = base58.b58encode_check(extended_public_key_new_prefix).decode('UTF-8')
     elif xpub.lower().startswith('z'):
         zpub = xpub
+    elif xpub.lower().startswith('v'):
+        zpub = xpub
+        coin = TESTNET
     else:
         raise UnknownKeyTypeError()
 
-    return BTC.parse.bip84_pub(zpub)
+    return coin.parse.bip84_pub(zpub)
