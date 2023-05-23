@@ -96,7 +96,7 @@
             timeoutPublishResume
         );
 
-        await publishResume($NostrPool, resume,
+        await publishResume(resume,
             () => {
                 if (!notified) {
                     if (resumeNotPublishedTimer) {
@@ -118,7 +118,7 @@
     }
 
     onMount(async () => {
-        subscribeResume($NostrPool, pubkey, (_, __) => {});
+        subscribeResume(pubkey, (_, __) => {});
     });
 </script>
 

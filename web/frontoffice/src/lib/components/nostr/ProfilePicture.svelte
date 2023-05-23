@@ -7,7 +7,7 @@
     $: if ($NostrPublicKey) {
         let gotProfile = false;
 
-        subscribeMetadata($NostrPool, [$NostrPublicKey],
+        subscribeMetadata([$NostrPublicKey],
             (_pk, metadata) => {
                 if (gotProfile) {
                     return;

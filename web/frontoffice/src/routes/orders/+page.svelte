@@ -1,12 +1,13 @@
 <script>
-    import {NostrPool, NostrPublicKey, products, stalls} from "$lib/stores";
-    import {onMount} from "svelte";
-    import {getPrivateMessages, checkExtensionOrShowDialog} from "$lib/services/nostr";
+    import {NostrPublicKey, products, stalls} from "$lib/stores";
+    import {getPrivateMessages} from "$lib/services/nostr";
     import {formatTimestamp} from "$lib/nostr/utils.ts";
     import {decode} from "light-bolt11-decoder";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping.ts";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
+    import {requestLoginModal} from "$lib/utils.ts";
+    import {onDestroy} from "svelte";
 
     let paymentModalVisible = false;
     let paymentLink = null;
@@ -83,13 +84,9 @@
         paymentModalVisible = true;
     }
 
-    onMount(async () => {
-        if (checkExtensionOrShowDialog()) {
-            if (!$NostrPublicKey) {
-                $NostrPublicKey = await window.nostr.getPublicKey();
-            }
-
-            await getPrivateMessages($NostrPool, $NostrPublicKey,
+    const nostrPublicKeyUnsubscribe = NostrPublicKey.subscribe(async nostrPublicKeyValue => {
+        if (nostrPublicKeyValue) {
+            await getPrivateMessages($NostrPublicKey,
                 (privateMessage) => {
                     if (privateMessage !== null && typeof privateMessage === 'object') {
                         if (privateMessage.contentType === 'json') {
@@ -158,13 +155,16 @@
                     }
                 });
 
-            refreshStalls($NostrPool);
-            refreshProducts($NostrPool);
+            refreshStalls();
+            refreshProducts();
 
             await new Promise(resolve => setTimeout(resolve, 2500));
             showAutomaticPayments = true;
+        } else {
+            requestLoginModal();
         }
     });
+    onDestroy(nostrPublicKeyUnsubscribe);
 </script>
 
 <svelte:head>

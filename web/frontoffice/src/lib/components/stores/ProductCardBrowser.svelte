@@ -3,7 +3,6 @@
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import {getProducts} from "$lib/services/nostr";
     import {filterTags, getFirstTagValue} from "$lib/nostr/utils";
-    import {NostrPool} from "$lib/stores";
     import {onImgError} from "$lib/shopping";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import {refreshStalls} from "$lib/shopping";
@@ -47,15 +46,23 @@
     }));
 
     onMount(async () => {
-        getProducts($NostrPool, null,
+        let response = await fetch('config.json')
+        let config = await response.json();
+
+        if (config && config.admin_pubkey.length === 64) {
+            // admin pubkey specified, so let's wait
+            // to give some time for the homepage setup
+            // to get here from Nostr relays...
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        refreshStalls();
+
+        getProducts(null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
 
                 if (content.name.toLowerCase().includes('test') || content.description.toLowerCase().includes('test')) {
-                    return;
-                }
-
-                if (whiteListedStalls && !whiteListedStalls.includes(content.stall_id)) {
                     return;
                 }
 
@@ -113,8 +120,6 @@
                     products[productId] = content;
                 }
             });
-
-        refreshStalls($NostrPool);
     });
 
     function toggleCategory(category) {
@@ -155,9 +160,19 @@
 </div>
 
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 align-center mx-auto">
-    {#each Object.entries(filteredProducts) as [productId, product]}
-        {#if ((product.images && product.images.length > 0) || product.image) }
-            <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
-        {/if}
-    {/each}
+    {#if whiteListedStalls && whiteListedStalls.length }
+        {#each Object.entries(filteredProducts) as [productId, product]}
+            {#if whiteListedStalls.includes(product.stall_id)}
+                {#if ((product.images && product.images.length > 0) || product.image) }
+                    <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
+                {/if}
+            {/if}
+        {/each}
+    {:else}
+        {#each Object.entries(filteredProducts) as [productId, product]}
+            {#if ((product.images && product.images.length > 0) || product.image) }
+                <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
+            {/if}
+        {/each}
+    {/if}
 </div>

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {NostrPool} from "$lib/stores";
     import {getProducts} from "$lib/services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
@@ -21,7 +20,7 @@
     afterNavigate(() => {
         products = {};
 
-        getProducts($NostrPool, merchantPubkey,
+        getProducts(merchantPubkey,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
                 content.createdAt = productEvent.created_at;

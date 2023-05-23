@@ -1,13 +1,14 @@
 <script>
-    import {NostrPool, NostrPublicKey, privateMessages} from "$lib/stores";
+    import {NostrPublicKey, privateMessages} from "$lib/stores";
     import {onMount} from "svelte";
-    import {checkExtensionOrShowDialog, sendPrivateMessage} from "$lib/services/nostr";
+    import {sendPrivateMessage} from "$lib/services/nostr";
     import {nip19} from "nostr-tools";
     import SimpleNote from "$lib/components/nostr/SimpleNote.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
     import { page } from '$app/stores'
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
+    import {requestLoginModal} from "$lib/utils.ts";
 
     let selectedConversationPubkey = null;
     let sortedConversations;
@@ -62,7 +63,7 @@
     async function send() {
         const content = chatTextarea.value.trim();
 
-        await sendPrivateMessage($NostrPool, selectedConversationPubkey, content,
+        await sendPrivateMessage(selectedConversationPubkey, content,
             async (relay) => {
                 chatTextarea.value = '';
                 console.log('-------- Private message accepted by relay:', relay);
@@ -93,12 +94,8 @@
     }
 
     onMount(async () => {
-        // localStorage.removeItem('readMessages');
-
         if (!$NostrPublicKey) {
-            if (checkExtensionOrShowDialog()) {
-                $NostrPublicKey = await window.nostr.getPublicKey();
-            }
+            requestLoginModal();
         }
 
         const newMessagePubKey = $page.url.searchParams.get('newMessagePubKey');

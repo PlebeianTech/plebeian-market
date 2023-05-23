@@ -177,7 +177,7 @@
         }
 
         if (profilesToGetLocal.length !== 0) {
-            subscribeMetadata($NostrPool, profilesToGetLocal, (pk, m) => { profileImagesMap[pk] = m; });
+            subscribeMetadata(profilesToGetLocal, (pk, m) => { profileImagesMap[pk] = m; });
         }
     }
 
@@ -202,7 +202,7 @@
             return;
         }
 
-        subscribeReactions($NostrPool, noteInfoToGetLocal,
+        subscribeReactions(noteInfoToGetLocal,
             (event) => {
                 if (event.kind === Kind.Reaction) {
                     const likedEventId = event.tags.reverse().find((tag: any) => tag[0] === 'e')?.[1]; // last e tag is the liked post
@@ -269,7 +269,7 @@
     onMount(async () => {
         nostrExtensionEnabled = hasExtension();
 
-        subscribeChannel($NostrPool, nostrRoomId, messageLimit, messagesSince,
+        subscribeChannel(nostrRoomId, messageLimit, messagesSince,
             (newMessage) => {
                 for (const message of messages) {
                     if (message.id === newMessage.id) {
@@ -320,7 +320,7 @@
         if ($NostrPublicKey === null) {
             ErrorStore.set("You need to use a Nostr browser extension to be able to send messages to the chat.");
         } else if (content) {
-            sendMessage($NostrPool, content, nostrRoomId, nostrEventBeingRepliedTo,
+            sendMessage(content, nostrRoomId, nostrEventBeingRepliedTo,
                 () => {
                     nostrEventBeingRepliedTo = null;
                     textarea.value = '';

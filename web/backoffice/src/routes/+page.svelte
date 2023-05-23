@@ -8,7 +8,7 @@
     import { type Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { type Listing, fromJson as listingFromJson } from "$lib/types/listing";
     import ItemCard from "$lib/components/ItemCard.svelte";
-    import Typewriter from "$sharedLib/components/Typewriter.svelte";
+    import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
     import {getBaseUrl} from "../lib/utils";

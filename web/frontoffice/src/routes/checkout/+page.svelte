@@ -5,11 +5,11 @@
     import Nostr from "$sharedLib/components/icons/Nostr.svelte";
     import {Error, Info, NostrPool, NostrPublicKey, ShoppingCart, stalls} from "$lib/stores";
     import {onImgError, refreshStalls} from "$lib/shopping";
-    import {onMount} from "svelte";
     import { v4 as uuidv4 } from "uuid";
-    import {sendPrivateMessage, getPrivateMessages, checkExtensionOrShowDialog} from "$lib/services/nostr";
+    import {sendPrivateMessage, getPrivateMessages} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
+    import {requestLoginModal} from "$lib/utils.ts";
 
     let name = null;
     let address = null;
@@ -21,12 +21,8 @@
     export async function buyNow() {
         console.log('---- buyNow start ----');
 
-        if (!checkExtensionOrShowDialog()) {
-            return;
-        }
-
         if (!$NostrPublicKey) {
-            Error.set('You need to use a Nostr extension and login with it.');
+            requestLoginModal();
             return;
         }
 
@@ -83,7 +79,7 @@
             let messageOrder = JSON.stringify(order);
             console.log('************ jsonOrder:  ', order);
 
-            sendPrivateMessage($NostrPool, $stalls.stalls[stallId].merchantPubkey, messageOrder,
+            sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder,
                 async (relay) => {
                     console.log('-------- Order accepted by relay:', relay);
 
@@ -108,16 +104,12 @@
         console.log('---- buyNow end ----');
     }
 
-    onMount(async () => {
-        if (checkExtensionOrShowDialog()) {
-            if (!$NostrPublicKey) {
-                $NostrPublicKey = await window.nostr.getPublicKey();
-            }
+    $: if ($NostrPublicKey) {
+        refreshStalls();
 
-            refreshStalls($NostrPool);
-
+        (async () => {
             // Pre-fill contact data with info from old orders
-            await getPrivateMessages($NostrPool, $NostrPublicKey,
+            await getPrivateMessages($NostrPublicKey,
                 (privateMessage) => {
                     if (privateMessage !== null && typeof privateMessage === 'object') {
                         if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
@@ -137,8 +129,10 @@
                         }
                     }
                 });
-        }
-    });
+        })();
+    } else {
+        requestLoginModal();
+    }
 </script>
 
 <svelte:head>

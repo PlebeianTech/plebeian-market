@@ -51,7 +51,7 @@
     }
 
     export async function getNostrDMs() {
-        await getPrivateMessages($NostrPool, $NostrPublicKey,
+        await getPrivateMessages($NostrPublicKey,
             (privateMessage) => {
                 if (privateMessage !== null && typeof privateMessage === 'object') {
                     if (privateMessage.contentType === 'json') {
@@ -148,7 +148,7 @@
     }
 
     export async function getMetadataForHumanPubkeys() {
-        subscribeMetadata($NostrPool, Object.keys($privateMessages.human),
+        subscribeMetadata(Object.keys($privateMessages.human),
             (pubKey, m) => {
                 if (m.name !== undefined) {
                     $privateMessages.human[pubKey].name = m.name;

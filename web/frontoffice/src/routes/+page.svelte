@@ -1,18 +1,23 @@
 <script lang="ts">
-    import Typewriter from "$sharedLib/components/Typewriter.svelte";
+    import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
     import {getBaseUrl} from "$lib/utils";
     import GoldenGai from "$lib/images/golden-gai-tokyo.jpg";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
+    import {NostrGlobalConfig} from "$lib/stores";
+    import {onMount} from "svelte";
 
-    let whiteListedStalls = [
-        'hJ2ot9L3Fr2KpM8wTUT8cD',   // Atlas Shrugged's Bullion Exchange
-        'GSSW3Wn5jTWHif6HJuXBuU',   // Plebtag
-        'inEMKCpE9jiCwbQvUE5Wz9',   // CARLA's & THOMAS' bio beef farm
-        'Chy4h7vwk4icpnUTN9QabD',   // NAVAYOGA
-        'E6dcZnWZiZKai23KmZcE2f',   // ARRIFANA SURF LODGE
-    ];
+    let homepage_banner = GoldenGai;
+
+    onMount(async () => {
+        let response = await fetch('config.json')
+        let config = await response.json();
+
+        if (config.homepage_banner_image && config.homepage_banner_image.length > 0) {
+            homepage_banner = config.homepage_banner_image;
+        }
+    });
 </script>
 
 <svelte:head>
@@ -44,7 +49,7 @@
         }}
 />
 
-<div class="bg-no-repeat bg-center bg-cover" style="background-image: url('{GoldenGai}')">
+<div class="bg-no-repeat bg-center bg-cover" style="background-image: url('{homepage_banner}')">
   <div class="bg-gradient-to-r from-zinc-900 to-zinc-900/40">
     <div class="grid lg:w-2/3 mx-auto py-12">
       <div class="grid lg:place-items-start place-items-center py-8 px-8">
@@ -56,4 +61,4 @@
   </div>
 </div>
 
-<ProductCardBrowser {whiteListedStalls} />
+<ProductCardBrowser whiteListedStalls={$NostrGlobalConfig.homepage_include_stalls} />

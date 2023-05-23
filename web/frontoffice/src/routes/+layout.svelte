@@ -3,11 +3,19 @@
     import { toasts, ToastContainer } from 'svelte-toasts';
     import "../app.css";
     import { page } from '$app/stores';
-    import { Info, Error, type Placement, NostrPool, NostrPublicKey } from "$lib/stores";
+    import {
+        Info,
+        Error,
+        type Placement,
+        NostrPool,
+        NostrPublicKey,
+        NostrPrivateKey,
+        NostrGlobalConfig
+    } from "$lib/stores";
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModal from "$lib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
-    import { closePool } from "$lib/services/nostr";
+    import {closePool, subscribeConfiguration} from "$lib/services/nostr";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -49,11 +57,32 @@
 	onDestroy(errorUnsubscribe);
 
     onMount(async () => {
+        $NostrPrivateKey = localStorage.getItem("nostrPrivateKey");
         $NostrPublicKey = localStorage.getItem("nostrPublicKey");
+
+        let receivedAt = 0;
+
+        let response = await fetch('config.json')
+        let config = await response.json();
+
+        if (config && config.admin_pubkey.length === 64) {
+            console.log('----- Looking for setup for config.admin_pubkey', config.admin_pubkey);
+
+            subscribeConfiguration(config.admin_pubkey,
+                (setup, rcAt) => {
+                    console.log('  **** setup:', setup);
+                    console.log('  **** received_at:', rcAt);
+
+                    if (rcAt > receivedAt) {
+                        receivedAt = rcAt;
+                        $NostrGlobalConfig = setup;
+                    }
+                })
+        }
     });
 
     onDestroy(async () => {
-        await closePool($NostrPool);
+        await closePool();
     });
 </script>
 
