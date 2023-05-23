@@ -66,13 +66,8 @@
         let config = await response.json();
 
         if (config && config.admin_pubkey.length === 64) {
-            console.log('----- Looking for setup for config.admin_pubkey', config.admin_pubkey);
-
             subscribeConfiguration(config.admin_pubkey,
                 (setup, rcAt) => {
-                    console.log('  **** setup:', setup);
-                    console.log('  **** received_at:', rcAt);
-
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;
                         $NostrGlobalConfig = setup;
