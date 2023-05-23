@@ -603,7 +603,7 @@ class MempoolSpaceBTCClient:
             return []
 
         try:
-            response_json = requests.get(f"https://mempool.space/api/address/{addr}/txs").json()
+            response_json = requests.get(f"https://mempool.space/{'testnet/' if addr.startswith('t') else ''}api/address/{addr}/txs").json()
         except JSONDecodeError as e:
             raise MempoolSpaceError() from e
 
