@@ -1262,12 +1262,13 @@ def post_stall_event(pubkey):
                     nostr_client.send_dm(order.buyer_public_key, "Not enough items in stock!")
                     return jsonify({'message': "Not enough items in stock!"}), 400
 
-                # NB: here we "lock" the quantity. it is given back if the order expires
+                # here we "lock" the quantity. it is given back if the order expires
+                # NB: we need to update the quantity in Nostr as well!
                 listing.available_quantity -= quantity
+                nostr_client.publish_product(**listing.to_nostr())
 
                 order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
                 db.session.add(order_item)
-                db.session.commit()
 
                 order.total_usd += listing.price_usd * quantity
 
