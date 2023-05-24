@@ -321,8 +321,6 @@ def settle_btc_payments():
                     app.logger.warning(str(e) + f" {order.payment_address=} Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
-                if not funding_txs:
-                    continue
                 nostr_client = get_nostr_client(order.seller)
                 for tx in funding_txs:
                     if order.txid and not order.tx_confirmed:
