@@ -321,6 +321,7 @@ def settle_btc_payments():
                     app.logger.warning(str(e) + f" {order.payment_address=} Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
+                nostr_client = get_nostr_client(order.seller)
                 for tx in funding_txs:
                     if order.txid and not order.tx_confirmed:
                         if tx['confirmed'] and (tx['txid'] == order.txid or tx['value'] == order.tx_value):
@@ -341,6 +342,9 @@ def settle_btc_payments():
                             if tx['confirmed']:
                                 order.tx_confirmed = True
                                 order.paid_at = datetime.utcnow()
+                            else:
+                                message = f"Found transaction. Waiting for confirmation. TxID: {order.txid}"
+                                nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
                             db.session.commit()
                             break
                         else:
@@ -353,7 +357,12 @@ def settle_btc_payments():
                         for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
                             listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
                             listing.available_quantity += order_item.quantity
+                            nostr_client.publish_product(**listing.to_nostr())
                         db.session.commit()
+                        nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."}))
+                if order.paid_at:
+                    message = f"Payment confirmed. TxID: {order.txid}"
+                    nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': message}))
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()

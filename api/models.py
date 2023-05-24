@@ -1238,6 +1238,7 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uuid = db.Column(db.String(36), unique=True, nullable=False, index=True)
 
+    # NB: orders contain items which are all from the same seller, so we denormalize seller_id here for simplicity
     seller_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
     event_id = db.Column(db.String(64), nullable=False, index=True)
@@ -1264,6 +1265,8 @@ class Order(db.Model):
     total = db.Column(db.Integer, nullable=False, default=0)
 
     order_items = db.relationship('OrderItem', backref='order')
+
+    seller = db.relationship('User')
 
     @property
     def timeout_minutes(self):
