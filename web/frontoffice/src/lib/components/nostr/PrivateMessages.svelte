@@ -102,9 +102,6 @@
                             } else {
                                 $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
                             }
-
-                            $privateMessages.automatic[orderId].type = type;
-
                         } else {
                             $privateMessages.automatic[orderId] = privateMessage;
                         }
@@ -175,14 +172,14 @@
 
     {#if $NostrPublicKey}
         {#if unreadConversations}
-            <div class="tooltip tooltip-error" data-tip="{unreadConversations} unread conversations">
+            <div class="tooltip tooltip-bottom tooltip-error" data-tip="{unreadConversations} unread conversations">
                 <span class="indicator-item badge badge-sm badge-error">
                     {unreadConversations}
                 </span>
             </div>
         {/if}
     {:else}
-        <div class="tooltip tooltip-secondary" data-tip="Login clicking here">
+        <div class="tooltip tooltip-bottom tooltip-secondary" data-tip="Login clicking here">
             <span class="indicator-item badge badge-sm badge-secondary">!</span>
         </div>
     {/if}

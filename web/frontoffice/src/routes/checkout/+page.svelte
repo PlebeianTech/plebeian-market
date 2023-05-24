@@ -3,7 +3,7 @@
     import Email from "$sharedLib/components/icons/Email.svelte";
     import Phone from "$sharedLib/components/icons/Phone.svelte";
     import Nostr from "$sharedLib/components/icons/Nostr.svelte";
-    import {Error, Info, NostrPublicKey, ShoppingCart, stalls} from "$lib/stores";
+    import {Error, Info, NostrPublicKey, privateMessages, ShoppingCart, stalls} from "$lib/stores";
     import {onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
     import {sendPrivateMessage, getPrivateMessages} from "$lib/services/nostr";
@@ -113,29 +113,23 @@
     $: if ($NostrPublicKey) {
         refreshStalls();
 
-        (async () => {
-            // Pre-fill contact data with info from old orders
-            await getPrivateMessages($NostrPublicKey,
-                (privateMessage) => {
-                    if (privateMessage !== null && typeof privateMessage === 'object') {
-                        if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
-                            if (privateMessage.name) {
-                                name = privateMessage.name;
-                            }
-                            if (privateMessage.address) {
-                                address = privateMessage.address;
-                            }
+        Object.entries($privateMessages.automatic).forEach(([messageId, privateMessage]) => {
+            if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
+                if (privateMessage.name) {
+                    name = privateMessage.name;
+                }
+                if (privateMessage.address) {
+                    address = privateMessage.address;
+                }
 
-                            if (privateMessage.contact?.phone) {
-                                phone = privateMessage.contact.phone;
-                            }
-                            if (privateMessage.contact?.email) {
-                                email = privateMessage.contact.email;
-                            }
-                        }
-                    }
-                });
-        })();
+                if (privateMessage.contact?.phone) {
+                    phone = privateMessage.contact.phone;
+                }
+                if (privateMessage.contact?.email) {
+                    email = privateMessage.contact.email;
+                }
+            }
+        });
     } else {
         requestLoginModal();
     }
@@ -355,7 +349,7 @@
         </table>-->
 
         <div class="card-actions justify-center mt-16">
-            <a class="btn btn-primary" on:click|preventDefault={buyNow}>Buy now</a>
+            <a class="btn btn-primary" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow}>Buy now</a>
         </div>
     </div>
 

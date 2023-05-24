@@ -189,7 +189,7 @@ export async function sendPrivateMessage(receiverPubkey: string, message: string
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB) {
+export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB = () => {}) {
     let sub = get(NostrPool).sub(relayUrlList, [
         {
             kinds: [EVENT_KIND_PM],

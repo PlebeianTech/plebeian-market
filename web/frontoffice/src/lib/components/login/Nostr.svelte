@@ -14,6 +14,13 @@
     let activeTab: number = 0;
     let newPrivateKey: string | null = null;
 
+    $: if ($NostrPublicKey) {
+        // If login was called because $NostrPublicKey was not available
+        // but inmediatelly after it becames available, dispatch a login
+        // event so the dialog is closed
+        dispatch('login', {});
+    }
+
     async function getKeyFromExtension() {
         let publicKey = await (window as any).nostr.getPublicKey();
 
@@ -53,12 +60,8 @@
     onMount(async () => {
         if ($NostrPrivateKey && !$NostrPublicKey) {
             console.log('Nostr Public Key not available (because logged-out previously?) but Private Key present. Logging in...');
-//            await savePrivateNostrKey($NostrPrivateKey);
+            // await savePrivateNostrKey($NostrPrivateKey);
         }
-
-        // if (!$NostrPrivateKey && !$NostrPublicKey && window && window.nostr) {
-        //    await getKeyFromExtension()
-        // }
     });
 </script>
 

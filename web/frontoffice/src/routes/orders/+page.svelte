@@ -1,5 +1,5 @@
 <script>
-    import {NostrPublicKey, products, stalls} from "$lib/stores";
+    import {NostrPublicKey, privateMessages, products, stalls} from "$lib/stores";
     import {getPrivateMessages} from "$lib/services/nostr";
     import {formatTimestamp} from "$lib/nostr/utils.ts";
     import {decode} from "light-bolt11-decoder";
@@ -13,11 +13,8 @@
     let paymentLink = null;
     let paymentProtocol = null;
 
-    let orders = [];
     let sortedOrders = [];
     let ordersToBePaidNow = [];
-
-    let chatMessages = [];
 
     let hideOldOrders = true;
     const oldOrderTime = 7776000000;  // 3 months
@@ -25,11 +22,11 @@
     let showAutomaticPayments = false;
 
     $: {
-        sortedOrders = Object.entries(orders).sort((a, b) => {
+        sortedOrders = Object.entries($privateMessages.automatic).sort((a, b) => {
             return b[1].created_at - a[1].created_at;
         });
 
-        ordersToBePaidNow = Object.fromEntries( Object.entries(orders).filter(([orderId, order]) => {
+        ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([orderId, order]) => {
             if (order.type === 1) {
                 if (order.payment_options) {
                     for (const payment_option of order.payment_options) {
@@ -86,75 +83,6 @@
 
     const nostrPublicKeyUnsubscribe = NostrPublicKey.subscribe(async nostrPublicKeyValue => {
         if (nostrPublicKeyValue) {
-            await getPrivateMessages($NostrPublicKey,
-                (privateMessage) => {
-                    if (privateMessage !== null && typeof privateMessage === 'object') {
-                        if (privateMessage.contentType === 'json') {
-                            // console.log('----------------------------> PM (2):', privateMessage);
-
-                            let orderId = privateMessage.id;
-
-                            let type;
-
-                            if (privateMessage.type) {
-                                type = Number(privateMessage.type);
-                                privateMessage.type = type;
-                            } else {
-                                // Workaround until NostrMarket adds the "type" property
-                                if (privateMessage.payment_options) {
-                                    type = 1;
-                                } else if (privateMessage.paid) {
-                                    type = 2;
-                                } else {
-                                    type = 0;
-                                }
-                            }
-
-                            if (type === 1) {
-                                for (const paymentOption of privateMessage.payment_options) {
-                                    if (paymentOption.type === 'ln') {
-                                        const decodedInvoice = decode(paymentOption.link);
-
-                                        paymentOption.amount =
-                                            decodedInvoice.sections.filter((section) => {
-                                                return section.name === 'amount'
-                                            })[0].value / 1000;
-
-                                        paymentOption.expiry = decodedInvoice.expiry;
-                                    }
-                                }
-                            }
-
-                            if (privateMessage.created_at === 1682150218) {
-                                // Uncomment to get a "Not shipped yet"
-//                            return;
-                            }
-
-                            if (orderId in orders) {
-                                // Because some properties are the same in different types
-                                // like "message"
-                                if (privateMessage.created_at > orders[orderId].created_at) {
-                                    orders[orderId] = {...orders[orderId], ...privateMessage};
-                                } else {
-                                    orders[orderId] = {...privateMessage, ...orders[orderId]};
-                                }
-
-                                orders[orderId].type = type;
-
-                            } else {
-                                orders[orderId] = privateMessage;
-
-                                if (!privateMessage.type) {
-                                    orders[orderId].type = type;
-                                }
-                            }
-                        } else {
-                            // "Human" messages
-                            chatMessages[privateMessage.pubkey] = privateMessage;
-                        }
-                    }
-                });
-
             refreshStalls();
             refreshProducts();
 
@@ -173,10 +101,10 @@
 
 <Titleh1>Orders</Titleh1>
 
-{#if Object.keys(orders).length > 0}
-    <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-20 place-content-center">
+{#if Object.keys($privateMessages.automatic).length > 0}
+    <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-16 place-content-center">
         {#if Object.entries(ordersToBePaidNow).length > 0}
-            <div class="alert alert-warning shadow-lg mb-6">
+            <div class="alert alert-warning shadow-lg">
                 <div>
                     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span>
