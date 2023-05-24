@@ -361,6 +361,7 @@ def settle_btc_payments():
                             listing.available_quantity += order_item.quantity
                             nostr_client.publish_product(**listing.to_nostr())
                         db.session.commit()
+                        nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."}))
                 if order.paid_at:
                     message = f"Payment confirmed. TxID: {order.txid}"
                     nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': message}))
