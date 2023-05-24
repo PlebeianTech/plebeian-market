@@ -3,7 +3,7 @@
     import Email from "$sharedLib/components/icons/Email.svelte";
     import Phone from "$sharedLib/components/icons/Phone.svelte";
     import Nostr from "$sharedLib/components/icons/Nostr.svelte";
-    import {Error, Info, NostrPool, NostrPublicKey, ShoppingCart, stalls} from "$lib/stores";
+    import {Error, Info, NostrPublicKey, ShoppingCart, stalls} from "$lib/stores";
     import {onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
     import {sendPrivateMessage, getPrivateMessages} from "$lib/services/nostr";
@@ -76,32 +76,38 @@
                 order.contact.email = email;
             }
 
-            let messageOrder = JSON.stringify(order);
-            console.log('************ jsonOrder:  ', order);
+            try {
+                let messageOrder = JSON.stringify(order);
+                console.log('************ jsonOrder:  ', order);
 
-            sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder,
-                async (relay) => {
-                    console.log('-------- Order accepted by relay:', relay);
+                await sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder,
+                    async (relay) => {
+                        console.log('-------- Order accepted by relay:', relay);
 
-                    $ShoppingCart = {
-                        products: new Map(),
-                        summary: {
-                            numProducts: 0,
-                            totalQuantity: 0,
-                            stalls: 0
-                        }
-                    };
+                        $ShoppingCart = {
+                            products: new Map(),
+                            summary: {
+                                numProducts: 0,
+                                totalQuantity: 0,
+                                stalls: 0
+                            }
+                        };
 
-                    await new Promise(resolve => setTimeout(resolve, 3500));
+                        await new Promise(resolve => setTimeout(resolve, 3500));
 
-                    await goto('/orders');
-                }
-            );
+                        await goto('/orders');
+                    }
+                );
+
+                Info.set('All the orders have been sent.');
+
+                console.log('---- buyNow end ----');
+
+            } catch (e) {
+                Error.set('There was an error trying to buy the products. Check that you have a Nostr extension in the browser or you have generated the Nostr key correctly.');
+                console.log('Error trying to buy the products:', e);
+            }
         }
-
-        Info.set('All the orders have been sent.');
-
-        console.log('---- buyNow end ----');
     }
 
     $: if ($NostrPublicKey) {

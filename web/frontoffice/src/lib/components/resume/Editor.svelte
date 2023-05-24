@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { publishResume, subscribeResume } from "$lib/services/nostr";
-    import { Info, Error, NostrPool } from "$lib/stores";
+    import { Info, Error } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$lib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";

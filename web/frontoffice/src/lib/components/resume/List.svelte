@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { encodeNpub } from "$lib/nostr/utils";
-    import { NostrPool } from "$lib/stores";
     import type { UserResume } from "$lib/types/user";
     import { subscribeResumes, subscribeMetadata, type UserMetadata } from "$lib/services/nostr";
     import Loading from "$lib/components/Loading.svelte";

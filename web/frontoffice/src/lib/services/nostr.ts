@@ -5,7 +5,6 @@ import {
     type Sub,
     type Filter,
     nip04,
-    getPublicKey,
     signEvent
 } from 'nostr-tools';
 import { UserResume } from "$lib/types/user";
@@ -50,6 +49,7 @@ async function createEvent(kind: number, content: any, tags: any = []) {
         }
 
         event.pubkey = pubKey;
+console.log('EVENT', event);
         event.id = getEventHash(event);
         event.sig = signEvent(event, privKey);
         return event;
@@ -178,8 +178,14 @@ export function getProducts(merchantPubkey: string | null, receivedCB: (e) => vo
 }
 
 export async function sendPrivateMessage(receiverPubkey: string, message: string, successCB) {
-    let cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message)
-    const event = await createEvent(4, cipheredMessage, [['p', receiverPubkey]]);
+    let cipheredMessage;
+    if (hasExtension()) {
+        cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message);
+    } else {
+        cipheredMessage = await nip04.encrypt(get(NostrPrivateKey), receiverPubkey, message);
+    }
+
+    const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', receiverPubkey]]);
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
@@ -207,7 +213,17 @@ export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB)
             decryptPubkey = messagePubkey;  // Replies
         }
 
-        let decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
+        let decryptedContent;
+        if (hasExtension()) {
+            decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
+        } else {
+            let privateKey = get(NostrPrivateKey);
+            if (privateKey) {
+                decryptedContent = nip04.decrypt(privateKey, decryptPubkey, content);
+            } else {
+                return false;
+            }
+        }
 
         try {
             let jsonDecodedMessage = JSON.parse(decryptedContent);

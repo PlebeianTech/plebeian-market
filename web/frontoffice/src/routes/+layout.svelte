@@ -7,7 +7,6 @@
         Info,
         Error,
         type Placement,
-        NostrPool,
         NostrPublicKey,
         NostrPrivateKey,
         NostrGlobalConfig

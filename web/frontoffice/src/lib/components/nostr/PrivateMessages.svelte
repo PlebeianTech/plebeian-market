@@ -1,6 +1,6 @@
 <script lang="ts">
     import EmailIcon from "$sharedLib/components/icons/Email.svelte";
-    import {NostrPublicKey, privateMessages, NostrPool} from "$lib/stores";
+    import {NostrPublicKey, privateMessages} from "$lib/stores";
     import {getPrivateMessages, subscribeMetadata} from "$lib/services/nostr";
     import {decode} from "light-bolt11-decoder";
     import { goto } from "$app/navigation";

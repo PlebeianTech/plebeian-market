@@ -1,5 +1,5 @@
 import type {ShoppingCartItem} from "./types/stall";
-import {Error, Info, NostrPool, productCategories, products, ShoppingCart, stalls} from "./stores";
+import {Error, Info, productCategories, products, ShoppingCart, stalls} from "./stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$lib/services/nostr";

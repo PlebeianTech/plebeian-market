@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {NostrPublicKey, NostrPool} from "../../stores";
+    import {NostrPublicKey} from "../../stores";
     import {subscribeMetadata} from "../../services/nostr";
 
     let profileImage = null;
