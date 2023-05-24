@@ -89,15 +89,10 @@
                             }
                         }
 
-                        if (privateMessage.created_at === 1682150218) {
-                            // Uncomment to get a "Not shipped yet"
-//                            return;
-                        }
-
                         if (orderId in $privateMessages.automatic) {
                             // Because some properties are the same in different types
                             // like "message"
-                            if (privateMessage.created_at > $privateMessages.automatic[orderId].created_at) {
+                            if (privateMessage.type > $privateMessages.automatic[orderId].type) {
                                 $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
                             } else {
                                 $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};

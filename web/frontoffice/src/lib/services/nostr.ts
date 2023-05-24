@@ -219,7 +219,7 @@ export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB 
         } else {
             let privateKey = get(NostrPrivateKey);
             if (privateKey) {
-                decryptedContent = nip04.decrypt(privateKey, decryptPubkey, content);
+                decryptedContent = await nip04.decrypt(privateKey, decryptPubkey, content);
             } else {
                 return false;
             }

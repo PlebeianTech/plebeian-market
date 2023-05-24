@@ -113,7 +113,7 @@
                     {#if $NostrPrivateKey}
                         <div class="form-control w-full max-w-full">
                             <label class="label" for="npub">
-                                <span class="label-text">Your NPUB</span>
+                                <span class="label-text">Your Nostr private key</span>
                             </label>
                             <input bind:value={$NostrPrivateKey} type="text" class="input input-lg input-bordered" />
                         </div>
