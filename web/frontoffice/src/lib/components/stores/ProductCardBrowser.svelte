@@ -160,19 +160,11 @@
 </div>
 
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 align-center mx-auto">
-    {#if whiteListedStalls && whiteListedStalls.length }
-        {#each Object.entries(filteredProducts) as [productId, product]}
-            {#if whiteListedStalls.includes(product.stall_id)}
-                {#if ((product.images && product.images.length > 0) || product.image) }
-                    <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
-                {/if}
-            {/if}
-        {/each}
-    {:else}
-        {#each Object.entries(filteredProducts) as [productId, product]}
+    {#each Object.entries(filteredProducts) as [productId, product]}
+        {#if (!whiteListedStalls) || (whiteListedStalls && whiteListedStalls.includes(product.stall_id))}
             {#if ((product.images && product.images.length > 0) || product.image) }
                 <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
             {/if}
-        {/each}
-    {/if}
+        {/if}
+    {/each}
 </div>
