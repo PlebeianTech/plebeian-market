@@ -4,12 +4,13 @@
     import Phone from "$sharedLib/components/icons/Phone.svelte";
     import Nostr from "$sharedLib/components/icons/Nostr.svelte";
     import {Error, Info, NostrPublicKey, privateMessages, ShoppingCart, stalls} from "$lib/stores";
-    import {onImgError, refreshStalls} from "$lib/shopping";
+    import {onImgError, refreshProducts, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
-    import {sendPrivateMessage, getPrivateMessages} from "$lib/services/nostr";
+    import {sendPrivateMessage} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {requestLoginModal} from "$lib/utils.ts";
+    import {onDestroy} from "svelte";
 
     let name = null;
     let address = null;
@@ -110,29 +111,32 @@
         }
     }
 
-    $: if ($NostrPublicKey) {
-        refreshStalls();
+    const nostrPublicKeyUnsubscribe = NostrPublicKey.subscribe(async nostrPublicKeyValue => {
+        if (nostrPublicKeyValue) {
+            refreshStalls();
 
-        Object.entries($privateMessages.automatic).forEach(([messageId, privateMessage]) => {
-            if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
-                if (privateMessage.name) {
-                    name = privateMessage.name;
-                }
-                if (privateMessage.address) {
-                    address = privateMessage.address;
-                }
+            Object.entries($privateMessages.automatic).forEach(([messageId, privateMessage]) => {
+                if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
+                    if (privateMessage.name) {
+                        name = privateMessage.name;
+                    }
+                    if (privateMessage.address) {
+                        address = privateMessage.address;
+                    }
 
-                if (privateMessage.contact?.phone) {
-                    phone = privateMessage.contact.phone;
+                    if (privateMessage.contact?.phone) {
+                        phone = privateMessage.contact.phone;
+                    }
+                    if (privateMessage.contact?.email) {
+                        email = privateMessage.contact.email;
+                    }
                 }
-                if (privateMessage.contact?.email) {
-                    email = privateMessage.contact.email;
-                }
-            }
-        });
-    } else {
-        requestLoginModal();
-    }
+            });
+        } else {
+            requestLoginModal();
+        }
+    });
+    onDestroy(nostrPublicKeyUnsubscribe);
 </script>
 
 <svelte:head>

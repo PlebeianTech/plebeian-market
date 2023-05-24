@@ -1,8 +1,6 @@
 <script>
     import {NostrPublicKey, privateMessages, products, stalls} from "$lib/stores";
-    import {getPrivateMessages} from "$lib/services/nostr";
     import {formatTimestamp} from "$lib/nostr/utils.ts";
-    import {decode} from "light-bolt11-decoder";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping.ts";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
