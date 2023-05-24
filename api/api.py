@@ -1298,7 +1298,7 @@ def post_stall_event(pubkey):
                 json.dumps({
                     'id': order.uuid,
                     'type': 1,
-                    'message': f"Please send the {1 / app.config['SATS_IN_BTC'] * order.total} sats ({order.total:.9f} BTC) directly to the seller.",
+                    'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
                     'payment_options': [{'type': 'btc', 'link': order.payment_address}]
             }))
 

@@ -314,6 +314,46 @@ def settle_btc_payments():
                         if sale.is_auction_sale:
                             m.Message.create_and_send('SALE_EXPIRED', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
                             m.Message.create_and_send('PURCHASE_EXPIRED', user=sale.buyer, auction=sale.auction)
+            for order in db.session.query(m.Order).filter((m.Order.paid_at == None) & (m.Order.expired_at == None)):
+                try:
+                    funding_txs = btc.get_funding_txs(order.payment_address)
+                except MempoolSpaceError as e:
+                    app.logger.warning(str(e) + f" {order.payment_address=} Taking a 1 minute nap...")
+                    time.sleep(60)
+                    continue
+                for tx in funding_txs:
+                    if order.txid and not order.tx_confirmed:
+                        if tx['confirmed'] and (tx['txid'] == order.txid or tx['value'] == order.tx_value):
+                            if tx['txid'] != order.txid:
+                                # this can happen in case of RBF
+                                app.logger.info(f"Transaction txid={tx['txid']} differs from original txid={order.txid} matching {order.id=} but we still accept it.")
+                                order.txid = tx['txid']
+                            app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {order.id=}.")
+                            order.tx_confirmed = True
+                            order.paid_at = datetime.utcnow()
+                            db.session.commit()
+                            break
+                    elif not order.txid:
+                        if tx['value'] >= order.total:
+                            app.logger.info(f"Found transaction txid={tx['txid']} confirmed={tx['confirmed']} matching {order.id=}.")
+                            order.txid = tx['txid']
+                            order.tx_value = tx['value']
+                            if tx['confirmed']:
+                                order.tx_confirmed = True
+                                order.paid_at = datetime.utcnow()
+                            db.session.commit()
+                            break
+                        else:
+                            app.logger.warning(f"Found unexpected transaction when trying to settle {order.id=}: {order.total=} vs {tx['value']=}.")
+                else:
+                    if order.requested_at < datetime.utcnow() - timedelta(minutes=order.timeout_minutes):
+                        app.logger.warning(f"Order too old. Marking as expired. {order.id=}")
+                        order.expired_at = datetime.utcnow()
+                        # expired orders increment the stock with the quantity that was decremented when the order was created
+                        for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
+                            listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
+                            listing.available_quantity += order_item.quantity
+                        db.session.commit()
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
@@ -563,7 +603,7 @@ class MempoolSpaceBTCClient:
             return []
 
         try:
-            response_json = requests.get(f"https://mempool.space/api/address/{addr}/txs").json()
+            response_json = requests.get(f"https://mempool.space/{'testnet/' if addr.startswith('t') else ''}api/address/{addr}/txs").json()
         except JSONDecodeError as e:
             raise MempoolSpaceError() from e
 

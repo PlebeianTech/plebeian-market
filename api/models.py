@@ -1255,12 +1255,34 @@ class Order(db.Model):
     tx_confirmed = db.Column(db.Boolean, nullable=False, default=False)
 
     requested_at = db.Column(db.DateTime, nullable=False)
+    paid_at = db.Column(db.DateTime, nullable=True)
     expired_at = db.Column(db.DateTime, nullable=True)
 
     shipping_usd = db.Column(db.Float, nullable=False, default=0)
 
     total_usd = db.Column(db.Float, nullable=False, default=0)
     total = db.Column(db.Integer, nullable=False, default=0)
+
+    order_items = db.relationship('OrderItem', backref='order')
+
+    @property
+    def timeout_minutes(self):
+        if self.txid:
+            # if we already have a TX (without confirmations though),
+            # we can give it more time to confirm...
+
+            match app.config['ENV']:
+                case 'dev':
+                    return 10
+                case 'staging':
+                    return 60 # need more time to confirm - they are real TXes in staging!
+                case _:
+                    return 48 * 60
+
+        if app.config['ENV'] in ['dev', 'staging']:
+            return 10 # 10 mins should be enough to send a 0-conf
+        else: # prod
+            return 60 # 1h for a 0-conf...
 
     def to_dict(self):
         return {
