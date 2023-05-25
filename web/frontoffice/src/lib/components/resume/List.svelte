@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { encodeNpub } from "$lib/nostr/utils";
-    import { NostrPool } from "$lib/stores";
     import type { UserResume } from "$lib/types/user";
     import { subscribeResumes, subscribeMetadata, type UserMetadata } from "$lib/services/nostr";
     import Loading from "$lib/components/Loading.svelte";
@@ -47,7 +46,7 @@
 
         if (pubkeysToQuery.length !== 0) {
             metadataRequested = [...metadataRequested, ...pubkeysToQuery];
-            subscribeMetadata($NostrPool, pubkeysToQuery,
+            subscribeMetadata(pubkeysToQuery,
                 (pk, m) => {
                     if (!(pk in metadata)) {
                         metadata[pk] = m;
@@ -66,7 +65,7 @@
     }
 
     onMount(async () => {
-        subscribeResumes($NostrPool,
+        subscribeResumes(
             (pk, r, rcAt) => {
                 if (pk === "ec79b568bdea63ca6091f5b84b0c639c10a0919e175fa09a4de3154f82906f25") { // CM
                     return;

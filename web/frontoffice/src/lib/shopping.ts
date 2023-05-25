@@ -1,9 +1,8 @@
 import type {ShoppingCartItem} from "./types/stall";
-import {Error, Info, NostrPool, productCategories, products, ShoppingCart, stalls} from "./stores";
+import {Error, Info, productCategories, products, ShoppingCart, stalls} from "./stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$lib/services/nostr";
-import type {SimplePool} from "nostr-tools";
 import {filterTags, getFirstTagValue} from "./nostr/utils";
 
 // =============================== Products ====================================
@@ -78,7 +77,7 @@ export function deleteFromCart(stallId, productId) {
 
 // =============================== Stalls ====================================
 
-export function refreshStalls(NostrPool: SimplePool) {
+export function refreshStalls() {
     let now: number = Math.floor(Date.now());
 
     let currentStallsValue = get(stalls);
@@ -86,7 +85,7 @@ export function refreshStalls(NostrPool: SimplePool) {
     if (currentStallsValue === null || now - currentStallsValue.fetched_at > 60000) {  // 60 seconds
         console.log('************ refreshStalls - refreshing...',)
 
-        getStalls(NostrPool, null,
+        getStalls(null,
             (stallEvent) => {
                 let content = JSON.parse(stallEvent.content)
 
@@ -153,7 +152,7 @@ export function getStallsByMerchant(merchantPubkey: string) {
     return merchantStalls;
 }
 
-export function refreshProducts(NostrPool: SimplePool) {
+export function refreshProducts() {
     let now: number = Math.floor(Date.now());
 
     let currentProductsValue = get(products);
@@ -161,7 +160,7 @@ export function refreshProducts(NostrPool: SimplePool) {
     if (currentProductsValue === null || now - currentProductsValue.fetched_at > 60000) {  // 60 seconds
         console.log('************ refreshProducts - refreshing...',)
 
-        getProducts(NostrPool, null,
+        getProducts(null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
 

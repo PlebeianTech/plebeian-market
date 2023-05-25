@@ -3,13 +3,14 @@
     import Email from "$sharedLib/components/icons/Email.svelte";
     import Phone from "$sharedLib/components/icons/Phone.svelte";
     import Nostr from "$sharedLib/components/icons/Nostr.svelte";
-    import {Error, Info, NostrPool, NostrPublicKey, ShoppingCart, stalls} from "$lib/stores";
-    import {onImgError, refreshStalls} from "$lib/shopping";
-    import {onMount} from "svelte";
+    import {Error, Info, NostrPublicKey, privateMessages, ShoppingCart, stalls} from "$lib/stores";
+    import {onImgError, refreshProducts, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
-    import {sendPrivateMessage, getPrivateMessages, checkExtensionOrShowDialog} from "$lib/services/nostr";
+    import {sendPrivateMessage} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
+    import {requestLoginModal} from "$lib/utils.ts";
+    import {onDestroy} from "svelte";
 
     let name = null;
     let address = null;
@@ -21,12 +22,8 @@
     export async function buyNow() {
         console.log('---- buyNow start ----');
 
-        if (!checkExtensionOrShowDialog()) {
-            return;
-        }
-
         if (!$NostrPublicKey) {
-            Error.set('You need to use a Nostr extension and login with it.');
+            requestLoginModal();
             return;
         }
 
@@ -80,65 +77,66 @@
                 order.contact.email = email;
             }
 
-            let messageOrder = JSON.stringify(order);
-            console.log('************ jsonOrder:  ', order);
+            try {
+                let messageOrder = JSON.stringify(order);
+                console.log('************ jsonOrder:  ', order);
 
-            sendPrivateMessage($NostrPool, $stalls.stalls[stallId].merchantPubkey, messageOrder,
-                async (relay) => {
-                    console.log('-------- Order accepted by relay:', relay);
+                await sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder,
+                    async (relay) => {
+                        console.log('-------- Order accepted by relay:', relay);
 
-                    $ShoppingCart = {
-                        products: new Map(),
-                        summary: {
-                            numProducts: 0,
-                            totalQuantity: 0,
-                            stalls: 0
-                        }
-                    };
+                        $ShoppingCart = {
+                            products: new Map(),
+                            summary: {
+                                numProducts: 0,
+                                totalQuantity: 0,
+                                stalls: 0
+                            }
+                        };
 
-                    await new Promise(resolve => setTimeout(resolve, 3500));
+                        await new Promise(resolve => setTimeout(resolve, 3500));
 
-                    await goto('/orders');
-                }
-            );
+                        await goto('/orders');
+                    }
+                );
+
+                Info.set('All the orders have been sent.');
+
+                console.log('---- buyNow end ----');
+
+            } catch (e) {
+                Error.set('There was an error trying to buy the products. Check that you have a Nostr extension in the browser or you have generated the Nostr key correctly.');
+                console.log('Error trying to buy the products:', e);
+            }
         }
-
-        Info.set('All the orders have been sent.');
-
-        console.log('---- buyNow end ----');
     }
 
-    onMount(async () => {
-        if (checkExtensionOrShowDialog()) {
-            if (!$NostrPublicKey) {
-                $NostrPublicKey = await window.nostr.getPublicKey();
-            }
+    const nostrPublicKeyUnsubscribe = NostrPublicKey.subscribe(async nostrPublicKeyValue => {
+        if (nostrPublicKeyValue) {
+            refreshStalls();
 
-            refreshStalls($NostrPool);
-
-            // Pre-fill contact data with info from old orders
-            await getPrivateMessages($NostrPool, $NostrPublicKey,
-                (privateMessage) => {
-                    if (privateMessage !== null && typeof privateMessage === 'object') {
-                        if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
-                            if (privateMessage.name) {
-                                name = privateMessage.name;
-                            }
-                            if (privateMessage.address) {
-                                address = privateMessage.address;
-                            }
-
-                            if (privateMessage.contact?.phone) {
-                                phone = privateMessage.contact.phone;
-                            }
-                            if (privateMessage.contact?.email) {
-                                email = privateMessage.contact.email;
-                            }
-                        }
+            Object.entries($privateMessages.automatic).forEach(([messageId, privateMessage]) => {
+                if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
+                    if (privateMessage.name) {
+                        name = privateMessage.name;
                     }
-                });
+                    if (privateMessage.address) {
+                        address = privateMessage.address;
+                    }
+
+                    if (privateMessage.contact?.phone) {
+                        phone = privateMessage.contact.phone;
+                    }
+                    if (privateMessage.contact?.email) {
+                        email = privateMessage.contact.email;
+                    }
+                }
+            });
+        } else {
+            requestLoginModal();
         }
     });
+    onDestroy(nostrPublicKeyUnsubscribe);
 </script>
 
 <svelte:head>
@@ -287,75 +285,8 @@
             </tbody>
         </table>
 
-        <!-- Mobile -->
-        <!--
-        <table class="w-fit rounded-md md:hidden text-sm text-left">
-            <thead>
-            <tr class="text-center">
-                <th>Name</th>
-                <th>Image</th>
-                <th>Total</th>
-            </tr>
-            </thead>
-
-            <tbody class="text-xs">
-                {#each [...$ShoppingCart.products] as [stallId, products], i}
-                    <tr>
-                        <td colspan="3" class="bg-gray-700">
-                            <p class="ml-3">
-                                {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
-                                    Order {i+1}: {$stalls.stalls[stallId].name}
-                                {:else}
-                                    Order {i+1}
-                                {/if}
-                            </p>
-
-                            <p class="ml-3 mt-3">
-                                {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
-                                    Shipping:
-                                    <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-sm select-primary max-w-lg ml-1">
-                                        {#if $stalls.stalls[stallId].shipping.length > 1}
-                                            <option disabled selected value="0">Choose a shipping option:</option>
-                                        {/if}
-
-                                        {#each $stalls.stalls[stallId].shipping as shippingOption}
-                                            <option value="{shippingOption.id}">
-                                                {#if shippingOption.name}
-                                                    {shippingOption.name} -
-                                                {/if}
-                                                {#if shippingOption.countries}
-                                                    {#if !(shippingOption.countries.length === 1 && shippingOption.countries[0] === shippingOption.name)}
-                                                        ({shippingOption.countries.join(', ')}) -
-                                                    {/if}
-                                                {/if}
-                                                {shippingOption.cost} {$stalls.stalls[stallId].currency}
-                                            </option>
-                                        {/each}
-                                    </select>
-                                {:else}
-                                    Loading shipping options...
-                                {/if}
-                            </p>
-                        </td>
-                    </tr>
-
-                    {#each [...products] as [productId, product]}
-                        <tr class="text-center">
-                            <td>{#if product.name}{product.name}{/if}</td>
-                            <td>
-                                <div class="card bg-base-100 shadow-xl w-28 md:w-32">
-                                    <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
-                                </div>
-                            </td>
-                            <td>{product.price} x {product.orderQuantity} = <div></div><div>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</div></td>
-                        </tr>
-                    {/each}
-                {/each}
-            </tbody>
-        </table>-->
-
         <div class="card-actions justify-center mt-16">
-            <a class="btn btn-primary" on:click|preventDefault={buyNow}>Buy now</a>
+            <a class="btn btn-primary" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow}>Buy now</a>
         </div>
     </div>
 

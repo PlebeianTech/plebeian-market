@@ -26,14 +26,14 @@
     let picture: string;
 
     function loadResume() {
-        subscribeResume(pool, pubkey,
+        subscribeResume(pubkey,
                 (r, rcAt) => {
                     if (resumeCreatedAt < rcAt) {
                         resume = r;
                         resumeCreatedAt = rcAt;
                         if (!metadataSubscribed) {
                             metadataSubscribed = true;
-                            subscribeMetadata(pool, [pubkey],
+                            subscribeMetadata([pubkey],
                                 (_pk, m) => {
                                     if (m.name !== undefined) {
                                         name = m.name;
@@ -61,10 +61,6 @@
             userPubKey = await (window as any).nostr.getPublicKey();
         }
     );
-
-    onDestroy(async () => {
-        await closePool(pool);
-    });
 </script>
 
 <div class="mx-auto w-full">

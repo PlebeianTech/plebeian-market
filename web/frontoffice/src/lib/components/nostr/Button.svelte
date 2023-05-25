@@ -1,7 +1,7 @@
 <script lang="ts">
     import { sendMessage } from "$lib/services/nostr";
     import { getChannelIdForStallOwner, pmChannelNostrRoomId } from '$lib/nostr/utils'
-    import { Info, user, NostrPool } from "$lib/stores";
+    import { Info, user } from "$lib/stores";
 
     export let pmURL: string | null;
 
@@ -32,7 +32,7 @@
 
     async function postToNostr() {
         if (message && message !== '') {
-            sendMessage($NostrPool, message, nostrRoomId, null,
+            sendMessage(message, nostrRoomId, null,
                 () => {
                     textConfirmationVisible = false;
                     Info.set("¡Published to Nostr!");

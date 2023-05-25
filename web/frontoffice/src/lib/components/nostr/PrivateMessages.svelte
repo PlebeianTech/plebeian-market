@@ -1,6 +1,6 @@
 <script lang="ts">
     import EmailIcon from "$sharedLib/components/icons/Email.svelte";
-    import {NostrPublicKey, privateMessages, NostrPool} from "$lib/stores";
+    import {NostrPublicKey, privateMessages} from "$lib/stores";
     import {getPrivateMessages, subscribeMetadata} from "$lib/services/nostr";
     import {decode} from "light-bolt11-decoder";
     import { goto } from "$app/navigation";
@@ -51,7 +51,7 @@
     }
 
     export async function getNostrDMs() {
-        await getPrivateMessages($NostrPool, $NostrPublicKey,
+        await getPrivateMessages($NostrPublicKey,
             (privateMessage) => {
                 if (privateMessage !== null && typeof privateMessage === 'object') {
                     if (privateMessage.contentType === 'json') {
@@ -89,22 +89,14 @@
                             }
                         }
 
-                        if (privateMessage.created_at === 1682150218) {
-                            // Uncomment to get a "Not shipped yet"
-//                            return;
-                        }
-
                         if (orderId in $privateMessages.automatic) {
                             // Because some properties are the same in different types
                             // like "message"
-                            if (privateMessage.created_at > $privateMessages.automatic[orderId].created_at) {
+                            if (privateMessage.type > $privateMessages.automatic[orderId].type) {
                                 $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
                             } else {
                                 $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
                             }
-
-                            $privateMessages.automatic[orderId].type = type;
-
                         } else {
                             $privateMessages.automatic[orderId] = privateMessage;
                         }
@@ -148,7 +140,7 @@
     }
 
     export async function getMetadataForHumanPubkeys() {
-        subscribeMetadata($NostrPool, Object.keys($privateMessages.human),
+        subscribeMetadata(Object.keys($privateMessages.human),
             (pubKey, m) => {
                 if (m.name !== undefined) {
                     $privateMessages.human[pubKey].name = m.name;
@@ -175,14 +167,14 @@
 
     {#if $NostrPublicKey}
         {#if unreadConversations}
-            <div class="tooltip tooltip-error" data-tip="{unreadConversations} unread conversations">
+            <div class="tooltip tooltip-bottom tooltip-error" data-tip="{unreadConversations} unread conversations">
                 <span class="indicator-item badge badge-sm badge-error">
                     {unreadConversations}
                 </span>
             </div>
         {/if}
     {:else}
-        <div class="tooltip tooltip-secondary" data-tip="Login clicking here">
+        <div class="tooltip tooltip-bottom tooltip-secondary" data-tip="Login clicking here">
             <span class="indicator-item badge badge-sm badge-secondary">!</span>
         </div>
     {/if}

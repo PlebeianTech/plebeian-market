@@ -5,7 +5,7 @@
     import Contract from "$sharedLib/components/icons/Contract.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import {onMount} from "svelte";
-    import {NostrPool, stalls} from "$lib/stores";
+    import {stalls} from "$lib/stores";
     import {getStallsByMerchant, refreshStalls} from "$lib/shopping";
     import {getChannelIdForStall} from "$lib/nostr/utils";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
@@ -29,7 +29,7 @@
     }
 
     onMount(async () => {
-        refreshStalls($NostrPool);
+        refreshStalls();
     });
 </script>
 

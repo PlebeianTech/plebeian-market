@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {NostrPool} from "$lib/stores";
     import {getProducts} from "$lib/services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
@@ -21,7 +20,7 @@
     afterNavigate(() => {
         products = {};
 
-        getProducts($NostrPool, merchantPubkey,
+        getProducts(merchantPubkey,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
                 content.createdAt = productEvent.created_at;
@@ -92,18 +91,6 @@
     </table>
 {:else}
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-6 place-content-center">
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
-        {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
-        {/each}
         {#each Object.entries(products) as [productId, product]}
             <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
         {/each}

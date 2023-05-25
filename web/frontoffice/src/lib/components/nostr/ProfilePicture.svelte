@@ -1,13 +1,13 @@
 <script lang="ts">
-    import {NostrPublicKey, NostrPool} from "../../stores";
-    import {subscribeMetadata} from "../../services/nostr";
+    import {NostrPublicKey} from "$lib/stores";
+    import {subscribeMetadata} from "$lib/services/nostr";
 
     let profileImage = null;
 
     $: if ($NostrPublicKey) {
         let gotProfile = false;
 
-        subscribeMetadata($NostrPool, [$NostrPublicKey],
+        subscribeMetadata([$NostrPublicKey],
             (_pk, metadata) => {
                 if (gotProfile) {
                     return;
