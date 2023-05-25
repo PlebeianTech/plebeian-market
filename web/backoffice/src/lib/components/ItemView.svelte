@@ -19,7 +19,6 @@
     import { page } from "$app/stores";
     import { getBaseUrl, getShortTitle, getShortDescription } from "$lib/utils";
     import TweetButton from "$lib/components/TweetButton.svelte";
-    import NostrButton from "$lib/components/nostr/Button.svelte";
     import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
 
     export let loader: ILoader;
@@ -334,7 +333,6 @@
                                         Now let your audience know!
                                         &nbsp;
                                         <TweetButton tweetURL={tweetURL} />
-                                        <NostrButton pmURL={window.location.href} />
                                     </div>
                                 {/if}
                             {/if}
