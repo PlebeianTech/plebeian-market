@@ -4,8 +4,7 @@
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
-    import { subscribeMetadata } from "$lib/services/nostr";
-    import { token, user, BTC2USD, Info, NostrPool, AuthRequired, AuthBehavior } from "$lib/stores";
+    import { token, user, BTC2USD, Info, AuthRequired, AuthBehavior } from "$lib/stores";
     import type { User } from "$lib/types/user";
     import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
@@ -142,34 +141,6 @@
                     }
                 });
             }
-        } else {
-            if (u.nym === null || u.nym === "") {
-                let gotProfile = false;
-                subscribeMetadata($NostrPool, [u.nostrPublicKey],
-                    (_pk, metadata) => {
-                        if (gotProfile) {
-                            return;
-                        }
-
-                        gotProfile = true;
-
-                        let name = <string>metadata.name;
-                        name = name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-                        while (name.length < 3) {
-                            name += "0"; // just pad with zeroes - not ideal, but they can always change it later
-                        }
-
-                        saveNymWithRetry(name,
-                            (u) => {
-                                Info.set(`Welcome, ${u.nym}!`);
-                                putProfile($token, {profileImageUrl: metadata.picture},
-                                    (u) => {
-                                        user.set(u);
-                                        Info.set("Your avatar has been imported from Nostr!");
-                                    });
-                            });
-                    });
-            }
         }
     });
     onDestroy(userUnsubscribe);
@@ -182,7 +153,7 @@
 <nav class="backdrop-blur-3xl border-b border-gray-400/70 z-50 fixed top-0 w-full">
     <div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
-            <a href="/web/backoffice/static" class="flex items-center mr-2">
+            <a href="/" class="flex items-center mr-2">
                 <div class="flex items-center space-x-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
                     <h1 class="text-xl font-bold hover:text-blue-400 duration-300 w-44">
@@ -253,7 +224,7 @@
                         {/if}
 
                         <li class="block md:hidden md:h-0">
-                            <a href="/web/backoffice/static" class="modal-button cursor-pointer text-base">
+                            <a href="/" class="modal-button cursor-pointer text-base">
                                 <span class="w-6 h-6"><Home /></span> Home
                             </a>
                         </li>
@@ -277,34 +248,29 @@
                                 <span class="text-lg">Account</span>
                             </li>
                             <li>
-                                <a rel="external" class="text-base" href="/stall/{$user.nym}">
+                                <a rel="external" class="text-base" href="/admin/stall/{$user.nym}">
                                     <span class="w-6 h-6"><Stall /></span> My stall
                                 </a>
                             </li>
                             {#if $user.isModerator}
                                 <li>
-                                    <a class="text-base" href="/account/campaigns">
+                                    <a class="text-base" href="/admin/account/campaigns">
                                         <span class="w-6 h-6"><Gift /></span> My campaigns
                                     </a>
                                 </li>
                             {/if}
                             <li>
-                                <a class="text-base" href="/account/purchases/">
-                                    <span class="w-6 h-6"><Cash /></span> My purchases
-                                </a>
-                            </li>
-                            <li>
-                                <a class="text-base" href="/account/sales/">
+                                <a class="text-base" href="/admin/account/sales/">
                                     <span class="w-6 h-6"><Stats /></span> My sales
                                 </a>
                             </li>
                             <li>
-                                <a class="text-base" href="/account/orders/">
+                                <a class="text-base" href="/admin/account/orders/">
                                     <span class="w-6 h-6"><Stats /></span> My received orders
                                 </a>
                             </li>
                             <li>
-                                <a class="text-base" href="/account/settings">
+                                <a class="text-base" href="/admin/account/settings">
                                     <span class="w-6 h-6"><Settings /></span> Settings
                                 </a>
                             </li>

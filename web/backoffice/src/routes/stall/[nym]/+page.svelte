@@ -93,7 +93,7 @@
             bannerUrl={owner.stallBannerUrl}
             {owner} {title}
             description={owner.stallDescription}
-            editUrl={isMyStall ? "/account/settings#onsave=mystall" : null}
+            editUrl={isMyStall ? "/admin/account/settings#onsave=mystall" : null}
             badges={owner.badges}
             isOwnStall={isMyStall}
             showItemsOwner={false}
@@ -107,7 +107,7 @@
                 <div class="max-w-md">
                     <h1 class="text-5xl font-bold">Stall Not Found</h1>
                     <p class="py-6">The stall you are looking for does not exist</p>
-                    <a class="btn btn-primary" href="/web/backoffice/static">Home</a>
+                    <a class="btn btn-primary" href="/">Home</a>
                 </div>
             </div>
         </div>

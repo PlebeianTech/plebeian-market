@@ -48,7 +48,7 @@
         </div>
     </div>
 {:else}
-    {#if $page.url.pathname === "/account/settings"}
+    {#if $page.url.pathname === "/admin/account/settings"}
         <div class="text-2xl breadcrumbs">
             <ul>
                 <li>Settings</li>

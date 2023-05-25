@@ -176,7 +176,7 @@
             </div>
             {#if !hasWallet}
                 <ErrorBox>
-                    <span>Please <a href="/account/settings#page=1&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>
+                    <span>Please <a href="/admin/account/settings#page=1&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>
                 </ErrorBox>
             {/if}
             {#if !item.started}

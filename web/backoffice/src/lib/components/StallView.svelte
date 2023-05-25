@@ -15,8 +15,6 @@
     import type { IAccount, Badge } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
-    import NostrChat from "$lib/components/nostr/Chat.svelte";
-    import { getChannelIdForStallOwner } from '$lib/nostr/utils'
     import Avatar, {AvatarSize} from './Avatar.svelte';
     import ExternalLinks from './externalLinks.svelte';
     import Spaceship from "$lib/images/spaceship.jpg";
@@ -49,11 +47,6 @@
 
     let auctionsLists: { [key: string]: ListView } = {};
     let listingsLists: { [key: string]: ListView } = {};
-
-    let nostrRoomId: string | null = null;
-    if (owner) {
-        nostrRoomId = getChannelIdForStallOwner(owner);
-    }
 
     function onAuctionSave(key: string, entity: IEntity) {
         user.update((u) => {
@@ -381,15 +374,4 @@
             {/if}
         {/if}
     </div>
-
-    <!-- NOSTR -->
-    {#if !isCampaignStall}
-        <div class="lg:w-3/6 max-h-screen overflow-y-auto lg:overflow-y-hidden my-2 grid place-items-top top-20 lg:px-0 px-2" id="stallChatContainerDiv">
-            <h3 class="text-2xl lg:text-4xl fontbold mt-0 lg:mt-8 mb-2">Stall Chat</h3>
-
-            {#if nostrRoomId !== null}
-                <NostrChat messageLimit={500} {nostrRoomId} />
-            {/if}
-        </div>
-    {/if}
 </div>

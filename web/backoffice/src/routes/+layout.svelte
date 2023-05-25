@@ -8,7 +8,6 @@
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModal from "$lib/components/auth/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
-    import { closePool } from "$lib/services/nostr";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -53,10 +52,6 @@
         if (browser) {
             token.set(localStorage.getItem("token"));
         }
-    });
-
-    onDestroy(async () => {
-        await closePool($NostrPool);
     });
 </script>
 
