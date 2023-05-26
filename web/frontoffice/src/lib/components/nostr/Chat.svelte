@@ -21,7 +21,6 @@
 
     let nostrEventBeingRepliedTo = null;
     let textarea;
-    let nostrExtensionEnabled: boolean;
     let messages: VitaminedMessage[] = [];
     let sortedMessages: VitaminedMessage[] = [];
     let autoscroll: Boolean = true;
@@ -267,8 +266,6 @@
     }
 
     onMount(async () => {
-        nostrExtensionEnabled = hasExtension();
-
         subscribeChannel(nostrRoomId, messageLimit, messagesSince,
             (newMessage) => {
                 for (const message of messages) {
@@ -355,18 +352,6 @@
         }
     })
 </script>
-
-<!-- BROWSER EXTENSION INFO -->
-<div class="flex flex-col hidden lg:grid">
-    {#if !nostrExtensionEnabled}
-        <small>You need to install a Nostr browser extension (this is the recommended way: try <a class="link" href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noreferrer">nos2x</a>,
-            <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a> or
-            <a class="link" href="https://www.blockcore.net/wallet" target="_blank" rel="noreferrer">Blockcore</a>) or
-            <a href={null} class="font-bold text-center cursor-pointer" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</a>
-            into Plebeian Market to be able to publish messages.
-        </small>
-    {/if}
-</div>
 
 <div tabindex="0" class="collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4 lg:grid">
     <input type="checkbox" />
