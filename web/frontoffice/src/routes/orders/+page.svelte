@@ -24,7 +24,7 @@
             return b[1].created_at - a[1].created_at;
         });
 
-        ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([orderId, order]) => {
+        ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([, order]) => {
             if (order.type === 1) {
                 if (order.payment_options) {
                     for (const payment_option of order.payment_options) {
@@ -106,14 +106,14 @@
                 <div class="alert alert-warning shadow-lg">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span>
+                        <div>
                             <p class="mb-1">You still have to pay <b>{Object.entries(ordersToBePaidNow).length}</b> of your orders!</p>
                             <ul class="list-disc list-inside ml-3 md:ml-5">
                                 {#each Object.entries(ordersToBePaidNow) as [orderId, order]}
                                     <li>{order.id}</li>
                                 {/each}
                             </ul>
-                        </span>
+                        </div>
                     </div>
                 </div>
             {/if}
@@ -125,18 +125,21 @@
 
             <table class="w-fit md:w-full rounded-md">
                 <thead>
-                <tr class="text-center">
-                    <th class="text-left">Order</th>
-                    <th>Last update</th>
-                    <th>Status</th>
-                </tr>
+                    <tr class="text-center">
+                        <th class="text-left">Order</th>
+                        <th>Last update</th>
+                        <th>Status</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {#each sortedOrders as [orderId, order]}
                     {#if !hideOldOrders || (hideOldOrders && (Date.now() < ((order.created_at * 1000) + oldOrderTime)))}
                         <tr>
                             <td>
-                                <p>
+                                <p class="text-sm md:hidden">
+                                    # {orderId.substring(0,8)}...
+                                </p>
+                                <p class="text-sm hidden md:block">
                                     # {orderId}
                                 </p>
 
