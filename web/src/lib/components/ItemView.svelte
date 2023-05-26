@@ -299,7 +299,7 @@
                     {#if !item.ended}
                         {#if $token && $user}
                             {#if !item.is_mine}
-                                {#if $user.nym !== null && item.started}
+                                {#if item.started}
                                     {#if !item.ended}
                                         {#if item instanceof Auction}
                                             {#if !item.bids.length}
