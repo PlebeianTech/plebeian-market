@@ -87,7 +87,7 @@
         <slot />
     </div>
 
-    {#if $page.url.pathname !== "/marketsquare"}
+    {#if !['/marketsquare', '/messages'].includes($page.url.pathname)}
         <Footer />
     {/if}
 
