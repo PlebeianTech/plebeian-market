@@ -195,19 +195,34 @@
             <ArrowLeft />
         </div>
 
-        {#each sortedConversations as [conversationPrivateKey, conversation]}
-            {#if selectedConversationPubkey === conversationPrivateKey}
-                <div class="avatar indicator">
-                    <div class="w-12 mr-4 rounded-full inline-block align-middle">
-                        <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
-                    </div>
+        {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
+            <div class="avatar indicator">
+                <div class="w-12 h-12 mr-4 rounded-full inline-block align-middle">
+                    <img src="{profilePicturePlaceHolder}" />
                 </div>
+            </div>
 
-                <div class="w-12 text-xl inline-block align-middle">
-                    {conversation.name ?? nip19.npubEncode(selectedConversationPubkey)}
-                </div>
-            {/if}
-        {/each}
+            <div class="w-48 text-base">
+                <p>New conversation:</p>
+                <p>{nip19.npubEncode(newConversationPubkey)}</p>
+            </div>
+
+        {:else}
+
+            {#each sortedConversations as [conversationPrivateKey, conversation]}
+                {#if selectedConversationPubkey === conversationPrivateKey}
+                    <div class="avatar indicator">
+                        <div class="w-12 h-12 mr-4 rounded-full inline-block align-middle">
+                            <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
+                        </div>
+                    </div>
+
+                    <div class="w-12 text-xl inline-block align-middle">
+                        {conversation.name ?? nip19.npubEncode(selectedConversationPubkey)}
+                    </div>
+                {/if}
+            {/each}
+        {/if}
     </div>
 {/if}
 
