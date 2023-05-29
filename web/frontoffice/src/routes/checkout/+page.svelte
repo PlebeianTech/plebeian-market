@@ -146,6 +146,82 @@
 <Titleh1>Checkout</Titleh1>
 
 {#if $ShoppingCart.summary.numProducts}
+    <div class="md:grid justify-center mt-6 mb-10">
+        <table class="w-fit md:w-full rounded-md">
+            <thead>
+            <tr class="bg-gray-700 text-center">
+                <th>Name</th>
+                <th>Image</th>
+                <th>Total</th>
+            </tr>
+            </thead>
+            <tbody class="text-base">
+            {#each [...$ShoppingCart.products] as [stallId, products], i}
+                <tr>
+                    <td colspan="3" class="bg-gray-700/60">
+                        <p class="mx-3">
+                            Order #{i+1}
+                        </p>
+                        {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
+                            <p class="mx-3 mt-3">
+                                {$stalls.stalls[stallId].name}
+                            </p>
+                        {/if}
+
+                        <p class="mx-3 mt-3">
+                            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
+                                Shipping:
+                                <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-sm select-primary max-w-lg ml-1">
+                                    {#if $stalls.stalls[stallId].shipping.length > 1}
+                                        <option disabled selected value="0">Choose a shipping option:</option>
+                                    {/if}
+
+                                    {#each $stalls.stalls[stallId].shipping as shippingOption}
+                                        <option value="{shippingOption.id}">
+                                            {#if shippingOption.name}
+                                                {shippingOption.name} -
+                                            {/if}
+                                            {#if shippingOption.countries}
+                                                {#if !(shippingOption.countries.length === 1 && shippingOption.countries[0] === shippingOption.name)}
+                                                    ({shippingOption.countries.join(', ')}) -
+                                                {/if}
+                                            {/if}
+                                            {shippingOption.cost} {$stalls.stalls[stallId].currency}
+                                        </option>
+                                    {/each}
+                                </select>
+                            {:else}
+                                Loading shipping options...
+                            {/if}
+                        </p>
+                    </td>
+                </tr>
+
+                {#each [...products] as [productId, product]}
+                    <tr class="text-center">
+                        <td>
+                            <p class="px-1">{#if product.name}{product.name}{/if}</p>
+                        </td>
+                        <td>
+                            <div class="card bg-base-100 shadow-xl w-24 md:w-32">
+                                <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
+                            </div>
+                        </td>
+                        <td>
+                            <p class="px-1">
+                                {product.price} x {product.orderQuantity} = {(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}
+                            </p>
+                        </td>
+                    </tr>
+                {/each}
+            {/each}
+            </tbody>
+        </table>
+    </div>
+
+
+
+
     <div class="flex flex-col md:flex-row w-full md:px-12">
         <div class="grid flex-grow card bg-base-300 rounded-box place-items-center p-8 w-full lg:w-2/4">
             <h2 class="card-title">Shipping information</h2>
@@ -211,85 +287,11 @@
         </div>
     </div>
 
-
-
-    <div class="md:grid justify-center mt-10 mb-10">
-        <table class="w-fit md:w-full rounded-md">
-            <thead>
-                <tr class="bg-gray-700 text-center">
-                    <th>Name</th>
-                    <th>Image</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody class="text-base">
-                {#each [...$ShoppingCart.products] as [stallId, products], i}
-                    <tr>
-                        <td colspan="3" class="bg-gray-700/60">
-                            <p class="mx-3">
-                                Order #{i+1}
-                            </p>
-                            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
-                                <p class="mx-3 mt-3">
-                                    {$stalls.stalls[stallId].name}
-                                </p>
-                            {/if}
-
-                            <p class="mx-3 mt-3">
-                                {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
-                                    Shipping:
-                                    <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-sm select-primary max-w-lg ml-1">
-                                        {#if $stalls.stalls[stallId].shipping.length > 1}
-                                            <option disabled selected value="0">Choose a shipping option:</option>
-                                        {/if}
-
-                                        {#each $stalls.stalls[stallId].shipping as shippingOption}
-                                            <option value="{shippingOption.id}">
-                                                {#if shippingOption.name}
-                                                    {shippingOption.name} -
-                                                {/if}
-                                                {#if shippingOption.countries}
-                                                    {#if !(shippingOption.countries.length === 1 && shippingOption.countries[0] === shippingOption.name)}
-                                                        ({shippingOption.countries.join(', ')}) -
-                                                    {/if}
-                                                {/if}
-                                                {shippingOption.cost} {$stalls.stalls[stallId].currency}
-                                            </option>
-                                        {/each}
-                                    </select>
-                                {:else}
-                                    Loading shipping options...
-                                {/if}
-                            </p>
-                        </td>
-                    </tr>
-
-                    {#each [...products] as [productId, product]}
-                        <tr class="text-center">
-                            <td>
-                                <p class="px-1">{#if product.name}{product.name}{/if}</p>
-                            </td>
-                            <td>
-                                <div class="card bg-base-100 shadow-xl w-24 md:w-32">
-                                    <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
-                                </div>
-                            </td>
-                            <td>
-                                <p class="px-1">
-                                    {product.price} x {product.orderQuantity} = {(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}
-                                </p>
-                            </td>
-                        </tr>
-                    {/each}
-                {/each}
-            </tbody>
-        </table>
-
-        <div class="card-actions justify-center mt-16">
+    <div class="flex flex-col md:flex-row w-full md:px-12 mb-12">
+        <div class="card-actions justify-center mt-10 md:mt-14 mx-auto">
             <a class="btn btn-primary" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow}>Buy now</a>
         </div>
     </div>
-
 {:else}
     <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-20 place-content-center">
         <div class="p-6 text-lg">
