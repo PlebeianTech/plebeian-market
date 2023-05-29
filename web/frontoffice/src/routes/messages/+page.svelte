@@ -83,9 +83,14 @@
     async function scrollToBottom() {
         await new Promise(resolve => setTimeout(resolve, 150));
 
-        let chatScrollableDiv = document.getElementById("conversationMessages");
-        if (chatScrollableDiv !== null) {
-            chatScrollableDiv.scrollTop = chatScrollableDiv.scrollHeight;
+        let chatScrollableDivMobile = document.getElementById("conversationMessagesMobile");
+        if (chatScrollableDivMobile !== null) {
+            chatScrollableDivMobile.scrollTop = chatScrollableDivMobile.scrollHeight;
+        }
+
+        let chatScrollableDivDesktop = document.getElementById("conversationMessagesDesktop");
+        if (chatScrollableDivDesktop !== null) {
+            chatScrollableDivDesktop.scrollTop = chatScrollableDivDesktop.scrollHeight;
         }
     }
 
@@ -158,7 +163,7 @@
     <div class="divider lg:divider-horizontal"></div>
 
     <div class="flex flex-col flex-grow w-full p-4 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto            scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
-         id="conversationMessages" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
+         id="conversationMessagesDesktop" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
         {#if selectedConversationPubkey}
             {#each sortedMessages as [publicKey, message]}
                 {#if typeof message === 'object'}
@@ -191,13 +196,13 @@
 <!-- Mobile -->
 {#if selectedConversationPubkey}
     <div class="flex pb-2 border-b border-gray-400/70 md:hidden leading-none relative">
-        <div class="w-10 mr-4 inline-block align-middle" on:click={() => selectedConversationPubkey = null}>
+        <div class="w-10 mr-4 mt-1" on:click={() => selectedConversationPubkey = null}>
             <ArrowLeft />
         </div>
 
         {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
             <div class="avatar indicator">
-                <div class="w-12 h-12 mr-4 rounded-full inline-block align-middle">
+                <div class="w-12 h-12 mr-4 rounded-full">
                     <img src="{profilePicturePlaceHolder}" />
                 </div>
             </div>
@@ -211,13 +216,13 @@
 
             {#each sortedConversations as [conversationPrivateKey, conversation]}
                 {#if selectedConversationPubkey === conversationPrivateKey}
-                    <div class="avatar indicator">
-                        <div class="w-12 h-12 mr-4 rounded-full inline-block align-middle">
+                    <div class="avatar indicator align-bottom">
+                        <div class="w-12 h-12 mr-4 rounded-full">
                             <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                         </div>
                     </div>
 
-                    <div class="w-12 text-xl inline-block align-middle">
+                    <div class="w-12 mt-2 text-xl">
                         {conversation.name ?? nip19.npubEncode(selectedConversationPubkey)}
                     </div>
                 {/if}
@@ -266,28 +271,29 @@
             {/each}
         </div>
     {:else}
-        <div class="flex flex-col flex-grow p-0 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto   scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
-             id="conversationMessages" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
-            {#each sortedMessages as [publicKey, message]}
-                {#if typeof message === 'object'}
-                    <SimpleNote {message} />
-                {/if}
-            {/each}
+        <div class="flex flex-col flex-grow mt-2 p-0 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto   scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
+             id="conversationMessagesMobile" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
 
-            <div class="flex md:grid md:grid-cols-2 w-full mx-auto lg:w-2/3 mt-2 md:mt-8 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0">
-                <div class="flex col-span-2">
-                    <textarea
-                            rows="1"
-                            autofocus
-                            placeholder="Type your message"
-                            bind:this={chatTextarea}
-                            on:keypress={onKeyPress}
-                            class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+            <div class="mb-20">
+                {#each sortedMessages as [publicKey, message]}
+                    {#if typeof message === 'object'}
+                        <SimpleNote {message} />
+                    {/if}
+                {/each}
+            </div>
 
-                    <div on:click={send} on:keypress={onKeyPress}
-                         class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-                        <div class="w-6 h-6"><SendMessage /></div>
-                    </div>
+            <div class="flex md:grid md:grid-cols-2 w-full mx-auto lg:w-2/3 mt-2 md:mt-8 p-3 bg-black rounded-lg items-center bottom-0 content-end fixed col-span-2">
+                <textarea
+                        rows="1"
+                        autofocus
+                        placeholder="Type your message"
+                        bind:this={chatTextarea}
+                        on:keypress={onKeyPress}
+                        class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
+
+                <div on:click={send} on:keypress={onKeyPress}
+                     class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
+                    <div class="w-6 h-6"><SendMessage /></div>
                 </div>
             </div>
         </div>
