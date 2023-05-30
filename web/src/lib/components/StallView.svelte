@@ -75,7 +75,9 @@
                     goto(`/auctions/${key}`);
                 });
         } else {
-            Info.set("Now hit Publish!");
+            if (!auction.started) {
+                Info.set("Now hit Publish!");
+            }
         }
     }
 
@@ -92,7 +94,9 @@
 
         postMedia($token, listing.endpoint, key, listing.added_media, () => {});
 
-        Info.set("Now hit Publish!");
+        if (!listing.started) {
+            Info.set("Now hit Publish!");
+        }
     }
 
     function onForceReload() {
