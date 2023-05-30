@@ -2,7 +2,7 @@
     import type { Item } from "$lib/types/item";
     import Gallery from "$lib/components/Gallery.svelte";
 
-    const MAX_MEDIA_COUNT = 5;
+    const MAX_MEDIA_COUNT = 10;
 
     export let item: Item;
 
