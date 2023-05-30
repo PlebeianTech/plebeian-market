@@ -851,8 +851,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         return -self.start_date.timestamp()
 
     def get_not_editable_reason(self):
-        if self.start_date is not None and self.start_date < datetime.utcnow() - timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']):
-            return f"Cannot edit auctions more than {app.config['AUCTION_EDITABLE_MINUTES']} minutes after started."
         if len(self.bids) > 0:
             return "Cannot edit auctions that already have bids."
 
@@ -870,12 +868,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             ends_in_seconds = 0
         else:
             ends_in_seconds = (self.end_date - datetime.utcnow()).total_seconds()
-        if not self.started:
-            editable_for_seconds = None
-        elif datetime.utcnow() < self.start_date + timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']):
-            editable_for_seconds = (self.start_date + timedelta(minutes=app.config['AUCTION_EDITABLE_MINUTES']) - datetime.utcnow()).total_seconds()
-        else:
-            editable_for_seconds = 0
         auction = {
             'key': self.key,
             'title': self.item.title,
@@ -888,7 +880,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'end_date_extended': self.end_date > self.start_date + timedelta(hours=self.duration_hours) if self.start_date else False,
             'ended': self.ended,
             'ends_in_seconds': ends_in_seconds,
-            'editable_for_seconds': editable_for_seconds,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,
             'shipping_from': self.item.shipping_from,

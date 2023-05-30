@@ -95,5 +95,3 @@ BADGES = {
     BADGE_PLAYER: {'threshold_usd': 500.0, 'price_usd': 50.0 if ENV != 'staging' else 1.0}
 }
 BADGE_DEFAULT_ICON = 'SKIN_IN_THE_GAME'
-
-AUCTION_EDITABLE_MINUTES = 5
