@@ -6,7 +6,7 @@
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
     import { token, user, BTC2USD, Info, AuthRequired, AuthBehavior } from "$lib/stores";
     import type { User } from "$lib/types/user";
-    import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
+    import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import Book from "$lib/components/icons/Book.svelte";
     import Cash from "$lib/components/icons/Cash.svelte";
@@ -24,6 +24,7 @@
     import Tools from "$lib/components/icons/Tools.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
+    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     let modal: Modal | null;
     let modalVisible = false;
@@ -128,18 +129,14 @@
 
         if (u.nostrPublicKey === null) {
             if (u.nym === null || u.nym === "") {
-                showModal(TwitterUsername, true, (saved) => {
-                    if (saved) {
-                        if ($user && !$user.twitterUsernameVerified) {
-                            showModal(TwitterVerification, true);
-                        }
-                    } else {
-                        saveNymWithRetry("pleb" + randomDigits(),
+                saveNymWithRetry("pleb" + randomDigits(),
+                    (u) => {
+                        Info.set(`Welcome, ${u.nym}!`);
+                        putProfile($token, {profileImageUrl: getBaseUrl() + profilePicturePlaceHolder},
                             (u) => {
-                                Info.set(`Welcome, ${u.nym}!`);
+                                user.set(u);
                             });
-                    }
-                });
+                    });
             }
         }
     });
