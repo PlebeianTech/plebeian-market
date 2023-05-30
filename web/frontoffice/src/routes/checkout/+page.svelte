@@ -146,8 +146,8 @@
 <Titleh1>Checkout</Titleh1>
 
 {#if $ShoppingCart.summary.numProducts}
-    <div class="md:grid justify-center mt-6 mb-10">
-        <table class="table border border-black rounded">
+    <div class="md:grid justify-center md:mt-6 mb-10">
+        <table class="w-fit md:w-full rounded border border-gray-400">
             <thead>
                 <tr class="text-center">
                     <th>Name</th>
@@ -158,21 +158,21 @@
             <tbody>
             {#each [...$ShoppingCart.products] as [stallId, products], i}
                 <tr>
-                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700">
-                        <p class="mx-3">
+                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700 text-sm md:text-base">
+                        <p class="mx-2 md:mx-3">
                             Order #{i+1}
                         </p>
                         {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
-                            <p class="mx-3 mt-3">
+                            <p class="mx-2 md:mx-3 mt-1 md:mt-3">
                                 {$stalls.stalls[stallId].name}
                             </p>
                         {/if}
 
-                        <p class="mx-3 mt-3">
+                        <p class="mx-2 md:mx-3 mt-1 md:mt-3">
                             {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
                                 Shipping:
                                 <select bind:value={$stalls.stalls[stallId].shippingOption}
-                                        class="select select-sm max-w-lg ml-1 { $stalls.stalls[stallId].shipping.length > 1 ? 'select-error border-2' : 'select-bordered' }">
+                                        class="select select-sm text-xs md:text-sm max-w-lg md:ml-1 { $stalls.stalls[stallId].shipping.length > 1 ? 'select-error border-2' : 'select-bordered' }">
 
                                     {#if $stalls.stalls[stallId].shipping.length > 1}
                                         <option disabled selected value="0">Choose a shipping option:</option>
@@ -200,7 +200,7 @@
                 </tr>
 
                 {#each [...products] as [productId, product]}
-                    <tr class="border-b border-gray-600 hover">
+                    <tr class="border-b border-gray-600 hover text-sm md:text-base">
                         <td>
                             <p class="px-1">{#if product.name}{product.name}{/if}</p>
                         </td>

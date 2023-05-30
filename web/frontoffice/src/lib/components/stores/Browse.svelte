@@ -164,7 +164,7 @@
                         )
                     )
                 }
-                    <tr class="border-y border-gray-400 cursor-pointer" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
+                    <tr class="border-b border-gray-400 cursor-pointer" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
                         <th class="p-4 font-medium">
                             <div>
                                 <div class="font-bold">{#if stall.name}{stall.name}{/if}</div>
