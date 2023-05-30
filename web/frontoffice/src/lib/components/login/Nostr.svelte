@@ -70,14 +70,17 @@
         <div class="w-full flex items-center justify-center">
             <div class="form-control w-full max-w-full">
                 <p>A Nostr extension is the most secure and recommended way to use Plebeian Market.</p>
-                <label class="label mt-8" for="npub">
-                    <span class="label-text">Your NPUB</span>
-                </label>
-                <input bind:value={npub} type="text" id="npub" name="npub" class="input input-lg input-bordered" />
+                {#if npub}
+                    <label class="label mt-8" for="npub">
+                        <span class="label-text">Your NPUB</span>
+                    </label>
+
+                    <input bind:value={npub} type="text" id="npub" name="npub" class="input input-lg input-bordered" />
+                {/if}
             </div>
         </div>
         <div class="w-full flex items-center justify-center mt-8 gap-5">
-            <button class="btn btn-primary" on:click={getKeyFromExtension}>Get from extension and login</button>
+            <button class="btn btn-primary" on:click={getKeyFromExtension}>Use Nostr browser extension</button>
         </div>
     </div>
 {:else}
