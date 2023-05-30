@@ -147,18 +147,18 @@
 
 {#if $ShoppingCart.summary.numProducts}
     <div class="md:grid justify-center mt-6 mb-10">
-        <table class="w-fit md:w-full rounded-md">
+        <table class="table border border-black rounded">
             <thead>
-            <tr class="bg-gray-700 text-center">
-                <th>Name</th>
-                <th>Image</th>
-                <th>Total</th>
-            </tr>
+                <tr class="text-center">
+                    <th>Name</th>
+                    <th>Image</th>
+                    <th>Total</th>
+                </tr>
             </thead>
-            <tbody class="text-base">
+            <tbody>
             {#each [...$ShoppingCart.products] as [stallId, products], i}
                 <tr>
-                    <td colspan="3" class="bg-gray-700/60">
+                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700">
                         <p class="mx-3">
                             Order #{i+1}
                         </p>
@@ -171,7 +171,9 @@
                         <p class="mx-3 mt-3">
                             {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
                                 Shipping:
-                                <select bind:value={$stalls.stalls[stallId].shippingOption} class="select select-sm select-primary max-w-lg ml-1">
+                                <select bind:value={$stalls.stalls[stallId].shippingOption}
+                                        class="select select-sm max-w-lg ml-1 { $stalls.stalls[stallId].shipping.length > 1 ? 'select-error border-2' : 'select-bordered' }">
+
                                     {#if $stalls.stalls[stallId].shipping.length > 1}
                                         <option disabled selected value="0">Choose a shipping option:</option>
                                     {/if}
@@ -198,12 +200,12 @@
                 </tr>
 
                 {#each [...products] as [productId, product]}
-                    <tr class="text-center">
+                    <tr class="border-b border-gray-600 hover">
                         <td>
                             <p class="px-1">{#if product.name}{product.name}{/if}</p>
                         </td>
                         <td>
-                            <div class="card bg-base-100 shadow-xl w-24 md:w-32">
+                            <div class="card shadow-xl w-24 md:w-32">
                                 <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                             </div>
                         </td>
@@ -289,7 +291,7 @@
 
     <div class="flex flex-col md:flex-row w-full md:px-12 mb-12">
         <div class="card-actions justify-center mt-10 md:mt-14 mx-auto">
-            <a class="btn btn-primary" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow}>Buy now</a>
+            <a class="btn btn-success" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow}>Buy now</a>
         </div>
     </div>
 {:else}

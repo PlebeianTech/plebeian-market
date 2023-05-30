@@ -124,7 +124,7 @@
     <div class="w-1/3 menu card h-auto max-h-full gap-2 rounded-box p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
         {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
             <li class="rounded-lg w-full"
-                class:bg-primary={selectedConversationPubkey === newConversationPubkey}
+                class:bg-accent={selectedConversationPubkey === newConversationPubkey}
                 on:click={() => selectConversation(newConversationPubkey)}
             >
                 <div>
@@ -140,7 +140,8 @@
 
         {#each sortedConversations as [privateKey, conversation]}
             <li class="rounded-lg w-full"
-                class:bg-primary={selectedConversationPubkey === privateKey}
+                class:bg-accent={selectedConversationPubkey === privateKey}
+                class:text-black={selectedConversationPubkey === privateKey}
                 on:click={() => selectConversation(privateKey)}
             >
                 <div class="w-full">
@@ -171,7 +172,7 @@
                 {/if}
             {/each}
 
-            <div class="grid grid-cols-2 w-screen lg:w-2/3 mt-8 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto">
+            <div class="grid grid-cols-2 w-screen lg:w-2/3 mt-8 p-3 bg-gray-300 dark:bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto">
                 <div class="flex col-span-2">
                     <textarea
                             rows="1"
@@ -182,8 +183,8 @@
                             class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
                     <div on:click={send} on:keypress={onKeyPress}
-                         class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-                        <div class="w-6 h-6"><SendMessage /></div>
+                         class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-black dark:text-white">
+                        <div class="w-7 h-7"><SendMessage /></div>
                     </div>
                 </div>
             </div>

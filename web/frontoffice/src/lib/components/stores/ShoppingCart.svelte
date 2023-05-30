@@ -153,8 +153,8 @@
         </div>
     {:else}
         <div class="mt-6 card-actions justify-center">
-            <a class="btn btn-primary" href="/stalls">Continue shopping</a>
-            <a class="btn btn-accent" href="/checkout">Checkout</a>
+            <a class="btn btn-info" href="/stalls">Continue shopping</a>
+            <a class="btn btn-success" href="/checkout">Checkout</a>
         </div>
     {/if}
 {:else}

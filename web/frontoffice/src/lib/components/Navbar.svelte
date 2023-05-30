@@ -54,11 +54,9 @@
         let html = <HTMLHtmlElement>document.querySelector("html");
 
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-console.log('onmount dark');
             html.dataset.theme = "dark";
             prefersDark = true;
         } else {
-console.log('onmount light');
             html.dataset.theme = "light";
             prefersDark = false;
         }

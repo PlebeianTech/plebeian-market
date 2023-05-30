@@ -55,7 +55,7 @@
 </script>
 
 <div class="btn-group btn-group-vertical lg:btn-group-horizontal justify-end">
-    <button class="btn gap-2 rounded-tr-lg" on:click={() => contactMerchant(merchantPubkey)}>
+    <button class="btn gap-2" on:click={() => contactMerchant(merchantPubkey)}>
         <span class="w-8 h-8">
             <EmailIcon />
         </span>
