@@ -74,13 +74,9 @@
     {#if isEditable}
         <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
             <div class="btn-xs"></div>
-                {#if item instanceof Listing || (item instanceof Auction && (!item.started || (item.editable_for_seconds && item.bids.length === 0)))}
+                {#if item instanceof Listing || (item instanceof Auction && (!item.started || (item.bids.length === 0)))}
                     <button class="btn btn-primary btn-circle btn-xs" on:click={del}><Trash /></button>
                     <button class="btn btn-primary btn-circle btn-xs" on:click={() => onEdit(item)}><Pencil /></button>
-                    {#if item instanceof Auction && item.editable_for_seconds && item.bids.length === 0}
-                        <Countdown totalSeconds={item.editable_for_seconds} style={CountdownStyle.Compact} />
-                        <span>editable for</span>
-                    {/if}
                 {/if}
         </div>
     {/if}
