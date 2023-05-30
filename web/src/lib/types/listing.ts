@@ -11,7 +11,7 @@ export class Listing implements IEntity, Item {
 
     key: string = "";
     title: string = "";
-    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
+    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false};
     description: string = "";
     descriptionPlaceholder: string = "";
     category: string | null = null;
@@ -77,6 +77,8 @@ export function fromJson(json: any): Listing {
         telegramUsernameVerified: <boolean>json.seller_telegram_username_verified,
         twitterUsername: <string | null>json.seller_twitter_username,
         twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
+        nostrPublicKey: <string | null>json.seller_nostr_public_key,
+        nostrPublicKeyVerified: <boolean>json.seller_nostr_public_key_verified,
     };
     return l;
 }
