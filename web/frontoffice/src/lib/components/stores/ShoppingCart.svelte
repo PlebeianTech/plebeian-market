@@ -46,7 +46,7 @@
 <div class="md:grid justify-center">
 {#if $ShoppingCart.summary.numProducts}
     <!-- Desktop -->
-    <table class="hidden md:block table table-auto w-full" class:table-compact={compact}>
+    <table class="hidden md:block table table-auto w-full {compact ? 'table-compact' : 'rounded border border-gray-400'}" >
         <thead>
             <tr class="text-center">
                 <th>Name</th>
@@ -66,7 +66,7 @@
         <tbody>
         {#each [...$ShoppingCart.products] as [stallId, products]}
             <tr>
-                <td colspan="{compact ? 5 : 7}" class="bg-gray-700">
+                <td colspan="{compact ? 5 : 7}" class="bg-gray-300 dark:bg-gray-700">
                     <p class="ml-3">
                         {#if $stalls !== null && $stalls.stalls[stallId]}
                             Stall: {$stalls.stalls[stallId].name ?? ''}
@@ -89,7 +89,7 @@
                     </td>
                     {#if !compact}
                         <td>
-                            <div class="card bg-base-100 shadow-xl w-full lg:w-32">
+                            <div class="card  shadow-xl w-full lg:w-32">
                                 <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                             </div>
                         </td>

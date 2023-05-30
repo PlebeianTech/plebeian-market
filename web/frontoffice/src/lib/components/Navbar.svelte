@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { afterNavigate } from "$app/navigation";
-    import { browser } from "$app/environment";
     import { getValue } from 'btc2fiat';
     import { BTC2USD, NostrPublicKey } from "$lib/stores";
     import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
@@ -17,7 +16,6 @@
     import { requestLoginModal } from "$lib/utils";
 
     let modal: Modal | null;
-    let modalVisible = false;
 
     let prefersDark = true;
 
@@ -38,19 +36,13 @@
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector("html");
         let toggle = <HTMLInputElement>document.getElementById("theme-toggle");
-        html.dataset.theme = toggle.checked ? "halloween" : "light";
-    }
 
-    function showModal(content: any, hasHide: boolean, onHide: (saved: boolean) => void = (_) => {}) {
-        if (modal && modal.show && !modalVisible) {
-            modal.content = content;
-            modal.hasHide = hasHide;
-            modal.onHide = (saved) => {
-                modalVisible = false;
-                onHide(saved);
-            };
-            modalVisible = true;
-            modal.show();
+        if (toggle.checked) {
+            html.dataset.theme = "dark";
+            localStorage.theme = "dark";
+        } else {
+            html.dataset.theme = "light";
+            localStorage.theme = "light";
         }
     }
 
@@ -59,10 +51,17 @@
     }
 
     onMount(async () => {
-        prefersDark =
-            browser &&
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
+        let html = <HTMLHtmlElement>document.querySelector("html");
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+console.log('onmount dark');
+            html.dataset.theme = "dark";
+            prefersDark = true;
+        } else {
+console.log('onmount light');
+            html.dataset.theme = "light";
+            prefersDark = false;
+        }
 
         // await fetchFiatRate();
     });
@@ -134,7 +133,7 @@
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0 md:space-x-4">
             <div class="lg:flex items-center justify-start space-x-4">
                 <div class="float-right">
-                    <label class="swap swap-rotate  mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
+                    <label class="swap swap-rotate mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input id="theme-toggle" type="checkbox" checked={prefersDark} />
                         <span class="w-9 h-9">
                             <!-- sun icon -->

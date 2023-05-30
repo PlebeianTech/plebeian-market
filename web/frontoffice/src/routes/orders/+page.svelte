@@ -101,7 +101,7 @@
 
 <div class="md:grid justify-center mt-0 md:mt-10 mb-10">
     {#if Object.keys($privateMessages.automatic).length > 0}
-        <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-16 place-content-center">
+        <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-10 place-content-center">
             {#if Object.entries(ordersToBePaidNow).length > 0}
                 <div class="alert alert-warning shadow-lg">
                     <div>
@@ -123,7 +123,7 @@
                 <input type="checkbox" bind:checked={hideOldOrders} class="checkbox checkbox-md mr-3" class:checkbox-success={hideOldOrders} />
             </div>
 
-            <table class="w-fit md:w-full rounded-md">
+            <table class="block w-full rounded border border-gray-400 p-2 md:p-4">
                 <thead>
                     <tr class="text-center">
                         <th class="text-left">Order</th>
@@ -134,7 +134,7 @@
                 <tbody>
                 {#each sortedOrders as [orderId, order]}
                     {#if !hideOldOrders || (hideOldOrders && (Date.now() < ((order.created_at * 1000) + oldOrderTime)))}
-                        <tr>
+                        <tr class="border-y border-gray-600 hover cursor-pointer">
                             <td>
                                 <p class="text-sm md:hidden">
                                     # {orderId.substring(0,8)}...

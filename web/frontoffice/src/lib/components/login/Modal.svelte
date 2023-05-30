@@ -50,7 +50,7 @@
 
 <div class="modal" class:modal-open={open}>
     <div class="modal-box relative flex justify-center items-center w-11/12 max-w-2xl">
-        <label for="modal-box" class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
+        <label class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
         <div class="w-full" id="loginDiv">
             {#if open}
                 <NostrLogin {onLogin} on:login={hide} />

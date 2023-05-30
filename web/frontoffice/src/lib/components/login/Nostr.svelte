@@ -16,7 +16,7 @@
 
     $: if ($NostrPublicKey) {
         // If login was called because $NostrPublicKey was not available
-        // but inmediatelly after it becames available, dispatch a login
+        // but immediately after it became available, dispatch a login
         // event so the dialog is closed
         dispatch('login', {});
     }

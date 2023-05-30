@@ -78,15 +78,14 @@
             <Search />
         </span>
         <input bind:value={filter} placeholder="Search store title, description or enter a store id"
-               class="block pl-9 pr-4 py-2 w-full md:w-96 appearance-none rounded-r rounded-l sm:rounded-l-none border border-gray-400 border-b
-               bg-white focus:bg-white text-sm text-gray-700 focus:text-gray-700 placeholder-gray-500 focus:outline-none" />
+               class="block pl-9 pr-4 py-2 w-full md:w-96 rounded border border-gray-400 text-sm focus:outline-none" />
     </div>
 </div>
 
-<div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+<div class="relative overflow-x-hidden shadow-md rounded border border-gray-400">
     <!-- Desktop -->
-    <table class="hidden md:block table-auto w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+    <table class="hidden md:block w-full text-sm text-left">
+        <thead class="text-xs uppercase">
             <tr>
                 <th scope="col" class="px-6 py-3">Stall Name</th>
                 <th scope="col" class="px-6 py-3">Description</th>
@@ -99,7 +98,7 @@
             </tr>
         </thead>
 
-        <tbody class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+        <tbody>
             {#each sortedStalls as [stallId, stall]}
                 {#if
                     filter === null ||
@@ -111,8 +110,8 @@
                         )
                     )
                 }
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover cursor-pointer">
-                        <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>{#if stall.name}{stall.name}{/if}</th>
+                    <tr class="border-y border-gray-400 hover cursor-pointer">
+                        <th class="px-6 py-4 font-medium whitespace-nowrap" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>{#if stall.name}{stall.name}{/if}</th>
                         <td class="px-6 py-4 text-left {stall.description && stall.description.length > 100 ? 'tooltip tooltip-primary' : ''}" data-tip={stall.description && stall.description.length > 100 ? stall.description : ''} on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>{#if stall.description}{stall.description.substring(0,100)}{#if stall.description.length > 100}...{/if}{/if}</td>
                         <td class="px-6 py-4 text-center" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>{#if stall.currency}{stall.currency}{/if}</td>
                         <td class="px-6 py-4" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
@@ -152,8 +151,8 @@
     </table>
 
     <!-- Mobile -->
-    <table class="md:hidden text-left text-gray-500 dark:text-gray-400">
-        <tbody class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+    <table class="md:hidden w-full text-left">
+        <tbody>
             {#each sortedStalls as [stallId, stall]}
                 {#if
                     filter === null ||
@@ -165,8 +164,8 @@
                         )
                     )
                 }
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
-                        <th class="p-4 font-medium text-gray-900 dark:text-white">
+                    <tr class="border-y border-gray-400 cursor-pointer" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
+                        <th class="p-4 font-medium">
                             <div>
                                 <div class="font-bold">{#if stall.name}{stall.name}{/if}</div>
                                 <div class="text-sm opacity-50">{#if stall.description}{stall.description.substring(0,100)}{#if stall.description.length > 100}...{/if}{/if}</div>
