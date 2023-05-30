@@ -170,12 +170,12 @@
             <div class="markdown-container max-h-52 overflow-hidden">
                 <SvelteMarkdown source={item.description} />
             </div>
-            {#if !hasWallet}
-                <ErrorBox>
-                    <span>Please <a href="/account/settings#page=1&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>
-                </ErrorBox>
-            {/if}
             {#if !item.started}
+                {#if !hasWallet}
+                    <ErrorBox>
+                        <span>Please <a href="/account/settings#page=1&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>
+                    </ErrorBox>
+                {/if}
                 <button class="btn btn-primary" class:btn-disabled={inRequest} on:click|preventDefault={publish}>Publish</button>
             {/if}
             {#if $user && $user.isModerator && showHide}
