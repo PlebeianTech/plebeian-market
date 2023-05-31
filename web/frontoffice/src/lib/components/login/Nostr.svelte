@@ -110,7 +110,7 @@
             <a class="tab tab-lifted tab-sm md:tab-lg flex-1 py-2 {activeTab===1 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=1}>Introduce Key</a>
         </div>
 
-        <div class="grid w-full flex-grow gap-3 p-6 md:p-8 bg-base-300 rounded-xl rounded-tl-none rounded-tr-none md:shadow-xl">
+        <div class="grid w-full flex-grow gap-3 p-6 bg-base-300 rounded-xl rounded-tl-none rounded-tr-none md:shadow-xl">
             {#if activeTab===0}
                 <div class="w-full flex items-center justify-center">
                     {#if $NostrPrivateKey}

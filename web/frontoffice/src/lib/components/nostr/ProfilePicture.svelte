@@ -1,6 +1,7 @@
 <script lang="ts">
     import {NostrPublicKey} from "$lib/stores";
     import {subscribeMetadata} from "$lib/services/nostr";
+    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     let profileImage = null;
 
@@ -22,8 +23,8 @@
     }
 </script>
 
-{#if $NostrPublicKey && profileImage}
-    <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block ml-2">
-        <img class="w-10 rounded-full" src={profileImage} alt="Avatar" />
+{#if $NostrPublicKey}
+    <label role="button" tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block ml-2">
+        <img class="w-10 rounded-full" src={profileImage ?? profilePicturePlaceHolder} alt="Avatar" />
     </label>
 {/if}

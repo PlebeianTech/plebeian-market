@@ -19,7 +19,7 @@ export const relayUrlList = [
     "wss://puravida.nostr.land",
     "wss://relay.nostr.com.au",
     "wss://nostr.inosta.cc",
-    "wss://relay.taxi"
+    //"wss://relay.taxi"
 ];
 
 export const pmMasterPublicKey = 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75c4eff1cfb634839bb8';
