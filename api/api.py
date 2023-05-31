@@ -739,7 +739,7 @@ def post_media(key, cls, singular):
         index += 1
     db.session.commit()
 
-    return jsonify({'media': media.to_dict()})
+    return jsonify({})
 
 @api_blueprint.route('/api/auctions/<key>/media/<content_hash>',
     defaults={'cls': m.Auction},
