@@ -307,6 +307,11 @@ def put_me(user):
         user.wallet = request.json['wallet']
         user.wallet_index = 0
 
+    if 'lightning_address' in request.json:
+        if "@" not in request.json['lightning_address']:
+            return jsonify({'message': "Invalid address."}), 400
+        user.lightning_address = request.json['lightning_address']
+
     if 'stall_name' in request.json or 'stall_description' in request.json or 'shipping_from' in request.json or 'shipping_domestic_usd' in request.json or 'shipping_worldwide_usd' in request.json:
         if 'stall_name' in request.json:
             user.stall_name = bleach.clean(request.json['stall_name'])
@@ -1294,13 +1299,20 @@ def post_stall_event(pubkey):
 
             db.session.commit()
 
+            payment_options = [
+                {'type': 'btc', 'link': order.payment_address}
+            ]
+
+            if seller.lightning_address:
+                payment_options.append({'type': 'lnurl', 'link': seller.lightning_address})
+
             nostr_client.send_dm(
                 order.buyer_public_key,
                 json.dumps({
                     'id': order.uuid,
                     'type': 1,
                     'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
-                    'payment_options': [{'type': 'btc', 'link': order.payment_address}]
+                    'payment_options': payment_options,
             }))
 
     return jsonify({})
