@@ -4,6 +4,7 @@
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping.ts";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
+    import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
     import {requestLoginModal} from "$lib/utils.ts";
     import {onDestroy} from "svelte";
 
@@ -184,7 +185,7 @@
                                                     <p>
                                                         Waiting for payment
                                                         <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {payOrder(payment_option.link, 'lightning')}}>
-                                                            ⚡ Pay with Lightning
+                                                            <p class="text-2xl">⚡</p> Pay with Lightning
                                                         </button>
                                                     </p>
                                                     <small>Expires in {payment_option.expiry / 60} minutes</small>
@@ -194,7 +195,7 @@
                                             {:else}
                                                 <p>
                                                     <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {payOrder(payment_option.link, 'bitcoin')}}>
-                                                        Pay with Bitcoin
+                                                        <span class="h-7 w-7" ><Bitcoin /></span> Pay with Bitcoin
                                                     </button>
                                                 </p>
                                             {/if}
