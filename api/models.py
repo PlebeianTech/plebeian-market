@@ -151,6 +151,8 @@ class User(WalletMixin, db.Model):
     wallet = db.Column(db.String(128), nullable=True)
     wallet_index = db.Column(db.Integer, nullable=True)
 
+    lightning_address = db.Column(db.String(64), nullable=True)
+
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     @property
@@ -292,6 +294,7 @@ class User(WalletMixin, db.Model):
             d['contribution_percent'] = self.contribution_percent
             d['wallet'] = self.wallet
             d['wallet_index'] = self.wallet_index
+            d['lightning_address'] = self.lightning_address
             d['nostr_private_key'] = self.nostr_private_key
             d['shipping_from'] = self.shipping_from
             d['shipping_domestic_usd'] = self.shipping_domestic_usd
