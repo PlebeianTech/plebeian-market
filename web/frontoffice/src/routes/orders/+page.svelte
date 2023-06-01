@@ -7,6 +7,8 @@
     import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
     import {requestLoginModal} from "$lib/utils.ts";
     import {onDestroy} from "svelte";
+    import {bech32} from "bech32";
+    import {Buffer as BufferPolyfill} from "buffer";
 
     let paymentModalVisible = false;
     let paymentLink = null;
@@ -69,9 +71,19 @@
         paymentModalVisible = false;
     }
 
+    function bech32Encode(url) {
+        let words = bech32.toWords(BufferPolyfill.from(url, 'utf8'))
+        return bech32.encode('lnurl', words, 1500)
+    }
+
     export function payOrder(link, protocol, payment = null) {
-        paymentLink = link;
-        paymentProtocol = protocol;
+        if (true) {
+            paymentLink = bech32Encode(link);
+            paymentProtocol = protocol;
+        } else {
+            paymentLink = link;
+            paymentProtocol = protocol;
+        }
 
         if (payment) {
 
@@ -86,7 +98,7 @@
             refreshProducts();
 
             await new Promise(resolve => setTimeout(resolve, 2500));
-            showAutomaticPayments = true;
+//            showAutomaticPayments = true;
         } else {
             requestLoginModal();
         }
@@ -135,7 +147,7 @@
                 <tbody>
                 {#each sortedOrders as [orderId, order]}
                     {#if !hideOldOrders || (hideOldOrders && (Date.now() < ((order.created_at * 1000) + oldOrderTime)))}
-                        <tr class="border-y border-gray-600 hover cursor-pointer">
+                        <tr class="border-y border-gray-600 hover">
                             <td>
                                 <p class="text-sm md:hidden">
                                     # {orderId.substring(0,8)}...
@@ -175,6 +187,20 @@
                                     <p>Waiting for reply from the store</p>
                                 {:else if order.type === 1}
                                     {#if order.payment_options}
+
+                                        <!-- LN ADDRESS TESTING -->
+                                        {#each order.payment_options as payment_option}
+                                                <p>
+                                                    1 sats
+                                                </p>
+                                                <p>
+                                                    <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {payOrder('https://getalby.com/.well-known/lnurlp/btcremnant?amount=1', 'lightning')}}>
+                                                        <p class="text-2xl">⚡</p> Show payment QR
+                                                    </button>
+                                                </p>
+                                        {/each}
+
+
                                         {#each order.payment_options as payment_option}
                                             {#if payment_option.type === 'ln'}
                                                 <p>
@@ -268,5 +294,22 @@
         {:else}
             <p>Error: payment address not available. Contact the seller.</p>
         {/if}
+    </div>
+</div>
+
+<!-- Order paid confirmation -->
+<input type="checkbox" id="nostrTextConfirmation" class="modal-toggle" bind:checked={xxxxxxxxxxx} on:change={() => showAutomaticPayments = false}/>
+<div class="modal">
+    <div class="modal-box relative bg-white">
+        <label for="nostrTextConfirmation" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+
+        <h3 class="text-lg font-bold mb-0 text-black">
+            Has this payment been done successfully?
+        </h3>
+
+        <p>Did you scan this QR with your Lightning wallet and the result was OK?</p>
+
+        <button class="btn btn-success">Yes, payment correct</button>
+        <button class="btn btn-error">No, I got an error</button>
     </div>
 </div>
