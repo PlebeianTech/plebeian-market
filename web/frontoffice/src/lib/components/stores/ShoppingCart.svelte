@@ -46,7 +46,7 @@
 <div class="md:grid justify-center">
 {#if $ShoppingCart.summary.numProducts}
     <!-- Desktop -->
-    <table class="hidden md:block table table-auto w-full" class:table-compact={compact}>
+    <table class="hidden md:block table table-auto w-full {compact ? 'table-compact' : 'rounded border border-gray-400'}" >
         <thead>
             <tr class="text-center">
                 <th>Name</th>
@@ -66,7 +66,7 @@
         <tbody>
         {#each [...$ShoppingCart.products] as [stallId, products]}
             <tr>
-                <td colspan="{compact ? 5 : 7}" class="bg-gray-700">
+                <td colspan="{compact ? 5 : 7}" class="bg-gray-300 dark:bg-gray-700">
                     <p class="ml-3">
                         {#if $stalls !== null && $stalls.stalls[stallId]}
                             Stall: {$stalls.stalls[stallId].name ?? ''}
@@ -89,7 +89,7 @@
                     </td>
                     {#if !compact}
                         <td>
-                            <div class="card bg-base-100 shadow-xl w-full lg:w-32">
+                            <div class="card  shadow-xl w-full lg:w-32">
                                 <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                             </div>
                         </td>
@@ -117,33 +117,33 @@
         </thead>
 
         <tbody class="text-xs">
-        {#each [...$ShoppingCart.products] as [stallId, products]}
-            <tr class="bg-gray-700">
-                <td colspan="5">
-                    <p class="mx-3">
-                        {#if $stalls !== null && $stalls.stalls[stallId]}
-                            Stall: {$stalls.stalls[stallId].name ?? ''}
-                        {:else}
-                            Stall id: {stallId}
-                        {/if}
-                    </p>
-                </td>
-            </tr>
-
-            {#each [...products] as [productId, product]}
-                <tr>
-                    <th class="text-xs">{#if product.name}{product.name}{/if}</th>
-                    <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
-                    <td>
-                        <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} compact={true} />
-                    </td>
-                    <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
-                    <td class="hover cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
-                        <Trash />
+            {#each [...$ShoppingCart.products] as [stallId, products]}
+                <tr class="bg-gray-300 dark:bg-gray-700">
+                    <td colspan="5">
+                        <p class="mx-3">
+                            {#if $stalls !== null && $stalls.stalls[stallId]}
+                                Stall: {$stalls.stalls[stallId].name ?? ''}
+                            {:else}
+                                Stall id: {stallId}
+                            {/if}
+                        </p>
                     </td>
                 </tr>
+
+                {#each [...products] as [productId, product]}
+                    <tr>
+                        <th class="text-xs">{#if product.name}{product.name}{/if}</th>
+                        <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                        <td>
+                            <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} compact={true} />
+                        </td>
+                        <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                        <td class="hover cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
+                            <Trash />
+                        </td>
+                    </tr>
+                {/each}
             {/each}
-        {/each}
         </tbody>
     </table>
 
@@ -153,8 +153,8 @@
         </div>
     {:else}
         <div class="mt-6 card-actions justify-center">
-            <a class="btn btn-primary" href="/stalls">Continue shopping</a>
-            <a class="btn btn-accent" href="/checkout">Checkout</a>
+            <a class="btn btn-info" href="/stalls">Continue shopping</a>
+            <a class="btn btn-success" href="/checkout">Checkout</a>
         </div>
     {/if}
 {:else}

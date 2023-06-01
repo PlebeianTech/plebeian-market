@@ -4,8 +4,11 @@
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping.ts";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
+    import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
     import {requestLoginModal} from "$lib/utils.ts";
     import {onDestroy} from "svelte";
+    import {bech32} from "bech32";
+    import {Buffer as BufferPolyfill} from "buffer";
 
     let paymentModalVisible = false;
     let paymentLink = null;
@@ -24,7 +27,7 @@
             return b[1].created_at - a[1].created_at;
         });
 
-        ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([orderId, order]) => {
+        ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([, order]) => {
             if (order.type === 1) {
                 if (order.payment_options) {
                     for (const payment_option of order.payment_options) {
@@ -68,9 +71,19 @@
         paymentModalVisible = false;
     }
 
+    function bech32Encode(url) {
+        let words = bech32.toWords(BufferPolyfill.from(url, 'utf8'))
+        return bech32.encode('lnurl', words, 1500)
+    }
+
     export function payOrder(link, protocol, payment = null) {
-        paymentLink = link;
-        paymentProtocol = protocol;
+        if (true) {
+            paymentLink = bech32Encode(link);
+            paymentProtocol = protocol;
+        } else {
+            paymentLink = link;
+            paymentProtocol = protocol;
+        }
 
         if (payment) {
 
@@ -85,7 +98,7 @@
             refreshProducts();
 
             await new Promise(resolve => setTimeout(resolve, 2500));
-            showAutomaticPayments = true;
+//            showAutomaticPayments = true;
         } else {
             requestLoginModal();
         }
@@ -101,19 +114,19 @@
 
 <div class="md:grid justify-center mt-0 md:mt-10 mb-10">
     {#if Object.keys($privateMessages.automatic).length > 0}
-        <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-16 place-content-center">
+        <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-10 place-content-center">
             {#if Object.entries(ordersToBePaidNow).length > 0}
                 <div class="alert alert-warning shadow-lg">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span>
+                        <div>
                             <p class="mb-1">You still have to pay <b>{Object.entries(ordersToBePaidNow).length}</b> of your orders!</p>
-                            <ul class="list-disc list-inside ml-3 md:ml-5">
+                            <ul class="list-disc list-inside ml-3 md:ml-5 text-xs md:text-sm">
                                 {#each Object.entries(ordersToBePaidNow) as [orderId, order]}
                                     <li>{order.id}</li>
                                 {/each}
                             </ul>
-                        </span>
+                        </div>
                     </div>
                 </div>
             {/if}
@@ -123,20 +136,23 @@
                 <input type="checkbox" bind:checked={hideOldOrders} class="checkbox checkbox-md mr-3" class:checkbox-success={hideOldOrders} />
             </div>
 
-            <table class="w-fit md:w-full rounded-md">
+            <table class="block w-full rounded border border-gray-400 p-2 md:p-4">
                 <thead>
-                <tr class="text-center">
-                    <th class="text-left">Order</th>
-                    <th>Last update</th>
-                    <th>Status</th>
-                </tr>
+                    <tr class="text-center">
+                        <th class="text-left">Order</th>
+                        <th>Last update</th>
+                        <th>Status</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {#each sortedOrders as [orderId, order]}
                     {#if !hideOldOrders || (hideOldOrders && (Date.now() < ((order.created_at * 1000) + oldOrderTime)))}
-                        <tr>
+                        <tr class="border-y border-gray-600 hover">
                             <td>
-                                <p>
+                                <p class="text-sm md:hidden">
+                                    # {orderId.substring(0,8)}...
+                                </p>
+                                <p class="text-sm hidden md:block">
                                     # {orderId}
                                 </p>
 
@@ -171,6 +187,20 @@
                                     <p>Waiting for reply from the store</p>
                                 {:else if order.type === 1}
                                     {#if order.payment_options}
+
+                                        <!-- LN ADDRESS TESTING -->
+                                        {#each order.payment_options as payment_option}
+                                                <p>
+                                                    1 sats
+                                                </p>
+                                                <p>
+                                                    <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {payOrder('https://getalby.com/.well-known/lnurlp/btcremnant?amount=1', 'lightning')}}>
+                                                        <p class="text-2xl">⚡</p> Show payment QR
+                                                    </button>
+                                                </p>
+                                        {/each}
+
+
                                         {#each order.payment_options as payment_option}
                                             {#if payment_option.type === 'ln'}
                                                 <p>
@@ -181,7 +211,7 @@
                                                     <p>
                                                         Waiting for payment
                                                         <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {payOrder(payment_option.link, 'lightning')}}>
-                                                            ⚡ Pay with Lightning
+                                                            <p class="text-2xl">⚡</p> Pay with Lightning
                                                         </button>
                                                     </p>
                                                     <small>Expires in {payment_option.expiry / 60} minutes</small>
@@ -191,7 +221,7 @@
                                             {:else}
                                                 <p>
                                                     <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {payOrder(payment_option.link, 'bitcoin')}}>
-                                                        Pay with Bitcoin
+                                                        <span class="h-7 w-7" ><Bitcoin /></span> Pay with Bitcoin
                                                     </button>
                                                 </p>
                                             {/if}
@@ -264,5 +294,22 @@
         {:else}
             <p>Error: payment address not available. Contact the seller.</p>
         {/if}
+    </div>
+</div>
+
+<!-- Order paid confirmation -->
+<input type="checkbox" id="nostrTextConfirmation" class="modal-toggle" bind:checked={xxxxxxxxxxx} on:change={() => showAutomaticPayments = false}/>
+<div class="modal">
+    <div class="modal-box relative bg-white">
+        <label for="nostrTextConfirmation" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+
+        <h3 class="text-lg font-bold mb-0 text-black">
+            Has this payment been done successfully?
+        </h3>
+
+        <p>Did you scan this QR with your Lightning wallet and the result was OK?</p>
+
+        <button class="btn btn-success">Yes, payment correct</button>
+        <button class="btn btn-error">No, I got an error</button>
     </div>
 </div>

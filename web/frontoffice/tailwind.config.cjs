@@ -1,6 +1,5 @@
 module.exports = {
   content: [
-    "./src/lib/components/*.svelte",
     "./src/lib/components/**/*.svelte",
     "./src/routes/**/*.svelte",
   ],
@@ -26,7 +25,8 @@ module.exports = {
       },
   ],
   daisyui: {
-    themes: ["light", "halloween"],
-    darkTheme: "halloween",
+    themes: ["light", "dark"],
+    darkTheme: "dark",
   },
+  darkMode: ['class', '[data-theme="dark"]'],
 };

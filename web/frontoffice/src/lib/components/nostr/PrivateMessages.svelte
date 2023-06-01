@@ -90,9 +90,13 @@
                         }
 
                         if (orderId in $privateMessages.automatic) {
-                            // Because some properties are the same in different types
-                            // like "message"
-                            if (privateMessage.type > $privateMessages.automatic[orderId].type) {
+                            // Because some properties are the same in different
+                            // types like "message"
+                            if (
+                                (privateMessage.type > $privateMessages.automatic[orderId].type)
+                                ||
+                                (privateMessage.type === $privateMessages.automatic[orderId].type && privateMessage.created_at > $privateMessages.automatic[orderId].created_at)
+                            ) {
                                 $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
                             } else {
                                 $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
