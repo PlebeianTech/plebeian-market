@@ -298,10 +298,10 @@
 </div>
 
 <!-- Order paid confirmation -->
-<input type="checkbox" id="nostrTextConfirmation" class="modal-toggle" bind:checked={xxxxxxxxxxx} on:change={() => showAutomaticPayments = false}/>
+<input type="checkbox" id="paymentConfirmation" class="modal-toggle" bind:checked={paymentModalVisible} on:change={() => showAutomaticPayments = false}/>
 <div class="modal">
     <div class="modal-box relative bg-white">
-        <label for="nostrTextConfirmation" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+        <label for="paymentConfirmation" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
 
         <h3 class="text-lg font-bold mb-0 text-black">
             Has this payment been done successfully?
