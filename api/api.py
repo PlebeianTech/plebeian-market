@@ -1300,11 +1300,11 @@ def post_stall_event(pubkey):
             db.session.commit()
 
             payment_options = [
-                {'type': 'btc', 'link': order.payment_address}
+                {'type': 'btc', 'link': order.payment_address, 'amount_sats': order.total}
             ]
 
             if seller.lightning_address:
-                payment_options.append({'type': 'lnurl', 'link': seller.lightning_address})
+                payment_options.append({'type': 'lnurl', 'link': seller.lightning_address, 'amount_sats': order.total})
 
             nostr_client.send_dm(
                 order.buyer_public_key,
