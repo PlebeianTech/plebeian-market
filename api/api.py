@@ -571,6 +571,35 @@ def get_orders(user):
 
     return jsonify({'orders': [o.to_dict() for o in orders]})
 
+@api_blueprint.route('/api/users/me/orders/<uuid>', methods=['PUT'])
+@user_required
+def put_order(user, uuid):
+    order = m.Order.query.filter_by(seller_id=user.id, uuid=uuid).one_or_none()
+
+    if not order:
+        return jsonify({'message': "Not found."}), 404
+
+    message = None
+
+    if request.json.get('paid'):
+        message = "The seller accepted your payment!"
+        order.paid_at = datetime.utcnow()
+
+    if request.json.get('shipped'):
+        message = "Your order was shipped!"
+        order.shipped_at = datetime.utcnow()
+
+    if request.json.get('expired'):
+        message = "Your order was canceled by the seller!"
+        order.expired_at = datetime.utcnow()
+
+    nostr_client = get_nostr_client(order.seller)
+    nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': order.paid_at is not None, 'shipped': order.shipped_at is not None, 'message': message}))
+
+    db.session.commit()
+
+    return jsonify({'order': order.to_dict()})
+
 @api_blueprint.route('/api/users/me/sales', methods=['GET'])
 @user_required
 def get_sales(user):

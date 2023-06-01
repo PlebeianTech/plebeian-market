@@ -8,8 +8,6 @@ export interface IAccount {
     telegramUsernameVerified: boolean;
     twitterUsername: string | null;
     twitterUsernameVerified: boolean;
-    nostrPublicKey: string | null;
-    nostrPublicKeyVerified: boolean;
 }
 
 export class UserResumeSkill {

@@ -4,6 +4,7 @@ import type { IEntity, IEntityBase } from "$lib/types/base";
 import type { AddedMedia } from "$lib/types/item";
 import { type UserNotification, fromJson as userNotificationFromJson, PostUserNotification } from "$lib/types/notification";
 import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
+import { type Order, fromJson as orderFromJson } from "$lib/types/order";
 import { ExternalAccountProvider, type User, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl, logout } from "$lib/utils";
 
@@ -539,4 +540,15 @@ export async function getUser(nym) {
         response.status,
         "Could not fetch user on the server"
     );
+}
+
+export function putOrder(tokenValue, uuid: string, status: {paid?: boolean, shipped?: boolean, expired?: boolean}, successCB: (order: Order) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/users/me/orders/${uuid}`, 'PUT', tokenValue, JSON.stringify(status), "application/json",
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => successCB(orderFromJson(data.order)));
+            } else {
+                errorHandler.handle(response);
+            }
+        });
 }

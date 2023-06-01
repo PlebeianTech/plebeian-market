@@ -2,6 +2,9 @@
     import type { IEntity } from "$lib/types/base";
     import type { Order } from "$lib/types/order";
     import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
+    import { token, Info } from "$lib/stores";
+    import { putOrder } from "$lib/services/api";
+    import X from "$lib/components/icons/X.svelte";
 
     // svelte-ignore unused-export-let
     export let isEditable: boolean = false;
@@ -12,7 +15,9 @@
 
 <tr>
     <td>
-        <DateFormatter date={order.requested_at} style={DateStyle.Short} />
+        {#if order.requested_at}
+            <DateFormatter date={order.requested_at} style={DateStyle.Short} />
+        {/if}
     </td>
     <td>
         {order.total} / ${order.total_usd}
@@ -23,6 +28,24 @@
         {/if}
     </td>
     <td>
-        {order.txid}
+        {#if order.txid}
+            <a class="link" href={tx_url} target="_blank">{order.txid}</a>
+        {/if}
+    </td>
+    <td>
+        {#if order.expired_at !== null}
+            <div class="btn-circle btn-xs btn-error ml-1">
+                <X />
+            </div>
+        {:else if order.shipped_at !== null}
+            Shipped!
+        {:else}
+            {#if order.paid_at === null}
+                <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Marked as paid!"); entity = o;}) }>Payment received</button>
+                <button class="btn btn-error mx-2" on:click={() => putOrder($token, order.uuid, {expired: true}, (o) => {Info.set("Canceled!"); entity = o;}) }>Cancel</button>
+            {:else if order.paid_at !== null && order.shipped_at === null}
+                <button class="btn btn-primary" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) }>Shipped</button>
+            {/if}
+        {/if}
     </td>
 </tr>

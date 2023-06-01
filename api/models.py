@@ -1259,6 +1259,7 @@ class Order(db.Model):
 
     requested_at = db.Column(db.DateTime, nullable=False)
     paid_at = db.Column(db.DateTime, nullable=True)
+    shipped_at = db.Column(db.DateTime, nullable=True)
     expired_at = db.Column(db.DateTime, nullable=True)
 
     shipping_usd = db.Column(db.Float, nullable=False, default=0)
@@ -1284,10 +1285,7 @@ class Order(db.Model):
                 case _:
                     return 48 * 60
 
-        if app.config['ENV'] in ['dev', 'staging']:
-            return 10 # 10 mins should be enough to send a 0-conf
-        else: # prod
-            return 60 # 1h for a 0-conf...
+        return 24 * 60
 
     def to_dict(self):
         return {
@@ -1304,6 +1302,9 @@ class Order(db.Model):
             'txid': self.txid,
             'tx_value': self.tx_value,
             'requested_at': (self.requested_at.isoformat() + "Z"),
+            'paid_at': (self.paid_at.isoformat() + "Z" if self.paid_at else None),
+            'shipped_at': (self.shipped_at.isoformat() + "Z" if self.shipped_at else None),
+            'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
             'total_usd': self.total_usd,
             'total': self.total,
         }
