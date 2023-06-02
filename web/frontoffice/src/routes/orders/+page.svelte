@@ -17,9 +17,10 @@
     let paymentInfo = {
         link: null,
         protocol: null,
-        amount: null,
-        orderId: null
+        amount: null
     };
+    let orderToBePaid = null;
+    let paymentOptionSelected = null;
 
     let sortedOrders = [];
     let ordersToBePaidNow = [];
@@ -79,15 +80,52 @@
         return bech32.encode('lnurl', words, 1500)
     }
 
-    function showPaymentDetails(orderId, data, amount, type, payment = null) {
-        if (type === 'ln') {
+    function getCurrentPaymentOptionInfo() {
+        for (const option of orderToBePaid.payment_options) {
+            if (option.type === paymentOptionSelected) {
+                return option;
+            }
+        }
+    }
+
+    function getAmountToPay(order) {
+        for (const option of order.payment_options) {
+            if (option.amount_sats) {
+                return option.amount_sats;
+            }
+        }
+    }
+
+    function showPaymentDetails() {
+        if (!paymentOptionSelected) {
+            // No payment option selected, pre-selecting the default one
+            let paymentOptions = [];
+            for (const payment_option of orderToBePaid.payment_options) {
+                paymentOptions[paymentOptions.length] = payment_option.type;
+            }
+
+            if (paymentOptions.includes('ln')) {
+                paymentOptionSelected = 'ln';
+            } else if (paymentOptions.includes('lnurl')) {
+                paymentOptionSelected = 'lnurl';
+            } else if (paymentOptions.includes('btc')) {
+                paymentOptionSelected = 'btc';
+            }
+        }
+
+        let paymentOptionInfo = getCurrentPaymentOptionInfo();
+
+        let orderId = orderToBePaid.id;
+        let data = paymentOptionInfo.link;
+        let amount = paymentOptionInfo.amount_sats;
+
+        if (paymentOptionSelected === 'ln') {
             paymentInfo = {
                 link: data,
                 protocol: 'lightning',
                 amount: amount,
-                orderId: orderId
             }
-        } else if (type === 'lnurl') {
+        } else if (paymentOptionSelected === 'lnurl') {
             let lnAddressArray = data.split("@");
             let name = lnAddressArray[0];
             let domain = lnAddressArray[1];
@@ -98,9 +136,8 @@
                 link: bech32Encode(link).toUpperCase(),
                 protocol: 'lightning',
                 amount: amount,
-                orderId: orderId
             }
-        } else if (type === 'btc') {
+        } else if (paymentOptionSelected === 'btc') {
             let btcLink = data;
 
             if (amount !== null || orderId !== null) {
@@ -120,7 +157,6 @@
                 link: btcLink,
                 protocol: 'bitcoin',
                 amount: amount,
-                orderId: orderId
             }
         } else {
             alert('Payment type not supported: ' + type);
@@ -134,8 +170,8 @@
             refreshStalls();
             refreshProducts();
 
-//            await new Promise(resolve => setTimeout(resolve, 2500));
-//            showAutomaticPayments = true;
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            showAutomaticPayments = true;
         } else {
             requestLoginModal();
         }
@@ -243,7 +279,6 @@
                                     <p>Waiting for reply from the store</p>
                                 {:else if order.type === 1}
                                     {#if order.payment_options}
-
                                         {#if paidPaymentsStorage.includes(orderId) }
                                             <div class="flex flex-col justify-center items-center">
                                                 <span class="w-10 h-10 mb-1"><Clock /></span>
@@ -251,56 +286,13 @@
                                                 <p class="md:hidden">Waiting confirmation from seller...</p>
                                             </div>
                                         {:else}
-                                            {#each order.payment_options as payment_option}
-                                                {#if payment_option.amount_sats || payment_option.amount}
-                                                    <p>
-                                                        {payment_option.amount_sats ?? payment_option.amount} sats
-                                                    </p>
-                                                {/if}
+                                            {#if getAmountToPay(order)}
+                                                <p class="mb-2">{getAmountToPay(order)} sats</p>
+                                            {/if}
 
-                                                {#if payment_option.type === 'ln'}
-                                                    <!-- LN INVOICES -->
-                                                    {#if Date.now() < ((order.created_at * 1000) + (payment_option.expiry * 1000)) }
-                                                        <p>
-                                                            Waiting for payment
-                                                            <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {showPaymentDetails(orderId, payment_option.link, null, payment_option.type)}}>
-                                                                <p class="text-2xl">⚡</p> Show payment QR
-                                                            </button>
-                                                        </p>
-                                                        <small>Expires in {payment_option.expiry / 60} minutes</small>
-                                                    {:else}
-                                                        <small>⚡ Lightning Invoice expired</small>
-                                                    {/if}
-
-                                                {:else if payment_option.type === 'lnurl'}
-                                                    <!-- LN ADDRESS -->
-                                                    <p>
-                                                        <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {showPaymentDetails(orderId, payment_option.link, payment_option.amount_sats, payment_option.type)}}>
-                                                            <p class="text-2xl">⚡</p> Show payment QR
-                                                        </button>
-                                                    </p>
-                                                {:else if payment_option.type === 'btc'}
-                                                    <!-- BTC ONCHAIN -->
-                                                    <p>
-                                                        <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {showPaymentDetails(orderId, payment_option.link, payment_option.amount_sats, payment_option.type)}}>
-                                                            <span class="h-7 w-7" ><Bitcoin /></span> Pay with Bitcoin
-                                                        </button>
-                                                    </p>
-                                                {:else if payment_option.type === 'url'}
-                                                    <!-- PAYMENT URL -->
-                                                    <p>
-                                                        <button class="btn btn-outline gap-2 mb-4 md:mb-2" on:click|preventDefault={() => {window.open(payment_option.link, '_blank').focus()}}>
-                                                            Open payment website
-                                                        </button>
-                                                    </p>
-                                                {:else}
-                                                    <p>
-                                                        <button class="btn btn-disabled btn-outline gap-2 mb-4 md:mb-2" >
-                                                            Unknown payment option
-                                                        </button>
-                                                    </p>
-                                                {/if}
-                                            {/each}
+                                            <button class="btn btn-outline gap-2 mb-4 md:mb-2 h-16 md:h-12" on:click|preventDefault={() => {orderToBePaid = order; showPaymentDetails()}}>
+                                                <span class="h-7 w-7" ><Bitcoin /></span><p class="-ml-5 text-2xl">⚡</p> Pay order
+                                            </button>
 
                                             {#if order.message && !['Payment received.'].includes(order.message)}
                                                 <p>
@@ -313,13 +305,14 @@
                                     <p>
                                         {#if order.payment_options}
                                             <ul class="list-disc [&>*:first-child]:block">
-                                                {#each  order.payment_options as payment_option}
+                                                {#each order.payment_options as payment_option}
                                                     {#if payment_option.amount_sats || payment_option.amount}
                                                         <li class="hidden">{payment_option.amount_sats ?? payment_option.amount} sats</li>
                                                     {/if}
                                                 {/each}
                                             </ul>
                                         {/if}
+
                                         {#if order.paid}
                                             ✅ Payment received
                                         {:else}
@@ -371,8 +364,36 @@
             {/if}
         </h3>
 
+        {#if orderToBePaid && orderToBePaid.payment_options}
+            <div class="mt-4 md:mt-6 pb-0 flex flex-col justify-center items-center">
+                Payment type: <select bind:value={paymentOptionSelected} class="select select-bordered select-sm text-xs md:text-sm max-w-lg md:ml-1" on:change="{() => showPaymentDetails()}">
+                    {#each orderToBePaid.payment_options as payment_option}
+                        {#if payment_option.type === 'ln'}
+                            <option value="{payment_option.type}" selected>Lightning (invoice)</option>
+                        {:else if payment_option.type === 'lnurl'}
+                            <option value="{payment_option.type}" selected>Lightning (lnurl)</option>
+                        {:else if payment_option.type === 'btc'}
+                            <option value="{payment_option.type}">Bitcoin (on-chain)</option>
+                        {:else if payment_option.type === 'url'}
+                            <option value="{payment_option.type}">External payment method</option>
+                        {/if}
+                    {/each}
+                </select>
+            </div>
+        {/if}
+
+        {#if paymentOptionSelected === 'btc'}
+            <div class="flex flex-col mt-3 justify-center items-center">
+                <div class="h-7 w-7" ><Bitcoin /></div>
+            </div>
+        {:else if ['ln', 'lnurl'].includes(paymentOptionSelected)}
+            <div class="flex flex-col mt-3 justify-center items-center">
+                <p class="text-2xl">⚡</p>
+            </div>
+        {/if}
+
         {#if paymentInfo.link}
-            <div class="py-4 md:p-6 bg-white">
+            <div class="py-4 bg-white">
                 <QRLocal {paymentInfo} />
 
                 {#if paymentInfo.protocol === 'lightning'}
@@ -385,7 +406,7 @@
                             {#if paymentInfo.amount}
                                 <li class="mb-3">You must send <b>{paymentInfo.amount} sats</b> to the seller</li>
                             {/if}
-                            <li class="mb-3">If your wallet let you specify a <b>comment</b> while paying, put <b>{paymentInfo.orderId.slice(-5)}</b></li>
+                            <li class="mb-3">If your wallet let you specify a <b>comment</b> while paying, put <b>{orderToBePaid.id.slice(-5)}</b></li>
                             <li class="mb-3 md:hidden">You can <b>tap the QR code</b> to open your Lightning wallet.</li>
                             <li class="mb-3 md:mb-0">Mark the payment as <b>paid</b> using the green button when you're done.</li>
                             <li>As the <b>payment goes directly to the seller</b> and <b>Lightning payments are private</b>,
@@ -394,7 +415,6 @@
                     </div>
                 {/if}
             </div>
-
         {:else}
             <p>Error: payment address not available. Contact the seller.</p>
         {/if}

@@ -74,17 +74,12 @@
 
                         privateMessage.type = type;
 
-                        if (type === 2) {
-// TODO QUITAR
-                            return;
-                        }
-
                         if (type === 1) {
                             for (const paymentOption of privateMessage.payment_options) {
                                 if (paymentOption.type === 'ln') {
                                     const decodedInvoice = decode(paymentOption.link);
 
-                                    paymentOption.amount =
+                                    paymentOption.amount_sats =
                                         decodedInvoice.sections.filter((section) => {
                                             return section.name === 'amount'
                                         })[0].value / 1000;
