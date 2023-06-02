@@ -63,10 +63,12 @@
             for (const payment_option of orderToPay.payment_options) {
                 if (payment_option.type === 'ln') {
                     if (Date.now() > ((orderToPay.created_at * 1000) + (payment_option.expiry * 1000))) {
-                        showPaymentDetails(orderToPay.id, payment_option.link, payment_option.amount_sats, payment_option.type, orderToPay);
+                        orderToBePaid = orderToPay;
+                        showPaymentDetails();
                     }
                 } else {
-                    showPaymentDetails(orderToPay.id, payment_option.link, payment_option.amount_sats, payment_option.type, orderToPay);
+                    orderToBePaid = orderToPay;
+                    showPaymentDetails();
                 }
             }
         }
