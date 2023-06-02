@@ -368,7 +368,7 @@
 
         {#if orderToBePaid && orderToBePaid.payment_options}
             <div class="mt-4 md:mt-6 pb-0 flex flex-col justify-center items-center">
-                Payment type: <select bind:value={paymentOptionSelected} class="select select-bordered select-sm text-xs md:text-sm max-w-lg md:ml-1" on:change="{() => showPaymentDetails()}">
+                Payment type: <select bind:value={paymentOptionSelected} class="select select-bordered select-sm text-xs md:text-sm max-w-lg md:ml-1 { orderToBePaid.payment_options.length > 1 ? 'select-error border-2' : 'select-bordered' }" on:change="{() => showPaymentDetails()}">
                     {#each orderToBePaid.payment_options as payment_option}
                         {#if payment_option.type === 'ln'}
                             <option value="{payment_option.type}" selected>Lightning (invoice)</option>
