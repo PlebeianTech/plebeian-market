@@ -74,6 +74,11 @@
 
                         privateMessage.type = type;
 
+                        if (type === 2) {
+// TODO QUITAR
+                            return;
+                        }
+
                         if (type === 1) {
                             for (const paymentOption of privateMessage.payment_options) {
                                 if (paymentOption.type === 'ln') {
