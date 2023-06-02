@@ -63,10 +63,10 @@
                             type = Number(privateMessage.type);
                         } else {
                             // Workaround until NostrMarket adds the "type" property
-                            if (privateMessage.payment_options) {
-                                type = 1;
-                            } else if (privateMessage.paid) {
+                            if (privateMessage.paid) {
                                 type = 2;
+                            } else if (privateMessage.payment_options) {
+                                type = 1;
                             } else {
                                 type = 0;
                             }

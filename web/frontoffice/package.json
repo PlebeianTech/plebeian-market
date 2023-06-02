@@ -2,7 +2,7 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
-    "@sveltejs/kit": "^1.20.0",
+    "@sveltejs/kit": "^1.20.1",
     "autoprefixer": "10.x",
     "btc2fiat": "*",
     "daisyui": "^2.52.0",
