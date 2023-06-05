@@ -9,7 +9,7 @@
     import {sendPrivateMessage} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal} from "$lib/utils.ts";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils.ts";
     import {onDestroy} from "svelte";
 
     let name = null;
@@ -22,8 +22,7 @@
     export async function buyNow() {
         console.log('---- buyNow start ----');
 
-        if (!$NostrPublicKey) {
-            requestLoginModal();
+        if (!await waitAndShowLoginIfNotLoggedAlready()) {
             return;
         }
 

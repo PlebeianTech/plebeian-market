@@ -7,7 +7,7 @@
     import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import {NostrPublicKey} from "$lib/stores";
-    import {requestLoginModal} from "$lib/utils";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
 
     export let pubkey: string;
 
@@ -44,9 +44,7 @@
 
     onMount(
         async () => {
-            if (!$NostrPublicKey) {
-                requestLoginModal();
-            }
+            await waitAndShowLoginIfNotLoggedAlready();
 
             document.body.scrollTop = document.documentElement.scrollTop = 0;
 

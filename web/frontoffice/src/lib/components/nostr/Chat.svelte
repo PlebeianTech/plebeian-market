@@ -7,7 +7,7 @@
     import { queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
     import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
     import { user, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
-    import { requestLoginModal } from "$lib/utils";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
 
@@ -312,8 +312,7 @@
     }
 
     async function send() {
-        if (!$NostrPublicKey) {
-            requestLoginModal();
+        if (!await waitAndShowLoginIfNotLoggedAlready()) {
             return;
         }
 

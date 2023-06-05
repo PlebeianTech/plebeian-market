@@ -3,12 +3,10 @@
     import ResumeList from "$lib/components/resume/List.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {NostrPublicKey} from "$lib/stores";
-    import {requestLoginModal} from "$lib/utils";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
 
     onMount(async () => {
-        if (!$NostrPublicKey) {
-            requestLoginModal();
-        }
+        waitAndShowLoginIfNotLoggedAlready();
     });
 </script>
 

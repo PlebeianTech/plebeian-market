@@ -9,7 +9,7 @@
     import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
     import { page } from '$app/stores'
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal} from "$lib/utils.ts";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils.ts";
 
     let selectedConversationPubkey = null;
     let sortedConversations;
@@ -100,9 +100,7 @@
     }
 
     onMount(async () => {
-        if (!$NostrPublicKey) {
-            requestLoginModal();
-        }
+        await waitAndShowLoginIfNotLoggedAlready();
 
         const newMessagePubKey = $page.url.searchParams.get('newMessagePubKey');
 
