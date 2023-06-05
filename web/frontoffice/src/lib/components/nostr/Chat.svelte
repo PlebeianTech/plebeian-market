@@ -360,7 +360,7 @@
 
 <div tabindex="0" class="collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4 lg:grid">
     <input type="checkbox" />
-    <div class="collapse-title text-l font-medium">We use <b>Nostr</b> to power this chat. Click here to see more info</div>
+    <div class="collapse-title text-l font-medium"><b>Nostr</b> powered chat. Click here to see more info</div>
     <div class="collapse-content">
         <p class="mb-4">Nostr channel ID: {nostrRoomId}</p>
     </div>
