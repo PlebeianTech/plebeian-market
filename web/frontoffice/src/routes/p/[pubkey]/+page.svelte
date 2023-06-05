@@ -1,15 +1,19 @@
 <script lang="ts">
+    import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import ResumeView from "$lib/components/resume/View.svelte";
     import StallsBrowser from "$lib/components/stores/Browse.svelte";
+    import {NostrPublicKey} from "$lib/stores";
 
     /** @type {import('./$types').PageData} */
     export let data;
 </script>
 
-<div class="py-3 lg:pb-14 mx-auto w-screen lg:w-2/3">
-    <StallsBrowser merchantPubkey={data.pubkey}></StallsBrowser>
-</div>
+{#if data.pubkey === $NostrPublicKey}
+    <Titleh1>Your profile</Titleh1>
+{:else}
+    <Titleh1>Profile of user</Titleh1>
+{/if}
 
-<div class="py-3 lg:pb-14 mx-auto w-screen lg:w-2/3">
-    <ResumeView pubkey={data.pubkey} />
-</div>
+<StallsBrowser merchantPubkey={data.pubkey}></StallsBrowser>
+
+<ResumeView pubkey={data.pubkey} />

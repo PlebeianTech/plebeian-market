@@ -71,7 +71,7 @@
         {#if edit}
             <Editor {pubkey} {resume} onEditFinished={() => { resume = null; edit = false; loadResume(); }} />
         {:else}
-            <div class="flex justify-center items-center mt-8 h-15 gap-8">
+            <div class="flex justify-center items-center mt-4 h-15 gap-8">
                 {#if resume && pubkey === $NostrPublicKey}
                     <button class="btn btn-primary btn-lg" on:click|preventDefault={() => edit = true}>Edit</button>
                 {/if}
