@@ -104,6 +104,11 @@
                     <p>
                         <a href="/orders" class="btn btn-ghost normal-case">Orders</a>
                     </p>
+                    {#if $NostrPublicKey}
+                        <p>
+                            <a href="/p/{$NostrPublicKey}" class="btn btn-ghost normal-case">** My stuff **</a>
+                        </p>
+                    {/if}
                     <p>
                         <a href="/admin" class="btn btn-ghost normal-case">Sell items</a>
                     </p>

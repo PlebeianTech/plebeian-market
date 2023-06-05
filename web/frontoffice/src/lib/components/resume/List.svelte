@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { encodeNpub } from "$lib/nostr/utils";
+    import { encodeNpub, newNostrConversation } from "$lib/nostr/utils";
     import type { UserResume } from "$lib/types/user";
     import { subscribeResumes, subscribeMetadata, type UserMetadata } from "$lib/services/nostr";
     import Loading from "$lib/components/Loading.svelte";
@@ -134,7 +134,7 @@
                     </div>
                     <div>
                         <a class="btn btn-primary btn-sm mr-2" href="/p/{pubkey}">View</a>
-                        <a class="btn btn-primary btn-sm" href="https://snort.social/p/{encodeNpub(pubkey)}" target="_blank" rel="noreferrer">Contact</a>
+                        <a class="btn btn-primary btn-sm" on:click={() => newNostrConversation(pubkey)}>Contact</a>
                     </div>
                 </div>
             {/if}

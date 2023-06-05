@@ -2,12 +2,11 @@
     import {getProducts} from "$lib/services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
-    import {getFirstTagValue} from "$lib/nostr/utils";
+    import {getFirstTagValue, newNostrConversation} from "$lib/nostr/utils";
     import {onImgError} from "$lib/shopping";
     import ViewList from "$sharedLib/components/icons/ViewList.svelte";
     import ViewCards from "$sharedLib/components/icons/ViewCards.svelte";
     import EmailIcon from "$sharedLib/components/icons/Email.svelte";
-    import {goto} from "$app/navigation";
     import { afterNavigate } from "$app/navigation";
 
     export let merchantPubkey: string;
@@ -48,14 +47,10 @@
                 }
             });
     });
-
-    function contactMerchant(merchantPubkey) {
-        goto('/messages?newMessagePubKey=' + merchantPubkey);
-    }
 </script>
 
 <div class="btn-group btn-group-vertical lg:btn-group-horizontal justify-end">
-    <button class="btn gap-2" on:click={() => contactMerchant(merchantPubkey)}>
+    <button class="btn gap-2" on:click={() => newNostrConversation(merchantPubkey)}>
         <span class="w-8 h-8">
             <EmailIcon />
         </span>
