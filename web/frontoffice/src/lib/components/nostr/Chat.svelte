@@ -4,7 +4,7 @@
     import type { VitaminedMessage } from "$lib/components/nostr/types";
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
-    import { hasExtension, queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
+    import { queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
     import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
     import { user, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
     import { requestLoginModal } from "$lib/utils";
@@ -312,6 +312,11 @@
     }
 
     async function send() {
+        if (!$NostrPublicKey) {
+            requestLoginModal();
+            return;
+        }
+
         const content = textarea.value.trim();
 
         if ($NostrPublicKey === null) {
