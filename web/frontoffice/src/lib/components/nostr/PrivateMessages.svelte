@@ -45,6 +45,8 @@
             conversation.unreadMessages = unreadMessages;
         }
 
+        $privateMessages.unreadConversations = unreadConversations;
+
         // We need this so reactive blocks in messages/+page.svelte
         // can run again after this function updated unreadMessages
         $privateMessages.human = $privateMessages.human;

@@ -408,9 +408,8 @@
                             {#if paymentInfo.amount}
                                 <li class="mb-3">You must send <b>{paymentInfo.amount} sats</b> to the seller</li>
                             {/if}
-                            <li class="mb-3">If your wallet let you specify a <b>comment</b> while paying, put <b>{orderToBePaid.id.slice(-5)}</b></li>
                             <li class="mb-3 md:hidden">You can <b>tap the QR code</b> to open your Lightning wallet.</li>
-                            <li class="mb-3 md:mb-0">Mark the payment as <b>paid</b> using the green button when you're done.</li>
+                            <li class="mb-3">Mark the payment as <b>paid</b> using the green button when you're done.</li>
                             <li>As the <b>payment goes directly to the seller</b> and <b>Lightning payments are private</b>,
                                 we cannot tell you if the payment was successful. You must rely on your own wallet for this.</li>
                         </ul>
