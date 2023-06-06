@@ -314,7 +314,7 @@ def settle_btc_payments():
                         if sale.is_auction_sale:
                             m.Message.create_and_send('SALE_EXPIRED', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
                             m.Message.create_and_send('PURCHASE_EXPIRED', user=sale.buyer, auction=sale.auction)
-            for order in db.session.query(m.Order).filter((m.Order.paid_at == None) & (m.Order.expired_at == None)):
+            for order in db.session.query(m.Order).filter((m.Order.paid_at == None) & (m.Order.expired_at == None) & (m.Order.canceled_at == None)):
                 try:
                     funding_txs = btc.get_funding_txs(order.payment_address)
                 except MempoolSpaceError as e:

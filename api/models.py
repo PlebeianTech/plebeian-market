@@ -1261,6 +1261,7 @@ class Order(db.Model):
     paid_at = db.Column(db.DateTime, nullable=True)
     shipped_at = db.Column(db.DateTime, nullable=True)
     expired_at = db.Column(db.DateTime, nullable=True)
+    canceled_at = db.Column(db.DateTime, nullable=True)
 
     shipping_usd = db.Column(db.Float, nullable=False, default=0)
 
@@ -1305,6 +1306,7 @@ class Order(db.Model):
             'paid_at': (self.paid_at.isoformat() + "Z" if self.paid_at else None),
             'shipped_at': (self.shipped_at.isoformat() + "Z" if self.shipped_at else None),
             'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
+            'canceled_at': (self.canceled_at.isoformat() + "Z" if self.canceled_at else None),
             'total_usd': self.total_usd,
             'total': self.total,
         }

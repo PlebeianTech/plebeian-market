@@ -12,6 +12,7 @@ export class Order implements IEntity {
     paid_at: Date | null = null;
     shipped_at: Date | null = null;
     expired_at: Date | null = null;
+    canceled_at: Date | null = null;
     txid: string | null = null;
     tx_value?: number = undefined;
     is_mine = true;
@@ -29,7 +30,7 @@ export function fromJson(json: any): Order {
     var o: Order = new Order();
 
     for (var k in json) {
-        if (k === 'requested_at' || k === 'paid_at' || k === 'shipped_at' || k === 'expired_at') {
+        if (k === 'requested_at' || k === 'paid_at' || k === 'shipped_at' || k === 'expired_at' || k === 'canceled_at') {
             if (json[k] !== null) {
                 o[k] = new Date(json[k]);
             } else {

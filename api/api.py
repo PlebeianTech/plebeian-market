@@ -589,9 +589,9 @@ def put_order(user, uuid):
         message = "Your order was shipped!"
         order.shipped_at = datetime.utcnow()
 
-    if request.json.get('expired'):
+    if request.json.get('canceled'):
         message = "Your order was canceled by the seller!"
-        order.expired_at = datetime.utcnow()
+        order.canceled_at = datetime.utcnow()
 
     nostr_client = get_nostr_client(order.seller)
     nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': order.paid_at is not None, 'shipped': order.shipped_at is not None, 'message': message}))

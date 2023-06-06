@@ -33,7 +33,7 @@
         {/if}
     </td>
     <td>
-        {#if order.expired_at !== null}
+        {#if order.expired_at !== null || order.canceled_at !== null}
             <div class="btn-circle btn-xs btn-error ml-1">
                 <X />
             </div>
@@ -42,7 +42,7 @@
         {:else}
             {#if order.paid_at === null}
                 <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Marked as paid!"); entity = o;}) }>Payment received</button>
-                <button class="btn btn-error mx-2" on:click={() => putOrder($token, order.uuid, {expired: true}, (o) => {Info.set("Canceled!"); entity = o;}) }>Cancel</button>
+                <button class="btn btn-error mx-2" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) }>Cancel</button>
             {:else if order.paid_at !== null && order.shipped_at === null}
                 <button class="btn btn-primary" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) }>Shipped</button>
             {/if}

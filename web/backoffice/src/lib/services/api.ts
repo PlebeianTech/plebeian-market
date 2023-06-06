@@ -542,7 +542,7 @@ export async function getUser(nym) {
     );
 }
 
-export function putOrder(tokenValue, uuid: string, status: {paid?: boolean, shipped?: boolean, expired?: boolean}, successCB: (order: Order) => void, errorHandler = new ErrorHandler()) {
+export function putOrder(tokenValue, uuid: string, status: {paid?: boolean, shipped?: boolean, canceled?: boolean}, successCB: (order: Order) => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/users/me/orders/${uuid}`, 'PUT', tokenValue, JSON.stringify(status), "application/json",
         response => {
             if (response.status === 200) {
