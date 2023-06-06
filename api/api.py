@@ -777,6 +777,7 @@ def get_put_delete_entity(key, cls, singular, has_item):
                 setattr(entity, k, v)
 
             nostr = False
+            # TODO: this should also happen for auctions after we nostrify them!
             if isinstance(entity, m.Listing) and entity.started:
                 user.ensure_stall_key()
                 get_nostr_client(user).publish_product(**entity.to_nostr())
@@ -833,6 +834,11 @@ def post_media(key, cls, singular):
         index += 1
         added_media.append(media)
     db.session.commit()
+
+    # TODO: should also happen for auctions after we nostrify those!
+    if isinstance(entity, m.Listing) and entity.started:
+        nostr_client = get_nostr_client(entity.item.seller)
+        nostr_client.publish_product(**entity.to_nostr())
 
     return jsonify({'media': [media.to_dict() for media in added_media]})
 
