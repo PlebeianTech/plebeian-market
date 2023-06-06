@@ -8,6 +8,8 @@ export interface IAccount {
     telegramUsernameVerified: boolean;
     twitterUsername: string | null;
     twitterUsernameVerified: boolean;
+    nostrPublicKey: string | null;
+    nostrPublicKeyVerified: boolean;
 }
 
 export enum ExternalAccountProvider {
@@ -48,6 +50,7 @@ export class User implements IAccount {
     shippingWorldwideUsd: number | null = null;
     contributionPercent: number | null = null;
     wallet: string | null = null;
+    lightningAddress: string | null = null;
     hasItems: boolean = false;
     hasOwnItems: boolean = false;
     hasActiveAuctions: boolean = false;
@@ -115,6 +118,7 @@ export function fromJson(json: any): User {
     u.hasPastListings = <boolean>json.has_past_listings;
     u.contributionPercent = <number | null>json.contribution_percent;
     u.wallet = <string | null>json.wallet;
+    u.lightningAddress = <string | null>json.lightning_address;
     u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
     u.nostr_private_key = <string | null>json.nostr_private_key;

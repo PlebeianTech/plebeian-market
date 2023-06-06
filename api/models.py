@@ -151,6 +151,8 @@ class User(WalletMixin, db.Model):
     wallet = db.Column(db.String(128), nullable=True)
     wallet_index = db.Column(db.Integer, nullable=True)
 
+    lightning_address = db.Column(db.String(64), nullable=True)
+
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     @property
@@ -292,6 +294,7 @@ class User(WalletMixin, db.Model):
             d['contribution_percent'] = self.contribution_percent
             d['wallet'] = self.wallet
             d['wallet_index'] = self.wallet_index
+            d['lightning_address'] = self.lightning_address
             d['nostr_private_key'] = self.nostr_private_key
             d['shipping_from'] = self.shipping_from
             d['shipping_domestic_usd'] = self.shipping_domestic_usd
@@ -936,6 +939,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'seller_nostr_public_key': self.item.seller.nostr_public_key,
+            'seller_nostr_public_key_verified': self.item.seller.nostr_public_key_verified,
         }
 
         auction['bid_thresholds'] = [{'bid_amount_usd': bd['threshold_usd'], 'required_badge': b}
@@ -966,6 +971,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             auction['winner_telegram_username_verified'] = winning_bid.buyer.telegram_username_verified
             auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
             auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
+            auction['winner_nostr_public_key'] = winning_bid.buyer.nostr_public_key
+            auction['winner_nostr_public_key_verified'] = winning_bid.buyer.nostr_public_key_verified
 
         if for_user is not None:
             user_auction = UserAuction.query.filter_by(user_id=for_user, auction_id=self.id).one_or_none()
@@ -1105,6 +1112,8 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
             'seller_twitter_username': self.item.seller.twitter_username,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
+            'seller_nostr_public_key': self.item.seller.nostr_public_key,
+            'seller_nostr_public_key_verified': self.item.seller.nostr_public_key_verified,
         }
         if self.item.category == Category.Time.value:
             listing['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.profile_image_url}]
@@ -1209,6 +1218,8 @@ class Bid(db.Model):
             'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
+            'buyer_nostr_public_key': self.buyer.nostr_public_key,
+            'buyer_nostr_public_key_verified': self.buyer.nostr_public_key_verified,
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
             'is_winning_bid': self.id == self.auction.winning_bid_id,
         }
@@ -1248,6 +1259,7 @@ class Order(db.Model):
 
     requested_at = db.Column(db.DateTime, nullable=False)
     paid_at = db.Column(db.DateTime, nullable=True)
+    shipped_at = db.Column(db.DateTime, nullable=True)
     expired_at = db.Column(db.DateTime, nullable=True)
 
     shipping_usd = db.Column(db.Float, nullable=False, default=0)
@@ -1273,10 +1285,7 @@ class Order(db.Model):
                 case _:
                     return 48 * 60
 
-        if app.config['ENV'] in ['dev', 'staging']:
-            return 10 # 10 mins should be enough to send a 0-conf
-        else: # prod
-            return 60 # 1h for a 0-conf...
+        return 24 * 60
 
     def to_dict(self):
         return {
@@ -1293,6 +1302,9 @@ class Order(db.Model):
             'txid': self.txid,
             'tx_value': self.tx_value,
             'requested_at': (self.requested_at.isoformat() + "Z"),
+            'paid_at': (self.paid_at.isoformat() + "Z" if self.paid_at else None),
+            'shipped_at': (self.shipped_at.isoformat() + "Z" if self.shipped_at else None),
+            'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
             'total_usd': self.total_usd,
             'total': self.total,
         }
@@ -1417,6 +1429,8 @@ class Sale(db.Model):
             'seller_telegram_username_verified': self.item.seller.telegram_username_verified if self.item else False,
             'seller_twitter_username': self.item.seller.twitter_username if self.item else None,
             'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else False,
+            'seller_nostr_public_key': self.item.seller.nostr_public_key if self.item else None,
+            'seller_nostr_public_key_verified': self.item.seller.nostr_public_key_verified if self.item else None,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
             'buyer_profile_image_url': self.buyer.profile_image_url,
@@ -1426,6 +1440,8 @@ class Sale(db.Model):
             'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
             'buyer_twitter_username': self.buyer.twitter_username,
             'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
+            'buyer_nostr_public_key': self.buyer.nostr_public_key,
+            'buyer_nostr_public_key_verified': self.buyer.nostr_public_key_verified,
             'contribution_amount': self.contribution_amount,
             'contribution_payment_request': self.contribution_payment_request,
             'contribution_settled_at': (self.contribution_settled_at.isoformat() + "Z" if self.contribution_settled_at else None),

@@ -26,8 +26,8 @@ export class Sale implements IEntity {
     amount: number = 0;
     shipping_domestic: number = 0;
     shipping_worldwide: number = 0;
-    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
-    buyer: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false};
+    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false};
+    buyer: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false};
     contribution_amount: number = 0;
     contribution_payment_request: string = "";
     contribution_payment_qr: string | null = null;
@@ -76,6 +76,8 @@ export function fromJson(json: any): Sale {
         telegramUsernameVerified: <boolean>json.seller_telegram_username_verified,
         twitterUsername: <string | null>json.seller_twitter_username,
         twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
+        nostrPublicKey: <string | null>json.seller_nostr_public_key,
+        nostrPublicKeyVerified: <boolean>json.seller_nostr_public_key_verified,
     };
     s.buyer = {
         nym: <string>json.buyer_nym,
@@ -87,6 +89,8 @@ export function fromJson(json: any): Sale {
         telegramUsernameVerified: <boolean>json.buyer_telegram_username_verified,
         twitterUsername: <string | null>json.buyer_twitter_username,
         twitterUsernameVerified: <boolean>json.buyer_twitter_username_verified,
+        nostrPublicKey: <string | null>json.buyer_nostr_public_key,
+        nostrPublicKeyVerified: <boolean>json.buyer_nostr_public_key_verified,
     };
 
     return s;

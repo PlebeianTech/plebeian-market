@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { nip19 } from "nostr-tools";
     import type { Auction } from "$lib/types/auction";
     import AmountFormatter from "$lib/components/AmountFormatter.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
@@ -27,12 +28,16 @@
             {#each auction.bids as bid}
                 <tr>
                     <td>
-                        <div class="lg:flex items-center space-x-3">
-                            <Avatar account={bid.buyer} />
-                            <p class="md:hidden text-xs my-2">
-                                <DateFormatter date={bid.settled_at} style={DateStyle.Short} />
-                            </p>
-                        </div>
+                        {#if bid.buyer.nostrPublicKey && bid.buyer.nostrPublicKeyVerified}
+                            <div><a class="link" target="_blank" href="https://snort.social/p/{nip19.npubEncode(bid.buyer.nostrPublicKey)}">{nip19.npubEncode(bid.buyer.nostrPublicKey)}</a></div>
+                        {:else}
+                            <div class="lg:flex items-center space-x-3">
+                                <Avatar account={bid.buyer} />
+                                <p class="md:hidden text-xs my-2">
+                                    <DateFormatter date={bid.settled_at} style={DateStyle.Short} />
+                                </p>
+                            </div>
+                        {/if}
                     </td>
                     <td class="rounded-md" class:bg-success={bid.is_winning_bid} class:text-success-content={bid.is_winning_bid}>
                         <p class="hidden md:contents">

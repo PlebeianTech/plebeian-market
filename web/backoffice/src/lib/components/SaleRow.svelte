@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { nip19 } from "nostr-tools";
     import type { IEntity } from "$lib/types/base";
     import { SaleState, type Sale } from "$lib/types/sale";
     import { SATS_IN_BTC } from "$lib/utils";
@@ -20,9 +21,13 @@
     <DateFormatter date={sale.requested_at} style={DateStyle.Short} />
   </td>
   <td>
-    <div class="flex items-center space-x-3">
-      <Avatar account={sale.buyer} />
-    </div>
+    {#if sale.buyer.nostrPublicKey && sale.buyer.nostrPublicKeyVerified}
+      <div><a class="link" target="_blank" href="https://snort.social/p/{nip19.npubEncode(sale.buyer.nostrPublicKey)}">{nip19.npubEncode(sale.buyer.nostrPublicKey)}</a></div>
+    {:else}
+      <div class="flex items-center space-x-3">
+        <Avatar account={sale.buyer} />
+      </div>
+    {/if}
   </td>
   <td>
     <a href={sale.item_url} class:link={sale.item_url !== null}>
