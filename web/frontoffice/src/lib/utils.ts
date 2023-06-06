@@ -1,5 +1,6 @@
 import {goto} from "$app/navigation";
 import {loginModalState, Info, NostrPublicKey, privateMessages} from "$lib/stores";
+import {get} from "svelte/store";
 
 export const SATS_IN_BTC = 100000000;
 export let SHORT_TITLE_LIMIT = 70;
@@ -72,6 +73,15 @@ export function requestLoginModal(callbackFunc: () => void = () => {}) {
         openRequested: true,
         callbackFunc
     });
+}
+
+export async function waitAndShowLoginIfNotLoggedAlready() {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    if (!get(NostrPublicKey)) {
+        requestLoginModal();
+        return false;
+    }
+    return true;
 }
 
 export function getShortTitle(longTitle): string {

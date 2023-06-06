@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
-    import { BTC2USD, NostrPublicKey } from "$lib/stores";
+    import {BTC2USD, NostrPublicKey, privateMessages} from "$lib/stores";
     import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import {ShoppingCart} from "$lib/stores.js";
@@ -104,6 +104,11 @@
                     <p>
                         <a href="/orders" class="btn btn-ghost normal-case">Orders</a>
                     </p>
+                    {#if $NostrPublicKey}
+                        <p>
+                            <a href="/p/{$NostrPublicKey}" class="btn btn-ghost normal-case"><b>Me</b></a>
+                        </p>
+                    {/if}
                     <p>
                         <a href="/admin" class="btn btn-ghost normal-case">Sell items</a>
                     </p>
@@ -118,12 +123,18 @@
             </div>
 
             <!-- Mobile menu button -->
-            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-4">
-                <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
+            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-3">
+                <button type="button" class="text-black-800 dark:text-gray-200 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
+
+                {#if $NostrPublicKey && ($ShoppingCart.summary.totalQuantity || $privateMessages.unreadConversations)}
+                    <span class="indicator-item badge badge-sm badge-error -ml-3">
+                        {Number($ShoppingCart.summary.totalQuantity) + (Number($privateMessages.unreadConversations) ?? 0)}
+                    </span>
+                {/if}
             </div>
         </div>
 
@@ -142,7 +153,9 @@
                         <label tabindex="0" class="btn btn-ghost btn-circle">
                             <div class="indicator">
                                 <ShoppingCartIcon />
-                                <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
+                                {#if $ShoppingCart.summary.totalQuantity}
+                                    <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
+                                {/if}
                             </div>
                         </label>
                         <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-100 shadow-xl">

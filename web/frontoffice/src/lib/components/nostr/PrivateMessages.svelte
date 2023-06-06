@@ -45,6 +45,8 @@
             conversation.unreadMessages = unreadMessages;
         }
 
+        $privateMessages.unreadConversations = unreadConversations;
+
         // We need this so reactive blocks in messages/+page.svelte
         // can run again after this function updated unreadMessages
         $privateMessages.human = $privateMessages.human;
@@ -63,10 +65,10 @@
                             type = Number(privateMessage.type);
                         } else {
                             // Workaround until NostrMarket adds the "type" property
-                            if (privateMessage.payment_options) {
-                                type = 1;
-                            } else if (privateMessage.paid) {
+                            if (privateMessage.paid) {
                                 type = 2;
+                            } else if (privateMessage.payment_options) {
+                                type = 1;
                             } else {
                                 type = 0;
                             }
@@ -79,7 +81,7 @@
                                 if (paymentOption.type === 'ln') {
                                     const decodedInvoice = decode(paymentOption.link);
 
-                                    paymentOption.amount =
+                                    paymentOption.amount_sats =
                                         decodedInvoice.sections.filter((section) => {
                                             return section.name === 'amount'
                                         })[0].value / 1000;

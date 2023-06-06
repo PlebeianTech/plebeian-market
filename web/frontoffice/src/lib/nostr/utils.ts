@@ -1,6 +1,7 @@
 import {getEventHash, nip05, nip19, Kind, getPublicKey} from "nostr-tools";
 import { Error as ErrorStore, NostrPublicKey } from "$lib/stores";
 import type { User } from "$lib/types/user";
+import {goto} from "$app/navigation";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
 
@@ -174,4 +175,8 @@ export async function setPublicKey(user: User | null) {
     }
 
     return true;
+}
+
+export function newNostrConversation(pubkey) {
+    goto('/messages?newMessagePubKey=' + pubkey);
 }

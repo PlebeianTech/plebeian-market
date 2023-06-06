@@ -4,10 +4,10 @@
     import type { VitaminedMessage } from "$lib/components/nostr/types";
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
-    import { hasExtension, queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
+    import { queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
     import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
     import { user, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
-    import { requestLoginModal } from "$lib/utils";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
 
@@ -312,6 +312,10 @@
     }
 
     async function send() {
+        if (!await waitAndShowLoginIfNotLoggedAlready()) {
+            return;
+        }
+
         const content = textarea.value.trim();
 
         if ($NostrPublicKey === null) {
@@ -355,7 +359,7 @@
 
 <div tabindex="0" class="collapse collapse-plus border border-gray-400/70 bg-base-100 rounded-box mb-4 lg:grid">
     <input type="checkbox" />
-    <div class="collapse-title text-l font-medium">We use <b>Nostr</b> to power this chat. Click here to see more info</div>
+    <div class="collapse-title text-l font-medium"><b>Nostr</b> powered chat. Click here to see more info</div>
     <div class="collapse-content">
         <p class="mb-4">Nostr channel ID: {nostrRoomId}</p>
     </div>
