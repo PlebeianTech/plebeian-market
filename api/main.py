@@ -896,7 +896,7 @@ def get_nostr_client(user):
 
 class MockS3:
     def get_url_prefix(self):
-        return app.config['API_BASE_URL'] + "/mock-s3-files/"
+        return app.config['API_BASE_URL_EXTERNAL'] + "/mock-s3-files/"
 
     def get_filename_prefix(self):
         return ""

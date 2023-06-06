@@ -36,6 +36,7 @@ ENV = os.environ.get('ENV')
 
 WWW_BASE_URL = os.environ.get('WWW_BASE_URL')
 API_BASE_URL = os.environ.get('API_BASE_URL')
+API_BASE_URL_EXTERNAL = os.environ.get('API_BASE_URL_EXTERNAL') # used to mock S3 in dev mode and have the browser (which is not running in the docker container) hit the mock directly
 DOMAIN_NAME = "plebeian.market"
 
 LNAUTH_EXPIRE_MINUTES = 120
