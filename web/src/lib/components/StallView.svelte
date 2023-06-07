@@ -66,7 +66,9 @@
 
         let auction = entity as Auction;
 
-        postMedia($token, auction.endpoint, key, auction.added_media, () => {});
+        if (auction.added_media.length !== 0) {
+            postMedia($token, auction.endpoint, key, auction.added_media, () => onForceReload());
+        }
 
         if (auction.category === Category.Time) {
             putPublish($token, auction.endpoint, key,
@@ -92,7 +94,9 @@
 
         let listing = entity as Listing;
 
-        postMedia($token, listing.endpoint, key, listing.added_media, () => {});
+        if (listing.added_media.length !== 0) {
+            postMedia($token, listing.endpoint, key, listing.added_media, () => onForceReload());
+        }
 
         if (!listing.started) {
             Info.set("Now hit Publish!");

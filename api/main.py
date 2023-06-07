@@ -785,7 +785,7 @@ def get_nostr():
 
 class MockS3:
     def get_url_prefix(self):
-        return app.config['BASE_URL'] + "/mock-s3-files/"
+        return app.config['API_BASE_URL_EXTERNAL'] + "/mock-s3-files/"
 
     def get_filename_prefix(self):
         return ""
