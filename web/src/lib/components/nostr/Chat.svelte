@@ -288,6 +288,10 @@
 
         updateBrowserExtensionCheckbox();
 
+        if (nostrExtensionEnabled) {
+            setPublicKey($user);
+        }
+
         subscribeChannel($NostrPool, nostrRoomId, messageLimit, messagesSince,
             (newMessage) => {
                 for (const message of messages) {
