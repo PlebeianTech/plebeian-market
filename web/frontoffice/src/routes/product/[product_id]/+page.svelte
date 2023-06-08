@@ -22,15 +22,11 @@
         if (data.product_id) {
             getProducts(null, [data.product_id],
                 (productEvent) => {
-                    console.log('-------------------- productEvent:', productEvent);
-
                     if (!product || (product && productEvent.created_at > product.createdAt)) {
                         product = JSON.parse(productEvent.content);
 
-                        console.log('-------------------- product:', product);
                         product.createdAt = productEvent.created_at;
                         product.merchantPubkey = productEvent.pubkey;
-
 
                         let categoryTags = filterTags(productEvent.tags, 't');
                         if (categoryTags.length > 0) {
