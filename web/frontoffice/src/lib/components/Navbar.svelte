@@ -50,13 +50,9 @@
     }
 
     onMount(async () => {
-        let html = <HTMLHtmlElement>document.querySelector("html");
-
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            html.dataset.theme = "dark";
             prefersDark = true;
         } else {
-            html.dataset.theme = "light";
             prefersDark = false;
         }
 
