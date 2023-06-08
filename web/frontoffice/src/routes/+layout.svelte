@@ -23,7 +23,7 @@
             let placement: Placement;
             if (typeof value === 'string') {
                 description = value;
-                duration = 4000;
+                duration = 5000;
                 placement = window.screen.availWidth >= 1024 ? 'top-center' : 'bottom-right';
             } else {
                 description = value.message;

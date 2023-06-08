@@ -19,8 +19,9 @@
     afterNavigate(() => {
         products = {};
 
-        getProducts(merchantPubkey,
+        getProducts(merchantPubkey, null,
             (productEvent) => {
+console.log('*********** productEvent',productEvent);
                 let content = JSON.parse(productEvent.content);
                 content.createdAt = productEvent.created_at;
                 content.merchantPubkey = productEvent.pubkey;

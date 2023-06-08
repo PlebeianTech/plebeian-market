@@ -163,11 +163,15 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
     })
 }
 
-export function getProducts(merchantPubkey: string | null, receivedCB: (e) => void) {
+export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void) {
     let filter: Filter = { kinds: [EVENT_KIND_PRODUCT] };
 
     if (merchantPubkey) {
         filter.authors = [merchantPubkey];
+    }
+
+    if (productIds) {
+        filter['#d'] = productIds;
     }
 
     let sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);

@@ -14,7 +14,7 @@ export function onImgError(image) {
 // =============================== Shopping Cart ===============================
 export function addToCart(addedProduct: ShoppingCartItem, orderQuantity) {
     if (orderQuantity > addedProduct.quantity) {
-        Error.set('There are just ' + addedProduct.quantity + ' products in stock. You cannot order ' + orderQuantity);
+        Error.set('There are just ' + addedProduct.quantity + ' products in stock. You cannot order ' + orderQuantity + '.');
         return false;
     }
 
@@ -160,7 +160,7 @@ export function refreshProducts() {
     if (currentProductsValue === null || now - currentProductsValue.fetched_at > 60000) {  // 60 seconds
         console.log('************ refreshProducts - refreshing...',)
 
-        getProducts(null,
+        getProducts(null, null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
 

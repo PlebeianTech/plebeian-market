@@ -7,7 +7,7 @@ const config = {
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
-			fallback: null,
+			fallback: 'index.html',
 			precompress: false,
 			strict: true
 		}),
@@ -18,7 +18,8 @@ const config = {
 			entries: [
 				'*',
 				'/p/[pubkey]',
-				'/p/[pubkey]/stall/[stallId]'
+				'/p/[pubkey]/stall/[stallId]',
+				'/product/[product_id]'
 			],
 			handleHttpError: ({ path, referrer, message }) => {
 				if (path === '/admin') {

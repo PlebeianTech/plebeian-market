@@ -50,13 +50,9 @@
     }
 
     onMount(async () => {
-        let html = <HTMLHtmlElement>document.querySelector("html");
-
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            html.dataset.theme = "dark";
             prefersDark = true;
         } else {
-            html.dataset.theme = "light";
             prefersDark = false;
         }
 
@@ -123,7 +119,7 @@
             </div>
 
             <!-- Mobile menu button -->
-            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-3">
+            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-2 -mr-3">
                 <button type="button" class="text-black-800 dark:text-gray-200 focus:outline-none">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
