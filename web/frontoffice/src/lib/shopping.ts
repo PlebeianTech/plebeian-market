@@ -160,7 +160,7 @@ export function refreshProducts() {
     if (currentProductsValue === null || now - currentProductsValue.fetched_at > 60000) {  // 60 seconds
         console.log('************ refreshProducts - refreshing...',)
 
-        getProducts(null,
+        getProducts(null, null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
 

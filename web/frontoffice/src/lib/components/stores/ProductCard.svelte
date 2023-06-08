@@ -16,7 +16,7 @@
     <figure><img src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
     <div class="card-body items-center text-center">
         <h2 class="card-title">
-            {#if product.name}{product.name}{/if}
+            {#if product.name}<a class="hover:underline" href="/product/{product.id}">{product.name}</a>{/if}
         </h2>
 
         {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}
@@ -32,7 +32,7 @@
 
         <div class="mb-4">{#if product.description}{product.description}{/if}</div>
         {#if product.tags}
-            <div class="card-actions justify-end mb-4">
+            <div class="card-actions justify-center mb-4">
                 {#each product.tags as tag}
                     <div class="badge badge-outline">{tag}</div>
                 {/each}

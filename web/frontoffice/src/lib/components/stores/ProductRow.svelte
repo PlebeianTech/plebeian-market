@@ -9,7 +9,7 @@
 </script>
 
 <tr>
-    <td>{#if product.name}{product.name}{/if}</td>
+    <td>{#if product.name}<a class="hover:underline" href="/product/{product.id}">{product.name}</a>{/if}</td>
     <td>{#if product.description}{product.description}{/if}</td>
     <td class="text-center">{product.quantity ?? 0}</td>
     <td class="text-center">{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</td>

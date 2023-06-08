@@ -58,7 +58,7 @@
 
         refreshStalls();
 
-        getProducts(null,
+        getProducts(null, null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
 
