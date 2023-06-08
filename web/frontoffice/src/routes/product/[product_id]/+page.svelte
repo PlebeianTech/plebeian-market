@@ -68,36 +68,40 @@
             <!-- Left (images) -->
             <div class="md:flex w-full md:max-w-[50%]">
                 <!-- Desktop image chooser -->
-                <div class="hidden md:block md:w-1/12 container mx-auto">
-                    <div class="flex flex-wrap md:-m-2">
-                        {#if product.images}
-                            {#each product.images as image, i}
-                                <div class="p-1 md:p-2">
-                                    <img class="block h-full w-full rounded-lg cursor-pointer {activeImage===image || activeImage===null && i===0 ? 'border-2 border-rose-500' : ''}" on:mouseenter={() => activeImage = image}
-                                         src="{image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
-                                </div>
-                            {/each}
-                        {/if}
+                {#if product.images && product.images.length > 1}
+                    <div class="hidden md:block md:w-1/12 container mx-auto">
+                        <div class="flex flex-wrap md:-m-2">
+                            {#if product.images}
+                                {#each product.images as image, i}
+                                    <div class="p-1 md:p-2">
+                                        <img class="block h-full w-full rounded-lg cursor-pointer {activeImage===image || activeImage===null && i===0 ? 'border-2 border-rose-500' : ''}" on:mouseenter={() => activeImage = image}
+                                             src="{image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
+                                    </div>
+                                {/each}
+                            {/if}
+                        </div>
                     </div>
-                </div>
+                {/if}
 
-                <div class="w-full md:w-8/12 align-top mb-5 md:mb-0">
+                <div class="w-full align-top mb-5 md:mb-0 {product.images && product.images.length > 1 ? 'md:w-8/12' : 'md:w-12/12' }">
                     <img class="rounded-lg" src="{activeImage ? activeImage : product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
                 </div>
 
                 <!-- Mobile image chooser -->
-                <div class="md:hidden w-full container mx-auto">
-                    <div class="flex flex-wrap">
-                        {#if product.images}
-                            {#each product.images as image, i}
-                                <div class="flex w-1/4 p-1">
-                                    <img class="block h-full w-full rounded-lg cursor-pointer {activeImage===image || activeImage===null && i===0 ? 'border-2 border-rose-500' : ''}" on:mouseenter={() => activeImage = image}
-                                         src="{image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
-                                </div>
-                            {/each}
-                        {/if}
+                {#if product.images && product.images.length > 1}
+                    <div class="md:hidden w-full container mx-auto">
+                        <div class="flex flex-wrap">
+                            {#if product.images}
+                                {#each product.images as image, i}
+                                    <div class="flex w-1/4 p-1">
+                                        <img class="block h-full w-full rounded-lg cursor-pointer {activeImage===image || activeImage===null && i===0 ? 'border-2 border-rose-500' : ''}" on:mouseenter={() => activeImage = image}
+                                             src="{image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
+                                    </div>
+                                {/each}
+                            {/if}
+                        </div>
                     </div>
-                </div>
+                {/if}
             </div>
 
             <div class="divider md:divider-horizontal"></div>

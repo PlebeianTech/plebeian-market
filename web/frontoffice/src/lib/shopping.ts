@@ -14,7 +14,7 @@ export function onImgError(image) {
 // =============================== Shopping Cart ===============================
 export function addToCart(addedProduct: ShoppingCartItem, orderQuantity) {
     if (orderQuantity > addedProduct.quantity) {
-        Error.set('There are just ' + addedProduct.quantity + ' products in stock. You cannot order ' + orderQuantity);
+        Error.set('There are just ' + addedProduct.quantity + ' products in stock. You cannot order ' + orderQuantity + '.');
         return false;
     }
 
