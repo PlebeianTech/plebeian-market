@@ -6,6 +6,7 @@
     import {onImgError} from "$lib/shopping";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import {refreshStalls} from "$lib/shopping";
+    import {getConfigurationFromFile} from "$lib/utils";
 
     export let whiteListedStalls: string = null;
 
@@ -46,8 +47,7 @@
     }));
 
     onMount(async () => {
-        let response = await fetch('config.json')
-        let config = await response.json();
+        let config = await getConfigurationFromFile();
 
         if (config && config.admin_pubkey.length === 64) {
             // admin pubkey specified, so let's wait
@@ -161,7 +161,7 @@
 
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-3 align-center mx-auto">
     {#each Object.entries(filteredProducts) as [productId, product]}
-        {#if (!whiteListedStalls) || (whiteListedStalls && whiteListedStalls.includes(product.stall_id))}
+        {#if (!whiteListedStalls || whiteListedStalls && whiteListedStalls.length === 0) || (whiteListedStalls && whiteListedStalls.length > 0 && whiteListedStalls.includes(product.stall_id))}
             {#if ((product.images && product.images.length > 0) || product.image) }
                 <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
             {/if}

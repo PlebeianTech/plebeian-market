@@ -100,7 +100,7 @@
                 {/if}
             </div>
 
-            <div class="divider md:divider-horizontal"></div>
+            <div class="divider md:divider-horizontal my-2 md:my-4"></div>
 
             <div class="grid flex-grow w-full md:max-w-[50%] h-fit p-3 md:p-8 flex-grow place-items-center place-content-center text-center text-2xl">
                 <div class="mb-6 text-xl">{#if product.description}{product.description}{/if}</div>

@@ -1,16 +1,15 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { NostrPublicKey } from "$lib/stores";
-    import {requestLoginModal} from "$lib/utils";
+    import {getConfigurationFromFile, requestLoginModal} from "$lib/utils";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
 
     let isSuperAdmin: boolean = false;
 
     onMount(async () => {
-        let response = await fetch('config.json')
-        let config = await response.json();
-        if ($NostrPublicKey === config.admin_pubkey) {
+        let config = await getConfigurationFromFile();
+        if (config && $NostrPublicKey === config.admin_pubkey) {
             isSuperAdmin = true;
         }
     });

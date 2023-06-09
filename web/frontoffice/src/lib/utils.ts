@@ -104,3 +104,13 @@ export function getMonthName(month: number) {
     let firstOfThatMonth = new Date(new Date().getFullYear(), month - 1 /* months start from 0 in javascript */, 1);
     return firstOfThatMonth.toLocaleString('default', { month: 'long' });
 }
+
+export async function getConfigurationFromFile() {
+    let response = await fetch('config.json')
+
+    if (!response.ok) {
+        return false;
+    }
+
+    return await response.json();
+}
