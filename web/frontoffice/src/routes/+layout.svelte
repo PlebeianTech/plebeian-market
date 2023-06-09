@@ -15,6 +15,7 @@
     import LoginModal from "$lib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
     import {closePool, subscribeConfiguration} from "$lib/services/nostr";
+    import {getConfigurationFromFile} from "$lib/utils";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -61,8 +62,7 @@
 
         let receivedAt = 0;
 
-        let response = await fetch('config.json')
-        let config = await response.json();
+        let config = await getConfigurationFromFile();
 
         if (config && config.admin_pubkey.length === 64) {
             subscribeConfiguration(config.admin_pubkey,

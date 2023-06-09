@@ -2,7 +2,7 @@
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import {getBaseUrl} from "$lib/utils";
+    import {getBaseUrl, getConfigurationFromFile} from "$lib/utils";
     import GoldenGai from "$lib/images/golden-gai-tokyo.jpg";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
     import {NostrGlobalConfig} from "$lib/stores";
@@ -11,10 +11,9 @@
     let homepage_banner = GoldenGai;
 
     onMount(async () => {
-        let response = await fetch('config.json')
-        let config = await response.json();
+        let config = await getConfigurationFromFile();
 
-        if (config.homepage_banner_image && config.homepage_banner_image.length > 0) {
+        if (config && config.homepage_banner_image && config.homepage_banner_image.length > 0) {
             homepage_banner = config.homepage_banner_image;
         }
     });

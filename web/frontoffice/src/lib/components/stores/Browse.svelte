@@ -9,6 +9,7 @@
     import { goto } from "$app/navigation";
     import {publishConfiguration} from "$lib/services/nostr";
     import {newNostrConversation} from "$lib/nostr/utils";
+    import {getConfigurationFromFile} from "$lib/utils";
 
     export let merchantPubkey: string;
 
@@ -74,9 +75,7 @@
     onMount(async () => {
         refreshStalls();
 
-        let response = await fetch('config.json')
-        let config = await response.json();
-
+        let config = await getConfigurationFromFile();
         if (config && config.admin_pubkey.length === 64 && $NostrPublicKey === config.admin_pubkey) {
             isSuperAdmin = true;
         }
