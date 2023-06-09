@@ -38,6 +38,7 @@ services:
       - LETSENCRYPT_HOST=staging.plebeian.market
     depends_on:
       - api
+      - web
     networks:
       - proxy
     volumes:
