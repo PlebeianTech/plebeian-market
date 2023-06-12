@@ -1,13 +1,17 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import ResumeList from "$lib/components/resume/List.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {NostrPublicKey} from "$lib/stores";
     import {waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
+    import {goto} from "$app/navigation";
 
-    onMount(async () => {
-        waitAndShowLoginIfNotLoggedAlready();
-    });
+    function goEditResume() {
+        if ($NostrPublicKey) {
+            goto("/p/" + $NostrPublicKey + "#edit");
+        } else {
+            waitAndShowLoginIfNotLoggedAlready();
+        }
+    }
 </script>
 
 <svelte:head>
@@ -17,9 +21,7 @@
 <Titleh1>Skills Market</Titleh1>
 
 <div class="flex justify-center items-center">
-    {#if $NostrPublicKey}
-        <a class="btn btn-primary" href="/p/{$NostrPublicKey}#edit">Edit My Résumé</a>
-    {/if}
+    <a class="btn btn-primary" on:click={goEditResume} >Edit My Résumé</a>
 </div>
 
 <div class="divider"></div>
