@@ -7,7 +7,6 @@
     import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import {NostrPublicKey} from "$lib/stores";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
 
     export let pubkey: string;
 
@@ -44,8 +43,6 @@
 
     onMount(
         async () => {
-            await waitAndShowLoginIfNotLoggedAlready();
-
             document.body.scrollTop = document.documentElement.scrollTop = 0;
 
             let parts = $page.url.href.split("#");
@@ -73,9 +70,11 @@
                 {#if resume && pubkey === $NostrPublicKey}
                     <button class="btn btn-primary btn-lg" on:click|preventDefault={() => edit = true}>Edit</button>
                 {/if}
-                <a class="btn btn-primary btn-lg" on:click={() => newNostrConversation(pubkey)}>
-                    Contact
-                </a>
+                {#if resume && pubkey !== $NostrPublicKey}
+                    <a class="btn btn-primary btn-lg" on:click={() => newNostrConversation(pubkey)}>
+                        Contact
+                    </a>
+                {/if}
             </div>
             <div class="card bg-base-300 shadow-xl mt-4 pt-6 place-items-center items-center">
                 <figure class="avatar mask mask-squircle h-80 w-80">

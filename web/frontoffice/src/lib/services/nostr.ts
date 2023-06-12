@@ -49,7 +49,6 @@ async function createEvent(kind: number, content: any, tags: any = []) {
         }
 
         event.pubkey = pubKey;
-console.log('EVENT', event);
         event.id = getEventHash(event);
         event.sig = signEvent(event, privKey);
         return event;
@@ -77,7 +76,14 @@ export async function publishResume(resume: UserResume, successCB: () => void) {
 
 export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string, metadata: UserMetadata) => void) {
     let sub = get(NostrPool).sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
-    sub.on('event', e => receivedCB(e.pubkey, JSON.parse(e.content)));
+    sub.on('event', e => {
+        try {
+            let jsonDecodedMetadata = JSON.parse(e.content);
+            jsonDecodedMetadata.created_at = e.created_at;
+            jsonDecodedMetadata.pubkey = e.pubkey;
+                receivedCB(e.pubkey, jsonDecodedMetadata);
+        } catch (error) { }
+    });
 }
 
 export function subscribeReactions(listOfNotesToGetInfo, receivedCB: (event) => void) {
