@@ -1,6 +1,6 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {ShoppingCart, stalls} from "../../stores";
+    import {ShoppingCart, stalls} from "$lib/stores";
     import {deleteFromCart, onImgError} from "$lib/shopping";
     import Trash from "$sharedLib/components/icons/Trash.svelte";
     import Quantity from "./Quantity.svelte";
@@ -55,9 +55,7 @@
                 {/if}
                 <th>Price</th>
                 <th>Quantity</th>
-                {#if !compact}
-                    <th>Image</th>
-                {/if}
+                <th>Image</th>
                 <th>Total</th>
                 <th></th>
             </tr>
@@ -66,20 +64,22 @@
         <tbody>
         {#each [...$ShoppingCart.products] as [stallId, products]}
             <tr>
-                <td colspan="{compact ? 5 : 7}" class="bg-gray-300 dark:bg-gray-700">
+                <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700">
                     <p class="ml-3">
-                        {#if $stalls !== null && $stalls.stalls[stallId]}
-                            Stall: {$stalls.stalls[stallId].name ?? ''}
-                        {:else}
-                            Stall id: {stallId}
-                        {/if}
+                        <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
+                            {#if $stalls !== null && $stalls.stalls[stallId]}
+                                Stall: {$stalls.stalls[stallId].name ?? ''}
+                            {:else}
+                                Stall id: {stallId}
+                            {/if}
+                        </a>
                     </p>
                 </td>
             </tr>
 
             {#each [...products] as [productId, product]}
                 <tr>
-                    <th>{#if product.name}{product.name}{/if}</th>
+                    <th>{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
                     {#if !compact}
                         <td>{#if product.description}{product.description.substring(0,80)}{#if product.description.length > 80}...{/if}{/if}</td>
                     {/if}
@@ -87,17 +87,15 @@
                     <td>
                         <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
                     </td>
-                    {#if !compact}
-                        <td>
-                            <div class="card  shadow-xl w-full lg:w-32">
-                                <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
-                            </div>
-                        </td>
-                    {/if}
-                    <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
-                    <td class="hover cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
-                        <Trash />
+                    <td>
+                        <div class="card shadow-xl { compact ? 'w-16' : 'w-32'}">
+                            <img class:rounded-xl={!compact} src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
+                        </div>
                     </td>
+                    <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                    <th class="cursor-pointer mr-4" on:click={() => deleteFromCart(stallId, product.id)}>
+                        <Trash />
+                    </th>
                 </tr>
             {/each}
         {/each}
@@ -121,24 +119,26 @@
                 <tr class="bg-gray-300 dark:bg-gray-700">
                     <td colspan="5">
                         <p class="mx-3">
-                            {#if $stalls !== null && $stalls.stalls[stallId]}
-                                Stall: {$stalls.stalls[stallId].name ?? ''}
-                            {:else}
-                                Stall id: {stallId}
-                            {/if}
+                            <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
+                                {#if $stalls !== null && $stalls.stalls[stallId]}
+                                    Stall: {$stalls.stalls[stallId].name ?? ''}
+                                {:else}
+                                    Stall id: {stallId}
+                                {/if}
+                            </a>
                         </p>
                     </td>
                 </tr>
 
                 {#each [...products] as [productId, product]}
                     <tr>
-                        <th class="text-xs">{#if product.name}{product.name}{/if}</th>
+                        <th class="text-xs">{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
                         <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
                         <td>
                             <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} compact={true} />
                         </td>
                         <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
-                        <td class="hover cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
+                        <td class="hover:cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
                             <Trash />
                         </td>
                     </tr>

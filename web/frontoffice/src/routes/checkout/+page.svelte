@@ -157,17 +157,15 @@
             <tbody>
             {#each [...$ShoppingCart.products] as [stallId, products], i}
                 <tr>
-                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700 text-sm md:text-base">
-                        <p class="mx-2 md:mx-3">
-                            Order #{i+1}
-                        </p>
-                        {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
-                            <p class="mx-2 md:mx-3 mt-1 md:mt-3">
+                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2">
+                        <p class="mx-2 md:mx-3 text-xs md:text-base">
+                            Order #{i+1} -
+                            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
                                 {$stalls.stalls[stallId].name}
-                            </p>
-                        {/if}
+                            {/if}
+                        </p>
 
-                        <p class="mx-2 md:mx-3 mt-1 md:mt-3">
+                        <p class="mx-2 md:mx-3 mt-1">
                             {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
                                 Shipping:
                                 <select bind:value={$stalls.stalls[stallId].shippingOption}
@@ -200,16 +198,16 @@
 
                 {#each [...products] as [productId, product]}
                     <tr class="border-b border-gray-600 hover text-sm md:text-base">
-                        <td>
-                            <p class="px-1">{#if product.name}{product.name}{/if}</p>
+                        <td class="py-1">
+                            <p class="pl-3">{#if product.name}{product.name}{/if}</p>
                         </td>
-                        <td>
-                            <div class="card shadow-xl w-24 md:w-32">
+                        <td class="py-1">
+                            <div class="card shadow-xl w-20 md:w-20">
                                 <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                             </div>
                         </td>
-                        <td>
-                            <p class="px-1">
+                        <td class="py-1">
+                            <p class="pr-2">
                                 {product.price} x {product.orderQuantity} = {(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}
                             </p>
                         </td>
