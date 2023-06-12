@@ -126,9 +126,9 @@
                     </svg>
                 </button>
 
-                {#if $NostrPublicKey && ($ShoppingCart.summary.totalQuantity || $privateMessages.unreadConversations)}
+                {#if $ShoppingCart.summary.totalQuantity || $privateMessages.unreadConversations}
                     <span class="indicator-item badge badge-sm badge-error -ml-3">
-                        {Number($ShoppingCart.summary.totalQuantity) + (Number($privateMessages.unreadConversations) ?? 0)}
+                        {Number($ShoppingCart.summary.totalQuantity ?? 0) + Number($privateMessages.unreadConversations ?? 0)}
                     </span>
                 {/if}
             </div>
@@ -145,7 +145,11 @@
                         <svg class="swap-on fill-current w-9 h-9" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" /></svg>
                     </label>
 
-                    <div class="dropdown dropdown-end mr-2">
+                    <div class="btn btn-ghost btn-circle mr-3">
+                        <PrivateMessages />
+                    </div>
+
+                    <div class="dropdown dropdown-end ">
                         <label tabindex="0" class="btn btn-ghost btn-circle">
                             <div class="indicator">
                                 <ShoppingCartIcon />
@@ -160,17 +164,14 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="btn btn-ghost btn-circle mr-3">
-                        <PrivateMessages />
-                    </div>
                 </div>
 
-                <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
+                <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both pl-3" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
                     {#if $NostrPublicKey}
                         <ProfilePicture />
                     {:else}
-                        <label class="btn btn-circle swap swap-rotate">
+                        <!-- Desktop menu button -->
+                        <label class="btn btn-circle swap swap-rotate hidden md:grid">
                             <!-- this hidden checkbox controls the state -->
                             <input type="checkbox" />
                             <!-- hamburger icon -->
@@ -180,7 +181,7 @@
                         </label>
                     {/if}
 
-                    <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-60 z-40 float-right right-2">
+                    <ul role="menuitem" tabindex="0" class="float-right right-2 w-60 z-40 p-2 shadow menu menu-compact dropdown-content bg-base-300 text-accent-contend rounded-box md:border border-neutral-300">
 
                         {#if !$NostrPublicKey}
                             <li class="block md:hidden md:h-0 text-primary">

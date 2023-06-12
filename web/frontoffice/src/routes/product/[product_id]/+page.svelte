@@ -114,7 +114,7 @@
                 {/if}
 
                 {#if $stalls !== null && $stalls.stalls[product.stall_id]}
-                    <div class="md:max-w-[60%] alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer text-lg" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.merchantPubkey+'/stall/'+product.stall_id)}>
+                    <div class="md:max-w-[70%] alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer text-lg" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.merchantPubkey+'/stall/'+product.stall_id)}>
                         <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
                             <Store />
                         </div>
