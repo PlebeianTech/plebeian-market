@@ -3,7 +3,7 @@
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {getProducts} from "$lib/services/nostr";
     import {onImgError, refreshStalls} from "$lib/shopping";
-    import {goto} from "$app/navigation";
+    import {afterNavigate, goto} from "$app/navigation";
     import {stalls} from "$lib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import Quantity from "$lib/components/stores/Quantity.svelte";
@@ -18,7 +18,9 @@
     let orderQuantity = 1;
     let activeImage = null;
 
-    onMount(async () => {
+    afterNavigate(() => {
+        product = null;
+
         if (data.product_id) {
             getProducts(null, [data.product_id],
                 (productEvent) => {
@@ -43,9 +45,11 @@
                         }
                     }
                 });
-
-            refreshStalls();
         }
+    });
+
+    onMount(async () => {
+        refreshStalls();
     });
 </script>
 
