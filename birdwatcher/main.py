@@ -1,6 +1,6 @@
 import aiohttp
+import argparse
 import asyncio
-from dataclasses import dataclass
 from enum import IntEnum
 import json
 import logging
@@ -26,35 +26,38 @@ dictConfig({
 class EventKind(IntEnum):
     DM = 4
     STALL = 30017
+    AUCTION = 30020
+    BID = 30021
 
-@dataclass
 class Relay:
-    url: str
-    stall_pubkeys: List[str]
+    def __init__(self, url, args):
+        self.url = url
+        self.args = args
 
-    async def check_stall(self, stall_pubkey):
+        self.subscribed_auction_event_ids = set()
+        self.subscribed_merchant_pubkeys = set()
+        self.auction_owners = {} # event ID to pubkey
+
+    async def check_ours(self, event, cb):
         async def do_get(session, url):
             async with session.get(url) as response:
                 if response.status == 404:
-                    logging.debug(f"Not our stall {stall_pubkey}...")
+                    logging.debug(f"Not our merchant {event['pubkey']}...")
                 elif response.status == 200:
-                    if stall_pubkey not in self.stall_pubkeys:
-                        logging.info(f"Found stall {stall_pubkey}!")
-                        self.stall_pubkeys.append(stall_pubkey)
-                        await self.subscribe_dm(stall_pubkey)
+                    await cb(**event)
         async with aiohttp.ClientSession() as session:
-            await asyncio.create_task(do_get(session, f"{API_BASE_URL}/api/stalls/{stall_pubkey}"))
+            await asyncio.create_task(do_get(session, f"{API_BASE_URL}/api/merchants/{event['pubkey']}"))
 
-    async def post_dm(self, stall_pubkey, dm_event):
+    async def post_dm(self, merchant_pubkey, dm_event):
         async def do_post(session, url, json):
             async with session.post(url, json=json) as response:
-                logging.debug(f"POST to stall {stall_pubkey}: {dm_event}")
+                logging.debug(f"POST to merchant {merchant_pubkey}: {dm_event}")
                 if response.status == 200:
-                    logging.info(f"Forwarded message to stall {stall_pubkey}.")
+                    logging.info(f"Forwarded message to merchant {merchant_pubkey}.")
                 elif response.status == 409:
-                    logging.info(f"Order already exists at {stall_pubkey}.")
+                    logging.info(f"Order already exists at {merchant_pubkey}.")
                 elif response.status == 500:
-                    logging.error(f"Error posting to stall {stall_pubkey}.")
+                    logging.error(f"Error posting to merchant {merchant_pubkey}.")
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")
@@ -62,7 +65,25 @@ class Relay:
                     response_text = await response.text()
                     logging.debug(f"POST responded with {response_text}!")
         async with aiohttp.ClientSession() as session:
-            await asyncio.create_task(do_post(session, f"{API_BASE_URL}/api/stalls/{stall_pubkey}/events", dm_event))
+            await asyncio.create_task(do_post(session, f"{API_BASE_URL}/api/merchants/{merchant_pubkey}/messages", dm_event))
+
+    async def post_bid(self, auction_event_id, event):
+        merchant_pubkey = self.auction_owners[auction_event_id]
+        async def do_post(session, url, json):
+            async with session.post(url, json=json) as response:
+                logging.debug(f"POST to auction {auction_event_id} of merchant {merchant_pubkey}: {event}")
+                if response.status == 200:
+                    logging.info(f"Forwarded bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
+                elif response.status == 500:
+                    logging.error(f"Error posting bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
+                try:
+                    response_json = await response.json()
+                    logging.debug(f"POST responded with {response_json}!")
+                except Exception:
+                    response_text = await response.text()
+                    logging.debug(f"POST responded with {response_text}!")
+        async with aiohttp.ClientSession() as session:
+            await asyncio.create_task(do_post(session, f"{API_BASE_URL}/api/merchants/{merchant_pubkey}/auctions/{auction_event_id}/bids", event))
 
     async def subscribe_stall(self):
         logging.info(f"({self.url}) Subscribing for stall events...")
@@ -70,11 +91,29 @@ class Relay:
         await self.ws.send(json.dumps(['REQ', subscription_id, {'kinds': [EventKind.STALL]}]))
         return subscription_id
 
-    async def subscribe_dm(self, pubkey):
-        logging.info(f"({self.url}) Subscribing DM for {pubkey}...")
+    async def subscribe_auction(self):
+        logging.info(f"({self.url}) Subscribing for auction events...")
         subscription_id = os.urandom(10).hex()
-        await self.ws.send(json.dumps(['REQ', subscription_id, {"#p": [pubkey], 'kinds': [EventKind.DM]}]))
+        await self.ws.send(json.dumps(['REQ', subscription_id, {'kinds': [EventKind.AUCTION]}]))
         return subscription_id
+
+    async def subscribe_dm(self, pubkey, **_):
+        if pubkey not in self.subscribed_merchant_pubkeys:
+            self.subscribed_merchant_pubkeys.add(pubkey)
+            logging.info(f"({self.url}) Subscribing to DMs for merchant #p={pubkey}...")
+            subscription_id = os.urandom(10).hex()
+            await self.ws.send(json.dumps(['REQ', subscription_id, {"#p": [pubkey], 'kinds': [EventKind.DM]}]))
+            return subscription_id
+
+    async def subscribe_bids(self, pubkey, id, **_):
+        if id not in self.subscribed_auction_event_ids:
+            self.subscribed_auction_event_ids.add(id)
+            assert id not in self.auction_owners
+            self.auction_owners[id] = pubkey
+            logging.info(f"({self.url}) Subscribing to bids for auction #e={id} of merchant {pubkey}...")
+            subscription_id = os.urandom(10).hex()
+            await self.ws.send(json.dumps(['REQ', subscription_id, {"#e": [id], 'kinds': [EventKind.BID]}]))
+            return subscription_id
 
     async def listen(self):
         while True:
@@ -86,14 +125,15 @@ class Relay:
                 return
 
             try:
-                stall_subscription_id = None
-                if self.stall_pubkeys:
-                    # if we got some pubkeys to start with, just go with those...
-                    for stall_pubkey in self.stall_pubkeys:
-                        await self.subscribe_dm(stall_pubkey)
-                else:
-                    # ... otherwise we need to discover the stalls
-                    stall_subscription_id = await self.subscribe_stall()
+                if self.args.merchant:
+                    await self.subscribe_dm(self.args.merchant)
+
+                    if self.args.auction:
+                        await self.subscribe_bids(self.args.merchant, self.args.auction)
+
+                if self.args.discover:
+                    await self.subscribe_auction()
+                    await self.subscribe_stall()
             except Exception:
                 logging.exception(f"({self.url}) Cannot subscribe.")
                 return
@@ -105,11 +145,16 @@ class Relay:
                     if message[0] == 'EVENT':
                         event = message[2]
                         match event['kind']:
+                            case EventKind.AUCTION:
+                                await self.check_ours(event, self.subscribe_bids)
                             case EventKind.STALL:
-                                await self.check_stall(event['pubkey'])
+                                await self.check_ours(event, self.subscribe_dm)
                             case EventKind.DM:
-                                stall_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
-                                await self.post_dm(stall_pubkey, event)
+                                merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
+                                await self.post_dm(merchant_pubkey, event)
+                            case EventKind.BID:
+                                auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
+                                await self.post_bid(auction_event_id, event)
             except Exception:
                 logging.error(f"({self.url}) Connection closed.")
                 await asyncio.sleep(10)
@@ -118,15 +163,21 @@ async def main():
     for task in asyncio.as_completed([asyncio.create_task(relay.listen()) for relay in relays]):
         await task
 
-stall_pubkeys = []
+parser = argparse.ArgumentParser(
+    prog="Plebeian Market BirdWatcher",
+    description="Watches Nostr relays for certain events needed by Plebeian Market to function")
+parser.add_argument("-r", "--relay", help="relay to connect to")
+parser.add_argument("--discover", default=True, help="discover stalls and auctions", action=argparse.BooleanOptionalAction)
+parser.parse_args(["--no-discover"])
+parser.add_argument("-m", "--merchant", help="pubkey of the merchant to listen to events for")
+parser.add_argument("-a", "--auction", help="event ID of the auction to listen to bids for (NB: we assume the auction belongs to the specified merchant)")
 
-if len(sys.argv) > 2:
-    stall_pubkeys.append(sys.argv[2])
+args = parser.parse_args()
 
 relays = []
 
-if len(sys.argv) > 1:
-    relays.append(Relay(sys.argv[1], stall_pubkeys))
+if args.relay:
+    relays.append(Relay(url=args.relay, args=args))
 
 while len(relays) == 0:
     logging.info(f"Connecting to API at {API_BASE_URL}...")
@@ -134,7 +185,7 @@ while len(relays) == 0:
     relay_urls = [r['url'] for r in response.json()['relays']]
     logging.info(f"Got {len(relay_urls)} relays!")
     for url in relay_urls:
-        relays.append(Relay(url, stall_pubkeys))
+        relays.append(Relay(url, args))
     if len(relays) == 0:
         time.sleep(10)
 

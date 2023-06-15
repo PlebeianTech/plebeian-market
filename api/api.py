@@ -329,7 +329,7 @@ def put_me(user):
                 user.shipping_worldwide_usd = float(request.json['shipping_worldwide_usd'])
             except (ValueError, TypeError):
                 user.shipping_worldwide_usd = 0
-        user.ensure_stall_key()
+        user.ensure_merchant_key()
         get_nostr_client(user).publish_stall(user.identity, user.stall_name, user.stall_description, 'USD', user.shipping_from, user.shipping_domestic_usd, user.shipping_worldwide_usd)
 
     if 'nostr_private_key' in request.json:
@@ -777,11 +777,15 @@ def get_put_delete_entity(key, cls, singular, has_item):
                 setattr(entity, k, v)
 
             nostr = False
-            # TODO: this should also happen for auctions after we nostrify them!
-            if isinstance(entity, m.Listing) and entity.started:
-                user.ensure_stall_key()
-                get_nostr_client(user).publish_product(**entity.to_nostr())
-                nostr = True
+            if entity.started:
+                user.ensure_merchant_key()
+                match entity:
+                    case m.Auction():
+                        get_nostr_client(user).publish_auction(**entity.to_nostr())
+                        nostr = True
+                    case m.Listing():
+                        get_nostr_client(user).publish_product(**entity.to_nostr())
+                        nostr = True
 
             db.session.commit()
 
@@ -835,10 +839,13 @@ def post_media(key, cls, singular):
         added_media.append(media)
     db.session.commit()
 
-    # TODO: should also happen for auctions after we nostrify those!
-    if isinstance(entity, m.Listing) and entity.started:
+    if entity.started:
         nostr_client = get_nostr_client(entity.item.seller)
-        nostr_client.publish_product(**entity.to_nostr())
+        match entity:
+            case m.Auction():
+                nostr_client.publish_auction(**entity.to_nostr())
+            case m.Listing():
+                nostr_client.publish_product(**entity.to_nostr())
 
     return jsonify({'media': [media.to_dict() for media in added_media]})
 
@@ -923,9 +930,12 @@ def put_publish(user, key, cls):
     if isinstance(entity, m.Auction):
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
 
-    if isinstance(entity, m.Listing):
-        user.ensure_stall_key()
-        get_nostr_client(user).publish_product(**entity.to_nostr())
+    user.ensure_merchant_key()
+    match entity:
+        case m.Auction():
+            get_nostr_client(user).publish_auction(**entity.to_nostr())
+        case m.Listing():
+            get_nostr_client(user).publish_product(**entity.to_nostr())
 
     db.session.commit()
 
@@ -1230,19 +1240,20 @@ def get_campaign_featured_avatars(key):
 def get_relays():
     return jsonify({'relays': [{'url': r.url} for r in m.Relay.query.all()]})
 
-@api_blueprint.route("/api/stalls/<pubkey>", methods=['GET'])
-def get_stall(pubkey):
-    seller = m.User.query.filter_by(stall_public_key=pubkey).one_or_none()
+@api_blueprint.route("/api/merchants/<pubkey>", methods=['GET'])
+def get_merchant(pubkey):
+    seller = m.User.query.filter_by(merchant_public_key=pubkey).one_or_none()
     if not seller:
-        return jsonify({'message': "Stall not found!"}), 404
+        return jsonify({'message': "Merchant not found!"}), 404
 
-    return jsonify({'name': seller.stall_name, 'description': seller.stall_description})
+    # NB: a merchant can currently only have one stall, but this will change
+    return jsonify({'stalls': [{'name': seller.stall_name, 'description': seller.stall_description}]})
 
-@api_blueprint.route("/api/stalls/<pubkey>/events", methods=['POST'])
-def post_stall_event(pubkey):
-    seller = m.User.query.filter_by(stall_public_key=pubkey).one_or_none()
+@api_blueprint.route("/api/merchants/<pubkey>/messages", methods=['POST'])
+def post_merchant_message(pubkey):
+    seller = m.User.query.filter_by(merchant_public_key=pubkey).one_or_none()
     if not seller:
-        return jsonify({'message': "Stall not found!"}), 404
+        return jsonify({'message': "Merchant not found!"}), 404
 
     event_data = [0, request.json['pubkey'], request.json['created_at'], request.json['kind'], request.json['tags'], request.json['content']]
     event_data_str = json.dumps(event_data, separators=(",", ":"), ensure_ascii=False)
@@ -1260,7 +1271,7 @@ def post_stall_event(pubkey):
         return jsonify({'message': "Invalid event signature!"}), 400
 
     if request.json['kind'] == 4:
-        sk = PrivateKey(bytes.fromhex(seller.stall_private_key))
+        sk = PrivateKey(bytes.fromhex(seller.merchant_private_key))
         cleartext_content = json.loads(sk.decrypt_message(request.json['content'], public_key_hex=request.json['pubkey']))
 
         if int(cleartext_content['type']) == 0:
@@ -1349,5 +1360,15 @@ def post_stall_event(pubkey):
                     'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
                     'payment_options': payment_options,
             }))
+
+    return jsonify({})
+
+@api_blueprint.route("/api/merchants/<merchant_pubkey>/auctions/<auction_event_id>/bids", methods=['POST'])
+def post_auction_bid(merchant_pubkey, auction_event_id):
+    merchant = m.User.query.filter_by(merchant_public_key=merchant_pubkey).one_or_none()
+    if not merchant:
+        return jsonify({'message': "Merchant not found!"}), 404
+
+    app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
 
     return jsonify({})

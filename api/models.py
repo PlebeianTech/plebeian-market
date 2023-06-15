@@ -153,6 +153,9 @@ class User(WalletMixin, db.Model):
 
     lightning_address = db.Column(db.String(64), nullable=True)
 
+    merchant_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    merchant_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
+
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     @property
@@ -168,8 +171,6 @@ class User(WalletMixin, db.Model):
     profile_image_url = db.Column(db.String(256), nullable=True)
 
     # TODO: move these to a "stalls" table when we decide we need multiple stalls per user
-    stall_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
-    stall_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
@@ -179,12 +180,11 @@ class User(WalletMixin, db.Model):
     shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
 
-    # TODO: this will become obsolete after we move stalls to a separate table
-    def ensure_stall_key(self):
-        if self.stall_private_key is None:
-            self.stall_private_key = PrivateKey().hex()
-        if self.stall_public_key is None:
-            self.stall_public_key = PrivateKey(bytes.fromhex(self.stall_private_key)).public_key.hex()
+    def ensure_merchant_key(self):
+        if self.merchant_private_key is None:
+            self.merchant_private_key = PrivateKey().hex()
+        if self.merchant_public_key is None:
+            self.merchant_public_key = PrivateKey(bytes.fromhex(self.merchant_private_key)).public_key.hex()
 
     email = db.Column(db.String(64), unique=True, nullable=True, index=True)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -900,6 +900,18 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         top_bid = self.get_top_bid()
         return top_bid.amount >= self.reserve_bid if top_bid else False
 
+    def to_nostr(self):
+        return {
+            'id': self.key,
+            'stall_id': self.item.seller.identity,
+            'name': self.item.title,
+            'description': self.item.description,
+            'images': [media.url for media in self.item.media],
+            'starting_bid': self.starting_bid,
+            'start_date': int(self.start_date.timestamp()) if self.start_date else None,
+            'duration': self.duration_hours * 60 * 60,
+        }
+
     def to_dict(self, for_user=None):
         if not self.started:
             ends_in_seconds = None
@@ -1086,7 +1098,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
         assert isinstance(for_user, int | None)
 
         listing = {
-            'stall_public_key': self.item.seller.stall_public_key,
+            'merchant_public_key': self.item.seller.merchant_public_key,
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,

@@ -810,6 +810,10 @@ class MockNostrClient:
         app.logger.info(f"Nostr Product: {args=} {kwargs=}")
         return True
 
+    def publish_auction(self, *args, **kwargs):
+        app.logger.info(f"Nostr Auction: {args=} {kwargs=}")
+        return True
+
 class NostrClient:
     def __init__(self, private_key, relays):
         self.private_key = private_key
@@ -870,7 +874,7 @@ class NostrClient:
                 'images': images,
                 'currency': currency,
                 'price': price,
-                'quantity': quantity
+                'quantity': quantity,
             }
             event = Event(kind=30018, content=json.dumps(product_json))
             self.private_key.sign_event(event)
@@ -879,6 +883,27 @@ class NostrClient:
             return True
         except:
             app.logger.exception("Error while publishing Nostr product.")
+            return False
+
+    def publish_auction(self, id, stall_id, name, description, images, starting_bid, start_date, duration):
+        try:
+            auction_json = {
+                'id': id,
+                'stall_id': stall_id,
+                'name': name,
+                'description': description,
+                'images': images,
+                'starting_bid': starting_bid,
+                'start_date': start_date,
+                'duration': duration,
+            }
+            event = Event(kind=30020, content=json.dumps(auction_json))
+            self.private_key.sign_event(event)
+            app.logger.debug(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            self.relay_manager.publish_event(event)
+            return True
+        except:
+            app.logger.exception("Error while publishing Nostr auction.")
             return False
 
 def get_nostr_client(user):
@@ -890,7 +915,7 @@ def get_nostr_client(user):
                 private_key = PrivateKey.from_nsec(json.load(f)['NSEC'])
             relays = app.config['DEFAULT_NOSTR_RELAYS']
         else:
-            private_key = PrivateKey(bytes.fromhex(user.stall_private_key))
+            private_key = PrivateKey(bytes.fromhex(user.merchant_private_key))
             relays = [r['url'] for r in user.get_relays()]
         return NostrClient(private_key, relays)
 
