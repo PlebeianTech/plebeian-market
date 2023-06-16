@@ -22,8 +22,9 @@
         getProducts(merchantPubkey, null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
-                content.createdAt = productEvent.created_at;
-                content.merchantPubkey = productEvent.pubkey;
+                content.event = productEvent;
+                //content.createdAt = productEvent.created_at;
+                //content.merchantPubkey = productEvent.pubkey;
 
                 if (!content.id) {
                     let productId = getFirstTagValue(productEvent.tags, 'd');
@@ -38,7 +39,7 @@
 
                 if (content.stall_id === stallId) {
                     if (productId in products) {
-                        if (products[productId].createdAt < productEvent.created_at) {
+                        if (products[productId].event.created_at < productEvent.created_at) {
                             products[productId] = content;
                         }
                     } else {
@@ -57,20 +58,21 @@
         Contact the merchant
     </button>
     <div class="divider divider-horizontal hidden md:block"></div>
-    <button class="btn hidden md:block" class:btn-active={listView} on:click={() => listView=true}>
+    <button class="btn hidden md:block" class:btn-active={listView} on:click={() => listView = true}>
         <ViewList />
     </button>
-    <button class="btn hidden md:block" class:btn-active={!listView} on:click={() => listView=false}>
+    <button class="btn hidden md:block" class:btn-active={!listView} on:click={() => listView = false}>
         <ViewCards />
     </button>
 </div>
 
 {#if listView}
-    <table class="table table-auto table-zebra w-full place-content-center">
+    <table class="table table-auto table-zebra w-full place-content-center justify-center text-center">
         <thead>
             <tr>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Type</th>
                 <th>Stock</th>
                 <th>Price</th>
                 <th>Image</th>

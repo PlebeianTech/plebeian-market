@@ -32,7 +32,7 @@
 
     async function postToNostr() {
         if (message && message !== '') {
-            sendMessage(message, nostrRoomId, null,
+            sendMessage(message, nostrRoomId, null, null,
                 () => {
                     textConfirmationVisible = false;
                     Info.set("¡Published to Nostr!");

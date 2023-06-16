@@ -321,7 +321,7 @@
         if ($NostrPublicKey === null) {
             ErrorStore.set("You need to use a Nostr browser extension to be able to send messages to the chat.");
         } else if (content) {
-            sendMessage(content, nostrRoomId, nostrEventBeingRepliedTo,
+            sendMessage(content, nostrRoomId, nostrEventBeingRepliedTo, null,
                 () => {
                     nostrEventBeingRepliedTo = null;
                     textarea.value = '';

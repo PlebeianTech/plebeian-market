@@ -43,13 +43,13 @@ export async function wait(milliseconds) {
     await new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-export const formatTimestamp = ts => {
+export function formatTimestamp(ts, show_date_always = false) {
     const today = new Date().setHours(0, 0, 0, 0);
     const thatDay = new Date(ts * 1000).setHours(0, 0, 0, 0);
 
     let format;
 
-    if (today === thatDay) {
+    if (today === thatDay && !show_date_always) {
         format = {
             timeStyle: 'short',
         };
