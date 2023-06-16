@@ -13,10 +13,11 @@ from nostr.key import PrivateKey
 import pyqrcode
 import random
 from slugify import slugify
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 import string
+import uuid
 
 from extensions import db
 from main import app
@@ -829,6 +830,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
+
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
     @property
@@ -902,7 +905,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     def to_nostr(self):
         return {
-            'id': self.key,
+            'id': str(self.uuid),
             'stall_id': self.item.seller.identity,
             'name': self.item.title,
             'description': self.item.description,
@@ -1045,6 +1048,8 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
+
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
     @property
@@ -1084,7 +1089,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     def to_nostr(self):
         return {
-            'id': self.key,
+            'id': str(self.uuid),
             'stall_id': self.item.seller.identity,
             'name': self.item.title,
             'description': self.item.description,

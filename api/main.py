@@ -856,7 +856,7 @@ class NostrClient:
                         'countries': ["Worldwide"],
                     },
                 ]}
-            event = Event(kind=30017, content=json.dumps(stall_json))
+            event = Event(kind=30017, content=json.dumps(stall_json), tags=[['d', id]])
             self.private_key.sign_event(event)
             self.relay_manager.publish_event(event)
             return True
@@ -876,7 +876,7 @@ class NostrClient:
                 'price': price,
                 'quantity': quantity,
             }
-            event = Event(kind=30018, content=json.dumps(product_json))
+            event = Event(kind=30018, content=json.dumps(product_json), tags=[['d', id]])
             self.private_key.sign_event(event)
             app.logger.debug(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
@@ -897,7 +897,7 @@ class NostrClient:
                 'start_date': start_date,
                 'duration': duration,
             }
-            event = Event(kind=30020, content=json.dumps(auction_json))
+            event = Event(kind=30020, content=json.dumps(auction_json), tags=[['d', id]])
             self.private_key.sign_event(event)
             app.logger.debug(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)

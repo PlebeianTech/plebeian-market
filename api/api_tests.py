@@ -648,7 +648,7 @@ class TestApi(unittest.TestCase):
 
         copy_of_signed_event = dict(signed_event)
         copy_of_signed_event['sig'] = "12345"
-        code, response = self.post(f"/api/merchants/{listing_merchants_public_key}/messages", copy_of_signed_event)
+        code, response = self.post(f"/api/merchants/{listing_merchant_public_key}/messages", copy_of_signed_event)
         self.assertEqual(code, 400)
         self.assertIn("invalid event signature", response['message'].lower())
 
