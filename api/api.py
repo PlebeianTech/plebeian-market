@@ -781,10 +781,10 @@ def get_put_delete_entity(key, cls, singular, has_item):
                 user.ensure_merchant_key()
                 match entity:
                     case m.Auction():
-                        get_nostr_client(user).publish_auction(**entity.to_nostr())
+                        entity.nostr_event_id = get_nostr_client(user).publish_auction(**entity.to_nostr())
                         nostr = True
                     case m.Listing():
-                        get_nostr_client(user).publish_product(**entity.to_nostr())
+                        entity.nostr_event_id = get_nostr_client(user).publish_product(**entity.to_nostr())
                         nostr = True
 
             db.session.commit()
@@ -837,15 +837,16 @@ def post_media(key, cls, singular):
         db.session.add(media)
         index += 1
         added_media.append(media)
-    db.session.commit()
 
     if entity.started:
         nostr_client = get_nostr_client(entity.item.seller)
         match entity:
             case m.Auction():
-                nostr_client.publish_auction(**entity.to_nostr())
+                entity.nostr_event_id = nostr_client.publish_auction(**entity.to_nostr())
             case m.Listing():
-                nostr_client.publish_product(**entity.to_nostr())
+                entity.nostr_event_id = nostr_client.publish_product(**entity.to_nostr())
+
+    db.session.commit()
 
     return jsonify({'media': [media.to_dict() for media in added_media]})
 
@@ -933,9 +934,9 @@ def put_publish(user, key, cls):
     user.ensure_merchant_key()
     match entity:
         case m.Auction():
-            get_nostr_client(user).publish_auction(**entity.to_nostr())
+            entity.nostr_event_id = get_nostr_client(user).publish_auction(**entity.to_nostr())
         case m.Listing():
-            get_nostr_client(user).publish_product(**entity.to_nostr())
+            entity.nostr_event_id = get_nostr_client(user).publish_product(**entity.to_nostr())
 
     db.session.commit()
 
@@ -1368,6 +1369,42 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
     merchant = m.User.query.filter_by(merchant_public_key=merchant_pubkey).one_or_none()
     if not merchant:
         return jsonify({'message': "Merchant not found!"}), 404
+
+    auction = m.Auction.query.filter(m.Item.id == m.Auction.item_id, m.Item.seller_id == merchant.id).filter_by(nostr_event_id=auction_event_id).one_or_none()
+    if not auction:
+        return jsonify({'message': "Auction not found!"}), 404
+
+    try:
+        amount = int(request.json['content'])
+    except TypeError:
+        return jsonify({'message': "Not a bid!"}), 403
+
+    if not auction.started:
+        # TODO: react
+        return jsonify({'message': "Auction not started."}), 403
+    if auction.ended:
+        # TODO: react
+        return jsonify({'message': "Auction ended."}), 403
+
+    if amount > 2100000000:
+        # TODO: react
+        return jsonify({'message': "Max bidding: 21 BTC!"}), 403
+
+    top_bid = auction.get_top_bid()
+    if top_bid and amount <= top_bid.amount:
+        # TODO: react
+        return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
+    elif amount < auction.starting_bid:
+        # TODO: react
+        return jsonify({'message': f"Your bid needs to be equal or higher than {auction.starting_bid}, the starting bid."}), 400
+
+    bid = m.Bid(auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
+    db.session.add(bid)
+
+    db.session.commit()
+
+    nostr_client = get_nostr_client(seller)
+    nostr_client.send_reaction(request.json['id'], "+")
 
     app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
 

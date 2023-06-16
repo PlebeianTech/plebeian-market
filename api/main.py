@@ -808,11 +808,15 @@ class MockNostrClient:
 
     def publish_product(self, *args, **kwargs):
         app.logger.info(f"Nostr Product: {args=} {kwargs=}")
-        return True
+        return 1 # TODO
 
     def publish_auction(self, *args, **kwargs):
         app.logger.info(f"Nostr Auction: {args=} {kwargs=}")
-        return True
+        return 1 # TODO
+
+    def send_reaction(self, *args, **kwargs):
+        app.logger.info(f"Nostr reaction: {args=} {kwargs=}")
+        return 1 # TODO
 
 class NostrClient:
     def __init__(self, private_key, relays):
@@ -878,12 +882,12 @@ class NostrClient:
             }
             event = Event(kind=30018, content=json.dumps(product_json), tags=[['d', id]])
             self.private_key.sign_event(event)
-            app.logger.debug(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
-            return True
+            return event.id
         except:
             app.logger.exception("Error while publishing Nostr product.")
-            return False
+            return None
 
     def publish_auction(self, id, stall_id, name, description, images, starting_bid, start_date, duration):
         try:
@@ -899,12 +903,23 @@ class NostrClient:
             }
             event = Event(kind=30020, content=json.dumps(auction_json), tags=[['d', id]])
             self.private_key.sign_event(event)
-            app.logger.debug(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
-            return True
+            return event.id
         except:
             app.logger.exception("Error while publishing Nostr auction.")
-            return False
+            return None
+
+    def send_reaction(self, note_id, reaction):
+        try:
+            event = Event(kind=7, content=reaction, tags=[['e', note_id]])
+            self.private_key.sign_event(event)
+            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            self.relay_manager.publish_event(event)
+            return event.id
+        except:
+            app.logger.exception("Error while sending Nostr reaction.")
+            return None
 
 def get_nostr_client(user):
     if app.config['MOCK_NOSTR']:

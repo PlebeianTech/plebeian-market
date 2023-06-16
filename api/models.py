@@ -831,6 +831,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
+    nostr_event_id = db.Column(db.String(64), unique=True, nullable=True, index=True)
 
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
@@ -1049,6 +1050,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
+    nostr_event_id = db.Column(db.String(64), unique=True, nullable=True, index=True)
 
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
@@ -1213,7 +1215,9 @@ class Bid(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
-    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+
+    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
+    buyer_nostr_public_key = db.Column(db.String(64), nullable=True)
 
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     settled_at = db.Column(db.DateTime) # a bid is settled after the Lightning invoice has been paid
@@ -1226,17 +1230,17 @@ class Bid(db.Model):
     def to_dict(self, for_user=None):
         bid = {
             'amount': self.amount,
-            'buyer_nym': self.buyer.nym,
-            'buyer_display_name': self.buyer.display_name,
-            'buyer_profile_image_url': self.buyer.profile_image_url,
-            'buyer_email': self.buyer.email,
-            'buyer_email_verified': self.buyer.email_verified,
-            'buyer_telegram_username': self.buyer.telegram_username,
-            'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
-            'buyer_twitter_username': self.buyer.twitter_username,
-            'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
-            'buyer_nostr_public_key': self.buyer.nostr_public_key,
-            'buyer_nostr_public_key_verified': self.buyer.nostr_public_key_verified,
+            'buyer_nym': self.buyer.nym if self.buyer else None,
+            'buyer_display_name': self.buyer.display_name if self.buyer else None,
+            'buyer_profile_image_url': self.buyer.profile_image_url if self.buyer else None,
+            'buyer_email': self.buyer.email if self.buyer else None,
+            'buyer_email_verified': self.buyer.email_verified if self.buyer else None,
+            'buyer_telegram_username': self.buyer.telegram_username if self.buyer else None,
+            'buyer_telegram_username_verified': self.buyer.telegram_username_verified if self.buyer else None,
+            'buyer_twitter_username': self.buyer.twitter_username if self.buyer else None,
+            'buyer_twitter_username_verified': self.buyer.twitter_username_verified if self.buyer else None,
+            'buyer_nostr_public_key': self.buyer.nostr_public_key if self.buyer else None,
+            'buyer_nostr_public_key_verified': self.buyer.nostr_public_key_verified if self.buyer else None,
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
             'is_winning_bid': self.id == self.auction.winning_bid_id,
         }
