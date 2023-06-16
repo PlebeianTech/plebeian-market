@@ -1403,7 +1403,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
 
     db.session.commit()
 
-    nostr_client = get_nostr_client(seller)
+    nostr_client = get_nostr_client(merchant)
     nostr_client.send_reaction(request.json['id'], "+")
 
     app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
