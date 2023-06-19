@@ -23,7 +23,10 @@ export type UserMetadata = {
 const EVENT_KIND_PM = 4;
 const EVENT_KIND_RESUME = 66;
 const EVENT_KIND_STALL = 30017;
-const EVENT_KIND_PRODUCT = 30018;
+export const EVENT_KIND_PRODUCT = 30018;
+export const EVENT_KIND_AUCTION = 30020;
+export const EVENT_KIND_AUCTION_BID = 1021;
+export const EVENT_KIND_AUCTION_BID_STATUS = 1022;
 const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nips/blob/master/78.md
 
 const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
@@ -71,7 +74,9 @@ export function subscribeResume(pubkey: string, receivedCB: (resume: UserResume,
 
 export async function publishResume(resume: UserResume, successCB: () => void) {
     const event = await createEvent(EVENT_KIND_RESUME, JSON.stringify(resume.toJson()));
-    get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
+    get(NostrPool)
+        .publish(relayUrlList, event)
+        .on('ok', successCB);
 }
 
 export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string, metadata: UserMetadata) => void) {
@@ -87,11 +92,24 @@ export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string
 }
 
 export function subscribeReactions(listOfNotesToGetInfo, receivedCB: (event) => void) {
-    get(NostrPool).sub(relayUrlList, [{ kinds: [ Kind.Text, Kind.Reaction ], '#e': listOfNotesToGetInfo }]).on('event', receivedCB);
+    get(NostrPool)
+        .sub(relayUrlList, [{ kinds: [ Kind.Text, Kind.Reaction ], '#e': listOfNotesToGetInfo }])
+        .on('event', receivedCB);
+}
+
+export function subscribeAuction(listOfNotesToGetInfo, receivedCB: (event) => void, eoseCB) {
+    let sub = get(NostrPool)
+        .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID, EVENT_KIND_AUCTION_BID_STATUS ], '#e': listOfNotesToGetInfo }]);
+    sub.on('event', receivedCB);
+    if (eoseCB) {
+        sub.on('eose', eoseCB);
+    }
 }
 
 export function subscribeChannel(nostrRoomId, messageLimit, since, receivedCB : (event) => void) {
-    get(NostrPool).sub(relayUrlList, [{ kinds: [Kind.ChannelMessage], '#e': [nostrRoomId], limit: messageLimit, since: since }]).on('event', receivedCB);
+    get(NostrPool)
+        .sub(relayUrlList, [{ kinds: [Kind.ChannelMessage], '#e': [nostrRoomId], limit: messageLimit, since: since }])
+        .on('event', receivedCB);
 }
 
 function getReplyTags(eventBeingRepliedTo: Event) {
@@ -117,21 +135,21 @@ function getReplyTags(eventBeingRepliedTo: Event) {
     return tagsToBeAddedToEvent;
 }
 
-export async function sendMessage(message: string, roomId: string | null, eventBeingRepliedTo: Event | null, successCB: () => void) {
-    let kind, tags;
+export async function sendMessage(message: string, roomId: string | null, eventBeingRepliedTo: Event | null, kind: number | null, successCB: () => void) {
+    let eventKind, tags;
     if (roomId === null) {
-        kind = Kind.Text;
+        eventKind = kind ?? Kind.Text;
         tags = [];
     } else {
-        kind = Kind.ChannelMessage;
+        eventKind = kind ?? Kind.ChannelMessage;
         tags = [['e', roomId, getBestRelay(), "root"]];
     }
 
-    if (eventBeingRepliedTo !== null && [Kind.Text, Kind.ChannelMessage].includes(eventBeingRepliedTo.kind)) {
+    if (eventBeingRepliedTo !== null && [Kind.Text, Kind.ChannelMessage, EVENT_KIND_AUCTION].includes(eventBeingRepliedTo.kind)) {
         tags = tags.concat(getReplyTags(eventBeingRepliedTo));
     }
 
-    const event = await createEvent(kind, message, tags);
+    const event = await createEvent(eventKind, message, tags);
 
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
@@ -163,14 +181,14 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
     }
 
     let sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
-    sub.on('event',  e => receivedCB(e));
+    sub.on('event', e => receivedCB(e));
     sub.on('eose', () => {
         // sub.unsub()
     })
 }
 
 export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void) {
-    let filter: Filter = { kinds: [EVENT_KIND_PRODUCT] };
+    let filter: Filter = { kinds: [EVENT_KIND_PRODUCT, EVENT_KIND_AUCTION] };
 
     if (merchantPubkey) {
         filter.authors = [merchantPubkey];
@@ -181,7 +199,7 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
     }
 
     let sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
-    sub.on('event',  e => {receivedCB(e);});
+    sub.on('event', e => {receivedCB(e);});
     sub.on('eose', () => {
         // sub.unsub()
     })

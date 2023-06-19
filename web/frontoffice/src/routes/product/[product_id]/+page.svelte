@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from "svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {getProducts} from "$lib/services/nostr";
+    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$lib/services/nostr";
     import {onImgError, refreshStalls} from "$lib/shopping";
     import {afterNavigate, goto} from "$app/navigation";
     import {stalls} from "$lib/stores";
@@ -10,6 +10,7 @@
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {addToCart} from "$lib/shopping";
     import {filterTags} from "$lib/nostr/utils";
+    import BidWidget from "$lib/components/stores/BidWidget.svelte";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -24,11 +25,9 @@
         if (data.product_id) {
             getProducts(null, [data.product_id],
                 (productEvent) => {
-                    if (!product || (product && productEvent.created_at > product.createdAt)) {
+                    if (!product || (product && productEvent.created_at > product.event.created_at)) {
                         product = JSON.parse(productEvent.content);
-
-                        product.createdAt = productEvent.created_at;
-                        product.merchantPubkey = productEvent.pubkey;
+                        product.event = productEvent;
 
                         let categoryTags = filterTags(productEvent.tags, 't');
                         if (categoryTags.length > 0) {
@@ -107,6 +106,12 @@
             <div class="divider md:divider-horizontal my-2 md:my-4"></div>
 
             <div class="grid flex-grow w-full md:max-w-[50%] h-fit p-3 md:p-8 flex-grow place-items-center place-content-center text-center text-2xl">
+                {#if product.event.kind === EVENT_KIND_AUCTION}
+                    <div class="mb-8">
+                        <BidWidget {product} />
+                    </div>
+                {/if}
+
                 <div class="mb-6 text-xl">{#if product.description}{product.description}{/if}</div>
 
                 {#if product.tags}
@@ -118,7 +123,7 @@
                 {/if}
 
                 {#if $stalls !== null && $stalls.stalls[product.stall_id]}
-                    <div class="md:max-w-[70%] alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer text-lg" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.merchantPubkey+'/stall/'+product.stall_id)}>
+                    <div class="md:max-w-[70%] alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer text-lg" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.event.pubkey+'/stall/'+product.stall_id)}>
                         <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
                             <Store />
                         </div>
@@ -126,22 +131,24 @@
                     </div>
                 {/if}
 
-                <div class="columns-2 my-12">
-                    <div>
-                        Stock: {product.quantity ?? 0}
+                {#if product.event.kind === EVENT_KIND_PRODUCT}
+                    <div class="columns-2 my-12">
+                        <div>
+                            Stock: {product.quantity ?? 0}
+                        </div>
+                        <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
                     </div>
-                    <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
-                </div>
 
-                {#if product.quantity}
-                    <div>
-                        <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
-                        <button class="btn btn-primary mt-4" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
-                            Add to cart
-                        </button>
-                    </div>
-                {:else}
-                    <button class="btn btn-warning btn-lg no-animation">Out of stock</button>
+                    {#if product.quantity}
+                        <div>
+                            <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
+                            <button class="btn btn-primary mt-4" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
+                                Add to cart
+                            </button>
+                        </div>
+                    {:else}
+                        <button class="btn btn-warning btn-lg no-animation">Out of stock</button>
+                    {/if}
                 {/if}
             </div>
         </div>

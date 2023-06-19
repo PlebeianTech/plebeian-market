@@ -115,7 +115,7 @@ export async function getConfigurationFromFile() {
     try {
         return await response.json();
     } catch (e) {
-        console.log('ERROR', e);
+        console.debug('ERROR', e);
         return false;
     }
 }

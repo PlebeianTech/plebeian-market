@@ -61,6 +61,7 @@
         getProducts(null, null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
+                content.event = productEvent;
 
                 if (content.name.toLowerCase().includes('test') || content.description.toLowerCase().includes('test')) {
                     return;
@@ -69,9 +70,6 @@
                 if (!content.images && !content.image) {
                     return;
                 }
-
-                content.createdAt = productEvent.created_at;
-                content.merchantPubkey = productEvent.pubkey;
 
                 if (!content.id) {
                     let productId = getFirstTagValue(productEvent.tags, 'd');
@@ -113,7 +111,7 @@
                 let productId = content.id;
 
                 if (productId in products) {
-                    if (products[productId].createdAt < productEvent.created_at) {
+                    if (products[productId].event.created_at < productEvent.created_at) {
                         products[productId] = content;
                     }
                 } else {

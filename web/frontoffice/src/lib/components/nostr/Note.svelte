@@ -34,7 +34,7 @@
                 <div class="chat-header flex items-center">
                     <p class="mr-3" class:profileInfoName={!message.samePubKey}>{displayName}</p>
                     {#if message.nip05VerifiedAddress}
-                        <Nip05Checkmark {message}></Nip05Checkmark>
+                        <Nip05Checkmark address={message.nip05VerifiedAddress} />
                     {/if}
                 </div>
             {/if}
