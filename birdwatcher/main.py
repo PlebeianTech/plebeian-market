@@ -27,7 +27,7 @@ class EventKind(IntEnum):
     DM = 4
     STALL = 30017
     AUCTION = 30020
-    BID = 30021
+    BID = 1021
 
 class Relay:
     def __init__(self, url, args):
@@ -74,7 +74,7 @@ class Relay:
                 logging.debug(f"POST to auction {auction_event_id} of merchant {merchant_pubkey}: {event}")
                 if response.status == 200:
                     logging.info(f"Forwarded bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
-                elif response.status == 500:
+                elif response.status in [400, 403, 500]:
                     logging.error(f"Error posting bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
                 try:
                     response_json = await response.json()

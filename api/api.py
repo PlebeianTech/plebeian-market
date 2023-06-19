@@ -1374,37 +1374,41 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
     if not auction:
         return jsonify({'message': "Auction not found!"}), 404
 
+    nostr_client = get_nostr_client(merchant)
+
     try:
         amount = int(request.json['content'])
     except TypeError:
-        return jsonify({'message': "Not a bid!"}), 403
+        nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', "Invalid bid amount!")
+        return jsonify({'message': "Invalid bid amount!"}), 400
 
     if not auction.started:
-        # TODO: react
+        nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', "Auction not started.")
         return jsonify({'message': "Auction not started."}), 403
     if auction.ended:
-        # TODO: react
+        nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', "Auction ended.")
         return jsonify({'message': "Auction ended."}), 403
 
     if amount > 2100000000:
-        # TODO: react
-        return jsonify({'message': "Max bidding: 21 BTC!"}), 403
+        nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', "Max bidding: 21 BTC!")
+        return jsonify({'message': "Max bidding: 21 BTC!"}), 400
 
     top_bid = auction.get_top_bid()
     if top_bid and amount <= top_bid.amount:
-        # TODO: react
-        return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
+        message = f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"
+        nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
     elif amount < auction.starting_bid:
-        # TODO: react
-        return jsonify({'message': f"Your bid needs to be equal or higher than {auction.starting_bid}, the starting bid."}), 400
+        message = f"Your bid needs to be equal or higher than {auction.starting_bid}, the starting bid."
+        nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
 
     bid = m.Bid(auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
     db.session.add(bid)
 
     db.session.commit()
 
-    nostr_client = get_nostr_client(merchant)
-    nostr_client.send_reaction(request.json['id'], "+")
+    nostr_client.send_bid_status(auction_event_id, request.json['id'], 'accepted')
 
     app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
 

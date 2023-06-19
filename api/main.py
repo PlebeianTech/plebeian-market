@@ -910,9 +910,14 @@ class NostrClient:
             app.logger.exception("Error while publishing Nostr auction.")
             return None
 
-    def send_reaction(self, note_id, reaction):
+    def send_bid_status(self, auction_event_id, bid_event_id, status, message=None):
         try:
-            event = Event(kind=7, content=reaction, tags=[['e', note_id]])
+            content_json = {
+                'status': status,
+            }
+            if message is not None:
+                content_json['message'] = message
+            event = Event(kind=1022, content=json.dumps(content_json), tags=[['e', auction_event_id], ['e', bid_event_id]])
             self.private_key.sign_event(event)
             app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
