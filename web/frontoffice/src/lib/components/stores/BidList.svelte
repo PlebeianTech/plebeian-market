@@ -29,7 +29,9 @@
                         <td class="text-xs text-center">
                             {#if !bid.backendResponse}
                                 <div class="w-8 h-8 mx-auto"><Clock /></div>
-                                Waiting response from marketplace
+                                <p class="line-clamp-3 mt-1 whitespace-normal">
+                                    Waiting response from marketplace
+                                </p>
                             {:else}
                                 {#if bid.backendResponse.status === 'accepted'}
                                     <div class="text-xl mx-auto tooltip" data-tip="Bid confirmed">✅</div>
