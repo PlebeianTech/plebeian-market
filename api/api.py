@@ -1403,7 +1403,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
 
-    bid = m.Bid(auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
+    bid = m.Bid(auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
     db.session.add(bid)
 
     db.session.commit()
