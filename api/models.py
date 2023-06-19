@@ -13,10 +13,11 @@ from nostr.key import PrivateKey
 import pyqrcode
 import random
 from slugify import slugify
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
 import string
+import uuid
 
 from extensions import db
 from main import app
@@ -153,6 +154,9 @@ class User(WalletMixin, db.Model):
 
     lightning_address = db.Column(db.String(64), nullable=True)
 
+    merchant_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    merchant_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
+
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     @property
@@ -168,8 +172,6 @@ class User(WalletMixin, db.Model):
     profile_image_url = db.Column(db.String(256), nullable=True)
 
     # TODO: move these to a "stalls" table when we decide we need multiple stalls per user
-    stall_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
-    stall_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
@@ -179,12 +181,11 @@ class User(WalletMixin, db.Model):
     shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
 
-    # TODO: this will become obsolete after we move stalls to a separate table
-    def ensure_stall_key(self):
-        if self.stall_private_key is None:
-            self.stall_private_key = PrivateKey().hex()
-        if self.stall_public_key is None:
-            self.stall_public_key = PrivateKey(bytes.fromhex(self.stall_private_key)).public_key.hex()
+    def ensure_merchant_key(self):
+        if self.merchant_private_key is None:
+            self.merchant_private_key = PrivateKey().hex()
+        if self.merchant_public_key is None:
+            self.merchant_public_key = PrivateKey(bytes.fromhex(self.merchant_private_key)).public_key.hex()
 
     email = db.Column(db.String(64), unique=True, nullable=True, index=True)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -829,6 +830,9 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
+    nostr_event_id = db.Column(db.String(64), unique=True, nullable=True, index=True)
+
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
     @property
@@ -899,6 +903,18 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             return True
         top_bid = self.get_top_bid()
         return top_bid.amount >= self.reserve_bid if top_bid else False
+
+    def to_nostr(self):
+        return {
+            'id': str(self.uuid),
+            'stall_id': self.item.seller.identity,
+            'name': self.item.title,
+            'description': self.item.description,
+            'images': [media.url for media in self.item.media],
+            'starting_bid': self.starting_bid,
+            'start_date': int(self.start_date.timestamp()) if self.start_date else None,
+            'duration': self.duration_hours * 60 * 60,
+        }
 
     def to_dict(self, for_user=None):
         if not self.started:
@@ -1033,6 +1049,9 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
+    nostr_event_id = db.Column(db.String(64), unique=True, nullable=True, index=True)
+
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
 
     @property
@@ -1072,7 +1091,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     def to_nostr(self):
         return {
-            'id': self.key,
+            'id': str(self.uuid),
             'stall_id': self.item.seller.identity,
             'name': self.item.title,
             'description': self.item.description,
@@ -1086,7 +1105,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
         assert isinstance(for_user, int | None)
 
         listing = {
-            'stall_public_key': self.item.seller.stall_public_key,
+            'merchant_public_key': self.item.seller.merchant_public_key,
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
@@ -1196,7 +1215,9 @@ class Bid(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
-    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+
+    buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
+    buyer_nostr_public_key = db.Column(db.String(64), nullable=True)
 
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     settled_at = db.Column(db.DateTime) # a bid is settled after the Lightning invoice has been paid
@@ -1209,17 +1230,17 @@ class Bid(db.Model):
     def to_dict(self, for_user=None):
         bid = {
             'amount': self.amount,
-            'buyer_nym': self.buyer.nym,
-            'buyer_display_name': self.buyer.display_name,
-            'buyer_profile_image_url': self.buyer.profile_image_url,
-            'buyer_email': self.buyer.email,
-            'buyer_email_verified': self.buyer.email_verified,
-            'buyer_telegram_username': self.buyer.telegram_username,
-            'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
-            'buyer_twitter_username': self.buyer.twitter_username,
-            'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
-            'buyer_nostr_public_key': self.buyer.nostr_public_key,
-            'buyer_nostr_public_key_verified': self.buyer.nostr_public_key_verified,
+            'buyer_nym': self.buyer.nym if self.buyer else None,
+            'buyer_display_name': self.buyer.display_name if self.buyer else None,
+            'buyer_profile_image_url': self.buyer.profile_image_url if self.buyer else None,
+            'buyer_email': self.buyer.email if self.buyer else None,
+            'buyer_email_verified': self.buyer.email_verified if self.buyer else None,
+            'buyer_telegram_username': self.buyer.telegram_username if self.buyer else None,
+            'buyer_telegram_username_verified': self.buyer.telegram_username_verified if self.buyer else None,
+            'buyer_twitter_username': self.buyer.twitter_username if self.buyer else None,
+            'buyer_twitter_username_verified': self.buyer.twitter_username_verified if self.buyer else None,
+            'buyer_nostr_public_key': self.buyer.nostr_public_key if self.buyer else None,
+            'buyer_nostr_public_key_verified': self.buyer.nostr_public_key_verified if self.buyer else None,
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
             'is_winning_bid': self.id == self.auction.winning_bid_id,
         }

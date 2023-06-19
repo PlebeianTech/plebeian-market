@@ -808,7 +808,15 @@ class MockNostrClient:
 
     def publish_product(self, *args, **kwargs):
         app.logger.info(f"Nostr Product: {args=} {kwargs=}")
-        return True
+        return 1 # TODO
+
+    def publish_auction(self, *args, **kwargs):
+        app.logger.info(f"Nostr Auction: {args=} {kwargs=}")
+        return 1 # TODO
+
+    def send_bid_status(self, *args, **kwargs):
+        app.logger.info(f"Nostr bid status: {args=} {kwargs=}")
+        return 1 # TODO
 
 class NostrClient:
     def __init__(self, private_key, relays):
@@ -852,7 +860,7 @@ class NostrClient:
                         'countries': ["Worldwide"],
                     },
                 ]}
-            event = Event(kind=30017, content=json.dumps(stall_json))
+            event = Event(kind=30017, content=json.dumps(stall_json), tags=[['d', id]])
             self.private_key.sign_event(event)
             self.relay_manager.publish_event(event)
             return True
@@ -870,16 +878,53 @@ class NostrClient:
                 'images': images,
                 'currency': currency,
                 'price': price,
-                'quantity': quantity
+                'quantity': quantity,
             }
-            event = Event(kind=30018, content=json.dumps(product_json))
+            event = Event(kind=30018, content=json.dumps(product_json), tags=[['d', id]])
             self.private_key.sign_event(event)
-            app.logger.debug(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
-            return True
+            return event.id
         except:
             app.logger.exception("Error while publishing Nostr product.")
-            return False
+            return None
+
+    def publish_auction(self, id, stall_id, name, description, images, starting_bid, start_date, duration):
+        try:
+            auction_json = {
+                'id': id,
+                'stall_id': stall_id,
+                'name': name,
+                'description': description,
+                'images': images,
+                'starting_bid': starting_bid,
+                'start_date': start_date,
+                'duration': duration,
+            }
+            event = Event(kind=30020, content=json.dumps(auction_json), tags=[['d', id]])
+            self.private_key.sign_event(event)
+            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            self.relay_manager.publish_event(event)
+            return event.id
+        except:
+            app.logger.exception("Error while publishing Nostr auction.")
+            return None
+
+    def send_bid_status(self, auction_event_id, bid_event_id, status, message=None):
+        try:
+            content_json = {
+                'status': status,
+            }
+            if message is not None:
+                content_json['message'] = message
+            event = Event(kind=1022, content=json.dumps(content_json), tags=[['e', auction_event_id], ['e', bid_event_id]])
+            self.private_key.sign_event(event)
+            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
+            self.relay_manager.publish_event(event)
+            return event.id
+        except:
+            app.logger.exception("Error while sending Nostr reaction.")
+            return None
 
 def get_nostr_client(user):
     if app.config['MOCK_NOSTR']:
@@ -890,7 +935,7 @@ def get_nostr_client(user):
                 private_key = PrivateKey.from_nsec(json.load(f)['NSEC'])
             relays = app.config['DEFAULT_NOSTR_RELAYS']
         else:
-            private_key = PrivateKey(bytes.fromhex(user.stall_private_key))
+            private_key = PrivateKey(bytes.fromhex(user.merchant_private_key))
             relays = [r['url'] for r in user.get_relays()]
         return NostrClient(private_key, relays)
 
