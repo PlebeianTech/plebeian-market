@@ -1,9 +1,15 @@
 <script lang="ts">
-    import {formatTimestamp} from "$lib/nostr/utils";
+    import {filterTags, formatTimestamp, queryNip05} from "$lib/nostr/utils";
     import Countdown from "$lib/components/Countdown.svelte";
-    import {EVENT_KIND_AUCTION_BID, sendMessage, subscribeAuction} from "$lib/services/nostr";
-    import {Kind} from "nostr-tools";
     import BidList from "$lib/components/stores/BidList.svelte";
+    import {
+        EVENT_KIND_AUCTION_BID,
+        EVENT_KIND_AUCTION_BID_STATUS,
+        sendMessage,
+        subscribeAuction,
+        subscribeMetadata,
+        UserMetadata
+    } from "$lib/services/nostr";
 
     export let product;
 
@@ -17,11 +23,13 @@
     let numBids: number = 0;
     let bidAmount: number = 0;
 
-    let alreadySubscribedToReactions: boolean = false;
+    let userProfileInfoMap = new Map<string, null | UserMetadata>();
+
+    let alreadySubscribed: boolean = false;
 
     $: if (product) {
-        product.start_date = 1686646256;
-        product.duration = 344000;   // 4 hours
+//        product.start_date = 1686646256;
+//        product.duration = 3440000;   // 4 hours
 
         now = Math.floor(Date.now() / 1000);
         endsAt = product.start_date + product.duration;
@@ -35,8 +43,8 @@
 
         setRecommendedBidAmount();
 
-        if (!alreadySubscribedToReactions && product.event.id) {
-            alreadySubscribedToReactions = true;
+        if (!alreadySubscribed && product.event.id) {
+            alreadySubscribed = true;
 
             subscribeAuction([product.event.id],
                 (auctionEvent) => {
@@ -54,26 +62,76 @@
                             return b[1].amount - a[1].amount;
                         });
 
-                        setRecommendedBidAmount();
-
-                        console.log('   *** all the bids', bids);
-
-                    } else if (auctionEvent.kind === Kind.Reaction) {
-                        console.log('************ bidEvent (reaction)', auctionEvent);
-
-
-
-                        sortedBids = Object.entries(bids).sort((a, b) => {
-                            return b[1].amount - a[1].amount;
-                        });
+                        getUserMetadata(auctionEvent.pubkey);
 
                         setRecommendedBidAmount();
 
                         console.log('   *** all the bids', bids);
+
+                    } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
+                        console.log('************ bidEvent (response)', auctionEvent);
+
+                        if (auctionEvent.pubkey !== product.event.pubkey) {
+                            console.error('WARNING! Someone tried to cheat on the auction, but we caught them!')
+                            return;
+                        }
+
+                        try {
+                            let bidResponse = JSON.parse(auctionEvent.content);
+
+                            const eTags = filterTags(auctionEvent.tags, 'e');
+
+                            for (let i = 0; i < eTags.length; i++) {
+                                let tagValue = eTags[i][1];
+                                if (product.event.id !== tagValue) {
+                                    let bidInfo = bids[tagValue];
+                                    bidInfo.backendResponse = bidResponse;
+                                    bids[tagValue] = bidInfo;
+                                }
+                            }
+
+                            sortedBids = Object.entries(bids).sort((a, b) => {
+                                return b[1].amount - a[1].amount;
+                            });
+
+                            console.log('   *** all the bids', bids);
+
+                        } catch (error) { }
                     }
                 });
         } else {
             setRecommendedBidAmount();
+        }
+    }
+
+    function getUserMetadata(pubKey) {
+        if (!userProfileInfoMap.has(pubKey)) {
+            userProfileInfoMap.set(pubKey, null);
+
+            subscribeMetadata(
+                [pubKey],
+                async (pk, userProfileInfo) => {
+                    // nip-05 verification
+                    if (userProfileInfo.nip05) {
+                        let nip05verificationResult = await queryNip05(userProfileInfo.nip05);
+
+                        if (nip05verificationResult !== null) {
+                            if (pk === nip05verificationResult) {
+                                let nip05Address = userProfileInfo.nip05;
+
+                                if (nip05Address.startsWith('_@')) {
+                                    userProfileInfo.nip05VerifiedAddress = nip05Address.substring(2);
+                                } else {
+                                    userProfileInfo.nip05VerifiedAddress = nip05Address;
+                                }
+                            }
+                        }
+                    }
+
+                    userProfileInfoMap.set(pk, userProfileInfo);
+                    userProfileInfoMap = userProfileInfoMap;    // For reactivity
+                }
+            );
         }
     }
 
@@ -110,7 +168,7 @@
             Auction ended at {formatTimestamp(endsAt, true)}
         </h3>
 
-        <BidList {sortedBids} />
+        <BidList {sortedBids} {userProfileInfoMap} />
 
     {:else} <!-- not ended -->
         {#if started}
@@ -138,18 +196,11 @@
                 </button>
             </div>
 
-            <BidList {sortedBids} />
+            <BidList {sortedBids} {userProfileInfoMap} />
 
         {:else}
             Auction starts at {formatTimestamp(product.start_date, true)} and will run for {product.duration / 60} hours until {formatTimestamp(product.start_date + product.duration, true)}.
             <div class="divider"></div>
         {/if}
     {/if}
-
-    <!--
-    <div>
-        Started: {started}
-        Ended: {ended}
-    </div>
-    -->
 {/if}

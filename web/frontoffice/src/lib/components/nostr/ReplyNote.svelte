@@ -33,7 +33,7 @@
             <p class="mr-3 space-y-1">{displayName}</p>
 
             {#if message.nip05VerifiedAddress}
-                <Nip05Checkmark {message} />
+                <Nip05Checkmark address={message.nip05VerifiedAddress} />
             {/if}
         </div>
 

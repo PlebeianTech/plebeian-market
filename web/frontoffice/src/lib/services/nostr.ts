@@ -25,7 +25,8 @@ const EVENT_KIND_RESUME = 66;
 const EVENT_KIND_STALL = 30017;
 export const EVENT_KIND_PRODUCT = 30018;
 export const EVENT_KIND_AUCTION = 30020;
-export const EVENT_KIND_AUCTION_BID = 30021;
+export const EVENT_KIND_AUCTION_BID = 1021;
+export const EVENT_KIND_AUCTION_BID_STATUS = 1022;
 const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nips/blob/master/78.md
 
 const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
@@ -98,7 +99,7 @@ export function subscribeReactions(listOfNotesToGetInfo, receivedCB: (event) => 
 
 export function subscribeAuction(listOfNotesToGetInfo, receivedCB: (event) => void, eoseCB) {
     let sub = get(NostrPool)
-        .sub(relayUrlList, [{ kinds: [ Kind.Reaction, EVENT_KIND_AUCTION_BID ], '#e': listOfNotesToGetInfo }]);
+        .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID, EVENT_KIND_AUCTION_BID_STATUS ], '#e': listOfNotesToGetInfo }]);
     sub.on('event', receivedCB);
     if (eoseCB) {
         sub.on('eose', eoseCB);
@@ -144,8 +145,7 @@ export async function sendMessage(message: string, roomId: string | null, eventB
         tags = [['e', roomId, getBestRelay(), "root"]];
     }
 
-    // TODO remove  PRODUCT
-    if (eventBeingRepliedTo !== null && [Kind.Text, Kind.ChannelMessage, EVENT_KIND_PRODUCT, EVENT_KIND_AUCTION].includes(eventBeingRepliedTo.kind)) {
+    if (eventBeingRepliedTo !== null && [Kind.Text, Kind.ChannelMessage, EVENT_KIND_AUCTION].includes(eventBeingRepliedTo.kind)) {
         tags = tags.concat(getReplyTags(eventBeingRepliedTo));
     }
 
