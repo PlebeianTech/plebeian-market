@@ -814,8 +814,8 @@ class MockNostrClient:
         app.logger.info(f"Nostr Auction: {args=} {kwargs=}")
         return 1 # TODO
 
-    def send_reaction(self, *args, **kwargs):
-        app.logger.info(f"Nostr reaction: {args=} {kwargs=}")
+    def send_bid_status(self, *args, **kwargs):
+        app.logger.info(f"Nostr bid status: {args=} {kwargs=}")
         return 1 # TODO
 
 class NostrClient:
