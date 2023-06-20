@@ -8,7 +8,6 @@
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
     import MediaEditor from "$lib/components/MediaEditor.svelte";
-    import ShippingEditor from "$lib/components/ShippingEditor.svelte";
 
     export let entity: IEntity;
     $: auction = <Auction>entity;
@@ -100,13 +99,7 @@
                             </label>
                         </div>
                     </div>
-                    {/if}
-                {#if !isTimeAuction} <!-- shipping -->
-                    <ShippingEditor
-                        bind:shipping_from={auction.shipping_from}
-                        bind:shipping_domestic_usd={auction.shipping_domestic_usd}
-                        bind:shipping_worldwide_usd={auction.shipping_worldwide_usd} />
-                {/if} <!-- /shipping -->
+                {/if}
                 {#if !isTimeAuction && (auction.key === null || auction.key === "")} <!-- duration -->
                     <div class="form-control mr-2 w-full">
                         <label class="label" for="duration">
