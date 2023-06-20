@@ -27,6 +27,7 @@ export class Auction implements IEntity, Item {
     endpoint = "auctions";
     loader = {endpoint: this.endpoint, responseField: 'auction', fromJson};
 
+    uuid: string = "";
     key: string = "";
     title: string = "";
     seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false};

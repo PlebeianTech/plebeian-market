@@ -25,6 +25,7 @@ export const TIME_ITEM_DESCRIPTION_PLACEHOLDER = "Please describe what the winne
 export interface Item {
     endpoint: string;
     loader: ILoader;
+    uuid: string;
     key: string;
     seller: IAccount;
     title: string;

@@ -924,6 +924,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         else:
             ends_in_seconds = (self.end_date - datetime.utcnow()).total_seconds()
         auction = {
+            'uuid': self.uuid,
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
@@ -1106,6 +1107,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
         listing = {
             'merchant_public_key': self.item.seller.merchant_public_key,
+            'uuid': self.uuid,
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,

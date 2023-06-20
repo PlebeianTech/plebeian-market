@@ -23,7 +23,7 @@
     $: item = <Item>(<unknown>entity);
     $: hasWallet = ($user && $user.wallet !== null) || (item.campaign_name !== null);
 
-    $: url = `/${item.endpoint}/${item.key}`;
+    $: url = item.started ? `/product/${item.uuid}` : null;
     $: topBid = (item instanceof Auction) ? item.topBid() : null;
 
     let box; // the whole box representing this item (the HTML Element)
