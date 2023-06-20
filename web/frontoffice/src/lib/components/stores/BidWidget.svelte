@@ -36,10 +36,12 @@
         ended = now > endsAt;
         started = now > product.start_date;
 
+        /*
         console.log('product.start_date:', product.start_date);
         console.log('product.duration:', product.duration);
         console.log('now:', now);
         console.log('endsAt:', product.start_date + product.duration);
+        */
 
         setRecommendedBidAmount();
 
@@ -66,8 +68,6 @@
 
                         setRecommendedBidAmount();
 
-                        console.log('   *** all the bids', bids);
-
                     } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
                         console.log('************ bidEvent (response)', auctionEvent);
 
@@ -93,8 +93,6 @@
                             sortedBids = Object.entries(bids).sort((a, b) => {
                                 return b[1].amount - a[1].amount;
                             });
-
-                            console.log('   *** all the bids', bids);
 
                         } catch (error) { }
                     }
@@ -161,8 +159,6 @@
 </script>
 
 {#if product && product.start_date}
-    {(console.log('product', product), '')}
-
     {#if ended}
         <h3 class="text-2xl text-center my-2">
             Auction ended at {formatTimestamp(endsAt, true)}
@@ -177,23 +173,26 @@
                 <Countdown totalSeconds={endsAt - now} />
             </div>
 
-            <div class="form-control justify-center">
-                <label class="label justify-center" for="bid-amount">
-                    <span class="label-text justify-center">
-                        {#if product.starting_bid && numBids === 0}
-                            Starting bid is {product.starting_bid}
-                        {:else}
-                            Suggested bid
-                        {/if}
-                    </span>
-                </label>
-                <input bind:value={bidAmount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
-                <label class="label">
-                    <span class="label-text-alt">sats</span>
-                </label>
-                <button class="btn btn-success mt-4" on:click|preventDefault={makeNewBid}>
-                    Bid
-                </button>
+            <div class="flex flex-wrap min-h-[6rem] min-w-[18rem] max-w-4xl gap-2 p-6 items-center justify-center overflow-x-hidden">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">
+                            {#if product.starting_bid && numBids === 0}
+                                Starting bid is {product.starting_bid}
+                            {:else}
+                                Suggested bid
+                            {/if}
+                        </span>
+                    </label>
+                    <label class="input-group">
+                        <input bind:value={bidAmount} type="number" name="bid-amount" id="bid-amount" class="input input-bordered w-full max-w-xs" />
+                        <span class="text-base">sats</span>
+                    </label>
+
+                    <button class="btn btn-success mt-4" on:click|preventDefault={makeNewBid}>
+                        Bid
+                    </button>
+                </div>
             </div>
 
             <BidList {sortedBids} {userProfileInfoMap} />
