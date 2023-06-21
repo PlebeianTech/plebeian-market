@@ -128,7 +128,9 @@ def finalize_auctions():
 
             nostr_client = get_nostr_client(auction.item.seller)
             nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', [['p', top_bid.buyer_nostr_public_key]])
-            nostr_client.send_dm(top_bid.buyer_nostr_public_key, json.dumps({'type': 0, 'product_id': auction.uuid, 'message': "You won!"}))
+            nostr_client.send_dm(top_bid.buyer_nostr_public_key, json.dumps({'type': 0, 'product_id': str(auction.uuid), 'message': "You won!"}))
+
+            db.session.commit()
 
         if app.config['ENV'] == 'test':
             time.sleep(1)
