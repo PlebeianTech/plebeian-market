@@ -105,7 +105,7 @@
 
             <div class="divider md:divider-horizontal my-2 md:my-4"></div>
 
-            <div class="grid flex-grow w-full md:max-w-[50%] h-fit md:p-8 flex-grow place-items-center place-content-center text-center text-2xl">
+            <div class="grid flex-grow w-full md:max-w-[50%] h-fit md:p-8 md:pt-0 place-items-center place-content-center text-center text-2xl">
                 {#if product.event.kind === EVENT_KIND_AUCTION}
                     <div class="mb-8">
                         <BidWidget {product} />

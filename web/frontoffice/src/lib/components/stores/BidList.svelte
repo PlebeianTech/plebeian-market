@@ -2,10 +2,14 @@
     import {formatTimestamp} from "$lib/nostr/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
+    import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
+    import {NostrPublicKey} from "$lib/stores";
 
     export let sortedBids;
     export let userProfileInfoMap;
+
+    const winnerColor = 'bg-green-300';
 </script>
 
 {#if sortedBids && sortedBids.length > 0}
@@ -20,11 +24,10 @@
             </thead>
             <tbody>
             {#each sortedBids as [bid_id, bid], i}
-                <tr>
-                    <td class="font-normal text-center">
+                <tr class="bg-red-800" class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
+                    <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                         {bid.amount} sats
                         <p class="text-xs mt-1">{formatTimestamp(bid.date)}</p>
-
 
                         <div class="mt-1 text-xs">
                             {#if !bid.backendResponse}
@@ -40,13 +43,22 @@
                                     <p class="line-clamp-3 mt-1 whitespace-normal">
                                         {bid.backendResponse.message}
                                     </p>
+                                {:else if bid.backendResponse.status === 'winner'}
+                                    <div class="w-8 h-8 mx-auto"><WinnerBadge /></div>
+                                    <p class="line-clamp-3 mt-1 whitespace-normal">
+                                        {#if bid.backendResponse.winnerPubkey === $NostrPublicKey}
+                                            You're the winner!
+                                        {:else}
+                                            Winner
+                                        {/if}
+                                    </p>
                                 {:else}
                                     Unknown response from the marketplace
                                 {/if}
                             {/if}
                         </div>
                     </td>
-                    <td class="text-xs text-center">
+                    <td class="text-xs text-cente {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
                         <div class="flex items-center space-x-3 mt-2">
                             <div class="avatar mask mask-squircle w-12 h-12">
                                 <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
@@ -83,9 +95,9 @@
             <tbody>
             {#each sortedBids as [bid_id, bid], i}
                 <tr>
-                    <td class="font-normal text-center">{bid.amount} sats</td>
-                    <td class="text-center">{formatTimestamp(bid.date)}</td>
-                    <td class="text-xs text-center">
+                    <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}"><span class="p-3">{bid.amount} sats</span></td>
+                    <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">{formatTimestamp(bid.date)}</td>
+                    <td class="text-xs text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}">
                         {#if !bid.backendResponse}
                             <div class="w-8 h-8 mx-auto"><Clock /></div>
                             <p class="line-clamp-3 mt-1 whitespace-normal">
@@ -99,13 +111,22 @@
                                 <p class="line-clamp-3 mt-1 whitespace-normal">
                                     {bid.backendResponse.message}
                                 </p>
+                            {:else if bid.backendResponse.status === 'winner'}
+                                <div class="w-8 h-8 mx-auto"><WinnerBadge /></div>
+                                <p class="line-clamp-3 mt-1 whitespace-normal font-bold">
+                                    {#if bid.backendResponse.winnerPubkey === $NostrPublicKey}
+                                        You're the winner!
+                                    {:else}
+                                        Winner
+                                    {/if}
+                                </p>
                             {:else}
                                 Unknown response from the marketplace
                             {/if}
                         {/if}
                     </td>
-                    <td class="font-normal">
-                        <div class="flex items-center space-x-3">
+                    <td class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
+                        <div class="flex items-center space-x-3 p-3">
                             <div class="avatar mask mask-squircle w-12 h-12">
                                 <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
                             </div>
