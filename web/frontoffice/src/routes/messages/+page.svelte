@@ -14,7 +14,8 @@
     let selectedConversationPubkey = null;
     let sortedConversations;
     let sortedMessages = [];
-    let chatTextarea;
+    let chatTextareaMobile;
+    let chatTextareaDesktop;
     let newConversationPubkey;
 
     // Messages
@@ -62,14 +63,25 @@
     }
 
     async function send() {
-        const content = chatTextarea.value.trim();
+        const contentMobile = chatTextareaMobile.value.trim();
+        const contentDesktop = chatTextareaDesktop.value.trim();
+        let content = '';
 
-        await sendPrivateMessage(selectedConversationPubkey, content,
-            async (relay) => {
-                chatTextarea.value = '';
-                console.log('-------- Private message accepted by relay:', relay);
-            }
-        );
+        if (contentMobile && contentMobile.length > 0) {
+            content += contentMobile;
+        } else if (contentDesktop && contentDesktop.length > 0) {
+            content += contentDesktop;
+        }
+
+        if (content.length > 0) {
+            await sendPrivateMessage(selectedConversationPubkey, content,
+                async (relay) => {
+                    chatTextareaMobile.value = '';
+                    chatTextareaDesktop.value = '';
+                    console.log('-------- Private message accepted by relay:', relay);
+                }
+            );
+        }
     }
 
     function selectConversation(publicKey) {
@@ -178,7 +190,7 @@
                                 rows="1"
                                 autofocus
                                 placeholder="Type your message"
-                                bind:this={chatTextarea}
+                                bind:this={chatTextareaDesktop}
                                 on:keypress={onKeyPress}
                                 class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
@@ -288,7 +300,7 @@
                             rows="1"
                             autofocus
                             placeholder="Type your message"
-                            bind:this={chatTextarea}
+                            bind:this={chatTextareaMobile}
                             on:keypress={onKeyPress}
                             class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
