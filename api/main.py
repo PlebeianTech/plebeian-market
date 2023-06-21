@@ -110,11 +110,10 @@ def finalize_auctions():
 
             top_bid = auction.get_top_bid()
 
-            while top_bid:
-                if db.session.query(m.Order).filter_by(buyer_public_key=top_bid.buyer_nostr_public_key).filter(m.Order.expired_at != None) \
-                    .join(m.OrderItem, m.OrderItem.order_id == m.Order.id).filter(m.OrderItem.auction_id == auction.id).first():
-                    app.logger.info(f"Skipping bidder {top_bid.buyer_nostr_public_key} with expired order for {auction.id=} and picking the next one!")
-                    top_bid = auction.get_top_bid(below=top_bid.amount)
+            while top_bid and db.session.query(m.Order).filter_by(buyer_public_key=top_bid.buyer_nostr_public_key).filter(m.Order.expired_at != None) \
+            .join(m.OrderItem, m.OrderItem.order_id == m.Order.id).filter(m.OrderItem.auction_id == auction.id).first():
+                app.logger.info(f"Skipping bidder {top_bid.buyer_nostr_public_key} with expired order for {auction.id=} and picking the next one!")
+                top_bid = auction.get_top_bid(below=top_bid.amount)
 
             if not top_bid or not auction.reserve_bid_reached:
                 app.logger.info(f"Auction {auction.id=} has no winner!")
