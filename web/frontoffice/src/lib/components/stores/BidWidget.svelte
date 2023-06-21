@@ -10,6 +10,7 @@
         subscribeMetadata,
         UserMetadata
     } from "$lib/services/nostr";
+    import {NostrPublicKey} from "$lib/stores";
 
     export let product;
 
@@ -51,7 +52,7 @@
             subscribeAuction([product.event.id],
                 (auctionEvent) => {
                     if (auctionEvent.kind === EVENT_KIND_AUCTION_BID) {
-                        console.log('************ bidEvent (bid)', auctionEvent);
+//                        console.log('************ bidEvent (bid)', auctionEvent);
 
                         bids[auctionEvent.id] = {
                             amount: Number(auctionEvent.content),
@@ -69,7 +70,7 @@
                         setRecommendedBidAmount();
 
                     } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
-                        console.log('************ bidEvent (response)', auctionEvent);
+//                        console.log('************ bidEvent (response)', auctionEvent);
 
                         if (auctionEvent.pubkey !== product.event.pubkey) {
                             console.error('WARNING! Someone tried to cheat on the auction, but we caught them!')
@@ -85,8 +86,18 @@
                                 let tagValue = eTags[i][1];
                                 if (product.event.id !== tagValue) {
                                     let bidInfo = bids[tagValue];
-                                    bidInfo.backendResponse = bidResponse;
-                                    bids[tagValue] = bidInfo;
+
+                                    if (bidResponse.status === 'winner' || (bidResponse.status !== 'winner' && bidInfo.backendResponse?.status !== 'winner' )) {
+                                        if (bidResponse.status === 'winner') {
+                                            const pTags = filterTags(auctionEvent.tags, 'p');
+                                            for (let i = 0; i < pTags.length; i++) {
+                                                bidResponse.winnerPubkey = pTags[i][1];
+                                            }
+                                        }
+
+                                        bidInfo.backendResponse = bidResponse;
+                                        bids[tagValue] = bidInfo;
+                                    }
                                 }
                             }
 

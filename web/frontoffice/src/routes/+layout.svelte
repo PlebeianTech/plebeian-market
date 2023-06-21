@@ -11,9 +11,11 @@
         NostrPrivateKey,
         NostrGlobalConfig
     } from "$lib/stores";
-    import Footer from "$sharedLib/components/Footer.svelte";
+
     import LoginModal from "$lib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
+    import Notifications from "$lib/components/Notifications.svelte";
+    import Footer from "$sharedLib/components/Footer.svelte";
     import {closePool, subscribeConfiguration} from "$lib/services/nostr";
     import {getConfigurationFromFile} from "$lib/utils";
 
@@ -84,6 +86,8 @@
     <Navbar />
 
     <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/' ? 'w-screen' : 'w-11/12 md:w-10/12' }">
+        <Notifications />
+
         <slot />
     </div>
 

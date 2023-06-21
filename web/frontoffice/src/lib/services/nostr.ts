@@ -97,9 +97,24 @@ export function subscribeReactions(listOfNotesToGetInfo, receivedCB: (event) => 
         .on('event', receivedCB);
 }
 
-export function subscribeAuction(listOfNotesToGetInfo, receivedCB: (event) => void, eoseCB) {
+/**
+ * Used to subscribe to all the information about a specific auction
+ */
+export function subscribeAuction(listOfAuctionsToGetInfo, receivedCB: (event) => void, eoseCB) {
     let sub = get(NostrPool)
-        .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID, EVENT_KIND_AUCTION_BID_STATUS ], '#e': listOfNotesToGetInfo }]);
+        .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID, EVENT_KIND_AUCTION_BID_STATUS ], '#e': listOfAuctionsToGetInfo }]);
+    sub.on('event', receivedCB);
+    if (eoseCB) {
+        sub.on('eose', eoseCB);
+    }
+}
+
+/**
+ * Used to subscribe for all the auctions that I won
+ */
+export function subscribeWonAuctions(pubkey, receivedCB: (event) => void, eoseCB) {
+    let sub = get(NostrPool)
+        .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID_STATUS ], '#p': [pubkey] }]);
     sub.on('event', receivedCB);
     if (eoseCB) {
         sub.on('eose', eoseCB);

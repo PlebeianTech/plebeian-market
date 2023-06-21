@@ -35,7 +35,7 @@
             <button id="save-profile" class="btn btn-primary" class:btn-disabled={!saveButtonActive} on:click|preventDefault={save}>Save</button>
         </div>
         -->
-    {:else}
+    11
         <p>
             You're logged-in using your Nostr browser extension.
         </p>
