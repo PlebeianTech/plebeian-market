@@ -24,7 +24,7 @@
 </script>
 
 {#if $NostrPublicKey}
-    <label role="button" tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block ml-2">
+    <label role="button" tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block">
         <img class="w-10 rounded-full" src={profileImage ?? profilePicturePlaceHolder} alt="Avatar" />
     </label>
 {/if}

@@ -65,25 +65,23 @@
 </script>
 
 <nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50">
-    <div class="lg:w-3/4 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
+    <div class="2xl:w-11/12 3xl:w-10/12 p-2 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
-            <a href="/" class="flex items-center mr-2">
+            <a href="/" class="flex items-center mr-2 indicator">
                 <div class="flex items-center space-x-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
-                    <h1 class="w-64 text-xl font-bold hover:text-blue-400 duration-300">
+                    {#if !isProduction()}
+                        <span class="indicator-item badge badge-error">{getEnvironmentInfo().substring(0,3)}</span>
+                    {/if}
+                    <h1 class="w-52 2xl:w-64 3xl:w-72 text-base lg:text-lg 2xl:text-xl font-bold hover:text-blue-400 duration-300">
                         Plebeian Market
                     </h1>
+
                 </div>
             </a>
 
             <!-- LINKS -->
             <div class="lg:flex items-right w-full">
-                {#if !isProduction()}
-                    <div class="lg:inline badge badge-primary ml-2 lg:my-0 hidden">
-                        {getEnvironmentInfo()}
-                    </div>
-                {/if}
-
                 <div class="hidden lg:flex">
                     <p>
                         <a href="/stalls" class="btn btn-ghost normal-case">Stall Browser</a>
@@ -108,7 +106,7 @@
                     <p>
                         <a href="/admin" class="btn btn-ghost normal-case">Sell items</a>
                     </p>
-                    <p>
+                    <p class="hidden xl:block">
                         {#if !$NostrPublicKey}
                             <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
                         {:else}
@@ -134,10 +132,10 @@
             </div>
         </div>
 
-        <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0 md:space-x-4">
-            <div class="lg:flex items-center justify-start space-x-4">
+        <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0">
+            <div class="lg:flex items-center justify-start 2xl:space-x-2">
                 <div class="float-right">
-                    <label class="swap swap-rotate mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
+                    <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
                         <!-- sun icon -->
                         <svg class="swap-off fill-current w-9 h-9" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" /></svg>
@@ -145,7 +143,7 @@
                         <svg class="swap-on fill-current w-9 h-9" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" /></svg>
                     </label>
 
-                    <div class="btn btn-ghost btn-circle mr-2">
+                    <div class="btn btn-ghost btn-circle 2xl:mr-2">
                         <PrivateMessages />
                     </div>
 
@@ -166,7 +164,7 @@
                     </div>
                 </div>
 
-                <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both pl-3" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
+                <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
                     {#if $NostrPublicKey}
                         <ProfilePicture />
                     {:else}

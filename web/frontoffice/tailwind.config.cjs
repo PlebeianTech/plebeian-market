@@ -8,6 +8,9 @@ module.exports = {
       colors: {
         "neon-pink": "#ff00ff",
       },
+      screens: {
+        '3xl': '1800px',
+      },
     },
   },
   plugins: [
