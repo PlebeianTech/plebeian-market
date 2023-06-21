@@ -1216,6 +1216,9 @@ class Bid(db.Model):
     __tablename__ = 'bids'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    nostr_event_id = db.Column(db.String(64), unique=True, nullable=True, index=True)
+
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
 
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
@@ -1341,6 +1344,7 @@ class OrderItem(db.Model):
 
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
 
     quantity = db.Column(db.Integer, nullable=False)

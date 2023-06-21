@@ -1303,7 +1303,7 @@ def post_merchant_message(pubkey):
             nostr_client = get_nostr_client(seller)
 
             for item in cleartext_content['items']:
-                listing = m.Listing.query.filter_by(key=item['product_id']).first()
+                listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
 
                 if not listing:
                     return jsonify({'message': "Item not found!"}), 404
@@ -1403,7 +1403,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         nostr_client.send_bid_status(auction_event_id, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
 
-    bid = m.Bid(auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
+    bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
     db.session.add(bid)
 
     db.session.commit()
