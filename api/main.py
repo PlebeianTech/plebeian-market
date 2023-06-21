@@ -110,9 +110,11 @@ def finalize_auctions():
 
             top_bid = auction.get_top_bid()
 
-            while top_bid and db.session.query(m.Sale).filter_by(auction_id=auction.id, buyer_id=top_bid.buyer_id, state=m.SaleState.EXPIRED.value).first():
-                app.logger.info(f"Skipping bidder {top_bid.buyer_id} with expired sale for {auction.id=} and picking the next one!")
-                top_bid = auction.get_top_bid(below=top_bid.amount)
+            while top_bid:
+                if db.session.query(m.Order).filter_by(buyer_public_key=top_bid.buyer_nostr_public_key).filter(m.Order.expired_at != None) \
+                    .join(m.OrderItem, m.OrderItem.order_id == m.Order.id).filter(m.OrderItem.auction_id == auction.id).first():
+                    app.logger.info(f"Skipping bidder {top_bid.buyer_nostr_public_key} with expired order for {auction.id=} and picking the next one!")
+                    top_bid = auction.get_top_bid(below=top_bid.amount)
 
             if not top_bid or not auction.reserve_bid_reached:
                 app.logger.info(f"Auction {auction.id=} has no winner!")
@@ -121,65 +123,13 @@ def finalize_auctions():
                 db.session.commit()
                 continue
 
-            app.logger.info(f"Auction {auction.id=} has a winner: user.id={top_bid.buyer_id}!")
+            app.logger.info(f"Auction {auction.id=} has a winner: pubkey={top_bid.buyer_nostr_public_key}!")
             auction.has_winner = True
             auction.winning_bid_id = top_bid.id
 
-            quantity = 1 # always 1 for auctions
-
-            try:
-                if auction.campaign:
-                    address = auction.campaign.get_new_address()
-                else:
-                    address = auction.item.seller.get_new_address()
-            except m.AddressGenerationError as e:
-                app.logger.error(f"{auction.id=} " + str(e))
-                # NB: here we commit because we want has_winner and winning_bid_id to be set,
-                # so we never touch this auction again and simply skip generating the corresponding sale
-                # there is really nothing else we can do at this point for this auction,
-                # but at least we picked a winner and stop retrying!
-                db.session.commit()
-                continue
-            except MempoolSpaceError as e:
-                app.logger.error(str(e) + " Taking a 1 minute nap...")
-                time.sleep(60)
-                continue
-
-            price_sats = top_bid.amount
-            contribution_amount = auction.item.seller.get_contribution_amount(price_sats * quantity)
-            if auction.campaign_id:
-                contribution_amount = 0
-
-            if contribution_amount != 0:
-                response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY_AUCTION'])
-                contribution_payment_request = response.payment_request
-            else:
-                contribution_payment_request = None
-
-            sale = m.Sale(item_id=auction.item_id, auction_id=auction.id,
-                buyer_id=top_bid.buyer_id,
-                address=address,
-                price_usd=sats2usd(price_sats, btc2usd),
-                price=price_sats,
-                shipping_domestic=usd2sats(auction.item.shipping_domestic_usd, btc2usd),
-                shipping_worldwide=usd2sats(auction.item.shipping_worldwide_usd, btc2usd),
-                quantity=quantity,
-                amount=(price_sats * quantity) - contribution_amount,
-                contribution_amount=contribution_amount,
-                contribution_payment_request=contribution_payment_request)
-            if not contribution_payment_request:
-                sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
-            db.session.add(sale)
-
-            try:
-                db.session.commit()
-            except IntegrityError:
-                # this should never happen...
-                app.logger.error(f"Address already in use. Will retry next time. {auction.id=}")
-                continue
-
-            m.Message.create_and_send('AUCTION_HAS_WINNER', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
-            m.Message.create_and_send('AUCTION_WON', user=sale.buyer, auction=sale.auction)
+            nostr_client = get_nostr_client(auction.item.seller)
+            nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', [['p', top_bid.buyer_public_key]])
+            nostr_client.send_dm(top_bid.buyer_public_key, json.dumps({'type': 0, 'product_id': auction.uuid, 'message': "You won!"}))
 
         if app.config['ENV'] == 'test':
             time.sleep(1)
@@ -910,14 +860,16 @@ class NostrClient:
             app.logger.exception("Error while publishing Nostr auction.")
             return None
 
-    def send_bid_status(self, auction_event_id, bid_event_id, status, message=None):
+    def send_bid_status(self, auction_event_id, bid_event_id, status, message=None, extra_tags=None):
+        if extra_tags is None:
+            extra_tags = []
         try:
             content_json = {
                 'status': status,
             }
             if message is not None:
                 content_json['message'] = message
-            event = Event(kind=1022, content=json.dumps(content_json), tags=[['e', auction_event_id], ['e', bid_event_id]])
+            event = Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction_event_id], ['e', bid_event_id]] + extra_tags))
             self.private_key.sign_event(event)
             app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
