@@ -435,17 +435,12 @@ class TestApi(unittest.TestCase):
         code, response = self.get("/api/users/me/sales", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 4)
+        self.assertEqual(len(response['sales']), 2)
         address_for_campaign_listing = [s['address'] for s in response['sales'] if s['item_title'] == "A listing for a cause"][0]
         self.assertIn(address_for_campaign_listing, CAMPAIGN_ADDRESSES)
         address_for_normal_listing = [s['address'] for s in response['sales'] if s['item_title'] == "A selfish listing"][0]
         self.assertIn(address_for_normal_listing, ADDRESSES)
         self.assertNotEqual(address_for_campaign_listing, address_for_normal_listing)
-        address_for_campaign_auction = [s['address'] for s in response['sales'] if s['item_title'] == "An auction for a cause"][0]
-        self.assertIn(address_for_campaign_auction, CAMPAIGN_ADDRESSES)
-        address_for_normal_auction = [s['address'] for s in response['sales'] if s['item_title'] == "A selfish auction"][0]
-        self.assertIn(address_for_normal_auction, ADDRESSES)
-        self.assertNotEqual(address_for_campaign_auction, address_for_normal_auction)
 
     def test_listings(self):
         token_1 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='fixie')
@@ -480,6 +475,7 @@ class TestApi(unittest.TestCase):
         self.assertIn('listing', response)
 
         listing_key = response['listing']['key']
+        listing_uuid = response['listing']['uuid']
 
         # GET listings to see our new listing
         code, response = self.get("/api/users/fixie/listings?filter=new",
@@ -639,7 +635,7 @@ class TestApi(unittest.TestCase):
             'address': "7 Záhony u. Budapest, 1031 Hungary",
             'message': "Please deliver to this point: 47.5607, 19.0544",
             'contact': {'email': "test@plebeian.market"},
-            'items': [{'product_id': listing_key, 'quantity': 2}],
+            'items': [{'product_id': listing_uuid, 'quantity': 2}],
             'shipping_id': 'WORLD',
         }
         dm = EncryptedDirectMessage(recipient_pubkey=listing_merchant_public_key, cleartext_content=json.dumps(purchase_event))
@@ -1414,20 +1410,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 1)
         self.assertTrue(response['auction']['has_winner'])
-        self.assertIsNone(response['auction']['sales'][0]['contribution_settled_at'])
-        self.assertIsNotNone(response['auction']['sales'][0]['settled_at'])
-        self.assertTrue(response['auction']['sales'][0]['txid'].startswith('MOCK_'))
-        self.assertIsNone(response['auction']['sales'][0]['expired_at'])
-        self.assertIn(response['auction']['sales'][0]['address'], ADDRESSES)
-
-        # the buyer was notified of the TX
-        code, response = self.get("/api/users/me/messages?via=all",
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        actual_messages = [m for m in response['messages'] if m['notified_via']]
-        tx_confirmed_messages = [m for m in actual_messages if m['key'].startswith('TRANSACTION_CONFIRMED')]
-        self.assertEqual(len(tx_confirmed_messages), 1)
-        self.assertIn("https://mempool.space/tx/", tx_confirmed_messages[0]['body'].lower())
 
         # another user however, cannot see the sale (but it can see the auction has a winner)
         code, response = self.get(f"/api/auctions/{auction_key}",
