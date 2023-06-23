@@ -56,8 +56,8 @@ class Relay:
                     logging.info(f"Forwarded message to merchant {merchant_pubkey}.")
                 elif response.status == 409:
                     logging.info(f"Order already exists at {merchant_pubkey}.")
-                elif response.status == 500:
-                    logging.error(f"Error posting to merchant {merchant_pubkey}.")
+                elif response.status in [400, 403, 404, 500]:
+                    logging.error(f"Error posting to merchant {merchant_pubkey}: {response.status}.")
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")
@@ -74,8 +74,8 @@ class Relay:
                 logging.debug(f"POST to auction {auction_event_id} of merchant {merchant_pubkey}: {event}")
                 if response.status == 200:
                     logging.info(f"Forwarded bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
-                elif response.status in [400, 403, 500]:
-                    logging.error(f"Error posting bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
+                elif response.status in [400, 403, 404, 500]:
+                    logging.error(f"Error posting bid to auction {auction_event_id} of merchant {merchant_pubkey}: {response.status}.")
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")

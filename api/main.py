@@ -32,6 +32,7 @@ from sqlalchemy.exc import IntegrityError
 import string
 import sys
 import time
+import uuid
 
 from extensions import cors, db
 from utils import sats2usd, usd2sats
@@ -128,7 +129,7 @@ def finalize_auctions():
 
             nostr_client = get_nostr_client(auction.item.seller)
             nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]])
-            nostr_client.send_dm(top_bid.buyer_nostr_public_key, json.dumps({'type': 0, 'product_id': str(auction.uuid), 'message': "You won!"}))
+            nostr_client.send_dm(top_bid.buyer_nostr_public_key, json.dumps({'type': 10, 'product_id': str(auction.uuid), 'message': "You won!"}))
 
             db.session.commit()
 
@@ -308,7 +309,7 @@ def settle_btc_payments():
                         for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
                             listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
                             listing.available_quantity += order_item.quantity
-                            nostr_client.publish_product(**listing.to_nostr())
+                            nostr_client.publish_item(listing)
                         db.session.commit()
                         nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."}))
                 if order.paid_at:
@@ -757,17 +758,13 @@ class MockNostrClient:
         app.logger.info(f"Nostr Stall: {args=} {kwargs=}")
         return True
 
-    def publish_product(self, *args, **kwargs):
-        app.logger.info(f"Nostr Product: {args=} {kwargs=}")
-        return 1 # TODO
-
-    def publish_auction(self, *args, **kwargs):
-        app.logger.info(f"Nostr Auction: {args=} {kwargs=}")
-        return 1 # TODO
+    def publish_item(self, entity):
+        app.logger.info(f"Nostr item: {entity.to_nostr()}")
+        return str(uuid.uuid4())
 
     def send_bid_status(self, *args, **kwargs):
         app.logger.info(f"Nostr bid status: {args=} {kwargs=}")
-        return 1 # TODO
+        return str(uuid.uuid4())
 
 class NostrClient:
     def __init__(self, private_key, relays):
@@ -819,46 +816,16 @@ class NostrClient:
             app.logger.exception("Error while publishing Nostr stall.")
             return False
 
-    def publish_product(self, id, stall_id, name, description, images, currency, price, quantity):
+    def publish_item(self, entity):
+        item_json = entity.to_nostr()
         try:
-            product_json = {
-                'id': id,
-                'stall_id': stall_id,
-                'name': name,
-                'description': description,
-                'images': images,
-                'currency': currency,
-                'price': price,
-                'quantity': quantity,
-            }
-            event = Event(kind=30018, content=json.dumps(product_json), tags=[['d', id]])
+            event = Event(kind=entity.nostr_event_kind, content=json.dumps(item_json), tags=[['d', item_json['id']]])
             self.private_key.sign_event(event)
-            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
+            app.logger.info(f"Published to Nostr: relays={self.relay_manager.relays.keys()} event.id={event.id} {event=}.")
             return event.id
         except:
-            app.logger.exception("Error while publishing Nostr product.")
-            return None
-
-    def publish_auction(self, id, stall_id, name, description, images, starting_bid, start_date, duration):
-        try:
-            auction_json = {
-                'id': id,
-                'stall_id': stall_id,
-                'name': name,
-                'description': description,
-                'images': images,
-                'starting_bid': starting_bid,
-                'start_date': start_date,
-                'duration': duration,
-            }
-            event = Event(kind=30020, content=json.dumps(auction_json), tags=[['d', id]])
-            self.private_key.sign_event(event)
-            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
-            self.relay_manager.publish_event(event)
-            return event.id
-        except:
-            app.logger.exception("Error while publishing Nostr auction.")
+            app.logger.exception("Error while publishing item to Nostr.")
             return None
 
     def send_bid_status(self, auction_event_id, bid_event_id, status, message=None, extra_tags=None):

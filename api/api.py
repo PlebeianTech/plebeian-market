@@ -24,7 +24,7 @@ import models as m
 from main import app, get_lnd_client, get_nostr_client, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
-from utils import usd2sats, parse_xpub, UnknownKeyTypeError
+from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -776,20 +776,13 @@ def get_put_delete_entity(key, cls, singular, has_item):
             for k, v in validated.items():
                 setattr(entity, k, v)
 
-            nostr = False
-            if entity.started:
+            if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)) and entity.started:
                 user.ensure_merchant_key()
-                match entity:
-                    case m.Auction():
-                        entity.nostr_event_id = get_nostr_client(user).publish_auction(**entity.to_nostr())
-                        nostr = True
-                    case m.Listing():
-                        entity.nostr_event_id = get_nostr_client(user).publish_product(**entity.to_nostr())
-                        nostr = True
+                entity.nostr_event_id = get_nostr_client(user).publish_item(entity)
 
             db.session.commit()
 
-            return jsonify({'nostr': nostr})
+            return jsonify({'nostr_event_id': entity.nostr_event_id})
         elif request.method == 'DELETE':
             if isinstance(entity, m.Auction | m.Listing):
                 for sale in entity.sales:
@@ -839,12 +832,7 @@ def post_media(key, cls, singular):
         added_media.append(media)
 
     if entity.started:
-        nostr_client = get_nostr_client(entity.item.seller)
-        match entity:
-            case m.Auction():
-                entity.nostr_event_id = nostr_client.publish_auction(**entity.to_nostr())
-            case m.Listing():
-                entity.nostr_event_id = nostr_client.publish_product(**entity.to_nostr())
+        entity.nostr_event_id = get_nostr_client(entity.item.seller).publish_item(entity)
 
     db.session.commit()
 
@@ -932,11 +920,7 @@ def put_publish(user, key, cls):
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
 
     user.ensure_merchant_key()
-    match entity:
-        case m.Auction():
-            entity.nostr_event_id = get_nostr_client(user).publish_auction(**entity.to_nostr())
-        case m.Listing():
-            entity.nostr_event_id = get_nostr_client(user).publish_product(**entity.to_nostr())
+    entity.nostr_event_id = get_nostr_client(user).publish_item(entity)
 
     db.session.commit()
 
@@ -1279,6 +1263,36 @@ def post_merchant_message(pubkey):
             if m.Order.query.filter_by(uuid=cleartext_content['id']).one_or_none():
                 return jsonify({'message': "Order already exists!"}), 409
 
+            order_listings = [] # [(listing, quantity), ...]
+            order_auctions = [] # [auction]
+            for item in cleartext_content['items']:
+                listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
+                if listing:
+                    order_listings.append((listing, item['quantity']))
+                else:
+                    auction = m.Auction.query.filter_by(uuid=item['product_id']).first()
+                    if auction:
+                        order_auctions.append(auction)
+
+            nostr_client = get_nostr_client(seller)
+
+            # NB: an order can contain either N listings or 1 auction!
+            # Even though orders are treated the same (and an order could technically contain any mix of auctions and listings),
+            # this is a requirement because auctions are denominated in sats but listings are denominated in fiat,
+            # so mixing the two in the same order would complicate the conversion.
+            if len(order_listings) != 0 and len(order_auctions) != 0:
+                nostr_client.send_dm(request.json['pubkey'], "Cannot mix listings and auctions in the same order!")
+                return jsonify({'message': "Cannot mix listings and auctions in the same order!"}), 400
+
+            if len(order_listings) == 0 and len(order_auctions) == 0:
+                nostr_client.send_dm(request.json['pubkey'], "Empty order!")
+                return jsonify({'message': "Empty order!"}), 400
+
+            # NB: we could do without this requirement, but it seems like quite an edge case that shouldn't be needed
+            if len(order_auctions) > 1:
+                nostr_client.send_dm(request.json['pubkey'], "Can't pay for more than one auction in the same order!")
+                return jsonify({'message': "Can't pay for more than one auction in the same order!"}), 400
+
             try:
                 payment_address = seller.get_new_address()
             except m.AddressGenerationError as e:
@@ -1300,30 +1314,6 @@ def post_merchant_message(pubkey):
             db.session.add(order)
             db.session.commit()
 
-            nostr_client = get_nostr_client(seller)
-
-            for item in cleartext_content['items']:
-                listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
-
-                if not listing:
-                    return jsonify({'message': "Item not found!"}), 404
-
-                quantity = item['quantity']
-
-                if listing.available_quantity < quantity:
-                    nostr_client.send_dm(order.buyer_public_key, "Not enough items in stock!")
-                    return jsonify({'message': "Not enough items in stock!"}), 400
-
-                # here we "lock" the quantity. it is given back if the order expires
-                # NB: we need to update the quantity in Nostr as well!
-                listing.available_quantity -= quantity
-                nostr_client.publish_product(**listing.to_nostr())
-
-                order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
-                db.session.add(order_item)
-
-                order.total_usd += listing.price_usd * quantity
-
             shipping_id = cleartext_content['shipping_id']
             if shipping_id == 'WORLD':
                 order.shipping_usd = seller.shipping_worldwide_usd
@@ -1335,14 +1325,42 @@ def post_merchant_message(pubkey):
                     nostr_client.send_dm(order.buyer_public_key, "Invalid shipping zone!")
                     return jsonify({'message': "Invalid shipping zone!"}), 400
 
-            order.total_usd += order.shipping_usd
-
             try:
                 btc2usd = btc2fiat.get_value('kraken')
             except Exception:
                 return jsonify({'message': "Error fetching the exchange rate!"}), 500
 
-            order.total = usd2sats(order.total_usd, btc2usd)
+            if order_listings:
+                for listing, quantity in order_listings:
+                    if listing.available_quantity < quantity:
+                        nostr_client.send_dm(order.buyer_public_key, "Not enough items in stock!")
+                        return jsonify({'message': "Not enough items in stock!"}), 400
+
+                    # here we "lock" the quantity. it is given back if the order expires
+                    # NB: we need to update the quantity in Nostr as well!
+                    listing.available_quantity -= quantity
+                    nostr_client.publish_item(listing)
+
+                    order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
+                    db.session.add(order_item)
+
+                    order.total_usd += listing.price_usd * quantity
+
+                order.total_usd += order.shipping_usd
+                order.total = usd2sats(order.total_usd, btc2usd)
+            elif order_auctions:
+                for auction in order_auctions:
+                    winning_bid = auction.get_winning_bid()
+                    if not winning_bid or winning_bid.buyer_nostr_public_key != order.buyer_public_key:
+                        return jsonify({'message': "You are not the winner!"}), 400
+
+                    order_item = m.OrderItem(order_id=order.id, item_id=auction.item_id, auction_id=auction.id, quantity=1)
+                    db.session.add(order_item)
+
+                    order.total += winning_bid.amount
+
+                order.total += usd2sats(order.shipping_usd, btc2usd)
+                order.total_usd = sats2usd(order.total, btc2usd)
 
             db.session.commit()
 
