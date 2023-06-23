@@ -62,6 +62,15 @@ export async function closePool() {
     await get(NostrPool).close(relayUrlList);
 }
 
+export function getNostrEvent(listOfEventIds, receivedCB: (event) => void, eoseCB) {
+    let sub = get(NostrPool)
+        .sub(relayUrlList, [{ 'ids': listOfEventIds }]);
+    sub.on('event', receivedCB);
+    if (eoseCB) {
+        sub.on('eose', eoseCB);
+    }
+}
+
 export function subscribeResumes(receivedCB: (pubkey: string, resume: UserResume, createdAt: number) => void) {
     let sub = get(NostrPool).sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME] }]);
     sub.on('event', e => receivedCB(e.pubkey, UserResume.fromJson(JSON.parse(e.content)), e.created_at));
@@ -113,8 +122,14 @@ export function subscribeAuction(listOfAuctionsToGetInfo, receivedCB: (event) =>
  * Used to subscribe for all the auctions that I won
  */
 export function subscribeWonAuctions(pubkey, receivedCB: (event) => void, eoseCB) {
+    const expiryDays = 3;
+
     let sub = get(NostrPool)
-        .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID_STATUS ], '#p': [pubkey] }]);
+        .sub(relayUrlList, [{
+            kinds: [ EVENT_KIND_AUCTION_BID_STATUS ],
+            '#p': [pubkey],
+            since: Math.floor(Date.now() / 1000) - (expiryDays * 24 * 3600)
+        }]);
     sub.on('event', receivedCB);
     if (eoseCB) {
         sub.on('eose', eoseCB);

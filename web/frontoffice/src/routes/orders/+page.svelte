@@ -33,9 +33,13 @@
     $: paidPaymentsStorage = [];
 
     $: {
-        sortedOrders = Object.entries($privateMessages.automatic).sort((a, b) => {
-            return b[1].created_at - a[1].created_at;
-        });
+        sortedOrders = Object.entries($privateMessages.automatic)
+            .filter(([, automaticMessage]) => {
+                return automaticMessage.type !== 10;
+            })
+            .sort((a, b) => {
+                return b[1].created_at - a[1].created_at;
+            });
 
         ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([, order]) => {
             if (order.type === 1) {
