@@ -132,7 +132,7 @@
 {#if $NostrPublicKey}
     {#if newConversationPubkey || sortedConversations.length > 0}
         <!-- Desktop -->
-        <div class="hidden h-[46rem] md:flex">
+        <div class="hidden lg:flex h-[46rem]">
             <div class="w-1/3 menu card h-auto max-h-full gap-2 rounded-box p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
                 {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
                     <li class="rounded-lg w-full"
@@ -208,8 +208,8 @@
 
         <!-- Mobile -->
         {#if selectedConversationPubkey}
-            <div class="flex pb-2 border-b border-gray-400/70 md:hidden leading-none relative">
-                <div class="w-10 mr-4 mt-1" on:click={() => selectedConversationPubkey = null}>
+            <div class="flex lg:hidden relative pb-2 border-b border-gray-400/70 leading-none">
+                <div class="w-10 mr-4 mt-1 cursor-pointer" on:click={() => selectedConversationPubkey = null}>
                     <ArrowLeft />
                 </div>
 
@@ -244,9 +244,9 @@
             </div>
         {/if}
 
-        <div class="flex h-[46rem] md:hidden">
+        <div class="flex h-[46rem] lg:hidden">
             {#if !selectedConversationPubkey}
-                <div class="menu card h-auto max-h-full gap-2 rounded-box p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
+                <div class="w-full menu card h-auto max-h-full gap-2 rounded-box p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
                     {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
                         <li class="rounded-lg w-full"
                             on:click={() => selectConversation(newConversationPubkey)}
@@ -295,7 +295,7 @@
                         {/each}
                     </div>
 
-                    <div class="flex md:grid md:grid-cols-2 w-full mx-auto lg:w-2/3 mt-2 md:mt-8 p-3 bg-black rounded-lg items-center bottom-0 content-end fixed col-span-2">
+                    <div class="flex lg:grid lg:grid-cols-2 w-full mx-auto lg:w-2/3 mt-2 lg:mt-8 p-3 bg-black rounded-lg items-center bottom-0 content-end fixed col-span-2">
                     <textarea
                             rows="1"
                             autofocus

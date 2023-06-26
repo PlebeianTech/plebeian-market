@@ -36,8 +36,10 @@
 
         auctionToOrder = Object.entries($privateMessages.automatic)
             .filter(([automaticMessageId, automaticMessage]) => {
-                if (!firstOneAdded && automaticMessage.type === 2 && automaticMessage.items[0].product_id.length > 4) {    // 10
-                    const product_id = '03ba934b-61db-499b-824f-c088fca1b1ba';  // TODO automaticMessage.items[0]?.product_id;
+                //if (!firstOneAdded && automaticMessage.type === 2 && automaticMessage.items[0].product_id.length > 4) {    // 10
+                if (!firstOneAdded && automaticMessage.type === 10) {
+                    //const product_id = '03ba934b-61db-499b-824f-c088fca1b1ba';  // TODO automaticMessage.items[0]?.product_id;
+                    const product_id = automaticMessage.items[0]?.product_id;
 
                     if (product_id) {
                         firstOneAdded = true;
