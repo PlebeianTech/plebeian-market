@@ -1,7 +1,7 @@
 <script>
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {Error, Info, NostrPublicKey, privateMessages, ShoppingCart, stalls} from "$lib/stores";
-    import {onImgError, refreshStalls} from "$lib/shopping";
+    import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
     import {sendPrivateMessage} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
@@ -61,19 +61,19 @@
                 shipping_id: $stalls.stalls[stallId].shippingOption
             };
 
-            if (name) {
+            if (name && name !== '') {
                 order.name = name;
             }
-            if (address) {
+            if (address && address !== '') {
                 order.address = address;
             }
-            if (message) {
+            if (message && message !== '') {
                 order.message = message;
             }
-            if (phone) {
+            if (phone && phone !== '') {
                 order.contact.phone = phone;
             }
-            if (email) {
+            if (email && email !== '') {
                 order.contact.email = email;
             }
 
@@ -115,23 +115,11 @@
         if (nostrPublicKeyValue) {
             refreshStalls();
 
-            Object.entries($privateMessages.automatic).forEach(([messageId, privateMessage]) => {
-                if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
-                    if (privateMessage.name) {
-                        name = privateMessage.name;
-                    }
-                    if (privateMessage.address) {
-                        address = privateMessage.address;
-                    }
-
-                    if (privateMessage.contact?.phone) {
-                        phone = privateMessage.contact.phone;
-                    }
-                    if (privateMessage.contact?.email) {
-                        email = privateMessage.contact.email;
-                    }
-                }
-            });
+            const contactDetails = getLastOrderContactInformation();
+            name = contactDetails.name ?? '';
+            address = contactDetails.address ?? '';
+            phone = contactDetails.phone ?? '';
+            email = contactDetails.email ?? '';
         } else {
             requestLoginModal();
         }
