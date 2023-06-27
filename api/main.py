@@ -106,6 +106,7 @@ def finalize_auctions():
             app.logger.error("Error fetching the exchange rate! Taking a 1 minute nap...")
             time.sleep(60)
             continue
+
         for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
             app.logger.info(f"Looking at {auction.id=}...")
 
@@ -127,9 +128,35 @@ def finalize_auctions():
             auction.has_winner = True
             auction.winning_bid_id = top_bid.id
 
-            nostr_client = get_nostr_client(auction.item.seller)
-            nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]])
-            nostr_client.send_dm(top_bid.buyer_nostr_public_key, json.dumps({'type': 10, 'product_id': str(auction.uuid), 'message': "You won!"}))
+            if top_bid.buyer_nostr_public_key:
+                try:
+                    payment_address = auction.item.seller.get_new_address()
+                except m.AddressGenerationError:
+                    app.logger.exception("Error while generating address.")
+                    continue
+                except MempoolSpaceError:
+                    app.logger.exception("Error while checking mempool.")
+                    continue
+
+                order_uuid = str(uuid.uuid4())
+
+                nostr_client = get_nostr_client(auction.item.seller)
+                nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]])
+                dm_event_id = nostr_client.send_dm(top_bid.buyer_nostr_public_key,
+                    json.dumps({'id': order_uuid, 'type': 10, 'items': [{'product_id': str(auction.uuid), 'quantity': 1}]}))
+
+                order = m.Order(
+                    uuid=order_uuid,
+                    seller_id=auction.item.seller_id,
+                    buyer_public_key=top_bid.buyer_nostr_public_key,
+                    requested_at=datetime.utcnow(),
+                    payment_address=payment_address,
+                    event_id=dm_event_id)
+                db.session.add(order)
+                db.session.commit()
+
+                order_item = m.OrderItem(order_id=order.id, item_id=auction.item_id, auction_id=auction.id, quantity=1)
+                db.session.add(order_item)
 
             db.session.commit()
 
@@ -784,10 +811,10 @@ class NostrClient:
             dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
             self.private_key.sign_event(dm)
             self.relay_manager.publish_event(dm)
-            return True
+            return dm.id
         except:
             app.logger.exception("Error while sending Nostr DM.")
-            return False
+            return None
 
     def publish_stall(self, id, name, description, currency, shipping_from, shipping_domestic_usd, shipping_worldwide_usd):
         try:

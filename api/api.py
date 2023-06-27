@@ -1260,79 +1260,73 @@ def post_merchant_message(pubkey):
         cleartext_content = json.loads(sk.decrypt_message(request.json['content'], public_key_hex=request.json['pubkey']))
 
         if int(cleartext_content['type']) == 0:
-            if m.Order.query.filter_by(uuid=cleartext_content['id']).one_or_none():
-                return jsonify({'message': "Order already exists!"}), 409
-
-            order_listings = [] # [(listing, quantity), ...]
-            order_auctions = [] # [auction]
-            for item in cleartext_content['items']:
-                listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
-                if listing:
-                    order_listings.append((listing, item['quantity']))
-                else:
-                    auction = m.Auction.query.filter_by(uuid=item['product_id']).first()
-                    if auction:
-                        order_auctions.append(auction)
+            order = m.Order.query.filter_by(uuid=cleartext_content['id']).one_or_none()
 
             nostr_client = get_nostr_client(seller)
 
-            # NB: an order can contain either N listings or 1 auction!
-            # Even though orders are treated the same (and an order could technically contain any mix of auctions and listings),
-            # this is a requirement because auctions are denominated in sats but listings are denominated in fiat,
-            # so mixing the two in the same order would complicate the conversion.
-            if len(order_listings) != 0 and len(order_auctions) != 0:
-                nostr_client.send_dm(request.json['pubkey'], "Cannot mix listings and auctions in the same order!")
-                return jsonify({'message': "Cannot mix listings and auctions in the same order!"}), 400
+            if order and order.buyer_public_key != request.json['pubkey']:
+                return jsonify({'message': "Not allowed!"}), 403
 
-            if len(order_listings) == 0 and len(order_auctions) == 0:
-                nostr_client.send_dm(request.json['pubkey'], "Empty order!")
-                return jsonify({'message': "Empty order!"}), 400
-
-            # NB: we could do without this requirement, but it seems like quite an edge case that shouldn't be needed
-            if len(order_auctions) > 1:
-                nostr_client.send_dm(request.json['pubkey'], "Can't pay for more than one auction in the same order!")
-                return jsonify({'message': "Can't pay for more than one auction in the same order!"}), 400
-
-            try:
-                payment_address = seller.get_new_address()
-            except m.AddressGenerationError as e:
-                return jsonify({'message': str(e)}), 500
-            except MempoolSpaceError as e:
-                return jsonify({'message': str(e)}), 500
-
-            order = m.Order(
-                uuid=cleartext_content['id'],
-                seller_id=seller.id,
-                event_id=request.json['id'],
-                buyer_public_key=request.json['pubkey'],
-                buyer_name=cleartext_content.get('name'),
-                buyer_address=cleartext_content.get('address'),
-                buyer_message=cleartext_content.get('message'),
-                buyer_contact=cleartext_content.get('contact'),
-                requested_at=datetime.utcfromtimestamp(request.json['created_at']),
-                payment_address=payment_address)
-            db.session.add(order)
-            db.session.commit()
-
-            shipping_id = cleartext_content['shipping_id']
-            if shipping_id == 'WORLD':
-                order.shipping_usd = seller.shipping_worldwide_usd
-            else:
-                shipping_domestic_id = sha256(seller.shipping_from.encode('utf-8')).hexdigest()
-                if shipping_id == shipping_domestic_id:
-                    order.shipping_usd = seller.shipping_domestic_usd
-                else:
-                    nostr_client.send_dm(order.buyer_public_key, "Invalid shipping zone!")
-                    return jsonify({'message': "Invalid shipping zone!"}), 400
+            if order and (order.paid_at or order.shipped_at or order.expired_at or order.canceled_at):
+                return jsonify({'message': "Order already exists and it is paid, shipped, expired or canceled!"}), 409
 
             try:
                 btc2usd = btc2fiat.get_value('kraken')
             except Exception:
                 return jsonify({'message': "Error fetching the exchange rate!"}), 500
 
-            if order_listings:
+            shipping_id = cleartext_content['shipping_id']
+            if shipping_id == 'WORLD':
+                shipping_usd = seller.shipping_worldwide_usd
+            else:
+                shipping_domestic_id = sha256(seller.shipping_from.encode('utf-8')).hexdigest()
+                if shipping_id == shipping_domestic_id:
+                    shipping_usd = seller.shipping_domestic_usd
+                else:
+                    nostr_client.send_dm(order.buyer_public_key, "Invalid shipping zone!")
+                    return jsonify({'message': "Invalid shipping zone!"}), 400
+
+            if not order:
+                try:
+                    payment_address = seller.get_new_address()
+                except m.AddressGenerationError as e:
+                    return jsonify({'message': str(e)}), 500
+                except MempoolSpaceError as e:
+                    return jsonify({'message': str(e)}), 500
+
+                order = m.Order(
+                    uuid=cleartext_content['id'],
+                    seller_id=seller.id,
+                    event_id=request.json['id'],
+                    buyer_public_key=request.json['pubkey'],
+                    buyer_name=cleartext_content.get('name'),
+                    buyer_address=cleartext_content.get('address'),
+                    buyer_message=cleartext_content.get('message'),
+                    buyer_contact=cleartext_content.get('contact'),
+                    requested_at=datetime.utcnow(),
+                    payment_address=payment_address)
+                db.session.add(order)
+                db.session.commit()
+
+                order_listings = [] # [(listing, quantity), ...]
+                for item in cleartext_content['items']:
+                    # NB: we only look for listings here. auction orders are generated in finalize-auctions!
+                    listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
+                    if listing:
+                        order_listings.append((listing, item['quantity']))
+                    else:
+                        app.logger.warning(f"Invalid item: {item['product_id']}!")
+                        nostr_client.send_dm(order.buyer_public_key, f"Invalid item: {item['product_id']}!")
+                        return jsonify({'message': f"Invalid item: {item['product_id']}!"}), 400
+
+                if len(order_listings) == 0:
+                    app.logger.warning(f"Empty order!")
+                    nostr_client.send_dm(order.buyer_public_key, "Empty order!")
+                    return jsonify({'message': "Empty order!"}), 400
+
                 for listing, quantity in order_listings:
                     if listing.available_quantity < quantity:
+                        app.logger.warning(f"Not enough items in stock!")
                         nostr_client.send_dm(order.buyer_public_key, "Not enough items in stock!")
                         return jsonify({'message': "Not enough items in stock!"}), 400
 
@@ -1346,21 +1340,46 @@ def post_merchant_message(pubkey):
 
                     order.total_usd += listing.price_usd * quantity
 
+                order.shipping_usd = shipping_usd
+
                 order.total_usd += order.shipping_usd
                 order.total = usd2sats(order.total_usd, btc2usd)
-            elif order_auctions:
-                for auction in order_auctions:
-                    winning_bid = auction.get_winning_bid()
-                    if not winning_bid or winning_bid.buyer_nostr_public_key != order.buyer_public_key:
-                        return jsonify({'message': "You are not the winner!"}), 400
 
-                    order_item = m.OrderItem(order_id=order.id, item_id=auction.item_id, auction_id=auction.id, quantity=1)
-                    db.session.add(order_item)
+                app.logger.info(f"New order for merchant {pubkey}: {order.uuid=} {len(order_listings)} items, {order.total_usd=}, {order.total=}!")
+            else: # order exists, so we can edit it here
+                # NB: this is mostly used for orders where the item bought is an auction,
+                # which are generated by us in finalize-auctions and the client will re-submit the order to add their name/address/etc
+                # but in theory this could be used for any orders as long as they are not already paid/shipped/expired/canceled!
+                order.buyer_name = cleartext_content.get('name')
+                order.buyer_address = cleartext_content.get('address')
+                order.buyer_message = cleartext_content.get('message')
+                order.buyer_contact = cleartext_content.get('contact')
 
-                    order.total += winning_bid.amount
+                order.total = order.total_usd = 0
 
-                order.total += usd2sats(order.shipping_usd, btc2usd)
-                order.total_usd = sats2usd(order.total, btc2usd)
+                listing_count = 0
+                auction_count = 0
+                for order_item in order.order_items:
+                    if order_item.listing_id:
+                        listing = m.Listing.query(id=order_item.listing_id).first()
+                        order.total_usd += listing.price_usd * order_item.quantity
+                        listing_count += 1
+                    elif order_item.auction_id:
+                        auction = m.Auction.query(id=order_item.auction_id).first()
+                        winning_bid = auction.get_winning_bid()
+                        order.total += winning_bid.amount
+                        auction_count += 1
+
+                order.shipping_usd = shipping_usd
+
+                if order.total_usd:
+                    order.total_usd += order.shipping_usd
+                    order.total = usd2sats(order.total_usd, btc2usd)
+                else:
+                    order.total += usd2sats(order.shipping_usd, btc2usd)
+                    order.total_usd = sats2usd(order.total, btc2usd)
+
+                app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
 
             db.session.commit()
 
