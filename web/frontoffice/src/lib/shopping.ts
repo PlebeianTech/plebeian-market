@@ -1,5 +1,5 @@
 import type {ShoppingCartItem} from "./types/stall";
-import {Error, Info, productCategories, products, ShoppingCart, stalls} from "./stores";
+import {Error, Info, privateMessages, productCategories, products, ShoppingCart, stalls} from "./stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$lib/services/nostr";
@@ -220,4 +220,32 @@ export function refreshProducts() {
     } else {
         console.log('************ refreshProducts - no need to refresh yet',)
     }
+}
+
+// =============================== Orders ====================================
+
+export function getLastOrderContactInformation() {
+    let contactDetails = {};
+
+    const privateMessagesAutomatic = get(privateMessages).automatic;
+
+    Object.entries(privateMessagesAutomatic).forEach(([messageId, privateMessage]) => {
+        if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
+            if (privateMessage.name) {
+                contactDetails.name = privateMessage.name;
+            }
+            if (privateMessage.address) {
+                contactDetails.address = privateMessage.address;
+            }
+
+            if (privateMessage.contact?.phone) {
+                contactDetails.phone = privateMessage.contact.phone;
+            }
+            if (privateMessage.contact?.email) {
+                contactDetails.email = privateMessage.contact.email;
+            }
+        }
+    });
+
+    return contactDetails;
 }

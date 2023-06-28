@@ -66,7 +66,7 @@ export const productCategories: Writable<CategoriesInfo[] | null> = writable(nul
 export const privateMessages: Writable<{
     human: [],
     automatic: []
-} | null> = writable({
+}> = writable({
     human: [],
     automatic: []
 });

@@ -30,15 +30,6 @@ export function hasExtension() {
     return !!(window as any).nostr;
 }
 
-export async function getPreferredPublicKey(generatedNostrPrivateKey: string | null) {
-    if ((!hasExtension() || localStorage.getItem(localStorageNostrPreferPMId) !== null) && generatedNostrPrivateKey !== null) {
-        // using PM-generated identity
-        return getPublicKey(generatedNostrPrivateKey);
-    } else {
-        return await (window as any).nostr.getPublicKey();
-    }
-}
-
 export async function wait(milliseconds) {
     await new Promise(resolve => setTimeout(resolve, milliseconds));
 }

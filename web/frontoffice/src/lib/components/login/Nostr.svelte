@@ -58,6 +58,10 @@
     }
 
     onMount(async () => {
+        if (browser && !hasExtension()) {
+            activeTab = 1;
+        }
+
         if ($NostrPrivateKey && !$NostrPublicKey) {
             console.log('Nostr Public Key not available (because logged-out previously?) but Private Key present. Logging in...');
             // await savePrivateNostrKey($NostrPrivateKey);
@@ -65,36 +69,18 @@
     });
 </script>
 
-{#if browser && hasExtension()}
-    <div class="py-20">
-        <div class="w-full flex items-center justify-center">
-            <div class="form-control w-full max-w-full">
-                <p>A Nostr extension is the most secure and recommended way to use Plebeian Market.</p>
-                {#if npub}
-                    <label class="label mt-8" for="npub">
-                        <span class="label-text">Your NPUB</span>
-                    </label>
-
-                    <input bind:value={npub} type="text" id="npub" name="npub" class="input md:input-lg input-bordered" />
-                {/if}
-            </div>
-        </div>
-        <div class="w-full flex items-center justify-center mt-8 gap-5">
-            <button class="btn btn-primary" on:click={getKeyFromExtension}>Use Nostr browser extension</button>
-        </div>
-    </div>
-{:else}
-    <div class="alert alert-info mt-3 mb-6 flex justify-center items-center">
+{#if browser && !hasExtension()}
+    <div class="alert alert-info mt-3 mb-12 flex justify-center items-center">
         <div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <!-- Desktop -->
             <span class="hidden md:block">
-                <p>It's recommended that you use a Nostr browser extension in your browser to be able to buy products in Plebeian Market.</p>
+                <p>It's recommended that you use a Nostr browser extension in your browser to be able to buy products in Plebeian Market if you plan to build a reputation for your identity.</p>
                 <p class="mt-2">
                     You can try <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a>,
                     <a class="link" href="https://chrome.google.com/webstore/detail/nos2x/kpgefcfmnafjgpblomihpgmejjdanjjp" target="_blank" rel="noreferrer">nos2x</a> or
                     <a class="link" href="https://kollider.xyz/wallet" target="_blank" rel="noreferrer">Kollider</a> and
-                    load this screen again, or use one of this alternatives:
+                    reload this screen again, or use one of this alternatives:
                 </p>
             </span>
             <!-- Mobile -->
@@ -103,42 +89,74 @@
             </span>
         </div>
     </div>
+{/if}
 
-    <div>
-        <div class="tabs">
-            <a class="tab tab-lifted tab-sm md:tab-lg flex-1 py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=0}>Generate New Key</a>
-            <a class="tab tab-lifted tab-sm md:tab-lg flex-1 py-2 {activeTab===1 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=1}>Introduce Key</a>
-        </div>
+<div>
+    <div class="tabs">
+        {#if browser && hasExtension()}
+            <a class="indicator tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=0}>
+                <span class="indicator-item indicator-center badge badge-md badge-error">recommended</span>
+                Use Nostr extension
+            </a>
+        {/if}
+        <a class="indicator tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===1 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=1}>
+            <span class="indicator-item indicator-center badge badge-md badge-warning">anonymous</span>
+            Generate New Key
+        </a>
+        <a class="tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===2 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=2}>Introduce your Key</a>
+    </div>
 
-        <div class="grid w-full flex-grow gap-3 p-6 bg-base-300 rounded-xl rounded-tl-none rounded-tr-none md:shadow-xl">
-            {#if activeTab===0}
-                <div class="w-full flex items-center justify-center">
+    <div class="grid w-full flex-grow gap-3 p-4 py-6 lg:p-14 lg:py-8 bg-base-300 rounded-xl rounded-tl-none rounded-tr-none md:shadow-xl items-center justify-center">
+        {#if activeTab===0}
+            <div class="w-full flex">
+                <div class="form-control w-full max-w-full">
+                    <p>A Nostr extension is the most <b>secure</b> and <b>recommended</b> way to use Plebeian Market.</p>
+                    <p class="mt-4">By using the identity that you created in your Nostr extension, you will be <b>building your reputation</b> each time you buy or sell any product, and then act correctly by paying on time and/or shipping the products without problems.</p>
+                    {#if npub}
+                        <label class="label mt-8" for="npub">
+                            <span class="label-text">Your NPUB</span>
+                        </label>
+
+                        <input bind:value={npub} type="text" id="npub" name="npub" class="input md:input-lg input-bordered" />
+                    {/if}
+                </div>
+            </div>
+            <div class="w-full flex items-center justify-center mt-8 gap-5">
+                <button class="btn btn-primary" on:click={getKeyFromExtension}>Use Nostr browser extension</button>
+            </div>
+
+        {:else if activeTab===1}
+            <div class="w-full flex">
+                <div class="form-control w-full max-w-full">
+                    <p>With this option, you can let us generate a new Nostr private key for you, so you buy products anonymously.</p>
+                    <p class="mt-4">This is the recommended option if you don't have a Nostr extension or a Nostr identity already created.</p>
+
                     {#if $NostrPrivateKey}
-                        <div class="form-control w-full max-w-full">
-                            <p class="mb-4 md:mb-6">Your Nostr private key</p>
+                        <div class="form-control w-full max-w-full mt-8">
+                            <p class="mb-4">Your Nostr private key</p>
                             <input bind:value={$NostrPrivateKey} type="text" class="input md:input-lg input-bordered" />
                         </div>
                     {:else}
-                        <p>A new Nostr private key will be generated and stored in this web browser, so no other person will have access to it.</p>
+                        <p>A new Nostr private key will be generated and stored in the web browser of this device, so no other person will have access to it.</p>
                     {/if}
                 </div>
+            </div>
 
-                <div class="w-full flex items-center justify-center mt-3">
-                    <button class="btn btn-primary" on:click={generateNewNostrKey}>Generate new Nostr key</button>
-                </div>
+            <div class="w-full flex items-center justify-center mt-3">
+                <button class="btn btn-primary" on:click={generateNewNostrKey}>Generate new Nostr key</button>
+            </div>
 
-            {:else if activeTab===1}
-                <div class="w-full flex items-center justify-center">
-                    <div class="form-control w-full max-w-full">
-                        <p class="mb-4 md:mb-6">Introduce your Nostr private key. It will be stored in this web browser, so no other person will have access to it.</p>
-                        <input bind:value={newPrivateKey} type="text" class="input md:input-lg input-bordered" />
-                    </div>
+        {:else if activeTab===2}
+            <div class="w-full flex items-center justify-center">
+                <div class="form-control w-full max-w-full">
+                    <p class="mb-4 md:mb-6">Introduce your Nostr private key. It will be stored in the web browser of this device, so no other person will have access to it.</p>
+                    <input bind:value={newPrivateKey} type="text" class="input md:input-lg input-bordered" />
                 </div>
+            </div>
 
-                <div class="w-full flex items-center justify-center mt-3">
-                    <button class="btn btn-primary" on:click={saveProvidedNostrKey}>Save the private key</button>
-                </div>
-            {/if}
-        </div>
+            <div class="w-full flex items-center justify-center mt-3">
+                <button class="btn btn-primary" on:click={saveProvidedNostrKey}>Save the private key</button>
+            </div>
+        {/if}
     </div>
-{/if}
+</div>

@@ -23,8 +23,6 @@
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
                 content.event = productEvent;
-                //content.createdAt = productEvent.created_at;
-                //content.merchantPubkey = productEvent.pubkey;
 
                 if (!content.id) {
                     let productId = getFirstTagValue(productEvent.tags, 'd');

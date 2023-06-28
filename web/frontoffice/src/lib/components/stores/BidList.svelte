@@ -9,7 +9,7 @@
     export let sortedBids;
     export let userProfileInfoMap;
 
-    const winnerColor = 'bg-green-300';
+    const winnerColor = 'bg-green-300 dark:bg-[#446600]';
 </script>
 
 {#if sortedBids && sortedBids.length > 0}
