@@ -4,6 +4,7 @@
     import {NostrPrivateKey, NostrPublicKey} from "$lib/stores";
     import { hasExtension, encodeNpub } from '$lib/nostr/utils';
     import {generatePrivateKey, getPublicKey} from "nostr-tools";
+    import { browser } from "$app/environment";
 
     const dispatch = createEventDispatcher();
 
@@ -57,7 +58,7 @@
     }
 
     onMount(async () => {
-        if (!hasExtension()) {
+        if (browser && !hasExtension()) {
             activeTab = 1;
         }
 
@@ -68,7 +69,7 @@
     });
 </script>
 
-{#if !hasExtension()}
+{#if browser && !hasExtension()}
     <div class="alert alert-info mt-3 mb-12 flex justify-center items-center">
         <div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -92,7 +93,7 @@
 
 <div>
     <div class="tabs">
-        {#if hasExtension()}
+        {#if browser && hasExtension()}
             <a class="indicator tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=0}>
                 <span class="indicator-item indicator-center badge badge-md badge-error">recommended</span>
                 Use Nostr extension

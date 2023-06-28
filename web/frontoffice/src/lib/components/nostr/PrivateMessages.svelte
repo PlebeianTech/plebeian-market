@@ -57,11 +57,9 @@
             (privateMessage) => {
                 if (privateMessage !== null && typeof privateMessage === 'object') {
                     if (privateMessage.contentType === 'json') {
-                        let orderId = privateMessage.id;
-
                         let type;
 
-                        if (privateMessage.type) {
+                        if (privateMessage['type'] !== undefined) {
                             type = Number(privateMessage.type);
                         } else {
                             // Workaround until NostrMarket adds the "type" property
@@ -91,11 +89,27 @@
                             }
                         }
 
+                        if (type === 10) {
+                            privateMessage.isAuction = true;
+                        }
+
+                        let orderId = privateMessage.id;
+
+                        if (orderId === '2abcbff7-b115-4cef-9284-7c6d7b51d032') {
+                            console.log('**********************************************', privateMessage);
+                        }
+
+                        if (orderId === undefined) {
+                            return;
+                        }
+
                         if (orderId in $privateMessages.automatic) {
-                            // Because some properties are the same in different
-                            // types like "message"
+                            // We need to merge objects because some properties
+                            // are the same in different types like "message",
+                            // but we want to have the last one
+
                             if (
-                                (privateMessage.type > $privateMessages.automatic[orderId].type)
+                                ((privateMessage.type > $privateMessages.automatic[orderId].type) && privateMessage.type !== 10)
                                 ||
                                 (privateMessage.type === $privateMessages.automatic[orderId].type && privateMessage.created_at > $privateMessages.automatic[orderId].created_at)
                             ) {
@@ -103,6 +117,7 @@
                             } else {
                                 $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
                             }
+
                         } else {
                             $privateMessages.automatic[orderId] = privateMessage;
                         }

@@ -35,11 +35,9 @@
         let firstOneAdded = false;
 
         auctionToOrder = Object.entries($privateMessages.automatic)
-            .filter(([automaticMessageId, automaticMessage]) => {
-                //if (!firstOneAdded && automaticMessage.type === 2 && automaticMessage.items[0].product_id.length > 4) {    // 10
+            .filter(([, automaticMessage]) => {
                 if (!firstOneAdded && automaticMessage.type === 10) {
-                    //const product_id = '03ba934b-61db-499b-824f-c088fca1b1ba';  // TODO automaticMessage.items[0]?.product_id;
-                    const product_id = automaticMessage.items[0]?.product_id;
+                    const product_id = automaticMessage.items[0].product_id;
 
                     if (product_id) {
                         firstOneAdded = true;
@@ -130,22 +128,13 @@
             return;
         }
 
-        let orderItems = [];
-        for (const [productId, product] of stall) {
-            orderItems.push({
-                product_id: productId,
-                quantity: product.orderQuantity
-            });
-        }
-
-        const order = {
-            id: uuidv4(),
+        let order = {
+            id: auctionToOrder[0][0],
             stall_id: stallId,
             type: 0,
             contact: {
                 nostr: $NostrPublicKey
             },
-            items: orderItems,
             shipping_id: $stalls.stalls[stallId].shippingOption
         };
 
@@ -168,7 +157,7 @@
         try {
             let messageOrder = JSON.stringify(order);
             console.log('************ jsonOrder:  ', order);
-return;
+
             await sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder,
                 async (relay) => {
                     console.log('-------- Order accepted by relay:', relay);
@@ -191,8 +180,6 @@ return;
 
     const nostrPublicKeyUnsubscribe = NostrPublicKey.subscribe(async nostrPublicKeyValue => {
         if (nostrPublicKeyValue) {
-            refreshStalls();
-
             const contactDetails = getLastOrderContactInformation();
             name = contactDetails.name ?? '';
             address = contactDetails.address ?? '';
@@ -203,6 +190,10 @@ return;
         }
     });
     onDestroy(nostrPublicKeyUnsubscribe);
+
+    onMount(async () => {
+        refreshStalls();
+    });
 </script>
 
 <svelte:head>
@@ -213,6 +204,11 @@ return;
 
 {#if stallId && product && winnerBid.length > 0}
     <div class="md:grid justify-center md:mt-6 mb-10">
+        {#if auctionToOrder[0][1].id}
+            <p class="text-sm mb-2 justify-center">
+                Auction #{auctionToOrder[0][1].id}
+            </p>
+        {/if}
         <table class="w-fit md:w-full rounded border border-gray-400">
             <thead>
                 <tr class="text-center">
