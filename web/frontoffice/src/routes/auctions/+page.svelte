@@ -1,12 +1,11 @@
 <script>
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {Error, Info, NostrPublicKey, privateMessages, ShoppingCart, stalls} from "$lib/stores.ts";
+    import {Error, Info, NostrPublicKey, privateMessages, stalls} from "$lib/stores.ts";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping.ts";
-    import { v4 as uuidv4 } from "uuid";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils.ts";
-    import {onDestroy} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
     import {filterTags} from "$lib/nostr/utils.ts";
     import {
@@ -203,6 +202,8 @@
 <Titleh1>Auction information</Titleh1>
 
 {#if stallId && product && winnerBid.length > 0}
+
+
     <div class="md:grid justify-center md:mt-6 mb-10">
         {#if auctionToOrder[0][1].id}
             <p class="text-sm mb-2 justify-center">

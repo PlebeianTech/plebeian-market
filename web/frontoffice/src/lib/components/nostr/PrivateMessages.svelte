@@ -95,10 +95,6 @@
 
                         let orderId = privateMessage.id;
 
-                        if (orderId === '2abcbff7-b115-4cef-9284-7c6d7b51d032') {
-                            console.log('**********************************************', privateMessage);
-                        }
-
                         if (orderId === undefined) {
                             return;
                         }
