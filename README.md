@@ -38,6 +38,25 @@ The *Skills Market* is a place where you can publish your professional CV/résum
 
 ## Development
 
+### Frontstore (buyer part of the app)
+
+#### Build the static files
+
+```npm run build``` - Build static files
+
+All the generated static files will be inside the `build` folder. You can copy them to your server to use the frontstore on your website.
+
+#### Run the app locally for development
+
+```npm i``` - Install npm dependencies
+
+```npm run dev``` - Run the app
+
+
+### Backstore (seller part of the app)
+
+
+
 ### Running the dev environment locally
 
 ```./scripts/test.sh``` to run the automated tests for the API
