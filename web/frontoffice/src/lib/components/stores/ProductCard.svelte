@@ -6,7 +6,7 @@
     import Store from "$sharedLib/components/icons/Store.svelte";
     import { goto } from "$app/navigation";
     import {EVENT_KIND_AUCTION} from "$lib/services/nostr";
-    import Countdown from "$lib/components/Countdown.svelte";
+    import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
 
     export let product: string;
     export let onImgError = () => {};
@@ -49,13 +49,8 @@
         {/if}
 
         {#if product.event.kind === EVENT_KIND_AUCTION}
-            <div class="md:w-4/6">
-                <Countdown totalSeconds={1000 - 5} />
-            </div>
+            <AuctionInfo {product} />
 
-            <div class="columns-2">
-                <!-- <AuctionInfo /> -->
-            </div>
             <div class="mt-1 justify-end">
                 <button class="btn btn-primary mt-4" on:click|preventDefault={() => goto('/product/' + product.id)}>
                     View
