@@ -890,6 +890,9 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     def get_top_bid(self, below=None):
         return max((bid for bid in self.bids if bid.settled_at and (below is None or bid.amount < below)), default=None, key=lambda bid: bid.amount)
 
+    def get_winning_bid(self):
+        return [b for b in self.bids if b.id == self.winning_bid_id][0] if self.winning_bid_id else None
+
     def sort_key(self):
         return self.start_date
 

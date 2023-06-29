@@ -1,6 +1,7 @@
 import aiohttp
 import argparse
 import asyncio
+from datetime import datetime, timedelta
 from enum import IntEnum
 import json
 import logging
@@ -157,7 +158,13 @@ class Relay:
                         event = message[2]
                         match event['kind']:
                             case EventKind.AUCTION:
-                                await self.check_ours(event, self.subscribe_bids)
+                                try:
+                                    auction = json.loads(event['content'])
+                                except:
+                                    auction = None
+                                if isinstance(auction, dict) and 'start_date' in auction and 'duration' in auction:
+                                    if datetime.fromtimestamp(auction['start_date']) + timedelta(seconds=auction['duration']) > datetime.utcnow():
+                                        await self.check_ours(event, self.subscribe_bids)
                             case EventKind.STALL:
                                 await self.check_ours(event, self.subscribe_dm)
                             case EventKind.DM:

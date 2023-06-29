@@ -1361,11 +1361,11 @@ def post_merchant_message(pubkey):
                     auction_count = 0
                     for order_item in order.order_items:
                         if order_item.listing_id:
-                            listing = m.Listing.query(id=order_item.listing_id).first()
+                            listing = m.Listing.query.filter_by(id=order_item.listing_id).first()
                             order.total_usd += listing.price_usd * order_item.quantity
                             listing_count += 1
                         elif order_item.auction_id:
-                            auction = m.Auction.query(id=order_item.auction_id).first()
+                            auction = m.Auction.query.filter_by(id=order_item.auction_id).first()
                             winning_bid = auction.get_winning_bid()
                             order.total += winning_bid.amount
                             auction_count += 1
