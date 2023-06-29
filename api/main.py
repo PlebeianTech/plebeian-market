@@ -811,6 +811,7 @@ class NostrClient:
             dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
             self.private_key.sign_event(dm)
             self.relay_manager.publish_event(dm)
+            app.logger.info(f"Sent DM to {recipient_public_key}: relays={self.relay_manager.relays.keys()}!")
             return dm.id
         except:
             app.logger.exception("Error while sending Nostr DM.")
@@ -856,15 +857,8 @@ class NostrClient:
             return None
 
     def send_bid_status(self, auction_event_id, bid_event_id, status, message=None, extra_tags=None):
-        if extra_tags is None:
-            extra_tags = []
         try:
-            content_json = {
-                'status': status,
-            }
-            if message is not None:
-                content_json['message'] = message
-            event = Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction_event_id], ['e', bid_event_id]] + extra_tags))
+            event = get_bid_status_event(auction_event_id, bid_event_id, status, message=message, extra_tags=extra_tags)
             self.private_key.sign_event(event)
             app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
@@ -872,6 +866,14 @@ class NostrClient:
         except:
             app.logger.exception("Error while sending Nostr reaction.")
             return None
+
+def get_bid_status_event(auction_event_id, bid_event_id, status, message=None, extra_tags=None):
+    if extra_tags is None:
+        extra_tags = []
+    content_json = {'status': status}
+    if message is not None:
+        content_json['message'] = message
+    return Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction_event_id], ['e', bid_event_id]] + extra_tags))
 
 def get_nostr_client(user):
     if app.config['MOCK_NOSTR']:
