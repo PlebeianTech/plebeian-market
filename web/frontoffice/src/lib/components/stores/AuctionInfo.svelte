@@ -6,7 +6,6 @@
     import {goto} from "$app/navigation";
 
     export let product;
-    export let showBidsInfo;
 
     let now: number = 0;
     let endsAt: number = 0;
@@ -28,6 +27,8 @@
 
         if (started && !ended && !alreadySubscribedToReactions && product.event.id) {
             alreadySubscribedToReactions = true;
+
+//            console.log('SUBSCRIBING!!!', product.id);
 
             subscribeAuction([product.event.id],
                 (auctionEvent) => {
@@ -57,6 +58,8 @@
                         console.log('   *** all the bids', bids);
                     }
                 });
+        } else {
+//            console.log('_NOT_ SUBSCRIBING', product.id);
         }
     }
 </script>

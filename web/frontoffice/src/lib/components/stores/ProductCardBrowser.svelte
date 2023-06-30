@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
-    import {getProducts} from "$lib/services/nostr";
+    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$lib/services/nostr";
     import {filterTags, getFirstTagValue} from "$lib/nostr/utils";
     import {onImgError} from "$lib/shopping";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
@@ -78,6 +78,13 @@
                     } else {
                         return;
                     }
+                }
+
+                // Calculate if ended
+                if (productEvent.kind === EVENT_KIND_AUCTION) {
+                    let now = Math.floor(Date.now() / 1000);
+                    let endsAt = content.start_date + content.duration;
+                    content.ended = now > endsAt;
                 }
 
                 let categoryTags = filterTags(productEvent.tags, 't');
@@ -161,7 +168,9 @@
     {#each Object.entries(filteredProducts) as [productId, product]}
         {#if (!whiteListedStalls || whiteListedStalls && whiteListedStalls.length === 0) || (whiteListedStalls && whiteListedStalls.length > 0 && whiteListedStalls.includes(product.stall_id))}
             {#if ((product.images && product.images.length > 0) || product.image) }
-                <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
+                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false)}
+                    <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
+                {/if}
             {/if}
         {/if}
     {/each}

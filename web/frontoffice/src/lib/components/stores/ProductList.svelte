@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {getProducts} from "$lib/services/nostr";
+    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$lib/services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
     import {getFirstTagValue, newNostrConversation} from "$lib/nostr/utils";
@@ -7,6 +7,8 @@
     import ViewList from "$sharedLib/components/icons/ViewList.svelte";
     import ViewCards from "$sharedLib/components/icons/ViewCards.svelte";
     import EmailIcon from "$sharedLib/components/icons/Email.svelte";
+    import EyeSlash from "$sharedLib/components/icons/Eye-slash.svelte";
+    import Eye from "$sharedLib/components/icons/Eye.svelte";
     import { afterNavigate } from "$app/navigation";
 
     export let merchantPubkey: string;
@@ -15,6 +17,7 @@
     let products: {[productId: string]: {}} = {};
 
     let listView = false;
+    let showExpiredAuctions: boolean = false;
 
     afterNavigate(() => {
         products = {};
@@ -31,6 +34,13 @@
                     } else {
                         return;
                     }
+                }
+
+                // Calculate if ended
+                if (productEvent.kind === EVENT_KIND_AUCTION) {
+                    let now = Math.floor(Date.now() / 1000);
+                    let endsAt = content.start_date + content.duration;
+                    content.ended = now > endsAt;
                 }
 
                 let productId = content.id;
@@ -54,6 +64,14 @@
             <EmailIcon />
         </span>
         Contact the merchant
+    </button>
+    <div class="divider divider-horizontal hidden md:block"></div>
+    <button class="btn hidden md:block tooltip" data-tip="{showExpiredAuctions ? 'Hide expired auctions' : 'Show expired auctions'}" class:btn-active={showExpiredAuctions} on:click={() => showExpiredAuctions = !showExpiredAuctions}>
+        {#if showExpiredAuctions}
+            <Eye />
+        {:else}
+            <EyeSlash />
+        {/if}
     </button>
     <div class="divider divider-horizontal hidden md:block"></div>
     <button class="btn hidden md:block" class:btn-active={listView} on:click={() => listView = true}>
@@ -80,14 +98,18 @@
 
         <tbody>
             {#each Object.entries(products) as [productId, product]}
-                <ProductRow {product} {onImgError}></ProductRow>
+                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && (showExpiredAuctions || !showExpiredAuctions && product.ended === false) )}
+                    <ProductRow {product} {onImgError}></ProductRow>
+                {/if}
             {/each}
         </tbody>
     </table>
 {:else}
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-6 lg:gap-12 2xl:gap-16 3xl:gap-24 place-content-center">
         {#each Object.entries(products) as [productId, product]}
-            <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
+            {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && (showExpiredAuctions || !showExpiredAuctions && product.ended === false) )}
+                <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
+            {/if}
         {/each}
     </div>
 {/if}
