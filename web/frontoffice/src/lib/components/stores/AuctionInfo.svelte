@@ -3,8 +3,10 @@
     import Countdown from "$lib/components/Countdown.svelte";
     import {EVENT_KIND_AUCTION_BID, sendMessage, subscribeAuction} from "$lib/services/nostr";
     import {Kind} from "nostr-tools";
+    import {goto} from "$app/navigation";
 
     export let product;
+    export let showBidsInfo;
 
     let now: number = 0;
     let endsAt: number = 0;
@@ -24,7 +26,7 @@
         ended = now > endsAt;
         started = now > product.start_date;
 
-        if (!alreadySubscribedToReactions && product.event.id) {
+        if (started && !ended && !alreadySubscribedToReactions && product.event.id) {
             alreadySubscribedToReactions = true;
 
             subscribeAuction([product.event.id],
@@ -68,8 +70,6 @@
                 Auction ended at {formatTimestamp(endsAt, true)}
             </h3>
 
-            <!-- <BidList {sortedBids} {userProfileInfoMap} /> -->
-
         {:else} <!-- not ended -->
             {#if started}
                 <div class="pb-5">
@@ -107,6 +107,16 @@
                 Auction starts at {formatTimestamp(product.start_date, true)} and will run for {product.duration / 60} hours until {formatTimestamp(product.start_date + product.duration, true)}.
                 <div class="divider"></div>
             {/if}
+
+            <div class="mt-1 justify-end">
+                <button class="btn btn-primary mt-4" on:click|preventDefault={() => goto('/product/' + product.id)}>
+                    {#if started && !ended}
+                        Bid
+                    {:else}
+                        View
+                    {/if}
+                </button>
+            </div>
         {/if}
     </div>
 {/if}

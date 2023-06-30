@@ -49,13 +49,7 @@
         {/if}
 
         {#if product.event.kind === EVENT_KIND_AUCTION}
-            <!-- <AuctionInfo {product} /> -->
-
-            <div class="mt-1 justify-end">
-                <button class="btn btn-primary mt-4" on:click|preventDefault={() => goto('/product/' + product.id)}>
-                    View
-                </button>
-            </div>
+            <AuctionInfo {product} />
         {:else}
             <div class="columns-2">
                 <div>
