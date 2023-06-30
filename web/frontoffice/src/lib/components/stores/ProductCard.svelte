@@ -6,7 +6,7 @@
     import Store from "$sharedLib/components/icons/Store.svelte";
     import { goto } from "$app/navigation";
     import {EVENT_KIND_AUCTION} from "$lib/services/nostr";
-    import Countdown from "$lib/components/Countdown.svelte";
+    import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
 
     export let product: string;
     export let onImgError = () => {};
@@ -28,13 +28,13 @@
         </h2>
 
         {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}
-            <div class="alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.merchantPubkey+'/stall/'+product.stall_id)}>
-                    <span class="text-sm">
-                        <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
-                            <Store />
-                        </div>
-                        {$stalls.stalls[product.stall_id].name}
-                    </span>
+            <div class="alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.event.pubkey+'/stall/'+product.stall_id)}>
+                <span class="text-sm">
+                    <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
+                        <Store />
+                    </div>
+                    {$stalls.stalls[product.stall_id].name}
+                </span>
             </div>
         {/if}
 
@@ -49,18 +49,7 @@
         {/if}
 
         {#if product.event.kind === EVENT_KIND_AUCTION}
-            <div class="md:w-4/6">
-                <Countdown totalSeconds={1000 - 5} />
-            </div>
-
-            <div class="columns-2">
-                <!-- <AuctionInfo /> -->
-            </div>
-            <div class="mt-1 justify-end">
-                <button class="btn btn-primary mt-4" on:click|preventDefault={() => goto('/product/' + product.id)}>
-                    View
-                </button>
-            </div>
+            <AuctionInfo {product} />
         {:else}
             <div class="columns-2">
                 <div>

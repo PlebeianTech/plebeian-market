@@ -44,26 +44,29 @@
                         // If valid ID, get product information
                         getProducts(null, [product_id],
                             (productEvent) => {
-                                if (!product || (product && productEvent.created_at > product.event.created_at)) {
+                                if (!product || (product && productEvent.created_at > product.created_at)) {
                                     product = JSON.parse(productEvent.content);
-                                    product.event = productEvent;
+                                    product.created_at = productEvent.created_at;
 
                                     stallId = product.stall_id;
 
                                     // If valid Product, get bids information
-                                    if (product.event?.id) {
-                                        subscribeAuction([product.event.id],
+                                    if (productEvent.id) {
+                                        subscribeAuction([productEvent.id],
                                             (auctionEvent) => {
                                                 if (auctionEvent.kind === EVENT_KIND_AUCTION_BID) {
-                                                    bids[auctionEvent.id] = {
+                                                    // Bid previous information
+                                                    let bidInfo = bids[auctionEvent.id] ?? {};
+
+                                                    bids[auctionEvent.id] = Object.assign(bidInfo, {
                                                         amount: Number(auctionEvent.content),
                                                         date: auctionEvent.created_at,
                                                         pubkey: auctionEvent.pubkey,
                                                         backendResponse: null
-                                                    };
+                                                    });
 
                                                 } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
-                                                    if (auctionEvent.pubkey !== product.event.pubkey) {
+                                                    if (auctionEvent.pubkey !== productEvent.pubkey) {
                                                         console.error('WARNING! Someone tried to cheat on the auction, but we caught them!')
                                                         return;
                                                     }
@@ -71,34 +74,35 @@
                                                     try {
                                                         let bidResponse = JSON.parse(auctionEvent.content);
 
-                                                        const eTags = filterTags(auctionEvent.tags, 'e');
+                                                        if (bidResponse.status === 'winner') {
+                                                            const eTags = filterTags(auctionEvent.tags, 'e');
 
-                                                        for (let i = 0; i < eTags.length; i++) {
-                                                            let tagValue = eTags[i][1];
-                                                            if (product.event.id !== tagValue) {
-                                                                let bidInfo = bids[tagValue];
+                                                            for (let i = 0; i < eTags.length; i++) {
+                                                                let tagValue = eTags[i][1];
+                                                                if (productEvent.id !== tagValue) {
+                                                                    // Bid previous information
+                                                                    let bidInfo = bids[tagValue];
 
-                                                                if (bidResponse.status === 'winner' || (bidResponse.status !== 'winner' && bidInfo.backendResponse?.status !== 'winner' )) {
-                                                                    if (bidResponse.status === 'winner') {
-                                                                        const pTags = filterTags(auctionEvent.tags, 'p');
-                                                                        for (let i = 0; i < pTags.length; i++) {
-                                                                            bidResponse.winnerPubkey = pTags[i][1];
-                                                                        }
+                                                                    const pTags = filterTags(auctionEvent.tags, 'p');
+                                                                    for (let i = 0; i < pTags.length; i++) {
+                                                                        bidResponse.winnerPubkey = pTags[i][1];
                                                                     }
 
+                                                                    // Bid extended information
                                                                     bidInfo.backendResponse = bidResponse;
                                                                     bids[tagValue] = bidInfo;
                                                                 }
                                                             }
-                                                        }
 
-                                                        winnerBid = Object.entries(bids)
-                                                            .filter(([, bid]) => {
-                                                                return bid.backendResponse.status === 'winner' && bid.backendResponse.winnerPubkey === $NostrPublicKey;
-                                                            })
-                                                            .sort((a, b) => {
-                                                                return b[1].amount - a[1].amount;
-                                                            });
+                                                            winnerBid = Object.entries(bids)
+                                                                .filter(([, bid]) => {
+                                                                    if (bid.backendResponse === null) {
+                                                                        return false;
+                                                                    }
+
+                                                                    return bid.backendResponse.status === 'winner' && bid.backendResponse.winnerPubkey === $NostrPublicKey;
+                                                                });
+                                                        }
 
                                                     } catch (error) { }
                                                 }
@@ -202,8 +206,6 @@
 <Titleh1>Auction information</Titleh1>
 
 {#if stallId && product && winnerBid.length > 0}
-
-
     <div class="md:grid justify-center md:mt-6 mb-10">
         {#if auctionToOrder[0][1].id}
             <p class="text-sm mb-2 justify-center">

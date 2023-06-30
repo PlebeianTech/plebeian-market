@@ -51,7 +51,7 @@
     </div>
 {/if}
 
-<div class="grid justify-center items-center lg:mx-20 gap-6 place-content-center">
+<div class="grid justify-center items-center gap-6 place-content-center">
     <ProductList merchantPubkey={data.pubkey} stallId={data.stallId}></ProductList>
 </div>
 

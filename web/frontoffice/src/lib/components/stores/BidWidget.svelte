@@ -29,20 +29,10 @@
     let alreadySubscribed: boolean = false;
 
     $: if (product) {
-//        product.start_date = 1686646256;
-//        product.duration = 3440000;   // 4 hours
-
         now = Math.floor(Date.now() / 1000);
         endsAt = product.start_date + product.duration;
         ended = now > endsAt;
         started = now > product.start_date;
-
-        /*
-        console.log('product.start_date:', product.start_date);
-        console.log('product.duration:', product.duration);
-        console.log('now:', now);
-        console.log('endsAt:', product.start_date + product.duration);
-        */
 
         setRecommendedBidAmount();
 
@@ -52,7 +42,6 @@
             subscribeAuction([product.event.id],
                 (auctionEvent) => {
                     if (auctionEvent.kind === EVENT_KIND_AUCTION_BID) {
-//                        console.log('************ bidEvent (bid)', auctionEvent);
 
                         bids[auctionEvent.id] = {
                             amount: Number(auctionEvent.content),
@@ -70,7 +59,6 @@
                         setRecommendedBidAmount();
 
                     } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
-//                        console.log('************ bidEvent (response)', auctionEvent);
 
                         if (auctionEvent.pubkey !== product.event.pubkey) {
                             console.error('WARNING! Someone tried to cheat on the auction, but we caught them!')
