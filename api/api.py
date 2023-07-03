@@ -974,7 +974,7 @@ def post_bid(user, key):
         response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])
         payment_request = response.payment_request
 
-    bid = m.Bid(auction=auction, buyer=user, amount=amount, payment_request=payment_request)
+    bid = m.Bid(auction=auction, buyer=user, amount=amount, payment_request=payment_request, settled_at=datetime.utcnow())
     if payment_request is None:
         bid.settled_at = datetime.utcnow()
     db.session.add(bid)

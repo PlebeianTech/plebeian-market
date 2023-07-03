@@ -165,54 +165,6 @@ def finalize_auctions():
         else:
             time.sleep(5)
 
-@app.cli.command("settle-lnd-payments")
-@with_appcontext
-def settle_lnd_payments():
-    app.logger.setLevel(getattr(logging, LOG_LEVEL))
-    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
-
-    while True:
-        lnd = get_lnd_client()
-        last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
-        app.logger.info(f"Subscribing to LND invoices using {type(lnd)}. {last_settle_index=}")
-        try:
-            for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
-                if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
-                    found_invoice = False
-                    bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
-                    if bid:
-                        found_invoice = True
-                        bid.settled_at = datetime.utcnow()
-                        bid.auction.extend()
-                        app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
-                    else:
-                        sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
-                        if sale:
-                            found_invoice = True
-                            if sale.state not in [m.SaleState.TX_DETECTED.value, m.SaleState.TX_CONFIRMED.value]:
-                                # NB: in theory, the contribution should always settle before we get a TX, but you never know...
-                                # it could be that this process, or the lightning node, went down
-                                # and the user managed to get an on-chain TX in first.
-                                # we certainly don't want to change the state in that case!
-                                sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
-                            sale.contribution_settled_at = datetime.utcnow()
-                            app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
-                    if found_invoice:
-                        last_settle_index = invoice.settle_index
-                        state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
-                        state.value = str(last_settle_index)
-                        db.session.commit()
-        except:
-            app.logger.exception("Error while processing LND invoices. Will roll back and retry.")
-            db.session.rollback()
-        else:
-            app.logger.warning("Disconnected from LND. Sleep, then retry...")
-
-        if app.config['ENV'] == 'test':
-            time.sleep(1)
-        else:
-            time.sleep(10)
-
 @app.cli.command("settle-btc-payments")
 @with_appcontext
 def settle_btc_payments():

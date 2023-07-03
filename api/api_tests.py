@@ -677,31 +677,11 @@ class TestApi(unittest.TestCase):
 
         time.sleep(5)
 
-        # now the available quantity is two less, and we have two settled sales!
+        # now the available quantity is two less
         code, response = self.get(f"/api/listings/{listing_key}", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(response['listing']['available_quantity'], 7)
-        self.assertEqual(len(response['listing']['sales']), 1)
-        for s in response['listing']['sales']:
-            self.assertIsNotNone(s['contribution_settled_at'])
-            self.assertIsNotNone(s['settled_at'])
-            self.assertTrue(s['settled_at'] > s['contribution_settled_at'])
-            self.assertTrue(s['txid'].startswith('MOCK_'))
-            self.assertIsNone(s['expired_at'])
-
-        # the seller has two sales
-        code, response = self.get("/api/users/me/sales", {},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 1)
-        self.assertIn(response['sales'][0]['address'], ADDRESSES)
-
-        # the buyer has no sales
-        code, response = self.get("/api/users/me/sales", {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 0)
 
         # can simply DELETE the listing while active, unlike auctions!
         code, response = self.delete(f"/api/listings/{listing_key}",
@@ -1299,38 +1279,11 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 403)
         self.assertIn("cannot edit auctions that already have bids", response['message'].lower())
 
-        # auction has no (settled) bids... yet
-        code, response = self.get(f"/api/auctions/{auction_key}",
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['auction']['bids']), 0)
-
-        app.logger.warning("Waiting for the bid to settle...")
-        time.sleep(4)
-
-        # the user was notified of the new bid!
-        code, response = self.get("/api/users/me/messages?via=all",
-            headers=self.get_auth_headers(token_3))
-        self.assertEqual(code, 200)
-        app.logger.warn(f"{response['messages']}")
-        actual_messages = [m for m in response['messages'] if m['notified_via']]
-        self.assertEqual(len(actual_messages), 1)
-        self.assertIn("new bid", actual_messages[0]['body'].lower())
-        self.assertEqual(actual_messages[0]['notified_via'], 'TWITTER_DM')
-
-        # the bidder however was not...
-        code, response = self.get("/api/users/me/messages?via=all",
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        actual_messages = [m for m in response['messages'] if m['notified_via']]
-        self.assertEqual(len(actual_messages), 0)
-
-        # auction has our settled bid! but no winner decided.
+        # auction has a bid!
         code, response = self.get(f"/api/auctions/{auction_key}",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 1)
-        self.assertEqual(response['auction']['bids'][0]['payment_request'], bid_payment_request)
         self.assertIsNone(response['auction']['has_winner'])
 
         # can't place a bid lower than the previous one now

@@ -7,8 +7,6 @@ services:
     env_file: .env.test
   settle-btc-payments:
     env_file: .env.test
-  settle-lnd-payments:
-    env_file: .env.test
   process-notifications:
     env_file: .env.test
   birdwatcher:

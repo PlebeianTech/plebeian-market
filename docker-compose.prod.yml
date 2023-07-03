@@ -25,8 +25,6 @@ services:
     env_file: .env.prod
   settle-btc-payments:
     env_file: .env.prod
-  settle-lnd-payments:
-    env_file: .env.prod
   process-notifications:
     env_file: .env.prod
   birdwatcher:
