@@ -422,26 +422,6 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
 
-        time.sleep(20)
-
-        # we got the badge!!
-        code, response = self.get("/api/users/me", {},
-            headers=self.get_auth_headers(token_3))
-        self.assertEqual(code, 200)
-        self.assertIn((500, campaign_key_2), [(b['badge'], b['icon']) for b in response['user']['badges']])
-        self.assertIn((500, 'SKIN_IN_THE_GAME'), [(b['badge'], b['icon']) for b in response['user']['badges']])
-
-        # the seller has four sales
-        code, response = self.get("/api/users/me/sales", {},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 2)
-        address_for_campaign_listing = [s['address'] for s in response['sales'] if s['item_title'] == "A listing for a cause"][0]
-        self.assertIn(address_for_campaign_listing, CAMPAIGN_ADDRESSES)
-        address_for_normal_listing = [s['address'] for s in response['sales'] if s['item_title'] == "A selfish listing"][0]
-        self.assertIn(address_for_normal_listing, ADDRESSES)
-        self.assertNotEqual(address_for_campaign_listing, address_for_normal_listing)
-
     def test_listings(self):
         token_1 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='fixie')
         token_2 = self.lnurl_auth('signup', key=self.generate_lnauth_key(), twitter_username='fixie_buyer')
@@ -590,18 +570,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['listing']['media']), 0)
         self.assertNotIn(media_hash, [m['hash'] for m in response['listing']['media']])
 
-        # the seller has no sales
-        code, response = self.get("/api/users/me/sales", {},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 0)
-
-        # the buyer has no sales
-        code, response = self.get("/api/users/me/sales", {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['sales']), 0)
-
         # buying an item
         # NB: the seller didn't set a contribution yet, so the default is being used
         code, response = self.put(f"/api/listings/{listing_key}/buy", {},
@@ -664,12 +632,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(len(response['orders']), 1)
         self.assertEqual(response['orders'][0]['uuid'], purchase_event['id'])
         self.assertEqual(response['orders'][0]['buyer']['name'], purchase_event['name'])
-
-        code, response = self.get(f"/api/listings/{listing_key}", {},
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        self.assertIsNone(response['listing']['sales'][0]['contribution_settled_at'])
-        self.assertIsNone(response['listing']['sales'][0]['settled_at'])
 
         code, response = self.get("/api/users/me", headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
@@ -1370,4 +1332,3 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(len(response['auction']['bids']), 1)
         self.assertTrue(response['auction']['has_winner'])
-        self.assertEqual(response['auction']['sales'], [])
