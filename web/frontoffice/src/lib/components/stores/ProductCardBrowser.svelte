@@ -47,6 +47,8 @@
     }));
 
     onMount(async () => {
+        refreshStalls();
+
         let config = await getConfigurationFromFile();
 
         if (config && config.admin_pubkey.length === 64) {
@@ -55,8 +57,6 @@
             // to get here from Nostr relays...
             await new Promise(resolve => setTimeout(resolve, 2000));
         }
-
-        refreshStalls();
 
         getProducts(null, null,
             (productEvent) => {

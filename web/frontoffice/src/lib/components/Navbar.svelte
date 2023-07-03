@@ -106,6 +106,7 @@
                     <p>
                         <a href="/admin" class="btn btn-ghost normal-case">Sell items</a>
                     </p>
+                    <!--
                     <p class="hidden xl:block">
                         {#if !$NostrPublicKey}
                             <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
@@ -113,6 +114,7 @@
                             <a href={null} class="btn btn-ghost normal-case" on:click={() => logout()} on:keypress={() => logout()}><b>Logout</b></a>
                         {/if}
                     </p>
+                    -->
                 </div>
             </div>
 
@@ -181,6 +183,7 @@
 
                     <ul role="menuitem" tabindex="0" class="float-right right-2 w-60 z-40 p-2 shadow menu menu-compact dropdown-content bg-base-300 text-accent-contend rounded-box md:border border-neutral-300">
 
+                        <!--
                         {#if !$NostrPublicKey}
                             <li class="block md:hidden md:h-0 text-primary">
                                 <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
@@ -191,6 +194,7 @@
                                 </a>
                             </li>
                         {/if}
+                        -->
 
                         <li class="block md:hidden md:h-0">
                             <a href="/" class="modal-button cursor-pointer text-base">
