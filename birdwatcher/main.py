@@ -1,11 +1,11 @@
 import aiohttp
 import argparse
 import asyncio
+from datetime import datetime, timedelta
 from enum import IntEnum
 import json
 import logging
 from logging.config import dictConfig
-from nostr.key import PrivateKey
 import os
 import requests
 import sys
@@ -30,9 +30,10 @@ class EventKind(IntEnum):
     BID = 1021
 
 class Relay:
-    def __init__(self, url, args):
+    def __init__(self, url, args, processed_event_ids):
         self.url = url
         self.args = args
+        self.processed_event_ids = processed_event_ids
 
         self.subscribed_auction_event_ids = set()
         self.subscribed_merchant_pubkeys = set()
@@ -48,7 +49,7 @@ class Relay:
         async with aiohttp.ClientSession() as session:
             await asyncio.create_task(do_get(session, f"{API_BASE_URL}/api/merchants/{event['pubkey']}"))
 
-    async def post_dm(self, merchant_pubkey, dm_event):
+    async def post_dm(self, merchant_pubkey, dm_event, all_relays):
         async def do_post(session, url, json):
             async with session.post(url, json=json) as response:
                 logging.debug(f"POST to merchant {merchant_pubkey}: {dm_event}")
@@ -56,34 +57,40 @@ class Relay:
                     logging.info(f"Forwarded message to merchant {merchant_pubkey}.")
                 elif response.status == 409:
                     logging.info(f"Order already exists at {merchant_pubkey}.")
-                elif response.status == 500:
-                    logging.error(f"Error posting to merchant {merchant_pubkey}.")
+                elif response.status in [400, 403, 404, 500]:
+                    logging.error(f"Error posting to merchant {merchant_pubkey}: {response.status}.")
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")
+                    for e in response_json.get('events', []):
+                        for relay in all_relays:
+                            await relay.send_event(e)
                 except Exception:
                     response_text = await response.text()
                     logging.debug(f"POST responded with {response_text}!")
         async with aiohttp.ClientSession() as session:
             await asyncio.create_task(do_post(session, f"{API_BASE_URL}/api/merchants/{merchant_pubkey}/messages", dm_event))
 
-    async def post_bid(self, auction_event_id, event):
+    async def post_bid(self, auction_event_id, bid_event, all_relays):
         merchant_pubkey = self.auction_owners[auction_event_id]
         async def do_post(session, url, json):
             async with session.post(url, json=json) as response:
-                logging.debug(f"POST to auction {auction_event_id} of merchant {merchant_pubkey}: {event}")
+                logging.debug(f"POST to auction {auction_event_id} of merchant {merchant_pubkey}: {bid_event}")
                 if response.status == 200:
                     logging.info(f"Forwarded bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
-                elif response.status in [400, 403, 500]:
-                    logging.error(f"Error posting bid to auction {auction_event_id} of merchant {merchant_pubkey}.")
+                elif response.status in [400, 403, 404, 500]:
+                    logging.error(f"Error posting bid to auction {auction_event_id} of merchant {merchant_pubkey}: {response.status}.")
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")
+                    for e in response_json.get('events', []):
+                        for relay in all_relays:
+                            await relay.send_event(e)
                 except Exception:
                     response_text = await response.text()
                     logging.debug(f"POST responded with {response_text}!")
         async with aiohttp.ClientSession() as session:
-            await asyncio.create_task(do_post(session, f"{API_BASE_URL}/api/merchants/{merchant_pubkey}/auctions/{auction_event_id}/bids", event))
+            await asyncio.create_task(do_post(session, f"{API_BASE_URL}/api/merchants/{merchant_pubkey}/auctions/{auction_event_id}/bids", bid_event))
 
     async def subscribe_stall(self):
         logging.info(f"({self.url}) Subscribing for stall events...")
@@ -115,7 +122,12 @@ class Relay:
             await self.ws.send(json.dumps(['REQ', subscription_id, {"#e": [id], 'kinds': [EventKind.BID]}]))
             return subscription_id
 
-    async def listen(self):
+    async def send_event(self, event):
+        if self.ws is not None:
+            logging.info(f"({self.url}) Sending event {event['id']}...")
+            await self.ws.send(json.dumps(['EVENT', event]))
+
+    async def listen(self, all_relays):
         while True:
             logging.info(f"({self.url}) Connecting...")
             try:
@@ -146,21 +158,36 @@ class Relay:
                         event = message[2]
                         match event['kind']:
                             case EventKind.AUCTION:
-                                await self.check_ours(event, self.subscribe_bids)
+                                try:
+                                    auction = json.loads(event['content'])
+                                except:
+                                    auction = None
+                                if isinstance(auction, dict) and 'start_date' in auction and 'duration' in auction:
+                                    if datetime.fromtimestamp(auction['start_date']) + timedelta(seconds=auction['duration']) > datetime.utcnow():
+                                        await self.check_ours(event, self.subscribe_bids)
                             case EventKind.STALL:
                                 await self.check_ours(event, self.subscribe_dm)
                             case EventKind.DM:
-                                merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
-                                await self.post_dm(merchant_pubkey, event)
+                                if event['id'] not in self.processed_event_ids:
+                                    self.processed_event_ids.add(event['id'])
+                                    merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
+                                    await self.post_dm(merchant_pubkey, event, all_relays)
+                                else:
+                                    logging.info(f"({self.url}) Skipping DM event: {event['id']}")
                             case EventKind.BID:
-                                auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
-                                await self.post_bid(auction_event_id, event)
+                                if event['id'] not in self.processed_event_ids:
+                                    self.processed_event_ids.add(event['id'])
+                                    auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
+                                    await self.post_bid(auction_event_id, event, all_relays)
+                                else:
+                                    logging.info(f"({self.url}) Skipping bid event: {event['id']}")
             except Exception:
-                logging.error(f"({self.url}) Connection closed.")
+                self.ws = None
+                logging.exception(f"({self.url}) Connection closed.")
                 await asyncio.sleep(10)
 
 async def main():
-    for task in asyncio.as_completed([asyncio.create_task(relay.listen()) for relay in relays]):
+    for task in asyncio.as_completed([asyncio.create_task(relay.listen(relays)) for relay in relays]):
         await task
 
 parser = argparse.ArgumentParser(
@@ -174,10 +201,12 @@ parser.add_argument("-a", "--auction", help="event ID of the auction to listen t
 
 args = parser.parse_args()
 
+processed_event_ids = set()
+
 relays = []
 
 if args.relay:
-    relays.append(Relay(url=args.relay, args=args))
+    relays.append(Relay(url=args.relay, args=args, processed_event_ids=processed_event_ids))
 
 while len(relays) == 0:
     logging.info(f"Connecting to API at {API_BASE_URL}...")
@@ -185,7 +214,7 @@ while len(relays) == 0:
     relay_urls = [r['url'] for r in response.json()['relays']]
     logging.info(f"Got {len(relay_urls)} relays!")
     for url in relay_urls:
-        relays.append(Relay(url, args))
+        relays.append(Relay(url, args, processed_event_ids))
     if len(relays) == 0:
         time.sleep(10)
 

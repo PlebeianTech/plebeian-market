@@ -688,6 +688,10 @@ class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    @property
+    def nostr_event_id(self):
+        return None
+
     owner_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
 
     key = db.Column(db.String(24), unique=True, nullable=False, index=True)
@@ -886,6 +890,9 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     def get_top_bid(self, below=None):
         return max((bid for bid in self.bids if bid.settled_at and (below is None or bid.amount < below)), default=None, key=lambda bid: bid.amount)
 
+    def get_winning_bid(self):
+        return [b for b in self.bids if b.id == self.winning_bid_id][0] if self.winning_bid_id else None
+
     def sort_key(self):
         return self.start_date
 
@@ -903,6 +910,10 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             return True
         top_bid = self.get_top_bid()
         return top_bid.amount >= self.reserve_bid if top_bid else False
+
+    @property
+    def nostr_event_kind(self):
+        return 30020
 
     def to_nostr(self):
         return {
@@ -924,7 +935,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         else:
             ends_in_seconds = (self.end_date - datetime.utcnow()).total_seconds()
         auction = {
-            'uuid': self.uuid,
+            'uuid': str(self.uuid),
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
@@ -979,17 +990,20 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
         if auction['has_winner']:
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
-            auction['winner_nym'] = winning_bid.buyer.nym
-            auction['winner_display_name'] = winning_bid.buyer.display_name
-            auction['winner_profile_image_url'] = winning_bid.buyer.profile_image_url
-            auction['winner_email'] = winning_bid.buyer.email
-            auction['winner_email_verified'] = winning_bid.buyer.email_verified
-            auction['winner_telegram_username'] = winning_bid.buyer.telegram_username
-            auction['winner_telegram_username_verified'] = winning_bid.buyer.telegram_username_verified
-            auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
-            auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
-            auction['winner_nostr_public_key'] = winning_bid.buyer.nostr_public_key
-            auction['winner_nostr_public_key_verified'] = winning_bid.buyer.nostr_public_key_verified
+            if winning_bid.buyer_id: # old style
+                auction['winner_nym'] = winning_bid.buyer.nym
+                auction['winner_display_name'] = winning_bid.buyer.display_name
+                auction['winner_profile_image_url'] = winning_bid.buyer.profile_image_url
+                auction['winner_email'] = winning_bid.buyer.email
+                auction['winner_email_verified'] = winning_bid.buyer.email_verified
+                auction['winner_telegram_username'] = winning_bid.buyer.telegram_username
+                auction['winner_telegram_username_verified'] = winning_bid.buyer.telegram_username_verified
+                auction['winner_twitter_username'] = winning_bid.buyer.twitter_username
+                auction['winner_twitter_username_verified'] = winning_bid.buyer.twitter_username_verified
+                auction['winner_nostr_public_key'] = winning_bid.buyer.nostr_public_key
+                auction['winner_nostr_public_key_verified'] = winning_bid.buyer.nostr_public_key_verified
+            else:
+                auction['winner_nym'] = winning_bid.buyer_nostr_public_key
 
         if for_user is not None:
             user_auction = UserAuction.query.filter_by(user_id=for_user, auction_id=self.id).one_or_none()
@@ -1090,6 +1104,10 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
         # reverse sort - newer listings show at the top
         return -self.start_date.timestamp()
 
+    @property
+    def nostr_event_kind(self):
+        return 30018
+
     def to_nostr(self):
         return {
             'id': str(self.uuid),
@@ -1107,7 +1125,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
         listing = {
             'merchant_public_key': self.item.seller.merchant_public_key,
-            'uuid': self.uuid,
+            'uuid': str(self.uuid),
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,

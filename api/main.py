@@ -32,6 +32,7 @@ from sqlalchemy.exc import IntegrityError
 import string
 import sys
 import time
+import uuid
 
 from extensions import cors, db
 from utils import sats2usd, usd2sats
@@ -105,6 +106,7 @@ def finalize_auctions():
             app.logger.error("Error fetching the exchange rate! Taking a 1 minute nap...")
             time.sleep(60)
             continue
+
         for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
             app.logger.info(f"Looking at {auction.id=}...")
 
@@ -126,9 +128,35 @@ def finalize_auctions():
             auction.has_winner = True
             auction.winning_bid_id = top_bid.id
 
-            nostr_client = get_nostr_client(auction.item.seller)
-            nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]])
-            nostr_client.send_dm(top_bid.buyer_nostr_public_key, json.dumps({'type': 0, 'product_id': str(auction.uuid), 'message': "You won!"}))
+            if top_bid.buyer_nostr_public_key:
+                try:
+                    payment_address = auction.item.seller.get_new_address()
+                except m.AddressGenerationError:
+                    app.logger.exception("Error while generating address.")
+                    continue
+                except MempoolSpaceError:
+                    app.logger.exception("Error while checking mempool.")
+                    continue
+
+                order_uuid = str(uuid.uuid4())
+
+                nostr_client = get_nostr_client(auction.item.seller)
+                nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]])
+                dm_event_id = nostr_client.send_dm(top_bid.buyer_nostr_public_key,
+                    json.dumps({'id': order_uuid, 'type': 10, 'items': [{'product_id': str(auction.uuid), 'quantity': 1}]}))
+
+                order = m.Order(
+                    uuid=order_uuid,
+                    seller_id=auction.item.seller_id,
+                    buyer_public_key=top_bid.buyer_nostr_public_key,
+                    requested_at=datetime.utcnow(),
+                    payment_address=payment_address,
+                    event_id=dm_event_id)
+                db.session.add(order)
+                db.session.commit()
+
+                order_item = m.OrderItem(order_id=order.id, item_id=auction.item_id, auction_id=auction.id, quantity=1)
+                db.session.add(order_item)
 
             db.session.commit()
 
@@ -136,54 +164,6 @@ def finalize_auctions():
             time.sleep(1)
         else:
             time.sleep(5)
-
-@app.cli.command("settle-lnd-payments")
-@with_appcontext
-def settle_lnd_payments():
-    app.logger.setLevel(getattr(logging, LOG_LEVEL))
-    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
-
-    while True:
-        lnd = get_lnd_client()
-        last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
-        app.logger.info(f"Subscribing to LND invoices using {type(lnd)}. {last_settle_index=}")
-        try:
-            for invoice in lnd.subscribe_invoices(settle_index=last_settle_index):
-                if invoice.state == lndgrpc.client.ln.SETTLED and invoice.settle_index > last_settle_index:
-                    found_invoice = False
-                    bid = db.session.query(m.Bid).filter_by(payment_request=invoice.payment_request).first()
-                    if bid:
-                        found_invoice = True
-                        bid.settled_at = datetime.utcnow()
-                        bid.auction.extend()
-                        app.logger.info(f"Settled bid: {bid.id=} {bid.amount=}.")
-                    else:
-                        sale = db.session.query(m.Sale).filter_by(contribution_payment_request=invoice.payment_request).first()
-                        if sale:
-                            found_invoice = True
-                            if sale.state not in [m.SaleState.TX_DETECTED.value, m.SaleState.TX_CONFIRMED.value]:
-                                # NB: in theory, the contribution should always settle before we get a TX, but you never know...
-                                # it could be that this process, or the lightning node, went down
-                                # and the user managed to get an on-chain TX in first.
-                                # we certainly don't want to change the state in that case!
-                                sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
-                            sale.contribution_settled_at = datetime.utcnow()
-                            app.logger.info(f"Settled sale contribution: {sale.id=} {sale.contribution_amount=}.")
-                    if found_invoice:
-                        last_settle_index = invoice.settle_index
-                        state = db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first()
-                        state.value = str(last_settle_index)
-                        db.session.commit()
-        except:
-            app.logger.exception("Error while processing LND invoices. Will roll back and retry.")
-            db.session.rollback()
-        else:
-            app.logger.warning("Disconnected from LND. Sleep, then retry...")
-
-        if app.config['ENV'] == 'test':
-            time.sleep(1)
-        else:
-            time.sleep(10)
 
 @app.cli.command("settle-btc-payments")
 @with_appcontext
@@ -197,74 +177,6 @@ def settle_btc_payments():
 
     while True:
         try:
-            for sale in db.session.query(m.Sale).filter((m.Sale.settled_at == None) & (m.Sale.expired_at == None)):
-                if app.config['ENV'] == 'test' and sale.requested_at >= (datetime.utcnow() - timedelta(seconds=3)):
-                    # in test mode, don't settle the sales right away, to give them time to the contribution to settle first
-                    app.logger.warning("Waiting...")
-                    continue
-                try:
-                    funding_txs = btc.get_funding_txs(sale.address)
-                except MempoolSpaceError as e:
-                    app.logger.warning(str(e) + f" {sale.address=} Taking a 1 minute nap...")
-                    time.sleep(60)
-                    continue
-                for tx in funding_txs:
-                    if sale.txid and not sale.settled_at:
-                        if tx['confirmed'] and (tx['txid'] == sale.txid or tx['value'] == sale.tx_value):
-                            if tx['txid'] != sale.txid:
-                                # this can actually happen if the buyer replaces the tx in the mempool with a new tx,
-                                # for example in order to change the fee
-                                app.logger.info(f"Transaction txid={tx['txid']} differs from original txid={sale.txid} matching {sale.id=} but we still accept it.")
-                                sale.txid = tx['txid']
-                            app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {sale.id=}.")
-                            sale.state = m.SaleState.TX_CONFIRMED.value
-                            sale.settled_at = datetime.utcnow()
-                            db.session.commit()
-                            m.Message.create_and_send('TRANSACTION_CONFIRMED', user=sale.buyer, sale_id=sale.id, txid=tx['txid'])
-                            break
-                    elif not sale.txid:
-                        if tx['value'] >= sale.amount:
-                            app.logger.info(f"Found transaction txid={tx['txid']} confirmed={tx['confirmed']} matching {sale.id=}.")
-                            sale.txid = tx['txid']
-                            sale.tx_value = tx['value']
-                            sale.state = m.SaleState.TX_DETECTED.value
-                            if sale.is_badge_sale:
-                                for_campaign = sale.campaign.key if sale.campaign_id else None
-                                if not m.UserBadge.query.filter_by(user_id=sale.buyer_id, badge=sale.desired_badge, icon=for_campaign).first():
-                                    app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} with icon={for_campaign} to user {sale.buyer_id}.")
-                                    db.session.add(m.UserBadge(user_id=sale.buyer_id, badge=sale.desired_badge, icon=for_campaign))
-                                # awarding the "default icon" version of the badge in addition to the campaign version
-                                icon = app.config['BADGE_DEFAULT_ICON']
-                                if not m.UserBadge.query.filter_by(user_id=sale.buyer_id, badge=sale.desired_badge, icon=icon).first():
-                                    app.logger.info(f"Sale {sale.id} awards badge {sale.desired_badge} with default icon to user {sale.buyer_id}.")
-                                    db.session.add(m.UserBadge(user_id=sale.buyer_id, badge=sale.desired_badge, icon=icon))
-                            if tx['confirmed']:
-                                sale.state = m.SaleState.TX_CONFIRMED.value
-                                sale.settled_at = datetime.utcnow()
-                            db.session.commit()
-                            m.Message.create_and_send('TRANSACTION_FOUND', user=sale.buyer, sale_id=sale.id, txid=tx['txid'], confirmed=tx['confirmed'])
-                            break
-                        else:
-                            app.logger.warning(f"Found unexpected transaction when trying to settle {sale.id=}: {sale.amount=} {sale.shipping_domestic=} {sale.shipping_worldwide=} vs {tx['value']=}.")
-                else:
-                    if sale.requested_at < datetime.utcnow() - timedelta(minutes=sale.timeout_minutes):
-                        app.logger.warning(f"Sale too old. Marking as expired. {sale.id=}")
-                        sale.state = m.SaleState.EXPIRED.value
-                        sale.expired_at = datetime.utcnow()
-                        if sale.is_auction_sale:
-                            # expired auction sales will give the next bidder the chance to buy the item
-                            sale.auction.has_winner = None
-                        if sale.is_listing_sale:
-                            # expired listing sales increment the stock with the quantity that was decremented when the sale process was initiated
-                            listing = db.session.query(m.Listing).filter_by(id=sale.listing_id).first()
-                            listing.available_quantity += sale.quantity
-                        db.session.commit()
-
-                        # NB: we send messages after the final commit
-                        # because sending messages performa extra commits!
-                        if sale.is_auction_sale:
-                            m.Message.create_and_send('SALE_EXPIRED', user=sale.item.seller, auction=sale.auction, buyer=sale.buyer)
-                            m.Message.create_and_send('PURCHASE_EXPIRED', user=sale.buyer, auction=sale.auction)
             for order in db.session.query(m.Order).filter((m.Order.paid_at == None) & (m.Order.expired_at == None) & (m.Order.canceled_at == None)):
                 try:
                     funding_txs = btc.get_funding_txs(order.payment_address)
@@ -308,7 +220,7 @@ def settle_btc_payments():
                         for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
                             listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
                             listing.available_quantity += order_item.quantity
-                            nostr_client.publish_product(**listing.to_nostr())
+                            nostr_client.publish_item(listing)
                         db.session.commit()
                         nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."}))
                 if order.paid_at:
@@ -322,122 +234,6 @@ def settle_btc_payments():
             time.sleep(1)
         else:
             time.sleep(10)
-
-@app.cli.command("process-notifications")
-@with_appcontext
-def process_notifications():
-    app.logger.setLevel(getattr(logging, LOG_LEVEL))
-    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
-
-    # NB: this is used only as an optimization
-    # The actual way of making sure we don't send the same notification twice is the database, namely the UNIQUE constraint on messages (user_id, key).
-    # We store this list of sent notifications in memory so we can quickly skip duplicates and not even try to execute the INSERT query.
-    # However, if this process is restarted, this list will be lost, so we will attempt to send (some of) the same notifications again.
-    # That is when the database will save us as it will simply raise an integrity error.
-    sent_notifications = set()
-
-    while True:
-        processing_started = datetime.utcnow()
-
-        state = db.session.query(m.State).filter_by(key=m.State.LAST_PROCESSED_NOTIFICATIONS).one_or_none()
-        if not state:
-            # First time we ever run this process, there's not much to do,
-            # as we don't want to send notifications for every event that happened in the past!
-            state = m.State(key=m.State.LAST_PROCESSED_NOTIFICATIONS, value=str(int(processing_started.timestamp())))
-            db.session.add(state)
-            db.session.commit()
-            time.sleep(1)
-            continue
-
-        last_processed_notifications = datetime.fromtimestamp(int(state.value))
-
-        total_bids = 0
-        total_auctions = 0
-        start_time = time.time()
-
-        # NB: we load 1) all (new) bids (since last run)
-        # and 2) all auctions that are going to end in the next 10 minutes (or ended since the last run minus 10 minutes).
-        # This ensures that notifications to be sent for new bids or for any auction ending soon or that just ended will be processed.
-        # If we want (for example) notifications for newly created auctions (regardless of end date) we would have to load auctions based on created_at.
-        for bid_or_auction in chain(
-            db.session.query(m.Bid).filter(m.Bid.settled_at > last_processed_notifications), # TODO: select related auctions to optimize?
-            db.session.query(m.Auction).filter((m.Auction.end_date <= (datetime.utcnow() + timedelta(minutes=10))) & (m.Auction.end_date > (last_processed_notifications - timedelta(minutes=10))))
-        ):
-            match bid_or_auction:
-                case m.Bid():
-                    bid = bid_or_auction
-                    auction = bid.auction
-                    total_bids += 1
-                    app.logger.debug(f"Processing bid {bid.id=}.")
-                case m.Auction():
-                    bid = None
-                    auction = bid_or_auction
-                    total_auctions += 1
-                    app.logger.debug(f"Processing auction {auction.id=}.")
-
-            # this could be further optimized by caching the users following the running auctions in memory,
-            # but we would need a way to invalidate/update the cache on follow/unfollow
-            following_user_ids = [ua.user_id for ua in db.session.query(m.UserAuction).filter_by(auction_id=auction.id, following=True).all()]
-            following_users = {u.id: u for u in db.session.query(m.User).filter(m.User.id.in_(following_user_ids)).all()}
-
-            # notification settings for the users following the auction - could also be cached, with the same caveat as above
-            user_notifications = {(un.user_id, un.notification_type): un for un in db.session.query(m.UserNotification).filter(m.UserNotification.user_id.in_(following_user_ids)).all()}
-
-            for notification_type, notification in m.NOTIFICATION_TYPES.items():
-                if notification_type not in m.BACKGROUND_PROCESS_NOTIFICATION_TYPES:
-                    continue
-                for user in following_users.values():
-                    if (user.id, notification_type) in user_notifications:
-                        action = user_notifications[(user.id, notification_type)].action
-                    else:
-                        action = notification.default_action
-
-                    message_args = notification.get_message_args(user=user, auction=auction, bid=bid)
-                    if not message_args:
-                        # notification type does not apply in this case
-                        continue
-
-                    if (user.id, message_args['key']) in sent_notifications:
-                        # already sent - don't even bother trying again (will fail anyway with IntegrityError)!
-                        continue
-
-                    # insert before actually trying to send anything to ensure uniqueness
-                    message = m.Message(**message_args)
-                    db.session.add(message)
-
-                    try:
-                        db.session.commit()
-                    except IntegrityError:
-                        app.logger.info(f"Duplicate message send attempt: {message_args['key']=} {message_args['user_id']=}!")
-                        db.session.rollback()
-                        # the message already exists for this user
-                        # see the comment on sent_notifications above for details
-                        continue
-
-                    app.logger.info(f"Executing {action=} for {user.id=}!")
-                    if m.NOTIFICATION_ACTIONS[action].execute(user, message):
-                        app.logger.info(f"Notified {user.id=} with {action=}!")
-                        message.notified_via = action
-                    else:
-                        pass
-                        # db.session.delete(message)
-                        # Probably better to keep the Message in the DB if sending failed,
-                        # since notifications are supposed to be real time sort-of,
-                        # so if the delivery failed we better don't try to send it later anyway!
-
-                    sent_notifications.add((user.id, message_args['key']))
-                    db.session.commit()
-
-        state = db.session.query(m.State).filter_by(key=m.State.LAST_PROCESSED_NOTIFICATIONS).first()
-        state.value = str(int(processing_started.timestamp()))
-        db.session.commit()
-
-        total_seconds = time.time() - start_time
-
-        if total_bids != 0:
-            app.logger.info(f"Processed {total_bids=} and {total_auctions=} in {total_seconds=}.")
-
-        time.sleep(1)
 
 @app.cli.command("set-campaign-banner")
 @click.argument("key", type=click.STRING)
@@ -757,17 +553,13 @@ class MockNostrClient:
         app.logger.info(f"Nostr Stall: {args=} {kwargs=}")
         return True
 
-    def publish_product(self, *args, **kwargs):
-        app.logger.info(f"Nostr Product: {args=} {kwargs=}")
-        return 1 # TODO
-
-    def publish_auction(self, *args, **kwargs):
-        app.logger.info(f"Nostr Auction: {args=} {kwargs=}")
-        return 1 # TODO
+    def publish_item(self, entity):
+        app.logger.info(f"Nostr item: {entity.to_nostr()}")
+        return str(uuid.uuid4())
 
     def send_bid_status(self, *args, **kwargs):
         app.logger.info(f"Nostr bid status: {args=} {kwargs=}")
-        return 1 # TODO
+        return str(uuid.uuid4())
 
 class NostrClient:
     def __init__(self, private_key, relays):
@@ -787,10 +579,11 @@ class NostrClient:
             dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
             self.private_key.sign_event(dm)
             self.relay_manager.publish_event(dm)
-            return True
+            app.logger.info(f"Sent DM to {recipient_public_key}: relays={self.relay_manager.relays.keys()}!")
+            return dm.id
         except:
             app.logger.exception("Error while sending Nostr DM.")
-            return False
+            return None
 
     def publish_stall(self, id, name, description, currency, shipping_from, shipping_domestic_usd, shipping_worldwide_usd):
         try:
@@ -819,58 +612,21 @@ class NostrClient:
             app.logger.exception("Error while publishing Nostr stall.")
             return False
 
-    def publish_product(self, id, stall_id, name, description, images, currency, price, quantity):
+    def publish_item(self, entity):
+        item_json = entity.to_nostr()
         try:
-            product_json = {
-                'id': id,
-                'stall_id': stall_id,
-                'name': name,
-                'description': description,
-                'images': images,
-                'currency': currency,
-                'price': price,
-                'quantity': quantity,
-            }
-            event = Event(kind=30018, content=json.dumps(product_json), tags=[['d', id]])
+            event = Event(kind=entity.nostr_event_kind, content=json.dumps(item_json), tags=[['d', item_json['id']]])
             self.private_key.sign_event(event)
-            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
+            app.logger.info(f"Published to Nostr: relays={self.relay_manager.relays.keys()} event.id={event.id} {event=}.")
             return event.id
         except:
-            app.logger.exception("Error while publishing Nostr product.")
-            return None
-
-    def publish_auction(self, id, stall_id, name, description, images, starting_bid, start_date, duration):
-        try:
-            auction_json = {
-                'id': id,
-                'stall_id': stall_id,
-                'name': name,
-                'description': description,
-                'images': images,
-                'starting_bid': starting_bid,
-                'start_date': start_date,
-                'duration': duration,
-            }
-            event = Event(kind=30020, content=json.dumps(auction_json), tags=[['d', id]])
-            self.private_key.sign_event(event)
-            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
-            self.relay_manager.publish_event(event)
-            return event.id
-        except:
-            app.logger.exception("Error while publishing Nostr auction.")
+            app.logger.exception("Error while publishing item to Nostr.")
             return None
 
     def send_bid_status(self, auction_event_id, bid_event_id, status, message=None, extra_tags=None):
-        if extra_tags is None:
-            extra_tags = []
         try:
-            content_json = {
-                'status': status,
-            }
-            if message is not None:
-                content_json['message'] = message
-            event = Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction_event_id], ['e', bid_event_id]] + extra_tags))
+            event = get_bid_status_event(auction_event_id, bid_event_id, status, message=message, extra_tags=extra_tags)
             self.private_key.sign_event(event)
             app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
             self.relay_manager.publish_event(event)
@@ -878,6 +634,14 @@ class NostrClient:
         except:
             app.logger.exception("Error while sending Nostr reaction.")
             return None
+
+def get_bid_status_event(auction_event_id, bid_event_id, status, message=None, extra_tags=None):
+    if extra_tags is None:
+        extra_tags = []
+    content_json = {'status': status}
+    if message is not None:
+        content_json['message'] = message
+    return Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction_event_id], ['e', bid_event_id]] + extra_tags))
 
 def get_nostr_client(user):
     if app.config['MOCK_NOSTR']:

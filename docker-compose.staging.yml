@@ -53,16 +53,6 @@ services:
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask settle-btc-payments
-  settle-lnd-payments:
-    env_file: .env.staging
-    volumes:
-      - "/home/www/plebeian-market-secrets:/secrets"
-    command: flask settle-lnd-payments
-  process-notifications:
-    env_file: .env.staging
-    volumes:
-      - "/home/www/plebeian-market-secrets:/secrets"
-    command: flask process-notifications
   birdwatcher:
     depends_on:
       api:

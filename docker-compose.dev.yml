@@ -35,22 +35,6 @@ services:
     volumes:
       - "./api:/app"
     command: flask settle-btc-payments
-  settle-lnd-payments:
-    depends_on:
-      api: # this is because in dev & test mode, the api is the one initializing the database, on start
-        condition: service_healthy
-    env_file: .env.dev
-    volumes:
-      - "./api:/app"
-    command: flask settle-lnd-payments
-  process-notifications:
-    depends_on:
-      api: # this is because in dev & test mode, the api is the one initializing the database, on start
-        condition: service_healthy
-    env_file: .env.dev
-    volumes:
-      - "./api:/app"
-    command: flask process-notifications
   birdwatcher:
     depends_on:
       api: # because birdwatcher *actually* needs the API to know what to work on!

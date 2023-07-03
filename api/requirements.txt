@@ -15,6 +15,7 @@ lnurl
 git+https://github.com/jeffthibault/python-nostr.git#egg=nostr
 psycopg2
 pycoin
+pydantic==1.10.4
 pyjwt
 pyqrcode
 python-dateutil
