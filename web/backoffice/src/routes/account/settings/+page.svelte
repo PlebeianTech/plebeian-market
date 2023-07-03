@@ -6,7 +6,6 @@
     import { onMount } from 'svelte';
     import { page } from "$app/stores";
     import { user } from "$lib/stores";
-    import Notifications from "$lib/components/settings/Notifications.svelte";
     import Stall from "$lib/components/settings/Stall.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -21,9 +20,8 @@
     let TWITTER_PAGE = "Twitter";
     let NOSTR_PAGE = "Nostr";
     let LIGHTNING_PAGE = "Lightning";
-    let NOTIFICATIONS_PAGE = "Notifications";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, LIGHTNING_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, LIGHTNING_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     let params = {};
@@ -75,8 +73,6 @@
                     <Nostr />
                 {:else if currentPage === LIGHTNING_PAGE}
                     <Lightning />
-                {:else if currentPage === NOTIFICATIONS_PAGE}
-                    <Notifications />
                 {:else if currentPage === V4V_PAGE}
                     <V4V />
                 {/if}

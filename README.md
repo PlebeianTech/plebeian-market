@@ -30,7 +30,6 @@ The *Skills Market* is a place where you can publish your professional CV/résum
   education: [{education: string, year: number | null}, {education: string, year: number | null}, ...],
   experience: [{job_title: string, organization: string, description: string, from_year: number | null, from_month: number | null, to_year: number | null, to_month: number | null}, {job_title: string, organization: string, description: string, from_year: number | null, from_month: number | null, to_year: number | null, to_month: number | null}, ...],
   achievements: [{achievement: string, year: number | null}, {achievement: string, year: number | null}, ...],
- }
 }
 ```
 
@@ -70,8 +69,6 @@ All the generated static files will be inside the `build` folder. You can copy t
 ```finalize-auctions``` - monitors running auctions and picks a winner for auctions that ended
 
 ```settle-btc-payments``` - monitors on-chain payments that are "pending" in our database and looks up the corresponding transactions in the mempool or on-chain
-
-```process-notifications``` - sends notifications
 
 
 ## Non-standard nip-15 extension
