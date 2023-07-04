@@ -9,7 +9,6 @@
     import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import Book from "$lib/components/icons/Book.svelte";
-    import Cash from "$lib/components/icons/Cash.svelte";
     import Chat from "$lib/components/icons/Chat.svelte";
     import Exit from "$lib/components/icons/Exit.svelte";
     import Gift from "$lib/components/icons/Gift.svelte";
@@ -22,8 +21,6 @@
     import Stats from "$lib/components/icons/Stats.svelte";
     import Sun from "$lib/components/icons/Sun.svelte";
     import Tools from "$lib/components/icons/Tools.svelte";
-    import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
-    import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     let modal: Modal | null;
@@ -53,19 +50,6 @@
         let html = <HTMLHtmlElement>document.querySelector("html");
         let toggle = <HTMLInputElement>document.getElementById("theme-toggle");
         html.dataset.theme = toggle.checked ? "halloween" : "light";
-    }
-
-    function showModal(content: any, hasHide: boolean, onHide: (saved: boolean) => void = (_) => {}) {
-        if (modal && modal.show && !modalVisible) {
-            modal.content = content;
-            modal.hasHide = hasHide;
-            modal.onHide = (saved) => {
-                modalVisible = false;
-                onHide(saved);
-            };
-            modalVisible = true;
-            modal.show();
-        }
     }
 
     function fetchProfile(tokenValue) {
@@ -243,11 +227,6 @@
                         {#if $token && $user}
                             <li class="menu-title mt-2">
                                 <span class="text-lg">Account</span>
-                            </li>
-                            <li>
-                                <a rel="external" class="text-base" href="/admin/stall/{$user.nym}">
-                                    <span class="w-6 h-6"><Stall /></span> My stall
-                                </a>
                             </li>
                             {#if $user.isModerator}
                                 <li>
