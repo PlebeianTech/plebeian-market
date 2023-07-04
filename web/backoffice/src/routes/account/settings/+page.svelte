@@ -10,18 +10,18 @@
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import Nostr from "$lib/components/settings/Nostr.svelte";
-    import Lightning from "$lib/components/settings/Lightning.svelte";
+    import Login from "$lib/components/settings/Login.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
     import Wallet from "$lib/components/settings/Wallet.svelte";
     import { goto } from '$app/navigation';
 
     let STALL_PAGE = "My Stall";
-    let WALLET_PAGE = "My wallet";
+    let WALLET_PAGE = "Wallet";
     let TWITTER_PAGE = "Twitter";
     let NOSTR_PAGE = "Nostr";
-    let LIGHTNING_PAGE = "Lightning";
+    let LOGIN_PAGE = "Login";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, LIGHTNING_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     let params = {};
@@ -71,8 +71,8 @@
                     {/if}
                 {:else if currentPage === NOSTR_PAGE}
                     <Nostr />
-                {:else if currentPage === LIGHTNING_PAGE}
-                    <Lightning />
+                {:else if currentPage === LOGIN_PAGE}
+                    <Login />
                 {:else if currentPage === V4V_PAGE}
                     <V4V />
                 {/if}
