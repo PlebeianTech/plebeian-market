@@ -22,6 +22,7 @@
     let LOGIN_PAGE = "Login";
     let V4V_PAGE = "Value 4 Value";
     let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, V4V_PAGE];
+    let WALLET_PAGE_INDEX = pages.indexOf(WALLET_PAGE);
     let currentPage: string | null = null;
 
     let params = {};
@@ -41,8 +42,8 @@
             }
         }
 
-        if (params['page']) {
-            currentPage = pages[parseInt(params['page'])];
+        if (params['page'] === 'WALLET') {
+            currentPage = pages[WALLET_PAGE_INDEX];
         }
     });
 </script>

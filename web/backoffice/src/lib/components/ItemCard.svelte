@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
-    import { ErrorHandler, deleteEntity, hideAuction, putPublish } from "$lib/services/api";
+    import { ErrorHandler, deleteEntity, putPublish } from "$lib/services/api";
     import { Error, Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
@@ -47,14 +47,6 @@
                 onEntityChanged();
             },
             new ErrorHandler(true, () => inRequest = false));
-    }
-
-    function hide() {
-        hideAuction($token, item.key,
-            () => {
-                Info.set("Hidden from homepage.");
-            },
-            new ErrorHandler(false, () => Error.set("Failed to hide the item.")));
     }
 
     function del() {
@@ -173,13 +165,10 @@
             {#if !item.started}
                 {#if !hasWallet}
                     <ErrorBox>
-                        <span>Please <a href="/admin/account/settings#page=1&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>
+                        <span>Please <a href="/admin/account/settings#page=WALLET&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>
                     </ErrorBox>
                 {/if}
                 <button class="btn btn-primary" class:btn-disabled={inRequest} on:click|preventDefault={publish}>Publish</button>
-            {/if}
-            {#if $user && $user.isModerator && showHide}
-                <button class="btn btn-outline self-center md:float-right" on:click|preventDefault={hide} on:keypress={hide}>Hide from homepage</button>
             {/if}
         </div>
     </div>

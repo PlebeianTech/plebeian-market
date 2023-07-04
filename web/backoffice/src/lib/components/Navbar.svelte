@@ -8,19 +8,15 @@
     import type { User } from "$lib/types/user";
     import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
-    import Book from "$lib/components/icons/Book.svelte";
-    import Chat from "$lib/components/icons/Chat.svelte";
+    import Cash from "$lib/components/icons/Cash.svelte";
     import Exit from "$lib/components/icons/Exit.svelte";
-    import Gift from "$lib/components/icons/Gift.svelte";
     import Hamburger from "$lib/components/icons/Hamburger.svelte";
     import Home from "$lib/components/icons/Home.svelte";
     import Key from "$lib/components/icons/Key.svelte";
     import Moon from "$lib/components/icons/Moon.svelte";
     import Settings from "$lib/components/icons/Settings.svelte";
     import Stall from "$lib/components/icons/Stall.svelte";
-    import Stats from "$lib/components/icons/Stats.svelte";
     import Sun from "$lib/components/icons/Sun.svelte";
-    import Tools from "$lib/components/icons/Tools.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     let modal: Modal | null;
@@ -134,7 +130,7 @@
 <nav class="backdrop-blur-3xl border-b border-gray-400/70 z-50 fixed top-0 w-full">
     <div class="lg:w-2/3 py-2 px-4 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
-            <a href="/" class="flex items-center mr-2">
+            <a href="/admin" class="flex items-center mr-2">
                 <div class="flex items-center space-x-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
                     <h1 class="text-xl font-bold hover:text-blue-400 duration-300 w-44">
@@ -160,13 +156,7 @@
 
                 <div class="lg:flex hidden">
                     <p>
-                        <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
-                    </p>
-                    <p>
-                        <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
-                    </p>
-                    <p>
-                        <a href="/campaigns" class="btn btn-ghost normal-case">Campaigns</a>
+                        <a href="/admin" class="btn btn-ghost normal-case">My stall</a>
                     </p>
                     <p>
                         <a href="/" class="btn btn-ghost normal-case">Buy items</a>
@@ -205,44 +195,14 @@
                         {/if}
 
                         <li class="block md:hidden md:h-0">
-                            <a href="/" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Home /></span> Home
-                            </a>
-                        </li>
-                        <li class="block md:hidden md:h-0">
-                            <a href="/marketsquare" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Chat /></span> Market Square
-                            </a>
-                        </li>
-                        <li class="block md:hidden md:h-0">
-                            <a href="/skills" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Tools /></span> Skills Market
-                            </a>
-                        </li>
-                        <li class="block md:hidden md:h-0">
-                            <a href="/campaigns" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Gift /></span> Campaigns
+                            <a href="/admin" class="modal-button cursor-pointer text-base">
+                                <span class="w-6 h-6"><Home /></span> My stall
                             </a>
                         </li>
                         {#if $token && $user}
-                            <li class="menu-title mt-2">
-                                <span class="text-lg">Account</span>
-                            </li>
-                            {#if $user.isModerator}
-                                <li>
-                                    <a class="text-base" href="/admin/account/campaigns">
-                                        <span class="w-6 h-6"><Gift /></span> My campaigns
-                                    </a>
-                                </li>
-                            {/if}
-                            <li>
-                                <a class="text-base" href="/admin/account/sales/">
-                                    <span class="w-6 h-6"><Stats /></span> My sales
-                                </a>
-                            </li>
                             <li>
                                 <a class="text-base" href="/admin/account/orders/">
-                                    <span class="w-6 h-6"><Stats /></span> My received orders
+                                    <span class="w-6 h-6"><Cash /></span> Orders
                                 </a>
                             </li>
                             <li>
@@ -255,23 +215,10 @@
                                     <span class="w-6 h-6"><Exit /></span> Logout
                                 </a>
                             </li>
-                            <li class="menu-title mt-2 text-base">
-                                <span class="text-lg">Other information</span>
-                            </li>
                         {/if}
                         <li class="block md:hidden md:h-0">
-                            <a href="/faq" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Book /></span> FAQ
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/contact" class="text-base">
-                                <span class="w-6 h-6"><Chat /></span> Contact
-                            </a>
-                        </li>
-                        <li class="block md:hidden md:h-0">
-                            <a href="/about" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Book /></span> About
+                            <a href="/" class="modal-button cursor-pointer text-base">
+                                <span class="w-6 h-6"><Stall /></span> Marketplace
                             </a>
                         </li>
                         {#if !isProduction()}

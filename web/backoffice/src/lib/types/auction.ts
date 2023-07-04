@@ -1,7 +1,6 @@
 import { isProduction } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
 import { Category, type Item, type AddedMedia, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
-import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
 export interface Bid {
@@ -50,7 +49,6 @@ export class Auction implements IEntity, Item {
     editable_for_seconds: number | null = null;
     duration_str?: string;
     bids: Bid[] = [];
-    sales: Sale[] = [];
     media: Media[] = [];
     added_media: AddedMedia[] = [];
     campaign_key: string | null = null;
@@ -185,8 +183,6 @@ export function fromJson(json: any): Auction {
             }
         } else if (k === 'bid_thresholds') {
             a.bid_thresholds = (json[k] as Array<any>).map(bidThresholdFromJson);
-        } else if (k === 'sales') {
-            a.sales = (json[k] as Array<any>).map(saleFromJson);
         } else {
             a[k] = json[k];
         }
