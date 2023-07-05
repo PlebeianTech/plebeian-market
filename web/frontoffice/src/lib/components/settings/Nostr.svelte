@@ -1,6 +1,7 @@
 <script lang="ts">
     import { NostrPrivateKey, NostrPublicKey } from "$lib/stores";
     import {logout, requestLoginModal} from "$lib/utils";
+    import {hasExtension} from "$lib/nostr/utils";
 
     function deletePrivateKey() {
         localStorage.removeItem('nostrPrivateKey');
@@ -11,7 +12,17 @@
 </script>
 
 {#if $NostrPublicKey}
-    {#if $NostrPrivateKey}
+    {#if hasExtension()}
+        <p>
+            You're logged-in using your <b>Nostr browser extension</b>.
+        </p>
+        <p class="mt-4">
+            This is the <b>recommended</b> and <b>most secure</b> way to use Plebeian Market.
+        </p>
+        <p class="mt-4">
+            This is the public key we're getting from the browser extension: {$NostrPublicKey}
+        </p>
+    {:else if $NostrPrivateKey}
         <p class="text-xl">Your Nostr private key:</p>
 
         <pre class="my-8 text-lg bg-base-300 text-center">{$NostrPrivateKey}</pre>
@@ -35,15 +46,9 @@
             <button id="save-profile" class="btn btn-primary" class:btn-disabled={!saveButtonActive} on:click|preventDefault={save}>Save</button>
         </div>
         -->
-    11
-        <p>
-            You're logged-in using your Nostr browser extension.
-        </p>
-        <p class="mt-4">
-            This is the recommended and most secure way to use Plebeian Market.
-        </p>
-        <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
     {/if}
+
+    <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
 
 {:else}
     <div class="w-full items-center justify-center text-center">
