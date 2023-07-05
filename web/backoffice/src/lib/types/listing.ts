@@ -1,6 +1,5 @@
 import type { IEntity } from "$lib/types/base";
 import { Category, type Item, type AddedMedia, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
-import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import type { IAccount } from "$lib/types/user";
 
 export class Listing implements IEntity, Item {
@@ -24,7 +23,6 @@ export class Listing implements IEntity, Item {
     start_date: Date | null = null;
     started: boolean = false;
     ended: boolean = false;
-    sales: Sale[] = [];
     media: Media[] = [];
     added_media: AddedMedia[] = [];
     campaign_key: string | null = null;
@@ -62,8 +60,6 @@ export function fromJson(json: any): Listing {
     for (var k in json) {
         if (k === 'start_date') {
             l.start_date = json[k] ? new Date(json[k]!) : null;
-        } else if (k === 'sales') {
-            l.sales = (json[k] as Array<any>).map(saleFromJson);
         } else {
             l[k] = json[k];
         }

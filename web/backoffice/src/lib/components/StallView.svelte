@@ -3,7 +3,6 @@
     import SvelteMarkdown from 'svelte-markdown';
     import { goto } from "$app/navigation";
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
-    import BadgeSVG from "$lib/components/BadgeSVG.svelte";
     import ItemCard from "$lib/components/ItemCard.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
@@ -15,7 +14,6 @@
     import type { IAccount, Badge } from "$lib/types/user";
     import { Category } from '$lib/types/item';
     import Faketoshi from "$lib/images/Bitko-Illustration-Faketoshi.svg"
-    import Avatar, {AvatarSize} from './Avatar.svelte';
     import ExternalLinks from './externalLinks.svelte';
     import Spaceship from "$lib/images/spaceship.jpg";
 
@@ -23,7 +21,7 @@
 
     export let bannerUrl: string | null;
     export let owner: IAccount | null;
-    export let title: string;
+    export let title: string | null;
     export let description: string | null;
     export let editUrl: string | null = null;
 
@@ -178,74 +176,6 @@
             </div>
         </div>
     </div>
-{:else}
-    <!-- always keep a 3:1 aspect ratio, see https://stackoverflow.com/a/12121309 -->
-    <div class="mx-auto relative lg:mb-0 mb-6">
-        <div class="absolute inset-x-0 lg:bottom-20 m-auto left-0 right-0 lg:w-2/3 mx-auto z-40">
-            <div class="grid lg:grid-cols-2 gap-4">
-                <!-- COL1 -->
-                <div class="lg:flex space-x-8 items-center w-full">
-                    <div class="grid lg:place-items-start place-items-center">
-                        <div class="grid place-items-center my-4">
-                        {#if owner}
-                            <Avatar account={owner} size={AvatarSize.M}  />
-                        {/if}
-                        </div>
-                        <h2 class="lg:text-5xl text-4xl font-bold">{title}</h2>
-                        {#if description}
-                            <div class="markdown-container leading-8 my-2 lg:text-left text-center p-1">
-                                <SvelteMarkdown source={description} />
-                            </div>
-                        {/if}
-
-                        <!-- TELEGRAM AND TWITTER -->
-                        <div>
-                            <ExternalLinks {owner} />
-                        </div>
-
-                        <!-- BADGES -->
-                        <div class="grid lg:place-items-start place-items-center my-4 w-full">
-                        {#if badges.length !== 0}
-                            <h2 class="text-sm uppercase font-bold text-center my-4">Badges</h2>
-                            <div class="flex gap-2">
-                                {#each badges as badge}
-                                    <BadgeSVG {badge} />
-                                {/each}
-                            </div>
-                        {/if}
-                        </div>
-                    </div>
-                </div>
-                <!-- COL2 -->
-                <div class="grid lg:place-items-end place-items-center">
-                <div>
-                    <!-- ADD NEW -->
-                    <div class="dropdown">
-                    <label tabindex="0" class="btn btn-primary m-1">Add New
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </label>
-                    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        <li><a href="#anchorId" on:click|preventDefault={loginAndScrollIntoView}>Auction Item</a></li>
-                        <li><a href="#anchorIdFixedPrice" on:click|preventDefault={loginAndScrollIntoView}>Sell Item</a></li>
-                    </ul>
-                    </div>
-                    {#if editUrl}
-                        <a href={editUrl} class="btn btn-outline text-sm uppercase font-bold my-2">Edit Page</a>
-                    {/if}
-                </div>
-                </div>
-            </div>
-        </div>
-        <!-- BG IMAGE -->
-        <div id="stallHeroImageHeight" class="lg:h-1/2 h-screen w-full inline-block relative after:pt-[33.33%] after:block after:content-['']">
-            <div class="absolute top-0 bottom-0 left-0 right-0 rounded-md bg-center bg-no-repeat bg-cover opacity-20" style="background-image: url('{bannerUrl}')"></div>
-        </div>
-    </div>
-{/if}
-
-{#if isCampaignStall}
     <div class="md:w-2/3 items-center mx-auto mt-20">
         <div class="grid">
             <!-- AVATARS -->

@@ -2,7 +2,6 @@ import { error } from '@sveltejs/kit';
 import { Error as ErrorStore, AuthRequired, AuthBehavior } from "$lib/stores";
 import type { IEntity, IEntityBase } from "$lib/types/base";
 import type { AddedMedia } from "$lib/types/item";
-import { type Sale, fromJson as saleFromJson } from "$lib/types/sale";
 import { type Order, fromJson as orderFromJson } from "$lib/types/order";
 import { ExternalAccountProvider, type User, fromJson as userFromJson } from "$lib/types/user";
 import { getApiBaseUrl, logout } from "$lib/utils";
@@ -352,17 +351,6 @@ export function getItem(loader: ILoader, tokenValue, key, successCB: (item) => v
         });
 }
 
-export function putAuctionFollow(tokenValue, auctionKey: string, follow: boolean, successCB: (message: string) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}/follow`, 'PUT', tokenValue, JSON.stringify({follow}), "application/json",
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => { successCB(data.message); });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
 export function putPublish(tokenValue, endpoint, key, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/${endpoint}/${key}/publish`, 'PUT', tokenValue, null, null,
         response => {
@@ -396,60 +384,6 @@ export async function deleteEntityAsync(tokenValue, entity: IEntity) {
     }
 }
 
-export function hideAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}`, 'PUT', tokenValue,
-        JSON.stringify({"is_hidden": true}), "application/json",
-        response => {
-            if (response.status === 200) {
-                successCB();
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
-export function postBid(tokenValue, auctionKey, amount, skip_invoice, successCB: (paymentRequest, paymentQr, messages: string[]) => void, badgeRequiredCB: (badge: number) => void = (_) => {}, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}/bids`, 'POST', tokenValue,
-        JSON.stringify({amount, skip_invoice}), "application/json",
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => {
-                    successCB(data.payment_request, data.qr, data.messages);
-                });
-            } else if (response.status === 402) {
-                response.json().then(data => {
-                    badgeRequiredCB(data.required_badge);
-                });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
-export function buyBadge(tokenValue, badge, campaignKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/badges/${badge}/buy`, 'PUT', tokenValue,
-        JSON.stringify({campaign_key: campaignKey}), "application/json",
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => { successCB(saleFromJson(data.sale)); });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
-export function buyListing(tokenValue, listingKey, successCB: (sale: Sale) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/listings/${listingKey}/buy`, 'PUT', tokenValue,
-        JSON.stringify({}), "application/json",
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => { successCB(saleFromJson(data.sale)); });
-            } else {
-                errorHandler.handle(response);
-            }
-        });
-}
-
 export async function getAuction(key) {
     const response = await fetch(`${getApiBaseUrl()}api/auctions/${key}`)
     const auction = await response.json()
@@ -479,29 +413,6 @@ export async function getListing(key) {
         "Could not fetch listing on the server"
     );
 }
-
-export async function getCampaign(key) {
-    if (!key) {
-        return {
-            campaignKey: null,
-            serverLoadedCampaign: null
-        }
-    }
-
-    const response = await fetch(`${getApiBaseUrl()}api/campaigns/${key}`)
-    const campaign = await response.json()
-    if (response.ok) {
-        return {
-            campaignKey: key,
-            serverLoadedCampaign: campaign.campaign
-        }
-    }
-    throw error(
-        response.status,
-        "Could not fetch campaign on the server"
-    );
-}
-
 
 export async function getUser(nym) {
     const response = await fetch(`${getApiBaseUrl()}api/users/${nym}`)

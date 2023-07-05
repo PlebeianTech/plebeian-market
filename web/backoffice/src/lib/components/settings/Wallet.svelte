@@ -42,11 +42,11 @@
         <div class="text-2xl breadcrumbs">
             <ul>
                 <li>Settings</li>
-                <li>My Wallet</li>
+                <li>Wallet</li>
             </ul>
         </div>
     {:else}
-        <h2 class="text-2xl">My wallet</h2>
+        <h2 class="text-2xl">Wallet</h2>
     {/if}
 {/if}
 
