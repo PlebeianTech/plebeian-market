@@ -74,6 +74,4 @@ export const privateMessages: Writable<{
 export const NostrPublicKey: Writable<string | null> = writable(null);
 export const NostrPrivateKey: Writable<string | null> = writable(null);
 
-export const NostrGlobalConfig: Writable<object> = writable({
-    homepage_include_stalls: []
-});
+export const NostrGlobalConfig: Writable<object> = writable({});

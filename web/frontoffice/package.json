@@ -2,7 +2,7 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
-    "@sveltejs/kit": "^1.21.0",
+    "@sveltejs/kit": "^1.22.0",
     "autoprefixer": "10.x",
     "btc2fiat": "*",
     "daisyui": "^2.52.0",
@@ -34,6 +34,7 @@
     "lint": "eslint --ignore-path .gitignore ."
   },
   "dependencies": {
+    "@jhubbardsf/svelte-sortablejs": "^1.1.0",
     "@sveltejs/adapter-static": "^2.0.2",
     "bech32": "^2.0.0",
     "buffer": "^6.0.3",

@@ -127,7 +127,9 @@
     <title>Private Messages</title>
 </svelte:head>
 
-<Titleh1>Private Messages</Titleh1>
+{#if !selectedConversationPubkey}
+    <Titleh1>Private Messages</Titleh1>
+{/if}
 
 {#if $NostrPublicKey}
     {#if newConversationPubkey || sortedConversations.length > 0}
@@ -184,7 +186,7 @@
                         {/if}
                     {/each}
 
-                    <div class="grid grid-cols-2 w-screen lg:w-2/3 mt-8 p-3 bg-gray-300 dark:bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto">
+                    <div class="grid grid-cols-2 w-screen lg:w-2/3 p-3 bg-gray-300 dark:bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto mt-auto">
                         <div class="flex col-span-2">
                         <textarea
                                 rows="1"
@@ -207,15 +209,56 @@
         </div>
 
         <!-- Mobile -->
-        {#if selectedConversationPubkey}
-            <div class="flex lg:hidden relative pb-2 border-b border-gray-400/70 leading-none">
+        {#if !selectedConversationPubkey}
+            <div class="lg:hidden flex w-full h-auto p-1 max-h-full gap-2 menu card rounded-box bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden
+                        scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300
+                        scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 hover:scrollbar-thumb:!bg-slate-400/80">
+                {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
+                    <li class="rounded-lg w-full"
+                        on:click={() => selectConversation(newConversationPubkey)}
+                    >
+                        <div>
+                            <div class="avatar indicator">
+                                <div class="w-16 rounded-full">
+                                    <img src="{profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
+                                </div>
+                            </div>
+                            New conversation: {nip19.npubEncode(newConversationPubkey)}
+                        </div>
+                    </li>
+                {/if}
+
+                {#each sortedConversations as [privateKey, conversation]}
+                    <li class="rounded-lg w-full"
+                        class:bg-primary={selectedConversationPubkey === privateKey}
+                        on:click={() => selectConversation(privateKey)}
+                    >
+                        <div class="w-full">
+                            <div class="avatar indicator">
+                                {#if conversation.unreadMessages}
+                                <span class="indicator-item badge badge-sm badge-error">
+                                    {conversation.unreadMessages}
+                                </span>
+                                {/if}
+                                <div class="w-16 rounded-full">
+                                    <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
+                                </div>
+                            </div>
+                            {conversation.name ?? nip19.npubEncode(privateKey)}
+                        </div>
+                    </li>
+                {/each}
+            </div>
+
+        {:else}
+            <div class="lg:hidden flex w-full mx-auto pt-6 pb-1 leading-none">
                 <div class="w-10 mr-4 mt-1 cursor-pointer" on:click={() => selectedConversationPubkey = null}>
                     <ArrowLeft />
                 </div>
 
                 {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
                     <div class="avatar indicator">
-                        <div class="w-12 h-12 mr-4 rounded-full">
+                        <div class="w-12 h-12 mr-3 rounded-full">
                             <img src="{profilePicturePlaceHolder}" />
                         </div>
                     </div>
@@ -230,72 +273,33 @@
                     {#each sortedConversations as [conversationPrivateKey, conversation]}
                         {#if selectedConversationPubkey === conversationPrivateKey}
                             <div class="avatar indicator align-bottom">
-                                <div class="w-12 h-12 mr-4 rounded-full">
+                                <div class="w-12 h-12 mr-3 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
 
-                            <div class="w-12 mt-2 text-xl">
+                            <div class="flex flex-grow w-0 mt-2 text-xl truncate">
                                 {conversation.name ?? nip19.npubEncode(selectedConversationPubkey)}
                             </div>
                         {/if}
                     {/each}
                 {/if}
             </div>
-        {/if}
 
-        <div class="flex h-[46rem] lg:hidden">
-            {#if !selectedConversationPubkey}
-                <div class="w-full menu card h-auto max-h-full gap-2 rounded-box p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
-                    {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
-                        <li class="rounded-lg w-full"
-                            on:click={() => selectConversation(newConversationPubkey)}
-                        >
-                            <div>
-                                <div class="avatar indicator">
-                                    <div class="w-16 rounded-full">
-                                        <img src="{profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
-                                    </div>
-                                </div>
-                                New conversation: {nip19.npubEncode(newConversationPubkey)}
-                            </div>
-                        </li>
-                    {/if}
+            <div class="lg:hidden flex h-full gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto
+                        scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300
+                        scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 hover:scrollbar-thumb:!bg-slate-400/80"
+                 id="conversationMessagesMobile" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
 
-                    {#each sortedConversations as [privateKey, conversation]}
-                        <li class="rounded-lg w-full"
-                            class:bg-primary={selectedConversationPubkey === privateKey}
-                            on:click={() => selectConversation(privateKey)}
-                        >
-                            <div class="w-full">
-                                <div class="avatar indicator">
-                                    {#if conversation.unreadMessages}
-                                    <span class="indicator-item badge badge-sm badge-error">
-                                        {conversation.unreadMessages}
-                                    </span>
-                                    {/if}
-                                    <div class="w-16 rounded-full">
-                                        <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
-                                    </div>
-                                </div>
-                                {conversation.name ?? nip19.npubEncode(privateKey)}
-                            </div>
-                        </li>
+                <div class="mt-2 ml-1">
+                    {#each sortedMessages as [publicKey, message]}
+                        {#if typeof message === 'object'}
+                            <SimpleNote {message} />
+                        {/if}
                     {/each}
                 </div>
-            {:else}
-                <div class="flex flex-col flex-grow mt-2 p-0 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto   scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
-                     id="conversationMessagesMobile" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
 
-                    <div class="mb-20">
-                        {#each sortedMessages as [publicKey, message]}
-                            {#if typeof message === 'object'}
-                                <SimpleNote {message} />
-                            {/if}
-                        {/each}
-                    </div>
-
-                    <div class="flex lg:grid lg:grid-cols-2 w-full mx-auto lg:w-2/3 mt-2 lg:mt-8 p-3 bg-black rounded-lg items-center bottom-0 content-end fixed col-span-2">
+                <div class="flex w-full mx-auto p-3 bg-black rounded-lg items-center bottom-0 content-end col-span-2 mt-auto">
                     <textarea
                             rows="1"
                             autofocus
@@ -304,14 +308,14 @@
                             on:keypress={onKeyPress}
                             class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
-                        <div on:click={send} on:keypress={onKeyPress}
-                             class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-                            <div class="w-6 h-6"><SendMessage /></div>
-                        </div>
+                    <div on:click={send} on:keypress={onKeyPress}
+                         class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
+                        <div class="w-6 h-6"><SendMessage /></div>
                     </div>
                 </div>
-            {/if}
-        </div>
+            </div>
+        {/if}
+
     {:else}
         <div class="p-4 justify-center">
             <p>You don't have any message yet.</p>

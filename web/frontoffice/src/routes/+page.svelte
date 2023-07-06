@@ -10,6 +10,8 @@
 
     let homepage_banner = GoldenGai;
 
+    const maxProductsLoaded: number = 20;
+
     onMount(async () => {
         let config = await getConfigurationFromFile();
 
@@ -60,4 +62,10 @@
   </div>
 </div>
 
-<ProductCardBrowser whiteListedStalls={$NostrGlobalConfig.homepage_include_stalls} />
+{#if $NostrGlobalConfig.homepage_sections && $NostrGlobalConfig.homepage_sections.length > 0}
+    {#each $NostrGlobalConfig.homepage_sections ?? [] as section}
+        <h1>{section.title}</h1>
+    {/each}
+{:else}
+    <ProductCardBrowser whiteListedStalls={$NostrGlobalConfig.homepage_include_stalls} {maxProductsLoaded} />
+{/if}
