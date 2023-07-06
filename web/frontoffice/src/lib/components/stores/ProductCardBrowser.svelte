@@ -8,7 +8,10 @@
     import {refreshStalls} from "$lib/shopping";
     import {getConfigurationFromFile} from "$lib/utils";
 
-    export let whiteListedStalls: string = null;
+    export let whiteListedStalls: string | null = null;
+    export let maxProductsLoaded: number = 20;
+
+    let productsLoaded: number = 0;
 
     interface CategoriesAssociativeArray {
         [key: string]: {
@@ -71,6 +74,17 @@
                     return;
                 }
 
+                // Calculate if auction is already ended
+                if (productEvent.kind === EVENT_KIND_AUCTION) {
+                    let now = Math.floor(Date.now() / 1000);
+                    let endsAt = content.start_date + content.duration;
+
+                    if (now > endsAt) {
+                        // Auction already ended
+                        return;
+                    }
+                }
+
                 if (!content.id) {
                     let productId = getFirstTagValue(productEvent.tags, 'd');
                     if (productId !== null) {
@@ -78,13 +92,6 @@
                     } else {
                         return;
                     }
-                }
-
-                // Calculate if ended
-                if (productEvent.kind === EVENT_KIND_AUCTION) {
-                    let now = Math.floor(Date.now() / 1000);
-                    let endsAt = content.start_date + content.duration;
-                    content.ended = now > endsAt;
                 }
 
                 let categoryTags = filterTags(productEvent.tags, 't');
@@ -122,7 +129,14 @@
                         products[productId] = content;
                     }
                 } else {
-                    products[productId] = content;
+                    // If whiteListedStalls is provided, don't limit the number of loaded products
+                    // If there is no whiteListedStalls, load just maxProductsLoaded products
+
+                    if (whiteListedStalls || (whiteListedStalls === null && productsLoaded < maxProductsLoaded)) {
+                        products[productId] = content;
+                        console.log('productsLoaded++ productId=' + productId, content);
+                        productsLoaded++;
+                    }
                 }
             });
     });
@@ -142,6 +156,7 @@
     }
 </script>
 
+<!--
 <div class="p-2 py-2 pt-8 h-auto container grid align-center mx-auto">
     <div tabindex="0" class="lg:grid mt-3 mb-4 rounded-box collapse collapse-plus border border-gray-400/70 bg-base-100">
         <input type="checkbox" />
@@ -163,15 +178,13 @@
         </div>
     </div>
 </div>
+-->
 
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-6 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto">
+    {(console.log('whiteListedStalls', whiteListedStalls), '')}
     {#each Object.entries(filteredProducts) as [productId, product]}
         {#if (!whiteListedStalls || whiteListedStalls && whiteListedStalls.length === 0) || (whiteListedStalls && whiteListedStalls.length > 0 && whiteListedStalls.includes(product.stall_id))}
-            {#if ((product.images && product.images.length > 0) || product.image) }
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false)}
-                    <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
-                {/if}
-            {/if}
+            <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
         {/if}
     {/each}
 </div>
