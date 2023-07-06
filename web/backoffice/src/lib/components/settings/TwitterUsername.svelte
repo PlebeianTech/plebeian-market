@@ -25,10 +25,6 @@
                 Info.set("Your Twitter username has been saved!");
                 saving = false;
                 onSave();
-
-                if ($page.url.pathname === "/") {
-                    goto(`/stall/${u.nym}`);
-                }
             },
             new ErrorHandler(true, () => saving = false));
     }

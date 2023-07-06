@@ -29,7 +29,7 @@
 
     function onSaved() {
         if ($user && params['onsave'] === 'mystall') {
-            goto(`/stall/${$user.nym}`);
+            goto("/");
         }
     }
 

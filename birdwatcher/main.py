@@ -1,4 +1,5 @@
 import aiohttp
+from aiohttp import web
 import argparse
 import asyncio
 from datetime import datetime, timedelta
@@ -12,6 +13,8 @@ import sys
 import time
 from typing import List
 import websockets
+
+BIRDWATCHER_PORT = 6000
 
 API_BASE_URL = os.environ.get('API_BASE_URL')
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
@@ -187,6 +190,23 @@ class Relay:
                 await asyncio.sleep(10)
 
 async def main():
+    app = web.Application()
+    routes = web.RouteTableDef()
+
+    @routes.post("/events")
+    async def post_event(request):
+        event = await request.json()
+        logging.info(f"Forwarding event to all relays: {event['id']}!")
+        for relay in relays:
+            await relay.send_event(event)
+        return web.json_response({})
+    app.add_routes(routes)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", BIRDWATCHER_PORT)
+    await site.start()
+
     for task in asyncio.as_completed([asyncio.create_task(relay.listen(relays)) for relay in relays]):
         await task
 
@@ -210,9 +230,14 @@ if args.relay:
 
 while len(relays) == 0:
     logging.info(f"Connecting to API at {API_BASE_URL}...")
-    response = requests.get(f"{API_BASE_URL}/api/relays")
-    relay_urls = [r['url'] for r in response.json()['relays']]
-    logging.info(f"Got {len(relay_urls)} relays!")
+    try:
+        response = requests.get(f"{API_BASE_URL}/api/relays")
+        relay_urls = [r['url'] for r in response.json()['relays']]
+        logging.info(f"Got {len(relay_urls)} relays!")
+    except Exception:
+        logging.error(f"Error connecting to API at {API_BASE_URL}!")
+        relay_urls = []
+
     for url in relay_urls:
         relays.append(Relay(url, args, processed_event_ids))
     if len(relays) == 0:

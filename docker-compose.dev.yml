@@ -36,10 +36,9 @@ services:
       - "./api:/app"
     command: flask settle-btc-payments
   birdwatcher:
-    depends_on:
-      api: # because birdwatcher *actually* needs the API to know what to work on!
-        condition: service_healthy
     env_file: .env.dev
+    ports:
+      - "6000:6000"
     volumes:
       - "./birdwatcher:/app"
     command: python main.py

@@ -140,10 +140,12 @@ def finalize_auctions():
 
                 order_uuid = str(uuid.uuid4())
 
-                nostr_client = get_nostr_client(auction.item.seller)
-                nostr_client.send_bid_status(auction.nostr_event_id, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]])
-                dm_event_id = nostr_client.send_dm(top_bid.buyer_nostr_public_key,
-                    json.dumps({'id': order_uuid, 'type': 10, 'items': [{'product_id': str(auction.uuid), 'quantity': 1}]}))
+                birdwatcher = get_birdwatcher()
+                if not birdwatcher.publish_bid_status(auction, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]]):
+                    continue
+                if not birdwatcher.send_dm(auction.item.seller.parse_merchant_private_key(), top_bid.buyer_nostr_public_key,
+                    json.dumps({'id': order_uuid, 'type': 10, 'items': [{'product_id': str(auction.uuid), 'quantity': 1}]})):
+                    continue
 
                 order = m.Order(
                     uuid=order_uuid,
@@ -184,7 +186,7 @@ def settle_btc_payments():
                     app.logger.warning(str(e) + f" {order.payment_address=} Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
-                nostr_client = get_nostr_client(order.seller)
+                birdwatcher = get_birdwatcher()
                 for tx in funding_txs:
                     if order.txid and not order.tx_confirmed:
                         if tx['confirmed'] and (tx['txid'] == order.txid or tx['value'] == order.tx_value):
@@ -195,6 +197,9 @@ def settle_btc_payments():
                             app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {order.id=}.")
                             order.tx_confirmed = True
                             order.paid_at = datetime.utcnow()
+                            if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                                json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
+                                continue
                             db.session.commit()
                             break
                     elif not order.txid:
@@ -205,9 +210,14 @@ def settle_btc_payments():
                             if tx['confirmed']:
                                 order.tx_confirmed = True
                                 order.paid_at = datetime.utcnow()
+                                if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                                    json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
+                                    continue
                             else:
                                 message = f"Found transaction. Waiting for confirmation. TxID: {order.txid}"
-                                nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
+                                if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                                    json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': message})):
+                                    continue
                             db.session.commit()
                             break
                         else:
@@ -216,16 +226,18 @@ def settle_btc_payments():
                     if order.requested_at < datetime.utcnow() - timedelta(minutes=order.timeout_minutes):
                         app.logger.warning(f"Order too old. Marking as expired. {order.id=}")
                         order.expired_at = datetime.utcnow()
-                        # expired orders increment the stock with the quantity that was decremented when the order was created
                         for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
-                            listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
-                            listing.available_quantity += order_item.quantity
-                            nostr_client.publish_item(listing)
+                            # expired orders increment the stock with the quantity that was decremented when the order was created
+                            # (for Listings, not for Auctions - auctions with expired orders are taken care of in finalize-auctions,
+                            # where we detect the expired order and pick the next highest bidder as the new winner!)
+                            if order_item.listing_id:
+                                listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
+                                listing.available_quantity += order_item.quantity
+                                birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
+                        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                            json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
+                            continue
                         db.session.commit()
-                        nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."}))
-                if order.paid_at:
-                    message = f"Payment confirmed. TxID: {order.txid}"
-                    nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': message}))
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
@@ -536,104 +548,76 @@ class MockNostrClient:
         def __eq__(self, other):
             return True
 
-    def __init__(self, **__):
-        pass
-
     def get_auth_verification_phrase(self, auth):
         return "identifying as myself"
 
     def get_verification_phrase(self, user):
         return "i am me"
 
-    def send_dm(self, recipient_public_key, body):
-        app.logger.info(f"Nostr DM for {recipient_public_key}: {body}!")
-        return True
-
-    def publish_stall(self, *args, **kwargs):
-        app.logger.info(f"Nostr Stall: {args=} {kwargs=}")
-        return True
-
-    def publish_item(self, entity):
-        app.logger.info(f"Nostr item: {entity.to_nostr()}")
-        return str(uuid.uuid4())
-
-    def send_bid_status(self, *args, **kwargs):
-        app.logger.info(f"Nostr bid status: {args=} {kwargs=}")
-        return str(uuid.uuid4())
-
 class NostrClient:
-    def __init__(self, private_key, relays):
-        self.private_key = private_key
-        self.relay_manager = RelayManager()
-        for relay in relays:
-            self.relay_manager.add_relay(relay)
-
     def get_auth_verification_phrase(self, auth):
         return auth.verification_phrase
 
     def get_verification_phrase(self, user):
         return user.nostr_verification_phrase
 
-    def send_dm(self, recipient_public_key, body):
-        try:
-            dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
-            self.private_key.sign_event(dm)
-            self.relay_manager.publish_event(dm)
-            app.logger.info(f"Sent DM to {recipient_public_key}: relays={self.relay_manager.relays.keys()}!")
-            return dm.id
-        except:
-            app.logger.exception("Error while sending Nostr DM.")
-            return None
+def get_nostr_client(user):
+    if app.config['MOCK_NOSTR']:
+        return MockNostrClient()
+    else:
+        return NostrClient()
 
-    def publish_stall(self, id, name, description, currency, shipping_from, shipping_domestic_usd, shipping_worldwide_usd):
-        try:
-            stall_json = {
-                'id': id,
-                'name': name,
-                'description': description,
-                'currency': currency,
-                'shipping': [
-                    {
-                        'id': hashlib.sha256(shipping_from.encode('utf-8')).hexdigest(),
-                        'cost': shipping_domestic_usd,
-                        'countries': [shipping_from],
-                    },
-                    {
-                        'id': 'WORLD',
-                        'cost': shipping_worldwide_usd,
-                        'countries': ["Worldwide"],
-                    },
-                ]}
-            event = Event(kind=30017, content=json.dumps(stall_json), tags=[['d', id]])
-            self.private_key.sign_event(event)
-            self.relay_manager.publish_event(event)
+class Birdwatcher:
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def post_event(self, event):
+        event_json = json.loads(event.to_message())[1] # ugly as hell. maybe we should just completely get rid of this python-nostr library, it's been a pain in the ass!
+        response = requests.post(f"{self.base_url}/events", json=event_json)
+        if response.status_code == 200:
+            app.logger.info(f"Successfully POSTed event {event.id} to birdwatcher!")
             return True
-        except:
-            app.logger.exception("Error while publishing Nostr stall.")
+        else:
+            app.logger.error(f"Error POSTing event {event.id} to birdwatcher!")
             return False
 
-    def publish_item(self, entity):
-        item_json = entity.to_nostr()
+    def send_dm(self, sender_private_key, recipient_public_key, body):
         try:
-            event = Event(kind=entity.nostr_event_kind, content=json.dumps(item_json), tags=[['d', item_json['id']]])
-            self.private_key.sign_event(event)
-            self.relay_manager.publish_event(event)
-            app.logger.info(f"Published to Nostr: relays={self.relay_manager.relays.keys()} event.id={event.id} {event=}.")
-            return event.id
+            dm = EncryptedDirectMessage(recipient_pubkey=recipient_public_key, cleartext_content=body)
+            sender_private_key.sign_event(dm)
+            if self.post_event(dm):
+                return dm.id
         except:
-            app.logger.exception("Error while publishing item to Nostr.")
-            return None
+            app.logger.exception(f"Error sending DM for {recipient_public_key} via birdwatcher!")
 
-    def send_bid_status(self, auction_event_id, bid_event_id, status, message=None, extra_tags=None):
+    def publish_stall(self, merchant):
+        stall_json = merchant.to_nostr_stall()
         try:
-            event = get_bid_status_event(auction_event_id, bid_event_id, status, message=message, extra_tags=extra_tags)
-            self.private_key.sign_event(event)
-            app.logger.info(f"Publishing to Nostr: relays={self.relay_manager.relays.keys()} {event=}.")
-            self.relay_manager.publish_event(event)
-            return event.id
+            event = Event(kind=30017, content=json.dumps(stall_json), tags=[['d', stall_json['id']]])
+            merchant.parse_merchant_private_key().sign_event(event)
+            if self.post_event(event):
+                return event.id
         except:
-            app.logger.exception("Error while sending Nostr reaction.")
-            return None
+            app.logger.exception(f"Error publishing stall for merchant {merchant.merchant_public_key} via birdwatcher!")
+
+    def publish_product(self, entity):
+        product_json = entity.to_nostr()
+        try:
+            event = Event(kind=entity.nostr_event_kind, content=json.dumps(product_json), tags=[['d', product_json['id']]])
+            entity.item.seller.parse_merchant_private_key().sign_event(event)
+            if self.post_event(event):
+                return event.id
+        except:
+            app.logger.exception(f"Error publishing product for merchant {entity.item.seller.merchant_public_key} via birdwatcher!")
+
+    def publish_bid_status(self, auction, bid_event_id, status, message=None, extra_tags=None):
+        try:
+            event = get_bid_status_event(auction.nostr_event_id, bid_event_id, status, message=message, extra_tags=extra_tags)
+            auction.item.seller.parse_merchant_private_key().sign_event(event)
+            if self.post_event(event):
+                return event.id
+        except:
+            app.logger.exception(f"Error publishing bid status for bid {bid_event_id} via birdwatcher!")
 
 def get_bid_status_event(auction_event_id, bid_event_id, status, message=None, extra_tags=None):
     if extra_tags is None:
@@ -643,18 +627,15 @@ def get_bid_status_event(auction_event_id, bid_event_id, status, message=None, e
         content_json['message'] = message
     return Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction_event_id], ['e', bid_event_id]] + extra_tags))
 
-def get_nostr_client(user):
+def get_birdwatcher():
+    return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
+
+def get_app_private_key():
     if app.config['MOCK_NOSTR']:
-        return MockNostrClient()
+        return PrivateKey().hex()
     else:
-        if user is None:
-            with open(app.config['NOSTR_SECRETS']) as f:
-                private_key = PrivateKey.from_nsec(json.load(f)['NSEC'])
-            relays = app.config['DEFAULT_NOSTR_RELAYS']
-        else:
-            private_key = PrivateKey(bytes.fromhex(user.merchant_private_key))
-            relays = [r['url'] for r in user.get_relays()]
-        return NostrClient(private_key, relays)
+        with open(app.config['NOSTR_SECRETS']) as f:
+            return PrivateKey.from_nsec(json.load(f)['NSEC'])
 
 class MockS3:
     def get_url_prefix(self):

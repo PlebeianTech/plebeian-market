@@ -22,7 +22,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client, get_bid_status_event, get_nostr_client, get_s3, get_twitter
+from main import app, get_lnd_client, get_bid_status_event, get_birdwatcher, get_app_private_key, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
@@ -125,8 +125,6 @@ def auth_nostr(create_user):
 
     auth = m.NostrAuth.query.filter_by(key=request.json['key']).first()
 
-    nostr = get_nostr_client(None)
-
     if request.json.get('send_verification_phrase'):
         if auth:
             if app.config['ENV'] != 'test':
@@ -137,8 +135,8 @@ def auth_nostr(create_user):
             db.session.add(auth)
 
         auth.generate_verification_phrase()
-        if not nostr.send_dm(recipient_public_key=auth.key, body=auth.verification_phrase):
-            return jsonify({'message': "Error sending Nostr DM."}), 500
+        if not get_birdwatcher().send_dm(get_app_private_key(), auth.key, auth.verification_phrase):
+            return jsonify({'message': "Error sending Nostr DM!"}), 500
         auth.verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
 
@@ -156,7 +154,7 @@ def auth_nostr(create_user):
 
     clean_phrase = ' '.join([w for w in request.json['verification_phrase'].lower().split(' ') if w])
 
-    if nostr.get_auth_verification_phrase(auth) == clean_phrase:
+    if get_nostr_client().get_auth_verification_phrase(auth) == clean_phrase:
         user = m.User.query.filter_by(nostr_public_key=auth.key, nostr_public_key_verified=True).first()
 
         if not user:
@@ -289,7 +287,7 @@ def put_me(user):
         user.nostr_public_key_verified = False
         user.generate_verification_phrase('nostr')
 
-        if not get_nostr_client(None).send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
+        if not get_birdwatcher().send_dm(get_app_private_key(), user.nostr_public_key, user.nostr_verification_phrase):
             return jsonify({'message': "Error sending Nostr DM!"}), 500
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
 
@@ -331,7 +329,8 @@ def put_me(user):
             except (ValueError, TypeError):
                 user.shipping_worldwide_usd = 0
         user.ensure_merchant_key()
-        get_nostr_client(user).publish_stall(user.identity, user.stall_name, user.stall_description, 'USD', user.shipping_from, user.shipping_domestic_usd, user.shipping_worldwide_usd)
+        if not get_birdwatcher().publish_stall(user):
+            return jsonify({'message': "Error publishing stall to Nostr!"}), 500
 
     if 'nostr_private_key' in request.json:
         user.nostr_private_key = request.json['nostr_private_key']
@@ -389,7 +388,7 @@ def verify_nostr(user):
         if user.nostr_verification_phrase_sent_at and user.nostr_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
             return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
         user.generate_verification_phrase('nostr')
-        if not get_nostr_client(None).send_dm(recipient_public_key=user.nostr_public_key, body=user.nostr_verification_phrase):
+        if not get_birdwatcher().send_dm(get_app_private_key(), user.nostr_public_key, user.nostr_verification_phrase):
             return jsonify({'message': "Error sending Nostr DM!"}), 500
         user.nostr_verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
@@ -403,7 +402,7 @@ def verify_nostr(user):
 
     clean_phrase = ' '.join([w for w in request.json['phrase'].lower().split(' ') if w])
 
-    if get_nostr_client(None).get_verification_phrase(user) == clean_phrase:
+    if get_nostr_client().get_verification_phrase(user) == clean_phrase:
         user.nostr_public_key_verified = True
         db.session.commit()
         return jsonify({})
@@ -594,8 +593,9 @@ def put_order(user, uuid):
         message = "Your order was canceled by the seller!"
         order.canceled_at = datetime.utcnow()
 
-    nostr_client = get_nostr_client(order.seller)
-    nostr_client.send_dm(order.buyer_public_key, json.dumps({'id': order.uuid, 'type': 2, 'paid': order.paid_at is not None, 'shipped': order.shipped_at is not None, 'message': message}))
+    if not get_birdwatcher().send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+        json.dumps({'id': order.uuid, 'type': 2, 'paid': order.paid_at is not None, 'shipped': order.shipped_at is not None, 'message': message})):
+        return jsonify({'message': "Error sending Nostr reply to the buyer."}), 500
 
     db.session.commit()
 
@@ -779,7 +779,9 @@ def get_put_delete_entity(key, cls, singular, has_item):
 
             if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)) and entity.started:
                 user.ensure_merchant_key()
-                entity.nostr_event_id = get_nostr_client(user).publish_item(entity)
+                entity.nostr_event_id = get_birdwatcher().publish_product(entity)
+                if not entity.nostr_event_id:
+                    return jsonify({'message': "Error publishing product to Nostr!"}), 500
 
             db.session.commit()
 
@@ -833,7 +835,9 @@ def post_media(key, cls, singular):
         added_media.append(media)
 
     if entity.started:
-        entity.nostr_event_id = get_nostr_client(entity.item.seller).publish_item(entity)
+        entity.nostr_event_id = get_birdwatcher().publish_product(entity)
+        if not entity.nostr_event_id:
+            return jsonify({'message': "Error publishing product to Nostr!"}), 500
 
     db.session.commit()
 
@@ -921,7 +925,9 @@ def put_publish(user, key, cls):
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
 
     user.ensure_merchant_key()
-    entity.nostr_event_id = get_nostr_client(user).publish_item(entity)
+    entity.nostr_event_id = get_birdwatcher().publish_product(entity)
+    if not entity.nostr_event_id:
+        return jsonify({'message': "Error publishing product to Nostr!"}), 500
 
     db.session.commit()
 
