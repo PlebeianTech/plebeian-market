@@ -55,22 +55,21 @@
     );
 </script>
 
-{#if !resume && pubkey === $NostrPublicKey}
-    <h2>
-        <b>You're not selling your time/services to the community. You can <a class="underline">do it here</a> by creating your resume.</b>
-    </h2>
-{/if}
-
-<div class="mx-auto w-full">
-    {#if resume}
+<div class="mx-auto w-full mt-24">
+    {#if !resume}
+        {#if pubkey === $NostrPublicKey}
+            <h2>
+                <b>You're not selling your time/services to the community. You can <a class="underline">do it here</a> by creating your resume.</b>
+            </h2>
+        {/if}
+    {:else}
         {#if edit}
             <Editor {pubkey} {resume} onEditFinished={() => { resume = null; edit = false; loadResume(); }} />
         {:else}
             <div class="flex justify-center items-center mt-4 h-15 gap-8">
-                {#if resume && pubkey === $NostrPublicKey}
+                {#if pubkey === $NostrPublicKey}
                     <button class="btn btn-primary btn-lg" on:click|preventDefault={() => edit = true}>Edit</button>
-                {/if}
-                {#if resume && pubkey !== $NostrPublicKey}
+                {:else}
                     <a class="btn btn-primary btn-lg" on:click={() => newNostrConversation(pubkey)}>
                         Contact
                     </a>
