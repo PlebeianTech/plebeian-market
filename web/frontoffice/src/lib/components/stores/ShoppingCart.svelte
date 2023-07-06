@@ -94,7 +94,7 @@
                     </td>
                     <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
                     <th class="cursor-pointer mr-4" on:click={() => deleteFromCart(stallId, product.id)}>
-                        <span class="w-5 h-5"><Trash /></span>
+                        <div class="w-5 h-5 tooltip tooltip-error" data-tip="{ compact ? 'Remove product' : 'Remove product from shopping cart'}"><Trash /></div>
                     </th>
                 </tr>
             {/each}
@@ -139,7 +139,7 @@
                         </td>
                         <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
                         <td class="hover:cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
-                            <span class="w-5 h-5"><Trash /></span>
+                            <div class="w-5 h-5"><Trash /></div>
                         </td>
                     </tr>
                 {/each}

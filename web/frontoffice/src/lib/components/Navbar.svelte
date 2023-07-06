@@ -158,9 +158,9 @@
                                 {/if}
                             </div>
                         </label>
-                        <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-100 shadow-xl">
+                        <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-300 shadow-xl">
                             <div class="card-body">
-                                <CompactShoppingCart compact=true></CompactShoppingCart>
+                                <CompactShoppingCart compact={true}></CompactShoppingCart>
                             </div>
                         </div>
                     </div>
