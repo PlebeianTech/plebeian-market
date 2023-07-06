@@ -43,7 +43,6 @@ services:
       context: ./
       dockerfile: ./birdwatcher/Dockerfile
     image: plebeianmarket-birdwatcher
-    depends_on: [db]
     restart: on-failure
     stop_grace_period: 1m
     networks:

@@ -157,6 +157,9 @@ class User(WalletMixin, db.Model):
     merchant_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     merchant_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
 
+    def parse_merchant_private_key(self):
+        return PrivateKey(bytes.fromhex(self.merchant_private_key))
+
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
 
     @property
@@ -175,6 +178,16 @@ class User(WalletMixin, db.Model):
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
+
+    @property
+    def stall_currency(self):
+        # All fixed-price items are denominated in fiat, at least before we reach some quasi-hyperbitcoinization.
+        # NIP-15 actually supports any (fiat) currency,
+        # but we think that there is only one fiat currency that matters - the mother of them all.
+        # The reasoning behind this is that rather than promoting the idea that there are many currencies in this world,
+        # a healthier idea to spread is that there are only two currencies: Bitcoin and fiat.
+        # And any fiat currency can easily be converted to USD as part of the UI/UX, if needed.
+        return 'USD'
 
     # TODO: extract these into (per stall?) "shipping zones" as defined in NIP-15
     shipping_from = db.Column(db.String(64), nullable=True)
@@ -244,6 +257,26 @@ class User(WalletMixin, db.Model):
 
     def get_relays(self):
         return [{'url': ur.relay.url} for ur in UserRelay.query.filter_by(user_id=self.id).all()]
+
+    def to_nostr_stall(self):
+        return {
+            'id': self.identity,
+            'name': self.stall_name,
+            'description': self.stall_description,
+            'currency': self.stall_currency,
+            'shipping': [
+                {
+                    'id': hashlib.sha256(self.shipping_from.encode('utf-8')).hexdigest(),
+                    'cost': self.shipping_domestic_usd,
+                    'countries': [self.shipping_from],
+                },
+                {
+                    'id': 'WORLD',
+                    'cost': self.shipping_worldwide_usd,
+                    'countries': ["Worldwide"],
+                },
+            ]
+        }
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
