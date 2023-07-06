@@ -84,7 +84,7 @@
 
 {#if !merchantPubkey}
     <div class="flex flex-col sm:flex-row md:my-2 mb-6 sm:mb-3">
-         <div class="relative">
+        <div class="relative">
             <span class="h-full absolute inset-y-0 left-0 flex items-center pl-2">
                 <Search />
             </span>
@@ -123,7 +123,7 @@
 
     <div class="relative overflow-x-hidden shadow-md rounded border border-gray-400">
         <!-- Desktop -->
-        <table class="hidden md:block w-full text-sm text-left">
+        <table class="hidden md:block w-full text-sm text-left pb-32">
             <thead class="text-xs uppercase">
                 <tr>
                     <th scope="col" class="px-6 py-3">Stall Name</th>
@@ -156,48 +156,48 @@
                             <td class="px-6 py-4" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
                                 {#if stall.shipping}
                                     <ul>
-                                    {#each stall.shipping as s}
-                                        <li>
-                                            {#if s.name}{s.name} - {/if}{s.cost} {stall.currency} - {s.countries.join(", ")}
-                                        </li>
-                                    {/each}
-                                </ul>
-                            {/if}
-                        </td>
-                        <td class="px-6 py-4" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
-                            <p class="mr-1">
-                                {#if stall.createdAt}{formatTimestamp(stall.createdAt)}{/if}
-                            </p>
-                        </td>
-                        {#if isSuperAdmin}
-                            <th scope="col" class="px-6 py-3 text-center">
-                                {#if !$NostrGlobalConfig.homepage_sections}
-                                    {#if $NostrGlobalConfig.homepage_include_stalls && $NostrGlobalConfig.homepage_include_stalls.includes(stall.id)}
-                                        <div class="tooltip tooltip-primary tooltip-left" data-tip="Remove products from the Homepage">
-                                            <button class="btn btn-s btn-circle btn-ghost" on:click|preventDefault={() => removeStallFromHomePage(stall.id)}><span class="w-6 text-rose-500"><Minus /></span></button>
-                                        </div>
+                                        {#each stall.shipping as s}
+                                            <li>
+                                                {#if s.name}{s.name} - {/if}{s.cost} {stall.currency} - {s.countries.join(", ")}
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                {/if}
+                            </td>
+                            <td class="px-6 py-4" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
+                                <p class="mr-1">
+                                    {#if stall.createdAt}{formatTimestamp(stall.createdAt)}{/if}
+                                </p>
+                            </td>
+                            {#if isSuperAdmin}
+                                <th scope="col" class="px-6 py-3 text-center">
+                                    {#if !$NostrGlobalConfig.homepage_sections}
+                                        {#if $NostrGlobalConfig.homepage_include_stalls && $NostrGlobalConfig.homepage_include_stalls.includes(stall.id)}
+                                            <div class="tooltip tooltip-primary tooltip-left" data-tip="Remove products from the Homepage">
+                                                <button class="btn btn-s btn-circle btn-ghost" on:click|preventDefault={() => removeStallFromHomePage(stall.id)}><span class="w-6 text-rose-500"><Minus /></span></button>
+                                            </div>
+                                        {:else}
+                                            <div class="tooltip tooltip-primary tooltip-left" data-tip="Add products to the Homepage">
+                                                <button class="btn btn-s btn-circle btn-ghost" on:click|preventDefault={() => addStallToHomePage(stall.id)}><span class="w-6 text-green-500"><Plus /></span></button>
+                                            </div>
+                                        {/if}
                                     {:else}
-                                        <div class="tooltip tooltip-primary tooltip-left" data-tip="Add products to the Homepage">
-                                            <button class="btn btn-s btn-circle btn-ghost" on:click|preventDefault={() => addStallToHomePage(stall.id)}><span class="w-6 text-green-500"><Plus /></span></button>
+                                        <div class="dropdown dropdown-left">
+                                            <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add products">
+                                                <button class="btn btn-s btn-circle btn-ghost"><span class="w-6 text-green-500"><Plus /></span></button>
+                                            </div>
+                                            <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52 rounded border border-gray-400">
+                                                {#each $NostrGlobalConfig.homepage_sections as section}
+                                                    <li><a>{section.title}</a></li>
+                                                {/each}
+                                            </ul>
                                         </div>
                                     {/if}
-                                {:else}
-                                    <div class="dropdown dropdown-left">
-                                        <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add products">
-                                            <button class="btn btn-s btn-circle btn-ghost"><span class="w-6 text-green-500"><Plus /></span></button>
-                                        </div>
-                                        <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52 rounded border border-gray-400">
-                                            {#each $NostrGlobalConfig.homepage_sections as section}
-                                                <li><a>{section.title}</a></li>
-                                            {/each}
-                                        </ul>
-                                    </div>
-                                {/if}
-                            </th>
-                        {/if}
-                    </tr>
-                {/if}
-            {/each}
+                                </th>
+                            {/if}
+                        </tr>
+                    {/if}
+                {/each}
             </tbody>
         </table>
 
