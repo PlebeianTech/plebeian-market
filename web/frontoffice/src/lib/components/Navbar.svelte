@@ -247,7 +247,7 @@
                             </li>
                             <li>
                                 <a class="text-base" href="/settings">
-                                    <span class="w-6 h-6"><Settings /></span> Settings
+                                    <span class="w-6 h-6 mr-1"><Settings /></span> Settings
                                 </a>
                             </li>
                             <li>

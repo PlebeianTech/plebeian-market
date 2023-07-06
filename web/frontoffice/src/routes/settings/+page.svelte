@@ -34,15 +34,15 @@
 
 <Titleh1>Settings</Titleh1>
 
-<div class="lg:w-2/3 mx-auto grid lg:grid-cols-4 py-20 p-4">
-    <div class="md:grow-0">
-        <ul class="menu menu-compact mt-3 bg-base-100 md:w-52 p-2 rounded-box">
+<div class="lg:grid lg:grid-cols-4 lg:w-2/3 w-full p-4 pb-10 mx-auto">
+    <div class="md:grow-0 pb-10">
+        <ul class="md:w-52 mt-3 p-2 menu menu-compact bg-base-300 rounded-box">
             {#each pages as page, i}
                 <li><a class:active={page === currentPage} href={null} on:click={() => currentPage = page}>{page}</a></li>
             {/each}
         </ul>
     </div>
-    <div class="col-span-3 w-full items-center justify-center">
+    <div class="lg:col-span-3 w-full items-center justify-center">
         {#if currentPage === NOSTR_PAGE}
             <Nostr />
         {:else if currentPage === SETUP_HOMEPAGE}

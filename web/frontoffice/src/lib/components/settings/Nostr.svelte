@@ -20,7 +20,10 @@
             This is the <b>recommended</b> and <b>most secure</b> way to use Plebeian Market.
         </p>
         <p class="mt-4">
-            This is the public key we're getting from the browser extension: {$NostrPublicKey}
+            This is the public key we're getting from the browser extension:
+        </p>
+        <p class="mt-4 mb-4">
+            {$NostrPublicKey}
         </p>
     {:else if $NostrPrivateKey}
         <p class="text-xl">Your Nostr private key:</p>

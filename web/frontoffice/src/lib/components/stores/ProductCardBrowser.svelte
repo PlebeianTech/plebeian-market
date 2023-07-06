@@ -161,7 +161,9 @@
     <div tabindex="0" class="lg:grid mt-3 mb-4 rounded-box collapse collapse-plus border border-gray-400/70 bg-base-100">
         <input type="checkbox" />
         <div class="collapse-title text-xl font-medium align-middle">
-            <Settings />
+            <div class="w-8 h-8">
+                <Settings />
+            </div>
 
             {#if selectedCategories.length > 0 && !selectedCategories.includes('All')}
                 <span class="ml-3">Filtering products from categories => </span>
