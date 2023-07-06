@@ -86,10 +86,11 @@
                 and add them or remove them using the <span class="inline-block text-green-500 align-middle"><Plus /></span> and
                 <span class="inline-block text-rose-500 align-middle"><Minus /></span> icons at the right.
             </p>
+<!--
             <p class="mt-8">
                 If you want to create more complex layouts, you can add different sections below, and you'll be able to add different products or stalls to each section.
             </p>
-<!--
+
             <div class="divider my-8"></div>
 
             <div id="simple-list" class="mt-4 border rounded p-6">
