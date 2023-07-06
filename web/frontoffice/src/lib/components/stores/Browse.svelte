@@ -186,7 +186,7 @@
                                         <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add products">
                                             <button class="btn btn-s btn-circle btn-ghost"><span class="w-6 text-green-500"><Plus /></span></button>
                                         </div>
-                                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-300 rounded-box w-52">
+                                        <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52 rounded border border-gray-400">
                                             {#each $NostrGlobalConfig.homepage_sections as section}
                                                 <li><a>{section.title}</a></li>
                                             {/each}
