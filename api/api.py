@@ -508,6 +508,8 @@ def user_relays(user):
         if not relay:
             relay = m.Relay(url=request.json['url'])
             db.session.add(relay)
+            if not get_birdwatcher().add_relay(relay.url):
+                return jsonify({'message': "Error subscribing to relay."}), 500
             db.session.commit()
         db.session.add(m.UserRelay(user_id=user.id, relay_id=relay.id))
         db.session.commit()

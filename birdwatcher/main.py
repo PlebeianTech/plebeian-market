@@ -189,17 +189,34 @@ class Relay:
                 logging.exception(f"({self.url}) Connection closed.")
                 await asyncio.sleep(10)
 
-async def main():
+async def main(relays):
+    for relay in relays:
+        asyncio.create_task(relay.listen(relays))
+
     app = web.Application()
     routes = web.RouteTableDef()
 
     @routes.post("/events")
     async def post_event(request):
-        event = await request.json()
-        logging.info(f"Forwarding event to all relays: {event['id']}!")
+        event_json = await request.json()
+        logging.info(f"Forwarding event to all relays: {event_json['id']}!")
         for relay in relays:
-            await relay.send_event(event)
+            try:
+                await relay.send_event(event_json)
+            except Exception:
+                logging.exception(f"Error forwarding event {event_json['id']} to {relay.url}!")
         return web.json_response({})
+    @routes.post("/relays")
+    async def post_relay(request):
+        relay_json = await request.json()
+        logging.info(f"Adding new relay: {relay_json['url']}!")
+        try:
+            relay = Relay(relay_json['url'], args, processed_event_ids)
+            relays.append(relay)
+            asyncio.create_task(relay.listen(relays))
+            return web.json_response({})
+        except Exception:
+            logging.exception(f"Error adding relay: {relay['url']}!")
     app.add_routes(routes)
 
     runner = web.AppRunner(app)
@@ -207,8 +224,7 @@ async def main():
     site = web.TCPSite(runner, "0.0.0.0", BIRDWATCHER_PORT)
     await site.start()
 
-    for task in asyncio.as_completed([asyncio.create_task(relay.listen(relays)) for relay in relays]):
-        await task
+    await asyncio.Future()
 
 parser = argparse.ArgumentParser(
     prog="Plebeian Market BirdWatcher",
@@ -226,21 +242,18 @@ processed_event_ids = set()
 relays = []
 
 if args.relay:
-    relays.append(Relay(url=args.relay, args=args, processed_event_ids=processed_event_ids))
+    relays.append(Relay(args.relay, args, processed_event_ids))
+else:
+    while True:
+        logging.info(f"Connecting to API at {API_BASE_URL}...")
+        try:
+            response = requests.get(f"{API_BASE_URL}/api/relays").json()
+            for relay in response['relays']:
+                relays.append(Relay(relay['url'], args, processed_event_ids))
+            logging.info(f"Got {len(response['relays'])} relays!")
+            break
+        except Exception:
+            logging.exception(f"Error connecting to API at {API_BASE_URL}! Waiting...")
+            time.sleep(1)
 
-while len(relays) == 0:
-    logging.info(f"Connecting to API at {API_BASE_URL}...")
-    try:
-        response = requests.get(f"{API_BASE_URL}/api/relays")
-        relay_urls = [r['url'] for r in response.json()['relays']]
-        logging.info(f"Got {len(relay_urls)} relays!")
-    except Exception:
-        logging.error(f"Error connecting to API at {API_BASE_URL}!")
-        relay_urls = []
-
-    for url in relay_urls:
-        relays.append(Relay(url, args, processed_event_ids))
-    if len(relays) == 0:
-        time.sleep(10)
-
-asyncio.run(main())
+asyncio.run(main(relays))

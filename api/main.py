@@ -571,6 +571,15 @@ class Birdwatcher:
     def __init__(self, base_url):
         self.base_url = base_url
 
+    def add_relay(self, relay_url):
+        response = requests.post(f"{self.base_url}/relays", json={'url': relay_url})
+        if response.status_code == 200:
+            app.logger.info(f"Successfully POSTed relay {relay_url} to birdwatcher!")
+            return True
+        else:
+            app.logger.error(f"Error POSTing relay {relay_url} to birdwatcher!")
+            return False
+
     def post_event(self, event):
         event_json = json.loads(event.to_message())[1] # ugly as hell. maybe we should just completely get rid of this python-nostr library, it's been a pain in the ass!
         response = requests.post(f"{self.base_url}/events", json=event_json)
