@@ -141,13 +141,15 @@
                         class:bg-accent={selectedConversationPubkey === newConversationPubkey}
                         on:click={() => selectConversation(newConversationPubkey)}
                     >
-                        <div>
+                        <div class="w-full">
                             <div class="avatar indicator">
                                 <div class="w-16 rounded-full">
                                     <img src="{profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
-                            New conversation: {nip19.npubEncode(newConversationPubkey)}
+                            <div class="truncate">
+                                New conversation: {nip19.npubEncode(newConversationPubkey)}
+                            </div>
                         </div>
                     </li>
                 {/if}
@@ -169,7 +171,9 @@
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
-                            {conversation.name ?? nip19.npubEncode(privateKey)}
+                            <div class="text-lg truncate">
+                                {conversation.name ?? nip19.npubEncode(privateKey)}
+                            </div>
                         </div>
                     </li>
                 {/each}
@@ -217,13 +221,15 @@
                     <li class="rounded-lg w-full"
                         on:click={() => selectConversation(newConversationPubkey)}
                     >
-                        <div>
+                        <div class="w-full">
                             <div class="avatar indicator">
                                 <div class="w-16 rounded-full">
                                     <img src="{profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
-                            New conversation: {nip19.npubEncode(newConversationPubkey)}
+                            <div class="truncate">
+                                New conversation: {nip19.npubEncode(newConversationPubkey)}
+                            </div>
                         </div>
                     </li>
                 {/if}
@@ -244,7 +250,9 @@
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
-                            {conversation.name ?? nip19.npubEncode(privateKey)}
+                            <div class="text-lg truncate">
+                                {conversation.name ?? nip19.npubEncode(privateKey)}
+                            </div>
                         </div>
                     </li>
                 {/each}
@@ -263,7 +271,7 @@
                         </div>
                     </div>
 
-                    <div class="w-48 text-base">
+                    <div class="text-base truncate">
                         <p>New conversation:</p>
                         <p>{nip19.npubEncode(newConversationPubkey)}</p>
                     </div>
