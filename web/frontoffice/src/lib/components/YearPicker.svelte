@@ -1,7 +1,7 @@
 <script lang="ts">
     export let value: number | null = null;
 
-    export let yearsBack = 50;
+    export let yearsBack = 70;
     export let includeCurrentYear = true;
 
     let years: number[] = [];
