@@ -1,7 +1,7 @@
 <script lang="ts">
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import ResumeView from "$lib/components/resume/View.svelte";
-    import StallsBrowser from "$lib/components/stores/Browse.svelte";
+    import StallsBrowser from "$lib/components/stores/StallsBrowser.svelte";
     import {NostrPublicKey} from "$lib/stores";
     import {subscribeMetadata} from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";

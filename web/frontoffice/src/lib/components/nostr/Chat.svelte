@@ -365,7 +365,7 @@
     </div>
 </div>
 
-<div class="flex flex-col mt-2 mb-6 pb-6 bg-cover bg-top bg-info-content-200 items-center justify-center gap-2 overflow-x-hidden overflow-y-auto w-full"
+<div class="flex flex-col mt-2 mb-6 pb-6 bg-cover bg-top bg-info-content-200 gap-2 overflow-x-hidden overflow-y-auto w-full"
      style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);" id="chatScrollableDiv">
     <div>
         {#each sortedMessages as message}
@@ -374,7 +374,7 @@
     </div>
 </div>
 
-<div class="grid grid-cols-2 p-3 bg-black rounded-lg items-center inset-x-0 bottom-0 mx-auto w-screen lg:w-2/3" class:fixed={isMarketSquare}>
+<div class="grid grid-cols-2 w-full lg:w-1/3 mx-auto p-3 inset-x-0 bottom-0 bg-black rounded-lg items-center" class:fixed={isMarketSquare}>
     {#if nostrEventBeingRepliedTo !== null}
         <div class="col-span-2">
             <NostrReplyNote message={nostrEventBeingRepliedTo} closeButton={true} {onReply} />

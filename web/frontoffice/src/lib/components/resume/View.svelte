@@ -3,6 +3,7 @@
     import { page } from "$app/stores";
     import type { UserResume } from "$lib/types/user";
     import Editor from "$lib/components/resume/Editor.svelte";
+    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
     import {newNostrConversation} from "$lib/nostr/utils";
     import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
@@ -55,12 +56,11 @@
     );
 </script>
 
-<div class="mx-auto w-full mt-24">
+<div class="mx-auto w-full mt-16">
     {#if !resume}
         {#if pubkey === $NostrPublicKey}
-            <h2>
-                <b>You're not selling your time/services to the community. You can <a class="underline">do it here</a> by creating your resume.</b>
-            </h2>
+            <InfoBox>You're not <b>selling your time/services</b> to the community.<br />
+                You can <a class="underline" href="/p/{$NostrPublicKey}#edit"><b>do it here</b></a> by creating your resume.</InfoBox>
         {/if}
     {:else}
         {#if edit}
@@ -80,10 +80,11 @@
                     <img src={picture ?? profilePicturePlaceHolder} alt="" />
                 </figure>
                 <div class="card-body w-full px-3">
-                    <h2 class="text-3xl text-center">{name}</h2>
+
+                    <h2 class="text-3xl text-center">{name ?? ''}</h2>
 
                     <div class="text-center mt-2 text-3xl">
-                        {resume.jobTitle}
+                        {resume.jobTitle ?? ''}
                     </div>
 
                     <div class="flex flex-wrap items-center justify-center w-full mt-2 text-center gap-2">
