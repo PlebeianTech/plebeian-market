@@ -5,12 +5,12 @@
     import Search from "$sharedLib/components/icons/Search.svelte"
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
-    import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {refreshStalls} from "$lib/shopping";
     import { goto } from "$app/navigation";
     import {publishConfiguration} from "$lib/services/nostr";
     import {newNostrConversation} from "$lib/nostr/utils";
     import {getConfigurationFromFile} from "$lib/utils";
+    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
     export let merchantPubkey: string | null;
 
@@ -97,23 +97,15 @@
 
 {#if merchantPubkey && sortedStalls.length === 0}
     {#if merchantPubkey === $NostrPublicKey}
-        <div class="alert alert-info shadow-lg mx-auto mt-3">
-            <div>
-                <AlertInfo />
-                <span><b>You don't have a market stall</b> yet.<br />
-                    Start by <a href="/admin" class="underline"><b>creating one</b></a>.
-                </span>
-            </div>
-        </div>
+        <InfoBox classText="mx-auto mt-3">
+            <b>You don't have a market stall</b> yet.<br />
+            Start by <a href="/admin" class="underline"><b>creating one</b></a>.
+        </InfoBox>
     {:else}
-        <div class="alert alert-info shadow-lg mb-8 md:mb-12">
-            <div>
-                <AlertInfo />
-                <span>This Nostr user doesn't have a market stall yet. You can <a class="underline" href="/stalls">explore other market stalls</a> or
-                    <a class="underline cursor-pointer" on:click={() => newNostrConversation(merchantPubkey)}>contact with the user</a>.
-                </span>
-            </div>
-        </div>
+        <InfoBox classText="mb-8 md:mb-12">
+            This Nostr user doesn't have a market stall yet. You can <a class="underline" href="/stalls">explore other market stalls</a> or
+            <a class="underline cursor-pointer" on:click={() => newNostrConversation(merchantPubkey)}>contact with the user</a>.
+        </InfoBox>
     {/if}
 {/if}
 

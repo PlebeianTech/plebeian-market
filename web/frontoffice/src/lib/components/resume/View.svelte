@@ -7,7 +7,7 @@
     import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import {NostrPublicKey} from "$lib/stores";
-    import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
+    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
     export let pubkey: string;
 
@@ -59,14 +59,8 @@
 <div class="mx-auto w-full mt-16">
     {#if !resume}
         {#if pubkey === $NostrPublicKey}
-            <div class="alert alert-info shadow-lg">
-                <div>
-                    <AlertInfo />
-                    <span>You're not <b>selling your time/services</b> to the community.<br />
-                        You can <a class="underline" href="/p/{$NostrPublicKey}#edit"><b>do it here</b></a> by creating your resume.
-                    </span>
-                </div>
-            </div>
+            <InfoBox classText="text-xl">You're not <b>selling your time/services</b> to the community.<br />
+                You can <a class="underline" href="/p/{$NostrPublicKey}#edit"><b>do it here</b></a> by creating your resume.</InfoBox>
         {/if}
     {:else}
         {#if edit}

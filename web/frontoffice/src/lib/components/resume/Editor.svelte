@@ -156,9 +156,7 @@
             <h3 class="text-2xl">Skills</h3>
 
             {#if resume.skills.length === 0}
-                <InfoBox>
-                    <span>Please add at least one skill!</span>
-                </InfoBox>
+                <InfoBox>Please add at least one skill!</InfoBox>
             {/if}
 
             <div>
