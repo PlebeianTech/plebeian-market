@@ -70,7 +70,7 @@
                     return;
                 }
 
-                if (!content.images && !content.image) {
+                if (!content.image && (!content.images || (content.images && content.images.length === 0 ) )) {
                     return;
                 }
 
@@ -183,7 +183,6 @@
 -->
 
 <div class="p-2 py-2 pt-8 h-auto container grid lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-6 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto">
-    {(console.log('whiteListedStalls', whiteListedStalls), '')}
     {#each Object.entries(filteredProducts) as [productId, product]}
         {#if (!whiteListedStalls || whiteListedStalls && whiteListedStalls.length === 0) || (whiteListedStalls && whiteListedStalls.length > 0 && whiteListedStalls.includes(product.stall_id))}
             <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>

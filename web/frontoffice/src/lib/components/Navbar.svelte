@@ -12,6 +12,7 @@
     import PrivateMessages from "$lib/components/nostr/PrivateMessages.svelte";
     import ProfilePicture from "$lib/components/nostr/ProfilePicture.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
+    import User from "$sharedLib/components/icons/User.svelte";
     import World from "$sharedLib/components/icons/World.svelte";
     import { requestLoginModal } from "$lib/utils";
 
@@ -237,6 +238,20 @@
                         {#if $NostrPublicKey}
                             <li class="menu-title mt-2">
                                 <span class="text-lg">Account</span>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/p/{$NostrPublicKey}">
+                                    <div class="w-6 h-6 mr-1">
+                                        <User />
+                                    </div>
+                                    Me</a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/admin">
+                                    <div class="w-6 h-6 mr-1">
+                                        <Store />
+                                    </div>
+                                    Sell items</a>
                             </li>
                             <li>
                                 <a class="text-base" href="/orders">
