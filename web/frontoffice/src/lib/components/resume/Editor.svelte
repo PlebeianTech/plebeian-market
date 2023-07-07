@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { publishResume, subscribeResume } from "$lib/services/nostr";
     import { Info, Error } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
@@ -114,10 +113,6 @@
             await saveResume("Your résumé has been deleted from Nostr!", "We couldn't delete your résumé.");
         }
     }
-
-    onMount(async () => {
-        subscribeResume(pubkey, (_, __) => {});
-    });
 </script>
 
 <div class="flex justify-center items-center mt-8 h-15 gap-8">
