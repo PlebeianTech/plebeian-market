@@ -1,8 +1,8 @@
 module.exports = {
   content: [
-    "./src/lib/components/*.svelte",
     "./src/lib/components/**/*.svelte",
     "./src/routes/**/*.svelte",
+    "./../shared/lib/components/**/*.svelte",
   ],
   theme: {
     extend: {
