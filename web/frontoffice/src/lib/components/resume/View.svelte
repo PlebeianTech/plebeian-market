@@ -7,6 +7,7 @@
     import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import {NostrPublicKey} from "$lib/stores";
+    import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
 
     export let pubkey: string;
 
@@ -55,12 +56,17 @@
     );
 </script>
 
-<div class="mx-auto w-full mt-24">
+<div class="mx-auto w-full mt-16">
     {#if !resume}
         {#if pubkey === $NostrPublicKey}
-            <h2>
-                <b>You're not selling your time/services to the community. You can <a class="underline">do it here</a> by creating your resume.</b>
-            </h2>
+            <div class="alert alert-info shadow-lg">
+                <div>
+                    <AlertInfo />
+                    <span>You're not <b>selling your time/services</b> to the community.<br />
+                        You can <a class="underline" href="/p/{$NostrPublicKey}#edit"><b>do it here</b></a> by creating your resume.
+                    </span>
+                </div>
+            </div>
         {/if}
     {:else}
         {#if edit}

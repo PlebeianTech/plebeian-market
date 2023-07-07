@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Browse from "$lib/components/stores/Browse.svelte";
+    import StallsBrowser from "$lib/components/stores/StallsBrowser.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 </script>
 
@@ -9,4 +9,4 @@
 
 <Titleh1>Stall Browser</Titleh1>
 
-<Browse merchantPubkey={null}></Browse>
+<StallsBrowser merchantPubkey={null}></StallsBrowser>

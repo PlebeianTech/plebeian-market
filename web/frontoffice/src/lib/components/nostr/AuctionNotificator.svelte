@@ -2,6 +2,7 @@
     import {NostrPublicKey, privateMessages} from "$lib/stores";
     import { goto } from "$app/navigation";
     import {page} from "$app/stores";
+    import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
 
     let auctionsToOrder;
 
@@ -20,7 +21,7 @@
 {#if $page.url.pathname !== '/auctions' && $NostrPublicKey && auctionsToOrder.length > 0}
     <div class="alert alert-info shadow-lg lg:p-6 mt-6 lg:mt-2 {$page.url.pathname === '/' ? 'w-10/12 mx-auto mb-8' : ''}">
         <div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <AlertInfo />
             <div class="ml-4">
                 <h3 class="font-bold">
                     {#if auctionsToOrder.length > 1}
