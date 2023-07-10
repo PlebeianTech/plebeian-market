@@ -22,9 +22,9 @@
             let totalQuantity = 0;
             let stalls = 0;
 
-            for (const [stallId, stall] of $ShoppingCart.products) {
+            for (const [_, stall] of $ShoppingCart.products) {
                 stalls++;
-                for (const [productId, product] of stall) {
+                for (const [_, product] of stall) {
                     numProducts++;
                     totalQuantity = totalQuantity + product.orderQuantity;
                 }
@@ -35,16 +35,12 @@
                 totalQuantity: totalQuantity,
                 stalls: stalls
             };
-
-            //if (browser) {
-            //    localStorage.setItem('shoppingCart', JSON.stringify($ShoppingCart));
-            //}
         }
     }
 </script>
 
 <div class="md:grid justify-center">
-{#if $ShoppingCart.summary.numProducts}
+{#if $ShoppingCart.summary.numProducts && $stalls && $stalls.stalls}
     <!-- Desktop -->
     <table class="hidden md:block table table-auto w-full {compact ? 'table-compact' : 'rounded border border-gray-400'}" >
         <thead>
@@ -63,41 +59,45 @@
 
         <tbody>
         {#each [...$ShoppingCart.products] as [stallId, products]}
-            <tr>
-                <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700">
-                    <p class="ml-3">
-                        <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
-                            {#if $stalls !== null && $stalls.stalls[stallId]}
-                                Stall: {$stalls.stalls[stallId].name ?? ''}
-                            {:else}
-                                Stall id: {stallId}
-                            {/if}
-                        </a>
-                    </p>
-                </td>
-            </tr>
-
-            {#each [...products] as [productId, product]}
+            {#if $stalls.stalls[stallId]}
                 <tr>
-                    <th>{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
-                    {#if !compact}
-                        <td>{#if product.description}{product.description.substring(0,80)}{#if product.description.length > 80}...{/if}{/if}</td>
-                    {/if}
-                    <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
-                    <td>
-                        <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
+                    <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700">
+                        <p class="ml-3">
+                            <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
+                                {#if $stalls !== null && $stalls.stalls[stallId]}
+                                    Stall: {$stalls.stalls[stallId].name ?? ''}
+                                {:else}
+                                    Stall id: {stallId}
+                                {/if}
+                            </a>
+                        </p>
                     </td>
-                    <td>
-                        <div class="card shadow-xl { compact ? 'w-16' : 'w-32'}">
-                            <img class:rounded-xl={!compact} src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
-                        </div>
-                    </td>
-                    <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
-                    <th class="cursor-pointer mr-4" on:click={() => deleteFromCart(stallId, product.id)}>
-                        <div class="w-5 h-5 tooltip tooltip-error" data-tip="{ compact ? 'Remove product' : 'Remove product from shopping cart'}"><Trash /></div>
-                    </th>
                 </tr>
-            {/each}
+
+                {#each [...products] as [productId, product]}
+                    <tr>
+                        <th>{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
+                        {#if !compact}
+                            <td>{#if product.description}{product.description.substring(0,80)}{#if product.description.length > 80}...{/if}{/if}</td>
+                        {/if}
+                        <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                        <td>
+                            <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
+                        </td>
+                        <td>
+                            <div class="card shadow-xl { compact ? 'w-16' : 'w-32'}">
+                                <img class:rounded-xl={!compact} src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
+                            </div>
+                        </td>
+                        <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                        <th class="cursor-pointer mr-4" on:click={() => deleteFromCart(stallId, product.id)}>
+                            <div class="w-5 h-5 tooltip tooltip-error" data-tip="{ compact ? 'Remove product' : 'Remove product from shopping cart'}"><Trash /></div>
+                        </th>
+                    </tr>
+                {/each}
+            {:else}
+                <tr>Loading stall information...</tr>
+            {/if}
         {/each}
         </tbody>
     </table>
@@ -116,33 +116,37 @@
 
         <tbody class="text-xs">
             {#each [...$ShoppingCart.products] as [stallId, products]}
-                <tr class="bg-gray-300 dark:bg-gray-700">
-                    <td colspan="5">
-                        <p class="mx-3">
-                            <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
-                                {#if $stalls !== null && $stalls.stalls[stallId]}
-                                    Stall: {$stalls.stalls[stallId].name ?? ''}
-                                {:else}
-                                    Stall id: {stallId}
-                                {/if}
-                            </a>
-                        </p>
-                    </td>
-                </tr>
-
-                {#each [...products] as [productId, product]}
-                    <tr>
-                        <th class="text-xs">{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
-                        <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
-                        <td>
-                            <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} compact={true} />
-                        </td>
-                        <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
-                        <td class="hover:cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
-                            <div class="w-5 h-5"><Trash /></div>
+                {#if $stalls.stalls[stallId]}
+                    <tr class="bg-gray-300 dark:bg-gray-700">
+                        <td colspan="5">
+                            <p class="mx-3">
+                                <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
+                                    {#if $stalls !== null && $stalls.stalls[stallId]}
+                                        Stall: {$stalls.stalls[stallId].name ?? ''}
+                                    {:else}
+                                        Stall id: {stallId}
+                                    {/if}
+                                </a>
+                            </p>
                         </td>
                     </tr>
-                {/each}
+
+                    {#each [...products] as [productId, product]}
+                        <tr>
+                            <th class="text-xs">{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
+                            <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                            <td>
+                                <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} compact={true} />
+                            </td>
+                            <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                            <td class="hover:cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
+                                <div class="w-5 h-5"><Trash /></div>
+                            </td>
+                        </tr>
+                    {/each}
+                {:else}
+                    <tr>Loading stall information...</tr>
+                {/if}
             {/each}
         </tbody>
     </table>

@@ -2,6 +2,7 @@
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
     import {Error} from "$lib/stores";
+    import {saveShoppingCartProductsToLocalStorage} from "$lib/shopping";
 
     export let quantity;
     export let maxStock;
@@ -18,6 +19,8 @@
             Error.set('There are just ' + maxStock + ' products in stock. You cannot order ' + quantity);
             quantity--;
         }
+
+        saveShoppingCartProductsToLocalStorage();
     }
 </script>
 

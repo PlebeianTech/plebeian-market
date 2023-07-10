@@ -47,7 +47,10 @@ export const ShoppingCart: Writable<{
 export const stalls: Writable<{
     stalls: object,
     fetched_at: number
-} | null> = writable(null);
+} | null> = writable({
+    stalls: {},
+    fetched_at: 0
+});
 
 export const products: Writable<{
     products: object,
