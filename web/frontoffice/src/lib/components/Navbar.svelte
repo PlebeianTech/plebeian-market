@@ -3,7 +3,7 @@
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import {BTC2USD, NostrPublicKey, privateMessages} from "$lib/stores";
-    import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
+    import { isProduction, getEnvironmentInfo } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import {ShoppingCart} from "$lib/stores.js";
     import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
@@ -14,7 +14,6 @@
     import Store from "$sharedLib/components/icons/Store.svelte";
     import User from "$sharedLib/components/icons/User.svelte";
     import World from "$sharedLib/components/icons/World.svelte";
-    import { requestLoginModal } from "$lib/utils";
 
     let modal: Modal | null;
 
@@ -105,17 +104,8 @@
                         </p>
                     {/if}
                     <p>
-                        <a href="/admin" class="btn btn-ghost normal-case">Sell items</a>
+                        <a href="/admin" class="btn btn-ghost normal-case">Stall Manager</a>
                     </p>
-                    <!--
-                    <p class="hidden xl:block">
-                        {#if !$NostrPublicKey}
-                            <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
-                        {:else}
-                            <a href={null} class="btn btn-ghost normal-case" on:click={() => logout()} on:keypress={() => logout()}><b>Logout</b></a>
-                        {/if}
-                    </p>
-                    -->
                 </div>
             </div>
 
@@ -183,20 +173,6 @@
                     {/if}
 
                     <ul role="menuitem" tabindex="0" class="float-right right-2 w-60 z-40 p-2 shadow menu menu-compact dropdown-content bg-base-300 text-accent-contend rounded-box md:border border-neutral-300">
-
-                        <!--
-                        {#if !$NostrPublicKey}
-                            <li class="block md:hidden md:h-0 text-primary">
-                                <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="text-primary" class="w-6 h-6 mr-1 stroke-primary">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-                                    </svg>
-                                    <b>Login</b>
-                                </a>
-                            </li>
-                        {/if}
-                        -->
-
                         <li class="block md:hidden md:h-0">
                             <a href="/" class="modal-button cursor-pointer text-base">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
@@ -251,7 +227,7 @@
                                     <div class="w-6 h-6 mr-1">
                                         <Store />
                                     </div>
-                                    Sell items</a>
+                                    Stall Manager</a>
                             </li>
                             <li class="block md:hidden md:h-0">
                                 <a class="text-base" href="/orders">
@@ -265,15 +241,6 @@
                                     <span class="w-6 h-6 mr-1"><Settings /></span> Settings
                                 </a>
                             </li>
-                            <li>
-                                <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer text-base">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                                    </svg>
-                                    Logout
-                                </a>
-                            </li>
-
                             <li class="menu-title mt-2 text-base">
                                 <span class="text-lg">Other information</span>
                             </li>

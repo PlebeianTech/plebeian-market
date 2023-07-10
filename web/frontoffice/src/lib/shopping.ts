@@ -1,5 +1,12 @@
 import type {ShoppingCartItem} from "./types/stall";
-import {Error, Info, privateMessages, productCategories, products, ShoppingCart, stalls} from "./stores";
+import {
+    Error,
+    Info,
+    privateMessages,
+    products,
+    ShoppingCart,
+    stalls
+} from "./stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$lib/services/nostr";
@@ -12,7 +19,7 @@ export function onImgError(image) {
 }
 
 // =============================== Shopping Cart ===============================
-export function addToCart(addedProduct: ShoppingCartItem, orderQuantity) {
+export function addToCart(addedProduct: ShoppingCartItem, orderQuantity, saveToLocalStorage = true) {
     if (orderQuantity > addedProduct.quantity) {
         Error.set('There are just ' + addedProduct.quantity + ' products in stock. You cannot order ' + orderQuantity + '.');
         return false;
@@ -48,12 +55,16 @@ export function addToCart(addedProduct: ShoppingCartItem, orderQuantity) {
             }
         }
 
-        if (productAdded) {
+        if (productAdded && saveToLocalStorage) {
             Info.set('Product added to the shopping cart.');
         }
 
         return sc;
     });
+
+    if (saveToLocalStorage) {
+        saveShoppingCartProductsToLocalStorage();
+    }
 }
 
 export function deleteFromCart(stallId, productId) {
@@ -73,8 +84,42 @@ export function deleteFromCart(stallId, productId) {
         Info.set('Product removed from the shopping cart.');
         return sc;
     });
+
+    saveShoppingCartProductsToLocalStorage();
 }
 
+export function saveShoppingCartProductsToLocalStorage() {
+    let products = [];
+
+    for (const [stallId, stall] of get(ShoppingCart).products) {
+        for (const [productId, product] of stall) {
+            products.push(product);
+        }
+    }
+
+    if (products.length > 0) {
+        localStorage.setItem('shoppingCartProducts', JSON.stringify(products));
+    } else {
+        localStorage.removeItem('shoppingCartProducts');
+    }
+}
+
+export function restoreShoppingCartProductsFromLocalStorage() {
+    if (get(ShoppingCart).products.size !== 0) {
+        console.debug("Shopping Cart is not empty, so we don't restore it", get(ShoppingCart));
+        return;
+    }
+
+    const shoppingCartProducts = localStorage.getItem('shoppingCartProducts');
+
+    if (shoppingCartProducts) {
+        const parsedShoppingCartProducts = JSON.parse(shoppingCartProducts);
+
+        for (const product of parsedShoppingCartProducts) {
+            addToCart(product, product.orderQuantity, false)
+        }
+    }
+}
 // =============================== Stalls ====================================
 
 export function refreshStalls() {

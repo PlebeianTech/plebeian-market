@@ -1,5 +1,5 @@
 <script>
-    import {NostrPublicKey, privateMessages, products, stalls} from "$lib/stores";
+    import {Info, NostrPublicKey, privateMessages, products, stalls} from "$lib/stores";
     import {formatTimestamp} from "$lib/nostr/utils.ts";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping.ts";
@@ -200,6 +200,11 @@
         paymentModalVisible = false;
     }
 
+    function copy(txId) {
+        navigator.clipboard.writeText(txId);
+        Info.set('Transaction ID copied to clipboard: ' + txId.substring(0,9) + '...');
+    }
+
     onMount(async () => {
         getPaidPaymentsFromStorage();
     });
@@ -211,169 +216,173 @@
 
 <Titleh1>Orders</Titleh1>
 
-<div class="md:grid justify-center mt-0 md:mt-10 mb-10">
-    {#if Object.keys($privateMessages.automatic).length > 0}
-        <div class="grid justify-center items-center lg:mx-20 gap-6 lg:gap-10 place-content-center">
-            {#if Object.entries(ordersToBePaidNow).length > 0}
-                <div class="alert alert-warning shadow-lg">
+{#if Object.keys($privateMessages.automatic).length > 0}
+    <div class="grid w-full lg:mx-20 gap-6 lg:gap-10 justify-center items-center place-content-center">
+        {#if Object.entries(ordersToBePaidNow).length > 0}
+            <div class="alert alert-warning shadow-lg">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <div>
-                            <p class="mb-1">You still have to pay <b>{Object.entries(ordersToBePaidNow).length}</b> of your orders!</p>
-                            <ul class="list-disc list-inside ml-3 md:ml-5 text-xs md:text-sm">
-                                {#each Object.entries(ordersToBePaidNow) as [orderId, order]}
-                                    <li>{order.id}</li>
-                                {/each}
-                            </ul>
-                        </div>
+                        <p class="mb-1">You still have to pay <b>{Object.entries(ordersToBePaidNow).length}</b> of your orders!</p>
+                        <ul class="list-disc list-inside ml-3 md:ml-5 text-xs md:text-sm">
+                            {#each Object.entries(ordersToBePaidNow) as [orderId, order]}
+                                <li>{order.id}</li>
+                            {/each}
+                        </ul>
                     </div>
                 </div>
-            {/if}
-
-            <div class="text-right md:mb-3">
-                Hide old orders (> 3 months)
-                <input type="checkbox" bind:checked={hideOldOrders} class="checkbox checkbox-md mr-3" class:checkbox-success={hideOldOrders} />
             </div>
+        {/if}
 
-            <table class="block w-full rounded border border-gray-400 p-2 md:p-4">
-                <thead>
-                    <tr class="text-center">
-                        <th class="text-left">Order</th>
-                        <th>Last update</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {#each sortedOrders as [orderId, order]}
-                    {#if order.type !== 10}
-                        {#if !hideOldOrders || (hideOldOrders && (Date.now() < ((order.created_at * 1000) + oldOrderTime)))}
-                            <tr class="border-y border-gray-600 hover">
-                                <td>
-                                    {#if order.isAuction}
-                                        <div class="badge badge-success gap-2">
-                                            auction
-                                        </div>
-                                    {:else}
-                                        <div class="badge badge-info gap-2">
-                                            fixed price
-                                        </div>
-                                    {/if}
+        <div class="text-right md:mb-3">
+            Hide old orders (> 3 months)
+            <input type="checkbox" bind:checked={hideOldOrders} class="checkbox checkbox-md mr-3" class:checkbox-success={hideOldOrders} />
+        </div>
 
-                                    <p class="text-sm md:hidden">
-                                        # {orderId.substring(0,8)}...
+        <table class="block w-full p-2 md:p-4 rounded border border-gray-400">
+            <thead>
+            <tr class="text-center">
+                <th class="text-left">Order</th>
+                <th>Last update</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {#each sortedOrders as [orderId, order]}
+                {#if order.type !== 10}
+                    {#if !hideOldOrders || (hideOldOrders && (Date.now() < ((order.created_at * 1000) + oldOrderTime)))}
+                        <tr class="border-y border-gray-600 hover">
+                            <td>
+                                {#if order.isAuction}
+                                    <div class="badge badge-success gap-2">
+                                        auction
+                                    </div>
+                                {:else}
+                                    <div class="badge badge-info gap-2">
+                                        fixed price
+                                    </div>
+                                {/if}
+
+                                <p class="text-sm md:hidden">
+                                    # {orderId.substring(0,8)}...
+                                </p>
+                                <p class="text-sm hidden md:block">
+                                    # {orderId}
+                                </p>
+
+                                {#if $stalls !== null && $stalls.stalls[order.stall_id]}
+                                    <p class="mt-2">
+                                        <b>Stall</b>: {$stalls.stalls[order.stall_id].name ?? ''}
                                     </p>
-                                    <p class="text-sm hidden md:block">
-                                        # {orderId}
-                                    </p>
+                                {/if}
 
-                                    {#if $stalls !== null && $stalls.stalls[order.stall_id]}
-                                        <p class="mt-2">
-                                            <b>Stall</b>: {$stalls.stalls[order.stall_id].name ?? ''}
-                                        </p>
-                                    {/if}
-
-                                    {#if order.items}
-                                        <ul class="list-disc list-inside ml-2">
-                                            {#if Array.isArray(order.items)}
-                                                {#each order.items as item}
-                                                    <li>
-                                                        <small>
-                                                            {#if $products !== null && $products.products[item.product_id]}
-                                                                {$products.products[item.product_id].name}
-                                                            {:else}
-                                                                #{item.product_id}
-                                                            {/if}
-                                                            {#if item.quantity}
-                                                                - {item.quantity} units
-                                                            {/if}
-                                                        </small>
-                                                    </li>
-                                                {/each}
-                                            {:else}
-                                                <li>Error loading items from the order</li>
-                                            {/if}
-                                        </ul>
-                                    {/if}
-                                </td>
-                                <td class="text-center px-0 md:px-4">
-                                    {formatTimestamp(order.created_at)}
-                                </td>
-                                <td class="text-center">
-                                    {#if order.type === 0}
-                                        <p>Waiting for reply from the store</p>
-                                    {:else if order.type === 1}
-                                        {#if order.payment_options}
-                                            {#if paidPaymentsStorage.includes(orderId) }
-                                                <div class="flex flex-col justify-center items-center">
-                                                    <span class="w-10 h-10 mb-1"><Clock /></span>
-                                                    <p class="hidden md:block">Market as paid.<br>Waiting for payment confirmation from the seller...</p>
-                                                    <p class="md:hidden">Waiting confirmation from seller...</p>
-                                                </div>
-                                            {:else}
-                                                {#if getAmountToPay(order)}
-                                                    <p class="mb-2">{getAmountToPay(order)} sats</p>
-                                                {/if}
-
-                                                <button class="btn btn-outline gap-2 mb-4 md:mb-2 h-16 md:h-12" on:click|preventDefault={() => {orderToBePaid = order; showPaymentDetails()}}>
-                                                    <span class="h-7 w-7" ><Bitcoin /></span><p class="-ml-5 text-2xl">⚡</p> Pay order
-                                                </button>
-
-                                                {#if order.message && !['Payment received.'].includes(order.message)}
-                                                    <p>
-                                                        🛈 {order.message}
-                                                    </p>
-                                                {/if}
-                                            {/if}
-                                        {/if}
-                                    {:else if order.type === 2}
-                                        <p>
-                                            {#if order.payment_options}
-                                                <ul class="list-disc [&>*:first-child]:block">
-                                                    {#each order.payment_options as payment_option}
-                                                        {#if payment_option.amount_sats || payment_option.amount}
-                                                            <li class="hidden">{payment_option.amount_sats ?? payment_option.amount} sats</li>
+                                {#if order.items}
+                                    <ul class="list-disc list-inside ml-2">
+                                        {#if Array.isArray(order.items)}
+                                            {#each order.items as item}
+                                                <li>
+                                                    <small>
+                                                        {#if $products !== null && $products.products[item.product_id]}
+                                                            {$products.products[item.product_id].name}
+                                                        {:else}
+                                                            #{item.product_id}
                                                         {/if}
-                                                    {/each}
-                                                </ul>
-                                            {/if}
-
-                                            {#if order.paid}
-                                                ✅ Payment received
-                                            {:else}
-                                                ❌ Payment not received
-                                            {/if}
-                                        </p>
-                                        <p>
-                                            {#if order.shipped}
-                                                ✅ Order shipped
-                                            {:else}
-                                                ❌ Order not shipped yet
-                                            {/if}
-                                        </p>
-
-                                        {#if order.message && !['Payment received.'].includes(order.message)}
-                                            <p>
-                                                🛈 {order.message}
-                                            </p>
+                                                        {#if item.quantity}
+                                                            - {item.quantity} units
+                                                        {/if}
+                                                    </small>
+                                                </li>
+                                            {/each}
+                                        {:else}
+                                            <li>Error loading items from the order</li>
                                         {/if}
-                                    {:else}
-                                        <p>Unknown</p>
+                                    </ul>
+                                {/if}
+                            </td>
+                            <td class="text-center px-0 md:px-4">
+                                {formatTimestamp(order.created_at)}
+                            </td>
+                            <td class="text-center">
+
+                                {#if order.type === 0}
+                                    <p>Waiting for reply from the store</p>
+                                {:else if order.type === 1}
+                                    {#if order.payment_options}
+                                        {#if paidPaymentsStorage.includes(orderId) }
+                                            <div class="flex flex-col justify-center items-center">
+                                                <span class="w-10 h-10 mb-1"><Clock /></span>
+                                                <p class="hidden md:block">Market as paid.<br>Waiting for payment confirmation from the seller...</p>
+                                                <p class="md:hidden">Waiting confirmation from seller...</p>
+                                            </div>
+                                        {:else}
+                                            {#if getAmountToPay(order)}
+                                                <p class="mb-2">{getAmountToPay(order)} sats</p>
+                                            {/if}
+
+                                            <button class="btn btn-outline gap-2 mb-4 md:mb-2 h-16 md:h-12" on:click|preventDefault={() => {orderToBePaid = order; showPaymentDetails()}}>
+                                                <span class="h-7 w-7" ><Bitcoin /></span><p class="-ml-5 text-2xl">⚡</p> Pay order
+                                            </button>
+
+                                            {#if order.message && !['Payment received.'].includes(order.message)}
+                                                <p class="text-xs lg:text-sm">
+                                                    🛈 {order.message}
+                                                </p>
+                                            {/if}
+                                        {/if}
                                     {/if}
-                                </td>
-                            </tr>
-                        {/if}
+                                {:else if order.type === 2}
+                                    <p class="text-sm lg:text-base">
+                                        {#if order.payment_options}
+                                            <ul class="list-disc [&>*:first-child]:block">
+                                                {#each order.payment_options as payment_option}
+                                                    {#if payment_option.amount_sats || payment_option.amount}
+                                                        <li class="hidden">{payment_option.amount_sats ?? payment_option.amount} sats</li>
+                                                    {/if}
+                                                {/each}
+                                            </ul>
+                                        {/if}
+
+                                        {#if order.paid}
+                                            ✅ Payment received
+                                        {:else}
+                                            ❌ Payment not received
+                                        {/if}
+                                    </p>
+                                    <p class="text-sm lg:text-base">
+                                        {#if order.shipped}
+                                            ✅ Order shipped
+                                        {:else}
+                                            ❌ Order not shipped yet
+                                        {/if}
+                                    </p>
+                                    {#if order.message && !['Payment received.'].includes(order.message)}
+                                        <p class="text-sm text-ellipsis overflow-hidden mt-2">
+                                            {#if order.message.includes('TxID:')}
+                                                🛈 {order.message.substring(0, order.message.indexOf(' TxID:'))}
+                                                <button class="btn btn-xs mt-1" on:click={() => copy(order.message.match(/[^TxID: ]*$/)[0])}>Copy Tx ID</button>
+                                            {:else}
+                                                🛈 {order.message}
+                                            {/if}
+                                        </p>
+                                    {/if}
+                                {:else}
+                                    <p>Unknown</p>
+                                {/if}
+
+                            </td>
+                        </tr>
                     {/if}
-                {/each}
-                </tbody>
-            </table>
-        </div>
-    {:else}
-        <div class="grid justify-center items-center lg:mx-20 place-content-center p-6 text-lg">
-            <p>You don't have any order yet.</p>
-            <p class="mt-4">You can <a class="text-blue-500" href="/stalls">browse stalls</a> and buy some products.</p>
-        </div>
-    {/if}
-</div>
+                {/if}
+            {/each}
+            </tbody>
+        </table>
+    </div>
+{:else}
+    <div class="grid justify-center items-center lg:mx-20 place-content-center p-6 text-lg">
+        <p>You don't have any order yet.</p>
+        <p class="mt-4">You can <a class="text-blue-500" href="/stalls">browse stalls</a> and buy some products.</p>
+    </div>
+{/if}
 
 <!-- QR payment modal -->
 <input type="checkbox" id="nostrTextConfirmation" class="modal-toggle" bind:checked={paymentModalVisible} on:change={() => showAutomaticPayments = false}/>
@@ -392,18 +401,18 @@
         {#if orderToBePaid && orderToBePaid.payment_options}
             <div class="mt-4 md:mt-6 pb-0 flex flex-col justify-center items-center">
                 Payment type: <select bind:value={paymentOptionSelected} class="select select-bordered select-sm text-xs md:text-sm max-w-lg md:ml-1 { orderToBePaid.payment_options.length > 1 ? 'select-error border-2' : 'select-bordered' }" on:change="{() => showPaymentDetails()}">
-                    {#each orderToBePaid.payment_options as payment_option}
-                        {#if payment_option.type === 'ln'}
-                            <option value="{payment_option.type}" selected>Lightning (invoice)</option>
-                        {:else if payment_option.type === 'lnurl'}
-                            <option value="{payment_option.type}" selected>Lightning (lnurl)</option>
-                        {:else if payment_option.type === 'btc'}
-                            <option value="{payment_option.type}">Bitcoin (on-chain)</option>
-                        {:else if payment_option.type === 'url'}
-                            <option value="{payment_option.type}">External payment method</option>
-                        {/if}
-                    {/each}
-                </select>
+                {#each orderToBePaid.payment_options as payment_option}
+                    {#if payment_option.type === 'ln'}
+                        <option value="{payment_option.type}" selected>Lightning (invoice)</option>
+                    {:else if payment_option.type === 'lnurl'}
+                        <option value="{payment_option.type}" selected>Lightning (lnurl)</option>
+                    {:else if payment_option.type === 'btc'}
+                        <option value="{payment_option.type}">Bitcoin (on-chain)</option>
+                    {:else if payment_option.type === 'url'}
+                        <option value="{payment_option.type}">External payment method</option>
+                    {/if}
+                {/each}
+            </select>
             </div>
         {/if}
 

@@ -104,7 +104,7 @@
             <span class="indicator-item indicator-center badge badge-md badge-warning">anonymous</span>
             Generate New Key
         </a>
-        <a class="tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===2 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=2}>Introduce your Key</a>
+        <a class="tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===2 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=2}>Use your private key</a>
     </div>
 
     <div class="grid w-full flex-grow gap-3 p-4 py-6 lg:p-14 lg:py-8 bg-base-300 rounded-xl rounded-tl-none rounded-tr-none md:shadow-xl items-center justify-center">

@@ -19,6 +19,7 @@
     import {closePool, subscribeConfiguration} from "$lib/services/nostr";
     import {getConfigurationFromFile} from "$lib/utils";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
+    import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -60,6 +61,8 @@
 	onDestroy(errorUnsubscribe);
 
     onMount(async () => {
+        refreshStalls();
+
         $NostrPrivateKey = localStorage.getItem("nostrPrivateKey");
         $NostrPublicKey = localStorage.getItem("nostrPublicKey");
 
@@ -76,6 +79,8 @@
                     }
                 })
         }
+
+        restoreShoppingCartProductsFromLocalStorage();
     });
 
     onDestroy(async () => {

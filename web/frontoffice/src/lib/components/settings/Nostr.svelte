@@ -14,7 +14,7 @@
 {#if $NostrPublicKey}
     {#if hasExtension()}
         <p>
-            You're logged-in using your <b>Nostr browser extension</b>.
+            You're using your <b>Nostr browser extension</b>.
         </p>
         <p class="mt-4">
             This is the <b>recommended</b> and <b>most secure</b> way to use Plebeian Market.
@@ -51,7 +51,7 @@
         -->
     {/if}
 
-    <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
+    <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Forget</button>
 
 {:else}
     <div class="w-full items-center justify-center text-center">
