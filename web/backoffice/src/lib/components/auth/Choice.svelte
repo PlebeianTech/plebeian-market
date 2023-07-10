@@ -29,9 +29,9 @@
 </div>
 
 {#if behavior === AuthBehavior.Login}
-    <h2 class="text-2xl text-center mt-10">Login to Plebeian Market</h2>
+    <h2 class="text-2xl text-center mt-10">Login to Plebeian Market Stall Manager</h2>
 {:else}
-    <h2 class="text-2xl text-center mt-10">Sign up for Plebeian Market</h2>
+    <h2 class="text-2xl text-center mt-10">Sign up for Plebeian Market Stall Manager</h2>
 {/if}
 
 {#if provider === Provider.Lnurl}

@@ -133,8 +133,8 @@
             <a href="/admin" class="flex items-center mr-2">
                 <div class="flex items-center space-x-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
-                    <h1 class="text-xl font-bold hover:text-blue-400 duration-300 w-44">
-                        Plebeian Market
+                    <h1 class="text-xl font-bold hover:text-blue-400 duration-300">
+                        Plebeian Market Stall Manager
                     </h1>
                 </div>
             </a>
