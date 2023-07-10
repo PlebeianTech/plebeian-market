@@ -22,7 +22,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client, get_bid_status_event, get_birdwatcher, get_app_private_key, get_s3, get_twitter
+from main import app, get_lnd_client, get_birdwatcher, get_nostr_client, get_app_private_key, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
@@ -1249,10 +1249,7 @@ def post_merchant_message(pubkey):
     if not merchant:
         return jsonify({'message': "Merchant not found!"}), 404
 
-    merchant_private_key = PrivateKey(bytes.fromhex(merchant.merchant_private_key))
-    events = []
-    error_messages = []
-    relays = [r['url'] for r in merchant.get_relays()]
+    merchant_private_key = merchant.parse_merchant_private_key()
 
     event_data = [0, request.json['pubkey'], request.json['created_at'], request.json['kind'], request.json['tags'], request.json['content']]
     event_data_str = json.dumps(event_data, separators=(",", ":"), ensure_ascii=False)
@@ -1295,123 +1292,117 @@ def post_merchant_message(pubkey):
                 if shipping_id == shipping_domestic_id:
                     shipping_usd = merchant.shipping_domestic_usd
                 else:
-                    error_messages.append(EncryptedDirectMessage(recipient_pubkey=order.buyer_public_key, cleartext_content="Invalid shipping zone!"))
+                    message = "Invalid shipping zone!"
+                    get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key, message)
+                    return jsonify({'message': message}), 400
 
-            if shipping_usd is not None:
-                if not order:
-                    try:
-                        payment_address = merchant.get_new_address()
-                    except m.AddressGenerationError as e:
-                        return jsonify({'message': str(e)}), 500
-                    except MempoolSpaceError as e:
-                        return jsonify({'message': str(e)}), 500
+            if not order:
+                try:
+                    payment_address = merchant.get_new_address()
+                except m.AddressGenerationError as e:
+                    return jsonify({'message': str(e)}), 500
+                except MempoolSpaceError as e:
+                    return jsonify({'message': str(e)}), 500
 
-                    order = m.Order(
-                        uuid=cleartext_content['id'],
-                        seller_id=merchant.id,
-                        event_id=request.json['id'],
-                        buyer_public_key=request.json['pubkey'],
-                        buyer_name=cleartext_content.get('name'),
-                        buyer_address=cleartext_content.get('address'),
-                        buyer_message=cleartext_content.get('message'),
-                        buyer_contact=cleartext_content.get('contact'),
-                        requested_at=datetime.utcnow(),
-                        payment_address=payment_address)
-                    db.session.add(order)
-                    db.session.commit()
-
-                    order_listings = [] # [(listing, quantity), ...]
-                    for item in cleartext_content['items']:
-                        # NB: we only look for listings here. auction orders are generated in finalize-auctions!
-                        listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
-                        if listing:
-                            quantity = item['quantity']
-                            if listing.available_quantity < quantity:
-                                error_messages.append(EncryptedDirectMessage(recipient_pubkey=order.buyer_public_key, cleartext_content="Not enough items in stock!"))
-                                break
-                            order_listings.append((listing, quantity))
-
-                    if len(order_listings) == 0:
-                        error_messages.append(EncryptedDirectMessage(recipient_pubkey=order.buyer_public_key, cleartext_content="Empty order!"))
-
-                    if not error_messages:
-                        for listing, quantity in order_listings:
-                            # here we "lock" the quantity. it is given back if the order expires
-                            listing.available_quantity -= quantity
-
-                            # NB: we need to update the quantity in Nostr as well!
-                            item_json = listing.to_nostr()
-                            events.append(Event(kind=listing.nostr_event_kind, content=json.dumps(item_json), tags=[['d', item_json['id']]]))
-
-                            order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
-                            db.session.add(order_item)
-
-                            order.total_usd += listing.price_usd * quantity
-
-                        order.shipping_usd = shipping_usd
-
-                        order.total_usd += order.shipping_usd
-                        order.total = usd2sats(order.total_usd, btc2usd)
-
-                        app.logger.info(f"New order for merchant {pubkey}: {order.uuid=} {len(order_listings)} items, {order.total_usd=}, {order.total=}!")
-                else: # order exists, so we can edit it here
-                    # NB: this is mostly used for orders where the item bought is an auction,
-                    # which are generated by us in finalize-auctions and the client will re-submit the order to add their name/address/etc
-                    # but in theory this could be used for any orders as long as they are not already paid/shipped/expired/canceled!
-                    order.buyer_name = cleartext_content.get('name')
-                    order.buyer_address = cleartext_content.get('address')
-                    order.buyer_message = cleartext_content.get('message')
-                    order.buyer_contact = cleartext_content.get('contact')
-
-                    order.total = order.total_usd = 0
-
-                    listing_count = 0
-                    auction_count = 0
-                    for order_item in order.order_items:
-                        if order_item.listing_id:
-                            listing = m.Listing.query.filter_by(id=order_item.listing_id).first()
-                            order.total_usd += listing.price_usd * order_item.quantity
-                            listing_count += 1
-                        elif order_item.auction_id:
-                            auction = m.Auction.query.filter_by(id=order_item.auction_id).first()
-                            winning_bid = auction.get_winning_bid()
-                            order.total += winning_bid.amount
-                            auction_count += 1
-
-                    order.shipping_usd = shipping_usd
-
-                    if order.total_usd:
-                        order.total_usd += order.shipping_usd
-                        order.total = usd2sats(order.total_usd, btc2usd)
-                    else:
-                        order.total += usd2sats(order.shipping_usd, btc2usd)
-                        order.total_usd = sats2usd(order.total, btc2usd)
-
-                    app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
-
+                order = m.Order(
+                    uuid=cleartext_content['id'],
+                    seller_id=merchant.id,
+                    event_id=request.json['id'],
+                    buyer_public_key=request.json['pubkey'],
+                    buyer_name=cleartext_content.get('name'),
+                    buyer_address=cleartext_content.get('address'),
+                    buyer_message=cleartext_content.get('message'),
+                    buyer_contact=cleartext_content.get('contact'),
+                    requested_at=datetime.utcnow(),
+                    payment_address=payment_address)
+                db.session.add(order)
                 db.session.commit()
 
-                payment_options = [
-                    {'type': 'btc', 'link': order.payment_address, 'amount_sats': order.total}
-                ]
+                order_listings = [] # [(listing, quantity), ...]
+                for item in cleartext_content['items']:
+                    # NB: we only look for listings here. auction orders are generated in finalize-auctions!
+                    listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
+                    if listing:
+                        if listing.available_quantity < item['quantity']:
+                            message = "Not enough items in stock!"
+                            get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key, message)
+                            return jsonify({'message': message}), 400
+                        order_listings.append((listing, item['quantity']))
 
-                if merchant.lightning_address:
-                    payment_options.append({'type': 'lnurl', 'link': merchant.lightning_address, 'amount_sats': order.total})
+                if len(order_listings) == 0:
+                    message = "Empty order!"
+                    get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key, message)
+                    return jsonify({'message': message}), 400
 
-                events.append(EncryptedDirectMessage(recipient_pubkey=order.buyer_public_key,
-                    cleartext_content=json.dumps({
-                        'id': order.uuid,
-                        'type': 1,
-                        'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
-                        'payment_options': payment_options})))
+                for listing, quantity in order_listings:
+                    # here we "lock" the quantity. it is given back if the order expires
+                    listing.available_quantity -= quantity
+                    # NB: we need to update the quantity in Nostr as well!
+                    listing.nostr_event_id = get_birdwatcher().publish_product(listing)
 
-    for error_message in error_messages:
-        app.logger.warning(error_message.cleartext_content)
+                    order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
+                    db.session.add(order_item)
 
-    for event in events + error_messages:
-        merchant_private_key.sign_event(event)
+                    order.total_usd += listing.price_usd * quantity
 
-    return jsonify({'events': [json.loads(e.to_message())[1] for e in events + error_messages], 'relays': relays})
+                order.shipping_usd = shipping_usd
+
+                order.total_usd += order.shipping_usd
+                order.total = usd2sats(order.total_usd, btc2usd)
+
+                app.logger.info(f"New order for merchant {pubkey}: {order.uuid=} {len(order_listings)} items, {order.total_usd=}, {order.total=}!")
+            else: # order exists, so we can edit it here
+                # NB: this is mostly used for orders where the item bought is an auction,
+                # which are generated by us in finalize-auctions and the client will re-submit the order to add their name/address/etc
+                # but in theory this could be used for any orders as long as they are not already paid/shipped/expired/canceled!
+                order.buyer_name = cleartext_content.get('name')
+                order.buyer_address = cleartext_content.get('address')
+                order.buyer_message = cleartext_content.get('message')
+                order.buyer_contact = cleartext_content.get('contact')
+
+                order.total = order.total_usd = 0
+
+                listing_count = 0
+                auction_count = 0
+                for order_item in order.order_items:
+                    if order_item.listing_id:
+                        listing = m.Listing.query.filter_by(id=order_item.listing_id).first()
+                        order.total_usd += listing.price_usd * order_item.quantity
+                        listing_count += 1
+                    elif order_item.auction_id:
+                        auction = m.Auction.query.filter_by(id=order_item.auction_id).first()
+                        winning_bid = auction.get_winning_bid()
+                        order.total += winning_bid.amount
+                        auction_count += 1
+
+                order.shipping_usd = shipping_usd
+
+                if order.total_usd:
+                    order.total_usd += order.shipping_usd
+                    order.total = usd2sats(order.total_usd, btc2usd)
+                else:
+                    order.total += usd2sats(order.shipping_usd, btc2usd)
+                    order.total_usd = sats2usd(order.total, btc2usd)
+
+                app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
+
+            payment_options = [
+                {'type': 'btc', 'link': order.payment_address, 'amount_sats': order.total}
+            ]
+            if merchant.lightning_address:
+                payment_options.append({'type': 'lnurl', 'link': merchant.lightning_address, 'amount_sats': order.total})
+
+            if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
+                json.dumps({
+                    'id': order.uuid,
+                    'type': 1,
+                    'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
+                    'payment_options': payment_options})):
+                return jsonify({'message': "Error sending the payment options back to the buyer."}), 500
+
+            db.session.commit()
+
+    return jsonify({})
 
 @api_blueprint.route("/api/merchants/<merchant_pubkey>/auctions/<auction_event_id>/bids", methods=['POST'])
 def post_auction_bid(merchant_pubkey, auction_event_id):
@@ -1424,36 +1415,47 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         return jsonify({'message': "Auction not found!"}), 404
 
     merchant_private_key = PrivateKey(bytes.fromhex(merchant.merchant_private_key))
-    events = []
-    relays = [r['url'] for r in merchant.get_relays()]
+
+    birdwatcher = get_birdwatcher()
 
     try:
         amount = int(request.json['content'])
     except TypeError:
-        events.append(get_bid_status_event(auction_event_id, request.json['id'], 'rejected', "Invalid bid amount!"))
+        message = "Invalid bid amount!"
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
 
     if not auction.started:
-        events.append(get_bid_status_event(auction_event_id, request.json['id'], 'rejected', "Auction not started."))
+        message = "Auction not started."
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
     if auction.ended:
-        events.append(get_bid_status_event(auction_event_id, request.json['id'], 'rejected', "Auction ended."))
+        message = "Auction ended."
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
 
     if amount > 2100000000:
-        events.append(get_bid_status_event(auction_event_id, request.json['id'], 'rejected', "Max bidding: 21 BTC!"))
+        message = "Max bidding: 21 BTC!"
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
 
     top_bid = auction.get_top_bid()
     if top_bid and amount <= top_bid.amount:
-        events.append(get_bid_status_event(auction_event_id, request.json['id'], 'rejected', f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"))
+        message = f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
     elif amount < auction.starting_bid:
-        events.append(get_bid_status_event(auction_event_id, request.json['id'], 'rejected', f"Your bid needs to be equal or higher than {auction.starting_bid}, the starting bid."))
+        message = f"Your bid needs to be equal to or higher than {auction.starting_bid}, the starting bid."
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
 
-    if not events:
-        bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
-        db.session.add(bid)
-        db.session.commit()
-        events.append(get_bid_status_event(auction_event_id, request.json['id'], 'accepted'))
-        app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
+    bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
+    db.session.add(bid)
 
-    for event in events:
-        merchant_private_key.sign_event(event)
+    app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
 
-    return jsonify({'events': [json.loads(e.to_message())[1] for e in events], 'relays': relays})
+    birdwatcher.publish_bid_status(auction, request.json['id'], 'accepted')
+
+    db.session.commit()
+
+    return jsonify({})

@@ -65,9 +65,6 @@ class Relay:
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")
-                    for e in response_json.get('events', []):
-                        for relay in all_relays:
-                            await relay.send_event(e)
                 except Exception:
                     response_text = await response.text()
                     logging.debug(f"POST responded with {response_text}!")
@@ -86,9 +83,6 @@ class Relay:
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")
-                    for e in response_json.get('events', []):
-                        for relay in all_relays:
-                            await relay.send_event(e)
                 except Exception:
                     response_text = await response.text()
                     logging.debug(f"POST responded with {response_text}!")

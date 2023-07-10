@@ -141,10 +141,13 @@ def finalize_auctions():
                 order_uuid = str(uuid.uuid4())
 
                 birdwatcher = get_birdwatcher()
+
                 if not birdwatcher.publish_bid_status(auction, top_bid.nostr_event_id, 'winner', extra_tags=[['p', top_bid.buyer_nostr_public_key]]):
                     continue
-                if not birdwatcher.send_dm(auction.item.seller.parse_merchant_private_key(), top_bid.buyer_nostr_public_key,
-                    json.dumps({'id': order_uuid, 'type': 10, 'items': [{'product_id': str(auction.uuid), 'quantity': 1}]})):
+
+                dm_event_id = birdwatcher.send_dm(auction.item.seller.parse_merchant_private_key(), top_bid.buyer_nostr_public_key,
+                    json.dumps({'id': order_uuid, 'type': 10, 'items': [{'product_id': str(auction.uuid), 'quantity': 1}]}))
+                if not dm_event_id:
                     continue
 
                 order = m.Order(
@@ -561,7 +564,7 @@ class NostrClient:
     def get_verification_phrase(self, user):
         return user.nostr_verification_phrase
 
-def get_nostr_client(user):
+def get_nostr_client():
     if app.config['MOCK_NOSTR']:
         return MockNostrClient()
     else:
@@ -621,27 +624,24 @@ class Birdwatcher:
 
     def publish_bid_status(self, auction, bid_event_id, status, message=None, extra_tags=None):
         try:
-            event = get_bid_status_event(auction.nostr_event_id, bid_event_id, status, message=message, extra_tags=extra_tags)
+            if extra_tags is None:
+                extra_tags = []
+            content_json = {'status': status}
+            if message is not None:
+                content_json['message'] = message
+            event = Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction.nostr_event_id], ['e', bid_event_id]] + extra_tags))
             auction.item.seller.parse_merchant_private_key().sign_event(event)
             if self.post_event(event):
                 return event.id
         except:
             app.logger.exception(f"Error publishing bid status for bid {bid_event_id} via birdwatcher!")
 
-def get_bid_status_event(auction_event_id, bid_event_id, status, message=None, extra_tags=None):
-    if extra_tags is None:
-        extra_tags = []
-    content_json = {'status': status}
-    if message is not None:
-        content_json['message'] = message
-    return Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction_event_id], ['e', bid_event_id]] + extra_tags))
-
 def get_birdwatcher():
     return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
 
 def get_app_private_key():
     if app.config['MOCK_NOSTR']:
-        return PrivateKey().hex()
+        return PrivateKey()
     else:
         with open(app.config['NOSTR_SECRETS']) as f:
             return PrivateKey.from_nsec(json.load(f)['NSEC'])
