@@ -104,7 +104,7 @@
                         </p>
                     {/if}
                     <p>
-                        <a href="/admin" class="btn btn-ghost normal-case">Sell items</a>
+                        <a href="/admin" class="btn btn-ghost normal-case">Stall Manager</a>
                     </p>
                 </div>
             </div>
@@ -227,7 +227,7 @@
                                     <div class="w-6 h-6 mr-1">
                                         <Store />
                                     </div>
-                                    Sell items</a>
+                                    Stall Manager</a>
                             </li>
                             <li class="block md:hidden md:h-0">
                                 <a class="text-base" href="/orders">
