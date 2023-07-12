@@ -1,3 +1,4 @@
+from aiofile import async_open
 import aiohttp
 from aiohttp import web
 import argparse
@@ -18,6 +19,7 @@ BIRDWATCHER_PORT = 6000
 
 API_BASE_URL = os.environ.get('API_BASE_URL')
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+PROCESSED_EVENT_IDS_FILENAME = os.environ.get('PROCESSED_EVENT_IDS_FILENAME')
 
 dictConfig({
     'version': 1,
@@ -167,6 +169,8 @@ class Relay:
                             case EventKind.DM:
                                 if event['id'] not in self.processed_event_ids:
                                     self.processed_event_ids.add(event['id'])
+                                    async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
+                                        await f.write(f"{event['id']}\n")
                                     merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
                                     await self.post_dm(merchant_pubkey, event, all_relays)
                                 else:
@@ -174,6 +178,8 @@ class Relay:
                             case EventKind.BID:
                                 if event['id'] not in self.processed_event_ids:
                                     self.processed_event_ids.add(event['id'])
+                                    async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
+                                        await f.write(f"{event['id']}\n")
                                     auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
                                     await self.post_bid(auction_event_id, event, all_relays)
                                 else:
@@ -232,6 +238,12 @@ parser.add_argument("-a", "--auction", help="event ID of the auction to listen t
 args = parser.parse_args()
 
 processed_event_ids = set()
+
+with open(PROCESSED_EVENT_IDS_FILENAME, 'r') as f:
+    for line in f:
+        processed_event_ids.add(line.strip())
+
+logging.info(f"Processed events: {len(processed_event_ids)}")
 
 relays = []
 

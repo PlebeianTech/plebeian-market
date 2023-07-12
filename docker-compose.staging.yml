@@ -57,6 +57,7 @@ services:
     env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
+      - "/home/www/plebeian-market-state:/state"
     command: python main.py
 
 networks:
