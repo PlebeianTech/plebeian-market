@@ -4,6 +4,9 @@ ARG BUILD_MODE
 
 COPY ./web /web
 
+RUN cd /web/shared \
+ && npm install \
+
 RUN cd /web/frontoffice \
  && npm install \
  && npm run build
