@@ -22,7 +22,7 @@
     let modal: Modal | null;
     let modalVisible = false;
 
-    let prefersDark = true;
+    let prefersDark = false;
 
     let showMobileMenu = false;
 
@@ -44,8 +44,14 @@
 
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector("html");
-        let toggle = <HTMLInputElement>document.getElementById("theme-toggle");
-        html.dataset.theme = toggle.checked ? "halloween" : "light";
+
+        if (!prefersDark) {
+            html.dataset.theme = "dark";
+            localStorage.theme = "dark";
+        } else {
+            html.dataset.theme = "light";
+            localStorage.theme = "light";
+        }
     }
 
     function fetchProfile(tokenValue) {
@@ -84,10 +90,12 @@
     }
 
     onMount(async () => {
-        prefersDark =
-            browser &&
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            prefersDark = true;
+        } else {
+            prefersDark = false;
+        }
+
         if ($token) {
             fetchProfile($token);
         }
@@ -171,10 +179,10 @@
 
             <div class="lg:flex items-center justify-start space-x-4">
                 <div class="flex justify-start lg:my-0 p-4 hidden lg:block">
-                    <label class="swap swap-rotate" on:click={toggleTheme} on:keypress={toggleTheme}>
-                        <input id="theme-toggle" type="checkbox" checked={prefersDark} />
-                        <div class="swap-off w-10 h-10"><Sun /></div>
-                        <div class="swap-on w-10 h-10"><Moon /></div>
+                    <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
+                        <input type="checkbox" bind:checked={prefersDark} />
+                        <div class="swap-off w-9 h-9"><Sun /></div>
+                        <div class="swap-on w-9 h-9"><Moon /></div>
                     </label>
                 </div>
 
