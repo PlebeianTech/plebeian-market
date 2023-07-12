@@ -15,6 +15,15 @@
     import Store from "$sharedLib/components/icons/Store.svelte";
     import User from "$sharedLib/components/icons/User.svelte";
     import World from "$sharedLib/components/icons/World.svelte";
+    import Moon from "$sharedLib/components/icons/Moon.svelte";
+    import Sun from "$sharedLib/components/icons/Sun.svelte";
+    import Home from "$sharedLib/components/icons/Home.svelte";
+    import Tools from "$sharedLib/components/icons/Tools.svelte";
+    import Cash from "$sharedLib/components/icons/Cash.svelte";
+    import Exit from "$sharedLib/components/icons/Exit.svelte";
+    import Book from "$sharedLib/components/icons/Book.svelte";
+    import Chat from "$sharedLib/components/icons/Chat.svelte";
+    import Key from "$sharedLib/components/icons/Key.svelte";
 
     let modal: Modal | null;
 
@@ -138,10 +147,8 @@
                 <div class="float-right">
                     <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
-                        <!-- sun icon -->
-                        <svg class="swap-off fill-current w-9 h-9" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" /></svg>
-                        <!-- moon icon -->
-                        <svg class="swap-on fill-current w-9 h-9" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" /></svg>
+                        <div class="swap-off w-9 h-9"><Sun /></div>
+                        <div class="swap-on w-9 h-9"><Moon /></div>
                     </label>
 
                     <div class="btn btn-ghost btn-circle 2xl:mr-2">
@@ -184,49 +191,33 @@
                         {#if !$NostrPublicKey}
                             <li class="block md:hidden md:h-0 text-primary">
                                 <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="text-primary" class="w-6 h-6 mr-1 stroke-primary">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-                                    </svg>
-                                    <b>Login</b>
+                                    <span class="w-6 h-6 mr-1 stroke-primary"><Key /></span> <b>Login</b>
                                 </a>
                             </li>
                         {/if}
                         <li class="block md:hidden md:h-0">
                             <a href="/" class="modal-button cursor-pointer text-base">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                                Home
+                                <span class="w-6 h-6 mr-1"><Home /></span> Home
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
                             <a href="/stalls" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1">
-                                    <Store />
-                                </div>
-                                Stall Browser
+                                <div class="w-6 h-6 mr-1"><Store /></div> Stall Browser
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
                             <a href="/universe" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1">
-                                    <World />
-                                </div>
-                                ¡Universe!
+                                <div class="w-6 h-6 mr-1"><World /></div> ¡Universe!
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
                             <a href="/marketsquare" class="modal-button cursor-pointer text-base">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                                </svg>
-                                Market Square
+                                <div class="w-6 h-6 mr-1"><Chat /></div> Market Square
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
                             <a href="/skills" class="modal-button cursor-pointer text-base">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-                                </svg>
-                                Skills Market
+                                <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
                             </a>
                         </li>
                         {#if $NostrPublicKey}
@@ -235,24 +226,18 @@
                             </li>
                             <li class="block md:hidden md:h-0">
                                 <a class="text-base" href="/p/{$NostrPublicKey}">
-                                    <div class="w-6 h-6 mr-1">
-                                        <User />
-                                    </div>
-                                    Me</a>
+                                    <div class="w-6 h-6 mr-1"><User /></div> Me
+                                </a>
                             </li>
                             <li class="block md:hidden md:h-0">
                                 <a class="text-base" href="/admin">
-                                    <div class="w-6 h-6 mr-1">
-                                        <Store />
-                                    </div>
-                                    Stall Manager</a>
+                                    <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
+                                </a>
                             </li>
                             <li class="block md:hidden md:h-0">
                                 <a class="text-base" href="/orders">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                                    </svg>
-                                    Orders</a>
+                                    <span class="w-6 h-6 mr-1"><Cash /></span> Orders
+                                </a>
                             </li>
                             <li>
                                 <a class="text-base" href="/settings">
@@ -261,10 +246,7 @@
                             </li>
                             <li>
                                 <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer text-base">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                                    </svg>
-                                    Logout
+                                    <span class="w-6 h-6 mr-1"><Exit /></span> Logout
                                 </a>
                             </li>
 
@@ -275,18 +257,12 @@
 
                         <li class="block md:hidden md:h-0">
                             <a href="/faq" class="modal-button cursor-pointer text-base">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                                </svg>
-                                FAQ
+                                <span class="w-6 h-6 mr-1"><Book /></span> FAQ
                             </a>
                         </li>
                         <li>
                             <a href="/contact" class="text-base">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                                </svg>
-                                Contact
+                                <div class="w-6 h-6 mr-1"><Chat /></div> Contact
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">

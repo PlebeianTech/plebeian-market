@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { browser } from "$app/environment";
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
@@ -8,19 +7,20 @@
     import type { User } from "$lib/types/user";
     import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
-    import Cash from "$lib/components/icons/Cash.svelte";
-    import Exit from "$lib/components/icons/Exit.svelte";
-    import Hamburger from "$lib/components/icons/Hamburger.svelte";
-    import Home from "$lib/components/icons/Home.svelte";
-    import Key from "$lib/components/icons/Key.svelte";
-    import Moon from "$lib/components/icons/Moon.svelte";
+    import Cash from "$sharedLib/components/icons/Cash.svelte";
+    import Exit from "$sharedLib/components/icons/Exit.svelte";
+    import Hamburger from "$sharedLib/components/icons/Hamburger.svelte";
+    import Home from "$sharedLib/components/icons/Home.svelte";
+    import Key from "$sharedLib/components/icons/Key.svelte";
+    import Moon from "$sharedLib/components/icons/Moon.svelte";
     import Settings from "$lib/components/icons/Settings.svelte";
     import Stall from "$lib/components/icons/Stall.svelte";
-    import Sun from "$lib/components/icons/Sun.svelte";
+    import Sun from "$sharedLib/components/icons/Sun.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import {requestLoginModal} from "$sharedLib/utils";
+    import {NostrPublicKey} from "$sharedLib/stores";
 
     let modal: Modal | null;
-    let modalVisible = false;
 
     let prefersDark = false;
 
@@ -147,8 +147,8 @@
                 </div>
             </a>
             <!-- Mobile menu button -->
-            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-4">
-                <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-400 w-6 h-6"><Hamburger /></button>
+            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-2 pr-0">
+                <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-400 w-7 h-7"><Hamburger /></button>
             </div>
         </div>
 
@@ -178,6 +178,7 @@
             </div>
 
             <div class="lg:flex items-center justify-start space-x-4">
+                {$NostrPublicKey}
                 <div class="flex justify-start lg:my-0 p-4 hidden lg:block">
                     <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
