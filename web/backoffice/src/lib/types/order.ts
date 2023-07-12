@@ -1,5 +1,4 @@
 import type { IEntity } from "$lib/types/base";
-import type { IAccount } from "$lib/types/user";
 
 export class Order implements IEntity {
     key: string = "";

@@ -19,19 +19,14 @@
 
     export let baseUrl: string;
 
-    export let bannerUrl: string | null;
     export let owner: IAccount | null;
     export let title: string | null;
     export let description: string | null;
-    export let editUrl: string | null = null;
-
-    export let badges: Badge[] = [];
 
     export let isOwnStall = false;
     export let isCampaignStall = false;
     export let campaignKey: string | null = null;
 
-    export let showItemsOwner: boolean;
     export let showItemsCampaign: boolean;
     export let canAddItems: boolean;
     export let showActiveAuctions: boolean = true;
@@ -229,7 +224,7 @@
                     onSave={onAuctionSave}
                     {onForceReload}
                     editor={AuctionEditor}
-                    {showItemsOwner} {showItemsCampaign}
+                    {showItemsCampaign}
                     card={ItemCard}
                     style={ListViewStyle.Grid}>
                     <div slot="new-entity" class="lg:flex items-center lg:justify-start justify-center my-4 lg:space-x-4 lg:space-y-0 space-y-2" let:setCurrent={setCurrent}>
@@ -262,7 +257,7 @@
                             onSave={onAuctionSave}
                             {onForceReload}
                             editor={canAddItems ? AuctionEditor : null}
-                            {showItemsOwner} {showItemsCampaign}
+                            {showItemsCampaign}
                             card={ItemCard}
                             style={ListViewStyle.Grid} />
                     </div>
@@ -280,7 +275,7 @@
                     onSave={onListingSave}
                     {onForceReload}
                     editor={ListingEditor}
-                    {showItemsOwner} {showItemsCampaign}
+                    {showItemsCampaign}
                     card={ItemCard}
                     style={ListViewStyle.Grid}>
                     <div slot="new-entity" class="flex justify-start" let:setCurrent={setCurrent}>
@@ -304,7 +299,7 @@
                             onSave={onListingSave}
                             {onForceReload}
                             editor={canAddItems ? ListingEditor : null}
-                            {showItemsOwner} {showItemsCampaign}
+                            {showItemsCampaign}
                             card={ItemCard}
                             style={ListViewStyle.Grid} />
                     </div>

@@ -587,7 +587,7 @@ class Birdwatcher:
         event_json = json.loads(event.to_message())[1] # ugly as hell. maybe we should just completely get rid of this python-nostr library, it's been a pain in the ass!
         response = requests.post(f"{self.base_url}/events", json=event_json)
         if response.status_code == 200:
-            app.logger.info(f"Successfully POSTed event {event.id} to birdwatcher!")
+            app.logger.info(f"Successfully POSTed event {event.id} to birdwatcher: {event_json=}!")
             return True
         else:
             app.logger.error(f"Error POSTing event {event.id} to birdwatcher!")
@@ -612,8 +612,8 @@ class Birdwatcher:
         except:
             app.logger.exception(f"Error publishing stall for merchant {merchant.merchant_public_key} via birdwatcher!")
 
-    def publish_product(self, entity):
-        product_json = entity.to_nostr()
+    def publish_product(self, entity, extra_media=None):
+        product_json = entity.to_nostr(extra_media)
         try:
             event = Event(kind=entity.nostr_event_kind, content=json.dumps(product_json), tags=[['d', product_json['id']]])
             entity.item.seller.parse_merchant_private_key().sign_event(event)

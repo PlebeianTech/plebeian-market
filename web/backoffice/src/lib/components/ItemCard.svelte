@@ -2,13 +2,12 @@
     import { onMount } from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
     import { ErrorHandler, deleteEntity, putPublish } from "$lib/services/api";
-    import { Error, Info, token, user } from "$lib/stores";
+    import { Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
     import type { Item } from "$lib/types/item";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
-    import Avatar from "$lib/components/Avatar.svelte";
     import Countdown, { CountdownStyle } from "$lib/components/Countdown.svelte";
     import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
     import Pencil from "$lib/components/icons/Pencil.svelte";
@@ -16,8 +15,6 @@
 
     export let isEditable = false;
     export let showCampaign = false;
-    export let showOwner = false;
-    export let showHide = false;
 
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
@@ -152,13 +149,6 @@
                   </div>
                 {/if}
             </p>
-            {#if showOwner}
-                <div class="divider"></div>
-                <div class="flex items-center justify-center gap-2">
-                    <span>by</span>
-                    <Avatar account={item.seller} inline={true} />
-                </div>
-            {/if}
             <div class="markdown-container max-h-52 overflow-hidden">
                 <SvelteMarkdown source={item.description} />
             </div>
