@@ -4,7 +4,7 @@
     You can request to open the login modal from everywhere by calling
     the helper function:
 
-    import { requestLoginModal } from "$lib/utils";
+    import { requestLoginModal } from "$sharedLib/utils";
 
     requestLoginModal(() => {
         console.log("Login correct, now let's do real stuff");
@@ -22,8 +22,10 @@
 <svelte:options accessors />
 
 <script lang="ts">
-    import NostrLogin from "$lib/components/login/Nostr.svelte";
-    import { loginModalState } from "$lib/stores";
+    import NostrLogin from "./Nostr.svelte";
+    import {loginModalState} from "$sharedLib/stores.ts";
+    import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
+    import {onMount} from "svelte";
 
     let open = false;
 
@@ -46,6 +48,11 @@
     }
 
     export let onLogin: () => void = () => {};
+
+    onMount(async () => {
+        $NostrPrivateKey = localStorage.getItem("nostrPrivateKey");
+        $NostrPublicKey = localStorage.getItem("nostrPublicKey");
+    });
 </script>
 
 <div class="modal" class:modal-open={open}>

@@ -4,10 +4,11 @@
     import type { VitaminedMessage } from "$lib/components/nostr/types";
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
-    import { queryNip05, filterTags, localStorageNostrPreferPMId, setPublicKey } from "$lib/nostr/utils";
+    import { queryNip05, filterTags } from "$sharedLib/nostr/utils";
     import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
-    import { user, NostrPublicKey, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
+    import { user, Error as ErrorStore, Info as InfoStore } from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
 
@@ -237,20 +238,6 @@
                 nip05.set(key, nip05verificationResult);
             }
         });
-    }
-
-    async function onChangeNostrPreferenceCheckbox(changeEvent) {
-        if (changeEvent.target.checked) {
-            localStorage.removeItem(localStorageNostrPreferPMId);
-        } else {
-            localStorage.setItem(localStorageNostrPreferPMId, '1');
-        }
-
-        if (await setPublicKey($user)) {
-            InfoStore.set("Using the key from your Nostr extension");
-        } else {
-            ErrorStore.set("Error getting the Nostr public key.");
-        }
     }
 
     function processMessagesPeriodically() {

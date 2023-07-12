@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { NostrPrivateKey, NostrPublicKey } from "$lib/stores";
-    import {logout, requestLoginModal} from "$lib/utils";
-    import {hasExtension} from "$lib/nostr/utils";
+    import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
+    import {logout, requestLoginModal} from "$sharedLib/utils";
+    import {hasExtension} from "$sharedLib/nostr/utils";
 
     function deletePrivateKey() {
         localStorage.removeItem('nostrPrivateKey');
@@ -51,7 +51,7 @@
         -->
     {/if}
 
-    <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Forget</button>
+    <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
 
 {:else}
     <div class="w-full items-center justify-center text-center">

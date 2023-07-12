@@ -7,17 +7,15 @@
         Info,
         Error,
         type Placement,
-        NostrPublicKey,
-        NostrPrivateKey,
         NostrGlobalConfig
     } from "$lib/stores";
 
-    import LoginModal from "$lib/components/login/Modal.svelte";
+    import LoginModal from "$sharedLib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
     import Notifications from "$lib/components/Notifications.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
     import {closePool, subscribeConfiguration} from "$lib/services/nostr";
-    import {getConfigurationFromFile} from "$lib/utils";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
 
@@ -62,9 +60,6 @@
 
     onMount(async () => {
         refreshStalls();
-
-        $NostrPrivateKey = localStorage.getItem("nostrPrivateKey");
-        $NostrPublicKey = localStorage.getItem("nostrPublicKey");
 
         let receivedAt = 0;
 

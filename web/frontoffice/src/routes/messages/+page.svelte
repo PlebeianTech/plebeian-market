@@ -1,5 +1,6 @@
 <script>
-    import {NostrPublicKey, privateMessages} from "$lib/stores";
+    import {privateMessages} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
     import {onMount} from "svelte";
     import {sendPrivateMessage} from "$lib/services/nostr";
     import {nip19} from "nostr-tools";
@@ -9,7 +10,7 @@
     import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
     import { page } from '$app/stores'
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils.ts";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils.ts";
 
     let selectedConversationPubkey = null;
     let sortedConversations;

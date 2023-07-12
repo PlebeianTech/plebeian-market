@@ -1,10 +1,9 @@
 import {goto} from "$app/navigation";
-import {loginModalState, Info, NostrPublicKey, privateMessages} from "$lib/stores";
+import {Info,  privateMessages} from "$lib/stores";
+import {NostrPublicKey, loginModalState} from "$sharedLib/stores";
 import {get} from "svelte/store";
 
 export const SATS_IN_BTC = 100000000;
-export let SHORT_TITLE_LIMIT = 70;
-export let SHORT_DESCRIPTION_LIMIT = 200;
 
 export function isDevelopment() {
     return import.meta.env.MODE === 'development';
@@ -28,6 +27,22 @@ export function getApiBaseUrl() {
 
 export function getEnvironmentInfo() {
     return import.meta.env.MODE;
+}
+
+export function requestLoginModal(callbackFunc: () => void = () => {}) {
+    loginModalState.set({
+        openRequested: true,
+        callbackFunc
+    });
+}
+
+export async function waitAndShowLoginIfNotLoggedAlready() {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    if (!get(NostrPublicKey)) {
+        requestLoginModal();
+        return false;
+    }
+    return true;
 }
 
 export function logout(gotoUrl?: string) {
@@ -66,38 +81,6 @@ export function usd2sats(usd: number, btc2usd: number | null): number | null {
 
 export function formatBTC(sats: number) {
     return (1 / SATS_IN_BTC * sats).toFixed(9);
-}
-
-export function requestLoginModal(callbackFunc: () => void = () => {}) {
-    loginModalState.set({
-        openRequested: true,
-        callbackFunc
-    });
-}
-
-export async function waitAndShowLoginIfNotLoggedAlready() {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    if (!get(NostrPublicKey)) {
-        requestLoginModal();
-        return false;
-    }
-    return true;
-}
-
-export function getShortTitle(longTitle): string {
-    if (longTitle) {
-        return longTitle.substring(0, SHORT_TITLE_LIMIT);
-    }
-
-    return '';
-}
-
-export function getShortDescription(longDescription): string {
-    if (longDescription) {
-        return longDescription.substring(0, SHORT_DESCRIPTION_LIMIT);
-    }
-
-    return '';
 }
 
 export function getMonthName(month: number) {

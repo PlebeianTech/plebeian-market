@@ -1,12 +1,13 @@
 <script>
-    import {Info, NostrPublicKey, privateMessages, products, stalls} from "$lib/stores";
-    import {formatTimestamp} from "$lib/nostr/utils.ts";
+    import {Info, privateMessages, products, stalls} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
+    import {formatTimestamp} from "$sharedLib/nostr/utils.ts";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping.ts";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
-    import {requestLoginModal} from "$lib/utils.ts";
+    import {requestLoginModal} from "$sharedLib/utils.ts";
     import {onDestroy, onMount} from "svelte";
     import {bech32} from "bech32";
     import {Buffer as BufferPolyfill} from "buffer";

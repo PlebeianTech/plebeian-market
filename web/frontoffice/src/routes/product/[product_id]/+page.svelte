@@ -9,7 +9,7 @@
     import Quantity from "$lib/components/stores/Quantity.svelte";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {addToCart} from "$lib/shopping";
-    import {filterTags} from "$lib/nostr/utils";
+    import {filterTags} from "$sharedLib/nostr/utils";
     import BidWidget from "$lib/components/stores/BidWidget.svelte";
 
     /** @type {import('./$types').PageData} */

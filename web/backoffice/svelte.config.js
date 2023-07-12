@@ -8,7 +8,7 @@ const config = {
 			out: 'build'
 		}),
 		alias: {
-			'$sharedLib': '../shared/lib',
+			'$sharedLib': '../shared/src/lib',
 		},
 		paths: {
 			base: '/admin'

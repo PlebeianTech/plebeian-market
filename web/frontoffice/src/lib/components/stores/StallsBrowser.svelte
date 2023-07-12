@@ -1,15 +1,16 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import {NostrGlobalConfig, NostrPublicKey, stalls} from "$lib/stores";
-    import {formatTimestamp} from "$lib/nostr/utils.js";
+    import {NostrGlobalConfig, stalls} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
+    import {formatTimestamp} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
     import {refreshStalls} from "$lib/shopping";
     import { goto } from "$app/navigation";
     import {publishConfiguration} from "$lib/services/nostr";
-    import {newNostrConversation} from "$lib/nostr/utils";
-    import {getConfigurationFromFile} from "$lib/utils";
+    import {newNostrConversation} from "$sharedLib/nostr/utils";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
     export let merchantPubkey: string | null;

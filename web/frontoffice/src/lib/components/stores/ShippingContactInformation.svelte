@@ -1,5 +1,5 @@
 <script>
-    import {NostrPublicKey} from "$lib/stores.ts";
+    import {NostrPublicKey} from "$sharedLib/stores";
     import Email from "$sharedLib/components/icons/Email.svelte";
     import Phone from "$sharedLib/components/icons/Phone.svelte";
     import Nostr from "$sharedLib/components/icons/Nostr.svelte";

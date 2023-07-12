@@ -1,7 +1,7 @@
 import { writable, type Writable } from 'svelte/store';
 import { SimplePool } from 'nostr-tools';
 import type { User } from "$lib/types/user";
-import {ShoppingCartItem} from "./types/stall";
+import type {ShoppingCartItem} from "./types/stall";
 
 export const token: Writable<string | null> = writable(null);
 
@@ -13,14 +13,6 @@ export const Info: Writable<string | null | {message: string, duration: number, 
 export const Error: Writable<string | null> = writable(null);
 
 export const BTC2USD: Writable<number | null> = writable(null);
-
-export const loginModalState: Writable<{
-    openRequested: boolean;
-    callbackFunc: () => void;
-}> = writable({
-    openRequested: false,
-    callbackFunc: () => {}
-});
 
 export const NostrPool: Writable<SimplePool> = writable(new SimplePool());
 
@@ -73,8 +65,5 @@ export const privateMessages: Writable<{
     human: [],
     automatic: []
 });
-
-export const NostrPublicKey: Writable<string | null> = writable(null);
-export const NostrPrivateKey: Writable<string | null> = writable(null);
 
 export const NostrGlobalConfig: Writable<object> = writable({});

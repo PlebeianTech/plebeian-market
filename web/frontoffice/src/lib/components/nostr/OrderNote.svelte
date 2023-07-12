@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {formatTimestamp} from '$lib/nostr/utils';
+    import {formatTimestamp} from '$sharedLib/nostr/utils';
 
     export let message;
 </script>

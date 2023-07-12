@@ -2,11 +2,11 @@
     import { onMount } from "svelte";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$lib/services/nostr";
-    import {filterTags, getFirstTagValue} from "$lib/nostr/utils";
+    import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
     import {onImgError} from "$lib/shopping";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import {refreshStalls} from "$lib/shopping";
-    import {getConfigurationFromFile} from "$lib/utils";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
 
     export let whiteListedStalls: string | null = null;
     export let maxProductsLoaded: number = 20;
