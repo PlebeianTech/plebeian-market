@@ -9,6 +9,7 @@ import json
 import logging
 from logging.config import dictConfig
 import os
+import os.path
 import requests
 import sys
 import time
@@ -239,9 +240,10 @@ args = parser.parse_args()
 
 processed_event_ids = set()
 
-with open(PROCESSED_EVENT_IDS_FILENAME, 'r') as f:
-    for line in f:
-        processed_event_ids.add(line.strip())
+if os.path.isfile(PROCESSED_EVENT_IDS_FILENAME):
+    with open(PROCESSED_EVENT_IDS_FILENAME, 'r') as f:
+        for line in f:
+            processed_event_ids.add(line.strip())
 
 logging.info(f"Processed events: {len(processed_event_ids)}")
 
