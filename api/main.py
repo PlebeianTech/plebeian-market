@@ -13,7 +13,6 @@ import io
 from itertools import chain
 import json
 import jwt
-import lndgrpc
 import logging
 from logging.config import dictConfig
 import magic
@@ -317,42 +316,6 @@ def user_required(f):
             return jsonify({'success': False, 'message': "Invalid token."}), 401
         return f(user, *args, **kwargs)
     return decorator
-
-class MockLNDClient:
-    class InvoiceResponse:
-        def __init__(self, payment_request=None, state=None, settle_index=None):
-            if payment_request:
-                self.payment_request = payment_request
-            else:
-                self.payment_request = "MOCK_" + ''.join(random.choice(string.ascii_lowercase) for i in range(8))
-            self.state = state
-            self.settle_index = settle_index
-
-    def add_invoice(self, value, **_):
-        return MockLNDClient.InvoiceResponse()
-
-    def subscribe_invoices(self, **_):
-        last_settle_index = int(db.session.query(m.State).filter_by(key=m.State.LAST_SETTLE_INDEX).first().value)
-        while True:
-            time.sleep(3)
-            for unsettled_bid in db.session.query(m.Bid).filter(m.Bid.settled_at == None):
-                if unsettled_bid.requested_at > datetime.utcnow() - timedelta(seconds=1):
-                    # give it at least a second in test mode
-                    continue
-                last_settle_index += 1
-                yield MockLNDClient.InvoiceResponse(unsettled_bid.payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
-            for unsettled_sale_contribution in db.session.query(m.Sale).filter(m.Sale.contribution_settled_at == None):
-                if unsettled_sale_contribution.requested_at > datetime.utcnow() - timedelta(seconds=1):
-                    # give it at least a second in test mode
-                    continue
-                last_settle_index += 1
-                yield MockLNDClient.InvoiceResponse(unsettled_sale_contribution.contribution_payment_request, lndgrpc.client.ln.SETTLED, last_settle_index)
-
-def get_lnd_client():
-    if app.config['MOCK_LND']:
-        return MockLNDClient()
-    else:
-        return lndgrpc.LNDClient(app.config['LND_GRPC'], macaroon_filepath=app.config['LND_MACAROON'], cert_filepath=app.config['LND_TLS_CERT'])
 
 class MockBTCClient:
     def get_funding_txs(self, addr):

@@ -21,7 +21,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_lnd_client, get_birdwatcher, get_nostr_client, get_app_private_key, get_s3, get_twitter
+from main import app, get_birdwatcher, get_nostr_client, get_app_private_key, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event

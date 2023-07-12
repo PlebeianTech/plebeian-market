@@ -10,7 +10,6 @@ flask-cors
 flask-migrate
 flask-sqlalchemy
 gunicorn
-lnd-grpc-client>=0.3.41
 lnurl
 git+https://github.com/jeffthibault/python-nostr.git#egg=nostr
 psycopg2
