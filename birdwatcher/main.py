@@ -173,6 +173,7 @@ class Relay:
                                     async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
                                         await f.write(f"{event['id']}\n")
                                     merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
+                                    logging.info(f"({self.url}) POSTing DM event to API: {event['id']}")
                                     await self.post_dm(merchant_pubkey, event, all_relays)
                                 else:
                                     logging.info(f"({self.url}) Skipping DM event: {event['id']}")
@@ -182,6 +183,7 @@ class Relay:
                                     async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
                                         await f.write(f"{event['id']}\n")
                                     auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
+                                    logging.info(f"({self.url}) POSTing bid event to API: {event['id']}")
                                     await self.post_bid(auction_event_id, event, all_relays)
                                 else:
                                     logging.info(f"({self.url}) Skipping bid event: {event['id']}")
