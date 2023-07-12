@@ -1,6 +1,5 @@
 import type { IEntity } from "$lib/types/base";
 import { Category, type Item, type AddedMedia, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
-import type { IAccount } from "$lib/types/user";
 
 export class Listing implements IEntity, Item {
     static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'price_usd', 'available_quantity'];
@@ -11,7 +10,6 @@ export class Listing implements IEntity, Item {
     uuid: string = "";
     key: string = "";
     title: string = "";
-    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false};
     description: string = "";
     descriptionPlaceholder: string = "";
     category: string | null = null;
@@ -64,18 +62,5 @@ export function fromJson(json: any): Listing {
             l[k] = json[k];
         }
     }
-    l.seller = {
-        nym: <string>json.seller_nym,
-        displayName: <string>json.seller_display_name,
-        profileImageUrl: <string | null>json.seller_profile_image_url,
-        email: <string | null>json.seller_email,
-        emailVerified: <boolean>json.seller_email_verified,
-        telegramUsername: <string | null>json.seller_telegram_username,
-        telegramUsernameVerified: <boolean>json.seller_telegram_username_verified,
-        twitterUsername: <string | null>json.seller_twitter_username,
-        twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
-        nostrPublicKey: <string | null>json.seller_nostr_public_key,
-        nostrPublicKeyVerified: <boolean>json.seller_nostr_public_key_verified,
-    };
     return l;
 }

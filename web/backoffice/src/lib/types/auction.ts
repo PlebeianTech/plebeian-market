@@ -29,7 +29,6 @@ export class Auction implements IEntity, Item {
     uuid: string = "";
     key: string = "";
     title: string = "";
-    seller: IAccount = {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false};
     description: string = "";
     descriptionPlaceholder: string = "";
     category: string | null = null;
@@ -187,19 +186,6 @@ export function fromJson(json: any): Auction {
             a[k] = json[k];
         }
     }
-    a.seller = {
-        nym: <string>json.seller_nym,
-        displayName: <string>json.seller_display_name,
-        profileImageUrl: <string | null>json.seller_profile_image_url,
-        email: <string | null>json.seller_email,
-        emailVerified: <boolean>json.seller_email_verified,
-        telegramUsername: <string | null>json.seller_telegram_username,
-        telegramUsernameVerified: <boolean>json.seller_telegram_username_verified,
-        twitterUsername: <string | null>json.seller_twitter_username,
-        twitterUsernameVerified: <boolean>json.seller_twitter_username_verified,
-        nostrPublicKey: <string | null>json.seller_nostr_public_key,
-        nostrPublicKeyVerified: <boolean>json.seller_nostr_public_key_verified,
-    };
     if (json.winner_nym) {
         a.winner = {
             nym: <string>json.winner_nym,

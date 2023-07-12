@@ -69,13 +69,9 @@
 {#if owner}
     <StallView
         baseUrl="users/me"
-        bannerUrl={null}
         {owner} title={null}
         description={null}
-        editUrl="/admin/account/settings#onsave=mystall"
-        badges={owner.badges}
         isOwnStall={true}
-        showItemsOwner={false}
         showItemsCampaign={true}
         canAddItems={true}
         showActiveAuctions={true} showPastAuctions={true}

@@ -35,7 +35,7 @@
         return new Relay(<number>json.id, <string>json.url);
     }
 
-    export let onSave: () => void = () => {};
+    export const onSave: () => void = () => {};
 
     let relays: Relay[] = [];
     let newRelay = new Relay(null, "");

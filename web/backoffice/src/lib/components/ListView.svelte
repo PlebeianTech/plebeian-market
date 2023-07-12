@@ -16,7 +16,6 @@
     export let loader: ILoader;
     export let card;
     export let editor: any | null;
-    export let showItemsOwner = false;
     export let showItemsCampaign = false;
     export let postEndpoint: string | null = null;
     export let style: ListViewStyle;
@@ -95,14 +94,14 @@
 
         {#if style === ListViewStyle.List}
             {#each entities as entity}
-                <svelte:component this={card} {entity} showOwner={showItemsOwner} showCampaign={showItemsCampaign} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
+                <svelte:component this={card} {entity} showCampaign={showItemsCampaign} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
             {/each}
         {:else if style === ListViewStyle.Grid}
             <div class="w-full">
                 <div class="grid lg:grid-cols-2 gap-4">
                     {#each entities as entity}
                         <div class="">
-                            <svelte:component this={card} {entity} showOwner={showItemsOwner} showCampaign={showItemsCampaign} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
+                            <svelte:component this={card} {entity} showCampaign={showItemsCampaign} isEditable={editor !== null && entity.is_mine} onEdit={(e) => currentEntity = e} {onEntityChanged} />
                         </div>
                     {/each}
                 </div>

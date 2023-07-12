@@ -235,8 +235,6 @@ class User(WalletMixin, db.Model):
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    sales = db.relationship('Sale', backref='buyer', order_by="Sale.requested_at")
-
     def fetch_external_profile_image(self, external_profile_image_url, s3):
         url, _ = store_image(s3, f"user_{self.id}_profile_image", True, external_profile_image_url, None)
         if not url:
@@ -750,8 +748,6 @@ class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
     auctions = db.relationship('Auction', backref='campaign')
     listings = db.relationship('Listing', backref='campaign')
 
-    sales = db.relationship('Sale', backref='campaign', order_by="Sale.requested_at")
-
     def sort_key(self):
         return self.created_at
 
@@ -830,8 +826,6 @@ class Item(db.Model):
 
     auctions = db.relationship('Auction', backref='item')
     listings = db.relationship('Listing', backref='item')
-
-    sales = db.relationship('Sale', backref='item', order_by="Sale.requested_at")
 
     @classmethod
     def validate_dict(cls, d, for_method=None):
@@ -948,13 +942,15 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     def nostr_event_kind(self):
         return 30020
 
-    def to_nostr(self):
+    def to_nostr(self, extra_media=None):
+        if extra_media is None:
+            extra_media = []
         return {
             'id': str(self.uuid),
             'stall_id': self.item.seller.identity,
             'name': self.item.title,
             'description': self.item.description,
-            'images': [media.url for media in self.item.media],
+            'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
             'starting_bid': self.starting_bid,
             'start_date': int(self.start_date.timestamp()) if self.start_date else None,
             'duration': self.duration_hours * 60 * 60,
@@ -968,7 +964,9 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         else:
             ends_in_seconds = (self.end_date - datetime.utcnow()).total_seconds()
         auction = {
+            'merchant_public_key': self.item.seller.merchant_public_key,
             'uuid': str(self.uuid),
+            'nostr_event_id': self.nostr_event_id,
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
@@ -991,17 +989,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.item.seller_id if for_user else False,
-            'seller_nym': self.item.seller.nym,
-            'seller_display_name': self.item.seller.display_name,
-            'seller_profile_image_url': self.item.seller.profile_image_url,
-            'seller_email': self.item.seller.email,
-            'seller_email_verified': self.item.seller.email_verified,
-            'seller_telegram_username': self.item.seller.telegram_username,
-            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
-            'seller_twitter_username': self.item.seller.twitter_username,
-            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
-            'seller_nostr_public_key': self.item.seller.nostr_public_key,
-            'seller_nostr_public_key_verified': self.item.seller.nostr_public_key_verified,
         }
 
         auction['bid_thresholds'] = [{'bid_amount_usd': bd['threshold_usd'], 'required_badge': b}
@@ -1014,12 +1001,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
         if for_user == self.owner_id:
             auction['reserve_bid'] = self.reserve_bid
-
-        if for_user:
-            # NB: we only return sales for the current user, but for the seller we return all sales
-            auction['sales'] = [sale.to_dict()
-                for sale in self.item.sales
-                if sale.buyer_id == for_user or for_user == self.owner_id]
 
         if auction['has_winner']:
             winning_bid = [b for b in self.bids if b.id == self.winning_bid_id][0]
@@ -1037,12 +1018,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
                 auction['winner_nostr_public_key_verified'] = winning_bid.buyer.nostr_public_key_verified
             else:
                 auction['winner_nym'] = winning_bid.buyer_nostr_public_key
-
-        if for_user is not None:
-            user_auction = UserAuction.query.filter_by(user_id=for_user, auction_id=self.id).one_or_none()
-            auction['following'] = user_auction.following if user_auction is not None else False
-        else:
-            auction['following'] = False # TODO: when does this even happen?
 
         return auction
 
@@ -1141,13 +1116,15 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     def nostr_event_kind(self):
         return 30018
 
-    def to_nostr(self):
+    def to_nostr(self, extra_media=None):
+        if extra_media is None:
+            extra_media = []
         return {
             'id': str(self.uuid),
             'stall_id': self.item.seller.identity,
             'name': self.item.title,
             'description': self.item.description,
-            'images': [media.url for media in self.item.media],
+            'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
             'currency': 'USD',
             'price': self.price_usd,
             'quantity': self.available_quantity,
@@ -1159,6 +1136,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
         listing = {
             'merchant_public_key': self.item.seller.merchant_public_key,
             'uuid': str(self.uuid),
+            'nostr_event_id': self.nostr_event_id,
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
@@ -1175,27 +1153,11 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.item.seller_id,
-            'seller_nym': self.item.seller.nym,
-            'seller_display_name': self.item.seller.display_name,
-            'seller_profile_image_url': self.item.seller.profile_image_url,
-            'seller_email': self.item.seller.email,
-            'seller_email_verified': self.item.seller.email_verified,
-            'seller_telegram_username': self.item.seller.telegram_username,
-            'seller_telegram_username_verified': self.item.seller.telegram_username_verified,
-            'seller_twitter_username': self.item.seller.twitter_username,
-            'seller_twitter_username_verified': self.item.seller.twitter_username_verified,
-            'seller_nostr_public_key': self.item.seller.nostr_public_key,
-            'seller_nostr_public_key_verified': self.item.seller.nostr_public_key_verified,
         }
         if self.item.category == Category.Time.value:
             listing['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.profile_image_url}]
         else:
             listing['media'] = [media.to_dict() for media in self.item.media]
-
-        if for_user:
-            # NB: we only return sales for the current user, so that the UI can know the sales were settled
-            # sales for other users should be kept private or eventually shown to the seller only!
-            listing['sales'] = [sale.to_dict() for sale in self.item.sales if sale.buyer_id == for_user]
 
         return listing
 
@@ -1315,6 +1277,10 @@ class Order(db.Model):
     __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    # NB: this is string, not UUID, because it is generated by the buyer
+    # TODO: should we make it unique=False for this very reason,
+    # so there is no chance of clash between orders of different users if they don't use random enough "UUID"s?
     uuid = db.Column(db.String(36), unique=True, nullable=False, index=True)
 
     # NB: orders contain items which are all from the same seller, so we denormalize seller_id here for simplicity
@@ -1411,7 +1377,6 @@ class SaleState(Enum):
 class Sale(db.Model):
     """
         Sales are old-style (pre-NIP-15) orders, used to purchase items directly from our API.
-        They are also used for items purchased via auctions (since auctions are not migrated to Nostr yet).
     """
 
     __tablename__ = 'sales'

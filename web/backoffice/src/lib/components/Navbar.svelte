@@ -20,7 +20,6 @@
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 
     let modal: Modal | null;
-    let modalVisible = false;
 
     let prefersDark = true;
 

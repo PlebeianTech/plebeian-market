@@ -14,7 +14,6 @@ from nostr.event import Event, EncryptedDirectMessage
 from nostr.key import PrivateKey
 import os
 import pyqrcode
-import secp256k1
 import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
@@ -25,6 +24,7 @@ import models as m
 from main import app, get_lnd_client, get_birdwatcher, get_nostr_client, get_app_private_key, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
+from nostr_utils import EventValidationError, validate_event
 from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
 
 api_blueprint = Blueprint('api', __name__)
@@ -34,13 +34,9 @@ def healthcheck(): # TODO: I don't really like this, for some reason, but it is 
     return jsonify({'success': True})
 
 # PUT would make more sense than GET, but the lightning wallets only do GET - perhaps we could split this in two parts - the part called by our app and the GET done by the wallet
-@api_blueprint.route('/api/login', methods=['GET'], defaults={'deprecated': True, 'create_user': True}) # deprecated, but still used by the WP plugin
-@api_blueprint.route('/api/login/lnurl', methods=['GET'], defaults={'deprecated': False, 'create_user': False})
-@api_blueprint.route('/api/signup/lnurl', methods=['GET'], defaults={'deprecated': False, 'create_user': True})
-def auth_lnurl(deprecated, create_user):
-    if deprecated:
-        return redirect(f"{app.config['API_BASE_URL']}/api/login/lnurl", code=301)
-
+@api_blueprint.route('/api/login/lnurl', methods=['GET'], defaults={'create_user': False})
+@api_blueprint.route('/api/signup/lnurl', methods=['GET'], defaults={'create_user': True})
+def auth_lnurl(create_user):
     if 'k1' not in request.args:
         # first request to /login => we return a challenge (k1) and a QR code
         k1 = secrets.token_hex(32)
@@ -98,6 +94,7 @@ def auth_lnurl(deprecated, create_user):
     if not user:
         if create_user:
             user = m.User(lnauth_key=lnauth.key)
+            user.ensure_merchant_key()
             db.session.add(user)
         else:
             return jsonify({'message': "User not found. Please create an account first."}), 400
@@ -160,6 +157,7 @@ def auth_nostr(create_user):
         if not user:
             if create_user:
                 user = m.User(nostr_public_key=auth.key, nostr_public_key_verified=True)
+                user.ensure_merchant_key()
                 db.session.add(user)
             else:
                 return jsonify({'message': "User not found. Please create an account first."}), 400
@@ -188,15 +186,6 @@ def auth_nostr(create_user):
         auth.verification_phrase_check_counter += 1
         db.session.commit()
         return jsonify({'message': "Wrong incantation..."}), 400
-
-@api_blueprint.route('/api/users/<nym>', methods=['GET'])
-def get_profile(nym):
-    requesting_user = get_user_from_token(get_token_from_request())
-    for_user_id = requesting_user.id if requesting_user else None
-    user = m.User.query.filter_by(nym=nym).first()
-    if not user:
-        return jsonify({'message': "User not found."}), 404
-    return jsonify({'user': user.to_dict(for_user=for_user_id)})
 
 @api_blueprint.route('/api/users/me', methods=['GET'])
 @user_required
@@ -525,47 +514,6 @@ def delete_user_relay(user, relay_id):
     db.session.commit()
     return jsonify({})
 
-@api_blueprint.route('/api/users/me/notifications', methods=['GET', 'PUT'])
-@user_required
-def user_notifications(user):
-    existing_notifications = {
-        n.notification_type: n for n in m.UserNotification.query.filter_by(user_id=user.id).all()
-    }
-    if request.method == 'GET':
-        notifications = []
-        for t in m.NOTIFICATION_TYPES:
-            if t in existing_notifications:
-                notifications.append((False, existing_notifications[t]))
-            else:
-                notifications.append((True, m.UserNotification(notification_type=t, action=m.NOTIFICATION_TYPES[t].default_action)))
-        return jsonify({'notifications': [n.to_dict() | {'is_default': is_default} for (is_default, n) in notifications]})
-    elif request.method == 'PUT':
-        for notification in request.json['notifications']:
-            if notification['notification_type'] not in existing_notifications:
-                db.session.add(m.UserNotification(
-                    user_id=user.id,
-                    notification_type=notification['notification_type'],
-                    action=notification['action']))
-            else:
-                existing_notifications[notification['notification_type']].action = notification['action']
-        db.session.commit()
-        return jsonify({})
-
-@api_blueprint.route('/api/users/me/messages', methods=['GET'])
-@user_required
-def get_messages(user):
-    # by default we only return INTERNAL messages (to be shown in the UI),
-    # but using the "via" parameter, we can request additional messages,
-    # for example via=TWITTER_DM will return all messages sent to this user via TWITTER_DM
-    via = request.args.get('via') or 'INTERNAL'
-
-    if via == 'all':
-        messages = user.messages
-    else:
-        messages = m.Message.query.filter_by(user_id=user.id, notified_via=via).all()
-
-    return jsonify({'messages': [m.to_dict() for m in messages]})
-
 @api_blueprint.route('/api/users/me/orders', methods=['GET'])
 @user_required
 def get_orders(user):
@@ -602,20 +550,6 @@ def put_order(user, uuid):
     db.session.commit()
 
     return jsonify({'order': order.to_dict()})
-
-@api_blueprint.route('/api/users/me/sales', methods=['GET'])
-@user_required
-def get_sales(user):
-    sales = m.Sale.query.filter(m.Item.id == m.Sale.item_id, m.Item.seller_id == user.id).order_by(desc(m.Sale.requested_at)).all()
-
-    return jsonify({'sales': [s.to_dict() for s in sales]})
-
-@api_blueprint.route('/api/users/me/purchases', methods=['GET'])
-@user_required
-def get_purchases(user):
-    purchases = m.Sale.query.filter(m.Sale.buyer_id == user.id).order_by(desc(m.Sale.requested_at)).all()
-
-    return jsonify({'purchases': [p.to_dict() for p in purchases]})
 
 @api_blueprint.route("/api/users/me/auctions",
     defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True, 'campaign_key': None},
@@ -666,12 +600,6 @@ def post_entity(user, cls, singular, has_item, campaign_key):
         entity.owner = user
     db.session.add(entity)
     db.session.commit()
-
-    if isinstance(entity, m.Auction):
-        # follow your own auctions!
-        user_auction = m.UserAuction(user_id=user.id, auction_id=entity.id, following=True)
-        db.session.add(user_auction)
-        db.session.commit()
 
     return jsonify({'key': entity.key, singular: entity.to_dict(for_user=user.id)})
 
@@ -837,7 +765,7 @@ def post_media(key, cls, singular):
         added_media.append(media)
 
     if entity.started:
-        entity.nostr_event_id = get_birdwatcher().publish_product(entity)
+        entity.nostr_event_id = get_birdwatcher().publish_product(entity, added_media)
         if not entity.nostr_event_id:
             return jsonify({'message': "Error publishing product to Nostr!"}), 500
 
@@ -875,33 +803,15 @@ def delete_media(key, cls, content_hash):
         return jsonify({'message': "Media not found."}), 404
 
     db.session.delete(media)
+
+    user.ensure_merchant_key()
+    entity.nostr_event_id = get_birdwatcher().publish_product(entity)
+    if not entity.nostr_event_id:
+        return jsonify({'message': "Error publishing product to Nostr!"}), 500
+
     db.session.commit()
 
     return jsonify({})
-
-@api_blueprint.route('/api/auctions/<key>/follow', methods=['PUT'])
-@user_required
-def follow_auction(user, key):
-    auction = m.Auction.query.filter_by(key=key).first()
-    if not auction:
-        return jsonify({'message': "Not found."}), 404
-
-    follow = bool(request.json['follow'])
-
-    if auction.item.seller_id == user.id and not follow:
-        return jsonify({'message': "Can't unfollow your own auctions!"}), 400
-
-    user_auction = m.UserAuction.query.filter_by(user_id=user.id, auction_id=auction.id).one_or_none()
-    if user_auction is None:
-        message = "Started following the auction."
-        user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=follow)
-        db.session.add(user_auction)
-    else:
-        message = "Following the auction." if follow else "Unfollowed the auction."
-        user_auction.following = follow
-    db.session.commit()
-
-    return jsonify({'message': message})
 
 @api_blueprint.route('/api/auctions/<key>/publish',
     defaults={'cls': m.Auction},
@@ -934,206 +844,6 @@ def put_publish(user, key, cls):
     db.session.commit()
 
     return jsonify({})
-
-@api_blueprint.route('/api/auctions/<key>/bids', methods=['POST'])
-@user_required
-def post_bid(user, key):
-    auction = m.Auction.query.filter_by(key=key).first()
-    if not auction:
-        return jsonify({'message': "Not found."}), 404
-
-    if not auction.started:
-        return jsonify({'message': "Auction not started."}), 403
-    if auction.ended:
-        return jsonify({'message': "Auction ended."}), 403
-
-    amount = int(request.json['amount'])
-    if amount > 2100000000:
-        # TODO: should we change integer to bigint in the models?
-        return jsonify({'message': "Max bidding: 21 BTC!"}), 400
-
-    if not user.twitter_username_verified and not user.nostr_public_key_verified:
-        return jsonify({'message': "Please verify your Nostr or Twitter account before bidding!"}), 400
-
-    top_bid = auction.get_top_bid()
-    if top_bid and amount <= top_bid.amount:
-        return jsonify({'message': f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"}), 400
-    elif amount < auction.starting_bid:
-        return jsonify({'message': f"Your bid needs to be equal or higher than {auction.starting_bid}, the starting bid."}), 400
-
-    if auction.campaign: # TODO: for now we only support badges for campaigns
-        try:
-            btc2usd = btc2fiat.get_value('kraken')
-        except Exception:
-            return jsonify({'message': "Error fetching the exchange rate!"}), 500
-        user_badges = {b['badge'] for b in user.get_badges()}
-        for badge, badge_data in app.config['BADGES'].items():
-            threshold_sats = usd2sats(badge_data['threshold_usd'], btc2usd)
-            if amount >= threshold_sats:
-                if badge not in user_badges:
-                    return jsonify({'message': f"Can't bid more than ${badge_data['threshold_usd']} without a badge.", 'required_badge': badge}), 402
-
-    if request.json.get('skip_invoice') == 'NEW_BADGE' and any(b['awarded_at'] >= datetime.utcnow() - timedelta(minutes=1) for b in user.get_badges()):
-        # NB: we can skip the lightning invoice in the first minute after we have been awarded a badge,
-        # this is so that the frontend can automatically re-place the previous bid which failed due to a badge being required
-        payment_request = None
-        auction.extend()
-    else:
-        response = get_lnd_client().add_invoice(value=app.config['LND_BID_INVOICE_AMOUNT'], expiry=app.config['LND_BID_INVOICE_EXPIRY'])
-        payment_request = response.payment_request
-
-    bid = m.Bid(auction=auction, buyer=user, amount=amount, payment_request=payment_request, settled_at=datetime.utcnow())
-    if payment_request is None:
-        bid.settled_at = datetime.utcnow()
-    db.session.add(bid)
-
-    started_following = False
-    user_auction = m.UserAuction.query.filter_by(user_id=user.id, auction_id=auction.id).one_or_none()
-    if user_auction is None:
-        user_auction = m.UserAuction(user_id=user.id, auction_id=auction.id, following=True)
-        db.session.add(user_auction)
-        started_following = True
-    else:
-        if not user_auction.following:
-            started_following = True
-            user_auction.following = True
-    db.session.commit()
-
-    if payment_request:
-        qr = BytesIO()
-        pyqrcode.create(payment_request).svg(qr, omithw=True, scale=4)
-
-        return jsonify({
-            'payment_request': payment_request,
-            'qr': qr.getvalue().decode('utf-8'),
-            'messages': [
-                "Your bid will be confirmed once you scan the QR code.",
-            ] + (["Started following the auction."] if started_following else []),
-        })
-    else:
-        return jsonify({'messages': ["Your bid is confirmed!"]}), 200
-
-@api_blueprint.route('/api/badges/<int:badge>/buy', methods=['PUT'])
-@user_required
-def buy_badge(user, badge):
-    if badge not in app.config['BADGES']:
-        return jsonify({'message': "Badge not found."}), 404
-
-    if not request.json.get('campaign_key'):
-        # TODO: implement badge purchase without campaign
-        return jsonify({'message': "campaign_key is required."}), 400
-
-    campaign = m.Campaign.query.filter_by(key=request.json['campaign_key']).first()
-    if not campaign:
-        return jsonify({'message': "Campaign not found."}), 404
-
-    try:
-        btc2usd = btc2fiat.get_value('kraken')
-    except Exception:
-        return jsonify({'message': "Error fetching the exchange rate!"}), 500
-
-    try:
-        address = campaign.get_new_address()
-        db.session.commit()
-    except m.AddressGenerationError as e:
-        return jsonify({'message': str(e)}), 500
-    except MempoolSpaceError as e:
-        return jsonify({'message': str(e)}), 500
-
-    amount_usd = app.config['BADGES'][badge]['price_usd']
-    amount_sats = usd2sats(amount_usd, btc2usd)
-
-    sale = m.Sale(
-        campaign_id=campaign.id,
-        desired_badge=badge,
-        buyer_id=user.id,
-        address=address,
-        price_usd=amount_usd,
-        price=amount_sats,
-        shipping_domestic=0,
-        shipping_worldwide=0,
-        quantity=1,
-        amount=amount_sats,
-        contribution_amount=0,
-        contribution_payment_request=None,
-        state=m.SaleState.CONTRIBUTION_SETTLED.value)
-    db.session.add(sale)
-
-    try:
-        db.session.commit()
-    except IntegrityError:
-        return jsonify({'message': "Address already in use. Please try again."}), 500
-
-    return jsonify({'sale': sale.to_dict()})
-
-@api_blueprint.route('/api/listings/<key>/buy', methods=['PUT'])
-@user_required
-def buy_listing(user, key):
-    listing = m.Listing.query.filter_by(key=key).first()
-    if not listing:
-        return jsonify({'message': "Not found."}), 404
-    if not listing.started or listing.ended:
-        return jsonify({'message': "Listing not active."}), 403
-
-    if m.Sale.query.filter_by(listing_id=listing.id, buyer_id=user.id, state=m.SaleState.REQUESTED.value).first():
-        return jsonify({'message': "You already have an active purchase for this listing."}), 403
-
-    # NB: for now the quantity is always 1,
-    # but storing this in the DB makes it easy in case we want to change this later on:
-    # it would just be a matter of getting a quantity from the UI and sending it here to be used instead of 1.
-    quantity = 1
-
-    if listing.available_quantity < quantity:
-        return jsonify({'message': "Not enough items in stock!"}), 400
-
-    # NB: here we "lock" the quantity. it is given back if the sale expires
-    listing.available_quantity -= quantity
-
-    try:
-        btc2usd = btc2fiat.get_value('kraken')
-    except Exception:
-        return jsonify({'message': "Error fetching the exchange rate!"}), 500
-
-    try:
-        if listing.campaign:
-            address = listing.campaign.get_new_address()
-        else:
-            address = listing.item.seller.get_new_address()
-    except m.AddressGenerationError as e:
-        return jsonify({'message': str(e)}), 500
-    except MempoolSpaceError as e:
-        return jsonify({'message': str(e)}), 500
-
-    price_sats = usd2sats(listing.price_usd, btc2usd)
-    contribution_amount = listing.item.seller.get_contribution_amount(price_sats * quantity)
-
-    if contribution_amount != 0:
-        response = get_lnd_client().add_invoice(value=contribution_amount, expiry=app.config['LND_CONTRIBUTION_INVOICE_EXPIRY_LISTING'])
-        contribution_payment_request = response.payment_request
-    else:
-        contribution_payment_request = None
-
-    sale = m.Sale(item_id=listing.item.id, listing_id=listing.id,
-        buyer_id=user.id,
-        address=address,
-        price_usd=listing.price_usd,
-        price=price_sats,
-        shipping_domestic=usd2sats(listing.item.shipping_domestic_usd, btc2usd),
-        shipping_worldwide=usd2sats(listing.item.shipping_worldwide_usd, btc2usd),
-        quantity=quantity,
-        amount=(price_sats * quantity) - contribution_amount,
-        contribution_amount=contribution_amount,
-        contribution_payment_request=contribution_payment_request)
-    if not contribution_payment_request:
-        sale.state = m.SaleState.CONTRIBUTION_SETTLED.value
-    db.session.add(sale)
-
-    try:
-        db.session.commit()
-    except IntegrityError:
-        return jsonify({'message': "Address already in use. Please try again."}), 500
-
-    return jsonify({'sale': sale.to_dict()})
 
 @api_blueprint.route("/api/users/<nym>/auctions",
     defaults={'plural': 'auctions'},
@@ -1245,26 +955,16 @@ def get_merchant(pubkey):
 
 @api_blueprint.route("/api/merchants/<pubkey>/messages", methods=['POST'])
 def post_merchant_message(pubkey):
+    try:
+        validate_event(request.json)
+    except EventValidationError as e:
+        return jsonify({'message': e.message}), 400
+
     merchant = m.User.query.filter_by(merchant_public_key=pubkey).one_or_none()
     if not merchant:
         return jsonify({'message': "Merchant not found!"}), 404
 
     merchant_private_key = merchant.parse_merchant_private_key()
-
-    event_data = [0, request.json['pubkey'], request.json['created_at'], request.json['kind'], request.json['tags'], request.json['content']]
-    event_data_str = json.dumps(event_data, separators=(",", ":"), ensure_ascii=False)
-    serialized_event = event_data_str.encode()
-    expected_event_id = sha256(serialized_event).hexdigest()
-
-    if request.json['id'] != expected_event_id:
-        return jsonify({'message': "Invalid event ID!"}), 400
-
-    try:
-        pub_key = secp256k1.PublicKey(bytes.fromhex("02" + request.json['pubkey']), True) # 02 for Schnorr (BIP340)
-        if not pub_key.schnorr_verify(bytes.fromhex(request.json['id']), bytes.fromhex(request.json['sig']), None, raw=True):
-            return jsonify({'message': "Invalid event signature!"}), 400
-    except ValueError:
-        return jsonify({'message': "Invalid event signature!"}), 400
 
     if request.json['kind'] == 4:
         cleartext_content = json.loads(merchant_private_key.decrypt_message(request.json['content'], public_key_hex=request.json['pubkey']))
@@ -1293,7 +993,7 @@ def post_merchant_message(pubkey):
                     shipping_usd = merchant.shipping_domestic_usd
                 else:
                     message = "Invalid shipping zone!"
-                    get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key, message)
+                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
                     return jsonify({'message': message}), 400
 
             if not order:
@@ -1303,6 +1003,26 @@ def post_merchant_message(pubkey):
                     return jsonify({'message': str(e)}), 500
                 except MempoolSpaceError as e:
                     return jsonify({'message': str(e)}), 500
+
+                order_listings = [] # [(listing, quantity), ...]
+                for item in cleartext_content['items']:
+                    # NB: we only look for listings here. auction orders are generated in finalize-auctions!
+                    listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
+                    if listing:
+                        if not listing.started or listing.ended:
+                            message = "Listing not active."
+                            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+                            return jsonify({'message': message}), 403
+                        if listing.available_quantity < item['quantity']:
+                            message = "Not enough items in stock!"
+                            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+                            return jsonify({'message': message}), 400
+                        order_listings.append((listing, item['quantity']))
+
+                if len(order_listings) == 0:
+                    message = "Empty order!"
+                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+                    return jsonify({'message': message}), 400
 
                 order = m.Order(
                     uuid=cleartext_content['id'],
@@ -1317,22 +1037,6 @@ def post_merchant_message(pubkey):
                     payment_address=payment_address)
                 db.session.add(order)
                 db.session.commit()
-
-                order_listings = [] # [(listing, quantity), ...]
-                for item in cleartext_content['items']:
-                    # NB: we only look for listings here. auction orders are generated in finalize-auctions!
-                    listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
-                    if listing:
-                        if listing.available_quantity < item['quantity']:
-                            message = "Not enough items in stock!"
-                            get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key, message)
-                            return jsonify({'message': message}), 400
-                        order_listings.append((listing, item['quantity']))
-
-                if len(order_listings) == 0:
-                    message = "Empty order!"
-                    get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key, message)
-                    return jsonify({'message': message}), 400
 
                 for listing, quantity in order_listings:
                     # here we "lock" the quantity. it is given back if the order expires
@@ -1406,6 +1110,11 @@ def post_merchant_message(pubkey):
 
 @api_blueprint.route("/api/merchants/<merchant_pubkey>/auctions/<auction_event_id>/bids", methods=['POST'])
 def post_auction_bid(merchant_pubkey, auction_event_id):
+    try:
+        validate_event(request.json)
+    except EventValidationError as e:
+        return jsonify({'message': e.message}), 400
+
     merchant = m.User.query.filter_by(merchant_public_key=merchant_pubkey).one_or_none()
     if not merchant:
         return jsonify({'message': "Merchant not found!"}), 404

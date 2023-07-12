@@ -1,5 +1,4 @@
 import type { ILoader } from "$lib/services/api";
-import type { IAccount } from "$lib/types/user";
 
 export interface Media {
     url: string;
@@ -26,7 +25,6 @@ export interface Item {
     loader: ILoader;
     uuid: string;
     key: string;
-    seller: IAccount;
     title: string;
     description: string;
     descriptionPlaceholder: string;
