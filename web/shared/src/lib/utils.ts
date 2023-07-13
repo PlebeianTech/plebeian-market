@@ -1,5 +1,5 @@
 import {goto} from "$app/navigation";
-import {Info,  privateMessages} from "$lib/stores";
+//import {Info,  privateMessages} from "$lib/stores";
 import {NostrPublicKey, loginModalState} from "$sharedLib/stores";
 import {get} from "svelte/store";
 
@@ -47,16 +47,16 @@ export async function waitAndShowLoginIfNotLoggedAlready() {
 
 export function logout(gotoUrl?: string) {
     NostrPublicKey.set(null);
-
+/*
     privateMessages.set({
         human: [],
         automatic: []
     });
-
+*/
     localStorage.removeItem('nostrPublicKey');
     localStorage.removeItem('readMessages');
 
-    Info.set("You're Logged out");
+//    Info.set("You're Logged out");
 
     if (gotoUrl !== undefined) {
         goto(gotoUrl);
