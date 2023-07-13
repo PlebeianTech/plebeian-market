@@ -4,7 +4,7 @@
     import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
     import { token, Info } from "$lib/stores";
     import { putOrder } from "$lib/services/api";
-    import X from "$lib/components/icons/X.svelte";
+    import X from "$sharedLib/components/icons/X.svelte";
 
     // svelte-ignore unused-export-let
     export let isEditable: boolean = false;

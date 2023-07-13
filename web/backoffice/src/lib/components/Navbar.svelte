@@ -14,7 +14,7 @@
     import Key from "$sharedLib/components/icons/Key.svelte";
     import Moon from "$sharedLib/components/icons/Moon.svelte";
     import Settings from "$lib/components/icons/Settings.svelte";
-    import Stall from "$lib/components/icons/Stall.svelte";
+    import Store from "$sharedLib/components/icons/Store.svelte";
     import Sun from "$sharedLib/components/icons/Sun.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import {requestLoginModal} from "$sharedLib/utils";
@@ -227,7 +227,7 @@
                         {/if}
                         <li class="block md:hidden md:h-0">
                             <a href="/" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Stall /></span> Marketplace
+                                <span class="w-6 h-6"><Store /></span> Marketplace
                             </a>
                         </li>
                         {#if !isProduction()}

@@ -3,8 +3,8 @@
     import { ErrorHandler, getEntities, postEntity, deleteEntity } from "$lib/services/api";
     import { user, token, Info } from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
-    import Plus from "$lib/components/icons/Plus.svelte";
-    import X from "$lib/components/icons/X.svelte";
+    import Plus from "$sharedLib/components/icons/Plus.svelte";
+    import X from "$sharedLib/components/icons/X.svelte";
     import type { IEntity } from "$lib/types/base";
 
     class Relay implements IEntity {
