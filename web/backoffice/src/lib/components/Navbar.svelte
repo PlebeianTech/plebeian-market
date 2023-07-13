@@ -178,7 +178,6 @@
             </div>
 
             <div class="lg:flex items-center justify-start space-x-4">
-                {$NostrPublicKey}
                 <div class="flex justify-start lg:my-0 p-4 hidden lg:block">
                     <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />

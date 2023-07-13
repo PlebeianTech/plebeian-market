@@ -1,7 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
     import LnurlAuth from "$lib/components/auth/Lnurl.svelte";
-    import NostrAuth from "$lib/components/auth/Nostr.svelte";
     import { AuthBehavior } from "$lib/stores";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
@@ -10,8 +9,7 @@
     export let onLogin = () => {};
 
     enum Provider {
-        Lnurl,
-        Nostr,
+        Lnurl
     }
 
     export let behavior;
@@ -24,7 +22,6 @@
 <div class="w-full flex items-center justify-center mt-4">
     <div class="tabs tabs-boxed">
         <a class="tab tab-lg" class:tab-active={provider === Provider.Lnurl} href={null} on:click={() => provider = Provider.Lnurl}>Lightning</a>
-        <a class="tab tab-lg" class:tab-active={provider === Provider.Nostr} href={null} on:click={() => provider = Provider.Nostr}>Nostr</a>
     </div>
 </div>
 
@@ -36,8 +33,6 @@
 
 {#if provider === Provider.Lnurl}
     <LnurlAuth {behavior} {onLogin} on:login={(_) => dispatch('login', {})} />
-{:else if provider === Provider.Nostr}
-    <NostrAuth {behavior} {onLogin} on:login={(_) => dispatch('login', {})} />
 {/if}
 
 <InfoBox>
