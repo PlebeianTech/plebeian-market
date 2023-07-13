@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { browser } from "$app/environment";
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
@@ -8,20 +7,22 @@
     import type { User } from "$lib/types/user";
     import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
-    import Cash from "$lib/components/icons/Cash.svelte";
-    import Exit from "$lib/components/icons/Exit.svelte";
-    import Hamburger from "$lib/components/icons/Hamburger.svelte";
-    import Home from "$lib/components/icons/Home.svelte";
-    import Key from "$lib/components/icons/Key.svelte";
-    import Moon from "$lib/components/icons/Moon.svelte";
-    import Settings from "$lib/components/icons/Settings.svelte";
-    import Stall from "$lib/components/icons/Stall.svelte";
-    import Sun from "$lib/components/icons/Sun.svelte";
+    import Cash from "$sharedLib/components/icons/Cash.svelte";
+    import Exit from "$sharedLib/components/icons/Exit.svelte";
+    import Hamburger from "$sharedLib/components/icons/Hamburger.svelte";
+    import Home from "$sharedLib/components/icons/Home.svelte";
+    import Key from "$sharedLib/components/icons/Key.svelte";
+    import Moon from "$sharedLib/components/icons/Moon.svelte";
+    import Settings from "$sharedLib/components/icons/Settings2.svelte";
+    import Store from "$sharedLib/components/icons/Store.svelte";
+    import Sun from "$sharedLib/components/icons/Sun.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import {requestLoginModal} from "$sharedLib/utils";
+    import {NostrPublicKey} from "$sharedLib/stores";
 
     let modal: Modal | null;
 
-    let prefersDark = true;
+    let prefersDark = false;
 
     let showMobileMenu = false;
 
@@ -43,8 +44,14 @@
 
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector("html");
-        let toggle = <HTMLInputElement>document.getElementById("theme-toggle");
-        html.dataset.theme = toggle.checked ? "halloween" : "light";
+
+        if (!prefersDark) {
+            html.dataset.theme = "dark";
+            localStorage.theme = "dark";
+        } else {
+            html.dataset.theme = "light";
+            localStorage.theme = "light";
+        }
     }
 
     function fetchProfile(tokenValue) {
@@ -83,10 +90,12 @@
     }
 
     onMount(async () => {
-        prefersDark =
-            browser &&
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            prefersDark = true;
+        } else {
+            prefersDark = false;
+        }
+
         if ($token) {
             fetchProfile($token);
         }
@@ -138,8 +147,8 @@
                 </div>
             </a>
             <!-- Mobile menu button -->
-            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-4">
-                <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-400 w-6 h-6"><Hamburger /></button>
+            <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-2 pr-0">
+                <button type="button" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-400 w-7 h-7"><Hamburger /></button>
             </div>
         </div>
 
@@ -169,11 +178,12 @@
             </div>
 
             <div class="lg:flex items-center justify-start space-x-4">
+                {$NostrPublicKey}
                 <div class="flex justify-start lg:my-0 p-4 hidden lg:block">
-                    <label class="swap swap-rotate" on:click={toggleTheme} on:keypress={toggleTheme}>
-                        <input id="theme-toggle" type="checkbox" checked={prefersDark} />
-                        <div class="swap-off w-10 h-10"><Sun /></div>
-                        <div class="swap-on w-10 h-10"><Moon /></div>
+                    <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
+                        <input type="checkbox" bind:checked={prefersDark} />
+                        <div class="swap-off w-9 h-9"><Sun /></div>
+                        <div class="swap-on w-9 h-9"><Moon /></div>
                     </label>
                 </div>
 
@@ -217,7 +227,7 @@
                         {/if}
                         <li class="block md:hidden md:h-0">
                             <a href="/" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Stall /></span> Marketplace
+                                <span class="w-6 h-6"><Store /></span> Marketplace
                             </a>
                         </li>
                         {#if !isProduction()}

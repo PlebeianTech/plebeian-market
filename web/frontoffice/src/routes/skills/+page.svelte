@@ -1,8 +1,8 @@
 <script lang="ts">
     import ResumeList from "$lib/components/resume/List.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {NostrPublicKey} from "$lib/stores";
-    import {waitAndShowLoginIfNotLoggedAlready} from "$lib/utils";
+    import {NostrPublicKey} from "$sharedLib/stores";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import {goto} from "$app/navigation";
 
     function goEditResume() {

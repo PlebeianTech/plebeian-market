@@ -2,7 +2,7 @@
     import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$lib/services/nostr";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import ProductRow from "$lib/components/stores/ProductRow.svelte";
-    import {getFirstTagValue, newNostrConversation} from "$lib/nostr/utils";
+    import {getFirstTagValue, newNostrConversation} from "$sharedLib/nostr/utils";
     import {onImgError} from "$lib/shopping";
     import ViewList from "$sharedLib/components/icons/ViewList.svelte";
     import ViewCards from "$sharedLib/components/icons/ViewCards.svelte";

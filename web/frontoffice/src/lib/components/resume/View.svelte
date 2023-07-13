@@ -4,10 +4,10 @@
     import type { UserResume } from "$lib/types/user";
     import Editor from "$lib/components/resume/Editor.svelte";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
-    import {newNostrConversation} from "$lib/nostr/utils";
+    import {newNostrConversation} from "$sharedLib/nostr/utils";
     import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
-    import {NostrPublicKey} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
 
     export let pubkey: string;
 

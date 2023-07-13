@@ -2,7 +2,8 @@
     import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import {getBaseUrl, getConfigurationFromFile} from "$lib/utils";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
+    import {getBaseUrl} from "$sharedLib/utils";
     import GoldenGai from "$lib/images/golden-gai-tokyo.jpg";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
     import {NostrGlobalConfig} from "$lib/stores";

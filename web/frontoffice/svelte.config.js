@@ -12,7 +12,7 @@ const config = {
 			strict: true
 		}),
 		alias: {
-			'$sharedLib': '../shared/lib',
+			'$sharedLib': '../shared/src/lib',
 		},
 		prerender: {
 			entries: [

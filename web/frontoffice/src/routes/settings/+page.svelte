@@ -3,7 +3,7 @@
     import { page } from "$app/stores";
     import Nostr from "$lib/components/settings/Nostr.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {NostrPublicKey} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
     import SetupHomepage from "$lib/components/settings/SetupHomepage.svelte";
 
     let NOSTR_PAGE = "Nostr";

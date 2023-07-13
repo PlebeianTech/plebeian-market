@@ -7,7 +7,7 @@
     import {onMount} from "svelte";
     import {stalls} from "$lib/stores";
     import {getStallsByMerchant, refreshStalls} from "$lib/shopping";
-    import {getChannelIdForStall} from "$lib/nostr/utils";
+    import {getChannelIdForStall} from "$sharedLib/nostr/utils";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 
     /** @type {import('./$types').PageData} */

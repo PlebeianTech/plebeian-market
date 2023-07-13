@@ -1,15 +1,14 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
-    import type { User } from "$lib/types/user";
-    import {NostrPrivateKey, NostrPublicKey} from "$lib/stores";
-    import { hasExtension, encodeNpub } from '$lib/nostr/utils';
+    import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
+    import { hasExtension, encodeNpub } from '$sharedLib/nostr/utils';
     import {generatePrivateKey, getPublicKey} from "nostr-tools";
     import { browser } from "$app/environment";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
 
     const dispatch = createEventDispatcher();
 
-    export let onLogin: (user: User | null) => void = (_) => {};
+    // export const onLogin: () => void = () => {};
 
     let npub: string | null = null;
     let activeTab: number = 0;
@@ -19,7 +18,7 @@
         // If login was called because $NostrPublicKey was not available
         // but immediately after it became available, dispatch a login
         // event so the dialog is closed
-        waitAndlogin();
+        dispatch('login', {});
     }
 
     async function getKeyFromExtension() {

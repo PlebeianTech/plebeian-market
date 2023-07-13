@@ -4,7 +4,7 @@
     import "../app.css";
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
-    import { token, Info, Error, type Placement, NostrPool } from "$lib/stores";
+    import { token, Info, Error, type Placement } from "$lib/stores";
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModal from "$lib/components/auth/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";

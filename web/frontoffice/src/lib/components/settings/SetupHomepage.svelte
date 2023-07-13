@@ -1,15 +1,15 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import {NostrGlobalConfig, NostrPublicKey} from "$lib/stores";
-    import {getConfigurationFromFile, requestLoginModal} from "$lib/utils";
-    import { SortableList } from '@jhubbardsf/svelte-sortablejs'
+    import {NostrGlobalConfig} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
+    import {getConfigurationFromFile, requestLoginModal} from "$sharedLib/utils";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
-    import Trash from "$sharedLib/components/icons/Trash.svelte";
-    import Edit from "$sharedLib/components/icons/Edit.svelte";
+    // import Trash from "$sharedLib/components/icons/Trash.svelte";
+    // import Edit from "$sharedLib/components/icons/Edit.svelte";
+    // import { SortableList } from '@jhubbardsf/svelte-sortablejs'
 
-    // TODO
-    let isSuperAdmin: boolean = true;
+    let isSuperAdmin: boolean = false;
 
     let sections = [{id: 1, title: 'Section 1'}, {id: 2, title: 'Section 2'}, {id: 3, title: 'Section 3'}];
     let newSection = '';

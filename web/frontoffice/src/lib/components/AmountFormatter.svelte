@@ -8,7 +8,7 @@
 
 <script lang="ts">
     import { BTC2USD } from "$lib/stores";
-    import { sats2usd, usd2sats } from "$lib/utils";
+    import { sats2usd, usd2sats } from "$sharedLib/utils";
 
     export let satsAmount: number | null = null;
     export let usdAmount: number | null = null;

@@ -2,7 +2,7 @@
     import { publishResume, subscribeResume } from "$lib/services/nostr";
     import { Info, Error } from "$lib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
-    import { getMonthName } from "$lib/utils";
+    import { getMonthName } from "$sharedLib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";
     import YearPicker from "$lib/components/YearPicker.svelte";
     import Plus from "$sharedLib/components/icons/Plus.svelte";

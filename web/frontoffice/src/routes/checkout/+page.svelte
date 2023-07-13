@@ -1,12 +1,13 @@
 <script>
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {Error, Info, NostrPublicKey, privateMessages, ShoppingCart, stalls} from "$lib/stores";
+    import {Error, Info, privateMessages, ShoppingCart, stalls} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
     import {sendPrivateMessage} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$lib/utils.ts";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils.ts";
     import {onDestroy} from "svelte";
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";

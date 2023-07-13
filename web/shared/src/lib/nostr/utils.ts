@@ -1,6 +1,4 @@
-import {getEventHash, nip05, nip19, Kind, getPublicKey} from "nostr-tools";
-import { Error as ErrorStore, NostrPublicKey } from "$lib/stores";
-import type { User } from "$lib/types/user";
+import {getEventHash, nip05, nip19, Kind} from "nostr-tools";
 import {goto} from "$app/navigation";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
@@ -24,7 +22,6 @@ export const relayUrlList = [
 ];
 
 export const pmMasterPublicKey = 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75c4eff1cfb634839bb8';
-export const localStorageNostrPreferPMId = 'nostr-prefer-pm-identity';
 
 export function hasExtension() {
     return !!(window as any).nostr;
@@ -151,17 +148,6 @@ export function decodeNpub(npub: string) {
 
 export function encodeNpub(key: string) {
     return nip19.npubEncode(key);
-}
-
-export async function setPublicKey(user: User | null) {
-    try {
-        NostrPublicKey.set(await (window as any).nostr.getPublicKey());
-    } catch (error) {
-        NostrPublicKey.set(null);
-        return false;
-    }
-
-    return true;
 }
 
 export function newNostrConversation(pubkey) {

@@ -2,7 +2,7 @@ module.exports = {
   content: [
     "./src/lib/components/**/*.svelte",
     "./src/routes/**/*.svelte",
-    "./../shared/lib/components/**/*.svelte",
+    "./../shared/src/lib/components/**/*.svelte"
   ],
   theme: {
     extend: {
@@ -13,7 +13,8 @@ module.exports = {
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: ["light", "halloween"],
-    darkTheme: "halloween",
+    themes: ["light", "dark"],
+    darkTheme: "dark",
   },
+  darkMode: ['class', '[data-theme="dark"]'],
 };

@@ -8,9 +8,9 @@ import {
     signEvent
 } from 'nostr-tools';
 import { UserResume } from "$lib/types/user";
-import { relayUrlList, getBestRelay, filterTags, findMarkerInTags } from "$lib/nostr/utils";
-import {hasExtension} from "../nostr/utils";
-import {NostrPool, NostrPrivateKey, NostrPublicKey} from "../stores";
+import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags} from "$sharedLib/nostr/utils";
+import {NostrPool} from "../stores";
+import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
 import {get} from "svelte/store";
 
 export type UserMetadata = {

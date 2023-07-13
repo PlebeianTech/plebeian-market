@@ -1,10 +1,10 @@
 <script lang="ts">
-    import {formatTimestamp} from "$lib/nostr/utils";
+    import {formatTimestamp} from "$sharedLib/nostr/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
     import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
-    import {NostrPublicKey} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
 
     export let sortedBids;
     export let userProfileInfoMap;

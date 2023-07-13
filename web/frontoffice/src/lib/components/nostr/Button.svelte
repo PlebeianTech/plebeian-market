@@ -1,6 +1,6 @@
 <script lang="ts">
     import { sendMessage } from "$lib/services/nostr";
-    import { getChannelIdForStallOwner, pmChannelNostrRoomId } from '$lib/nostr/utils'
+    import { getChannelIdForStallOwner, pmChannelNostrRoomId } from '$sharedLib/nostr/utils'
     import { Info, user } from "$lib/stores";
 
     export let pmURL: string | null;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {NostrPublicKey} from "$lib/stores";
+    import {NostrPublicKey} from "$sharedLib/stores";
     import {subscribeMetadata} from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
 

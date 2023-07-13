@@ -19,6 +19,16 @@
     <meta name="msapplication-config" content="/images/icons/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
 
+    <script>
+      let html = document.querySelector("html");
+
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.dataset.theme = "dark"
+      } else {
+        html.dataset.theme = "light"
+      }
+    </script>
+
     %sveltekit.head%
   </head>
   <body>

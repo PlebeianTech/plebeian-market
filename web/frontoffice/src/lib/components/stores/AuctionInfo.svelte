@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {formatTimestamp} from "$lib/nostr/utils";
+    import {formatTimestamp} from "$sharedLib/nostr/utils";
     import Countdown from "$lib/components/Countdown.svelte";
     import {EVENT_KIND_AUCTION_BID, sendMessage, subscribeAuction} from "$lib/services/nostr";
     import {Kind} from "nostr-tools";
