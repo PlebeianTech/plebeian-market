@@ -13,7 +13,7 @@
     import Home from "$sharedLib/components/icons/Home.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
     import Moon from "$sharedLib/components/icons/Moon.svelte";
-    import Settings from "$lib/components/icons/Settings.svelte";
+    import Settings from "$sharedLib/components/icons/Settings2.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import Sun from "$sharedLib/components/icons/Sun.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";

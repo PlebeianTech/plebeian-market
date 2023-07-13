@@ -11,8 +11,8 @@
     import Avatar from "$lib/components/Avatar.svelte";
     import Countdown, { CountdownStyle } from "$lib/components/Countdown.svelte";
     import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
-    import Pencil from "$lib/components/icons/Pencil.svelte";
-    import Trash from "$lib/components/icons/Trash.svelte";
+    import Pencil from "$sharedLib/components/icons/Pencil.svelte";
+    import Trash from "$sharedLib/components/icons/Trash2.svelte";
 
     export let isEditable = false;
     export let showCampaign = false;
