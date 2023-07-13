@@ -24,8 +24,10 @@ OTHER_XPUB = "xpub6D93ecgDqmNjxsM6hN7Qf5Wxt8y5Zv4VmumbMe7xXcmBmE5ti3BRSZfkwrf7na
 OTHER_XPUB_ADDRESSES = ["bc1qeauv7festyh2d85ugskzlqucnp594es3t3dhe7", "bc1qenglrz38j2amql5twlt7npaq495hl5n8rqujke", "bc1q3edvv3grv3l0pskxncu9sslv0rv2rlwmlwn6e4"]
 
 # some random nostr keys
-NOSTR_KEY_1 = PrivateKey().public_key.hex()
-NOSTR_KEY_2 = PrivateKey().public_key.hex()
+NOSTR_PRIVATE_KEY_1 = PrivateKey()
+NOSTR_KEY_1 = NOSTR_PRIVATE_KEY_1.public_key.hex()
+NOSTR_PRIVATE_KEY_2 = PrivateKey()
+NOSTR_KEY_2 = NOSTR_PRIVATE_KEY_2.public_key.hex()
 NOSTR_BUYER_PRIVATE_KEY = PrivateKey()
 
 ONE_DOLLAR_SATS = usd2sats(1, btc2fiat.get_value('kraken'))
@@ -150,23 +152,25 @@ class TestApi(unittest.TestCase):
         else:
             self.assertNotEqual(code, 200)
 
-    def nostr_auth(self, behavior, key, expect_success=True, **kwargs):
+    def nostr_auth(self, behavior, private_key, expect_success=True, **kwargs):
         code, response = self.put(f"/api/{behavior}/nostr",
-            {'key': key,
-             'send_verification_phrase': True})
+            {'pubkey': private_key.public_key.hex()})
         self.assertEqual(code, 200)
-        self.assertTrue(response['sent'])
+        challenge_event_json = response
+        self.assertEqual(challenge_event_json['kind'], 1)
 
-        # try a wrong phrase first
-        code, response = self.put(f"/api/{behavior}/nostr",
-            {'key': key,
-             'verification_phrase': "identify as somebody"})
+        # try a wrong signature first
+        challenge_event_json['sig'] = "1234"
+        code, response = self.put(f"/api/{behavior}/nostr", challenge_event_json)
         self.assertEqual(code, 400)
+        self.assertIn("invalid", response['message'].lower())
 
         # now send the right one
-        code, response = self.put(f"/api/{behavior}/nostr",
-            {'key': key,
-             'verification_phrase': "identifying as myself"})
+        challenge_event = Event(kind=challenge_event_json['kind'], content=challenge_event_json['content'], tags=challenge_event_json['tags'], public_key=challenge_event_json['pubkey'])
+        private_key.sign_event(challenge_event)
+        signed_event_json = json.loads(challenge_event.to_message())[1]
+
+        code, response = self.put(f"/api/{behavior}/nostr", signed_event_json)
 
         if expect_success:
             self.assertEqual(code, 200)
@@ -492,7 +496,7 @@ class TestApi(unittest.TestCase):
         self.assertFalse(response['user']['nostr_public_key_verified'])
 
         # can't log in with that Nostr account!
-        self.nostr_auth('login', NOSTR_KEY_1, expect_success=False)
+        self.nostr_auth('login', NOSTR_PRIVATE_KEY_1, expect_success=False)
 
         # verify the Nostr key for real this time
         code, response = self.put("/api/users/me/verify/nostr",
@@ -501,7 +505,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
 
         # now we can log in with nostr
-        token_1_1 = self.nostr_auth('login', NOSTR_KEY_1, expect_success=True)
+        token_1_1 = self.nostr_auth('login', NOSTR_PRIVATE_KEY_1, expect_success=True)
 
         # check user details - it should be the same user as when we authenticated with lnurl!
         code, response = self.get("/api/users/me",
@@ -519,7 +523,7 @@ class TestApi(unittest.TestCase):
         self.assertTrue(response['user']['nostr_public_key_verified'])
 
         # sign up with Nostr
-        token_nostr_user = self.nostr_auth('signup', NOSTR_KEY_2)
+        token_nostr_user = self.nostr_auth('signup', NOSTR_PRIVATE_KEY_2)
 
         # link a lnurl account
         code, response = self.put("/api/users/me/verify/lnurl", {},

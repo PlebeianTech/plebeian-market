@@ -117,75 +117,51 @@ def auth_lnurl(create_user):
 @api_blueprint.route('/api/login/nostr', methods=['PUT'], defaults={'create_user': False})
 @api_blueprint.route('/api/signup/nostr', methods=['PUT'], defaults={'create_user': True})
 def auth_nostr(create_user):
-    if 'key' not in request.json:
+    if 'pubkey' not in request.json:
         return jsonify({'message': "Missing key."}), 400
 
-    auth = m.NostrAuth.query.filter_by(key=request.json['key']).first()
+    auth = m.NostrAuth.query.filter_by(key=request.json['pubkey']).first()
 
-    if request.json.get('send_verification_phrase'):
-        if auth:
-            if app.config['ENV'] != 'test':
-                if auth.verification_phrase_sent_at and auth.verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
-                    return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
-        else:
-            auth = m.NostrAuth(key=request.json['key'])
+    if 'sig' not in request.json:
+        if not auth:
+            auth = m.NostrAuth(key=request.json['pubkey'])
             db.session.add(auth)
-
         auth.generate_verification_phrase()
-        if not get_birdwatcher().send_dm(get_app_private_key(), auth.key, auth.verification_phrase):
-            return jsonify({'message': "Error sending Nostr DM!"}), 500
-        auth.verification_phrase_sent_at = datetime.utcnow()
         db.session.commit()
+        event = Event(kind=1, content=auth.verification_phrase, tags=[['p', get_app_private_key().public_key.hex()]], public_key=request.json['pubkey'])
+        event_json = json.loads(event.to_message())[1]
+        return jsonify(event_json)
 
-        return jsonify({'sent': True})
+    try:
+        validate_event(request.json)
+    except EventValidationError:
+        return jsonify({'message': "Invalid event."}), 400
 
-    if 'verification_phrase' not in request.json:
-        return jsonify({'message': "Missing verification phrase."}), 400
+    user = m.User.query.filter_by(nostr_public_key=auth.key, nostr_public_key_verified=True).first()
 
-    if not auth:
-        # this is a strange case - they provide a verification phrase, but there is no log in attempt for the given key - no need to give too much info
-        return jsonify({'message': "Verification failed."}), 400
-
-    if auth.verification_phrase_check_counter > 5:
-        return jsonify({'message': "Please try requesting a new verification phrase!"}), 400
-
-    clean_phrase = ' '.join([w for w in request.json['verification_phrase'].lower().split(' ') if w])
-
-    if get_nostr_client().get_auth_verification_phrase(auth) == clean_phrase:
-        user = m.User.query.filter_by(nostr_public_key=auth.key, nostr_public_key_verified=True).first()
-
-        if not user:
-            if create_user:
-                user = m.User(nostr_public_key=auth.key, nostr_public_key_verified=True)
-                user.ensure_merchant_key()
-                db.session.add(user)
-            else:
-                return jsonify({'message': "User not found. Please create an account first."}), 400
-        else:
-            if create_user:
-                return jsonify({'message': "User with this key already exists. Please log in."}), 409
-
-        if not user:
+    if not user:
+        if create_user:
             user = m.User(nostr_public_key=auth.key, nostr_public_key_verified=True)
+            user.ensure_merchant_key()
             db.session.add(user)
-
-        db.session.delete(auth)
-
-        db.session.commit()
-
-        token_payload = {
-            'user_id': user.id,
-            'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS']),
-            'r': secrets.token_hex(4), # just 4 random bytes, to ensure the tokens are unique (mostly for tests)
-        }
-        token = jwt.encode(token_payload, app.config['SECRET_KEY'], "HS256")
-
-        return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
+        else:
+            return jsonify({'message': "User not found. Please create an account first."}), 400
     else:
-        time.sleep(2 ** auth.verification_phrase_check_counter)
-        auth.verification_phrase_check_counter += 1
-        db.session.commit()
-        return jsonify({'message': "Wrong incantation..."}), 400
+        if create_user:
+            return jsonify({'message': "User with this key already exists. Please log in."}), 409
+
+    db.session.delete(auth)
+
+    db.session.commit()
+
+    token_payload = {
+        'user_id': user.id,
+        'exp': datetime.utcnow() + timedelta(days=app.config['JWT_EXPIRE_DAYS']),
+        'r': secrets.token_hex(4), # just 4 random bytes, to ensure the tokens are unique (mostly for tests)
+    }
+    token = jwt.encode(token_payload, app.config['SECRET_KEY'], "HS256")
+
+    return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/users/me', methods=['GET'])
 @user_required

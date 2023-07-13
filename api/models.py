@@ -120,14 +120,10 @@ class NostrAuth(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     verification_phrase = db.Column(db.String(32), nullable=False)
-    verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)
-    verification_phrase_check_counter = db.Column(db.Integer, nullable=False, default=0)
     key = db.Column(db.String(64), nullable=False, unique=True, index=True)
 
     def generate_verification_phrase(self):
         self.verification_phrase = bip39gen.random_as_string(3)
-        self.verification_phrase_sent_at = None
-        self.verification_phrase_check_counter = 0
 
 class User(WalletMixin, db.Model):
     __tablename__ = 'users'

@@ -514,16 +514,10 @@ class MockNostrClient:
         def __eq__(self, other):
             return True
 
-    def get_auth_verification_phrase(self, auth):
-        return "identifying as myself"
-
     def get_verification_phrase(self, user):
         return "i am me"
 
 class NostrClient:
-    def get_auth_verification_phrase(self, auth):
-        return auth.verification_phrase
-
     def get_verification_phrase(self, user):
         return user.nostr_verification_phrase
 
