@@ -7,10 +7,11 @@
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
-    import {requestLoginModal} from "$sharedLib/utils.ts";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils.ts";
     import {onDestroy, onMount} from "svelte";
     import {bech32} from "bech32";
     import {Buffer as BufferPolyfill} from "buffer";
+    import { afterNavigate } from "$app/navigation";
 
     let paymentModalVisible = false;
     let paymentConfirmationModalVisible = false;
@@ -173,6 +174,10 @@
         paymentModalVisible = true;
     }
 
+    afterNavigate(async () => {
+        await waitAndShowLoginIfNotLoggedAlready();
+    });
+
     const nostrPublicKeyUnsubscribe = NostrPublicKey.subscribe(async nostrPublicKeyValue => {
         if (nostrPublicKeyValue) {
             refreshStalls();
@@ -180,8 +185,6 @@
 
             await new Promise(resolve => setTimeout(resolve, 2500));
             showAutomaticPayments = true;
-        } else {
-            requestLoginModal();
         }
     });
     onDestroy(nostrPublicKeyUnsubscribe);

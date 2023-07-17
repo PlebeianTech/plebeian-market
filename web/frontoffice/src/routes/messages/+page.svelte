@@ -11,6 +11,7 @@
     import { page } from '$app/stores'
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils.ts";
+    import {afterNavigate} from "$app/navigation";
 
     let selectedConversationPubkey = null;
     let sortedConversations;
@@ -112,9 +113,11 @@
         imgElement.src = profilePicturePlaceHolder;
     }
 
-    onMount(async () => {
+    afterNavigate(async () => {
         await waitAndShowLoginIfNotLoggedAlready();
+    });
 
+    onMount(async () => {
         const newMessagePubKey = $page.url.searchParams.get('newMessagePubKey');
 
         if (newMessagePubKey && newMessagePubKey.length === 64) {
