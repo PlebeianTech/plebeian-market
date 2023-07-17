@@ -1,6 +1,5 @@
 <script lang="ts">
-    import {privateMessages} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import { goto } from "$app/navigation";
     import {page} from "$app/stores";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";

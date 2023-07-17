@@ -1,16 +1,14 @@
 import {
-    getEventHash,
     Kind,
     type Event,
     type Sub,
     type Filter,
-    nip04,
-    getSignature
+    nip04
 } from 'nostr-tools';
 import { UserResume } from "$lib/types/user";
-import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags} from "$sharedLib/nostr/utils";
+import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
 import {NostrPool} from "../stores";
-import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
+import {NostrPrivateKey} from "$sharedLib/stores";
 import {get} from "svelte/store";
 
 export type UserMetadata = {
@@ -30,33 +28,6 @@ export const EVENT_KIND_AUCTION_BID_STATUS = 1022;
 const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nips/blob/master/78.md
 
 const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
-
-export async function createEvent(kind: number, content: any, tags: any = []) {
-    let event: any = {
-        kind,
-        content,
-        tags,
-        created_at: Math.floor(Date.now() / 1000),
-    }
-
-    if (hasExtension()) {
-        event.pubkey = await (window as any).nostr.getPublicKey();
-        event.id = getEventHash(event);
-        return await (window as any).nostr.signEvent(event);
-    } else {
-        let pubKey = get(NostrPublicKey);
-        let privKey = get(NostrPrivateKey);
-
-        if (!pubKey || !privKey) {
-            return false;
-        }
-
-        event.pubkey = pubKey;
-        event.id = getEventHash(event);
-        event.sig = getSignature(event, privKey);
-        return event;
-    }
-}
 
 export async function closePool() {
     await get(NostrPool).close(relayUrlList);

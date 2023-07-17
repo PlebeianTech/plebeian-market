@@ -2,8 +2,8 @@
     import { onMount } from 'svelte';
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
-    import {BTC2USD, privateMessages} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {BTC2USD} from "$lib/stores";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import {ShoppingCart} from "$lib/stores.js";

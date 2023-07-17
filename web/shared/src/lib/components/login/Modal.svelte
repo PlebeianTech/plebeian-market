@@ -23,8 +23,7 @@
 
 <script lang="ts">
     import NostrLogin from "./Nostr.svelte";
-    import {loginModalState} from "$sharedLib/stores.ts";
-    import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
+    import {NostrPrivateKey, NostrPublicKey, loginModalState} from "$sharedLib/stores";
     import {onMount} from "svelte";
 
     let open = false;
