@@ -65,8 +65,6 @@
         } else {
             prefersDark = false;
         }
-
-        // await fetchFiatRate();
     });
 
     afterNavigate(() => {

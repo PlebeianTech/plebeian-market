@@ -56,7 +56,7 @@ export function formatTimestamp(ts, show_date_always = false) {
 export function getChannelIdForStall(stallPubkey) {
     // Please, don't change any of this, since we're faking channel
     // creation, so we need the same channel ID every time
-    let event = {
+    const event = {
         kind: Kind.ChannelCreation,
         pubkey: pmMasterPublicKey,
         created_at: 1672837282,
