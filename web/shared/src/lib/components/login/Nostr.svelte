@@ -60,6 +60,11 @@
         tryLoginToBackend();
     }
 
+    function activateFirstTabIfExtensionPresent() {
+        if (browser && hasExtension())
+            activeTab=0;
+    }
+
     onMount(async () => {
         if (browser && !hasExtension()) {
             activeTab = 1;
@@ -96,12 +101,12 @@
 
 <div>
     <div class="tabs">
-        {#if browser && hasExtension()}
-            <a class="indicator tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=0}>
-                <span class="indicator-item indicator-center badge badge-md badge-error">recommended</span>
-                Use Nostr extension
-            </a>
-        {/if}
+        <a
+           data-tip="You need a Nostr browser extension"
+           class="indicator tab tab-lifted {browser && hasExtension() ? '' : 'tab-disabled tooltip tooltip-bottom tooltip-error'} tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={activateFirstTabIfExtensionPresent}>
+            <span class="indicator-item indicator-center badge badge-md badge-error">recommended</span>
+            Use Nostr extension
+        </a>
         <a class="indicator tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===1 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=1}>
             <span class="indicator-item indicator-center badge badge-md badge-warning">anonymous</span>
             Generate New Key
