@@ -1,6 +1,7 @@
-import {getEventHash, nip05, nip19, Kind} from "nostr-tools";
+import {getEventHash, nip05, nip19, Kind, getSignature} from "nostr-tools";
 import {goto} from "$app/navigation";
-import {createEvent} from "$lib/services/nostr.ts";
+import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores.js";
+import {get} from "svelte/store";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
 
@@ -26,6 +27,33 @@ export const pmMasterPublicKey = 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75
 
 export function hasExtension() {
     return !!(window as any).nostr;
+}
+
+export async function createEvent(kind: number, content: any, tags: any = []) {
+    let event: any = {
+        kind,
+        content,
+        tags,
+        created_at: Math.floor(Date.now() / 1000),
+    }
+
+    if (hasExtension()) {
+        event.pubkey = await (window as any).nostr.getPublicKey();
+        event.id = getEventHash(event);
+        return await (window as any).nostr.signEvent(event);
+    } else {
+        let pubKey = get(NostrPublicKey);
+        let privKey = get(NostrPrivateKey);
+
+        if (!pubKey || !privKey) {
+            return false;
+        }
+
+        event.pubkey = pubKey;
+        event.id = getEventHash(event);
+        event.sig = getSignature(event, privKey);
+        return event;
+    }
 }
 
 export async function wait(milliseconds) {
@@ -181,7 +209,7 @@ export async function tryLoginToBackend() {
         const response = await fetch(apiHost + apiUrl, options);
 
         if (!response.ok) {
-            console.debug("tryLoginToBackend (1) - Could contact with a backend, so auto-login-to-backend is not done.");
+            console.debug("tryLoginToBackend (1) - Could not contact with a backend, so auto-login-to-backend is not done.");
             return false;
         }
 
@@ -193,7 +221,7 @@ export async function tryLoginToBackend() {
             console.debug('responseJson.token', responseJson.token);
         }
     } catch (error) {
-        console.debug("tryLoginToBackend (2) - Could contact with a backend, so auto-login-to-backend is not done.");
+        console.debug("tryLoginToBackend (2) - Could not contact with a backend, so auto-login-to-backend is not done.");
         return false;
     }
 }
