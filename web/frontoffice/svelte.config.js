@@ -20,15 +20,7 @@ const config = {
 				'/p/[pubkey]',
 				'/p/[pubkey]/stall/[stallId]',
 				'/product/[product_id]'
-			],
-			handleHttpError: ({ path, referrer, message }) => {
-				if (path === '/admin') {
-					return;
-				}
-
-				// otherwise fail the build
-				throw new Error(message);
-			}
+			]
 		},
 		paths: {
 			base: ''

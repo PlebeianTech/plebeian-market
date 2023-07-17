@@ -100,7 +100,7 @@
     {#if merchantPubkey === $NostrPublicKey}
         <InfoBox classText="mx-auto mt-3">
             <b>You don't have a market stall</b> yet.<br />
-            If you want to create one to <b>sell</b> or <b>auction</b> your products, login to the <a href="/admin" class="underline"><b>Stall manager</b></a>.
+            If you want to create one to <b>sell</b> or <b>auction</b> your products, login to the <a rel="external" href="/admin" class="underline"><b>Stall manager</b></a>.
         </InfoBox>
     {:else}
         <InfoBox classText="mb-8 md:mb-12">

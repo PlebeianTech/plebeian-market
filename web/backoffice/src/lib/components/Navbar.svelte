@@ -165,7 +165,7 @@
                         <a href="/admin" class="btn btn-ghost normal-case">My stall</a>
                     </p>
                     <p>
-                        <a href="/" class="btn btn-ghost normal-case">Marketplace</a>
+                        <a rel="external" href="/" class="btn btn-ghost normal-case">Marketplace</a>
                     </p>
                     {#if !$token || !$user}
                         <p>
@@ -223,7 +223,7 @@
                             </li>
                         {/if}
                         <li class="block md:hidden md:h-0">
-                            <a href="/" class="modal-button cursor-pointer text-base">
+                            <a rel="external" href="/" class="modal-button cursor-pointer text-base">
                                 <span class="w-6 h-6"><Store /></span> Marketplace
                             </a>
                         </li>
