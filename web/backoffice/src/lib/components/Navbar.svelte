@@ -167,7 +167,7 @@
                         <a href="/admin" class="btn btn-ghost normal-case">My stall</a>
                     </p>
                     <p>
-                        <a href="/" class="btn btn-ghost normal-case">Buy items</a>
+                        <a href="/" class="btn btn-ghost normal-case">Marketplace</a>
                     </p>
                     {#if !$token || !$user}
                         <p>
