@@ -1,5 +1,6 @@
 import {getEventHash, nip05, nip19, Kind} from "nostr-tools";
 import {goto} from "$app/navigation";
+import {createEvent} from "$lib/services/nostr.ts";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
 
@@ -152,4 +153,47 @@ export function encodeNpub(key: string) {
 
 export function newNostrConversation(pubkey) {
     goto('/messages?newMessagePubKey=' + pubkey);
+}
+
+export async function tryLoginToBackend() {
+    /* TODO
+    - Read apiHost from configuration file
+    */
+    const apiHost = '';
+    const apiUrl = '/api/login/nostr';
+
+    const event = await createEvent(
+        1,
+        'pleb auth'
+    );
+
+    const options = {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+            event
+        )
+    };
+
+    try {
+        const response = await fetch(apiHost + apiUrl, options);
+
+        if (!response.ok) {
+            console.debug("tryLoginToBackend (1) - Could contact with a backend, so auto-login-to-backend is not done.");
+            return false;
+        }
+
+        const responseJson = await response.json();
+
+        if (responseJson.success === true && responseJson.token) {
+            localStorage.setItem('token', responseJson.token);
+        } else {
+            console.debug('responseJson.token', responseJson.token);
+        }
+    } catch (error) {
+        console.debug("tryLoginToBackend (2) - Could contact with a backend, so auto-login-to-backend is not done.");
+        return false;
+    }
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from 'svelte';
     import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
-    import { hasExtension, encodeNpub } from '$sharedLib/nostr/utils';
+    import { hasExtension, encodeNpub, tryLoginToBackend } from '$sharedLib/nostr/utils';
     import {generatePrivateKey, getPublicKey} from "nostr-tools";
     import { browser } from "$app/environment";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
@@ -55,6 +55,9 @@
     async function waitAndlogin() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         dispatch('login', {});
+
+        // After login, try to log in to backend
+        tryLoginToBackend();
     }
 
     onMount(async () => {
