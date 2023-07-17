@@ -134,7 +134,6 @@
 
                     if (whiteListedStalls || (whiteListedStalls === null && productsLoaded < maxProductsLoaded)) {
                         products[productId] = content;
-                        console.log('productsLoaded++ productId=' + productId, content);
                         productsLoaded++;
                     }
                 }

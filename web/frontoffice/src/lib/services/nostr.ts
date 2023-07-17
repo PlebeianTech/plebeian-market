@@ -5,7 +5,7 @@ import {
     type Sub,
     type Filter,
     nip04,
-    signEvent
+    getSignature
 } from 'nostr-tools';
 import { UserResume } from "$lib/types/user";
 import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags} from "$sharedLib/nostr/utils";
@@ -31,7 +31,7 @@ const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nip
 
 const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
 
-async function createEvent(kind: number, content: any, tags: any = []) {
+export async function createEvent(kind: number, content: any, tags: any = []) {
     let event: any = {
         kind,
         content,
@@ -53,7 +53,7 @@ async function createEvent(kind: number, content: any, tags: any = []) {
 
         event.pubkey = pubKey;
         event.id = getEventHash(event);
-        event.sig = signEvent(event, privKey);
+        event.sig = getSignature(event, privKey);
         return event;
     }
 }
