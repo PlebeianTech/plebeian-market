@@ -60,6 +60,8 @@ export function logout(gotoUrl?: string) {
 
     if (gotoUrl !== undefined) {
         goto(gotoUrl);
+    } else {
+        goto('/');
     }
 }
 
