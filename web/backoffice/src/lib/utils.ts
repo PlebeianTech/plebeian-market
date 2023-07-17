@@ -1,6 +1,6 @@
 import {browser} from "$app/environment";
 import {goto} from "$app/navigation";
-import {token, Info} from "$lib/stores";
+import { AuthRequired, AuthBehavior, token, Info } from "$lib/stores";
 
 export let SATS_IN_BTC = 100000000;
 export let SHORT_TITLE_LIMIT = 70;
@@ -28,6 +28,10 @@ export function getApiBaseUrl() {
 
 export function getEnvironmentInfo() {
     return import.meta.env.MODE;
+}
+
+export function login() {
+    AuthRequired.set({default: AuthBehavior.Login});
 }
 
 export function logout(gotoUrl?: string) {

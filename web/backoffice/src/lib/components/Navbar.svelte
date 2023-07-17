@@ -3,9 +3,9 @@
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
-    import { token, user, BTC2USD, Info, AuthRequired, AuthBehavior } from "$lib/stores";
+    import { token, user, BTC2USD, Info } from "$lib/stores";
     import type { User } from "$lib/types/user";
-    import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
+    import { isProduction, getEnvironmentInfo, login, logout, getBaseUrl } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import Cash from "$sharedLib/components/icons/Cash.svelte";
     import Exit from "$sharedLib/components/icons/Exit.svelte";
@@ -24,10 +24,6 @@
 
     let showMobileMenu = false;
 
-    function login() {
-        AuthRequired.set({default: AuthBehavior.Login});
-    }
-
     function toggleMobileMenu() {
         showMobileMenu = !showMobileMenu;
 
@@ -42,14 +38,7 @@
 
     function toggleTheme() {
         let html = <HTMLHtmlElement>document.querySelector("html");
-
-        if (!prefersDark) {
-            html.dataset.theme = "dark";
-            localStorage.theme = "dark";
-        } else {
-            html.dataset.theme = "light";
-            localStorage.theme = "light";
-        }
+        html.dataset.theme = localStorage.theme = (!prefersDark ? "dark" : "light");
     }
 
     function fetchProfile(tokenValue) {
@@ -179,8 +168,8 @@
                 <div class="flex justify-start lg:my-0 p-4 hidden lg:block">
                     <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
-                        <div class="swap-off w-9 h-9"><Sun /></div>
                         <div class="swap-on w-9 h-9"><Moon /></div>
+                        <div class="swap-off w-9 h-9"><Sun /></div>
                     </label>
                 </div>
 

@@ -5,7 +5,7 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import { getBaseUrl } from "../lib/utils";
+    import { login, getBaseUrl } from "$lib/utils";
     import { user } from "$lib/stores";
     import StallView from "$lib/components/StallView.svelte";
 </script>
@@ -45,4 +45,8 @@
         canAddItems={true}
         showActiveAuctions={true} showPastAuctions={true}
         showActiveListings={true} showPastListings={true} />
+{:else}
+    <div class="flex justify-center items-center mt-12">
+        <a href={null} class="btn btn-primary btn-lg normal-case" on:click={() => login()} on:keypress={() => login()}><b>Login to Stall Manager</b></a>
+    </div>
 {/if}
