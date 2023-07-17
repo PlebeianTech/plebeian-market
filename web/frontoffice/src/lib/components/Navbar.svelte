@@ -112,7 +112,7 @@
                         </p>
                     {/if}
                     <p>
-                        <a href="/admin" class="btn btn-ghost normal-case">Stall Manager</a>
+                        <a rel="external" href="/admin" class="btn btn-ghost normal-case">Stall Manager</a>
                     </p>
                     <p class="hidden xl:block">
                         {#if !$NostrPublicKey}
@@ -228,7 +228,7 @@
                                 </a>
                             </li>
                             <li class="block md:hidden md:h-0">
-                                <a class="text-base" href="/admin">
+                                <a class="text-base" rel="external" href="/admin">
                                     <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
                                 </a>
                             </li>
