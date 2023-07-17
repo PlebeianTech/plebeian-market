@@ -114,17 +114,6 @@ class LnAuth(db.Model):
     k1 = db.Column(db.String(128), nullable=False, unique=True, index=True)
     key = db.Column(db.String(128))
 
-class NostrAuth(db.Model):
-    __tablename__ = 'nostr_auth'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    verification_phrase = db.Column(db.String(32), nullable=False)
-    key = db.Column(db.String(64), nullable=False, unique=True, index=True)
-
-    def generate_verification_phrase(self):
-        self.verification_phrase = bip39gen.random_as_string(3)
-
 class User(WalletMixin, db.Model):
     __tablename__ = 'users'
 

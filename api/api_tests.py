@@ -153,23 +153,27 @@ class TestApi(unittest.TestCase):
             self.assertNotEqual(code, 200)
 
     def nostr_auth(self, behavior, private_key, expect_success=True, **kwargs):
-        code, response = self.put(f"/api/{behavior}/nostr",
-            {'pubkey': private_key.public_key.hex()})
-        self.assertEqual(code, 200)
-        challenge_event_json = response
-        self.assertEqual(challenge_event_json['kind'], 1)
-
-        # try a wrong signature first
-        challenge_event_json['sig'] = "1234"
-        code, response = self.put(f"/api/{behavior}/nostr", challenge_event_json)
+        # try with another content...
+        auth_event = Event(kind=1, content="chairman auth", public_key=private_key.public_key.hex())
+        private_key.sign_event(auth_event)
+        signed_event_json = json.loads(auth_event.to_message())[1]
+        code, response = self.put(f"/api/{behavior}/nostr", signed_event_json)
         self.assertEqual(code, 400)
         self.assertIn("invalid", response['message'].lower())
 
-        # now send the right one
-        challenge_event = Event(kind=challenge_event_json['kind'], content=challenge_event_json['content'], tags=challenge_event_json['tags'], public_key=challenge_event_json['pubkey'])
-        private_key.sign_event(challenge_event)
-        signed_event_json = json.loads(challenge_event.to_message())[1]
+        # try the correct content but a wrong signature
+        auth_event = Event(kind=1, content="pleb auth", public_key=private_key.public_key.hex())
+        private_key.sign_event(auth_event)
+        signed_event_json = json.loads(auth_event.to_message())[1]
+        signed_event_json['sig'] = "1234"
+        code, response = self.put(f"/api/{behavior}/nostr", signed_event_json)
+        self.assertEqual(code, 400)
+        self.assertIn("invalid", response['message'].lower())
 
+        # now finally do it
+        auth_event = Event(kind=1, content="pleb auth", public_key=private_key.public_key.hex())
+        private_key.sign_event(auth_event)
+        signed_event_json = json.loads(auth_event.to_message())[1]
         code, response = self.put(f"/api/{behavior}/nostr", signed_event_json)
 
         if expect_success:

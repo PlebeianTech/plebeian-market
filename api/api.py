@@ -117,42 +117,29 @@ def auth_lnurl(create_user):
 @api_blueprint.route('/api/login/nostr', methods=['PUT'], defaults={'create_user': False})
 @api_blueprint.route('/api/signup/nostr', methods=['PUT'], defaults={'create_user': True})
 def auth_nostr(create_user):
-    if 'pubkey' not in request.json:
-        return jsonify({'message': "Missing key."}), 400
-
-    auth = m.NostrAuth.query.filter_by(key=request.json['pubkey']).first()
-
-    if 'sig' not in request.json:
-        if not auth:
-            auth = m.NostrAuth(key=request.json['pubkey'])
-            db.session.add(auth)
-        auth.generate_verification_phrase()
-        db.session.commit()
-        event = Event(kind=1, content=auth.verification_phrase, tags=[['p', get_app_private_key().public_key.hex()]], public_key=request.json['pubkey'])
-        event_json = json.loads(event.to_message())[1]
-        return jsonify(event_json)
-
     try:
         validate_event(request.json)
-    except EventValidationError:
+    except Exception:
         return jsonify({'message': "Invalid event."}), 400
 
-    user = m.User.query.filter_by(nostr_public_key=auth.key, nostr_public_key_verified=True).first()
+    if request.json['kind'] != 1 or request.json['content'] != "pleb auth":
+        return jsonify({'message': "Invalid event."}), 400
+
+    pubkey = request.json['pubkey']
+
+    user = m.User.query.filter_by(nostr_public_key=pubkey, nostr_public_key_verified=True).first()
 
     if not user:
         if create_user:
-            user = m.User(nostr_public_key=auth.key, nostr_public_key_verified=True)
+            user = m.User(nostr_public_key=pubkey, nostr_public_key_verified=True)
             user.ensure_merchant_key()
             db.session.add(user)
+            db.session.commit()
         else:
             return jsonify({'message': "User not found. Please create an account first."}), 400
     else:
         if create_user:
             return jsonify({'message': "User with this key already exists. Please log in."}), 409
-
-    db.session.delete(auth)
-
-    db.session.commit()
 
     token_payload = {
         'user_id': user.id,
