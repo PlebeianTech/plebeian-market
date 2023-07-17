@@ -3,42 +3,11 @@
 </svelte:head>
 
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { getBaseUrl } from "../lib/utils";
-    import type { User } from "$lib/types/user";
-    import { getProfile, ErrorHandler } from "$lib/services/api";
-    import { token } from "$lib/stores";
+    import { user } from "$lib/stores";
     import StallView from "$lib/components/StallView.svelte";
-
-    let owner: User | null = null;
-    let loading = true;
-
-    function fetchStall(nym: string) {
-        loading = true;
-        getProfile($token, nym,
-            s => {
-                owner = s;
-                loading = false;
-            },
-            new ErrorHandler(false, () => {
-                loading = false;
-            }));
-    }
-
-    const tokenUnsubscribe = token.subscribe((t) => {
-        if (t) {
-            fetchStall('me');
-        }
-    });
-    onDestroy(tokenUnsubscribe);
-
-    onMount(async () => {
-        if ($token) {
-            fetchStall('me');
-        }
-    });
 </script>
 
 <MetaTags
@@ -66,10 +35,10 @@
         }}
 />
 
-{#if owner}
+{#if $user}
     <StallView
         baseUrl="users/me"
-        {owner} title={null}
+        owner={$user} title={null}
         description={null}
         isOwnStall={true}
         showItemsCampaign={true}

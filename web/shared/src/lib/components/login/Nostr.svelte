@@ -113,8 +113,8 @@
         {#if activeTab===0}
             <div class="w-full flex">
                 <div class="form-control w-full max-w-full">
-                    <p>A Nostr extension is the most <b>secure</b> and <b>recommended</b> way to use Plebeian Market.</p>
-                    <p class="mt-4">By using the identity that you created in your Nostr extension, you will be <b>building your reputation</b> each time you buy or sell any product, and then act correctly by paying on time and/or shipping the products without problems.</p>
+                    <p>A Nostr extension is the <b>most secure</b> and <b>recommended</b> way to use Plebeian Market.</p>
+                    <p class="mt-4">By using the identity that you created in your Nostr extension, you will be <b>building your reputation</b> each time you buy or sell any product and act as a good pleb by paying on time or shipping in good order.</p>
                     {#if npub}
                         <label class="label mt-8" for="npub">
                             <span class="label-text">Your NPUB</span>
@@ -131,7 +131,7 @@
         {:else if activeTab===1}
             <div class="w-full flex">
                 <div class="form-control w-full max-w-full">
-                    <p>With this option, you can let us generate a new Nostr private key for you, so you buy products anonymously.</p>
+                    <p>With this option you can let us generate a new Nostr private key for you. In this way you are also essentially buying products anonymously because the freshly generated key is not associated with any other identities you may be already using on Nostr.</p>
                     <p class="mt-4">This is the recommended option if you don't have a Nostr extension or a Nostr identity already created.</p>
 
                     {#if $NostrPrivateKey}
@@ -152,7 +152,7 @@
         {:else if activeTab===2}
             <div class="w-full flex items-center justify-center">
                 <div class="form-control w-full max-w-full">
-                    <p class="mb-4 md:mb-6">Introduce your Nostr private key. It will be stored in the web browser of this device, so no other person will have access to it.</p>
+                    <p class="mb-4 md:mb-6">Paste your Nostr private key. It will be stored in the web browser, on this device, so Plebeian Market will have no way to access it. The only thing we will access is the public key associated to this private key!</p>
                     <input bind:value={newPrivateKey} type="text" class="input md:input-lg input-bordered" />
                 </div>
             </div>

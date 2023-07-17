@@ -17,8 +17,6 @@
     import Store from "$sharedLib/components/icons/Store.svelte";
     import Sun from "$sharedLib/components/icons/Sun.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
-    import {requestLoginModal} from "$sharedLib/utils";
-    import {NostrPublicKey} from "$sharedLib/stores";
 
     let modal: Modal | null;
 
