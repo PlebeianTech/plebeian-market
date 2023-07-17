@@ -1,21 +1,21 @@
 <script>
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {Error, Info, privateMessages, stalls} from "$lib/stores.ts";
-    import {NostrPublicKey} from "$sharedLib/stores";
-    import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping.ts";
+    import {Error, Info, stalls} from "$lib/stores";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils.ts";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import {onDestroy, onMount} from "svelte";
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
-    import {filterTags} from "$sharedLib/nostr/utils.ts";
+    import {filterTags} from "$sharedLib/nostr/utils";
     import {
         EVENT_KIND_AUCTION_BID,
         EVENT_KIND_AUCTION_BID_STATUS,
         getProducts,
         sendPrivateMessage,
         subscribeAuction
-    } from "$lib/services/nostr.ts";
+    } from "$lib/services/nostr";
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";
 
     let name = null;

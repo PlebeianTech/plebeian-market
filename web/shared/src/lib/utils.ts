@@ -1,7 +1,8 @@
 import {goto} from "$app/navigation";
-//import {Info,  privateMessages} from "$lib/stores";
+//import {Info} from "$lib/stores";
 import {NostrPublicKey, loginModalState} from "$sharedLib/stores";
 import {get} from "svelte/store";
+import {privateMessages} from "$sharedLib/stores";
 
 export const SATS_IN_BTC = 100000000;
 
@@ -47,12 +48,12 @@ export async function waitAndShowLoginIfNotLoggedAlready() {
 
 export function logout(gotoUrl?: string) {
     NostrPublicKey.set(null);
-/*
+
     privateMessages.set({
         human: [],
         automatic: []
     });
-*/
+
     localStorage.removeItem('nostrPublicKey');
     localStorage.removeItem('readMessages');
 

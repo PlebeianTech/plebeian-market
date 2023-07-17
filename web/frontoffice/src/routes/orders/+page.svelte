@@ -1,6 +1,6 @@
 <script>
-    import {Info, privateMessages, products, stalls} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {Info, products, stalls} from "$lib/stores";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import {formatTimestamp} from "$sharedLib/nostr/utils.ts";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping.ts";

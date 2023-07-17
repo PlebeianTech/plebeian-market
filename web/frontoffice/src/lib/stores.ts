@@ -3,8 +3,6 @@ import { SimplePool } from 'nostr-tools';
 import type { User } from "$lib/types/user";
 import type {ShoppingCartItem} from "./types/stall";
 
-export const token: Writable<string | null> = writable(null);
-
 export const user: Writable<User | null> = writable(null);
 
 export type Placement = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'top-center' | 'bottom-center' | 'center-center';
@@ -55,15 +53,5 @@ interface CategoriesInfo {
 }
 
 export const productCategories: Writable<CategoriesInfo[] | null> = writable(null);
-
-// Human messages are indexed by publicKey
-// Automatic messages (orders) are indexed by orderId
-export const privateMessages: Writable<{
-    human: [],
-    automatic: []
-}> = writable({
-    human: [],
-    automatic: []
-});
 
 export const NostrGlobalConfig: Writable<object> = writable({});

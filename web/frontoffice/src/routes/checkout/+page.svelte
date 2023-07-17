@@ -1,6 +1,6 @@
 <script>
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {Error, Info, privateMessages, ShoppingCart, stalls} from "$lib/stores";
+    import {Error, Info, ShoppingCart, stalls} from "$lib/stores";
     import {NostrPublicKey} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";

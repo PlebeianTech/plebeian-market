@@ -1,6 +1,5 @@
 <script>
-    import {privateMessages} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import {onMount} from "svelte";
     import {sendPrivateMessage} from "$lib/services/nostr";
     import {nip19} from "nostr-tools";
