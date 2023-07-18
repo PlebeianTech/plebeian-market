@@ -16,7 +16,7 @@ services:
       - MODERATOR_USER_IDS=ALL
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
-    command: gunicorn --log-file log.txt --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
+    command: gunicorn --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
   web:
     build:
       context: ./
