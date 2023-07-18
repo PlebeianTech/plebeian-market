@@ -1,6 +1,6 @@
 <script>
     import {NostrPrivateKey} from "$sharedLib/stores";
-    import {logout} from "$sharedLib/utils.js";
+    import {logout} from "$sharedLib/utils";
 
     function deletePrivateKey() {
         localStorage.removeItem('nostrPrivateKey');

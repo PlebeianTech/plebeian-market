@@ -5,7 +5,7 @@
     import {generatePrivateKey, getPublicKey} from "nostr-tools";
     import { browser } from "$app/environment";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
-    import {setLoginMethod} from "$lib/utils.js";
+    import {setLoginMethod} from "$sharedLib/utils";
 
     const dispatch = createEventDispatcher();
 
