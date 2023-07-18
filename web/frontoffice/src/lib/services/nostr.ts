@@ -8,8 +8,9 @@ import {
 import { UserResume } from "$lib/types/user";
 import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
 import {NostrPool} from "../stores";
-import {NostrPrivateKey} from "$sharedLib/stores";
+import {NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
 import {get} from "svelte/store";
+import {loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
 export type UserMetadata = {
     name?: string;
@@ -208,10 +209,18 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
 
 export async function sendPrivateMessage(receiverPubkey: string, message: string, successCB) {
     let cipheredMessage;
-    if (hasExtension()) {
-        cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message);
+
+    if (loggedIn()) {
+        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
+            cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message);
+        } else {
+            cipheredMessage = await nip04.encrypt(get(NostrPrivateKey), receiverPubkey, message);
+        }
     } else {
-        cipheredMessage = await nip04.encrypt(get(NostrPrivateKey), receiverPubkey, message);
+        if (!await waitAndShowLoginIfNotLoggedAlready()) {
+            return;
+        }
+        await sendPrivateMessage(receiverPubkey, message, successCB);
     }
 
     const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', receiverPubkey]]);

@@ -5,6 +5,8 @@
     import {generatePrivateKey, getPublicKey} from "nostr-tools";
     import { browser } from "$app/environment";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
+    import {setLoginMethod} from "$sharedLib/utils";
+    import {goto} from "$app/navigation";
 
     const dispatch = createEventDispatcher();
 
@@ -25,22 +27,41 @@
         let publicKey = await (window as any).nostr.getPublicKey();
 
         npub = encodeNpub(publicKey);
+
+        setLoginMethod('extension');
+
         localStorage.setItem('nostrPublicKey', publicKey);
         $NostrPublicKey = publicKey;
 
         await waitAndlogin();
     }
 
+    async function useSameKeyToLogin() {
+        setLoginMethod('generated');
+        await savePrivateNostrKey($NostrPrivateKey);
+
+        goto('/privatekey');
+    }
+
     async function generateNewNostrKey() {
         let privateKey = generatePrivateKey();
+        setLoginMethod('generated');
         await savePrivateNostrKey(privateKey);
+
+        goto('/privatekey');
     }
 
     async function saveProvidedNostrKey() {
+        if (!newPrivateKey) {
+            // TODO Alert telling the user to put the key in the field
+            return;
+        }
+
+        setLoginMethod('provided');
         await savePrivateNostrKey(newPrivateKey);
     }
 
-    async function savePrivateNostrKey(privateKey) {
+    async function savePrivateNostrKey(privateKey: string) {
         let publicKey = getPublicKey(privateKey);
 
         localStorage.setItem('nostrPrivateKey', privateKey);
@@ -130,7 +151,7 @@
                 </div>
             </div>
             <div class="w-full flex items-center justify-center mt-8 gap-5">
-                <button class="btn btn-primary" on:click={getKeyFromExtension}>Use Nostr browser extension</button>
+                <button class="btn btn-success" on:click={getKeyFromExtension}>Use Nostr browser extension</button>
             </div>
 
         {:else if activeTab===1}
@@ -141,7 +162,8 @@
 
                     {#if $NostrPrivateKey}
                         <div class="form-control w-full max-w-full mt-8">
-                            <p class="mb-4">Your Nostr private key</p>
+                            <p class="mb-4">This is the key we generated for you. You can use it or generate a new one.</p>
+                            <p class="mb-4"><b>If you generate a new one, you'll better make sure you save this one to a secure place before, or you'll lose your ability to communicate with sellers and keep the Orders history.</b></p>
                             <input bind:value={$NostrPrivateKey} type="text" class="input md:input-lg input-bordered" />
                         </div>
                     {:else}
@@ -151,7 +173,10 @@
             </div>
 
             <div class="w-full flex items-center justify-center mt-3">
-                <button class="btn btn-primary" on:click={generateNewNostrKey}>Generate new Nostr key</button>
+                {#if $NostrPrivateKey}
+                    <button class="btn btn-success mr-8" on:click={useSameKeyToLogin}>Use this key</button>
+                {/if}
+                <button class="btn btn-warning" on:click={generateNewNostrKey}>Generate a new Nostr key</button>
             </div>
 
         {:else if activeTab===2}
