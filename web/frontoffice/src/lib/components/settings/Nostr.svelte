@@ -18,11 +18,12 @@
         <p class="mt-4 mb-4">
             {$NostrPublicKey}
         </p>
+
+        <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
+
     {:else if $NostrPrivateKey}
         <PrivateKeyInfo />
     {/if}
-
-    <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
 
 {:else}
     <div class="w-full items-center justify-center text-center">

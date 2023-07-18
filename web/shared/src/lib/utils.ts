@@ -1,6 +1,6 @@
 import {goto} from "$app/navigation";
 //import {Info} from "$lib/stores";
-import {NostrPublicKey, NostrPrivateKey, NostrLoginMethod, loginModalState} from "$sharedLib/stores";
+import {NostrPublicKey, NostrLoginMethod, loginModalState} from "$sharedLib/stores";
 import {get} from "svelte/store";
 import {privateMessages} from "$sharedLib/stores";
 import {browser} from "$app/environment";
@@ -49,14 +49,12 @@ export async function waitAndShowLoginIfNotLoggedAlready() {
 
 export function logout(gotoUrl?: string) {
     NostrPublicKey.set(null);
-    NostrPrivateKey.set(null);
 
     privateMessages.set({
         human: [],
         automatic: []
     });
 
-    //localStorage.removeItem('nostrPrivateKey');
     localStorage.removeItem('nostrPublicKey');
     localStorage.removeItem('readMessages');
     localStorage.removeItem('nostrLoginMethod');

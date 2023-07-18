@@ -6,6 +6,7 @@
     import { browser } from "$app/environment";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {setLoginMethod} from "$sharedLib/utils";
+    import {goto} from "$app/navigation";
 
     const dispatch = createEventDispatcher();
 
@@ -38,12 +39,16 @@
     async function useSameKeyToLogin() {
         setLoginMethod('generated');
         await savePrivateNostrKey($NostrPrivateKey);
+
+        goto('/privatekey');
     }
 
     async function generateNewNostrKey() {
         let privateKey = generatePrivateKey();
         setLoginMethod('generated');
         await savePrivateNostrKey(privateKey);
+
+        goto('/privatekey');
     }
 
     async function saveProvidedNostrKey() {
