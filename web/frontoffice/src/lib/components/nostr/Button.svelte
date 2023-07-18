@@ -1,7 +1,7 @@
 <script lang="ts">
     import { sendMessage } from "$lib/services/nostr";
     import { getChannelIdForStallOwner, pmChannelNostrRoomId } from '$sharedLib/nostr/utils'
-    import { Info, user } from "$lib/stores";
+    import { Info } from "$lib/stores";
 
     export let pmURL: string | null;
 
@@ -13,7 +13,7 @@
         switch (location) {
             case 'stall':
                 message = 'Hi people! I just listed a new product. Give it a look:';
-                nostrRoomId = getChannelIdForStallOwner($user);
+//                nostrRoomId = getChannelIdForStallOwner($user);
                 break;
             case 'mktSquare':
                 message = 'Hey! Check the new product I just listed!';

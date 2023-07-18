@@ -1,9 +1,6 @@
 import { writable, type Writable } from 'svelte/store';
 import { SimplePool } from 'nostr-tools';
-import type { User } from "$lib/types/user";
 import type {ShoppingCartItem} from "./types/stall";
-
-export const user: Writable<User | null> = writable(null);
 
 export type Placement = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'top-center' | 'bottom-center' | 'center-center';
 
