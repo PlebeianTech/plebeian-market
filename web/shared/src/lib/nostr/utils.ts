@@ -1,6 +1,6 @@
 import {getEventHash, nip05, nip19, Kind, getSignature} from "nostr-tools";
 import {goto} from "$app/navigation";
-import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores.js";
+import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod} from "$sharedLib/stores.js";
 import {get} from "svelte/store";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
@@ -37,7 +37,7 @@ export async function createEvent(kind: number, content: any, tags: any = []) {
         created_at: Math.floor(Date.now() / 1000),
     }
 
-    if (hasExtension()) {
+    if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
         event.pubkey = await (window as any).nostr.getPublicKey();
         event.id = getEventHash(event);
         return await (window as any).nostr.signEvent(event);

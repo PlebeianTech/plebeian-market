@@ -1,8 +1,9 @@
 import {goto} from "$app/navigation";
 //import {Info} from "$lib/stores";
-import {NostrPublicKey, loginModalState} from "$sharedLib/stores";
+import {NostrPublicKey, NostrPrivateKey, NostrLoginMethod, loginModalState} from "$sharedLib/stores";
 import {get} from "svelte/store";
 import {privateMessages} from "$sharedLib/stores";
+import {browser} from "$app/environment";
 
 export const SATS_IN_BTC = 100000000;
 
@@ -48,14 +49,17 @@ export async function waitAndShowLoginIfNotLoggedAlready() {
 
 export function logout(gotoUrl?: string) {
     NostrPublicKey.set(null);
+    NostrPrivateKey.set(null);
 
     privateMessages.set({
         human: [],
         automatic: []
     });
 
+    //localStorage.removeItem('nostrPrivateKey');
     localStorage.removeItem('nostrPublicKey');
     localStorage.removeItem('readMessages');
+    localStorage.removeItem('nostrLoginMethod');
 
 //    Info.set("You're Logged out");
 
@@ -64,6 +68,17 @@ export function logout(gotoUrl?: string) {
     } else {
         goto('/');
     }
+}
+
+export function setLoginMethod(method: string): void {
+    if (browser) {
+        NostrLoginMethod.set(method);
+        localStorage.setItem('nostrLoginMethod', method);
+    }
+}
+
+export function loggedIn(): boolean {
+    return get(NostrLoginMethod) !== null;
 }
 
 export function sats2usd(sats: number, btc2usd: number | null): number | null {

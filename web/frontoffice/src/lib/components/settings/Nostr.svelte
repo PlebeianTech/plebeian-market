@@ -1,18 +1,11 @@
 <script lang="ts">
-    import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
-    import {logout, requestLoginModal} from "$sharedLib/utils";
-    import {hasExtension} from "$sharedLib/nostr/utils";
-
-    function deletePrivateKey() {
-        localStorage.removeItem('nostrPrivateKey');
-        NostrPrivateKey.set(null);
-
-        logout();
-    }
+    import {NostrLoginMethod, NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
+    import {loggedIn, logout, requestLoginModal} from "$sharedLib/utils";
+    import PrivateKeyInfo from "$lib/components/settings/PrivateKeyInfo.svelte";
 </script>
 
-{#if $NostrPublicKey}
-    {#if hasExtension()}
+{#if loggedIn()}
+    {#if $NostrLoginMethod === 'extension'}
         <p>
             You're using your <b>Nostr browser extension</b>.
         </p>
@@ -26,29 +19,7 @@
             {$NostrPublicKey}
         </p>
     {:else if $NostrPrivateKey}
-        <p class="text-xl">Your Nostr private key:</p>
-
-        <pre class="my-8 text-lg bg-base-300 text-center">{$NostrPrivateKey}</pre>
-
-        <p>
-            Please, don't share this key with anyone. This key represents your Nostr private identity, so the products you buy and the messages you send are associated with it.
-            The key is stored in your web browser, so Plebeian Market has no way to know it.
-        </p>
-        <p class="mt-4">
-            You should backup this key if you want to use it in other clients or in case it's deleted from your browser.
-        </p>
-
-        <!--
-        <div class="flex justify-center items-center mt-4 h-15">
-            <button id="save-profile" class="btn btn-primary" on:click|preventDefault={deletePrivateKey}>Delete Private Key</button>
-        </div>
-        -->
-
-        <!--
-        <div class="flex justify-center items-center mt-4 h-15">
-            <button id="save-profile" class="btn btn-primary" class:btn-disabled={!saveButtonActive} on:click|preventDefault={save}>Save</button>
-        </div>
-        -->
+        <PrivateKeyInfo />
     {/if}
 
     <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
