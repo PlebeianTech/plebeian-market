@@ -5,13 +5,12 @@
     import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
     import { token, user, BTC2USD, Info } from "$lib/stores";
     import type { User } from "$lib/types/user";
-    import { isProduction, getEnvironmentInfo, login, logout, getBaseUrl } from "$lib/utils";
+    import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import Cash from "$sharedLib/components/icons/Cash.svelte";
     import Exit from "$sharedLib/components/icons/Exit.svelte";
     import Hamburger from "$sharedLib/components/icons/Hamburger.svelte";
     import Home from "$sharedLib/components/icons/Home.svelte";
-    import Key from "$sharedLib/components/icons/Key.svelte";
     import Moon from "$sharedLib/components/icons/Moon.svelte";
     import Settings from "$sharedLib/components/icons/Settings2.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
@@ -129,7 +128,7 @@
                 <div class="flex items-center space-x-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
                     <h1 class="text-xl font-bold hover:text-blue-400 duration-300">
-                        Plebeian Market Stall Manager
+                        Plebeian Market
                     </h1>
                 </div>
             </a>
@@ -149,18 +148,13 @@
                     </div>
                 {/if}
 
-                <div class="lg:flex hidden">
+                <div class="lg:flex gap-2 hidden">
                     <p>
-                        <a href="/admin" class="btn btn-ghost normal-case">My stall</a>
+                        <a href="/admin" class="btn btn-ghost btn-active normal-case">Stall Manager</a>
                     </p>
                     <p>
                         <a rel="external" href="/" class="btn btn-ghost normal-case">Marketplace</a>
                     </p>
-                    {#if !$token || !$user}
-                        <p>
-                            <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => login()} on:keypress={() => login()}><b>Login</b></a>
-                        </p>
-                    {/if}
                 </div>
             </div>
 
@@ -181,17 +175,9 @@
                     {/if}
 
                     <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-60 z-40 float-right right-2">
-                        {#if !$token || !$user}
-                            <li class="block md:hidden md:h-0 text-primary">
-                                <a href={null} class="modal-button cursor-pointer text-base" on:click={() => login()} on:keypress={() => { login(); hideMobileMenu(); }}>
-                                    <span class="w-6 h-6"><Key /></span> <b>Login</b>
-                                </a>
-                            </li>
-                        {/if}
-
                         <li class="block md:hidden md:h-0">
                             <a href="/admin" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6"><Home /></span> My stall
+                                <span class="w-6 h-6"><Home /></span> Stall Manager
                             </a>
                         </li>
                         {#if $token && $user}

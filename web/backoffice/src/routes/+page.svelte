@@ -8,6 +8,7 @@
     import { login, getBaseUrl } from "$lib/utils";
     import { user } from "$lib/stores";
     import StallView from "$lib/components/StallView.svelte";
+    import { requestLoginModal } from "$sharedLib/utils";
 </script>
 
 <MetaTags
@@ -46,7 +47,9 @@
         showActiveAuctions={true} showPastAuctions={true}
         showActiveListings={true} showPastListings={true} />
 {:else}
-    <div class="flex justify-center items-center mt-12">
-        <a href={null} class="btn btn-primary btn-lg normal-case" on:click={() => login()} on:keypress={() => login()}><b>Login to Stall Manager</b></a>
+    <h2 class="text-4xl text-center my-8">Stall Manager</h2>
+    <div class="flex justify-center items-center mt-12 gap-4">
+        <a href={null} class="btn btn-primary btn-lg normal-case" on:click={async () => requestLoginModal()} on:keypress={async () => requestLoginModal()}><b>Login using Nostr</b></a>
+        <a href={null} class="btn btn-primary btn-lg normal-case" on:click={() => login()} on:keypress={() => login()}><b>Login using Lightning</b></a>
     </div>
 {/if}

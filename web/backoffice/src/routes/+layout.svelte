@@ -6,7 +6,8 @@
     import { page } from '$app/stores';
     import { token, Info, Error, type Placement } from "$lib/stores";
     import Footer from "$sharedLib/components/Footer.svelte";
-    import LoginModal from "$lib/components/auth/Modal.svelte";
+    import LoginModalLightning from "$lib/components/auth/Modal.svelte";
+    import LoginModal from "$sharedLib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";
 
 	const infoUnsubscribe = Info.subscribe(value => {
@@ -77,3 +78,4 @@
 </div>
 
 <LoginModal />
+<LoginModalLightning />
