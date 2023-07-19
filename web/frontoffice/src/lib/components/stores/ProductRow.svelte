@@ -4,6 +4,7 @@
     import {addToCart} from "$lib/shopping";
     import {EVENT_KIND_AUCTION} from "$lib/services/nostr";
     import {goto} from "$app/navigation";
+    import {Image} from "svelte-lazy-loader";
 
     export let product: string;
     export let onImgError = () => {};
@@ -32,7 +33,14 @@
     </td>
     <td>
         <div class="card bg-base-100 shadow-xl w-full lg:w-32">
-            <figure><a href="/product/{product.id}"><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></a></figure>
+            <figure>
+                <a href="/product/{product.id}">
+                    <Image
+                            loading="lazy"
+                            placeholder="https://placehold.co/600x400"
+                            src="{product.images ? product.images[0] : product.image ?? productImageFallback}" />
+                </a>
+            </figure>
         </div>
     </td>
 
