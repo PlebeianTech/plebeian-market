@@ -130,9 +130,28 @@
                     }
                 } else {
                     // If whiteListedStalls is provided, don't limit the number of loaded products
-                    // If there is no whiteListedStalls, load just maxProductsLoaded products
+                    // If there is no whiteListedStalls, load just maxProductsLoaded products, unless
+                    // maxProductsLoaded is 0 (unlimited)
 
-                    if (whiteListedStalls || (whiteListedStalls === null && productsLoaded < maxProductsLoaded)) {
+                    if (
+                        whiteListedStalls
+                        ||
+                        (
+                            whiteListedStalls === null
+                            &&
+                            (
+                                (
+                                    maxProductsLoaded === 0
+                                )
+                                ||
+                                (
+                                    maxProductsLoaded > 0
+                                    &&
+                                    productsLoaded < maxProductsLoaded
+                                )
+                            )
+                        )
+                    ) {
                         products[productId] = content;
                         productsLoaded++;
                     }

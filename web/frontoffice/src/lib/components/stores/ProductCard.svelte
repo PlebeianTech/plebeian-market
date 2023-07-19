@@ -7,6 +7,7 @@
     import { goto } from "$app/navigation";
     import {EVENT_KIND_AUCTION} from "$lib/services/nostr";
     import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
+    import { Image } from 'svelte-lazy-loader';
 
     export let product: string;
     export let onImgError = () => {};
@@ -15,7 +16,14 @@
 </script>
 
 <div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-16 md:4">
-    <figure><a href="/product/{product.id}"><img src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></a></figure>
+    <figure>
+        <a href="/product/{product.id}">
+            <Image
+                    loading="lazy"
+                    placeholder="https://placehold.co/600x400"
+                    src="{product.images ? product.images[0] : product.image ?? productImageFallback}" />
+        </a>
+    </figure>
     <div class="card-body items-center text-center">
         {#if product.event.kind === EVENT_KIND_AUCTION}
             <div class="badge badge-info gap-2">auction</div>
