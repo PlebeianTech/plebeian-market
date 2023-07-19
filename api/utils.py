@@ -39,11 +39,11 @@ def store_image(s3, filename, append_hash, original_filename, data):
 
     return s3.get_url_prefix() + s3.get_filename_prefix() + filename, content_hash
 
-def usd2sats(amount, btc2usd):
+def usd2sats(amount: float, btc2usd: float) -> int:
     from main import app
     return int(amount / btc2usd * app.config['SATS_IN_BTC'])
 
-def sats2usd(amount, btc2usd):
+def sats2usd(amount: float, btc2usd: float) -> float:
     from main import app
     return (amount * btc2usd) / app.config['SATS_IN_BTC']
 

@@ -976,9 +976,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'is_mine': for_user == self.item.seller_id if for_user else False,
         }
 
-        auction['bid_thresholds'] = [{'bid_amount_usd': bd['threshold_usd'], 'required_badge': b}
-            for b, bd in sorted(app.config['BADGES'].items(), key=lambda i: i[1]['threshold_usd'])]
-
         if self.item.category == Category.Time.value:
             auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.profile_image_url}]
         else:

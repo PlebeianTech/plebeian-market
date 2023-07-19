@@ -812,6 +812,16 @@ class TestApi(unittest.TestCase):
         code, response = self.post(f"/api/merchants/{auction_merchant_public_key}/auctions/{auction_after_edit_nostr_event_id}/bids", signed_event_json)
         self.assertEqual(code, 200)
 
+        # cannot place a huge bid
+        above_threshold_usd = app.config['SKIN_IN_THE_GAME_THRESHOLDS'][0]['bid_amount_usd'] + 1
+        above_threshold_sats = int(ONE_DOLLAR_SATS * above_threshold_usd)
+        huge_bid_event = Event(kind=BID_NOSTR_EVENT_KIND, content=str(above_threshold_sats))
+        NOSTR_BUYER_PRIVATE_KEY.sign_event(huge_bid_event)
+        signed_huge_event_json = json.loads(huge_bid_event.to_message())[1]
+        code, response = self.post(f"/api/merchants/{auction_merchant_public_key}/auctions/{auction_after_edit_nostr_event_id}/bids", signed_huge_event_json)
+        self.assertEqual(code, 400)
+        self.assertIn("skin in the game", response['message'].lower())
+
         # cannot EDIT the auction anymore once it has a bid
         code, response = self.put(f"/api/auctions/{auction_key}",
             {'starting_bid': 102},

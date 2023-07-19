@@ -4,19 +4,18 @@ from datetime import datetime, timedelta
 import ecdsa
 from ecdsa.keys import BadSignatureError
 from email_validator import validate_email, EmailNotValidError
-from flask import Blueprint, jsonify, redirect, request
+from flask import Blueprint, jsonify, request
 from hashlib import sha256
 from io import BytesIO
 import json
 import jwt
 import lnurl
-from nostr.event import Event, EncryptedDirectMessage
-from nostr.key import PrivateKey
 import os
 import pyqrcode
 import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.functions import func
 import time
 
 from extensions import db
@@ -1086,8 +1085,6 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
     if not auction:
         return jsonify({'message': "Auction not found!"}), 404
 
-    merchant_private_key = PrivateKey(bytes.fromhex(merchant.merchant_private_key))
-
     birdwatcher = get_birdwatcher()
 
     try:
@@ -1120,6 +1117,23 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         message = f"Your bid needs to be equal to or higher than {auction.starting_bid}, the starting bid."
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
+
+    try:
+        btc2usd = btc2fiat.get_value('kraken')
+    except Exception:
+        return jsonify({'message': "Error fetching the exchange rate!"}), 500
+
+    amount_spent = db.session.query(func.sum(m.Order.total_usd).label('total_amount_usd')) \
+        .filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).first() \
+        .total_amount_usd or 0
+
+    for threshold in app.config['SKIN_IN_THE_GAME_THRESHOLDS']:
+        threshold_bid_amount_sats = usd2sats(threshold['bid_amount_usd'], btc2usd)
+        threshold_required_amount_spent_sats = usd2sats(threshold['required_amount_spent_usd'], btc2usd)
+        if amount >= threshold_bid_amount_sats and amount_spent < threshold_required_amount_spent_sats:
+            message = f"You need at least ${int(threshold['required_amount_spent_usd'])} worth of successful purchases (skin in the game) in order to bid more."
+            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message)
+            return jsonify({'message': message}), 400
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
     db.session.add(bid)
