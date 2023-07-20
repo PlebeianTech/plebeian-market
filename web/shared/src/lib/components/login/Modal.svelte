@@ -29,17 +29,16 @@
     let open = false;
 
     $: if ($loginModalState.openRequested) {
-        show($loginModalState.callbackFunc);
+        show($loginModalState.loginSuccessCB, $loginModalState.loginBackofficeSuccessCB);
 
         $loginModalState.openRequested = false
     }
 
-    export function show(onLoginFunction) {
+    export function show(loginSuccessCB: () => void = () => {}, loginBackofficeSuccessCB: () => void = () => {}) {
         open = true;
 
-        if (typeof onLoginFunction === 'function') {
-            onLogin = onLoginFunction;
-        }
+        onLogin = loginSuccessCB;
+        onLoginBackoffice = loginBackofficeSuccessCB;
     }
 
     export function doLogin() {
@@ -52,6 +51,7 @@
     }
 
     export let onLogin: () => void = () => {};
+    export let onLoginBackoffice: () => void = () => {};
 
     onMount(async () => {
         $NostrLoginMethod = localStorage.getItem("nostrLoginMethod");
@@ -65,7 +65,7 @@
         <label class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
         <div class="w-full" id="loginDiv">
             {#if open}
-                <NostrLogin on:login={doLogin} />
+                <NostrLogin on:login={doLogin} on:backoffice-login={onLoginBackoffice} />
             {/if}
         </div>
     </div>

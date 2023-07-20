@@ -76,7 +76,7 @@
         dispatch('login', {});
 
         // After login, try to log in to backend
-        tryLoginToBackend();
+        tryLoginToBackend(() => { dispatch('backoffice-login') });
     }
 
     function activateFirstTabIfExtensionPresent() {

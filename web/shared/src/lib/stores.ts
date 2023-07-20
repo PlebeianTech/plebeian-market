@@ -2,10 +2,12 @@ import { writable, type Writable } from 'svelte/store';
 
 export const loginModalState: Writable<{
     openRequested: boolean;
-    callbackFunc: () => void;
+    loginSuccessCB: () => void;
+    loginBackofficeSuccessCB: () => void;
 }> = writable({
     openRequested: false,
-    callbackFunc: () => {}
+    loginSuccessCB: () => {},
+    loginBackofficeSuccessCB: () => {},
 });
 
 export const NostrPublicKey: Writable<string | null> = writable(null);

@@ -6,7 +6,6 @@
     import { token, user, BTC2USD, Info } from "$lib/stores";
     import type { User } from "$lib/types/user";
     import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
-    import Modal from "$lib/components/Modal.svelte";
     import Cash from "$sharedLib/components/icons/Cash.svelte";
     import Exit from "$sharedLib/components/icons/Exit.svelte";
     import Hamburger from "$sharedLib/components/icons/Hamburger.svelte";
@@ -16,8 +15,6 @@
     import Store from "$sharedLib/components/icons/Store.svelte";
     import Sun from "$sharedLib/components/icons/Sun.svelte";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
-
-    let modal: Modal | null;
 
     let prefersDark = false;
 
@@ -215,5 +212,3 @@
         </div>
     </div>
 </nav>
-
-<Modal bind:this={modal} content={null} />

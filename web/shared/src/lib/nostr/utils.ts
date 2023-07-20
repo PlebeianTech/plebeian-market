@@ -183,7 +183,7 @@ export function newNostrConversation(pubkey) {
     goto('/messages?newMessagePubKey=' + pubkey);
 }
 
-export async function tryLoginToBackend() {
+export async function tryLoginToBackend(successCB: () => void = () => {}) {
     const apiHost = import.meta.env.VITE_API_BASE_URL;
     const apiUrl = '/api/login/nostr';
 
@@ -214,6 +214,7 @@ export async function tryLoginToBackend() {
 
         if (responseJson.success === true && responseJson.token) {
             localStorage.setItem('token', responseJson.token);
+            successCB();
         } else {
             console.debug('responseJson.token', responseJson.token);
         }

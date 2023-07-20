@@ -31,10 +31,11 @@ export function getEnvironmentInfo() {
     return import.meta.env.MODE;
 }
 
-export function requestLoginModal(callbackFunc: () => void = () => {}) {
+export function requestLoginModal(loginSuccessCB: () => void = () => {}, loginBackofficeSuccessCB: () => void = () => {}) {
     loginModalState.set({
         openRequested: true,
-        callbackFunc
+        loginSuccessCB,
+        loginBackofficeSuccessCB,
     });
 }
 
