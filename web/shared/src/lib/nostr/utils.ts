@@ -184,10 +184,7 @@ export function newNostrConversation(pubkey) {
 }
 
 export async function tryLoginToBackend() {
-    /* TODO
-    - Read apiHost from configuration file
-    */
-    const apiHost = '';
+    const apiHost = import.meta.env.VITE_API_BASE_URL;
     const apiUrl = '/api/login/nostr';
 
     const event = await createEvent(

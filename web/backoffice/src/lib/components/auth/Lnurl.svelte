@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import { ErrorHandler, lnurlAuth } from "$lib/services/api";
-    import { token, user, Info, AuthBehavior } from "$lib/stores";
+    import { token, user, Info, Error, AuthBehavior } from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import QR from "$lib/components/QR.svelte";
     import { isDevelopment } from "$lib/utils";
@@ -16,6 +16,7 @@
 
     let lnurl;
     let qr;
+    let errorMessage: string | null = null;
     let k1: string | null = null;
 
     let checkLoginTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -43,7 +44,7 @@
                 localStorage.setItem('token', response.token);
                 dispatch('login', {})
 
-                if (behavior !== AuthBehavior.Signup) {
+                if (behavior === AuthBehavior.Login) {
                     Info.set("¡Hello, you're so early!");
                 }
 
@@ -55,11 +56,22 @@
             },
             () => {
                 dispatch('loginTokenExpiredEvent', {})
-            }, new ErrorHandler(true,
+            }, new ErrorHandler(false,
                 (response) => {
                     if (response.status === 400 || response.status === 409) {
+                        response.json().then(data => { Error.set(data.message); });
                         k1 = null;
                         checkLoginTimeout = setTimeout(checkLogin, 1000);
+                    } else if (response.status === 403) {
+                        response.json().then(
+                            data => {
+                                if (data.nostr_required) {
+                                    qr = null;
+                                    errorMessage = data.message;
+                                } else {
+                                    k1 = null;
+                                }
+                            });
                     }
                 }));
     }
@@ -101,6 +113,10 @@
 
             <QR qr={qr} protocol="lightning" address={lnurl} />
         </div>
+    {:else if errorMessage !== null}
+        <ErrorBox>
+            {errorMessage}
+        </ErrorBox>
     {:else}
         <Loading />
     {/if}

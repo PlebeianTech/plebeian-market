@@ -32,10 +32,8 @@ api_blueprint = Blueprint('api', __name__)
 def healthcheck(): # TODO: I don't really like this, for some reason, but it is used in "dev" mode by docker-compose
     return jsonify({'success': True})
 
-# PUT would make more sense than GET, but the lightning wallets only do GET - perhaps we could split this in two parts - the part called by our app and the GET done by the wallet
-@api_blueprint.route('/api/login/lnurl', methods=['GET'], defaults={'create_user': False})
-@api_blueprint.route('/api/signup/lnurl', methods=['GET'], defaults={'create_user': True})
-def auth_lnurl(create_user):
+@api_blueprint.route('/api/login/lnurl', methods=['GET'])
+def auth_lnurl():
     if 'k1' not in request.args:
         # first request to /login => we return a challenge (k1) and a QR code
         k1 = secrets.token_hex(32)
@@ -91,18 +89,13 @@ def auth_lnurl(create_user):
     user = m.User.query.filter_by(lnauth_key=lnauth.key).first()
 
     if not user:
-        if create_user:
-            user = m.User(lnauth_key=lnauth.key)
-            user.ensure_merchant_key()
-            db.session.add(user)
-        else:
-            return jsonify({'message': "User not found. Please create an account first."}), 400
-    else:
-        if create_user:
-            return jsonify({'message': "User with this key already exists. Please log in."}), 409
+        return jsonify({'message': "User not found. Please create an account first."}), 400
 
     db.session.delete(lnauth)
     db.session.commit()
+
+    if not user.nostr_public_key or not user.nostr_public_key_verified:
+        return jsonify({'message': "Please log in using Nostr and link your Lightning wallet to your Nostr account! After that, you will be able to log in to your Nostr account using the Lightning wallet.", 'nostr_required': True}), 403
 
     token_payload = {
         'user_id': user.id,
@@ -113,9 +106,8 @@ def auth_lnurl(create_user):
 
     return jsonify({'success': True, 'token': token, 'user': user.to_dict(for_user=user.id)})
 
-@api_blueprint.route('/api/login/nostr', methods=['PUT'], defaults={'create_user': False})
-@api_blueprint.route('/api/signup/nostr', methods=['PUT'], defaults={'create_user': True})
-def auth_nostr(create_user):
+@api_blueprint.route('/api/login/nostr', methods=['PUT'])
+def auth_nostr():
     try:
         validate_event(request.json)
     except Exception:
@@ -129,16 +121,10 @@ def auth_nostr(create_user):
     user = m.User.query.filter_by(nostr_public_key=pubkey, nostr_public_key_verified=True).first()
 
     if not user:
-        if create_user:
-            user = m.User(nostr_public_key=pubkey, nostr_public_key_verified=True)
-            user.ensure_merchant_key()
-            db.session.add(user)
-            db.session.commit()
-        else:
-            return jsonify({'message': "User not found. Please create an account first."}), 400
-    else:
-        if create_user:
-            return jsonify({'message': "User with this key already exists. Please log in."}), 409
+        user = m.User(nostr_public_key=pubkey, nostr_public_key_verified=True)
+        user.ensure_merchant_key()
+        db.session.add(user)
+        db.session.commit()
 
     token_payload = {
         'user_id': user.id,
