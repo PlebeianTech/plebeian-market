@@ -3,7 +3,7 @@
     import { page } from "$app/stores";
     import type { UserResume } from "$lib/types/user";
     import Editor from "$lib/components/resume/Editor.svelte";
-    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
+    import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
     import {newNostrConversation} from "$sharedLib/nostr/utils";
     import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";

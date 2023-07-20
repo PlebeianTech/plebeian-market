@@ -8,7 +8,7 @@
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import X from "$sharedLib/components/icons/X.svelte";
     import Loading from "$lib/components/Loading.svelte";
-    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
+    import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
 
     export let pubkey: string;
     export let resume: UserResume;
