@@ -1,6 +1,5 @@
 import {goto} from "$app/navigation";
-//import {Info} from "$lib/stores";
-import {NostrPublicKey, NostrLoginMethod, loginModalState} from "$sharedLib/stores";
+import {NostrPublicKey, NostrLoginMethod, loginModalState, Info} from "$sharedLib/stores";
 import {get} from "svelte/store";
 import {privateMessages} from "$sharedLib/stores";
 import {browser} from "$app/environment";
@@ -60,7 +59,7 @@ export function logout(gotoUrl?: string) {
     localStorage.removeItem('readMessages');
     localStorage.removeItem('nostrLoginMethod');
 
-//    Info.set("You're Logged out");
+    Info.set("You're Logged out");
 
     if (gotoUrl !== undefined) {
         goto(gotoUrl);

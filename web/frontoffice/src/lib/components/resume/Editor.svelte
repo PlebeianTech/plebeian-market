@@ -1,6 +1,6 @@
 <script lang="ts">
     import { publishResume, subscribeResume } from "$lib/services/nostr";
-    import { Info, Error } from "$lib/stores";
+    import { Info, Error } from "$sharedLib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$sharedLib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";
@@ -8,7 +8,7 @@
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import X from "$sharedLib/components/icons/X.svelte";
     import Loading from "$lib/components/Loading.svelte";
-    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
+    import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
 
     export let pubkey: string;
     export let resume: UserResume;

@@ -11,7 +11,7 @@
     import {publishConfiguration} from "$lib/services/nostr";
     import {newNostrConversation} from "$sharedLib/nostr/utils";
     import {getConfigurationFromFile} from "$sharedLib/utils";
-    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
+    import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
 
     export let merchantPubkey: string | null;
 

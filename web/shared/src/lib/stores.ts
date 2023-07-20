@@ -1,5 +1,8 @@
 import { writable, type Writable } from 'svelte/store';
 
+export const Info: Writable<string | null | {message: string, duration: number, url: string, button: string, placement: Placement}> = writable(null);
+export const Error: Writable<string | null> = writable(null);
+
 export const loginModalState: Writable<{
     openRequested: boolean;
     loginSuccessCB: () => void;

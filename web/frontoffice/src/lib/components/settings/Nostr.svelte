@@ -1,7 +1,7 @@
 <script lang="ts">
     import {NostrLoginMethod, NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
     import {loggedIn, logout, requestLoginModal} from "$sharedLib/utils";
-    import PrivateKeyInfo from "$lib/components/settings/PrivateKeyInfo.svelte";
+    import PrivateKeyInfo from "$sharedLib/components/PrivateKeyInfo.svelte";
 </script>
 
 {#if loggedIn()}

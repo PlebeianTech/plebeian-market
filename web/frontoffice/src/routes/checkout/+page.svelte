@@ -1,7 +1,7 @@
 <script>
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {Error, Info, ShoppingCart, stalls} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {ShoppingCart, stalls} from "$lib/stores";
+    import {NostrPublicKey, Error, Info} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
     import {sendPrivateMessage} from "$lib/services/nostr";

@@ -41,11 +41,6 @@
         onLoginBackoffice = loginBackofficeSuccessCB;
     }
 
-    export function doLogin() {
-        hide();
-        onLogin();
-    }
-
     export function hide() {
         open = false;
     }
@@ -65,7 +60,7 @@
         <label class="btn btn-sm btn-circle absolute right-2 top-2" on:click={() => hide()} on:keypress={() => hide()}>✕</label>
         <div class="w-full" id="loginDiv">
             {#if open}
-                <NostrLogin on:login={doLogin} on:backoffice-login={onLoginBackoffice} />
+                <NostrLogin on:login={onLogin} on:backoffice-login={onLoginBackoffice} on:close={hide} />
             {/if}
         </div>
     </div>

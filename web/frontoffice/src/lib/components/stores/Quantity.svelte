@@ -1,7 +1,7 @@
 <script lang="ts">
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
-    import {Error} from "$lib/stores";
+    import {Error} from "$sharedLib/stores";
     import {saveShoppingCartProductsToLocalStorage} from "$lib/shopping";
 
     export let quantity;

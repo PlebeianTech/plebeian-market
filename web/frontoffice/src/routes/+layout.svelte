@@ -4,11 +4,13 @@
     import "../app.css";
     import { page } from '$app/stores';
     import {
-        Info,
-        Error,
         type Placement,
         NostrGlobalConfig
     } from "$lib/stores";
+    import {
+        Info,
+        Error,
+    } from "$sharedLib/stores";
 
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
     import Navbar from "$lib/components/Navbar.svelte";

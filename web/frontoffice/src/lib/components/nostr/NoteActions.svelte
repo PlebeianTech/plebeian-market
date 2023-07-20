@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { VitaminedMessage } from "$lib/components/nostr/types";
     import { sendReaction } from "$lib/services/nostr";
-    import { Error as ErrorStore } from "$lib/stores";
+    import { Error as ErrorStore } from "$sharedLib/stores";
     import {NostrPublicKey} from "$sharedLib/stores";
 
     export let message: VitaminedMessage;
