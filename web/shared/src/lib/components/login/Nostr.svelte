@@ -10,8 +10,6 @@
 
     const dispatch = createEventDispatcher();
 
-    // export const onLogin: () => void = () => {};
-
     let npub: string | null = null;
     let activeTab: number = 0;
     let newPrivateKey: string | null = null;
