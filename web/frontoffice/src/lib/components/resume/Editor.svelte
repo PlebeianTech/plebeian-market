@@ -1,6 +1,6 @@
 <script lang="ts">
     import { publishResume, subscribeResume } from "$lib/services/nostr";
-    import { Info, Error } from "$lib/stores";
+    import { Info, Error } from "$sharedLib/stores";
     import { UserResume, UserResumeAchievement, UserResumeEducation, UserResumeExperience, UserResumePortfolio, UserResumeSkill } from "$lib/types/user";
     import { getMonthName } from "$sharedLib/utils";
     import MonthPicker from "$lib/components/MonthPicker.svelte";

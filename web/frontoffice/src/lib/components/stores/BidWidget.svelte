@@ -10,7 +10,6 @@
         subscribeMetadata,
         UserMetadata
     } from "$lib/services/nostr";
-    import {NostrPublicKey} from "$sharedLib/stores";
 
     export let product;
 

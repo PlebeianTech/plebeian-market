@@ -1,7 +1,7 @@
 <script>
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {Error, Info, stalls} from "$lib/stores";
-    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {stalls} from "$lib/stores";
+    import {NostrPublicKey, privateMessages, Error, Info} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";

@@ -6,8 +6,7 @@
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import { queryNip05, filterTags } from "$sharedLib/nostr/utils";
     import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
-    import { Error as ErrorStore } from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {NostrPublicKey, Error as ErrorStore} from "$sharedLib/stores";
     import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
