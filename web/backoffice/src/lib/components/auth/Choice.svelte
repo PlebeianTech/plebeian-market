@@ -25,22 +25,6 @@
     </div>
 </div>
 
-{#if behavior === AuthBehavior.Login}
-    <h2 class="text-2xl text-center mt-10">Login to Plebeian Market Stall Manager</h2>
-{:else}
-    <h2 class="text-2xl text-center mt-10">Sign up for Plebeian Market Stall Manager</h2>
-{/if}
-
 {#if provider === Provider.Lnurl}
     <LnurlAuth {behavior} {onLogin} on:login={(_) => dispatch('login', {})} />
 {/if}
-
-<InfoBox>
-    <div class="text-center">
-        {#if behavior === AuthBehavior.Login}
-            <p>New user? Please click <a class="link" href={null} on:click={() => behavior = AuthBehavior.Signup}>here</a> to sign up!</p>
-        {:else}
-            <p>Existing user? Please click <a class="link" href={null} on:click={() => behavior = AuthBehavior.Login}>here</a> to log in!</p>
-        {/if}
-    </div>
-</InfoBox>
