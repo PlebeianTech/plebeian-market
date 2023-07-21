@@ -185,7 +185,7 @@ export function newNostrConversation(pubkey) {
 
 export async function tryLoginToBackend(successCB: () => void = () => {}) {
     const apiHost = import.meta.env.VITE_API_BASE_URL;
-    const apiUrl = '/api/login/nostr';
+    const apiUrl = 'api/login/nostr';
 
     const event = await createEvent(
         1,
