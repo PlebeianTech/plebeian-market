@@ -9,7 +9,7 @@ RUN cd /web/shared \
 
 RUN cd /web/frontoffice \
  && npm install \
- && npm run build
+ && npm run build$BUILD_MODE
 
 RUN cd /web/backoffice \
  && npm install \
