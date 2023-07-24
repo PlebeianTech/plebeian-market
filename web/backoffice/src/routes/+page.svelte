@@ -7,6 +7,8 @@
     import { MetaTags } from "svelte-meta-tags";
     import { login, getBaseUrl } from "$lib/utils";
     import { user, token } from "$lib/stores";
+    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
+    import Stall from "$lib/components/settings/Stall.svelte";
     import StallView from "$lib/components/StallView.svelte";
     import { requestLoginModal } from "$sharedLib/utils";
 
@@ -41,15 +43,26 @@
 />
 
 {#if $user}
-    <StallView
-        baseUrl="users/me"
-        owner={$user} title={null}
-        description={null}
-        isOwnStall={true}
-        showItemsCampaign={true}
-        canAddItems={true}
-        showActiveAuctions={true} showPastAuctions={true}
-        showActiveListings={true} showPastListings={true} />
+    {#if $user.stallName !== null && $user.stallName !== ""}
+        <StallView
+            baseUrl="users/me"
+            owner={$user} title={null}
+            description={null}
+            isOwnStall={true}
+            showItemsCampaign={true}
+            canAddItems={true}
+            showActiveAuctions={true} showPastAuctions={true}
+            showActiveListings={true} showPastListings={true} />
+    {:else}
+        <div class="flex justify-center items-center">
+            <div class="w-2/3 mt-8">
+                <div class="my-4">
+                    <InfoBox>Please configure your stall before you start!</InfoBox>
+                </div>
+                <Stall />
+            </div>
+        </div>
+    {/if}
 {:else}
     <h2 class="text-4xl text-center my-8">Stall Manager</h2>
     <div class="flex justify-center items-center mt-12 gap-4">

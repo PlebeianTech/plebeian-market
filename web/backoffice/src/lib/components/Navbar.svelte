@@ -2,10 +2,9 @@
     import { onDestroy, onMount } from 'svelte';
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
-    import { ErrorHandler, getProfile, putProfile } from "$lib/services/api";
-    import { token, user, BTC2USD, Info } from "$lib/stores";
-    import type { User } from "$lib/types/user";
-    import { isProduction, getEnvironmentInfo, logout, getBaseUrl } from "$lib/utils";
+    import { getProfile } from "$lib/services/api";
+    import { token, user, BTC2USD } from "$lib/stores";
+    import { isProduction, getEnvironmentInfo, logout } from "$lib/utils";
     import Cash from "$sharedLib/components/icons/Cash.svelte";
     import Exit from "$sharedLib/components/icons/Exit.svelte";
     import Hamburger from "$sharedLib/components/icons/Hamburger.svelte";
@@ -41,33 +40,6 @@
         getProfile(tokenValue, "me", (u) => { user.set(u); });
     }
 
-    function randomDigits() {
-        return Math.trunc(Math.random() * 100).toString();
-    }
-
-    function saveNymWithRetry(nym, successCB: (u: User) => void) {
-        putProfile($token,
-            {nym},
-            (u) => {
-                user.set(u);
-                successCB(u);
-            },
-            new ErrorHandler(false,
-                (response) => {
-                    if (response.status === 400) {
-                        response.json().then(
-                            (data) => {
-                                if (data.field === "nym" && data.reason === "duplicated") {
-                                    // append a random number and try again... best we can do, I guess,
-                                    // slightly nicer would be to append some Bip39 words...
-                                    setTimeout(() => saveNymWithRetry(nym + randomDigits(), successCB), 100);
-                                }
-                            });
-                    }
-                })
-        );
-    }
-
     async function fetchFiatRate() {
         BTC2USD.set(await getValue());
     }
@@ -93,25 +65,6 @@
         }
     });
     onDestroy(tokenUnsubscribe);
-    const userUnsubscribe = user.subscribe((u) => {
-        if (!u) {
-            return;
-        }
-
-        if (u.nostrPublicKey === null) {
-            if (u.nym === null || u.nym === "") {
-                saveNymWithRetry("pleb" + randomDigits(),
-                    (u) => {
-                        Info.set(`Welcome, ${u.nym}!`);
-                        putProfile($token, {profileImageUrl: getBaseUrl() + profilePicturePlaceHolder},
-                            (u) => {
-                                user.set(u);
-                            });
-                    });
-            }
-        }
-    });
-    onDestroy(userUnsubscribe);
 
     afterNavigate(() => {
         hideMobileMenu();

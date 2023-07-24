@@ -20,7 +20,7 @@
         }
         saving = true;
         putProfile($token, {twitterUsername},
-            u => {
+            (u, _) => {
                 user.set(u);
                 Info.set("Your Twitter username has been saved!");
                 saving = false;

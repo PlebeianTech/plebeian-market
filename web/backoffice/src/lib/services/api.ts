@@ -216,7 +216,7 @@ export type UserProfile = {
     nostr_private_key?: string
 };
 
-export function putProfile(tokenValue, profile: UserProfile, successCB: (user: User) => void, errorHandler = new ErrorHandler()) {
+export function putProfile(tokenValue, profile: UserProfile, successCB: (user: User, publishedToNostr: boolean) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
@@ -261,7 +261,7 @@ export function putProfile(tokenValue, profile: UserProfile, successCB: (user: U
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
-                    successCB(userFromJson(data.user));
+                    successCB(userFromJson(data.user), data.published_to_nostr);
                 });
             } else {
                 errorHandler.handle(response);

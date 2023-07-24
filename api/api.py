@@ -248,6 +248,7 @@ def put_me(user):
             return jsonify({'message': "Invalid address."}), 400
         user.lightning_address = request.json['lightning_address']
 
+    published_to_nostr = False
     if 'stall_name' in request.json or 'stall_description' in request.json or 'shipping_from' in request.json or 'shipping_domestic_usd' in request.json or 'shipping_worldwide_usd' in request.json:
         if 'stall_name' in request.json:
             user.stall_name = bleach.clean(request.json['stall_name'])
@@ -266,8 +267,12 @@ def put_me(user):
             except (ValueError, TypeError):
                 user.shipping_worldwide_usd = 0
         user.ensure_merchant_key()
-        if not get_birdwatcher().publish_stall(user):
-            return jsonify({'message': "Error publishing stall to Nostr!"}), 500
+        if user.stall_name:
+            if not get_birdwatcher().publish_stall(user):
+                return jsonify({'message': "Error publishing stall to Nostr!"}), 500
+            published_to_nostr = True
+        else:
+            published_to_nostr = False
 
     if 'nostr_private_key' in request.json:
         user.nostr_private_key = request.json['nostr_private_key']
@@ -281,7 +286,7 @@ def put_me(user):
         # namely with some old users that were created before we started saving the "clean" version of nym / twitter in the DB
         return jsonify({'message': "Please retry or contact support!"}), 500
 
-    return jsonify({'user': user.to_dict(for_user=user.id)})
+    return jsonify({'user': user.to_dict(for_user=user.id), 'published_to_nostr': published_to_nostr})
 
 @api_blueprint.route('/api/users/me/verify/twitter', methods=['PUT'])
 @user_required

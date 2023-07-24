@@ -19,9 +19,13 @@
     function save() {
         saving = true;
         putProfile($token, {stallName, stallDescription, shippingFrom, shippingDomesticUsd, shippingWorldwideUsd},
-            u => {
+            (u, n) => {
                 user.set(u);
-                Info.set("Your stall details have been saved!");
+                if (n) {
+                    Info.set("Your stall has been published to Nostr!");
+                } else {
+                    Info.set("Your stall details have been saved!");
+                }
                 stallName = u.stallName || "";
                 stallDescription = u.stallDescription || "";
                 shippingFrom = u.shippingFrom || "";

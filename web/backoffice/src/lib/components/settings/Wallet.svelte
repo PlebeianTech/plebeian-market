@@ -20,7 +20,7 @@
     function save(p: UserProfile) {
         saving = true;
         putProfile($token, p,
-            u => {
+            (u, _) => {
                 user.set(u);
                 Info.set("Your profile has been saved!");
                 saving = false;

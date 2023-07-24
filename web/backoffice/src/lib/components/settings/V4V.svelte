@@ -16,7 +16,7 @@
     function save() {
         saving = true;
         putProfile($token, {contributionPercent},
-            u => {
+            (u, _) => {
                 user.set(u);
                 if (contributionPercent === 0) {
                     Info.set("You cheapskate!");

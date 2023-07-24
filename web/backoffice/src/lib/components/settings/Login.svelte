@@ -45,7 +45,7 @@
 
         inRequest = true;
         putProfile($token, {nostrPublicKey: cleanKey},
-            u => {
+            (u, _) => {
                 user.set(u);
                 Info.set("Your Nostr public key has been saved!");
                 inRequest = false;
