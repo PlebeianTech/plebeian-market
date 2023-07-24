@@ -23,7 +23,7 @@
                 </tr>
             </thead>
             <tbody>
-            {#each sortedBids as [bid_id, bid], i}
+            {#each sortedBids as [_, bid]}
                 <tr class="bg-red-800" class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
                     <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                         {bid.amount} sats
@@ -93,7 +93,7 @@
                 </tr>
             </thead>
             <tbody>
-            {#each sortedBids as [bid_id, bid], i}
+            {#each sortedBids as [_, bid]}
                 <tr>
                     <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}"><span class="p-3">{bid.amount} sats</span></td>
                     <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">{formatTimestamp(bid.date)}</td>
