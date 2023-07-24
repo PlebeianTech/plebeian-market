@@ -20,7 +20,7 @@
         <a href="/product/{product.id}">
             <Image
                     loading="lazy"
-                    placeholder="https://placehold.co/600x400"
+                    placeholder="{productImageFallback}"
                     src="{product.images ? product.images[0] : product.image ?? productImageFallback}" />
         </a>
     </figure>
