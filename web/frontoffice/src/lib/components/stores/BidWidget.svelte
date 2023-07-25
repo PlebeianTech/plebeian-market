@@ -94,7 +94,8 @@
 
                         } catch (error) { }
                     }
-                });
+                },
+            null);
         } else {
             setRecommendedBidAmount();
         }
@@ -132,8 +133,6 @@
     }
 
     function makeNewBid() {
-        console.log('bidAmount', bidAmount);
-
         sendMessage('' + bidAmount, null, product.event, EVENT_KIND_AUCTION_BID,
             () => {
                 console.log('Bid received by relay')
