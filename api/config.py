@@ -96,3 +96,4 @@ SATS_IN_BTC = 100000000
 SKIN_IN_THE_GAME_THRESHOLDS = [
     {'bid_amount_usd': 1000.0, 'required_amount_spent_usd': 50.0},
 ]
+SKIN_IN_THE_GAME_DONATION_STALL_IDS = os.environ.get('SKIN_IN_THE_GAME_DONATION_STALL_IDS', "").split(",")

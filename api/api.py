@@ -1128,7 +1128,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         threshold_required_amount_spent_sats = usd2sats(threshold['required_amount_spent_usd'], btc2usd)
         if amount >= threshold_bid_amount_sats and amount_spent < threshold_required_amount_spent_sats:
             message = f"You need at least ${int(threshold['required_amount_spent_usd'])} worth of successful purchases (skin in the game) in order to bid more."
-            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message)
+            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, donation_stall_ids=app.config['SKIN_IN_THE_GAME_DONATION_STALL_IDS'])
             return jsonify({'message': message}), 400
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
