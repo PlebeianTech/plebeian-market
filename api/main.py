@@ -579,7 +579,7 @@ class Birdwatcher:
         except:
             app.logger.exception(f"Error publishing product for merchant {entity.item.seller.merchant_public_key} via birdwatcher!")
 
-    def publish_bid_status(self, auction, bid_event_id, status, message=None, duration_extended=0, extra_tags=None):
+    def publish_bid_status(self, auction, bid_event_id, status, message=None, duration_extended=0, donation_stall_ids=None, extra_tags=None):
         try:
             if extra_tags is None:
                 extra_tags = []
@@ -588,6 +588,8 @@ class Birdwatcher:
                 content_json['message'] = message
             if duration_extended != 0:
                 content_json['duration_extended'] = duration_extended
+            if donation_stall_ids is not None:
+                content_json['donation_stall_ids'] = donation_stall_ids
             event = Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction.nostr_event_id], ['e', bid_event_id]] + extra_tags))
             auction.item.seller.parse_merchant_private_key().sign_event(event)
             if self.post_event(event):
