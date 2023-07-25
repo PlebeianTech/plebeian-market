@@ -72,7 +72,7 @@
     });
 </script>
 
-<nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50">
+<nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50" data-sveltekit-preload-data="hover">
     <div class="2xl:w-11/12 3xl:w-10/12 p-2 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
             <a href="/" class="flex items-center mr-2 indicator">
