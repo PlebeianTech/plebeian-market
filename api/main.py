@@ -99,13 +99,6 @@ def finalize_auctions():
     app.logger.info("Starting finalize-auctions process...")
 
     while True:
-        try:
-            btc2usd = btc2fiat.get_value('kraken')
-        except Exception:
-            app.logger.error("Error fetching the exchange rate! Taking a 1 minute nap...")
-            time.sleep(60)
-            continue
-
         for auction in db.session.query(m.Auction).filter((m.Auction.end_date <= datetime.utcnow()) & (m.Auction.has_winner == None)):
             app.logger.info(f"Looking at {auction.id=}...")
 
@@ -128,14 +121,19 @@ def finalize_auctions():
             auction.winning_bid_id = top_bid.id
 
             if top_bid.buyer_nostr_public_key:
-                try:
-                    payment_address = auction.item.seller.get_new_address()
-                except m.AddressGenerationError:
-                    app.logger.exception("Error while generating address.")
-                    continue
-                except MempoolSpaceError:
-                    app.logger.exception("Error while checking mempool.")
-                    continue
+                merchant = auction.item.seller
+                if merchant.wallet:
+                    try:
+                        on_chain_address = merchant.get_new_address()
+                    except m.AddressGenerationError:
+                        app.logger.exception("Error while generating address.")
+                        continue
+                    except MempoolSpaceError:
+                        app.logger.exception("Error while checking mempool.")
+                        continue
+                else:
+                    on_chain_address = None
+                lightning_address = merchant.lightning_address
 
                 order_uuid = str(uuid.uuid4())
 
@@ -154,7 +152,8 @@ def finalize_auctions():
                     seller_id=auction.item.seller_id,
                     buyer_public_key=top_bid.buyer_nostr_public_key,
                     requested_at=datetime.utcnow(),
-                    payment_address=payment_address,
+                    on_chain_address=on_chain_address,
+                    lightning_address=lightning_address,
                     event_id=dm_event_id)
                 db.session.add(order)
                 db.session.commit()
@@ -181,11 +180,12 @@ def settle_btc_payments():
 
     while True:
         try:
-            for order in db.session.query(m.Order).filter((m.Order.paid_at == None) & (m.Order.expired_at == None) & (m.Order.canceled_at == None)):
+            active_filter = (m.Order.paid_at == None) & (m.Order.expired_at == None) & (m.Order.canceled_at == None)
+            for order in db.session.query(m.Order).filter((m.Order.on_chain_address != None) & active_filter):
                 try:
-                    funding_txs = btc.get_funding_txs(order.payment_address)
+                    funding_txs = btc.get_funding_txs(order.on_chain_address)
                 except MempoolSpaceError as e:
-                    app.logger.warning(str(e) + f" {order.payment_address=} Taking a 1 minute nap...")
+                    app.logger.warning(str(e) + f" {order.on_chain_address=} Taking a 1 minute nap...")
                     time.sleep(60)
                     continue
                 birdwatcher = get_birdwatcher()

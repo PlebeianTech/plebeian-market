@@ -1276,7 +1276,8 @@ class Order(db.Model):
     buyer_message = db.Column(db.String(512), nullable=True)
     buyer_contact = db.Column(JSON, nullable=True)
 
-    payment_address = db.Column(db.String(128), nullable=False, unique=True, index=True)
+    on_chain_address = db.Column(db.String(128), nullable=True, unique=True, index=True)
+    lightning_address = db.Column(db.String(128), nullable=True, index=True)
 
     txid = db.Column(db.String(128), nullable=True)
     tx_value = db.Column(db.Integer, nullable=True)
@@ -1324,7 +1325,7 @@ class Order(db.Model):
                 'message': self.buyer_message,
                 'contact': self.buyer_contact,
             },
-            'payment_address': self.payment_address,
+            'on_chain_address': self.on_chain_address,
             'txid': self.txid,
             'tx_value': self.tx_value,
             'requested_at': (self.requested_at.isoformat() + "Z"),

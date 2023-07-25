@@ -781,7 +781,7 @@ def put_publish(user, key, cls):
     if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized."}), 401
 
-    if not entity.campaign and not user.wallet:
+    if not user.wallet and not user.lightning_address:
         return jsonify({'message': "Wallet not configured."}), 400
 
     entity.start_date = datetime.utcnow()
@@ -950,12 +950,16 @@ def post_merchant_message(pubkey):
                     return jsonify({'message': message}), 400
 
             if not order:
-                try:
-                    payment_address = merchant.get_new_address()
-                except m.AddressGenerationError as e:
-                    return jsonify({'message': str(e)}), 500
-                except MempoolSpaceError as e:
-                    return jsonify({'message': str(e)}), 500
+                if merchant.wallet:
+                    try:
+                        on_chain_address = merchant.get_new_address()
+                    except m.AddressGenerationError as e:
+                        return jsonify({'message': str(e)}), 500
+                    except MempoolSpaceError as e:
+                        return jsonify({'message': str(e)}), 500
+                else:
+                    on_chain_address = None
+                lightning_address = merchant.lightning_address
 
                 order_listings = [] # [(listing, quantity), ...]
                 for item in cleartext_content['items']:
@@ -987,7 +991,8 @@ def post_merchant_message(pubkey):
                     buyer_message=cleartext_content.get('message'),
                     buyer_contact=cleartext_content.get('contact'),
                     requested_at=datetime.utcnow(),
-                    payment_address=payment_address)
+                    on_chain_address=on_chain_address,
+                    lightning_address=lightning_address)
                 db.session.add(order)
                 db.session.commit()
 
@@ -1043,11 +1048,11 @@ def post_merchant_message(pubkey):
 
                 app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
 
-            payment_options = [
-                {'type': 'btc', 'link': order.payment_address, 'amount_sats': order.total}
-            ]
-            if merchant.lightning_address:
-                payment_options.append({'type': 'lnurl', 'link': merchant.lightning_address, 'amount_sats': order.total})
+            payment_options = []
+            if order.on_chain_address:
+                payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
+            if order.lightning_address:
+                payment_options.append({'type': 'lnurl', 'link': order.lightning_address, 'amount_sats': order.total})
 
             if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
                 json.dumps({

@@ -6,7 +6,7 @@ export class Order implements IEntity {
     uuid: string = "";
     total_usd: number = 0;
     total: number = 0;
-    payment_address: string = "";
+    on_chain_address: string = "";
     requested_at: Date | null = null;
     paid_at: Date | null = null;
     shipped_at: Date | null = null;

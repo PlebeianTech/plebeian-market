@@ -18,7 +18,7 @@
 
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
-    $: hasWallet = ($user && $user.wallet !== null) || (item.campaign_name !== null);
+    $: hasWallet = ($user && ($user.wallet !== null || $user.lightningAddress !== null));
 
     $: url = item.started ? `/product/${item.uuid}` : null;
     $: topBid = (item instanceof Auction) ? item.topBid() : null;
