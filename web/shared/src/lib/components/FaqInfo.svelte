@@ -1,8 +1,14 @@
 <script lang="ts">
     import {page} from "$app/stores";
+    import {onMount} from "svelte";
+
     export let role: string;
 
+    let question: string = '';
 
+    onMount(() => {
+        question = $page.url.searchParams.get('question');
+    });
 </script>
 
 <div class="flex justify-center items-center md:mb-20 p-2">
@@ -11,7 +17,7 @@
             <input type="checkbox" />
             <div class="collapse-title text-xl font-medium">General FAQ</div>
             <div class="collapse-content">
-                <div class="collapse collapse-plus bg-base-200">
+                <div class="collapse collapse-plus bg-base-300">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         Do you take a percentage?
@@ -21,7 +27,7 @@
                     </div>
                 </div>
 
-                <div class="collapse collapse-plus bg-base-200 mt-4">
+                <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         Is Plebeian Market open source?
@@ -31,7 +37,7 @@
                     </div>
                 </div>
 
-                <div class="collapse collapse-plus bg-base-200 mt-4">
+                <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         What kind of software license is this project using?
@@ -41,7 +47,7 @@
                     </div>
                 </div>
 
-                <div class="collapse collapse-plus bg-base-200 mt-4">
+                <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         Where can I share my question or feedback?
@@ -51,7 +57,7 @@
                     </div>
                 </div>
 
-                <div class="collapse collapse-plus bg-base-200 mt-4">
+                <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         Plebeian?
@@ -61,7 +67,7 @@
                     </div>
                 </div>
 
-                <div class="collapse collapse-plus bg-base-200 mt-4">
+                <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         Do you hold the funds in escrow?
@@ -77,8 +83,8 @@
             <input type="checkbox" />
             <div class="collapse-title text-xl font-medium">Buyer FAQ</div>
             <div class="collapse-content">
-                <div class="collapse collapse-plus bg-base-200">
-                    <input type="radio" name="my-accordion-3" aachecked="aachecked" />
+                <div class="collapse collapse-plus bg-base-300">
+                    <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         How do I place a bid?
                     </div>
@@ -86,7 +92,7 @@
                         <p class="text-s">Scan a QR code using your lightning wallet to place a bid. Bidding on an auction costs 21 sats. These sats will go directly to funding open-source initiatives such as <a target="_blank" href="https://opensats.org">OpenSats</a>.</p>
                     </div>
                 </div>
-                <div class="collapse collapse-plus bg-base-200 mt-4">
+                <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         How does the shipping works?
@@ -102,7 +108,7 @@
             <input type="checkbox" />
             <div class="collapse-title text-xl font-medium">Seller FAQ</div>
             <div class="collapse-content">
-                <div class="collapse {$page.url.searchParams.get('question')==='xpub' ? 'collapse-open' : ''} collapse-plus bg-base-200">
+                <div class="collapse {question === 'xpub' ? 'collapse-open' : ''} collapse-plus bg-base-300">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         How do I get the XPUB/YPUB/ZPUB from my wallet?
@@ -112,7 +118,7 @@
                     </div>
                 </div>
 
-                <div class="collapse collapse-plus bg-base-200 mt-4">
+                <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
                         How does the shipping works?
