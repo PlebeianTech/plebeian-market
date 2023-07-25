@@ -14,8 +14,10 @@
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
 
     export let merchantPubkey: string | null;
+    export let showStallFilter: boolean = true;
+    export let donationStalls: boolean = false;
 
-    let isSuperAdmin: boolean = true;
+    let isSuperAdmin: boolean = false;
 
     let sortedStalls = [];
     let filter = null;
@@ -30,10 +32,26 @@
                     .sort((a, b) => {
                         return b[1].createdAt - a[1].createdAt;
                     });
+            } else if (donationStalls && typeof window !== 'undefined') {
+                const donationStallIDsJSON: string | null = localStorage.getItem('donationStallIDs');
+
+                if (donationStallIDsJSON) {
+                    const donationStallIDs = JSON.parse(donationStallIDsJSON);
+
+                    sortedStalls = Object.entries($stalls.stalls)
+                        .filter(([, stall]) => {
+                            return donationStallIDs.includes(stall.id);
+                        })
+                        .sort((a, b) => {
+                            return b[1].createdAt - a[1].createdAt;
+                        });
+                }
+
             } else {
-                sortedStalls = Object.entries($stalls.stalls).sort((a, b) => {
-                    return b[1].createdAt - a[1].createdAt;
-                });
+                sortedStalls = Object.entries($stalls.stalls)
+                    .sort((a, b) => {
+                        return b[1].createdAt - a[1].createdAt;
+                    });
             }
         }
     }
@@ -84,7 +102,7 @@
     });
 </script>
 
-{#if !merchantPubkey}
+{#if showStallFilter && !merchantPubkey}
     <div class="flex flex-col sm:flex-row md:my-2 mb-6 sm:mb-3">
         <div class="relative">
             <span class="h-full absolute inset-y-0 left-0 flex items-center pl-2">

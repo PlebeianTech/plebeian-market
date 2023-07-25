@@ -9,4 +9,4 @@
 
 <Titleh1>Stall Browser</Titleh1>
 
-<StallsBrowser merchantPubkey={null} />
+<StallsBrowser showStallFilter={false} donationStalls={true} merchantPubkey={null} />

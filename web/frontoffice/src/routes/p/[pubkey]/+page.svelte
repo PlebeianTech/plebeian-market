@@ -53,6 +53,6 @@
     </div>
 {/if}
 
-<StallsBrowser merchantPubkey={data.pubkey}></StallsBrowser>
+<StallsBrowser merchantPubkey={data.pubkey} />
 
 <ResumeView pubkey={data.pubkey} />
