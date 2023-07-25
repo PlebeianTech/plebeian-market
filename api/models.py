@@ -873,9 +873,16 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     end_date = db.Column(db.DateTime, nullable=True)
 
     def extend(self):
-        # NB: auction.duration_hours should not be modified here. we use that to detect that the auction was extended!
         if self.end_date:
-            self.end_date = max(self.end_date, datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']))
+            if app.config['BID_ALWAYS_EXTEND_BY_MINUTES']:
+                old_end_date = self.end_date
+                self.end_date = self.end_date + timedelta(minutes=app.config['BID_ALWAYS_EXTEND_BY_MINUTES'])
+                return (self.end_date - old_end_date).total_seconds()
+            if self.end_date < datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']):
+                old_end_date = self.end_date
+                self.end_date = datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND'])
+                return (self.end_date - old_end_date).total_seconds()
+        return 0
 
     @property
     def ended(self):

@@ -1136,7 +1136,9 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
 
     app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
 
-    birdwatcher.publish_bid_status(auction, request.json['id'], 'accepted')
+    duration_extended = auction.extend()
+
+    birdwatcher.publish_bid_status(auction, request.json['id'], 'accepted', duration_extended=duration_extended)
 
     db.session.commit()
 
