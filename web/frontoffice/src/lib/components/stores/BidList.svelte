@@ -43,6 +43,16 @@
                                     <p class="line-clamp-3 mt-1 whitespace-normal">
                                         {bid.backendResponse.message}
                                     </p>
+                                {:else if bid.backendResponse.status === 'pending'}
+                                    <div class="text-xl mx-auto tooltip" data-tip="Bid pending"><Clock /></div>
+                                    <p class="line-clamp-3 mt-1 whitespace-normal">
+                                        {#if bid.backendResponse.winnerPubkey === $NostrPublicKey}
+                                            You need to pass the "<b>Skin in the Game</b>" process before the bid is accepted.
+                                        {:else}
+                                            "<b>Skin in the Game</b>" process needs to be done by this user before the bid is accepted.
+                                        {/if}
+                                        <label for="skin-in-the-game-modal" class="cursor-pointer underline">See more details here</label>.
+                                    </p>
                                 {:else if bid.backendResponse.status === 'winner'}
                                     <div class="w-8 h-8 mx-auto"><WinnerBadge /></div>
                                     <p class="line-clamp-3 mt-1 whitespace-normal">
@@ -111,6 +121,16 @@
                                 <p class="line-clamp-3 mt-1 whitespace-normal">
                                     {bid.backendResponse.message}
                                 </p>
+                            {:else if bid.backendResponse.status === 'pending'}
+                                <div class="w-8 h-8 mx-auto text-xl tooltip" data-tip="Bid pending"><Clock /></div>
+                                <p class="mt-1 whitespace-normal">
+                                    {#if bid.backendResponse.winnerPubkey === $NostrPublicKey}
+                                        You need to pass the "<b>Skin in the Game</b>" process before the bid is accepted.
+                                    {:else}
+                                        "<b>Skin in the Game</b>" process needs to be done by this user before the bid is accepted.
+                                    {/if}
+                                    <label for="skin-in-the-game-modal" class="cursor-pointer underline">See more details here</label>.
+                                </p>
                             {:else if bid.backendResponse.status === 'winner'}
                                 <div class="w-8 h-8 mx-auto"><WinnerBadge /></div>
                                 <p class="line-clamp-3 mt-1 whitespace-normal font-bold">
@@ -150,3 +170,18 @@
         </table>
     </div>
 {/if}
+
+<input type="checkbox" id="skin-in-the-game-modal" class="modal-toggle" />
+<div class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Skin in the Game proof needed!</h3>
+        <p class="py-4 text-base">Bidding for this auction has reached a maximum limit, and participants are required to complete a <b>"Skin In The Game"</b> test as an <b>anti-spam</b> measure.</p>
+        <p class="py-4 text-base">This has to be done <b>just once</b>, and you'll be able to bid on as many auctions as you want.</p>
+        <p class="py-4 text-base">Either <b>you buy a product</b> on Plebeian Market that costs $50 or more (<a class="underline" target="_blank" href="/stalls">explore all the stalls</a>),</p>
+        <p class="py-4 text-base">or <b>you donate</b> at least $50 to one of the Open Source projects (<a class="underline" target="_blank" href="/donations">see donation projects</a>).</p>
+        <p class="py-6 text-base">Then return to this screen and <b>you'll have your bid approved</b>.</p>
+        <div class="modal-action">
+            <label for="skin-in-the-game-modal" class="btn">Close</label>
+        </div>
+    </div>
+</div>
