@@ -29,7 +29,7 @@
 
     function onSaved() {
         if ($user && params['onsave'] === 'mystall') {
-            goto("/");
+            goto("/admin");
         }
     }
 
