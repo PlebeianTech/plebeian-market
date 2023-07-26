@@ -95,6 +95,10 @@
                                             totalTimeExtension += timeToExtend;
                                         }
                                     }
+
+                                    if (bidResponse.status === 'pending' && bidResponse.donation_stall_ids) {
+                                        setDonationStallIDs(bidResponse.donation_stall_ids);
+                                    }
                                 }
                             }
 
@@ -162,6 +166,11 @@
                 bidAmount = maxBid + Math.round(maxBid * 0.1);
             }
         }
+    }
+
+    function setDonationStallIDs(donationStallIDs: string[]) {
+        console.log('setDonationStallIDs: ', donationStallIDs);
+        localStorage.setItem('donationStallIDs', JSON.stringify(donationStallIDs));
     }
 </script>
 
