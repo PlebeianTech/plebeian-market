@@ -15,21 +15,21 @@
 {#if sortedBids && sortedBids.length > 0}
     <div class="mt-8 mb-6">
         <!-- Mobile -->
-        <table class="md:hidden table table-fixed w-full text-center text-base">
+        <table class="md:hidden w-full table table-fixed table-sm sm:table-md md:table-lg text-center">
             <thead>
-                <tr>
+                <tr class="text-lg">
                     <th class="pl-0">Bid</th>
                     <th class="pr-0">Info</th>
                 </tr>
             </thead>
             <tbody>
             {#each sortedBids as [_, bid]}
-                <tr class="bg-red-800" class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
-                    <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
+                <tr class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
+                    <th class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                         {bid.amount} sats
-                        <p class="text-xs mt-1">{formatTimestamp(bid.date)}</p>
+                        <p class="mt-1">{formatTimestamp(bid.date)}</p>
 
-                        <div class="mt-1 text-xs">
+                        <div class="mt-1">
                             {#if !bid.backendResponse}
                                 <div class="w-8 h-8 mx-auto"><Clock /></div>
                                 <p class="line-clamp-3 mt-1 whitespace-normal">
@@ -37,14 +37,14 @@
                                 </p>
                             {:else}
                                 {#if bid.backendResponse.status === 'accepted'}
-                                    <div class="text-xl mx-auto tooltip" data-tip="Bid confirmed">✅</div>
+                                    <div class="mx-auto tooltip" data-tip="Bid confirmed">✅</div>
                                 {:else if bid.backendResponse.status === 'rejected'}
-                                    <div class="text-xl mx-auto tooltip" data-tip="Bid rejected">❌</div>
+                                    <div class="mx-auto tooltip" data-tip="Bid rejected">❌</div>
                                     <p class="line-clamp-3 mt-1 whitespace-normal">
                                         {bid.backendResponse.message}
                                     </p>
                                 {:else if bid.backendResponse.status === 'pending'}
-                                    <div class="text-xl mx-auto tooltip" data-tip="Bid pending"><Clock /></div>
+                                    <div class="mx-auto tooltip" data-tip="Bid pending"><Clock /></div>
                                     <p class="line-clamp-3 mt-1 whitespace-normal">
                                         {#if bid.backendResponse.winnerPubkey === $NostrPublicKey}
                                             You need to pass the "<b>Skin in the Game</b>" process before the bid is accepted.
@@ -67,15 +67,15 @@
                                 {/if}
                             {/if}
                         </div>
-                    </td>
-                    <td class="text-xs text-cente {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
-                        <div class="flex items-center space-x-3 mt-2">
+                    </th>
+                    <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
+                        <div class="flex w-fit mx-auto mt-1 space-x-3 items-center">
                             <div class="avatar mask mask-squircle w-12 h-12">
                                 <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
                             </div>
                             <div class="flex">
                                 {#if userProfileInfoMap.get(bid.pubkey)}
-                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name}</span>
+                                    <span class="tooltip font-normal" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name}</span>
                                     {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
                                         <span class="ml-1">
                                             <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
@@ -86,16 +86,16 @@
                                 {/if}
                             </div>
                         </div>
-                    </td>
+                    </th>
                 </tr>
             {/each}
             </tbody>
         </table>
 
         <!-- Desktop -->
-        <table class="hidden md:block table table-fixed w-full text-center text-base">
+        <table class="hidden md:block table table-lg table-fixed w-max text-center">
             <thead>
-                <tr>
+                <tr class="text-sm">
                     <th>Bid</th>
                     <th>Date</th>
                     <th>Status</th>
@@ -105,9 +105,9 @@
             <tbody>
             {#each sortedBids as [_, bid]}
                 <tr>
-                    <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}"><span class="p-3">{bid.amount} sats</span></td>
+                    <th class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}"><span class="p-3">{bid.amount} sats</span></th>
                     <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">{formatTimestamp(bid.date)}</td>
-                    <td class="text-xs text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}">
+                    <td class="text-center text-xs {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}">
                         {#if !bid.backendResponse}
                             <div class="w-8 h-8 mx-auto"><Clock /></div>
                             <p class="line-clamp-3 mt-1 whitespace-normal">
@@ -145,7 +145,7 @@
                             {/if}
                         {/if}
                     </td>
-                    <td class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
+                    <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                         <div class="flex items-center space-x-3 p-3">
                             <div class="avatar mask mask-squircle w-12 h-12">
                                 <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
@@ -163,7 +163,7 @@
                                 {/if}
                             </div>
                         </div>
-                    </td>
+                    </th>
                 </tr>
             {/each}
             </tbody>
