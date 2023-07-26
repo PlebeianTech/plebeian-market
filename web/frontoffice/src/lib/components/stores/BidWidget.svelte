@@ -88,7 +88,7 @@
                                         bids[tagValue] = bidInfo;
                                     }
 
-                                    if (bidResponse.status === 'pending') {
+                                    if (bidResponse.status === 'accepted') {
                                         const timeToExtend = bidResponse.duration_extended;
 
                                         if (timeToExtend && timeToExtend > 0) {
