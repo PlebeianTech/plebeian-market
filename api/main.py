@@ -379,7 +379,6 @@ class MockTwitter:
             random_image_small = random_image_large = "https://staging.plebeian.market/images/logo.jpg"
         else:
             random_image_small = "https://picsum.photos/200"
-            random_image_large = "https://picsum.photos/1500"
         return {
             'id': "MOCK_USER_ID",
             'profile_image_url': random_image_small,

@@ -1,7 +1,6 @@
 export interface IAccount {
     nym: string | null;
     displayName: string | null;
-    profileImageUrl: string | null;
     email: string | null;
     emailVerified: boolean;
     telegramUsername: string | null;
@@ -34,7 +33,6 @@ export class User implements IAccount {
     nostrVerificationPhraseSentAt: Date | null = null;
     nym: string | null = null;
     displayName: string | null = null;
-    profileImageUrl: string | null = null;
     email: string | null = null;
     emailVerified: boolean = false;
     telegramUsername: string | null = null;
@@ -96,7 +94,6 @@ export function fromJson(json: any): User {
     u.nostrVerificationPhraseSentAt = json.nostr_verification_phrase_sent_at ? new Date(json.nostr_verification_phrase_sent_at) : null;
     u.nym = <string | null>json.nym;
     u.displayName = <string | null>json.display_name;
-    u.profileImageUrl = <string | null>json.profile_image_url;
     u.email = <string | null>json.email;
     u.emailVerified = <boolean>json.email_verified;
     u.telegramUsername = <string | null>json.telegram_username;

@@ -91,7 +91,7 @@
         <!-- Mobile Menu open: "flex", Menu closed: "hidden" -->
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0 md:space-x-4">
             <!-- LINKS -->
-            <div class="lg:flex items-center w-full">
+            <div class="lg:flex gap-2 items-center w-full">
                 {#if !isProduction()}
                     <div class="lg:inline badge badge-primary ml-2 lg:my-0 hidden lg:block">
                         {getEnvironmentInfo()}
@@ -119,13 +119,13 @@
 
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
                     {#if $token && $user}
-                        <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block" class:verified={$user.twitterUsernameVerified} class:not-verified={!$user.twitterUsernameVerified}>
-                            <img class="w-10 rounded-full" src={$user.profileImageUrl} alt="Avatar" />
+                        <label role="button" for={null} tabindex="0" class="btn btn-ghost btn-circle avatar hidden lg:block">
+                            <Hamburger />
                         </label>
                     {/if}
 
                     <ul role="menuitem" tabindex="0" class="p-2 shadow menu menu-compact dropdown-content bg-neutral text-white rounded-box w-60 z-40 float-right right-2">
-                        <li class="block md:hidden md:h-0">
+                        <li class="block lg:hidden lg:h-0">
                             <a href="/admin" class="modal-button cursor-pointer text-base">
                                 <span class="w-6 h-6"><Home /></span> Stall Manager
                             </a>
@@ -147,7 +147,7 @@
                                 </a>
                             </li>
                         {/if}
-                        <li class="block md:hidden md:h-0">
+                        <li class="block lg:hidden lg:h-0">
                             <a rel="external" href="/" class="modal-button cursor-pointer text-base">
                                 <span class="w-6 h-6"><Store /></span> Marketplace
                             </a>

@@ -175,18 +175,6 @@ export function lnurlAuth(behavior: AuthBehavior, k1, initialResponseCB: (respon
         });
 }
 
-export function getFeaturedAvatars(campaignKey: string, successCB: (auctionAvatars: {url: string, entity_key: string}[], listingAvatars: {url: string, entity_key: string}[]) => void) {
-    fetchAPI(`/campaigns/${campaignKey}/avatars/featured`, 'GET', null, null, null,
-        response => {
-            if (response.status === 200) {
-                response.json().then(data => {
-                    successCB(data['auction_avatars'], data['listing_avatars']);
-                });
-            }
-        }
-    );
-}
-
 export function getProfile(tokenValue, nym: string, successCB: (User) => void, errorHandler = new ErrorHandler(false)) {
     fetchAPI(`/users/${nym}`, 'GET', tokenValue, null, null,
         (response) => {
@@ -207,7 +195,6 @@ export type UserProfile = {
     wallet?: string,
     lightningAddress?: string,
     nym?: string,
-    profileImageUrl?: string,
     stallName?: string,
     stallDescription?: string,
     shippingFrom?: string,
@@ -235,9 +222,6 @@ export function putProfile(tokenValue, profile: UserProfile, successCB: (user: U
     }
     if (profile.nym !== undefined) {
         json.nym = profile.nym;
-    }
-    if (profile.profileImageUrl !== undefined) {
-        json.profile_image_url = profile.profileImageUrl;
     }
     if (profile.stallName !== undefined) {
         json.stall_name = profile.stallName;

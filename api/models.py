@@ -272,7 +272,6 @@ class User(WalletMixin, db.Model):
             'nostr_verification_phrase_sent_at': self.nostr_verification_phrase_sent_at.isoformat() + "Z" if self.nostr_verification_phrase_sent_at else None,
             'nym': self.nym,
             'display_name': self.display_name,
-            'profile_image_url': self.profile_image_url,
             'email': self.email,
             'email_verified': self.email_verified,
             'telegram_username': self.telegram_username,
@@ -752,7 +751,6 @@ class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
             'is_mine': for_user == self.owner_id,
             'owner_nym': self.owner.nym,
             'owner_display_name': self.owner.display_name,
-            'owner_profile_image_url': self.owner.profile_image_url,
             'owner_email': self.owner.email,
             'owner_email_verified': self.owner.email_verified,
             'owner_telegram_username': self.owner.telegram_username,
@@ -992,7 +990,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             if winning_bid.buyer_id: # old style
                 auction['winner_nym'] = winning_bid.buyer.nym
                 auction['winner_display_name'] = winning_bid.buyer.display_name
-                auction['winner_profile_image_url'] = winning_bid.buyer.profile_image_url
                 auction['winner_email'] = winning_bid.buyer.email
                 auction['winner_email_verified'] = winning_bid.buyer.email_verified
                 auction['winner_telegram_username'] = winning_bid.buyer.telegram_username
@@ -1235,7 +1232,6 @@ class Bid(db.Model):
             'amount': self.amount,
             'buyer_nym': self.buyer.nym if self.buyer else None,
             'buyer_display_name': self.buyer.display_name if self.buyer else None,
-            'buyer_profile_image_url': self.buyer.profile_image_url if self.buyer else None,
             'buyer_email': self.buyer.email if self.buyer else None,
             'buyer_email_verified': self.buyer.email_verified if self.buyer else None,
             'buyer_telegram_username': self.buyer.telegram_username if self.buyer else None,
@@ -1453,7 +1449,6 @@ class Sale(db.Model):
             'shipping_worldwide': self.shipping_worldwide,
             'seller_nym': self.item.seller.nym if self.item else None,
             'seller_display_name': self.item.seller.display_name if self.item else None,
-            'seller_profile_image_url': self.item.seller.profile_image_url if self.item else None,
             'seller_email': self.item.seller.email if self.item else None,
             'seller_email_verified': self.item.seller.email_verified if self.item else False,
             'seller_telegram_username': self.item.seller.telegram_username if self.item else None,
@@ -1464,7 +1459,6 @@ class Sale(db.Model):
             'seller_nostr_public_key_verified': self.item.seller.nostr_public_key_verified if self.item else None,
             'buyer_nym': self.buyer.nym,
             'buyer_display_name': self.buyer.display_name,
-            'buyer_profile_image_url': self.buyer.profile_image_url,
             'buyer_email': self.buyer.email,
             'buyer_email_verified': self.buyer.email_verified,
             'buyer_telegram_username': self.buyer.telegram_username,

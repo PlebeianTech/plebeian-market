@@ -154,9 +154,6 @@ def put_me(user):
                 return jsonify({'message': "Your nym is already in use!", 'field': 'nym', 'reason': 'duplicated'}), 400
             user.nym = clean_nym
 
-    if 'profile_image_url' in request.json:
-        user.fetch_external_profile_image(request.json['profile_image_url'], get_s3())
-
     if 'email' in request.json:
         clean_email = (request.json['email'] or "").lower().strip()
         try:
@@ -211,9 +208,6 @@ def put_me(user):
                 if user.twitter_username not in app.config['TWITTER_USER_MIN_AGE_DAYS_WHITELIST']:
                     if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
                         return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
-
-            if not user.fetch_external_profile_image(twitter_user['profile_image_url'], get_s3()):
-                return jsonify({'message': "Error fetching profile picture!"}), 400
 
             if not twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase):
                 return jsonify({'message': "Error sending Twitter DM!"}), 500
@@ -859,39 +853,6 @@ def get_campaign_entities(key, plural):
     sorted_entities = sorted(entities, key=lambda e: e.created_at, reverse=True)
 
     return jsonify({plural: [e.to_dict(for_user=for_user_id) for e in sorted_entities]})
-
-@api_blueprint.route("/api/campaigns/<key>/avatars/featured",
-    methods=['GET'])
-def get_campaign_featured_avatars(key):
-    campaign = m.Campaign.query.filter_by(key=key).first()
-
-    if not campaign:
-        return jsonify({'message': "Campaign not found."}), 404
-
-    avatars = {'auction_avatars': [], 'listing_avatars': []}
-
-    for which_avatars, entities in [('auction_avatars', campaign.auctions), ('listing_avatars', campaign.listings)]:
-        for entity in entities:
-            if entity.started and not entity.item.is_hidden:
-                avatar = {
-                    'url': entity.item.seller.profile_image_url,
-                    'entity_key': entity.key,
-                    'featured_sort_key': entity.featured_sort_key()
-                }
-                avatars[which_avatars].append(avatar)
-        avatars[which_avatars].sort(key=lambda a: a['featured_sort_key'], reverse=True)
-
-        # NB: we do unique after we have sorted,
-        # so an avatar is shown on the position of its highest scoring auction/listing if it has multiple!
-        unique_avatars = []
-        seen_avatars = set()
-        for avatar in avatars[which_avatars]:
-            if avatar['url'] not in seen_avatars:
-                seen_avatars.add(avatar['url'])
-                unique_avatars.append(avatar)
-        avatars[which_avatars] = unique_avatars
-
-    return jsonify(avatars)
 
 @api_blueprint.route("/api/relays", methods=['GET'])
 def get_relays():

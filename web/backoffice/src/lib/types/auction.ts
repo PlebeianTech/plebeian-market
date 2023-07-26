@@ -157,7 +157,7 @@ export function fromJson(json: any): Auction {
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
             for (const bidjson of json[k]) {
-                var b: Bid = {amount: 0, buyer: {nym: null, displayName: null, profileImageUrl: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false}, is_winning_bid: false};
+                var b: Bid = {amount: 0, buyer: {nym: null, displayName: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false}, is_winning_bid: false};
                 for (var kk in bidjson) {
                     if (kk === 'settled_at') {
                         b.settled_at = new Date(bidjson[kk]);
@@ -168,7 +168,6 @@ export function fromJson(json: any): Auction {
                 b.buyer = {
                     nym: <string>bidjson.buyer_nym,
                     displayName: <string>bidjson.buyer_display_name,
-                    profileImageUrl: <string | null>bidjson.buyer_profile_image_url,
                     email: <string | null>bidjson.buyer_email,
                     emailVerified: <boolean>bidjson.buyer_email_verified,
                     telegramUsername: <string | null>bidjson.buyer_telegram_username,
@@ -190,7 +189,6 @@ export function fromJson(json: any): Auction {
         a.winner = {
             nym: <string>json.winner_nym,
             displayName: <string>json.winner_display_name,
-            profileImageUrl: <string | null>json.winner_profile_image_url,
             email: <string | null>json.winner_email,
             emailVerified: <boolean>json.winner_email_verified,
             telegramUsername: <string | null>json.winner_telegram_username,
