@@ -64,7 +64,9 @@
         <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
             <div class="btn-xs"></div>
                 {#if item instanceof Listing || (item instanceof Auction && (!item.started || (item.bids.length === 0)))}
-                    <button class="btn btn-primary btn-circle btn-xs" on:click={del}><Trash /></button>
+                    {#if !item.started} <!-- TODO: change this after we implement deletion from nostr! -->
+                        <button class="btn btn-primary btn-circle btn-xs" on:click={del}><Trash /></button>
+                    {/if}
                     <button class="btn btn-primary btn-circle btn-xs" on:click={() => onEdit(item)}><Pencil /></button>
                 {/if}
         </div>
