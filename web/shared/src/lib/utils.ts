@@ -75,6 +75,7 @@ export function logout(gotoUrl?: string) {
         localStorage.removeItem('nostrPublicKey');
         localStorage.removeItem('readMessages');
         localStorage.removeItem('nostrLoginMethod');
+        localStorage.removeItem('shoppingCartProducts');
 
         // Backstore
         localStorage.removeItem('token');
