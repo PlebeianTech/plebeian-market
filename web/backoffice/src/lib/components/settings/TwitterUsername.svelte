@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { ErrorHandler, putProfile } from "$lib/services/api";
-    import { Info, token, user } from "$lib/stores";
+    import { Info, user } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
 

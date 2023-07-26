@@ -2,7 +2,8 @@
     import { onMount } from 'svelte';
     import { page } from "$app/stores";
     import { ErrorHandler, putProfile } from "$lib/services/api";
-    import { Info, token, user } from "$lib/stores";
+    import { Info, user } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
 
     export let onSave: () => void = () => {};
 

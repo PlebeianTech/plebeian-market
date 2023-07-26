@@ -6,7 +6,8 @@
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
     import { login, getBaseUrl } from "$lib/utils";
-    import { user, token } from "$lib/stores";
+    import { user } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
     import Stall from "$lib/components/settings/Stall.svelte";
     import StallView from "$lib/components/StallView.svelte";

@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import { ErrorHandler, lnurlAuth } from "$lib/services/api";
-    import { token, user, Info, Error, AuthBehavior } from "$lib/stores";
+    import { user, Info, Error, AuthBehavior } from "$lib/stores";
+    import { token } from "$lib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import QR from "$lib/components/QR.svelte";
     import { isDevelopment } from "$lib/utils";

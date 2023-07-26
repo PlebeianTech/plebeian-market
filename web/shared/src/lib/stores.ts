@@ -4,6 +4,8 @@ import type {ShoppingCartItem} from "./types/stall";
 export const Info: Writable<string | null | {message: string, duration: number, url: string, button: string, placement: Placement}> = writable(null);
 export const Error: Writable<string | null> = writable(null);
 
+export const token: Writable<string | null> = writable(null);
+
 export const loginModalState: Writable<{
     openRequested: boolean;
     loginSuccessCB: () => void;
