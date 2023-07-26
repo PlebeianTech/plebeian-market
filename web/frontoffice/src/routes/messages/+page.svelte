@@ -130,8 +130,17 @@
     <title>Private Messages</title>
 </svelte:head>
 
-{#if !selectedConversationPubkey}
+
+<!-- Title for desktop: always visible -->
+<div class="hidden md:block">
     <Titleh1>Private Messages</Titleh1>
+</div>
+
+<!-- Title for mobile: visible only in conversation view -->
+{#if !selectedConversationPubkey}
+    <div class="block lg:hidden">
+        <Titleh1>Private Messages</Titleh1>
+    </div>
 {/if}
 
 {#if $NostrPublicKey}
