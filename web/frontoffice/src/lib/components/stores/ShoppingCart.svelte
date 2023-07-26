@@ -1,6 +1,7 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {ShoppingCart, stalls} from "$lib/stores";
+    import {stalls} from "$lib/stores";
+    import {ShoppingCart} from "$sharedLib/stores";
     import {deleteFromCart, onImgError} from "$lib/shopping";
     import Trash from "$sharedLib/components/icons/Trash.svelte";
     import Quantity from "./Quantity.svelte";

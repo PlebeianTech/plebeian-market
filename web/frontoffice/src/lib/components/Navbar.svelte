@@ -3,10 +3,9 @@
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import {BTC2USD} from "$lib/stores";
-    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {NostrPublicKey, privateMessages, ShoppingCart} from "$sharedLib/stores";
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
     import Modal from "$lib/components/Modal.svelte";
-    import {ShoppingCart} from "$lib/stores.js";
     import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
     import ShoppingCartIcon from "$sharedLib/components/icons/ShoppingCart.svelte";
     import Settings from "$sharedLib/components/icons/Settings.svelte";

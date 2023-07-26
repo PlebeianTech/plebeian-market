@@ -1,7 +1,7 @@
 import {goto} from "$app/navigation";
 import {NostrPublicKey, NostrLoginMethod, loginModalState, Info} from "$sharedLib/stores";
 import {get} from "svelte/store";
-import {privateMessages} from "$sharedLib/stores";
+import {privateMessages, ShoppingCart} from "$sharedLib/stores";
 import {browser} from "$app/environment";
 
 export const SATS_IN_BTC = 100000000;
@@ -47,6 +47,17 @@ export async function waitAndShowLoginIfNotLoggedAlready() {
     return true;
 }
 
+export function cleanShoppingCart() {
+    ShoppingCart.set({
+        products: new Map(),
+        summary: {
+            numProducts: 0,
+            totalQuantity: 0,
+            stalls: 0
+        }
+    });
+}
+
 export function logout(gotoUrl?: string) {
     NostrPublicKey.set(null);
 
@@ -54,6 +65,8 @@ export function logout(gotoUrl?: string) {
         human: [],
         automatic: []
     });
+
+    cleanShoppingCart();
 
     localStorage.removeItem('nostrPublicKey');
     localStorage.removeItem('readMessages');

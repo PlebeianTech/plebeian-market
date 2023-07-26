@@ -1,4 +1,5 @@
 import { writable, type Writable } from 'svelte/store';
+import type {ShoppingCartItem} from "./types/stall";
 
 export const Info: Writable<string | null | {message: string, duration: number, url: string, button: string, placement: Placement}> = writable(null);
 export const Error: Writable<string | null> = writable(null);
@@ -16,6 +17,26 @@ export const loginModalState: Writable<{
 export const NostrPublicKey: Writable<string | null> = writable(null);
 export const NostrPrivateKey: Writable<string | null> = writable(null);
 export const NostrLoginMethod: Writable<string | null> = writable(null);
+
+export type ShoppingCartSummary = {
+    numProducts: number,
+    totalQuantity: number,
+    stalls: number
+}
+type stallId = string;
+type productId = string;
+
+export const ShoppingCart: Writable<{
+    products: Map<stallId, Map<productId, ShoppingCartItem>>,
+    summary: ShoppingCartSummary
+}> = writable({
+    products: new Map(),
+    summary: {
+        numProducts: 0,
+        totalQuantity: 0,
+        stalls: 0
+    }
+});
 
 // Human messages are indexed by publicKey
 // Automatic messages (orders) are indexed by orderId

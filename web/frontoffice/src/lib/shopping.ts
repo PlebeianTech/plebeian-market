@@ -1,10 +1,9 @@
 import type {ShoppingCartItem} from "./types/stall";
 import {
     products,
-    ShoppingCart,
     stalls
 } from "./stores";
-import {privateMessages, Error, Info} from "$sharedLib/stores";
+import {privateMessages, ShoppingCart, Error, Info} from "$sharedLib/stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$lib/services/nostr";
