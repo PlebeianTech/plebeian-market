@@ -4,7 +4,8 @@
     import "../app.css";
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
-    import { token, Info, Error, type Placement } from "$lib/stores";
+    import { Info, Error, type Placement } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModalLightning from "$lib/components/auth/Modal.svelte";
     import LoginModal from "$sharedLib/components/login/Modal.svelte";

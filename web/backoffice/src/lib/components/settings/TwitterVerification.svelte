@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { token, user, Info } from "$lib/stores";
+    import { user, Info } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import { ErrorHandler, putVerify } from "$lib/services/api";
     import { ExternalAccountProvider } from "$lib/types/user";
 

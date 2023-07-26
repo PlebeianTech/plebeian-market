@@ -2,7 +2,7 @@
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import { ErrorHandler, lnurlAuth } from "$lib/services/api";
     import { user, Info, Error, AuthBehavior } from "$lib/stores";
-    import { token } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import QR from "$lib/components/QR.svelte";
     import { isDevelopment } from "$lib/utils";
