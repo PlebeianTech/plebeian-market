@@ -874,10 +874,6 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     def extend(self):
         if self.end_date:
-            if app.config['BID_ALWAYS_EXTEND_BY_MINUTES']:
-                old_end_date = self.end_date
-                self.end_date = self.end_date + timedelta(minutes=app.config['BID_ALWAYS_EXTEND_BY_MINUTES'])
-                return (self.end_date - old_end_date).total_seconds()
             if self.end_date < datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND']):
                 old_end_date = self.end_date
                 self.end_date = datetime.utcnow() + timedelta(minutes=app.config['BID_LAST_MINUTE_EXTEND'])
