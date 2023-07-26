@@ -138,7 +138,9 @@
     {#if newConversationPubkey || sortedConversations.length > 0}
         <!-- Desktop -->
         <div class="hidden lg:flex h-[46rem]">
-            <div class="w-1/3 menu card h-auto max-h-full gap-2 rounded-box p-1 bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden      scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80">
+            <div class="block w-1/3 p-1 menu card h-auto max-h-full gap-2 rounded-box bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden
+                        scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300
+                        scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 hover:scrollbar-thumb:!bg-slate-400/80 lg:supports-scrollbars:pr-2">
                 {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
                     <li class="rounded-lg w-full"
                         class:bg-accent={selectedConversationPubkey === newConversationPubkey}
