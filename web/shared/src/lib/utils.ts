@@ -73,7 +73,6 @@ export function logout(gotoUrl?: string) {
     if (browser) {
         // Frontstore
         localStorage.removeItem('nostrPublicKey');
-        localStorage.removeItem('readMessages');
         localStorage.removeItem('nostrLoginMethod');
         localStorage.removeItem('shoppingCartProducts');
 
