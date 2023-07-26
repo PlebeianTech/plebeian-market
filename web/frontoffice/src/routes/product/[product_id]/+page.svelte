@@ -140,9 +140,11 @@
                     </div>
 
                     {#if product.quantity}
-                        <div>
-                            <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
-                            <button class="btn btn-primary mt-4" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
+                        <div class="block mb-6 text-xl">
+                            <div class="flex justify-center">
+                                <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
+                            </div>
+                            <button class="btn btn-primary mt-2" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
                                 Add to cart
                             </button>
                         </div>

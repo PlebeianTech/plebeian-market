@@ -24,7 +24,7 @@
     }
 </script>
 
-<div class="flex items-center mb-2 " class:space-x-1={!compact}>
+<div class="flex items-center mb-2" class:space-x-1={!compact}>
     <button type="button" on:click|preventDefault={() => onQtyChange()} class="p-1 text-gray-500 rounded-full hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
         <Minus />
     </button>
