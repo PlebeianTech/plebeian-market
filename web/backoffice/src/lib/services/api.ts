@@ -4,7 +4,8 @@ import type { IEntity, IEntityBase } from "$lib/types/base";
 import type { AddedMedia } from "$lib/types/item";
 import { type Order, fromJson as orderFromJson } from "$lib/types/order";
 import { ExternalAccountProvider, type User, fromJson as userFromJson } from "$lib/types/user";
-import { getApiBaseUrl, logout } from "$lib/utils";
+import { getApiBaseUrl } from "$lib/utils";
+import { logout } from "$sharedLib/utils";
 
 export class ErrorHandler {
     setError: boolean;

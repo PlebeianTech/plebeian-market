@@ -1,7 +1,7 @@
 import {goto} from "$app/navigation";
 import {NostrPublicKey, NostrLoginMethod, loginModalState, Info} from "$sharedLib/stores";
 import {get} from "svelte/store";
-import {privateMessages, ShoppingCart} from "$sharedLib/stores";
+import {privateMessages, ShoppingCart, token} from "$sharedLib/stores";
 import {browser} from "$app/environment";
 
 export const SATS_IN_BTC = 100000000;
@@ -59,6 +59,8 @@ export function cleanShoppingCart() {
 }
 
 export function logout(gotoUrl?: string) {
+    Info.set("You're Logged out");
+
     NostrPublicKey.set(null);
 
     privateMessages.set({
@@ -68,11 +70,17 @@ export function logout(gotoUrl?: string) {
 
     cleanShoppingCart();
 
-    localStorage.removeItem('nostrPublicKey');
-    localStorage.removeItem('readMessages');
-    localStorage.removeItem('nostrLoginMethod');
+    if (browser) {
+        // Frontstore
+        localStorage.removeItem('nostrPublicKey');
+        localStorage.removeItem('readMessages');
+        localStorage.removeItem('nostrLoginMethod');
 
-    Info.set("You're Logged out");
+        // Backstore
+        localStorage.removeItem('token');
+    }
+
+    token.set(null);
 
     if (gotoUrl !== undefined) {
         goto(gotoUrl);

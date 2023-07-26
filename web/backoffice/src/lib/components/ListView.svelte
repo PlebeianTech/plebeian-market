@@ -9,7 +9,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { type ILoader, getEntities, postEntity, putEntity } from "$lib/services/api";
-    import { token } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
     import Loading from "$lib/components/Loading.svelte";
 

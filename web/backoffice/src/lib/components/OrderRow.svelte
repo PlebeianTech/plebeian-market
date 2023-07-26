@@ -2,7 +2,8 @@
     import type { IEntity } from "$lib/types/base";
     import type { Order } from "$lib/types/order";
     import DateFormatter, { DateStyle } from "$lib/components/DateFormatter.svelte";
-    import { token, Info } from "$lib/stores";
+    import { Info } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import { putOrder } from "$lib/services/api";
     import X from "$sharedLib/components/icons/X.svelte";
 

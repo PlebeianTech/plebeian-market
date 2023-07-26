@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import SvelteMarkdown from 'svelte-markdown';
     import { deleteEntity } from "$lib/services/api";
-    import { token } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
     import type { Campaign } from "$lib/types/campaign";
     import Confirmation from "$lib/components/Confirmation.svelte";

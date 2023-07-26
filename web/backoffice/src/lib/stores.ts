@@ -2,8 +2,6 @@ import { writable, type Writable } from 'svelte/store';
 import { SimplePool } from 'nostr-tools';
 import type { User } from "$lib/types/user";
 
-export const token: Writable<string | null> = writable(null);
-
 export const user: Writable<User | null> = writable(null);
 
 export type Placement = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'top-center' | 'bottom-center' | 'center-center';

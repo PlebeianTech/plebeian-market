@@ -2,7 +2,8 @@
     import { onDestroy, onMount } from 'svelte';
     import { getKeyFromKeyOrNpub, hasExtension } from "$lib/nostr/utils";
     import { ErrorHandler, putProfile, putVerify, putVerifyLnurl, getProfile } from "$lib/services/api";
-    import { user, token, Info, Error } from "$lib/stores";
+    import { user, Info, Error } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
     import Wallets from "$lib/components/notifications/Wallets.svelte";
     import Loading from "$lib/components/Loading.svelte";

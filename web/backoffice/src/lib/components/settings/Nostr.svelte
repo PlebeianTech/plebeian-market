@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { ErrorHandler, getEntities, postEntity, deleteEntity } from "$lib/services/api";
-    import { user, token, Info } from "$lib/stores";
+    import { user, Info } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import Loading from "$lib/components/Loading.svelte";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import X from "$sharedLib/components/icons/X.svelte";

@@ -1,6 +1,6 @@
 import {browser} from "$app/environment";
 import {goto} from "$app/navigation";
-import { AuthRequired, AuthBehavior, token, Info } from "$lib/stores";
+import { AuthRequired, AuthBehavior, Info } from "$lib/stores";
 
 export let SATS_IN_BTC = 100000000;
 export let SHORT_TITLE_LIMIT = 70;
@@ -32,20 +32,6 @@ export function getEnvironmentInfo() {
 
 export function login() {
     AuthRequired.set({default: AuthBehavior.Login});
-}
-
-export function logout(gotoUrl?: string) {
-    token.set(null);
-
-    if (browser) {
-        localStorage.removeItem('token');
-    }
-
-    Info.set("You're Logged out");
-
-    if (gotoUrl !== undefined) {
-        goto(gotoUrl);
-    }
 }
 
 export function sats2usd(sats: number, btc2usd: number | null): number | null {

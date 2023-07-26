@@ -5,7 +5,8 @@
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
     import { putPublish, postMedia } from "$lib/services/api";
-    import { Info, token, user } from "$lib/stores";
+    import { Info, user } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";

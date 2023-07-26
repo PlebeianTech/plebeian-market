@@ -2,7 +2,8 @@
     import { onMount } from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
     import { ErrorHandler, deleteEntity, putPublish } from "$lib/services/api";
-    import { Info, token, user } from "$lib/stores";
+    import { Info, user } from "$lib/stores";
+    import { token } from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
@@ -120,7 +121,7 @@
                     {:else if !item.ended}
                       <div>
                         <p>
-                          Starting bid: 
+                          Starting bid:
                         </p>
                         <p class="text-2xl font-bold">
                           <AmountFormatter satsAmount={item.starting_bid} format={AmountFormat.Sats} />
@@ -143,7 +144,7 @@
                   <!-- STOCK -->
                   <div class="mt-4">
                     <p>
-                      Stock: 
+                      Stock:
                     </p>
                     <p class="lg:text-2xl text-xl font-bold">
                       {item.available_quantity}
