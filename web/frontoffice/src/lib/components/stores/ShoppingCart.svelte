@@ -80,7 +80,7 @@
                         {#if !compact}
                             <td>{#if product.description}{product.description.substring(0,80)}{#if product.description.length > 80}...{/if}{/if}</td>
                         {/if}
-                        <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                        <td class="text-center">{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
                         <td>
                             <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
                         </td>
@@ -89,7 +89,7 @@
                                 <img class:rounded-xl={!compact} src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
                             </div>
                         </td>
-                        <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                        <td class="text-center">{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
                         <th class="cursor-pointer mr-4" on:click={() => deleteFromCart(stallId, product.id)}>
                             <div class="w-5 h-5 tooltip tooltip-error" data-tip="{ compact ? 'Remove product' : 'Remove product from shopping cart'}"><Trash /></div>
                         </th>
@@ -134,11 +134,11 @@
                     {#each [...products] as [productId, product]}
                         <tr>
                             <th class="text-xs">{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
-                            <td>{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                            <td class="text-center">{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
                             <td>
                                 <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} compact={true} />
                             </td>
-                            <td>{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                            <td class="text-center">{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
                             <td class="hover:cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
                                 <div class="w-5 h-5"><Trash /></div>
                             </td>
