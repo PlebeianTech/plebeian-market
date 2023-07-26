@@ -7,9 +7,9 @@
         EVENT_KIND_AUCTION_BID_STATUS,
         sendMessage,
         subscribeAuction,
-        subscribeMetadata,
-        UserMetadata
+        subscribeMetadata
     } from "$lib/services/nostr";
+    import type {UserMetadata} from "$lib/services/nostr";
 
     export let product;
 
@@ -18,7 +18,9 @@
     let ended: boolean = false;
     let started: boolean = false;
 
-    let bids = [];
+    let totalTimeExtension: number = 0;
+
+    let bids: object[] = [];
     let sortedBids;
     let numBids: number = 0;
     let bidAmount: number = 0;
@@ -29,7 +31,7 @@
 
     $: if (product) {
         now = Math.floor(Date.now() / 1000);
-        endsAt = product.start_date + product.duration;
+        endsAt = product.start_date + product.duration + totalTimeExtension;
         ended = now > endsAt;
         started = now > product.start_date;
 
@@ -85,6 +87,18 @@
                                         bidInfo.backendResponse = bidResponse;
                                         bids[tagValue] = bidInfo;
                                     }
+
+                                    if (bidResponse.status === 'accepted') {
+                                        const timeToExtend = bidResponse.duration_extended;
+
+                                        if (timeToExtend && timeToExtend > 0) {
+                                            totalTimeExtension += timeToExtend;
+                                        }
+                                    }
+
+                                    if (bidResponse.status === 'pending' && bidResponse.donation_stall_ids) {
+                                        setDonationStallIDs(bidResponse.donation_stall_ids);
+                                    }
                                 }
                             }
 
@@ -95,7 +109,7 @@
                         } catch (error) { }
                     }
                 },
-            null);
+                null);
         } else {
             setRecommendedBidAmount();
         }
@@ -153,6 +167,11 @@
             }
         }
     }
+
+    function setDonationStallIDs(donationStallIDs: string[]) {
+        console.log('setDonationStallIDs: ', donationStallIDs);
+        localStorage.setItem('donationStallIDs', JSON.stringify(donationStallIDs));
+    }
 </script>
 
 {#if product && product.start_date}
@@ -168,6 +187,15 @@
             <div class="pb-5">
                 <p class="mb-2">Auction ends in</p>
                 <Countdown totalSeconds={endsAt - now} />
+                {#if totalTimeExtension > 0}
+                    <div class="badge badge-info badge-lg mt-4">Time has been extended</div>
+                    <div class="dropdown dropdown-hover">
+                        <div tabindex="0" class="badge badge-error badge-md mt-4">?</div>
+                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-300 rounded-box w-52">
+                            <li><a class="active">Time gets extended each time a new bid come in the last 5 minutes of the auction</a></li>
+                        </ul>
+                    </div>
+                {/if}
             </div>
 
             <div class="flex flex-wrap min-h-[6rem] min-w-[18rem] max-w-4xl gap-2 p-6 items-center justify-center overflow-x-hidden">

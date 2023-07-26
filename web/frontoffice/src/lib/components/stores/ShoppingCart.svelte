@@ -42,7 +42,7 @@
 <div class="md:grid justify-center">
 {#if $ShoppingCart.summary.numProducts && $stalls && $stalls.stalls}
     <!-- Desktop -->
-    <table class="hidden md:block table table-auto w-full {compact ? 'table-compact' : 'rounded border border-gray-400'}" >
+    <table class="hidden md:block table table-auto w-full {compact ? 'table-md' : 'rounded border border-gray-400'}" >
         <thead>
             <tr class="text-center">
                 <th>Name</th>
@@ -103,7 +103,7 @@
     </table>
 
     <!-- Mobile -->
-    <table class="w-fit rounded-md md:hidden text-left" class:table-compact={compact}>
+    <table class="w-fit rounded-md md:hidden text-left" class:table-sm={compact}>
         <thead>
             <tr class="text-center">
                 <th>Name</th>

@@ -6,7 +6,7 @@
     import Substack from "$sharedLib/components/icons/Substack.svelte";
 </script>
 
-<footer class="text-neutral-content bg-neutral border-t border-white/20 p-4 pb-0">
+<footer class="text-neutral-content bg-neutral border-t border-white/20 p-4 pb-0" data-sveltekit-preload-data="hover">
     <div class="lg:w-2/3 mx-auto w-full lg:flex items-center justify-between py-4 pb-0">
         <div>
             <span class="lg:text-4xl text-3xl font-bold">Plug into the Bitcoin Economy</span>

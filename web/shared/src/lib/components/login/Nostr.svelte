@@ -127,12 +127,14 @@
 
     <div>
         <div class="tabs">
-            <a
-               data-tip="You need a Nostr browser extension"
-               class="indicator tab tab-lifted {browser && hasExtension() ? '' : 'tab-disabled tooltip tooltip-bottom tooltip-error'} tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={activateFirstTabIfExtensionPresent}>
-                <span class="indicator-item indicator-center badge badge-md badge-error">recommended</span>
-                Use Nostr extension
-            </a>
+            {#if browser && hasExtension()}
+                <a
+                   data-tip="You need a Nostr browser extension"
+                   class="indicator tab tab-lifted {browser && hasExtension() ? '' : 'tab-disabled tooltip tooltip-bottom tooltip-error'} tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={activateFirstTabIfExtensionPresent}>
+                    <span class="indicator-item indicator-center badge badge-md badge-error">recommended</span>
+                    Use Nostr extension
+                </a>
+            {/if}
             <a class="indicator tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===1 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=1}>
                 <span class="indicator-item indicator-center badge badge-md badge-warning">anonymous</span>
                 Generate New Key
@@ -162,7 +164,7 @@
             {:else if activeTab===1}
                 <div class="w-full flex">
                     <div class="form-control w-full max-w-full">
-                        <p>With this option you can let us generate a new Nostr private key for you. In this way you are also essentially buying products anonymously because the freshly generated key is not associated with any other identities you may be already using on Nostr.</p>
+                        <p>With this option you can let us <b>generate a new Nostr private key</b> for you. In this way you are also essentially <b>buying products anonymously</b> because the freshly generated key is not associated with any other identities you may be already using on Nostr.</p>
                         <p class="mt-4">This is the recommended option if you don't have a Nostr extension or a Nostr identity already created.</p>
 
                         {#if $NostrPrivateKey}
@@ -172,7 +174,7 @@
                                 <input bind:value={$NostrPrivateKey} type="text" class="input md:input-lg input-bordered" />
                             </div>
                         {:else}
-                            <p>A new Nostr private key will be generated and stored in the web browser of this device, so no other person will have access to it.</p>
+                            <p class="mt-4">A new Nostr private key will be <b>generated and stored in the web browser of this device</b>, so no other person will have access to it.</p>
                         {/if}
                     </div>
                 </div>
@@ -187,7 +189,7 @@
             {:else if activeTab===2}
                 <div class="w-full flex items-center justify-center">
                     <div class="form-control w-full max-w-full">
-                        <p class="mb-4 md:mb-6">Paste your Nostr private key. It will be stored in the web browser of this device, so Plebeian Market will have no way to access it. The only thing we will access is the public key associated to this private key!</p>
+                        <p class="mb-4 md:mb-6">Paste your Nostr private key. It will be stored in the web browser of this device, so Plebeian Market will have no way to access it. The only thing we will access to is the public key associated to this private key!</p>
                         <input bind:value={newPrivateKey} type="text" class="input md:input-lg input-bordered" />
                     </div>
                 </div>

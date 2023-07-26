@@ -105,7 +105,7 @@
 
             <div class="divider md:divider-horizontal my-2 md:my-4"></div>
 
-            <div class="grid flex-grow w-full md:max-w-[50%] h-fit md:p-8 md:pt-0 place-items-center place-content-center text-center text-2xl">
+            <div class="w-full h-fit md:p-8 md:pt-0 place-items-center place-content-center text-center text-2xl">
                 {#if product.event.kind === EVENT_KIND_AUCTION}
                     <div class="mb-8">
                         <BidWidget {product} />
@@ -124,7 +124,7 @@
 
                 {#if $stalls !== null && $stalls.stalls[product.stall_id]}
                     <div class="md:max-w-[70%] alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer text-lg" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.event.pubkey+'/stall/'+product.stall_id)}>
-                        <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
+                        <div class="float-left h-6 w-6 mr-1 align-middle stroke-current flex-shrink-0">
                             <Store />
                         </div>
                         {$stalls.stalls[product.stall_id].name}
