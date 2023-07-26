@@ -56,6 +56,8 @@ export function cleanShoppingCart() {
             stalls: 0
         }
     });
+
+    localStorage.removeItem('shoppingCartProducts');
 }
 
 export function logout(gotoUrl?: string) {
@@ -74,7 +76,6 @@ export function logout(gotoUrl?: string) {
         // Frontstore
         localStorage.removeItem('nostrPublicKey');
         localStorage.removeItem('nostrLoginMethod');
-        localStorage.removeItem('shoppingCartProducts');
 
         // Backstore
         localStorage.removeItem('token');
