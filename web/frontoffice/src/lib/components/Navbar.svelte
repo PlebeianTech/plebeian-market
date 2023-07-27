@@ -84,16 +84,16 @@
             <!-- LINKS -->
             <div class="lg:flex items-right w-full">
                 <div class="hidden lg:flex">
-                    <p>
+                    <p class="ml-24 mr-8">
                         <a href="/stalls" class="btn btn-ghost normal-case">Stall Browser</a>
                     </p>
-                    <p>
+                    <p class="mr-8">
                         <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
                     </p>
-                    <p>
+                    <p class="mr-8">
                         <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
                     </p>
-                    <p>
+                    <p class="mr-8">
                         <a href="/universe" class="btn btn-ghost normal-case">¡Universe!</a>
                     </p>
                 </div>
@@ -128,7 +128,7 @@
                         <PrivateMessages />
                     </div>
 
-                    <div class="dropdown dropdown-end ">
+                    <div class="dropdown dropdown-end xl:mr-4">
                         <label tabindex="0" class="btn btn-ghost btn-circle">
                             <div class="indicator">
                                 <ShoppingCartIcon />
