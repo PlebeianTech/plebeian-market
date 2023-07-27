@@ -1,8 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { afterNavigate } from "$app/navigation";
-    import { getValue } from 'btc2fiat';
-    import {BTC2USD} from "$lib/stores";
     import {NostrPublicKey, privateMessages, ShoppingCart} from "$sharedLib/stores";
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
     import Modal from "$lib/components/Modal.svelte";
@@ -52,10 +50,6 @@
             html.dataset.theme = "light";
             localStorage.theme = "light";
         }
-    }
-
-    async function fetchFiatRate() {
-        BTC2USD.set(await getValue());
     }
 
     onMount(async () => {
