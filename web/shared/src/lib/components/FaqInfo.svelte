@@ -23,7 +23,7 @@
                         Do you take a percentage?
                     </div>
                     <div class="collapse-content">
-                        <p>We are built on the Value4Value model. When a seller creates a profile they have the option to donate up to 5% of the sale price to support Plebeian Market. When a buyer wins an auction, they are asked to send this donation to Plebeian Market before they are connected to the seller to complete the transaction. For example, if you win an auction and the winning bid is 1000 sats and the buyer has opted to donate 2.5%, you will be prompted to send us the 25 sats donation before being connected with the seller to pay the remaining 975 sats.</p>
+                        <p>We are built on the Value4Value model. When a seller creates a profile, they have the option to donate up to 5% of the sale price to support Plebeian Market. When a buyer buys a product or wins an auction, they are asked to send this donation to Plebeian Market before they are connected to the seller to complete the transaction. For example, if you win an auction and the winning bid is 1000 sats and the seller has opted to donate 2.5%, you will be prompted to send us the 25 sats donation before being connected with the seller to pay the remaining 975 sats.</p>
                     </div>
                 </div>
 
@@ -33,7 +33,7 @@
                         Is Plebeian Market open source?
                     </div>
                     <div class="collapse-content">
-                        <p>We are 100% FOSS. By using Plebeian Market not only are you supporting its continued development but you're also supporting other FOSS (free open source software) projects in the Bitcoin community.</p>
+                        <p>We are 100% FOSS. By using Plebeian Market not only are you supporting its continued development, but you're also supporting other FOSS (free open source software) projects in the Bitcoin community.</p>
                     </div>
                 </div>
 
