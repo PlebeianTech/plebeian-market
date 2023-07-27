@@ -11,9 +11,7 @@ from logging.config import dictConfig
 import os
 import os.path
 import requests
-import sys
 import time
-from typing import List
 import websockets
 
 BIRDWATCHER_PORT = 6000
