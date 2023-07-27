@@ -131,10 +131,6 @@ export function refreshStalls() {
             (stallEvent) => {
                 let content = JSON.parse(stallEvent.content)
 
-                if (content.name.toLowerCase().includes('test') || content.description.toLowerCase().includes('test')) {
-                    return;
-                }
-
                 content.createdAt = stallEvent.created_at;
                 content.merchantPubkey = stallEvent.pubkey;
 
