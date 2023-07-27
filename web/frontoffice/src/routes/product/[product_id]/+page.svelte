@@ -106,13 +106,13 @@
             <div class="divider md:divider-horizontal my-2 md:my-4"></div>
 
             <div class="w-full h-fit md:p-8 md:pt-0 place-items-center place-content-center text-center text-2xl">
+                <div class="mb-8 text-xl">{#if product.description}{product.description}{/if}</div>
+
                 {#if product.event.kind === EVENT_KIND_AUCTION}
                     <div class="mb-8">
                         <BidWidget {product} />
                     </div>
                 {/if}
-
-                <div class="mb-6 text-xl">{#if product.description}{product.description}{/if}</div>
 
                 {#if product.tags}
                     <div class="card-actions justify-center mb-12">
