@@ -88,31 +88,13 @@
                         <a href="/stalls" class="btn btn-ghost normal-case">Stall Browser</a>
                     </p>
                     <p>
-                        <a href="/universe" class="btn btn-ghost normal-case">¡Universe!</a>
+                        <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
                     </p>
                     <p>
                         <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
                     </p>
                     <p>
-                        <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
-                    </p>
-                    <p>
-                        <a href="/orders" class="btn btn-ghost normal-case">Orders</a>
-                    </p>
-                    {#if $NostrPublicKey}
-                        <p>
-                            <a href="/p/{$NostrPublicKey}" class="btn btn-ghost normal-case"><b>Me</b></a>
-                        </p>
-                    {/if}
-                    <p>
-                        <a rel="external" href="/admin" class="btn btn-ghost normal-case">Stall Manager</a>
-                    </p>
-                    <p class="hidden xl:block">
-                        {#if !$NostrPublicKey}
-                            <a href={null} class="btn btn-ghost normal-case text-primary" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}><b>Login</b></a>
-                        {:else}
-                            <a href={null} class="btn btn-ghost normal-case" on:click={() => logout()} on:keypress={() => logout()}><b>Logout</b></a>
-                        {/if}
+                        <a href="/universe" class="btn btn-ghost normal-case">¡Universe!</a>
                     </p>
                 </div>
             </div>
@@ -197,8 +179,8 @@
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
-                            <a href="/universe" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><World /></div> ¡Universe!
+                            <a href="/skills" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
@@ -207,25 +189,25 @@
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
-                            <a href="/skills" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
+                            <a href="/universe" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1"><World /></div> ¡Universe!
                             </a>
                         </li>
                         {#if $NostrPublicKey}
                             <li class="menu-title mt-2">
                                 <span class="text-lg">Account</span>
                             </li>
-                            <li class="block md:hidden md:h-0">
+                            <li>
                                 <a class="text-base" href="/p/{$NostrPublicKey}">
                                     <div class="w-6 h-6 mr-1"><User /></div> Me
                                 </a>
                             </li>
-                            <li class="block md:hidden md:h-0">
+                            <li>
                                 <a class="text-base" rel="external" href="/admin">
                                     <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
                                 </a>
                             </li>
-                            <li class="block md:hidden md:h-0">
+                            <li>
                                 <a class="text-base" href="/orders">
                                     <span class="w-6 h-6 mr-1"><Cash /></span> Orders
                                 </a>
@@ -246,7 +228,7 @@
                             </li>
                         {/if}
 
-                        <li class="block md:hidden md:h-0">
+                        <li>
                             <a href="/faq" class="modal-button cursor-pointer text-base">
                                 <span class="w-6 h-6 mr-1"><Book /></span> FAQ
                             </a>
@@ -256,7 +238,7 @@
                                 <div class="w-6 h-6 mr-1"><Chat /></div> Contact
                             </a>
                         </li>
-                        <li class="block md:hidden md:h-0">
+                        <li>
                             <a href="/about" class="modal-button cursor-pointer text-base">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
