@@ -87,9 +87,11 @@
                     <p class="ml-24 mr-8">
                         <a href="/stalls" class="btn btn-ghost normal-case">Stall Browser</a>
                     </p>
+                    <!--
                     <p class="mr-8">
                         <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
                     </p>
+                    -->
                     <p class="mr-8">
                         <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
                     </p>
@@ -178,11 +180,13 @@
                                 <div class="w-6 h-6 mr-1"><Store /></div> Stall Browser
                             </a>
                         </li>
+                        <!--
                         <li class="block md:hidden md:h-0">
                             <a href="/skills" class="modal-button cursor-pointer text-base">
                                 <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
                             </a>
                         </li>
+                        -->
                         <li class="block md:hidden md:h-0">
                             <a href="/marketsquare" class="modal-button cursor-pointer text-base">
                                 <div class="w-6 h-6 mr-1"><Chat /></div> Market Square

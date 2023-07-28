@@ -55,4 +55,6 @@
 
 <StallsBrowser merchantPubkey={data.pubkey} />
 
+<!--
 <ResumeView pubkey={data.pubkey} />
+-->
