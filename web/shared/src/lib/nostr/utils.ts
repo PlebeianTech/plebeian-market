@@ -143,24 +143,6 @@ export function getFirstTagValue(tags, tagType) {
     return tagValue;
 }
 
-export function getEventReplyingTo(event) {
-    if (event.kind !== 1) {
-        return undefined;
-    }
-    const replyTags = event.tags.filter((tag) => tag[0] === 'e');
-    if (replyTags.length === 1) {
-        return replyTags[0][1];
-    }
-    const replyTag = event.tags.find((tag) => tag[0] === 'e' && tag[3] === 'reply');
-    if (replyTag) {
-        return replyTag[1];
-    }
-    if (replyTags.length > 1) {
-        return replyTags[1][1];
-    }
-    return undefined;
-}
-
 export function getBestRelay() {
     // let relays = getPerson(pubkey)?.relays
 
@@ -189,7 +171,7 @@ export async function tryLoginToBackend(successCB: () => void = () => {}) {
 
     const event = await createEvent(
         1,
-        'pleb auth'
+        'Plebeian Market Login'
     );
 
     const options = {

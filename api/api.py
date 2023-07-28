@@ -20,7 +20,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_nostr_client, get_app_private_key, get_s3, get_twitter
+from main import app, get_birdwatcher, get_s3, get_twitter
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -94,8 +94,8 @@ def auth_lnurl():
     db.session.delete(lnauth)
     db.session.commit()
 
-    if not user.nostr_public_key or not user.nostr_public_key_verified:
-        return jsonify({'message': "Please log in using Nostr and link your Lightning wallet to your Nostr account! After that, you will be able to log in to your Nostr account using the Lightning wallet.", 'nostr_required': True}), 403
+    if not user.nostr_public_key:
+        return jsonify({'message': "This is an old style Plebeian Market account that doesn't have a Nostr identity associated. Please log in using Nostr instead!", 'nostr_required': True}), 403
 
     token_payload = {
         'user_id': user.id,
@@ -113,15 +113,15 @@ def auth_nostr():
     except Exception:
         return jsonify({'message': "Invalid event."}), 400
 
-    if request.json['kind'] != 1 or request.json['content'] != "pleb auth":
+    if request.json['kind'] != 1 or request.json['content'] != "Plebeian Market Login":
         return jsonify({'message': "Invalid event."}), 400
 
     pubkey = request.json['pubkey']
 
-    user = m.User.query.filter_by(nostr_public_key=pubkey, nostr_public_key_verified=True).first()
+    user = m.User.query.filter_by(nostr_public_key=pubkey).first()
 
     if not user:
-        user = m.User(nostr_public_key=pubkey, nostr_public_key_verified=True)
+        user = m.User(nostr_public_key=pubkey)
         user.ensure_merchant_key()
         db.session.add(user)
         db.session.commit()
@@ -213,15 +213,6 @@ def put_me(user):
                 return jsonify({'message': "Error sending Twitter DM!"}), 500
             user.twitter_verification_phrase_sent_at = datetime.utcnow()
 
-    if 'nostr_public_key' in request.json:
-        user.nostr_public_key = request.json['nostr_public_key']
-        user.nostr_public_key_verified = False
-        user.generate_verification_phrase('nostr')
-
-        if not get_birdwatcher().send_dm(get_app_private_key(), user.nostr_public_key, user.nostr_verification_phrase):
-            return jsonify({'message': "Error sending Nostr DM!"}), 500
-        user.nostr_verification_phrase_sent_at = datetime.utcnow()
-
     if 'contribution_percent' in request.json:
         user.contribution_percent = request.json['contribution_percent']
 
@@ -268,9 +259,6 @@ def put_me(user):
         else:
             published_to_nostr = False
 
-    if 'nostr_private_key' in request.json:
-        user.nostr_private_key = request.json['nostr_private_key']
-
     try:
         db.session.commit()
     except IntegrityError:
@@ -314,37 +302,6 @@ def verify_twitter(user):
     else:
         time.sleep(2 ** user.twitter_verification_phrase_check_counter)
         user.twitter_verification_phrase_check_counter += 1
-        db.session.commit()
-        return jsonify({'message': "Invalid verification phrase."}), 400
-
-@api_blueprint.route('/api/users/me/verify/nostr', methods=['PUT'])
-@user_required
-def verify_nostr(user):
-    if request.json.get('resend'):
-        if user.nostr_verification_phrase_sent_at and user.nostr_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
-            return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
-        user.generate_verification_phrase('nostr')
-        if not get_birdwatcher().send_dm(get_app_private_key(), user.nostr_public_key, user.nostr_verification_phrase):
-            return jsonify({'message': "Error sending Nostr DM!"}), 500
-        user.nostr_verification_phrase_sent_at = datetime.utcnow()
-        db.session.commit()
-        return jsonify({})
-
-    if not request.json.get('phrase'):
-        return jsonify({'message': "Please provide the verification phrase!"}), 400
-
-    if user.nostr_verification_phrase_check_counter > 5:
-        return jsonify({'message': "Please try requesting a new verification phrase!"}), 400
-
-    clean_phrase = ' '.join([w for w in request.json['phrase'].lower().split(' ') if w])
-
-    if get_nostr_client().get_verification_phrase(user) == clean_phrase:
-        user.nostr_public_key_verified = True
-        db.session.commit()
-        return jsonify({})
-    else:
-        time.sleep(2 ** user.nostr_verification_phrase_check_counter)
-        user.nostr_verification_phrase_check_counter += 1
         db.session.commit()
         return jsonify({'message': "Invalid verification phrase."}), 400
 

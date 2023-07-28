@@ -155,7 +155,7 @@ class TestApi(unittest.TestCase):
         self.assertIn("invalid", response['message'].lower())
 
         # try the correct content but a wrong signature
-        auth_event = Event(kind=1, content="pleb auth", public_key=private_key.public_key.hex())
+        auth_event = Event(kind=1, content="Plebeian Market Login", public_key=private_key.public_key.hex())
         private_key.sign_event(auth_event)
         signed_event_json = json.loads(auth_event.to_message())[1]
         signed_event_json['sig'] = "1234"
@@ -164,7 +164,7 @@ class TestApi(unittest.TestCase):
         self.assertIn("invalid", response['message'].lower())
 
         # now finally do it
-        auth_event = Event(kind=1, content="pleb auth", public_key=private_key.public_key.hex())
+        auth_event = Event(kind=1, content="Plebeian Market Login", public_key=private_key.public_key.hex())
         private_key.sign_event(auth_event)
         signed_event_json = json.loads(auth_event.to_message())[1]
         code, response = self.put(f"/api/login/nostr", signed_event_json)
@@ -457,7 +457,7 @@ class TestApi(unittest.TestCase):
 
         # can log in again with the same key
         self.nostr_auth(key_1, expect_success=True)
-
+        """
         # link Nostr account to this user
         code, response = self.update_user(token_1, nostr_public_key=NOSTR_KEY_1)
         self.assertEqual(code, 200)
@@ -508,7 +508,7 @@ class TestApi(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['nostr_public_key'], NOSTR_KEY_1)
         self.assertTrue(response['user']['nostr_public_key_verified'])
-
+        """
         # sign up with Nostr
         token_nostr_user = self.nostr_auth(NOSTR_PRIVATE_KEY_2)
 

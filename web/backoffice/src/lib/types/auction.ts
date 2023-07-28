@@ -157,7 +157,7 @@ export function fromJson(json: any): Auction {
             a.duration_str = durations.join(" and ");
         } else if (k === 'bids') {
             for (const bidjson of json[k]) {
-                var b: Bid = {amount: 0, buyer: {nym: null, displayName: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false}, is_winning_bid: false};
+                var b: Bid = {amount: 0, buyer: {nym: null, displayName: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null}, is_winning_bid: false};
                 for (var kk in bidjson) {
                     if (kk === 'settled_at') {
                         b.settled_at = new Date(bidjson[kk]);
@@ -175,7 +175,6 @@ export function fromJson(json: any): Auction {
                     twitterUsername: <string | null>bidjson.buyer_twitter_username,
                     twitterUsernameVerified: <boolean>bidjson.buyer_twitter_username_verified,
                     nostrPublicKey: <string | null>bidjson.buyer_nostr_public_key,
-                    nostrPublicKeyVerified: <boolean>bidjson.buyer_nostr_public_key_verified,
                 };
                 a.bids.push(b);
             }
@@ -196,7 +195,6 @@ export function fromJson(json: any): Auction {
             twitterUsername: <string | null>json.winner_twitter_username,
             twitterUsernameVerified: <boolean>json.winner_twitter_username_verified,
             nostrPublicKey: <string | null>json.winner_nostr_public_key,
-            nostrPublicKeyVerified: <boolean>json.winner_nostr_public_key_verified,
         };
     }
     return a;

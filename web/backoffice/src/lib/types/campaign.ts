@@ -12,7 +12,7 @@ export class Campaign implements IEntity {
     description: string = "";
     is_mine: boolean = true;
     wallet: string | null = null;
-    owner: IAccount = {nym: null, displayName: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null, nostrPublicKeyVerified: false};
+    owner: IAccount = {nym: null, displayName: null, email: null, emailVerified: false, telegramUsername: null, telegramUsernameVerified: false, twitterUsername: null, twitterUsernameVerified: false, nostrPublicKey: null};
 
     public validate() {
         return true;
@@ -47,7 +47,6 @@ export function fromJson(json: any): Campaign {
         twitterUsername: <string | null>json.owner_twitter_username,
         twitterUsernameVerified: <boolean>json.owner_twitter_username_verified,
         nostrPublicKey: null,
-        nostrPublicKeyVerified: false,
     };
 
     return campaign;

@@ -508,24 +508,6 @@ def get_twitter():
         access_token_secret = twitter_secrets['ACCESS_TOKEN_SECRET']
         return Twitter(api_key, api_key_secret, access_token, access_token_secret)
 
-class MockNostrClient:
-    class MockKey:
-        def __eq__(self, other):
-            return True
-
-    def get_verification_phrase(self, user):
-        return "i am me"
-
-class NostrClient:
-    def get_verification_phrase(self, user):
-        return user.nostr_verification_phrase
-
-def get_nostr_client():
-    if app.config['MOCK_NOSTR']:
-        return MockNostrClient()
-    else:
-        return NostrClient()
-
 class Birdwatcher:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -599,13 +581,6 @@ class Birdwatcher:
 def get_birdwatcher():
     return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
 
-def get_app_private_key():
-    if app.config['MOCK_NOSTR']:
-        return PrivateKey()
-    else:
-        with open(app.config['NOSTR_SECRETS']) as f:
-            return PrivateKey.from_nsec(json.load(f)['NSEC'])
-
 class MockS3:
     def get_url_prefix(self):
         return app.config['API_BASE_URL_EXTERNAL'] + "/mock-s3-files/"
@@ -668,13 +643,6 @@ else:
     app.logger.setLevel(gunicorn_logger.level)
 
 
-def _store_lnauth_key(lnkey):
-    """Grabs the latest LnAuth entry and stores `lnkey` in the field"""
-    ln = m.LnAuth.query.order_by(desc(m.LnAuth.created_at)).first()
-    ln.key = lnkey
-    db.session.commit()
-
-
 @app.cli.command("lnauth")
 @click.argument("lnkey", type=click.STRING)
 @with_appcontext
@@ -684,5 +652,19 @@ def store_lnauth_key(lnkey):
     Creates a ln auth entry with api key
     :param lnkey: str
     """
-    click.echo(f'Setting latest LnAuth key: {lnkey}')
-    _store_lnauth_key(lnkey)
+    click.echo(f"Setting latest LnAuth key: {lnkey}")
+    ln = m.LnAuth.query.order_by(desc(m.LnAuth.created_at)).first()
+    ln.key = lnkey
+    db.session.commit()
+
+@app.cli.command("lnverify")
+@click.argument("lnkey", type=click.STRING)
+@with_appcontext
+def verify_lnauth_key(lnkey):
+    """
+    For dev env - simplifies verifying a "fake" lightning wallet.
+    """
+    click.echo(f"Setting latest key: {lnkey}")
+    u = m.User.query.filter(m.User.new_lnauth_key_k1_generated_at != None).order_by(desc(m.User.new_lnauth_key_k1_generated_at)).first()
+    u.lnauth_key = u.new_lnauth_key = lnkey
+    db.session.commit()

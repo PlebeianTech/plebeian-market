@@ -191,7 +191,6 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
 
 export type UserProfile = {
     twitterUsername?: string,
-    nostrPublicKey?: string,
     contributionPercent?: string,
     wallet?: string,
     lightningAddress?: string,
@@ -201,16 +200,12 @@ export type UserProfile = {
     shippingFrom?: string,
     shippingDomesticUsd?: number,
     shippingWorldwideUsd?: number,
-    nostr_private_key?: string
 };
 
 export function putProfile(tokenValue, profile: UserProfile, successCB: (user: User, publishedToNostr: boolean) => void, errorHandler = new ErrorHandler()) {
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
-    }
-    if (profile.nostrPublicKey !== undefined) {
-        json.nostr_public_key = profile.nostrPublicKey;
     }
     if (profile.contributionPercent !== undefined) {
         json.contribution_percent = profile.contributionPercent;
@@ -238,9 +233,6 @@ export function putProfile(tokenValue, profile: UserProfile, successCB: (user: U
     }
     if (profile.shippingWorldwideUsd !== undefined) {
         json.shipping_worldwide_usd = profile.shippingWorldwideUsd;
-    }
-    if (profile.nostr_private_key !== undefined) {
-        json.nostr_private_key = profile.nostr_private_key;
     }
     fetchAPI("/users/me", 'PUT', tokenValue, JSON.stringify(json), "application/json",
         response => {
