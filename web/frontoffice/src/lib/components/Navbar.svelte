@@ -162,7 +162,7 @@
 
                     <ul role="menuitem" tabindex="0" class="float-right right-2 w-60 z-40 p-2 shadow menu menu-compact dropdown-content bg-base-300 text-accent-contend rounded-box md:border border-neutral-300">
                         {#if !$NostrPublicKey}
-                            <li class="block md:hidden md:h-0 text-primary">
+                            <li class="text-primary">
                                 <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
                                     <span class="w-6 h-6 mr-1 stroke-primary"><Key /></span> <b>Login</b>
                                 </a>
