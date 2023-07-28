@@ -99,23 +99,21 @@
 {#if !showPrivateKeyInfo}
     {#if browser && !hasExtension()}
         <div class="alert alert-info mt-3 mb-12 flex justify-center items-center">
-            <div>
-                <AlertInfo />
-                <!-- Desktop -->
-                <span class="hidden md:block">
-                    <p>It's recommended that you use a Nostr browser extension in your browser to be able to buy products in Plebeian Market if you plan to build a reputation for your identity.</p>
-                    <p class="mt-2">
-                        You can try <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a>,
-                        <a class="link" href="https://chrome.google.com/webstore/detail/nos2x/kpgefcfmnafjgpblomihpgmejjdanjjp" target="_blank" rel="noreferrer">nos2x</a> or
-                        <a class="link" href="https://kollider.xyz/wallet" target="_blank" rel="noreferrer">Kollider</a> and
-                        reload this screen again, or use one of this alternatives:
-                    </p>
-                </span>
-                <!-- Mobile -->
-                <span class="md:hidden">
-                    <p>You need a <b>Nostr private key</b> to be able to buy products in Plebeian Market. You can let us generate one for you, or you can provide one if you have one.</p>
-                </span>
-            </div>
+            <AlertInfo />
+            <!-- Desktop -->
+            <span class="hidden md:block">
+                <p>It's recommended that you use a Nostr browser extension in your browser to be able to buy products in Plebeian Market if you plan to build a reputation for your identity.</p>
+                <p class="mt-2">
+                    You can try <a class="link" href="https://getalby.com/" target="_blank" rel="noreferrer">Alby</a>,
+                    <a class="link" href="https://chrome.google.com/webstore/detail/nos2x/kpgefcfmnafjgpblomihpgmejjdanjjp" target="_blank" rel="noreferrer">nos2x</a> or
+                    <a class="link" href="https://kollider.xyz/wallet" target="_blank" rel="noreferrer">Kollider</a> and
+                    reload this screen again, or use one of this alternatives:
+                </p>
+            </span>
+            <!-- Mobile -->
+            <span class="md:hidden">
+                <p>You need a <b>Nostr private key</b> to be able to buy products in Plebeian Market. You can let us generate one for you, or you can provide one if you have one.</p>
+            </span>
         </div>
     {/if}
 

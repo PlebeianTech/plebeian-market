@@ -20,24 +20,22 @@
 
 {#if $page.url.pathname !== '/auctions' && $NostrPublicKey && auctionsToOrder.length > 0}
     <div class="alert alert-info shadow-lg lg:p-6 mt-6 lg:mt-2 {$page.url.pathname === '/' ? 'w-10/12 mx-auto mb-8' : ''}">
-        <div>
-            <AlertInfo />
-            <div class="ml-4">
-                <h3 class="font-bold">
-                    {#if auctionsToOrder.length > 1}
-                        You won {auctionsToOrder.length} auctions!
-                    {:else}
-                        You won one auction!
-                    {/if}
-                </h3>
+        <AlertInfo />
+        <div class="ml-4">
+            <h3 class="font-bold">
+                {#if auctionsToOrder.length > 1}
+                    You won {auctionsToOrder.length} auctions!
+                {:else}
+                    You won one auction!
+                {/if}
+            </h3>
 
-                <p>
-                    Now you need to <b><span class="text-secondary">provide contact and shipping information</span></b> to the merchant.
-                </p>
-                <button class="btn btn-success mt-4" on:click={() => goto('/auctions')}>
-                    Send information
-                </button>
-            </div>
+            <p>
+                Now you need to <b><span class="text-secondary">provide contact and shipping information</span></b> to the merchant.
+            </p>
+            <button class="btn btn-success mt-4" on:click={() => goto('/auctions')}>
+                Send information
+            </button>
         </div>
     </div>
 {/if}
