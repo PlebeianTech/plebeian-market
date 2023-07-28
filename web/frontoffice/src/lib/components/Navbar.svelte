@@ -84,16 +84,16 @@
             <!-- LINKS -->
             <div class="lg:flex items-right w-full">
                 <div class="hidden lg:flex">
-                    <p>
+                    <p class="ml-24 mr-8">
                         <a href="/stalls" class="btn btn-ghost normal-case">Stall Browser</a>
                     </p>
-                    <p>
+                    <p class="mr-8">
                         <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
                     </p>
-                    <p>
+                    <p class="mr-8">
                         <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
                     </p>
-                    <p>
+                    <p class="mr-8">
                         <a href="/universe" class="btn btn-ghost normal-case">¡Universe!</a>
                     </p>
                 </div>
@@ -128,7 +128,7 @@
                         <PrivateMessages />
                     </div>
 
-                    <div class="dropdown dropdown-end ">
+                    <div class="dropdown dropdown-end xl:mr-4">
                         <label tabindex="0" class="btn btn-ghost btn-circle">
                             <div class="indicator">
                                 <ShoppingCartIcon />
@@ -162,7 +162,7 @@
 
                     <ul role="menuitem" tabindex="0" class="float-right right-2 w-60 z-40 p-2 shadow menu menu-compact dropdown-content bg-base-300 text-accent-contend rounded-box md:border border-neutral-300">
                         {#if !$NostrPublicKey}
-                            <li class="block md:hidden md:h-0 text-primary">
+                            <li class="text-primary">
                                 <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
                                     <span class="w-6 h-6 mr-1 stroke-primary"><Key /></span> <b>Login</b>
                                 </a>
