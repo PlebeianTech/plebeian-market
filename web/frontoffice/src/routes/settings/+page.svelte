@@ -33,7 +33,7 @@
 
 <Titleh1>Settings</Titleh1>
 
-<div class="lg:grid lg:grid-cols-4 lg:w-2/3 w-full p-4 pb-10 mx-auto">
+<div class="lg:grid lg:grid-cols-4 2xl:w-3/4 w-full p-4 pb-10 mx-auto">
     <div class="md:grow-0 pb-10">
         <ul class="md:w-52 mt-3 p-2 menu menu-compact bg-base-300 rounded-box">
             {#each pages as page, i}
