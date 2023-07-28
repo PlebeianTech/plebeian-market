@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@jhubbardsf/svelte-sortablejs": "^1.1.0",
-    "@sveltejs/adapter-static": "^2.0.2",
+    "@sveltejs/adapter-static": "^2.0.3",
     "bech32": "^2.0.0",
     "buffer": "^6.0.3",
     "light-bolt11-decoder": "^3.0.0",
