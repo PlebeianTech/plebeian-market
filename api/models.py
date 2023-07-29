@@ -156,6 +156,11 @@ class User(WalletMixin, db.Model):
     profile_image_url = db.Column(db.String(256), nullable=True)
 
     # TODO: move these to a "stalls" table when we decide we need multiple stalls per user
+
+    @property
+    def stall_id(self):
+        return self.identity # good enough for now, but we should maybe generate it when creating a stall
+
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
@@ -239,7 +244,7 @@ class User(WalletMixin, db.Model):
 
     def to_nostr_stall(self):
         return {
-            'id': self.identity,
+            'id': self.stall_id,
             'name': self.stall_name,
             'description': self.stall_description,
             'currency': self.stall_currency,
@@ -293,9 +298,6 @@ class User(WalletMixin, db.Model):
                     d[f'has_{entity.state}_{entity.__tablename__}'] = True
             if d['has_own_items'] and d['has_active_auctions'] and d['has_past_auctions'] and d['has_active_listings'] and d['has_past_listings']:
                 break # short-circuit
-
-        if self.is_moderator:
-            d['is_moderator'] = True
 
         d['badges'] = self.get_badges()
 
@@ -771,7 +773,7 @@ class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
             except UnknownKeyTypeError as e:
                 raise ValidationError("Invalid XPUB.")
             try:
-                first_address = k.subkey(0).subkey(0).address()
+                _ = k.subkey(0).subkey(0).address()
             except AttributeError:
                 raise ValidationError("Invalid XPUB.")
             validated['wallet'] = d['wallet']
@@ -963,7 +965,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'shipping_domestic_usd': self.item.shipping_domestic_usd,
             'shipping_worldwide_usd': self.item.shipping_worldwide_usd,
             'has_winner': self.has_winner,
-            'bids': [bid.to_dict(for_user=for_user) for bid in self.bids if bid.settled_at],
+            'bids': [bid.to_dict() for bid in self.bids if bid.settled_at],
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
@@ -1208,19 +1210,18 @@ class Bid(db.Model):
 
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False)
 
+    # NB: this is not used anymore as bids are now placed on Nostr!
     buyer_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
-    buyer_nostr_public_key = db.Column(db.String(64), nullable=True)
+
+    buyer_nostr_public_key = db.Column(db.String(64), nullable=True, index=True)
 
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    settled_at = db.Column(db.DateTime) # a bid is settled after the Lightning invoice has been paid
+    settled_at = db.Column(db.DateTime) # a bid is settled instantly unless "skin in the game" is needed
 
     amount = db.Column(db.Integer, nullable=False)
 
-    # payment_request identifies the Lightning invoice
-    payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
-
-    def to_dict(self, for_user=None):
-        bid = {
+    def to_dict(self):
+        return {
             'amount': self.amount,
             'buyer_nym': self.buyer.nym if self.buyer else None,
             'buyer_display_name': self.buyer.display_name if self.buyer else None,
@@ -1234,10 +1235,6 @@ class Bid(db.Model):
             'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
             'is_winning_bid': self.id == self.auction.winning_bid_id,
         }
-        if for_user == self.buyer_id:
-            # if the buyer that placed this bid is looking, we can share the payment_request with him so he knows the transaction was settled
-            bid['payment_request'] = self.payment_request
-        return bid
 
 class Order(db.Model):
     """
@@ -1304,6 +1301,11 @@ class Order(db.Model):
 
         return 24 * 60
 
+    def has_skin_in_the_game_donation_items(self):
+        for order_item in self.order_items.all():
+            if order_item.item.seller.stall_id in app.config['SKIN_IN_THE_GAME_DONATION_STALL_IDS']:
+                return True
+
     def to_dict(self):
         return {
             'uuid': self.uuid,
@@ -1333,9 +1335,15 @@ class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False)
+
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+    item = db.relationship('Item')
+
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
+    auction = db.relationship('Auction')
+
     listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
+    listing = db.relationship('Listing')
 
     quantity = db.Column(db.Integer, nullable=False)
 

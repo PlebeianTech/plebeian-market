@@ -51,7 +51,6 @@ export class User implements IAccount {
     hasPastAuctions: boolean = false;
     hasActiveListings: boolean = false;
     hasPastListings: boolean = false;
-    isModerator: boolean = false;
     badges: Badge[] = [];
 
     public hasBadge(badge) {
@@ -104,7 +103,6 @@ export function fromJson(json: any): User {
     u.contributionPercent = <number | null>json.contribution_percent;
     u.wallet = <string | null>json.wallet;
     u.lightningAddress = <string | null>json.lightning_address;
-    u.isModerator = <boolean>json.is_moderator;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
 
     return u;
