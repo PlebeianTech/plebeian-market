@@ -12,50 +12,43 @@ What you see here is the initial implementation of a larger vision of fully dece
 
 While we are also running *[plebeian.market](https://plebeian.market/)* - a Plebeian Market instance - others can, and are encouraged to, run their own instances. Whether on your own hardware using Umbrel or Start9 or on a VPS, running a Plebeian Market instance is what makes your community self-sovereign and in control of its data.
 
-Our vision of the future involves small communities around the world running their own market places. At the same time, these market places will communicate with each other, which is why we like to call Plebeian Market *the mycelium of free commerce*.
+Our vision of the future involves small communities around the world running their own market places. At the same time, these market places communicate with each other, which is why we like to call Plebeian Market *the mycelium of free commerce*.
 
 ## Install
 
-### Install just the frontstore (from releases)
-
-* Download the latest [release](https://github.com/PlebeianTech/plebeian-market/releases) of PlebeianMarket-frontstore.zip
-* Unpack the zip file
-* (optional) If you want to be able to be the admin of the site, edit the `config.json` file, and add your Nostr public key to the `admin_pubkey` key:
-    ```"admin_pubkey": "1234567890",```
-* Upload the folder content to your web server
-
-### Install just the frontstore (from git master)
+### Install just the front office (from git master)
 
 * Clone the repository
 `git clone git@github.com:PlebeianTech/plebeian-market.git`
 
-* Change to the frontstore directory
-`cd plebeianmarket/web/frontstore`
+* Change to the front office directory
+`cd plebeianmarket/web/frontoffice`
 
 * Build the site
 `npm i ; npm run build`
 
 * (optional) Copy the file config-example.json to config.json:
-  `cd web/frontstore/build ; cp config-example.json config.json`
+  `cd web/frontoffice/build ; cp config-example.json config.json`
 
 * (optional) Edit the `config.json` file and add your Nostr public key to the `admin_pubkey` key:
   ```"admin_pubkey": "1234567890",```
 
-* Copy the content of the `web/frontstore/build` directory to your web server using your app of choice.
+* Copy the content of the `web/frontoffice/build` directory to your web server using your app of choice.
 
 
 ### Install the entire marketplace
+
 TBD
 
 ## Development
 
-### Frontstore (buyer part of the app)
+### Front office (buyer part of the app)
 
 #### Build the static files
 
 ```npm run build``` - Build static files
 
-All the generated static files will be inside the `build` folder. You can copy them to your server to use the frontstore on your website.
+All the generated static files will be inside the `build` folder. You can copy them to your server to use the frontoffice on your website.
 
 #### Run the app locally for development
 
@@ -63,10 +56,7 @@ All the generated static files will be inside the `build` folder. You can copy t
 
 ```npm run dev``` - Run the app
 
-
-### Backstore (seller part of the app)
-
-
+### Back office (seller part of the app)
 
 ### Running the dev environment locally
 
@@ -74,14 +64,13 @@ All the generated static files will be inside the `build` folder. You can copy t
 
 ```./scripts/dev.sh``` to start the development environment: database, API and all background services
 
-```cd web && npm run dev``` to run the web app
+```cd web/backoffice && npm run dev``` to run the web app
 
 ### Background services
 
 ```finalize-auctions``` - monitors running auctions and picks a winner for auctions that ended
 
 ```settle-btc-payments``` - monitors on-chain payments that are "pending" in our database and looks up the corresponding transactions in the mempool or on-chain
-
 
 ## Non-standard nip-15 extension
 
