@@ -1302,7 +1302,7 @@ class Order(db.Model):
         return 24 * 60
 
     def has_skin_in_the_game_donation_items(self):
-        for order_item in self.order_items.all():
+        for order_item in self.order_items:
             if order_item.item.seller.stall_id in app.config['SKIN_IN_THE_GAME_DONATION_STALL_IDS']:
                 return True
 
