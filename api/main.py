@@ -240,6 +240,13 @@ def settle_btc_payments():
                             json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
                             continue
                         db.session.commit()
+                if order.paid_at and order.has_skin_in_the_game_donation_items():
+                    for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
+                        app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired Skin in the Game!")
+                        pending_bid.settled_at = datetime.utcnow()
+                        duration_extended = pending_bid.auction.extend()
+                        birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
+                        db.session.commit()
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()

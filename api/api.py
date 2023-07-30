@@ -1041,22 +1041,26 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         .filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).first() \
         .total_amount_usd or 0
 
+    is_settled = True
     for threshold in app.config['SKIN_IN_THE_GAME_THRESHOLDS']:
         threshold_bid_amount_sats = usd2sats(threshold['bid_amount_usd'], btc2usd)
         threshold_required_amount_spent_sats = usd2sats(threshold['required_amount_spent_usd'], btc2usd)
         if amount >= threshold_bid_amount_sats and amount_spent < threshold_required_amount_spent_sats:
             message = f"You need at least ${int(threshold['required_amount_spent_usd'])} worth of successful purchases (skin in the game) in order to bid more."
             birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, donation_stall_ids=app.config['SKIN_IN_THE_GAME_DONATION_STALL_IDS'])
-            return jsonify({'message': message}), 400
+            is_settled = False
 
-    bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount, settled_at=datetime.utcnow())
+    bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
+    if is_settled:
+        bid.settled_at = datetime.utcnow()
     db.session.add(bid)
 
     app.logger.info(f"New bid for merchant {merchant_pubkey} auction {auction_event_id}: {request.json['content']}!")
 
     duration_extended = auction.extend()
 
-    birdwatcher.publish_bid_status(auction, request.json['id'], 'accepted', duration_extended=duration_extended)
+    if is_settled:
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'accepted', duration_extended=duration_extended)
 
     db.session.commit()
 

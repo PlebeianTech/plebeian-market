@@ -6,7 +6,6 @@ import type { IAccount } from "$lib/types/user";
 export interface Bid {
     amount: number;
     buyer: IAccount;
-    payment_request?: string;
     settled_at?: Date;
     is_winning_bid: boolean;
 }
