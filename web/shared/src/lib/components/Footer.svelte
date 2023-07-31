@@ -4,6 +4,8 @@
     import Telegram from "$sharedLib/components/icons/Telegram.svelte";
     import Github from "$sharedLib/components/icons/Github.svelte";
     import Substack from "$sharedLib/components/icons/Substack.svelte";
+
+    export let isFrontOffice = true;
 </script>
 
 <footer class="text-neutral-content bg-neutral border-t border-white/20 p-4 pb-0" data-sveltekit-preload-data="hover">
@@ -37,9 +39,9 @@
                 </a>
             </div>
             <div class="mt-4 text-2xl">
-                <a href="/faq" class="btn btn-ghost normal-case text-lg">FAQ</a> -
-                <a href="/contact" class="btn btn-ghost normal-case text-lg">Contact</a> -
-                <a href="/about" class="btn btn-ghost normal-case text-lg">About</a>
+                <a href="/faq" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case text-lg">FAQ</a> -
+                <a href="/contact" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case text-lg">Contact</a> -
+                <a href="/about" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case text-lg">About</a>
             </div>
         </div>
     </div>

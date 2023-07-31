@@ -18,7 +18,7 @@
     import Book from "$sharedLib/components/icons/Book.svelte";
     import Chat from "$sharedLib/components/icons/Chat.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
-    import Tools from "$sharedLib/components/icons/Tools.svelte";
+    // import Tools from "$sharedLib/components/icons/Tools.svelte";
 
     // import CompactShoppingCart from "web/frontoffice/src/lib/components/stores/ShoppingCart.svelte";
     // import PrivateMessages from "web/frontoffice/src/lib/components/nostr/PrivateMessages.svelte";
@@ -90,7 +90,7 @@
 <nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50" data-sveltekit-preload-data="hover">
     <div class="2xl:w-11/12 3xl:w-10/12 p-2 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
-            <a href="/web/frontoffice/static" class="flex items-center mr-2 indicator">
+            <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="flex items-center mr-2 indicator">
                 <div class="flex items-center space-x-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
                     {#if !isProduction()}
@@ -107,7 +107,7 @@
             <div class="lg:flex items-right w-full">
                 <div class="hidden lg:flex">
                     <p class="ml-24 mr-8">
-                        <a href="/stalls" class="btn btn-ghost normal-case">Stall Browser</a>
+                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case">Stall Browser</a>
                     </p>
                     <!--
                     <p class="mr-8">
@@ -115,10 +115,10 @@
                     </p>
                     -->
                     <p class="mr-8">
-                        <a href="/marketsquare" class="btn btn-ghost normal-case">Market Square</a>
+                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case">Market Square</a>
                     </p>
                     <p class="mr-8">
-                        <a href="/universe" class="btn btn-ghost normal-case">¡Universe!</a>
+                        <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case">¡Universe!</a>
                     </p>
                 </div>
             </div>

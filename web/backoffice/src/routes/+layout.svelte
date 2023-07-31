@@ -68,7 +68,7 @@
     </div>
 
     {#if $page.url.pathname !== "/marketsquare"}
-        <Footer />
+        <Footer isFrontOffice={false} />
     {/if}
 
     <ToastContainer let:data={data}>
