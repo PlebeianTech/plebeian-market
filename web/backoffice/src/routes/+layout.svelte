@@ -11,6 +11,7 @@
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModalLightning from "$lib/components/auth/Modal.svelte";
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
+    import { user } from "$lib/stores";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
