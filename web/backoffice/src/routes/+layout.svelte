@@ -4,14 +4,13 @@
     import "../app.css";
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
-    import { Info, Error, type Placement } from "$lib/stores";
-    import { getProfile } from "$lib/services/api";
+    import { Info, Error, user, type Placement } from "$lib/stores";
     import { token } from "$sharedLib/stores";
+    import { getProfile } from "$lib/services/api";
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModalLightning from "$lib/components/auth/Modal.svelte";
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
-    import { user } from "$lib/stores";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -52,11 +51,24 @@
 	});
 	onDestroy(errorUnsubscribe);
 
+    function fetchProfile(tokenValue) {
+        getProfile(tokenValue, "me", (u) => { user.set(u); });
+    }
+
+    const tokenUnsubscribe = token.subscribe((t) => {
+        if (t) {
+            fetchProfile(t);
+        } else {
+            user.set(null);
+        }
+    });
+    onDestroy(tokenUnsubscribe);
+
     onMount(async () => {
         if (browser) {
             const tokenLocalStorage = localStorage.getItem("token");
             token.set(tokenLocalStorage);
-            getProfile(tokenLocalStorage, "me", (u) => { user.set(u); });
+            fetchProfile(tokenLocalStorage);
         }
     });
 </script>
