@@ -13,7 +13,7 @@
     } from "$sharedLib/stores";
 
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
-    import Navbar from "$lib/components/Navbar.svelte";
+    import Navbar from "$sharedLib/components/Navbar.svelte";
     import Notifications from "$lib/components/Notifications.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
     import {closePool, subscribeConfiguration} from "$lib/services/nostr";

@@ -6,6 +6,8 @@ export const Error: Writable<string | null> = writable(null);
 
 export const token: Writable<string | null> = writable(null);
 
+export const BTC2USD: Writable<number | null> = writable(null);
+
 export const loginModalState: Writable<{
     openRequested: boolean;
     loginSuccessCB: () => void;
