@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "devDependencies": {
     "@sveltejs/adapter-node": "^1.2.0",
-    "@sveltejs/kit": "^1.7.2",
+    "@sveltejs/kit": "^1.22.4",
     "autoprefixer": "10.x",
     "btc2fiat": "*",
-    "daisyui": "^2.51.4",
+    "daisyui": "^3.5.0",
     "eslint": "^8.46.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.8.1",

@@ -76,7 +76,7 @@
 <div class="h-screen pt-12 lg:pt-20 pb-20 mt-2">
     <Navbar isFrontOffice={false} />
 
-    <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/admin' ? 'w-screen' : 'w-11/12 md:w-10/12' }">
+    <div class="mx-auto mb-6 min-h-[80%] w-11/12 md:w-10/12">
         <slot />
     </div>
 
