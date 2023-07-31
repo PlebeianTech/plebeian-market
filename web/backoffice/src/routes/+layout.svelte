@@ -5,11 +5,12 @@
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
     import { Info, Error, type Placement } from "$lib/stores";
+    import { getProfile } from "$lib/services/api";
     import { token } from "$sharedLib/stores";
+    import Navbar from "$sharedLib/components/Navbar.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModalLightning from "$lib/components/auth/Modal.svelte";
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
-    import Navbar from "$lib/components/Navbar.svelte";
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
@@ -52,13 +53,15 @@
 
     onMount(async () => {
         if (browser) {
-            token.set(localStorage.getItem("token"));
+            const tokenLocalStorage = localStorage.getItem("token");
+            token.set(tokenLocalStorage);
+            getProfile(tokenLocalStorage, "me", (u) => { user.set(u); });
         }
     });
 </script>
 
 <div class="h-screen pt-12 lg:pt-20 pb-20 mt-2">
-    <Navbar />
+    <Navbar isFrontOffice={false} />
 
     <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/admin' ? 'w-screen' : 'w-11/12 md:w-10/12' }">
         <slot />

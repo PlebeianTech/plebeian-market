@@ -4,24 +4,31 @@
     import {NostrPublicKey, privateMessages, ShoppingCart, BTC2USD} from "$sharedLib/stores";
     import { getValue } from 'btc2fiat';
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
-    import Modal from "$lib/components/Modal.svelte";
-    import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
+    import Modal from "$sharedLib/components/Modal.svelte";
     import ShoppingCartIcon from "$sharedLib/components/icons/ShoppingCart.svelte";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
-    import PrivateMessages from "$lib/components/nostr/PrivateMessages.svelte";
-    import ProfilePicture from "$lib/components/nostr/ProfilePicture.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import User from "$sharedLib/components/icons/User.svelte";
     import World from "$sharedLib/components/icons/World.svelte";
     import Moon from "$sharedLib/components/icons/Moon.svelte";
     import Sun from "$sharedLib/components/icons/Sun.svelte";
     import Home from "$sharedLib/components/icons/Home.svelte";
-    import Tools from "$sharedLib/components/icons/Tools.svelte";
     import Cash from "$sharedLib/components/icons/Cash.svelte";
     import Exit from "$sharedLib/components/icons/Exit.svelte";
     import Book from "$sharedLib/components/icons/Book.svelte";
     import Chat from "$sharedLib/components/icons/Chat.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
+    import Tools from "$sharedLib/components/icons/Tools.svelte";
+
+    // import CompactShoppingCart from "web/frontoffice/src/lib/components/stores/ShoppingCart.svelte";
+    // import PrivateMessages from "web/frontoffice/src/lib/components/nostr/PrivateMessages.svelte";
+    // import ProfilePicture from "web/frontoffice/src/lib/components/nostr/ProfilePicture.svelte";
+
+    export let isFrontOffice = true;
+
+    let CompactShoppingCart = null;
+    let PrivateMessages = null;
+    let ProfilePicture = null;
 
     let modal: Modal | null;
 
@@ -53,11 +60,25 @@
         }
     }
 
+    async function fetchFiatRate() {
+        BTC2USD.set(await getValue());
+    }
+
     onMount(async () => {
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             prefersDark = true;
         } else {
             prefersDark = false;
+        }
+
+        if (isFrontOffice) {
+            try {
+                CompactShoppingCart = (await import("$lib/components/stores/ShoppingCart.svelte")).default;
+                PrivateMessages = (await import("$lib/components/nostr/PrivateMessages.svelte")).default;
+                ProfilePicture = (await import("$lib/components/nostr/ProfilePicture.svelte")).default;
+            } catch (e) {}
+        } else {
+            fetchFiatRate();
         }
     });
 
@@ -69,7 +90,7 @@
 <nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50" data-sveltekit-preload-data="hover">
     <div class="2xl:w-11/12 3xl:w-10/12 p-2 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
-            <a href="/" class="flex items-center mr-2 indicator">
+            <a href="/web/frontoffice/static" class="flex items-center mr-2 indicator">
                 <div class="flex items-center space-x-2">
                     <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
                     {#if !isProduction()}
@@ -127,29 +148,31 @@
                         <div class="swap-on w-9 h-9"><Moon /></div>
                     </label>
 
-                    <div class="btn btn-ghost btn-circle 2xl:mr-2">
-                        <PrivateMessages />
-                    </div>
+                    {#if isFrontOffice}
+                        <div class="btn btn-ghost btn-circle 2xl:mr-2">
+                            <svelte:component this={PrivateMessages} />
+                        </div>
 
-                    <div class="dropdown dropdown-end xl:mr-4">
-                        <label tabindex="0" class="btn btn-ghost btn-circle">
-                            <div class="indicator">
-                                <ShoppingCartIcon />
-                                {#if $ShoppingCart.summary.totalQuantity}
-                                    <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
-                                {/if}
-                            </div>
-                        </label>
-                        <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-300 shadow-xl z-50">
-                            <div class="card-body">
-                                <CompactShoppingCart compact={true}></CompactShoppingCart>
+                        <div class="dropdown dropdown-end xl:mr-4">
+                            <label tabindex="0" class="btn btn-ghost btn-circle">
+                                <div class="indicator">
+                                    <ShoppingCartIcon />
+                                    {#if $ShoppingCart.summary.totalQuantity}
+                                        <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
+                                    {/if}
+                                </div>
+                            </label>
+                            <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-300 shadow-xl z-50">
+                                <div class="card-body">
+                                    <svelte:component this={CompactShoppingCart} compact={true} />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {/if}
                 </div>
 
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
-                    {#if $NostrPublicKey}
+                    {#if $NostrPublicKey && isFrontOffice}
                         <ProfilePicture />
                     {:else}
                         <!-- Desktop menu button -->
@@ -172,29 +195,29 @@
                             </li>
                         {/if}
                         <li class="block md:hidden md:h-0">
-                            <a href="/" class="modal-button cursor-pointer text-base">
+                            <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <span class="w-6 h-6 mr-1"><Home /></span> Home
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
-                            <a href="/stalls" class="modal-button cursor-pointer text-base">
+                            <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <div class="w-6 h-6 mr-1"><Store /></div> Stall Browser
                             </a>
                         </li>
                         <!--
                         <li class="block md:hidden md:h-0">
-                            <a href="/skills" class="modal-button cursor-pointer text-base">
+                            <a href="/skills" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
                             </a>
                         </li>
                         -->
                         <li class="block md:hidden md:h-0">
-                            <a href="/marketsquare" class="modal-button cursor-pointer text-base">
+                            <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <div class="w-6 h-6 mr-1"><Chat /></div> Market Square
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
-                            <a href="/universe" class="modal-button cursor-pointer text-base">
+                            <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <div class="w-6 h-6 mr-1"><World /></div> ¡Universe!
                             </a>
                         </li>
@@ -203,25 +226,38 @@
                                 <span class="text-lg">Account</span>
                             </li>
                             <li>
-                                <a class="text-base" href="/p/{$NostrPublicKey}">
+                                <a class="text-base" rel="{isFrontOffice ? '' : 'external'}" href="/p/{$NostrPublicKey}">
                                     <div class="w-6 h-6 mr-1"><User /></div> Me
                                 </a>
                             </li>
                             <li>
-                                <a class="text-base" rel="external" href="/admin">
+                                <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin">
                                     <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
                                 </a>
                             </li>
-                            <li>
-                                <a class="text-base" href="/orders">
-                                    <span class="w-6 h-6 mr-1"><Cash /></span> Orders
-                                </a>
-                            </li>
-                            <li>
-                                <a class="text-base" href="/settings">
-                                    <span class="w-6 h-6 mr-1"><Settings /></span> Settings
-                                </a>
-                            </li>
+                            {#if isFrontOffice}
+                                <li>
+                                    <a class="text-base" href="/orders">
+                                        <span class="w-6 h-6 mr-1"><Cash /></span> Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="text-base" href="/settings">
+                                        <span class="w-6 h-6 mr-1"><Settings /></span> Settings
+                                    </a>
+                                </li>
+                            {:else}
+                                <li>
+                                    <a class="text-base" href="/admin/account/orders/">
+                                        <span class="w-6 h-6"><Cash /></span> Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="text-base" href="/admin/account/settings">
+                                        <span class="w-6 h-6"><Settings /></span> Settings
+                                    </a>
+                                </li>
+                            {/if}
                             <li>
                                 <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer text-base">
                                     <span class="w-6 h-6 mr-1"><Exit /></span> Logout
@@ -234,17 +270,17 @@
                         {/if}
 
                         <li>
-                            <a href="/faq" class="modal-button cursor-pointer text-base">
+                            <a href="/faq" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <span class="w-6 h-6 mr-1"><Book /></span> FAQ
                             </a>
                         </li>
                         <li>
-                            <a href="/contact" class="text-base">
+                            <a href="/contact" rel="{isFrontOffice ? '' : 'external'}" class="text-base">
                                 <div class="w-6 h-6 mr-1"><Chat /></div> Contact
                             </a>
                         </li>
                         <li>
-                            <a href="/about" class="modal-button cursor-pointer text-base">
+                            <a href="/about" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
                                 </svg>
