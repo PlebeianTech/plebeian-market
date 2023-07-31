@@ -5,7 +5,7 @@
     "@sveltejs/kit": "^1.22.3",
     "autoprefixer": "10.x",
     "daisyui": "^3.5.0",
-    "eslint": "^8.45.0",
+    "eslint": "^8.46.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.12.1",
     "npm-run-all": "4.x",
