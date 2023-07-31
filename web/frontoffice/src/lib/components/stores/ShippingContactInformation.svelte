@@ -3,7 +3,6 @@
     import Email from "$sharedLib/components/icons/Email.svelte";
     import Phone from "$sharedLib/components/icons/Phone.svelte";
     import Nostr from "$sharedLib/components/icons/Nostr.svelte";
-    import {encodeNpub} from "$sharedLib/nostr/utils";
 
     export let isAuction = false;
 
@@ -17,7 +16,7 @@
 </script>
 
 <div class="flex flex-col md:flex-row w-full md:px-12">
-    <div class="grid flex-grow card w-full lg:w-2/4 p-8 gap-3 bg-base-300 rounded-box place-items-center">
+    <div class="grid flex-grow card bg-base-300 rounded-box place-items-center p-8 w-full lg:w-2/4">
         <h2 class="card-title">Shipping information</h2>
         <p>If you're purchasing a physical product, include all the info required so the merchant can send you the products.</p>
 
@@ -48,39 +47,36 @@
 
     <div class="divider lg:divider-horizontal"></div>
 
-    <div class="grid flex-grow card w-full lg:w-2/4 p-8 gap-3 bg-base-300 rounded-box place-items-center">
+    <div class="grid gap-5 flex-grow card bg-base-300 rounded-box place-items-center p-8 w-full lg:w-2/4">
         <h2 class="card-title">Contact information</h2>
         <p>Nostr private messages is the default contact method, but you could also provide email or phone contact information if you prefer that way.</p>
 
-        <!-- <div class="grid gap-5"> -->
-        {#if $NostrPublicKey}
-            <div class="form-control w-full max-w-xs">
+        <div class="grid gap-5">
+            <div class="form-control">
                 <label class="input-group input-group-lg">
-                        <span>
-                            <div class="w-9 h-9"><Nostr /></div>
-                        </span>
-                    <input value={encodeNpub($NostrPublicKey)} type="text" class="input input-bordered w-full max-w-lg font-xs text-xs" disabled />
+                    <span>
+                        <div class="w-9 h-9"><Nostr /></div>
+                    </span>
+                    <input bind:value={$NostrPublicKey} type="text" class="input input-bordered input-warning w-full max-w-lg" />
                 </label>
-                <span class="label-text-alt">Hex: {$NostrPublicKey}</span>
             </div>
-        {/if}
-        <div class="form-control w-full max-w-xs">
-            <label class="input-group input-group-lg">
+            <div class="form-control">
+                <label class="input-group input-group-lg">
                     <span>
                         <div class="w-9 h-9"><Email /></div>
                     </span>
-                <input bind:value={email} type="text" class="input input-bordered input-warning w-full max-w-lg" />
-            </label>
-        </div>
-        <div class="form-control w-full max-w-xs">
-            <label class="input-group input-group-lg">
+                    <input bind:value={email} type="text" class="input input-bordered input-warning w-full max-w-lg" />
+                </label>
+            </div>
+            <div class="form-control">
+                <label class="input-group input-group-lg">
                     <span>
                         <div class="w-9 h-9"><Phone /></div>
                     </span>
-                <input bind:value={phone} type="text" class="input input-bordered input-warning w-full max-w-lg" />
-            </label>
+                    <input bind:value={phone} type="text" class="input input-bordered input-warning w-full max-w-lg" />
+                </label>
+            </div>
         </div>
-        <!-- </div> -->
     </div>
 </div>
 
