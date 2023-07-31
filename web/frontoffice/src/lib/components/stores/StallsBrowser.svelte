@@ -241,7 +241,7 @@
                                         {#if stall.shipping}
                                             <ul>
                                                 {#each stall.shipping as s}
-                                                    <li>{#if s.name}{s.name} - {/if} {s.cost} {stall.currency} - {s.countries.join(", ")}</li>
+                                                    <li>{#if s.name}{s.name} - {/if} {s.cost} {stall.currency} - {s.countries?.join(", ")}</li>
                                                 {/each}
                                             </ul>
                                         {/if}
