@@ -219,11 +219,13 @@
                                     <div class="w-6 h-6 mr-1"><User /></div> Me
                                 </a>
                             </li>
-                            <li>
-                                <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin">
-                                    <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
-                                </a>
-                            </li>
+                        {/if}
+                        <li>
+                            <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin">
+                                <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
+                            </a>
+                        </li>
+                        {#if $NostrPublicKey}
                             {#if isFrontOffice}
                                 <li>
                                     <a class="text-base" href="/orders">
