@@ -5,6 +5,9 @@
     import { getValue } from 'btc2fiat';
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
     import Modal from "$sharedLib/components/Modal.svelte";
+    import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
+    import PrivateMessages from "$lib/components/nostr/PrivateMessages.svelte";
+    import ProfilePicture from "$lib/components/nostr/ProfilePicture.svelte";
     import ShoppingCartIcon from "$sharedLib/components/icons/ShoppingCart.svelte";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
@@ -20,15 +23,7 @@
     import Key from "$sharedLib/components/icons/Key.svelte";
     // import Tools from "$sharedLib/components/icons/Tools.svelte";
 
-    // import CompactShoppingCart from "web/frontoffice/src/lib/components/stores/ShoppingCart.svelte";
-    // import PrivateMessages from "web/frontoffice/src/lib/components/nostr/PrivateMessages.svelte";
-    // import ProfilePicture from "web/frontoffice/src/lib/components/nostr/ProfilePicture.svelte";
-
     export let isFrontOffice = true;
-
-    let CompactShoppingCart = null;
-    let PrivateMessages = null;
-    let ProfilePicture = null;
 
     let modal: Modal | null;
 
@@ -71,13 +66,7 @@
             prefersDark = false;
         }
 
-        if (isFrontOffice) {
-            try {
-                CompactShoppingCart = (await import("$lib/components/stores/ShoppingCart.svelte")).default;
-                PrivateMessages = (await import("$lib/components/nostr/PrivateMessages.svelte")).default;
-                ProfilePicture = (await import("$lib/components/nostr/ProfilePicture.svelte")).default;
-            } catch (e) {}
-        } else {
+        if (!isFrontOffice) {
             fetchFiatRate();
         }
     });
