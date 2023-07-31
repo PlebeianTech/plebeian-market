@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { afterNavigate } from "$app/navigation";
-    import {NostrPublicKey, privateMessages, ShoppingCart} from "$sharedLib/stores";
+    import {NostrPublicKey, privateMessages, ShoppingCart, BTC2USD} from "$sharedLib/stores";
+    import { getValue } from 'btc2fiat';
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
     import Modal from "$lib/components/Modal.svelte";
     import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";

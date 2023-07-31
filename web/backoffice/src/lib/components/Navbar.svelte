@@ -3,8 +3,8 @@
     import { afterNavigate } from "$app/navigation";
     import { getValue } from 'btc2fiat';
     import { getProfile } from "$lib/services/api";
-    import { user, BTC2USD } from "$lib/stores";
-    import { token } from "$sharedLib/stores";
+    import { user } from "$lib/stores";
+    import { token, BTC2USD } from "$sharedLib/stores";
     import { isProduction, getEnvironmentInfo } from "$lib/utils";
     import { logout } from "$sharedLib/utils";
     import Cash from "$sharedLib/components/icons/Cash.svelte";
