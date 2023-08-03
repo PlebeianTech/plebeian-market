@@ -137,11 +137,11 @@
                         <div class="swap-on w-9 h-9"><Moon /></div>
                     </label>
 
-                    {#if isFrontOffice}
-                        <div class="btn btn-ghost btn-circle 2xl:mr-2">
-                            <PrivateMessages />
-                        </div>
+                    <div class="btn btn-ghost btn-circle 2xl:mr-2">
+                        <PrivateMessages />
+                    </div>
 
+                    {#if isFrontOffice}
                         <div class="dropdown dropdown-end xl:mr-4">
                             <label tabindex="0" class="btn btn-ghost btn-circle">
                                 <div class="indicator">
@@ -153,7 +153,7 @@
                             </label>
                             <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-300 shadow-xl z-50">
                                 <div class="card-body">
-                                    <svelte:component this={CompactShoppingCart} compact={true} />
+                                    <CompactShoppingCart compact={true} />
                                 </div>
                             </div>
                         </div>
