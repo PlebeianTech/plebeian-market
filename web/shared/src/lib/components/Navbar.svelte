@@ -6,7 +6,7 @@
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
     import Modal from "$sharedLib/components/Modal.svelte";
     import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
-    import PrivateMessages from "$lib/components/nostr/PrivateMessages.svelte";
+    import PrivateMessages from "$sharedLib/components/nostr/PrivateMessages.svelte";
     import ProfilePicture from "$sharedLib/components/nostr/ProfilePicture.svelte";
     import ShoppingCartIcon from "$sharedLib/components/icons/ShoppingCart.svelte";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
@@ -139,7 +139,7 @@
 
                     {#if isFrontOffice}
                         <div class="btn btn-ghost btn-circle 2xl:mr-2">
-                            <svelte:component this={PrivateMessages} />
+                            <PrivateMessages />
                         </div>
 
                         <div class="dropdown dropdown-end xl:mr-4">
