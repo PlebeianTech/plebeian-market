@@ -33,5 +33,8 @@
     "check": "svelte-check --tsconfig jsconfig.json",
     "check:watch": "svelte-check --tsconfig jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "light-bolt11-decoder": "^3.0.0"
   }
 }
