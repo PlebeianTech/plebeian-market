@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from "svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$lib/services/nostr";
+    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$sharedLib/services/nostr";
     import {onImgError, refreshStalls} from "$lib/shopping";
     import {afterNavigate, goto} from "$app/navigation";
     import {stalls} from "$lib/stores";

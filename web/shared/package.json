@@ -45,6 +45,7 @@
 	"type": "module",
 	"dependencies": {
 		"btc2fiat": "^0.1.23",
+		"light-bolt11-decoder": "^3.0.0",
 		"nostr-tools": "^1.12.1"
 	}
 }

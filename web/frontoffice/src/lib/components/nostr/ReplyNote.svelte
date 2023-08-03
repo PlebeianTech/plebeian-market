@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { VitaminedMessage } from "$lib/components/nostr/types";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg?url";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg?url";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
 
     export let message: VitaminedMessage;

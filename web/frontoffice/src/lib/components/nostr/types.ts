@@ -1,5 +1,5 @@
 import type { Event } from 'nostr-tools';
-import type { UserMetadata } from "$lib/services/nostr";
+import type { UserMetadata } from "$sharedLib/services/nostr";
 
 export type VitaminedMessage = Event & {
     reactions?: Map<string, Set<string>>,

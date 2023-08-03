@@ -1,12 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { page } from "$app/stores";
-    import type { UserResume } from "$lib/types/user";
+    import type { UserResume } from "$sharedLib/types/user";
     import Editor from "$lib/components/resume/Editor.svelte";
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
     import {newNostrConversation} from "$sharedLib/nostr/utils";
-    import { subscribeResume, subscribeMetadata } from "$lib/services/nostr";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import { subscribeResume, subscribeMetadata } from "$sharedLib/services/nostr";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import {NostrPublicKey} from "$sharedLib/stores";
 
     export let pubkey: string;

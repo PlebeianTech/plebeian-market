@@ -5,10 +5,10 @@
     import NostrNote from "$lib/components/nostr/Note.svelte";
     import NostrReplyNote from "$lib/components/nostr/ReplyNote.svelte";
     import { queryNip05, filterTags } from "$sharedLib/nostr/utils";
-    import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$lib/services/nostr";
+    import { type UserMetadata, subscribeMetadata, subscribeReactions, subscribeChannel, sendMessage } from "$sharedLib/services/nostr";
     import {NostrPublicKey, Error as ErrorStore} from "$sharedLib/stores";
     import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
 
     const USE_MEDIA_CACHE = true;

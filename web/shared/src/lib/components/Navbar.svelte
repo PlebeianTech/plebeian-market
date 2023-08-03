@@ -6,8 +6,8 @@
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
     import Modal from "$sharedLib/components/Modal.svelte";
     import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
-    import PrivateMessages from "$lib/components/nostr/PrivateMessages.svelte";
-    import ProfilePicture from "$lib/components/nostr/ProfilePicture.svelte";
+    import PrivateMessages from "$sharedLib/components/nostr/PrivateMessages.svelte";
+    import ProfilePicture from "$sharedLib/components/nostr/ProfilePicture.svelte";
     import ShoppingCartIcon from "$sharedLib/components/icons/ShoppingCart.svelte";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
@@ -137,11 +137,11 @@
                         <div class="swap-on w-9 h-9"><Moon /></div>
                     </label>
 
-                    {#if isFrontOffice}
-                        <div class="btn btn-ghost btn-circle 2xl:mr-2">
-                            <svelte:component this={PrivateMessages} />
-                        </div>
+                    <div class="btn btn-ghost btn-circle 2xl:mr-2">
+                        <PrivateMessages />
+                    </div>
 
+                    {#if isFrontOffice}
                         <div class="dropdown dropdown-end xl:mr-4">
                             <label tabindex="0" class="btn btn-ghost btn-circle">
                                 <div class="indicator">
@@ -153,7 +153,7 @@
                             </label>
                             <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-300 shadow-xl z-50">
                                 <div class="card-body">
-                                    <svelte:component this={CompactShoppingCart} compact={true} />
+                                    <CompactShoppingCart compact={true} />
                                 </div>
                             </div>
                         </div>
@@ -161,7 +161,7 @@
                 </div>
 
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
-                    {#if $NostrPublicKey && isFrontOffice}
+                    {#if $NostrPublicKey }
                         <ProfilePicture />
                     {:else}
                         <!-- Desktop menu button -->

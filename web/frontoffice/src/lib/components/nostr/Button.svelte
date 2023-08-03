@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { sendMessage } from "$lib/services/nostr";
+    import { sendMessage } from "$sharedLib/services/nostr";
     import { getChannelIdForStallOwner, pmChannelNostrRoomId } from '$sharedLib/nostr/utils'
     import { Info } from "$lib/stores";
 

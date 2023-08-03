@@ -8,8 +8,8 @@
         sendMessage,
         subscribeAuction,
         subscribeMetadata
-    } from "$lib/services/nostr";
-    import type {UserMetadata} from "$lib/services/nostr";
+    } from "$sharedLib/services/nostr";
+    import type {UserMetadata} from "$sharedLib/services/nostr";
 
     export let product;
 

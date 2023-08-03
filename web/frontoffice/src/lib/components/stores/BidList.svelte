@@ -1,6 +1,6 @@
 <script lang="ts">
     import {formatTimestamp} from "$sharedLib/nostr/utils";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
     import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { ErrorHandler, putVerifyLnurl, getProfile } from "$lib/services/api";
-    import { user, Info } from "$lib/stores";
-    import { token } from "$sharedLib/stores";
+    import { user } from "$lib/stores";
+    import { Info, token } from "$sharedLib/stores";
     import Wallets from "$lib/components/notifications/Wallets.svelte";
     import Loading from "$lib/components/Loading.svelte";
     import QR from "$lib/components/QR.svelte";

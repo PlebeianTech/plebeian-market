@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
-    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$lib/services/nostr";
+    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$sharedLib/services/nostr";
     import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
     import {onImgError} from "$lib/shopping";
     import Settings from "$sharedLib/components/icons/Settings.svelte";

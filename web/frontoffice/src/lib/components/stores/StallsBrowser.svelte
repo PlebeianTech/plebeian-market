@@ -8,7 +8,7 @@
     import Minus from "$sharedLib/components/icons/Minus.svelte";
     import {refreshStalls} from "$lib/shopping";
     import { goto } from "$app/navigation";
-    import {publishConfiguration} from "$lib/services/nostr";
+    import {publishConfiguration} from "$sharedLib/services/nostr";
     import {newNostrConversation} from "$sharedLib/nostr/utils";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";

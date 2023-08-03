@@ -5,7 +5,7 @@
     import {stalls} from "$lib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import { goto } from "$app/navigation";
-    import {EVENT_KIND_AUCTION} from "$lib/services/nostr";
+    import {EVENT_KIND_AUCTION} from "$sharedLib/services/nostr";
     import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
     import { Image } from 'svelte-lazy-loader';
 

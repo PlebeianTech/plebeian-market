@@ -20,7 +20,7 @@
     "svelte-typewriter": "3.x",
     "tailwindcss": "^3.3.3",
     "typescript": "^4.9.5",
-    "vite": "^4.4.7"
+    "vite": "^4.4.8"
   },
   "type": "module",
   "scripts": {
@@ -33,5 +33,8 @@
     "check": "svelte-check --tsconfig jsconfig.json",
     "check:watch": "svelte-check --tsconfig jsconfig.json --watch",
     "lint": "eslint --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "light-bolt11-decoder": "^3.0.0"
   }
 }

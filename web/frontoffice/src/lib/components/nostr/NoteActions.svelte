@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { VitaminedMessage } from "$lib/components/nostr/types";
-    import { sendReaction } from "$lib/services/nostr";
+    import { sendReaction } from "$sharedLib/services/nostr";
     import { Error as ErrorStore } from "$sharedLib/stores";
     import {NostrPublicKey} from "$sharedLib/stores";
 

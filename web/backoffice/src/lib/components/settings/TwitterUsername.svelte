@@ -1,9 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { ErrorHandler, putProfile } from "$lib/services/api";
-    import { Info, user } from "$lib/stores";
-    import { token } from "$sharedLib/stores";
-    import { goto } from '$app/navigation';
+    import { user } from "$lib/stores";
+    import { Info, token } from "$sharedLib/stores";
     import { page } from '$app/stores';
 
     export let onSave: () => void = () => {};

@@ -4,8 +4,9 @@
     import "../app.css";
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
-    import { Info, Error, user, type Placement } from "$lib/stores";
-    import { token } from "$sharedLib/stores";
+    import { user } from "$lib/stores";
+    import { Info, Error, token } from "$sharedLib/stores";
+    import type { Placement } from "$sharedLib/stores";
     import { getProfile } from "$lib/services/api";
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";

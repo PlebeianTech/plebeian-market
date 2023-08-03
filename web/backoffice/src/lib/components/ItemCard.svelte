@@ -2,8 +2,8 @@
     import { onMount } from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
     import { ErrorHandler, deleteEntity, putPublish } from "$lib/services/api";
-    import { Info, user } from "$lib/stores";
-    import { token } from "$sharedLib/stores";
+    import { user } from "$lib/stores";
+    import { token, Info } from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";

@@ -5,11 +5,10 @@ import {
     type Filter,
     nip04
 } from 'nostr-tools';
-import { UserResume } from "$lib/types/user";
-import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
-import {NostrPool} from "../stores";
-import {NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
 import {get} from "svelte/store";
+import { UserResume } from "$sharedLib/types/user";
+import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
+import {NostrPool, NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
 import {loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
 export type UserMetadata = {

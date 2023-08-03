@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { encodeNpub, newNostrConversation } from "$sharedLib/nostr/utils";
-    import type { UserResume } from "$lib/types/user";
-    import { subscribeResumes, subscribeMetadata, type UserMetadata } from "$lib/services/nostr";
+    import type { UserResume } from "$sharedLib/types/user";
+    import { subscribeResumes, subscribeMetadata, type UserMetadata } from "$sharedLib/services/nostr";
     import Loading from "$lib/components/Loading.svelte";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
 
     const QUERY_BATCH_SIZE = 100;
     const CHECK_METADATA_DELAY = 1000;
