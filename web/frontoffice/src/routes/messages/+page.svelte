@@ -1,16 +1,16 @@
 <script>
-    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import {onMount} from "svelte";
-    import {sendPrivateMessage} from "$sharedLib/services/nostr";
+    import {afterNavigate} from "$app/navigation";
+    import { page } from '$app/stores'
     import {nip19} from "nostr-tools";
+    import {sendPrivateMessage} from "$sharedLib/services/nostr";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import SimpleNote from "$lib/components/nostr/SimpleNote.svelte";
     import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
     import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
-    import { page } from '$app/stores'
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils.ts";
-    import {afterNavigate} from "$app/navigation";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
     let selectedConversationPubkey = null;
     let sortedConversations;
