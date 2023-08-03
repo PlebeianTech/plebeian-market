@@ -3,10 +3,8 @@
     import { toasts, ToastContainer } from 'svelte-toasts';
     import "../app.css";
     import { page } from '$app/stores';
-    import {
-        type Placement,
-        NostrGlobalConfig
-    } from "$lib/stores";
+    import { NostrGlobalConfig } from "$lib/stores";
+    import type { Placement} from "$sharedLib/stores";
     import {
         Info,
         Error,

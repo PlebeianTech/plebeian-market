@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
-import { Error as ErrorStore, AuthRequired, AuthBehavior } from "$lib/stores";
+import { AuthRequired, AuthBehavior } from "$lib/stores";
+import { Error as ErrorStore } from "$sharedLib/stores";
 import type { IEntity, IEntityBase } from "$lib/types/base";
 import type { AddedMedia } from "$lib/types/item";
 import { type Order, fromJson as orderFromJson } from "$lib/types/order";
