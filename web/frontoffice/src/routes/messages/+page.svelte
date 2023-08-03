@@ -1,10 +1,10 @@
 <script>
     import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import {onMount} from "svelte";
-    import {sendPrivateMessage} from "$lib/services/nostr";
+    import {sendPrivateMessage} from "$sharedLib/services/nostr";
     import {nip19} from "nostr-tools";
     import SimpleNote from "$lib/components/nostr/SimpleNote.svelte";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
     import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
     import { page } from '$app/stores'

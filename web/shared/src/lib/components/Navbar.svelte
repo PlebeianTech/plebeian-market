@@ -7,7 +7,7 @@
     import Modal from "$sharedLib/components/Modal.svelte";
     import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
     import PrivateMessages from "$lib/components/nostr/PrivateMessages.svelte";
-    import ProfilePicture from "$lib/components/nostr/ProfilePicture.svelte";
+    import ProfilePicture from "$sharedLib/components/nostr/ProfilePicture.svelte";
     import ShoppingCartIcon from "$sharedLib/components/icons/ShoppingCart.svelte";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
@@ -161,7 +161,7 @@
                 </div>
 
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
-                    {#if $NostrPublicKey && isFrontOffice}
+                    {#if $NostrPublicKey }
                         <ProfilePicture />
                     {:else}
                         <!-- Desktop menu button -->

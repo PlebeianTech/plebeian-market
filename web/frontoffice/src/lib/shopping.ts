@@ -6,7 +6,7 @@ import {
 import {privateMessages, ShoppingCart, Error, Info} from "$sharedLib/stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
-import {getProducts, getStalls} from "$lib/services/nostr";
+import {getProducts, getStalls} from "$sharedLib/services/nostr";
 import {filterTags, getFirstTagValue} from "../../../shared/src/lib/nostr/utils";
 
 // =============================== Products ====================================

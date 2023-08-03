@@ -5,7 +5,7 @@
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
     import ImagePreview from "$lib/components/nostr/ImagePreview.svelte";
     import {formatTimestamp} from '$sharedLib/nostr/utils';
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
 
     export let message: VitaminedMessage;
     export let onReply = (_) => {};

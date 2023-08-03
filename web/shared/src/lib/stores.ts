@@ -1,5 +1,8 @@
 import { writable, type Writable } from 'svelte/store';
 import type {ShoppingCartItem} from "./types/stall";
+import {SimplePool} from "nostr-tools";
+
+export type Placement = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'top-center' | 'bottom-center' | 'center-center';
 
 export const Info: Writable<string | null | {message: string, duration: number, url: string, button: string, placement: Placement}> = writable(null);
 export const Error: Writable<string | null> = writable(null);
@@ -18,6 +21,7 @@ export const loginModalState: Writable<{
     loginBackofficeSuccessCB: () => {},
 });
 
+export const NostrPool: Writable<SimplePool> = writable(new SimplePool());
 export const NostrPublicKey: Writable<string | null> = writable(null);
 export const NostrPrivateKey: Writable<string | null> = writable(null);
 export const NostrLoginMethod: Writable<string | null> = writable(null);

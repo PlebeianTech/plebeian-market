@@ -15,7 +15,7 @@
         getProducts,
         sendPrivateMessage,
         subscribeAuction
-    } from "$lib/services/nostr";
+    } from "$sharedLib/services/nostr";
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";
 
     let name = null;

@@ -1,7 +1,7 @@
 <script lang="ts">
     import {NostrPublicKey} from "$sharedLib/stores";
-    import {subscribeMetadata} from "$lib/services/nostr";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import {subscribeMetadata} from "$sharedLib/services/nostr";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
 
     let profileImage = null;
 

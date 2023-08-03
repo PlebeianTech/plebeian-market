@@ -3,8 +3,8 @@
     import ResumeView from "$lib/components/resume/View.svelte";
     import StallsBrowser from "$lib/components/stores/StallsBrowser.svelte";
     import {NostrPublicKey} from "$sharedLib/stores";
-    import {subscribeMetadata} from "$lib/services/nostr";
-    import profilePicturePlaceHolder from "$lib/images/profile_picture_placeholder.svg";
+    import {subscribeMetadata} from "$sharedLib/services/nostr";
+    import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import {onImgError} from "$lib/shopping";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";

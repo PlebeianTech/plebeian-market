@@ -16,7 +16,7 @@
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Notifications from "$lib/components/Notifications.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
-    import {closePool, subscribeConfiguration} from "$lib/services/nostr";
+    import {closePool, subscribeConfiguration} from "$sharedLib/services/nostr";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";

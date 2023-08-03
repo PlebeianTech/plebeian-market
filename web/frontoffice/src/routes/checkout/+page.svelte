@@ -4,7 +4,7 @@
     import {NostrPublicKey, ShoppingCart, Error, Info} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
-    import {sendPrivateMessage} from "$lib/services/nostr";
+    import {sendPrivateMessage} from "$sharedLib/services/nostr";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready, cleanShoppingCart} from "$sharedLib/utils.ts";
