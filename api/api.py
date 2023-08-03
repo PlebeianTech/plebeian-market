@@ -23,6 +23,7 @@ from main import app, get_birdwatcher, get_s3, get_site_admin_config
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
+from lightning_utils import LightningInvoiceUtil
 from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
 
 api_blueprint = Blueprint('api', __name__)
@@ -930,7 +931,11 @@ def post_merchant_message(pubkey):
             if order.on_chain_address:
                 payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
             if order.lightning_address:
-                payment_options.append({'type': 'lnurl', 'link': order.lightning_address, 'amount_sats': order.total})
+                invoice_util = LightningInvoiceUtil()
+                invoice_information = invoice_util.create_invoice(order.id, order.total)
+
+                if invoice_information and invoice_information['payment_request']:
+                    payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
 
             if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
                 json.dumps({

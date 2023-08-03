@@ -1501,3 +1501,17 @@ class UserAuction(db.Model):
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False, primary_key=True)
 
     following = db.Column(db.Boolean, nullable=False)
+
+class LightningInvoice(db.Model):
+    __tablename__ = 'lightning_invoices'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
+
+    invoice = db.Column(db.String, nullable=False)
+    payment_hash = db.Column(db.String(128), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    expires_at = db.Column(db.String(35), nullable=False)
+
+    paid = db.Column(db.Boolean, nullable=False, default=False)
