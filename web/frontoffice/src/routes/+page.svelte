@@ -55,9 +55,7 @@
   <div class="bg-gradient-to-r from-zinc-900 to-zinc-900/40">
     <div class="grid lg:w-2/3 mx-auto py-12">
       <div class="grid lg:place-items-start place-items-center py-8 px-8">
-          <div class="">
-            <Typewriter />
-          </div>
+          <Typewriter />
       </div>
     </div>
   </div>
