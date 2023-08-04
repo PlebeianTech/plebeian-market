@@ -13,9 +13,13 @@
     export let onImgError = () => {};
     export let isOnStall: boolean;
     export let orderQuantity = 1;
+
+    export let viewProductId: string | null = null;
+    export let scrollPosition = null;
 </script>
 
 <div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-16 md:4">
+    <a href="#" on:click|preventDefault={() => {console.log('Saving scroll:', document.documentElement.scrollTop); scrollPosition = document.documentElement.scrollTop; viewProductId = product.id}}>IR A ESTE PRODUCTO</a>
     <figure>
         <a href="/product/{product.id}">
             <Image
