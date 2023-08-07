@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { VitaminedMessage } from "$lib/components/nostr/types";
     import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
 
     export let address: string;

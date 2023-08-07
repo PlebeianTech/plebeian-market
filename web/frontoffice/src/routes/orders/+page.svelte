@@ -1,13 +1,13 @@
 <script>
     import {products, stalls} from "$lib/stores";
     import {NostrPublicKey, privateMessages, Info} from "$sharedLib/stores";
-    import {formatTimestamp} from "$sharedLib/nostr/utils.ts";
+    import {formatTimestamp} from "$sharedLib/nostr/utils";
     import QRLocal from "$lib/components/QRLocal.svelte";
-    import {refreshProducts, refreshStalls} from "$lib/shopping.ts";
+    import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
-    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils.ts";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import {onDestroy, onMount} from "svelte";
     import {bech32} from "bech32";
     import {Buffer as BufferPolyfill} from "buffer";
@@ -229,7 +229,7 @@
                     <div>
                         <p class="mb-1">You still have to pay <b>{Object.entries(ordersToBePaidNow).length}</b> of your orders!</p>
                         <ul class="list-disc list-inside ml-3 md:ml-5 text-xs md:text-sm">
-                            {#each Object.entries(ordersToBePaidNow) as [orderId, order]}
+                            {#each Object.entries(ordersToBePaidNow) as [_, order]}
                                 <li>{order.id}</li>
                             {/each}
                         </ul>

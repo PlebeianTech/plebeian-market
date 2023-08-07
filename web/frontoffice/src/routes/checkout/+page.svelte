@@ -7,7 +7,7 @@
     import {sendPrivateMessage} from "$sharedLib/services/nostr";
     import {goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready, cleanShoppingCart} from "$sharedLib/utils.ts";
+    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready, cleanShoppingCart} from "$sharedLib/utils";
     import {onDestroy} from "svelte";
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";
