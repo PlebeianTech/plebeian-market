@@ -711,29 +711,38 @@ def get_put_delete_entity(key, cls, singular, has_item):
     defaults={'cls': m.Listing, 'singular': 'listing'},
     methods=['POST'])
 def post_media(key, cls, singular):
+    app.logger.info(f"Posting media to {key}...")
+
     user = get_user_from_token(get_token_from_request())
 
     if not user:
+        app.logger.info(f"Posting media: not user")
         return jsonify({'message': "Unauthorized"}), 401
 
     entity = cls.query.filter_by(key=key).first()
     if not entity:
+        app.logger.info(f"Posting media: not entity")
         return jsonify({'message': "Not found."}), 404
 
     if user.id != entity.item.seller_id:
+        app.logger.info(f"Posting media: unauthorized")
         return jsonify({'message': "Unauthorized"}), 401
 
     if isinstance(entity, m.Auction):
         reason = entity.get_not_editable_reason()
         if reason:
+            app.logger.info(f"Posting media: not editable. reason: {reason}")
             return jsonify({'message': reason}), 403
 
     last_index = max([media.index for media in entity.item.media], default=0)
     index = last_index + 1
+    app.logger.info(f"Posting media: index: {index}")
 
     for f in request.files.values():
+        app.logger.info(f"Posting media: saving picture. index={index}, item_id={entity.item_id}, filename={singular}_{entity.key}_media_{index}, ")
         media = m.Media(item_id=entity.item_id, index=index)
         if not media.store(get_s3(), f"{singular}_{entity.key}_media_{index}", f.filename, f.read()):
+            app.logger.info(f"Posting media: error saving picture: {index}")
             return jsonify({'message': "Error saving picture!"}), 400
         db.session.add(media)
         index += 1
