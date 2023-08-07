@@ -10,7 +10,6 @@ from io import BytesIO
 import json
 import jwt
 import lnurl
-import os
 import pyqrcode
 import secrets
 from sqlalchemy import desc
