@@ -7,9 +7,9 @@ import {
 } from 'nostr-tools';
 import {get} from "svelte/store";
 import { UserResume } from "$sharedLib/types/user";
-import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent, isStaging} from "$sharedLib/nostr/utils";
+import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
 import {NostrPool, NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
-import {loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
+import {loggedIn, waitAndShowLoginIfNotLoggedAlready, isStaging} from "$sharedLib/utils";
 
 export type UserMetadata = {
     name?: string;
