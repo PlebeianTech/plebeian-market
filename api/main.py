@@ -1,6 +1,5 @@
 import boto3
 from botocore.config import Config
-import btc2fiat
 import click
 from datetime import datetime, timedelta
 import dateutil.parser
@@ -8,33 +7,24 @@ from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
 from flask_migrate import Migrate
 from functools import wraps
-import hashlib
 import io
-from itertools import chain
 import json
 import jwt
 import logging
 from logging.config import dictConfig
 import magic
-import math
 from nostr.event import Event, EncryptedDirectMessage
-from nostr.key import PrivateKey
-from nostr.relay_manager import RelayManager
 import os
-import random
 import requests
 from requests_oauthlib import OAuth1Session
 from requests.exceptions import JSONDecodeError
 import signal
 from sqlalchemy import desc
-from sqlalchemy.exc import IntegrityError
-import string
 import sys
 import time
 import uuid
 
 from extensions import cors, db
-from utils import sats2usd, usd2sats
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
@@ -383,7 +373,7 @@ class MockTwitter:
     def get_user(self, username):
         if app.config['ENV'] == 'test':
             # hammer staging rather than picsum when running tests
-            random_image_small = random_image_large = "https://staging.plebeian.market/images/logo.jpg"
+            random_image_small = "https://staging.plebeian.market/images/logo.jpg"
         else:
             random_image_small = "https://picsum.photos/200"
         return {
@@ -548,9 +538,10 @@ class Birdwatcher:
             app.logger.exception(f"Error sending DM for {recipient_public_key} via birdwatcher!")
 
     def publish_stall(self, merchant):
+        STALL_EVENT_KIND = 31017 if app.config['ENV'] == 'staging' else 30017
         stall_json = merchant.to_nostr_stall()
         try:
-            event = Event(kind=30017, content=json.dumps(stall_json), tags=[['d', stall_json['id']]])
+            event = Event(kind=STALL_EVENT_KIND, content=json.dumps(stall_json), tags=[['d', stall_json['id']]])
             merchant.parse_merchant_private_key().sign_event(event)
             if self.post_event(event):
                 return event.id
@@ -568,6 +559,7 @@ class Birdwatcher:
             app.logger.exception(f"Error publishing product for merchant {entity.item.seller.merchant_public_key} via birdwatcher!")
 
     def publish_bid_status(self, auction, bid_event_id, status, message=None, duration_extended=0, donation_stall_ids=None, extra_tags=None):
+        BID_STATUS_EVENT_KIND = 2022 if app.config['ENV'] == 'staging' else 1022
         try:
             if extra_tags is None:
                 extra_tags = []
@@ -578,7 +570,7 @@ class Birdwatcher:
                 content_json['duration_extended'] = duration_extended
             if donation_stall_ids is not None:
                 content_json['donation_stall_ids'] = donation_stall_ids
-            event = Event(kind=1022, content=json.dumps(content_json), tags=([['e', auction.nostr_event_id], ['e', bid_event_id]] + extra_tags))
+            event = Event(kind=BID_STATUS_EVENT_KIND, content=json.dumps(content_json), tags=([['e', auction.nostr_event_id], ['e', bid_event_id]] + extra_tags))
             auction.item.seller.parse_merchant_private_key().sign_event(event)
             if self.post_event(event):
                 return event.id

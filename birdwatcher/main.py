@@ -16,6 +16,8 @@ import websockets
 
 BIRDWATCHER_PORT = 6000
 
+ENV = os.environ.get('ENV')
+
 API_BASE_URL = os.environ.get('API_BASE_URL')
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
 PROCESSED_EVENT_IDS_FILENAME = os.environ.get('PROCESSED_EVENT_IDS_FILENAME')
@@ -29,9 +31,9 @@ dictConfig({
 
 class EventKind(IntEnum):
     DM = 4
-    STALL = 30017
-    AUCTION = 30020
-    BID = 1021
+    STALL = 31017 if ENV == 'staging' else 30017
+    AUCTION = 31020 if ENV == 'staging' else 30020
+    BID = 2021 if ENV == 'staging' else 1021
 
 class Relay:
     def __init__(self, url, args, processed_event_ids):

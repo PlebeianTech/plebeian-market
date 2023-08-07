@@ -11,12 +11,10 @@ from itertools import chain
 import math
 from nostr.key import PrivateKey
 import pyqrcode
-import random
 from slugify import slugify
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.functions import func
-import string
 import uuid
 
 from extensions import db
@@ -921,7 +919,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     @property
     def nostr_event_kind(self):
-        return 30020
+        return 31020 if app.config['ENV'] == 'staging' else 30020
 
     def to_nostr(self, extra_media=None):
         if extra_media is None:
@@ -1090,7 +1088,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     @property
     def nostr_event_kind(self):
-        return 30018
+        return 31018 if app.config['ENV'] == 'staging' else 30018
 
     def to_nostr(self, extra_media=None):
         if extra_media is None:
