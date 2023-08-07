@@ -5,6 +5,7 @@
     import { user } from "$lib/stores";
     import { Info, token } from "$sharedLib/stores";
     import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
+    import InfoIcon from "$sharedLib/components/icons/Info.svelte";
 
     export let onSave: () => void = () => {};
 
@@ -14,7 +15,9 @@
     let shippingDomesticUsd: number = 0;
     let shippingWorldwideUsd: number = 0;
 
-    $: saveButtonActive = $user && !saving && (stallName !== $user.stallName || stallDescription !== $user.stallDescription || shippingFrom !== $user.shippingFrom || shippingDomesticUsd !== $user.shippingDomesticUsd || shippingWorldwideUsd !== $user.shippingWorldwideUsd);
+    $: isValidName = stallName !== null && stallName !== "";
+
+    $: saveButtonActive = !saving && $user && isValidName && (stallName !== $user.stallName || stallDescription !== $user.stallDescription || shippingFrom !== $user.shippingFrom || shippingDomesticUsd !== $user.shippingDomesticUsd || shippingWorldwideUsd !== $user.shippingWorldwideUsd);
 
     let saving = false;
     function save() {
@@ -56,8 +59,6 @@
             <li>My Stall</li>
         </ul>
     </div>
-{:else}
-    <h2 class="text-2xl">My Stall</h2>
 {/if}
 
 <div class="w-full flex items-center justify-center mt-8">
@@ -69,30 +70,35 @@
     </div>
 </div>
 
-<div class="w-full flex items-center justify-center mt-8">
+<div class="w-full flex items-center justify-center my-8 gap-2 flex-col md:flex-row">
     <div class="form-control w-full">
         <label class="label" for="shippingFrom">
             <span class="label-text">Shipping from</span>
+            <div class="tooltip tooltip-left" data-tip="We use this to provide shipping options to the buyers. Be as vague or as specific as you want / need to be.">
+                <InfoIcon />
+            </div>
         </label>
         <input bind:value={shippingFrom} id="shippingFrom" name="shippingFrom" type="text" class="input input-bordered input-md w-full" />
     </div>
-</div>
 
-<div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full">
         <label class="label" for="shippingDomesticUsd">
-            <span class="label-text">Domestic shipping ($)</span>
+            <span class="label-text">Domestic ($)</span>
+            <div class="tooltip tooltip-left" data-tip="How much does shipping cost within the area specified as shipping from?">
+                <InfoIcon />
+            </div>
         </label>
-        <input bind:value={shippingDomesticUsd} type="number" name="shippingDomesticUsd" class="input input-bordered w-full max-w-xs" />
+        <input bind:value={shippingDomesticUsd} type="number" name="shippingDomesticUsd" class="input input-bordered w-full w-full" />
     </div>
-</div>
 
-<div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full">
         <label class="label" for="shippingWorldwideUsd">
-            <span class="label-text">Worldwide shipping ($)</span>
+            <span class="label-text">Worldwide ($)</span>
+            <div class="tooltip tooltip-left" data-tip="How much does shipping cost outside the area you are shipping?">
+                <InfoIcon />
+            </div>
         </label>
-        <input bind:value={shippingWorldwideUsd} type="number" name="shippingWorldwideUsd" class="input input-bordered w-full max-w-xs" />
+        <input bind:value={shippingWorldwideUsd} type="number" name="shippingWorldwideUsd" class="input input-bordered w-full w-full" />
     </div>
 </div>
 

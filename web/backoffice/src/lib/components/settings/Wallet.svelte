@@ -4,7 +4,7 @@
     import { ErrorHandler, putProfile, type UserProfile } from "$lib/services/api";
     import { user } from "$lib/stores";
     import { Info, token } from "$sharedLib/stores";
-    import XpubInfo from "$lib/components/XpubInfo.svelte";
+    import InfoIcon from "$sharedLib/components/icons/Info.svelte";
 
     export let onSave: () => void = () => {};
 
@@ -12,18 +12,24 @@
     let lightningAddress: string | null = null;
 
     $: isValidWallet = wallet !== null && wallet !== "";
-    $: saveWalletActive = $user && isValidWallet && !saving && wallet !== $user.wallet;
-
     $: isValidLightningAddress = lightningAddress !== null && lightningAddress !== "";
-    $: saveLightningAddressActive = $user && isValidLightningAddress && !saving && lightningAddress !== $user.lightningAddress;
+
+    $: saveActive = !saving && $user && (isValidWallet || isValidLightningAddress) && (lightningAddress !== $user.lightningAddress || wallet !== $user.wallet);
 
     let saving = false;
-    function save(p: UserProfile) {
+    function save() {
         saving = true;
+        let p: UserProfile = {};
+        if (wallet !== null && wallet !== "") {
+            p.wallet = wallet;
+        }
+        if (lightningAddress !== null && lightningAddress !== "") {
+            p.lightningAddress = lightningAddress;
+        }
         putProfile($token, p,
             (u, _) => {
                 user.set(u);
-                Info.set("Your profile has been saved!");
+                Info.set("Your wallet information has been saved!");
                 saving = false;
                 onSave();
             },
@@ -38,43 +44,39 @@
     });
 </script>
 
-{#if $user}
-    {#if $page.url.pathname === "/admin/account/settings"}
-        <div class="text-2xl breadcrumbs">
-            <ul>
-                <li>Settings</li>
-                <li>Wallet</li>
-            </ul>
-        </div>
-    {:else}
-        <h2 class="text-2xl">Wallet</h2>
-    {/if}
+{#if $page.url.pathname === "/admin/account/settings"}
+    <div class="text-2xl breadcrumbs">
+        <ul>
+            <li>Settings</li>
+            <li>Wallet</li>
+        </ul>
+    </div>
 {/if}
 
-<XpubInfo />
-
-<div class="w-full flex items-center justify-center mt-8">
+<div class="w-full flex items-center justify-center mt-24">
     <div class="form-control w-full max-w-lg">
         <label class="label" for="stallName">
             <span class="label-text">XPUB / ZPUB</span>
+            <div class="lg:tooltip" data-tip="We use your XPUB to generate addresses where you will receive Bitcoin payments.">
+                <InfoIcon />
+            </div>
         </label>
-        <input bind:value={wallet} id="wallet" name="wallet" type="text" class="input input-bordered input-md w-full" />
+        <input bind:value={wallet} id="wallet" name="wallet" type="text" class="input input-bordered input-lg w-full" />
     </div>
-</div>
-
-<div class="flex justify-center items-center mt-4 h-15">
-    <button id="save-wallet" class="btn btn-primary" class:btn-disabled={!saveWalletActive} on:click|preventDefault={() => { if (wallet) { save({wallet}) }}}>Save</button>
 </div>
 
 <div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full max-w-lg">
         <label class="label" for="stallName">
             <span class="label-text">Lightning address</span>
+            <div class="lg:tooltip" data-tip="Lightning is great for fast small payments.">
+                <InfoIcon />
+            </div>
         </label>
-        <input bind:value={lightningAddress} id="lightningAddress" name="lightningAddress" type="text" class="input input-bordered input-md w-full" />
+        <input bind:value={lightningAddress} id="lightningAddress" name="lightningAddress" type="text" class="input input-bordered input-lg w-full" />
     </div>
 </div>
 
 <div class="flex justify-center items-center mt-4 h-15">
-    <button id="save-lightning-address" class="btn btn-primary" class:btn-disabled={!saveLightningAddressActive} on:click|preventDefault={() => { if (lightningAddress) { save({lightningAddress}) }}}>Save</button>
+    <button id="save" class="btn btn-primary btn-lg" class:btn-disabled={!saveActive} on:click|preventDefault={save}>Save</button>
 </div>

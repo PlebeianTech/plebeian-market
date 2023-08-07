@@ -121,7 +121,7 @@
                 <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" name="my-accordion-3" />
                     <div class="collapse-title text-xl font-medium">
-                        How does the shipping works?
+                        How does the shipping work?
                     </div>
                     <div class="collapse-content">
                         <p>When you create (or edit) your stall, you can specify different options of places where you ship your products to, and the cost to ship the products there.</p>

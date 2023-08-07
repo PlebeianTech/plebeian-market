@@ -8,8 +8,7 @@
     import { login, getBaseUrl } from "$lib/utils";
     import { user } from "$lib/stores";
     import { token } from "$sharedLib/stores";
-    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
-    import Stall from "$lib/components/settings/Stall.svelte";
+    import Onboarding from "$lib/components/Onboarding.svelte";
     import StallView from "$lib/components/StallView.svelte";
     import { requestLoginModal } from "$sharedLib/utils";
 
@@ -55,14 +54,7 @@
             showActiveAuctions={true} showPastAuctions={true}
             showActiveListings={true} showPastListings={true} />
     {:else}
-        <div class="flex justify-center items-center">
-            <div class="w-2/3 mt-8">
-                <div class="my-4">
-                    <InfoBox>Please configure your stall before you start!</InfoBox>
-                </div>
-                <Stall />
-            </div>
-        </div>
+        <Onboarding />
     {/if}
 {:else}
     <h2 class="text-4xl text-center my-8">Stall Manager</h2>

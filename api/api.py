@@ -222,7 +222,7 @@ def put_me(user):
         except UnknownKeyTypeError as e:
             return jsonify({'message': "Invalid wallet."}), 400
         try:
-            first_address = k.subkey(0).subkey(0).address()
+            _ = k.subkey(0).subkey(0).address()
         except AttributeError:
             return jsonify({'message': "Invalid wallet."}), 400
         user.wallet = request.json['wallet']
@@ -230,7 +230,7 @@ def put_me(user):
 
     if 'lightning_address' in request.json:
         if "@" not in request.json['lightning_address']:
-            return jsonify({'message': "Invalid address."}), 400
+            return jsonify({'message': "Invalid lightning address."}), 400
         user.lightning_address = request.json['lightning_address']
 
     published_to_nostr = False
