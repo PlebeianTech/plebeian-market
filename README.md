@@ -72,7 +72,20 @@ All the generated static files will be inside the `build` folder. You can copy t
 
 ```settle-btc-payments``` - monitors on-chain payments that are "pending" in our database and looks up the corresponding transactions in the mempool or on-chain
 
-## Non-standard nip-15 extension
+## Nostr
+
+### Used event kinds
+
+* 30017 - market stall
+* 31017 - market stall used for testing
+* 30018 - fixed price product listing
+* 31018 - fixed price product listing used for testing
+* 30020 - auction
+* 31020 - auction used for testing
+* 1021 - bid
+* 2021 - bid used for testing
+* 1022 - bid confirmation
+* 2022 - bid confirmation used for testing
 
 ### Stall chat
 
