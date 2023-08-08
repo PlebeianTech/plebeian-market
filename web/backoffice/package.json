@@ -6,7 +6,7 @@
     "@sveltejs/kit": "^1.22.4",
     "autoprefixer": "10.x",
     "btc2fiat": "*",
-    "daisyui": "^3.5.0",
+    "daisyui": "^3.5.1",
     "eslint": "^8.46.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.8.1",
@@ -20,7 +20,7 @@
     "svelte-typewriter": "3.x",
     "tailwindcss": "^3.3.3",
     "typescript": "^4.9.5",
-    "vite": "^4.4.8"
+    "vite": "^4.4.9"
   },
   "type": "module",
   "scripts": {

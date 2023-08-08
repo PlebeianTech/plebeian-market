@@ -65,8 +65,6 @@
 </script>
 
 {#if product && product.start_date}
-    {(console.log('product', product), '')}
-
     <div>
         {#if ended}
             <h3 class="text-xl text-center my-2">

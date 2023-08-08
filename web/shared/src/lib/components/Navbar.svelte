@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import {page} from "$app/stores";
     import { afterNavigate } from "$app/navigation";
     import {NostrPublicKey, privateMessages, ShoppingCart, BTC2USD} from "$sharedLib/stores";
     import { getValue } from 'btc2fiat';
@@ -96,7 +97,7 @@
             <div class="lg:flex items-right w-full">
                 <div class="hidden lg:flex">
                     <p class="ml-24 mr-8">
-                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case">Stall Browser</a>
+                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
                     </p>
                     <!--
                     <p class="mr-8">
@@ -104,10 +105,10 @@
                     </p>
                     -->
                     <p class="mr-8">
-                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case">Market Square</a>
+                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
                     </p>
                     <p class="mr-8">
-                        <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case">¡Universe!</a>
+                        <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">¡Universe!</a>
                     </p>
                 </div>
             </div>

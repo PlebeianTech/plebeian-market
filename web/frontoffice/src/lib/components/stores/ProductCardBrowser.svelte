@@ -1,17 +1,19 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
-    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$sharedLib/services/nostr";
+    import {EVENT_KIND_AUCTION, getProducts} from "$sharedLib/services/nostr";
     import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
-    import {onImgError} from "$lib/shopping";
-    import Settings from "$sharedLib/components/icons/Settings.svelte";
-    import {refreshStalls} from "$lib/shopping";
+    import {refreshStalls, onImgError} from "$lib/shopping";
     import {getConfigurationFromFile} from "$sharedLib/utils";
+    import Settings from "$sharedLib/components/icons/Settings.svelte";
+    import ProductModal from "$lib/components/stores/ProductModal.svelte";
 
     export let whiteListedStalls: string | null = null;
     export let maxProductsLoaded: number = 20;
 
     let productsLoaded: number = 0;
+    let viewProductIdOnModal: string | null = null;
+    let scrollPosition: number | null = null;
 
     interface CategoriesAssociativeArray {
         [key: string]: {
@@ -196,10 +198,12 @@
 </div>
 -->
 
-<div class="p-2 py-2 pt-8 h-auto container grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto">
+<div class="p-2 py-2 pt-8 h-auto container grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto" >
     {#each Object.entries(filteredProducts) as [productId, product]}
         {#if (!whiteListedStalls || whiteListedStalls && whiteListedStalls.length === 0) || (whiteListedStalls && whiteListedStalls.length > 0 && whiteListedStalls.includes(product.stall_id))}
-            <ProductCard {product} {onImgError} isOnStall={false}></ProductCard>
+            <ProductCard {product} {onImgError} isOnStall={false} bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
         {/if}
     {/each}
 </div>
+
+<ProductModal bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />

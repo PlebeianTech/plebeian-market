@@ -13,11 +13,17 @@
     export let onImgError = () => {};
     export let isOnStall: boolean;
     export let orderQuantity = 1;
+    export let viewProductIdOnModal: string | null = null;
+    export let scrollPosition: number | null = null;
+
+    function openProduct() {
+        scrollPosition = document.documentElement.scrollTop; viewProductIdOnModal = product.id;
+    }
 </script>
 
 <div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-16 md:4">
     <figure>
-        <a href="/product/{product.id}">
+        <a href=null on:click|preventDefault={openProduct}>
             <Image
                     loading="lazy"
                     placeholder="{productImageFallback}"
@@ -32,7 +38,7 @@
         {/if}
 
         <h2 class="card-title">
-            {#if product.name}<a class="hover:underline" href="/product/{product.id}">{product.name}</a>{/if}
+            {#if product.name}<a class="hover:underline" href=null on:click|preventDefault={openProduct}>{product.name}</a>{/if}
         </h2>
 
         {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}

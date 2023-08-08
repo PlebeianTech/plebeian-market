@@ -88,8 +88,8 @@ export function deleteFromCart(stallId, productId) {
 export function saveShoppingCartProductsToLocalStorage() {
     let products = [];
 
-    for (const [stallId, stall] of get(ShoppingCart).products) {
-        for (const [productId, product] of stall) {
+    for (const [_, stall] of get(ShoppingCart).products) {
+        for (const [_, product] of stall) {
             products.push(product);
         }
     }
@@ -267,7 +267,7 @@ export function getLastOrderContactInformation() {
 
     const privateMessagesAutomatic = get(privateMessages).automatic;
 
-    Object.entries(privateMessagesAutomatic).forEach(([messageId, privateMessage]) => {
+    Object.entries(privateMessagesAutomatic).forEach(([_, privateMessage]) => {
         if (!privateMessage.paid) {     // So it's type === 1, but NostrMarket is not sending the type yet
             if (privateMessage.name) {
                 contactDetails.name = privateMessage.name;
