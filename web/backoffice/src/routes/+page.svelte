@@ -44,15 +44,7 @@
 
 {#if $user}
     {#if $user.stallName !== null && $user.stallName !== ""}
-        <StallView
-            baseUrl="users/me"
-            owner={$user} title={null}
-            description={null}
-            isOwnStall={true}
-            showItemsCampaign={true}
-            canAddItems={true}
-            showActiveAuctions={true} showPastAuctions={true}
-            showActiveListings={true} showPastListings={true} />
+        <StallView />
     {:else}
         <Onboarding />
     {/if}

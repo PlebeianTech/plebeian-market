@@ -31,7 +31,7 @@ export class Listing implements IEntity, Item {
         return !(this.title.length === 0
             || this.description.length === 0
             || this.price_usd === null || this.price_usd === 0
-            || this.available_quantity === null || this.available_quantity === 0);
+            || this.available_quantity === null);
     }
 
     public toJson() {

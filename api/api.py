@@ -754,29 +754,18 @@ def put_publish(user, key, cls):
 @api_blueprint.route("/api/users/<nym>/listings",
     defaults={'plural': 'listings'},
     methods=['GET'])
-@api_blueprint.route("/api/users/<nym>/campaigns",
-    defaults={'plural': 'campaigns'},
-    methods=['GET'])
 def get_user_entities(nym, plural):
     for_user = get_user_from_token(get_token_from_request())
     for_user_id = for_user.id if for_user else None
-
-    if nym == 'me':
-        user = for_user
-    else:
-        user = m.User.query.filter_by(nym=nym).first()
+    user = for_user if nym == 'me' else m.User.query.filter_by(nym=nym).first()
 
     if not user:
         return jsonify({'message': "User not found."}), 404
 
     def iter_entities():
-        if plural == 'campaigns':
-            for campaign in user.campaigns:
-                yield campaign
-        else:
-            for item in user.items:
-                for entity in getattr(item, plural):
-                    yield entity
+        for item in user.items:
+            for entity in getattr(item, plural):
+                yield entity
 
     entities = {}
     for entity in iter_entities():
@@ -784,29 +773,6 @@ def get_user_entities(nym, plural):
             entities[f"{plural}_{entity.id}"] = entity
 
     sorted_entities = sorted(entities.values(), key=lambda l: l.created_at, reverse=True)
-
-    return jsonify({plural: [e.to_dict(for_user=for_user_id) for e in sorted_entities]})
-
-@api_blueprint.route("/api/campaigns/<key>/auctions",
-    defaults={'plural': 'auctions'},
-    methods=['GET'])
-@api_blueprint.route("/api/campaigns/<key>/listings",
-    defaults={'plural': 'listings'},
-    methods=['GET'])
-def get_campaign_entities(key, plural):
-    for_user = get_user_from_token(get_token_from_request())
-    for_user_id = for_user.id if for_user else None
-
-    campaign = m.Campaign.query.filter_by(key=key).first()
-
-    if not campaign:
-        return jsonify({'message': "Campaign not found."}), 404
-
-    entities = []
-    for entity in getattr(campaign, plural):
-        if entity.filter_state(request.args.get('filter'), for_user_id):
-            entities.append(entity)
-    sorted_entities = sorted(entities, key=lambda e: e.created_at, reverse=True)
 
     return jsonify({plural: [e.to_dict(for_user=for_user_id) for e in sorted_entities]})
 
