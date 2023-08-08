@@ -5,4 +5,4 @@
     export let data;
 </script>
 
-<Product {data} />
+<Product product_id={data.product_id} />

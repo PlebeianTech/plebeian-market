@@ -10,11 +10,14 @@
     import EyeSlash from "$sharedLib/components/icons/Eye-slash.svelte";
     import Eye from "$sharedLib/components/icons/Eye.svelte";
     import { afterNavigate } from "$app/navigation";
+    import ProductModal from "$lib/components/stores/ProductModal.svelte";
 
     export let merchantPubkey: string;
     export let stallId: string;
 
     let products: {[productId: string]: {}} = {};
+    let viewProductIdOnModal: string | null = null;
+    let scrollPosition: number | null = null;
 
     let listView = false;
     let showExpiredAuctions: boolean = false;
@@ -108,8 +111,10 @@
     <div class="p-2 py-2 pt-1 h-auto container grid lg:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-6 lg:gap-12 2xl:gap-16 3xl:gap-24 place-content-center">
         {#each Object.entries(products) as [productId, product]}
             {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && (showExpiredAuctions || !showExpiredAuctions && product.ended === false) )}
-                <ProductCard {product} {onImgError} isOnStall={true}></ProductCard>
+                <ProductCard {product} {onImgError} isOnStall={true} bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
             {/if}
         {/each}
     </div>
+
+    <ProductModal bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
 {/if}

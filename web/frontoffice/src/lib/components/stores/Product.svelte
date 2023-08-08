@@ -12,17 +12,18 @@
     import {filterTags} from "$sharedLib/nostr/utils";
     import BidWidget from "$lib/components/stores/BidWidget.svelte";
 
-    export let data = null;
+    export let product_id = null;
+    export let in_popup = false;
 
     let product = null;
     let orderQuantity = 1;
     let activeImage = null;
 
-    afterNavigate(() => {
+    function loadProduct() {
         product = null;
 
-        if (data.product_id) {
-            getProducts(null, [data.product_id],
+        if (product_id) {
+            getProducts(null, [product_id],
                 (productEvent) => {
                     if (!product || (product && productEvent.created_at > product.event.created_at)) {
                         product = JSON.parse(productEvent.content);
@@ -44,9 +45,14 @@
                     }
                 });
         }
+    }
+
+    afterNavigate(() => {
+        loadProduct();
     });
 
     onMount(async () => {
+        loadProduct();
         refreshStalls();
     });
 </script>
@@ -56,11 +62,13 @@
 </svelte:head>
 
 {#if product}
-    <Titleh1>
-        {product.name}
-    </Titleh1>
+    {#if in_popup}
+        <Titleh1 titleClass="p-4 mt-3 md:-mt-2 mb-3 md:mb-5 text-center text-3xl lg:text-3xl">{product.name}</Titleh1>
+    {:else}
+        <Titleh1>{product.name}</Titleh1>
+    {/if}
 
-    <div class="grid justify-center items-center mb-10 md:mb-20 lg:mx-20">
+    <div class="grid justify-center items-center mb-10 {in_popup ? 'lg:mx-10' : 'md:mb-20 lg:mx-20'} ">
         <div class="flex flex-col w-full md:flex-row">
 
             <!-- Left (images) -->
