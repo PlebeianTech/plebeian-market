@@ -5,7 +5,7 @@
     export let viewProductIdOnModal: string | null = null;
     export let scrollPosition: number | null = null;
 
-    $: if (browser) {
+    $: if (browser && window.view_product_modal) {
         if (viewProductIdOnModal === null) {
             window.view_product_modal.close();
 
