@@ -4,7 +4,6 @@
     import { ErrorHandler, putProfile } from "$lib/services/api";
     import { user } from "$lib/stores";
     import { Info, token } from "$sharedLib/stores";
-    import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
 
     export let onSave: () => void = () => {};
@@ -102,7 +101,12 @@
     </div>
 </div>
 
-<MarkdownEditor bind:value={stallDescription} />
+<div class="form-control mt-2">
+    <label class="label" for="description">
+        <span class="label-text">Description</span>
+    </label>
+    <textarea bind:value={stallDescription} rows="6" class="textarea textarea-bordered h-48"></textarea>
+</div>
 
 <div class="flex justify-center items-center mt-4 h-15">
     <button id="save-profile" class="btn btn-primary" class:btn-disabled={!saveButtonActive} on:click|preventDefault={save}>Save</button>

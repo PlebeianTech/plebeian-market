@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import SvelteMarkdown from 'svelte-markdown';
     import { ErrorHandler, deleteEntity, putPublish } from "$lib/services/api";
     import { user } from "$lib/stores";
     import { token, Info } from "$sharedLib/stores";
@@ -152,8 +151,8 @@
                   </div>
                 {/if}
             </p>
-            <div class="markdown-container max-h-52 overflow-hidden">
-                <SvelteMarkdown source={item.description} />
+            <div class="max-h-52 overflow-hidden">
+                {item.description}
             </div>
             {#if !item.started}
                 {#if !hasWallet}

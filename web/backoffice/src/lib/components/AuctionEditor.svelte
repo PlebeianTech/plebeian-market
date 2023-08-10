@@ -3,7 +3,6 @@
     import type { IEntity } from "$lib/types/base";
     import type { Auction } from "$lib/types/auction";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
-    import MarkdownEditor from "$lib/components/MarkdownEditor.svelte";
     import MediaEditor from "$lib/components/MediaEditor.svelte";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
 
@@ -53,7 +52,12 @@
                     </label>
                     <input bind:value={auction.title} type="text" name="title" class="input input-bordered" />
                 </div>
-                <MarkdownEditor bind:value={auction.description} placeholder={auction.descriptionPlaceholder} />
+                <div class="form-control mt-2">
+                    <label class="label" for="description">
+                        <span class="label-text">Description</span>
+                    </label>
+                    <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48" placeholder={auction.descriptionPlaceholder}></textarea>
+                </div>
                 <div class="flex mt-3">
                     <div class="form-control w-1/2 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
