@@ -1,6 +1,5 @@
-import { isProduction } from "$lib/utils";
 import type { IEntity } from "$lib/types/base";
-import { Category, type Item, type AddedMedia, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
+import type { Item, AddedMedia, Media } from "$lib/types/item";
 import type { IAccount } from "$lib/types/user";
 
 export interface Bid {
@@ -37,7 +36,7 @@ export class Auction implements IEntity, Item {
     shipping_from: string = "";
     shipping_domestic_usd: number = 0;
     shipping_worldwide_usd: number = 0;
-    duration_hours: number = isProduction() ? 3 * 24 : 24;
+    duration_hours: number = 2 * 24;
     start_date: Date | null = null;
     started: boolean = false;
     end_date?: Date | null;
@@ -119,14 +118,6 @@ export class Auction implements IEntity, Item {
             }
         }
         return JSON.stringify(json);
-    }
-}
-
-export class TimeAuction extends Auction {
-    constructor() {
-        super();
-        this.category = Category.Time;
-        this.descriptionPlaceholder = TIME_ITEM_DESCRIPTION_PLACEHOLDER;
     }
 }
 
