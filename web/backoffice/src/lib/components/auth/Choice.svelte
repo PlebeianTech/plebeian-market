@@ -1,8 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
     import LnurlAuth from "$lib/components/auth/Lnurl.svelte";
-    import { AuthBehavior } from "$lib/stores";
-    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
     const dispatch = createEventDispatcher();
 

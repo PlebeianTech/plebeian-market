@@ -5,6 +5,7 @@
     import { user } from "$lib/stores";
     import { Info, token } from "$sharedLib/stores";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
+    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
     export let onSave: () => void = () => {};
 
@@ -60,8 +61,16 @@
     </div>
 {/if}
 
+<div class="w-full flex items-center justify-center mt-24">
+    <div class="max-w-lg">
+        <InfoBox>
+            You're a pioneer in this new world moving to a bitcoin standard... tell us about your market stall!
+        </InfoBox>
+    </div>
+</div>
+
 <div class="w-full flex items-center justify-center mt-8">
-    <div class="form-control w-full">
+    <div class="form-control w-full max-w-lg">
         <label class="label" for="stallName">
             <span class="label-text">Title</span>
         </label>
@@ -69,8 +78,17 @@
     </div>
 </div>
 
-<div class="w-full flex items-center justify-center my-8 gap-2 flex-col md:flex-row">
-    <div class="form-control w-full">
+<div class="w-full flex items-center justify-center mt-2">
+    <div class="form-control w-full max-w-lg">
+        <label class="label" for="description">
+            <span class="label-text">Description</span>
+        </label>
+        <textarea bind:value={stallDescription} rows="6" class="textarea textarea-bordered h-48"></textarea>
+    </div>
+</div>
+
+<div class="w-full flex items-center justify-center my-8 gap-2 flex-col">
+    <div class="form-control w-full max-w-xs">
         <label class="label" for="shippingFrom">
             <span class="label-text">Shipping from</span>
             <div class="tooltip tooltip-left" data-tip="We use this to provide shipping options to the buyers. Be as vague or as specific as you want / need to be.">
@@ -79,8 +97,10 @@
         </label>
         <input bind:value={shippingFrom} id="shippingFrom" name="shippingFrom" type="text" class="input input-bordered input-md w-full" />
     </div>
+</div>
 
-    <div class="form-control w-full">
+<div class="w-full flex items-center justify-center my-8 gap-2 flex-col">
+    <div class="form-control w-full max-w-xs">
         <label class="label" for="shippingDomesticUsd">
             <span class="label-text">Domestic ($)</span>
             <div class="tooltip tooltip-left" data-tip="How much does shipping cost within the area specified as shipping from?">
@@ -89,8 +109,10 @@
         </label>
         <input bind:value={shippingDomesticUsd} type="number" name="shippingDomesticUsd" class="input input-bordered w-full w-full" />
     </div>
+</div>
 
-    <div class="form-control w-full">
+<div class="w-full flex items-center justify-center my-8 gap-2 flex-col">
+    <div class="form-control w-full max-w-xs">
         <label class="label" for="shippingWorldwideUsd">
             <span class="label-text">Worldwide ($)</span>
             <div class="tooltip tooltip-left" data-tip="How much does shipping cost outside the area you are shipping?">
@@ -99,13 +121,6 @@
         </label>
         <input bind:value={shippingWorldwideUsd} type="number" name="shippingWorldwideUsd" class="input input-bordered w-full w-full" />
     </div>
-</div>
-
-<div class="form-control mt-2">
-    <label class="label" for="description">
-        <span class="label-text">Description</span>
-    </label>
-    <textarea bind:value={stallDescription} rows="6" class="textarea textarea-bordered h-48"></textarea>
 </div>
 
 <div class="flex justify-center items-center mt-4 h-15">

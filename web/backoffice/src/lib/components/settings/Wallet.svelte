@@ -5,6 +5,7 @@
     import { user } from "$lib/stores";
     import { Info, token } from "$sharedLib/stores";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
+    import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
     export let onSave: () => void = () => {};
 
@@ -54,6 +55,16 @@
 {/if}
 
 <div class="w-full flex items-center justify-center mt-24">
+    <div class="max-w-lg">
+        <InfoBox>
+            Everyone has something of value... if it's not something physical, it is your skills or time.
+            <br />
+            To trade your value please hook up the two components of your sovereign magic money wallets! 
+        </InfoBox>
+    </div>
+</div>
+
+<div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full max-w-lg">
         <label class="label" for="stallName">
             <span class="label-text">XPUB / ZPUB</span>
