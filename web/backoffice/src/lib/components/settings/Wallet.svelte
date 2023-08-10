@@ -14,7 +14,7 @@
     $: isValidWallet = wallet !== null && wallet !== "";
     $: isValidLightningAddress = lightningAddress !== null && lightningAddress !== "";
 
-    $: saveActive = !saving && $user && (isValidWallet || isValidLightningAddress) && (lightningAddress !== $user.lightningAddress || wallet !== $user.wallet);
+    $: saveActive = !saving && $user && isValidWallet && isValidLightningAddress && (lightningAddress !== $user.lightningAddress || wallet !== $user.wallet);
 
     let saving = false;
     function save() {
