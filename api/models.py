@@ -1513,6 +1513,22 @@ class LightningInvoice(db.Model):
     invoice = db.Column(db.String, nullable=False)
     payment_hash = db.Column(db.String(128), nullable=False)
     price = db.Column(db.Integer, nullable=False)
-    expires_at = db.Column(db.String(35), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=True)
 
+    # TODO is this needed?
     paid = db.Column(db.Boolean, nullable=False, default=False)
+
+class LightningPaymentLogState(Enum):
+    RECEIVED = 0
+    SELLER_PAID = 1
+    OTHER_PAID = 2
+
+class LightningPaymentLog(db.Model):
+    __tablename__ = 'lightning_payment_logs'
+
+    order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
+    lightning_invoice_id = db.Column(db.Integer, db.ForeignKey(LightningInvoice.id), nullable=False, primary_key=True)
+    state = db.Column(db.Integer, nullable=False)
+    paid_to = db.Column(db.String(200), nullable=True)
+    amount = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=True)

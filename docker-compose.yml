@@ -38,6 +38,16 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
+  lightning_payments_processor:
+    build:
+      context: ./
+      dockerfile: ./ln_payments_processor/Dockerfile
+    image: plebeianmarket-ln-payments
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 30s
+    networks:
+      - db_network
   birdwatcher:
     build:
       context: ./
