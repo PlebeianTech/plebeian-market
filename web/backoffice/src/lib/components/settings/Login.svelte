@@ -6,7 +6,6 @@
     import Wallets from "$lib/components/notifications/Wallets.svelte";
     import Loading from "$lib/components/Loading.svelte";
     import QR from "$lib/components/QR.svelte";
-    import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
 
     export let onSave: () => void = () => {};
 
@@ -15,8 +14,6 @@
     let lnurl;
     let qr;
     let k1: string | null = null;
-
-    let inRequest = false;
 
     let checkTimeout: ReturnType<typeof setTimeout> | null = null;
 

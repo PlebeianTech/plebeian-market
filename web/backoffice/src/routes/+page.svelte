@@ -43,7 +43,7 @@
 />
 
 {#if $user}
-    {#if $user.stallName !== null && $user.stallName !== ""}
+    {#if $user.wallet !== null && $user.wallet !== "" && $user.stallName !== null && $user.stallName !== "" && $user.email !== null && $user.email !== ""}
         <StallView />
     {:else}
         <Onboarding />

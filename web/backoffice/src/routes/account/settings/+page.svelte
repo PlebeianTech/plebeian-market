@@ -6,6 +6,7 @@
     import { onMount } from 'svelte';
     import { page } from "$app/stores";
     import { user } from "$lib/stores";
+    import Email from "$lib/components/settings/Email.svelte";
     import Stall from "$lib/components/settings/Stall.svelte";
     import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
     import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
@@ -17,11 +18,12 @@
 
     let STALL_PAGE = "My Stall";
     let WALLET_PAGE = "Wallet";
+    let EMAIL_PAGE = "Email";
     let TWITTER_PAGE = "Twitter";
     let NOSTR_PAGE = "Nostr";
     let LOGIN_PAGE = "Login";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, EMAIL_PAGE, TWITTER_PAGE, NOSTR_PAGE, V4V_PAGE];
     let WALLET_PAGE_INDEX = pages.indexOf(WALLET_PAGE);
     let currentPage: string | null = null;
 
@@ -63,6 +65,8 @@
                     <Stall onSave={onSaved} />
                 {:else if currentPage === WALLET_PAGE}
                     <Wallet onSave={onSaved} />
+                {:else if currentPage === EMAIL_PAGE}
+                    <Email onSave={onSaved} />
                 {:else if currentPage === TWITTER_PAGE}
                     <TwitterUsername />
                     {#if $user.twitterUsername !== null && !$user.twitterUsernameVerified}

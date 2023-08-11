@@ -192,6 +192,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
 
 export type UserProfile = {
     twitterUsername?: string,
+    email?: string,
     contributionPercent?: string,
     wallet?: string,
     lightningAddress?: string,
@@ -207,6 +208,9 @@ export function putProfile(tokenValue, profile: UserProfile, successCB: (user: U
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
+    }
+    if (profile.email !== undefined) {
+        json.email = profile.email;
     }
     if (profile.contributionPercent !== undefined) {
         json.contribution_percent = profile.contributionPercent;
