@@ -258,6 +258,105 @@ def settle_btc_payments():
         else:
             time.sleep(10)
 
+@app.cli.command("lightning_payments_processor")
+@with_appcontext
+def lightning_payments_processor():
+    from lightning_utils import LightningInvoiceUtil
+    invoice_util = LightningInvoiceUtil()
+
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
+    app.logger.info(f"Processing Lightning Network payments...")
+
+    while True:
+        active_order_filter = (m.Order.paid_at == None) & (m.Order.expired_at == None) & (m.Order.canceled_at == None)
+
+        active_orders_with_lightning = db.session.query(m.Order).join(m.LightningInvoice).filter((m.Order.lightning_address != None) & active_order_filter)
+
+        if active_orders_with_lightning.all():
+
+            try:
+                # There are unpaid orders, so get the logs for those orders and let's see how's the status...
+                active_orders_with_lightning_ids = {record["id"]: record for record in active_orders_with_lightning}
+                active_orders_with_lightning_logs = db.session.query(m.LightningPaymentLog).filter(m.LightningPaymentLog.order_id in active_orders_with_lightning_ids)
+
+                ln_payment_logs_util = LightningPaymentLogsUtil(active_orders_with_lightning_logs)
+
+                incoming_invoices = invoice_util.get_incoming_invoices()
+
+                for order in active_orders_with_lightning:
+                    app.logger.info(f"Processing order {order.id}...")
+
+                    # INCOMING PAYMENT
+                    if ln_payment_logs_util.check_incoming_payment(order.id, order.lightning_invoice_id):
+                        app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
+                    else:
+                        app.logger.info(f"Checking if payment for order.id={order.id} is received...")
+
+                        if not incoming_invoices:
+                            app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!!")
+                        else:
+                            record = incoming_invoices.get(order.id)
+                            if record:
+                                print("Invoice found:", record)
+                                ln_payment_logs_util.add_incoming_payment(order.id, order.lightning_invoice_id)
+                            else:
+                                app.logger.info(f"Payment for order.id={order.id} not received yet.")
+
+                    # OUTGOING PAYMENTS
+                    payout_information = get_payout_information(order.user_id)
+
+                    if not payout_information:
+                        app.logger.error(f"ERROR: There is no payment information for order.id={order.id} !!!!!")
+                    else:
+                        for payout in payout_information:
+                            payout_percent = payout['percent']
+                            payout_amount = order.total * payout_percent
+
+                            if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout['ln_address'], payout_amount)
+                                app.logger.info(f"Payout for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount} WAS already paid.")
+                            else:
+                                app.logger.info(f"Paying for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount}...")
+                                # TODO
+
+            except:
+                app.logger.exception("Error while getting information about Lightning Network payments.")
+                #db.session.rollback()
+
+            time.sleep(60)
+
+        else:
+            app.logger.info(f"There aren't active orders with Lightning Network pending. Sleeping for a while.")
+            time.sleep(10)
+
+@app.cli.command("set-campaign-banner")
+@click.argument("key", type=click.STRING)
+@click.argument("filename", type=click.STRING)
+@with_appcontext
+def set_campaign_banner(key, filename):
+    from utils import store_image
+
+    campaign = db.session.query(m.Campaign).filter_by(key=key).one_or_none()
+    if not campaign:
+        app.logger.error("Campaign not found.")
+        return
+
+    if not os.path.exists(filename):
+        app.logger.error("File not found.")
+        return
+
+    with open(filename, "rb") as f:
+        data = f.read()
+
+    url, _ = store_image(get_s3(), f"campaign_{key}_banner", True, filename, data)
+    if not url:
+        app.logger.error("Error saving banner.")
+        return
+
+    campaign.banner_url = url
+    db.session.commit()
+
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
 
@@ -343,6 +442,50 @@ def get_btc_client():
         return MockBTCClient()
     else:
         return MempoolSpaceBTCClient()
+
+def get_payout_information(user_id):
+    app.logger.info(f"Getting payout information for user={user_id}...")
+
+    # Only the merchant for now. There could be more actors in the future
+    merchant = m.User.query.filter_by(id=user_id).one_or_none()
+
+    if not merchant:
+        app.logger.error(f"ERROR: There is no merchant with user_id={user_id}...")
+        return None
+
+    if not merchant['lightning_address']:
+        app.logger.error(f"ERROR: The merchant (user_id={user_id}) doesn't have a Lightning address to receive his money...")
+        return None
+
+    merchant_contribution = merchant['contribution_percent'] or app.config['CONTRIBUTION_PERCENT_DEFAULT']
+
+    return [
+        {
+            'ln_address': merchant['lightning_address'],
+            'percent': 100 - merchant_contribution
+        }
+    ]
+
+class LightningPaymentLogsUtil:
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def check_incoming_payment(self, order_id, lightning_invoice_id):
+        if response.status_code == 200:
+            app.logger.info(f"Successfully POSTed relay {relay_url} to birdwatcher!")
+            return True
+        else:
+            app.logger.error(f"Error POSTing relay {relay_url} to birdwatcher!")
+            return False
+
+    def check_outgoing_payment(self, order_id, lightning_invoice_id, pay_to, amount):
+        return True
+
+    def add_incoming_payment(self, order_id, lightning_invoice_id):
+        return True
+
+    def add_outgoing_payment(self, order_id, lightning_invoice_id, pay_to, amount):
+        return True
 
 class Birdwatcher:
     def __init__(self, base_url):
