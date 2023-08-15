@@ -136,7 +136,7 @@ class User(WalletMixin, db.Model):
     merchant_private_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     merchant_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
 
-    def parse_merchant_private_key(self):
+    def parse_merchant_private_key(self) -> PrivateKey:
         return PrivateKey(bytes.fromhex(self.merchant_private_key))
 
     nym = db.Column(db.String(32), unique=True, nullable=True, index=True)
@@ -159,6 +159,7 @@ class User(WalletMixin, db.Model):
     def stall_id(self):
         return self.identity # good enough for now, but we should maybe generate it when creating a stall
 
+    stall_nostr_event_id = db.Column(db.String(64), unique=True, nullable=True, index=True)
     stall_banner_url = db.Column(db.String(256), nullable=True)
     stall_name = db.Column(db.String(256), nullable=True)
     stall_description = db.Column(db.String(21000), nullable=True)
@@ -804,7 +805,7 @@ class Item(db.Model):
     listings = db.relationship('Listing', backref='item')
 
     @classmethod
-    def validate_dict(cls, d, for_method=None):
+    def validate_dict(cls, d):
         validated = {}
         for k in ['title', 'description', 'category', 'shipping_from']:
             if k not in d:
@@ -1006,7 +1007,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
         return cls.query.filter(q)
 
     @classmethod
-    def validate_dict(cls, d, for_method=None):
+    def validate_dict(cls, d):
         validated = {}
         for k in ['start_date']:
             # for now, only start_date can be edited
@@ -1146,7 +1147,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
         return cls.query.filter(q)
 
     @classmethod
-    def validate_dict(cls, d, for_method=None):
+    def validate_dict(cls, d):
         validated = {}
         for k in ['available_quantity']:
             if k not in d:
