@@ -15,6 +15,10 @@
     export let nymOnly = true;
 </script>
 
+{#if account.nostrPublicKeyVerified}
+    Nostr: <a target="_blank" class="link" href="http://snort.social/p/{account.nostrPublicKey}">{account.nostrPublicKey}</a>
+{/if}
+
 <a rel="external" class="link" href="/stall/{account.nym}">
     <div class="" class:flex-col={!inline} class:flex-row={inline}>
         <div class="flex space-x-2">

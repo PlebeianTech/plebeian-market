@@ -826,6 +826,9 @@ def put_publish(user, key, cls):
     if not entity.campaign and not user.wallet:
         return jsonify({'message': "Wallet not configured."}), 400
 
+    if not user.twitter_username_verified and not user.nostr_public_key_verified:
+        return jsonify({'message': "Please verify your Nostr or Twitter account before publishing!"}), 400
+
     entity.start_date = datetime.utcnow()
 
     if isinstance(entity, m.Auction):
