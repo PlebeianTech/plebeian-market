@@ -3,6 +3,7 @@
     import type { IEntity } from "$lib/types/base";
     import type { Auction } from "$lib/types/auction";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import ExtraShippingEditor from "$lib/components/ExtraShippingEditor.svelte";
     import MediaEditor from "$lib/components/MediaEditor.svelte";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
 
@@ -108,6 +109,7 @@
                         </div>
                     </div>
                 {/if} <!-- /duration -->
+                <ExtraShippingEditor item={auction} />
                 <MediaEditor item={auction} />
             </form>
             <div class="w-full flex justify-center items-center mt-2">

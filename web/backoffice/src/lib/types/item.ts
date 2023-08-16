@@ -34,8 +34,8 @@ export interface Item {
     end_date?: Date | null;
     ended: boolean;
     shipping_from: string;
-    shipping_domestic_usd: number;
-    shipping_worldwide_usd: number;
+    extra_shipping_domestic_usd: number;
+    extra_shipping_worldwide_usd: number;
     media: Media[];
     added_media: AddedMedia[];
     campaign_key: string | null;

@@ -209,8 +209,8 @@ class TestApi(unittest.TestCase):
         code, response = self.post("/api/users/me/listings",
             {'title': "My 1st fixie",
              'description': "Selling something cool for a fixed price",
-             'shipping_domestic_usd': 5,
-             'shipping_worldwide_usd': 10,
+             'extra_shipping_domestic_usd': 5,
+             'extra_shipping_worldwide_usd': 10,
              'price_usd': 10,
              'available_quantity': 5},
             headers=self.get_auth_headers(token_1))
@@ -633,8 +633,8 @@ class TestApi(unittest.TestCase):
              'description': "Selling something",
              'start_date': "2020-10-10T11:11:00",
              'duration_hours': 24,
-             'shipping_domestic_usd': 5,
-             'shipping_worldwide_usd': 10,
+             'extra_shipping_domestic_usd': 5,
+             'extra_shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
@@ -646,8 +646,8 @@ class TestApi(unittest.TestCase):
             {'title': "My 1st",
              'description': "Selling something",
              'duration_hours': 0.003, # 10 seconds
-             'shipping_domestic_usd': 5,
-             'shipping_worldwide_usd': 10,
+             'extra_shipping_domestic_usd': 5,
+             'extra_shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
@@ -688,8 +688,8 @@ class TestApi(unittest.TestCase):
             {'title': "His 2st",
              'description': "Selling something else",
              'duration_hours': 24,
-             'shipping_domestic_usd': 5,
-             'shipping_worldwide_usd': 10,
+             'extra_shipping_domestic_usd': 5,
+             'extra_shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
@@ -838,8 +838,8 @@ class TestApi(unittest.TestCase):
             {'title': "Auction without start date",
              'description': "Selling something on Twitter",
              'duration_hours': 24,
-             'shipping_domestic_usd': 5,
-             'shipping_worldwide_usd': 10,
+             'extra_shipping_domestic_usd': 5,
+             'extra_shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_2))
@@ -876,8 +876,8 @@ class TestApi(unittest.TestCase):
              'description': malicious_desc,
              'start_date': (datetime.utcnow() + timedelta(days=1)).replace(tzinfo=dateutil.tz.tzutc()).isoformat(),
              'duration_hours': 24,
-             'shipping_domestic_usd': 5,
-             'shipping_worldwide_usd': 10,
+             'extra_shipping_domestic_usd': 5,
+             'extra_shipping_worldwide_usd': 10,
              'starting_bid': 10,
              'reserve_bid': 10},
             headers=self.get_auth_headers(token_1))
