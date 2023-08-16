@@ -141,7 +141,7 @@ def get_me(user):
 
 @api_blueprint.route('/api/users/me', methods=['PUT'])
 @user_required
-def put_me(user):
+def put_me(user: m.User):
     if 'nym' in request.json:
         clean_nym = (request.json['nym'] or "").lower().strip()
         if clean_nym != user.nym:
@@ -252,7 +252,8 @@ def put_me(user):
                 user.shipping_worldwide_usd = 0
         user.ensure_merchant_key()
         if user.stall_name:
-            if not get_birdwatcher().publish_stall(user):
+            user.stall_nostr_event_id = get_birdwatcher().publish_stall(user)
+            if not user.stall_nostr_event_id:
                 return jsonify({'message': "Error publishing stall to Nostr!"}), 500
             published_to_nostr = True
         else:
@@ -482,8 +483,8 @@ def post_entity(user, cls, singular, has_item, campaign_key):
             return jsonify({'message': f"Missing key: {k}."}), 400
 
     try:
-        validated_item = m.Item.validate_dict(request.json, for_method='POST') if has_item else {}
-        validated_entity = cls.validate_dict(request.json, for_method='POST')
+        validated_item = m.Item.validate_dict(request.json) if has_item else {}
+        validated_entity = cls.validate_dict(request.json)
     except m.ValidationError as e:
         return jsonify({'message': e.message}), 400
 
@@ -560,9 +561,6 @@ def get_inactive_entities(cls, plural):
 @api_blueprint.route('/api/listings/<key>',
     defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True},
     methods=['GET', 'PUT', 'DELETE'])
-@api_blueprint.route('/api/campaigns/<key>',
-    defaults={'cls': m.Campaign, 'singular': 'campaign', 'has_item': False},
-    methods=['GET', 'PUT', 'DELETE'])
 def get_put_delete_entity(key, cls, singular, has_item):
     user = get_user_from_token(get_token_from_request())
     entity = cls.query.filter_by(key=key).first()
@@ -572,21 +570,10 @@ def get_put_delete_entity(key, cls, singular, has_item):
     if request.method == 'GET':
         return jsonify({singular: entity.to_dict(for_user=(user.id if user else None))})
     else:
-        is_changing_hidden_state = request.method == 'PUT' and 'is_hidden' in set(request.json.keys())
-        is_changing_hidden_state_only = request.method == 'PUT' and set(request.json.keys()) == {'is_hidden'}
-
-        if is_changing_hidden_state and not is_changing_hidden_state_only:
-            return jsonify({'message': "When changing hidden state, nothing else can be changed in the same request."}), 400
-
-        if not user:
-            return jsonify({'message': "Unauthorized"}), 401
-        if is_changing_hidden_state and not user.is_moderator:
+        if not user or user.id != entity.owner_id:
             return jsonify({'message': "Unauthorized"}), 401
 
-        if user.id != entity.owner_id and not is_changing_hidden_state:
-            return jsonify({'message': "Unauthorized"}), 401
-
-        if isinstance(entity, m.Auction) and not is_changing_hidden_state_only:
+        if isinstance(entity, m.Auction):
             reason = entity.get_not_editable_reason()
             if reason:
                 return jsonify({'message': reason}), 403
@@ -600,8 +587,8 @@ def get_put_delete_entity(key, cls, singular, has_item):
                         media.index = media_item['index']
 
             try:
-                validated_item = m.Item.validate_dict(request.json, for_method='PUT') if has_item else {}
-                validated = cls.validate_dict(request.json, for_method='PUT')
+                validated_item = m.Item.validate_dict(request.json) if has_item else {}
+                validated = cls.validate_dict(request.json)
             except m.ValidationError as e:
                 return jsonify({'message': e.message}), 400
 
@@ -623,8 +610,14 @@ def get_put_delete_entity(key, cls, singular, has_item):
             if isinstance(entity, m.Auction | m.Listing):
                 for sale in entity.sales:
                     sale.auction = sale.listing = None
+            if isinstance(entity, m.Listing):
                 for order_item in m.OrderItem.query.filter_by(listing_id=entity.id):
                     order_item.listing_id = None
+            if isinstance(entity, m.Auction):
+                for order_item in m.OrderItem.query.filter_by(auction_id=entity.id):
+                    order_item.auction_id = None
+            if not get_birdwatcher().delete_product(entity):
+                return jsonify({'message': "Error deleting item from Nostr!"}), 500
             db.session.delete(entity)
             db.session.commit()
 

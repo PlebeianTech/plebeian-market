@@ -548,6 +548,15 @@ class Birdwatcher:
         except:
             app.logger.exception(f"Error publishing stall for merchant {merchant.merchant_public_key} via birdwatcher!")
 
+    def delete_stall(self, merchant):
+        try:
+            event = Event(kind=5, content=f"Stall \"{merchant.stall_name}\" deleted!", tags=[['e', merchant.stall_nostr_event_id]])
+            merchant.parse_merchant_private_key().sign_event(event)
+            if self.post_event(event):
+                return event.id
+        except:
+            app.logger.exception(f"Error deleting stall for merchant {merchant.merchant_public_key} via birdwatcher!")
+
     def publish_product(self, entity, extra_media=None):
         product_json = entity.to_nostr(extra_media)
         try:
@@ -557,6 +566,15 @@ class Birdwatcher:
                 return event.id
         except:
             app.logger.exception(f"Error publishing product for merchant {entity.item.seller.merchant_public_key} via birdwatcher!")
+
+    def delete_product(self, entity):
+        try:
+            event = Event(kind=5, content=f"Item \"{entity.item.title}\" deleted!", tags=[['e', entity.nostr_event_id]])
+            entity.item.seller.parse_merchant_private_key().sign_event(event)
+            if self.post_event(event):
+                return event.id
+        except:
+            app.logger.exception(f"Error deleting product for merchant {entity.item.seller.merchant_public_key} via birdwatcher!")
 
     def publish_bid_status(self, auction, bid_event_id, status, message=None, duration_extended=0, donation_stall_ids=None, extra_tags=None):
         BID_STATUS_EVENT_KIND = 2022 if app.config['ENV'] == 'staging' else 1022
