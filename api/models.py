@@ -251,12 +251,12 @@ class User(WalletMixin, db.Model):
                 {
                     'id': hashlib.sha256(self.shipping_from.encode('utf-8')).hexdigest(),
                     'cost': self.shipping_domestic_usd,
-                    'countries': [self.shipping_from],
+                    'regions': [self.shipping_from],
                 },
                 {
                     'id': 'WORLD',
                     'cost': self.shipping_worldwide_usd,
-                    'countries': ["Worldwide"],
+                    'regions': ["Worldwide"],
                 },
             ]
         }
