@@ -5,6 +5,7 @@
     import { Category } from "$lib/types/item";
     import type { Listing } from "$lib/types/listing";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import ExtraShippingEditor from "$lib/components/ExtraShippingEditor.svelte";
     import MediaEditor from "$lib/components/MediaEditor.svelte";
 
     export let entity: IEntity;
@@ -63,6 +64,7 @@
                         <input bind:value={listing.available_quantity} type="number" name="available-quantity" class="input input-bordered w-full max-w-xs" />
                     </div>
                 </div>
+                <ExtraShippingEditor item={listing} />
                 <MediaEditor item={listing} />
             </form>
             <div class="w-full flex justify-center items-center mt-2">

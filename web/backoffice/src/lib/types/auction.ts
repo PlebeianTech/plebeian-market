@@ -19,7 +19,7 @@ export function bidThresholdFromJson(json: any): BidThreshold {
 }
 
 export class Auction implements IEntity, Item {
-    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'starting_bid', 'reserve_bid', 'duration_hours'];
+    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd', 'starting_bid', 'reserve_bid', 'duration_hours'];
 
     endpoint = "auctions";
     loader = {endpoint: this.endpoint, responseField: 'auction', fromJson};
@@ -34,8 +34,8 @@ export class Auction implements IEntity, Item {
     reserve_bid: number = 0;
     reserve_bid_reached: boolean = false;
     shipping_from: string = "";
-    shipping_domestic_usd: number = 0;
-    shipping_worldwide_usd: number = 0;
+    extra_shipping_domestic_usd: number = 0;
+    extra_shipping_worldwide_usd: number = 0;
     duration_hours: number = 2 * 24;
     start_date: Date | null = null;
     started: boolean = false;

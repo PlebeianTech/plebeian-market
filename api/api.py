@@ -812,18 +812,18 @@ def post_merchant_message(pubkey):
             except Exception:
                 return jsonify({'message': "Error fetching the exchange rate!"}), 500
 
+            shipping_domestic_id = sha256(merchant.shipping_from.encode('utf-8')).hexdigest() if merchant.shipping_from else None
+
             shipping_usd = None
             shipping_id = cleartext_content['shipping_id']
             if shipping_id == 'WORLD':
                 shipping_usd = merchant.shipping_worldwide_usd
+            elif shipping_id == shipping_domestic_id:
+                shipping_usd = merchant.shipping_domestic_usd
             else:
-                shipping_domestic_id = sha256(merchant.shipping_from.encode('utf-8')).hexdigest()
-                if shipping_id == shipping_domestic_id:
-                    shipping_usd = merchant.shipping_domestic_usd
-                else:
-                    message = "Invalid shipping zone!"
-                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
-                    return jsonify({'message': message}), 400
+                message = "Invalid shipping zone!"
+                get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+                return jsonify({'message': message}), 400
 
             if not order:
                 if merchant.wallet:
@@ -881,6 +881,11 @@ def post_merchant_message(pubkey):
                     order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
                     db.session.add(order_item)
 
+                    if shipping_id == 'WORLD':
+                        shipping_usd += listing.item.extra_shipping_worldwide_usd * quantity
+                    elif shipping_id == shipping_domestic_id:
+                        shipping_usd += listing.item.extra_shipping_domestic_usd * quantity
+
                     order.total_usd += listing.price_usd * quantity
 
                 order.shipping_usd = shipping_usd
@@ -912,6 +917,11 @@ def post_merchant_message(pubkey):
                         winning_bid = auction.get_winning_bid()
                         order.total += winning_bid.amount
                         auction_count += 1
+
+                    if shipping_id == 'WORLD':
+                        shipping_usd += order_item.item.extra_shipping_worldwide_usd * order_item.quantity
+                    elif shipping_id == shipping_domestic_id:
+                        shipping_usd += order_item.item.extra_shipping_domestic_usd * order_item.quantity
 
                 order.shipping_usd = shipping_usd
 

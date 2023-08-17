@@ -793,9 +793,8 @@ class Item(db.Model):
     description = db.Column(db.String(21000), nullable=False)
     category = db.Column(db.String(21), nullable=True)
 
-    shipping_from = db.Column(db.String(64), nullable=True)
-    shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
-    shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
+    extra_shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
+    extra_shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
 
     media = db.relationship('Media', backref='item', foreign_keys='Media.item_id', order_by="Media.index")
 
@@ -807,7 +806,7 @@ class Item(db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description', 'category', 'shipping_from']:
+        for k in ['title', 'description', 'category']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -815,7 +814,7 @@ class Item(db.Model):
             if length > max_length:
                 raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
             validated[k] = bleach.clean(d[k])
-        for k in ['shipping_domestic_usd', 'shipping_worldwide_usd']:
+        for k in ['extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd']:
             if k not in d:
                 continue
             try:
@@ -834,7 +833,7 @@ class Item(db.Model):
 class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'auctions'
 
-    REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid', 'shipping_domestic_usd', 'shipping_worldwide_usd']
+    REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -934,6 +933,16 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'starting_bid': self.starting_bid,
             'start_date': int(self.start_date.timestamp()) if self.start_date else None,
             'duration': self.duration_hours * 60 * 60,
+            'shipping': [
+                {
+                    'id': hashlib.sha256(self.item.seller.shipping_from.encode('utf-8')).hexdigest() if self.item.seller.shipping_from else "",
+                    'cost': self.item.extra_shipping_domestic_usd,
+                },
+                {
+                    'id': 'WORLD',
+                    'cost': self.item.extra_shipping_worldwide_usd,
+                },
+            ]
         }
 
     def to_dict(self, for_user=None):
@@ -960,9 +969,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'ends_in_seconds': ends_in_seconds,
             'starting_bid': self.starting_bid,
             'reserve_bid_reached': self.reserve_bid_reached,
-            'shipping_from': self.item.shipping_from,
-            'shipping_domestic_usd': self.item.shipping_domestic_usd,
-            'shipping_worldwide_usd': self.item.shipping_worldwide_usd,
+            'extra_shipping_domestic_usd': self.item.extra_shipping_domestic_usd,
+            'extra_shipping_worldwide_usd': self.item.extra_shipping_worldwide_usd,
             'has_winner': self.has_winner,
             'bids': [bid.to_dict() for bid in self.bids if bid.settled_at],
             'created_at': self.created_at.isoformat() + "Z",
@@ -1043,7 +1051,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'listings'
 
-    REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity', 'shipping_domestic_usd', 'shipping_worldwide_usd']
+    REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd']
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -1103,6 +1111,16 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'currency': 'USD',
             'price': self.price_usd,
             'quantity': self.available_quantity,
+            'shipping': [
+                {
+                    'id': hashlib.sha256(self.item.seller.shipping_from.encode('utf-8')).hexdigest() if self.item.seller.shipping_from else "",
+                    'cost': self.item.extra_shipping_domestic_usd,
+                },
+                {
+                    'id': 'WORLD',
+                    'cost': self.item.extra_shipping_worldwide_usd,
+                },
+            ]
         }
 
     def to_dict(self, for_user=None):
@@ -1121,9 +1139,8 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'ended': self.ended,
             'price_usd': self.price_usd,
             'available_quantity': self.available_quantity,
-            'shipping_from': self.item.shipping_from,
-            'shipping_domestic_usd': self.item.shipping_domestic_usd,
-            'shipping_worldwide_usd': self.item.shipping_worldwide_usd,
+            'extra_shipping_domestic_usd': self.item.extra_shipping_domestic_usd,
+            'extra_shipping_worldwide_usd': self.item.extra_shipping_worldwide_usd,
             'created_at': self.created_at.isoformat() + "Z",
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,

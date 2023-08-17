@@ -2,7 +2,7 @@ import type { IEntity } from "$lib/types/base";
 import { Category, type Item, type AddedMedia, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
 
 export class Listing implements IEntity, Item {
-    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'shipping_domestic_usd', 'shipping_worldwide_usd', 'price_usd', 'available_quantity'];
+    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd', 'price_usd', 'available_quantity'];
 
     endpoint = "listings";
     loader = {endpoint: this.endpoint, responseField: 'listing', fromJson};
@@ -14,8 +14,8 @@ export class Listing implements IEntity, Item {
     descriptionPlaceholder: string = "";
     category: string | null = null;
     shipping_from: string = "";
-    shipping_domestic_usd: number = 0;
-    shipping_worldwide_usd: number = 0;
+    extra_shipping_domestic_usd: number = 0;
+    extra_shipping_worldwide_usd: number = 0;
     price_usd: number = 0;
     available_quantity: number = 0;
     start_date: Date | null = null;
