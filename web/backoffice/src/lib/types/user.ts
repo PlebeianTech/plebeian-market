@@ -44,6 +44,7 @@ export class User implements IAccount {
     shippingWorldwideUsd: number | null = null;
     contributionPercent: number | null = null;
     wallet: string | null = null;
+    walletName: string | null = null;
     lightningAddress: string | null = null;
     hasItems: boolean = false;
     hasOwnItems: boolean = false;
@@ -102,6 +103,7 @@ export function fromJson(json: any): User {
     u.hasPastListings = <boolean>json.has_past_listings;
     u.contributionPercent = <number | null>json.contribution_percent;
     u.wallet = <string | null>json.wallet;
+    u.walletName = <string | null>json.wallet_name;
     u.lightningAddress = <string | null>json.lightning_address;
     u.badges = (json.badges as Array<any>).map(badgeFromJson);
 

@@ -195,6 +195,7 @@ export type UserProfile = {
     email?: string,
     contributionPercent?: string,
     wallet?: string,
+    walletName?: string,
     lightningAddress?: string,
     nym?: string,
     stallName?: string,
@@ -217,6 +218,9 @@ export function putProfile(tokenValue, profile: UserProfile, successCB: (user: U
     }
     if (profile.wallet !== undefined) {
         json.wallet = profile.wallet;
+    }
+    if (profile.walletName !== undefined) {
+        json.wallet_name = profile.walletName;
     }
     if (profile.lightningAddress !== undefined) {
         json.lightning_address = profile.lightningAddress;

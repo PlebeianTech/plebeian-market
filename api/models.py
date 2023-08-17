@@ -128,7 +128,9 @@ class User(WalletMixin, db.Model):
 
     nostr_public_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
 
+    # TODO: move these to a "wallets" table!
     wallet = db.Column(db.String(128), nullable=True)
+    wallet_name = db.Column(db.String(128), nullable=True)
     wallet_index = db.Column(db.Integer, nullable=True)
 
     lightning_address = db.Column(db.String(64), nullable=True)
@@ -305,6 +307,7 @@ class User(WalletMixin, db.Model):
             d['contribution_percent'] = self.contribution_percent
             d['wallet'] = self.wallet
             d['wallet_index'] = self.wallet_index
+            d['wallet_name'] = self.wallet_name
             d['lightning_address'] = self.lightning_address
             d['shipping_from'] = self.shipping_from
             d['shipping_domestic_usd'] = self.shipping_domestic_usd

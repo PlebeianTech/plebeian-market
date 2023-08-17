@@ -226,6 +226,7 @@ def put_me(user: m.User):
             return jsonify({'message': "Invalid wallet."}), 400
         user.wallet = request.json['wallet']
         user.wallet_index = 0
+        user.wallet_name = request.json.get('wallet_name')
 
     if 'lightning_address' in request.json:
         if "@" not in request.json['lightning_address']:
