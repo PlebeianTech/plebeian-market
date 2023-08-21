@@ -23,7 +23,7 @@
     let LIGHTNING_PAGE = "Lightning";
     let NOTIFICATIONS_PAGE = "Notifications";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, WALLET_PAGE, TWITTER_PAGE, NOSTR_PAGE, LIGHTNING_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, WALLET_PAGE, NOSTR_PAGE, LIGHTNING_PAGE, NOTIFICATIONS_PAGE, V4V_PAGE];
     let currentPage: string | null = null;
 
     let params = {};

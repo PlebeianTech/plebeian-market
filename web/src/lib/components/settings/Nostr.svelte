@@ -84,6 +84,18 @@
     </ul>
 </div>
 
+<InfoBox>
+    Please make sure you have at lease some of the following relays in your Nostr client of choice before you continue!
+</InfoBox>
+
+<div class="flex justify-center items-center mt-2">
+    <ul>
+        <li><strong>wss://relay.damus.io</strong></li>
+        <li><strong>wss://nos.lol</strong></li>
+        <li><strong>wss://nostr.bitcoiner.social</strong></li>
+    </ul>
+</div>
+
 {#if $user}
     {#if $user.nostrPublicKey && $user.nostrPublicKeyVerified && $user.nostrPublicKey === nostrPublicKey}
         <div class="w-full flex items-center justify-center mt-8">

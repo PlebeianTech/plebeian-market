@@ -826,8 +826,8 @@ def put_publish(user, key, cls):
     if not entity.campaign and not user.wallet:
         return jsonify({'message': "Wallet not configured."}), 400
 
-    if not user.twitter_username_verified and not user.nostr_public_key_verified:
-        return jsonify({'message': "Please verify your Nostr or Twitter account before publishing!"}), 400
+    if not user.nostr_public_key_verified:
+        return jsonify({'message': "Please verify your Nostr account before publishing!"}), 400
 
     entity.start_date = datetime.utcnow()
 
@@ -855,8 +855,8 @@ def post_bid(user, key):
         # TODO: should we change integer to bigint in the models?
         return jsonify({'message': "Max bidding: 21 BTC!"}), 400
 
-    if not user.twitter_username_verified and not user.nostr_public_key_verified:
-        return jsonify({'message': "Please verify your Nostr or Twitter account before bidding!"}), 400
+    if not user.nostr_public_key_verified:
+        return jsonify({'message': "Please verify your Nostr account before bidding!"}), 400
 
     top_bid = auction.get_top_bid()
     if top_bid and amount <= top_bid.amount:
