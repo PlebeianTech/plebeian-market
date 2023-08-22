@@ -45,15 +45,6 @@ JWT_EXPIRE_DAYS = 420
 
 MOCK_BTC = bool(int(os.environ.get("MOCK_BTC", 0)))
 
-MOCK_LND = bool(int(os.environ.get("MOCK_LND", 0)))
-LND_GRPC = os.environ.get('LND_GRPC')
-LND_MACAROON = "/secrets/admin.macaroon"
-LND_TLS_CERT = "/secrets/tls.cert"
-LND_BID_INVOICE_AMOUNT = 21 if ENV != 'staging' else 1
-LND_BID_INVOICE_EXPIRY = 10 * 60 # 10 minutes
-LND_CONTRIBUTION_INVOICE_EXPIRY_AUCTION = 3 * 24 * 60 * 60 # 3 days
-LND_CONTRIBUTION_INVOICE_EXPIRY_LISTING = 30 * 60 # 30 minutes
-
 MINIMUM_CONTRIBUTION_AMOUNT = 21
 CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.svelte
 
