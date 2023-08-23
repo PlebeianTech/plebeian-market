@@ -21,7 +21,7 @@ def upgrade():
     with op.batch_alter_table('users', schema=None) as batch_op:
         batch_op.add_column(sa.Column('email_verification_phrase', sa.String(length=32), nullable=True))
         batch_op.add_column(sa.Column('email_verification_phrase_sent_at', sa.DateTime(), nullable=True))
-        batch_op.add_column(sa.Column('email_verification_phrase_check_counter', sa.Integer(), nullable=False))
+        batch_op.add_column(sa.Column('email_verification_phrase_check_counter', sa.Integer(), nullable=False, server_default="0"))
 
     # ### end Alembic commands ###
 
