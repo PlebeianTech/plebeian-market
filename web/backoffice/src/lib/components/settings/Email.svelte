@@ -1,8 +1,9 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
-    import { ErrorHandler, putProfile, type UserProfile } from "$lib/services/api";
+    import { ErrorHandler, putProfile, putVerify, type UserProfile } from "$lib/services/api";
     import { user } from "$lib/stores";
+    import { ExternalAccountProvider } from "$lib/types/user";
     import { Info, token } from "$sharedLib/stores";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
@@ -10,14 +11,17 @@
     export let onSave: () => void = () => {};
 
     let email: string | null = null;
+    let phrase: string = "";
 
     $: isValidEmail = email !== null && email !== "";
 
-    $: saveActive = !saving && $user && isValidEmail && (email !== $user.email);
+    $: saveActive = !inRequest && $user && isValidEmail && (email !== $user.email);
 
-    let saving = false;
+    $: verifyActive = !inRequest && $user && phrase !== "";
+
+    let inRequest = false;
     function save() {
-        saving = true;
+        inRequest = true;
         let p: UserProfile = {};
         if (email !== null && email !== "") {
             p.email = email;
@@ -26,10 +30,32 @@
             (u, _) => {
                 user.set(u);
                 Info.set("Your email has been saved!");
-                saving = false;
+                inRequest = false;
+            },
+            new ErrorHandler(true, () => inRequest = false));
+    }
+
+    function verify() {
+        inRequest = true;
+        putVerify($token, ExternalAccountProvider.Email, false, phrase,
+            () => {
+                user.update(u => { if (u) { u.emailVerified = true; } return u; });
+                Info.set("Your email address has been verified!");
+                inRequest = false;
                 onSave();
             },
-            new ErrorHandler(true, () => saving = false));
+            new ErrorHandler(true, () => inRequest = false));
+    }
+
+    function resend() {
+        inRequest = true;
+        putVerify($token, ExternalAccountProvider.Email, true, undefined,
+            () => {
+                user.update(u => { if (u) { u.emailVerificationPhraseSentAt = new Date(); } return u; });
+                Info.set("Check your Email!");
+                inRequest = false;
+            },
+            new ErrorHandler(true, () => inRequest = false));
     }
 
     onMount(async () => {
@@ -73,3 +99,26 @@
 <div class="flex justify-center items-center mt-4 h-15">
     <button id="save" class="btn btn-primary btn-lg" class:btn-disabled={!saveActive} on:click|preventDefault={save}>Save</button>
 </div>
+
+{#if $user && $user.email !== null && !$user.emailVerified}
+    <div class="w-full flex items-center justify-center mt-8">
+        <div class="max-w-lg">
+            <InfoBox>
+                <span>Please enter the three BIP-39 words we sent to your email!</span>
+            </InfoBox>
+        </div>
+    </div>
+    <div class="w-full flex items-center justify-center mt-4">
+        <div class="form-control w-full max-w-lg">
+            <label class="label" for="title">
+                <span class="label-text">Verification phrase</span>
+            </label>
+            <input bind:value={phrase} type="text" name="phrase" class="input input-lg input-bordered" />
+        </div>
+    </div>
+
+    <div class="flex justify-center items-center mt-4 h-15 gap-5">
+        <button class="btn" on:click={resend} disabled={inRequest}>Resend</button>
+        <button id="verify" class="btn btn-primary btn-lg" class:btn-disabled={!verifyActive} on:click|preventDefault={verify}>Verify</button>
+    </div>
+{/if}

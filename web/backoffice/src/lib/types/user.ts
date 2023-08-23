@@ -12,6 +12,7 @@ export interface IAccount {
 
 export enum ExternalAccountProvider {
     Twitter = 'twitter',
+    Email = 'email',
 }
 
 export interface Badge {
@@ -31,6 +32,7 @@ export class User implements IAccount {
     displayName: string | null = null;
     email: string | null = null;
     emailVerified: boolean = false;
+    emailVerificationPhraseSentAt: Date | null = null;
     telegramUsername: string | null = null;
     telegramUsernameVerified: boolean = false;
     twitterUsername: string | null = null;
@@ -84,6 +86,7 @@ export function fromJson(json: any): User {
     u.displayName = <string | null>json.display_name;
     u.email = <string | null>json.email;
     u.emailVerified = <boolean>json.email_verified;
+    u.emailVerificationPhraseSentAt = json.email_verification_phrase_sent_at ? new Date(json.email_verification_phrase_sent_at) : null;
     u.telegramUsername = <string | null>json.telegram_username;
     u.telegramUsernameVerified = <boolean>json.telegram_username_verified;
     u.twitterUsername = <string | null>json.twitter_username;

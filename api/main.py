@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
+from flask_mail import Message
 from flask_migrate import Migrate
 from functools import wraps
 import io
@@ -24,7 +25,7 @@ import sys
 import time
 import uuid
 
-from extensions import cors, db
+from extensions import cors, db, mail
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
@@ -62,6 +63,7 @@ def create_app():
     app.config.from_object('config')
     cors.init_app(app)
     db.init_app(app)
+    mail.init_app(app)
     return app
 
 app = create_app()
@@ -632,6 +634,22 @@ def get_s3():
         with open(app.config['S3_SECRETS']) as f:
             s3_secrets = json.load(f)
         return S3(app.config['S3_ENDPOINT_URL'], s3_secrets['KEY_ID'], s3_secrets['APPLICATION_KEY'])
+
+class Mail:
+    def send(self, to, subject, body):
+        msg = Message(subject, recipients=[to])
+        msg.body = body
+        mail.send(msg)
+
+class MockMail:
+    def send(self, to, subject, body):
+        app.logger.info(f"Mail: {to=} {subject=} {body=}")
+
+def get_mail():
+    if app.config['MOCK_MAIL']:
+        return MockMail()
+    else:
+        return Mail()
 
 if __name__ == '__main__':
     import lnurl

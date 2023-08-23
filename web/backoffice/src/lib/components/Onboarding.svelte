@@ -3,8 +3,21 @@
     import WalletSettings from "$lib/components/settings/Wallet.svelte";
     import EmailSettings from "$lib/components/settings/Email.svelte";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
+    import { user } from "$lib/stores";
 
     let step = 0;
+    $: {
+        if ($user) {
+            if ($user.wallet === null || $user.wallet === "" || $user.lightningAddress === null || $user.lightningAddress === "") {
+                step = 0;
+            } else if ($user.stallName === null || $user.stallName === "") {
+                step = 2;
+            } else if ($user.email === null || $user.email === "" || !$user.emailVerified) {
+                step = 3;
+            }
+        }
+    }
+
 </script>
 
 <div class="mt-12">
@@ -31,11 +44,11 @@
                 <button id="save" class="btn btn-primary btn-lg" on:click|preventDefault={() => step += 1}>Go!</button>
             </div>            
         {:else if step === 1}
-            <WalletSettings onSave={() => step += 1} />
+            <WalletSettings />
         {:else if step === 2}
-            <StallSettings onSave={() => step += 1} />
+            <StallSettings />
         {:else if step === 3}
-            <EmailSettings onSave={() => step += 1} />
+            <EmailSettings />
         {/if}
     </div>
 </div>

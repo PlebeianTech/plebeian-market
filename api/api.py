@@ -19,7 +19,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_s3, get_twitter
+from main import app, get_birdwatcher, get_s3, get_twitter, get_mail
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -164,6 +164,9 @@ def put_me(user: m.User):
                 return jsonify({'message': "Somebody already registered this email address!"}), 400
             user.email = clean_email
             user.email_verified = False
+            user.generate_verification_phrase('email')
+            get_mail().send(user.email, "Please verify your email address", user.email_verification_phrase)
+            user.email_verification_phrase_sent_at = datetime.utcnow()
 
     if 'telegram_username' in request.json:
         clean_username = (request.json['telegram_username'] or "").lower().strip()
@@ -303,6 +306,36 @@ def verify_twitter(user):
     else:
         time.sleep(2 ** user.twitter_verification_phrase_check_counter)
         user.twitter_verification_phrase_check_counter += 1
+        db.session.commit()
+        return jsonify({'message': "Invalid verification phrase."}), 400
+
+@api_blueprint.route("/api/users/me/verify/email", methods=['PUT'])
+@user_required
+def verify_email(user: m.User):
+    if request.json.get('resend'):
+        if user.email_verification_phrase_sent_at and user.email_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
+            return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
+        user.generate_verification_phrase('email')
+        get_mail().send(user.email, "Please verify your email address", user.email_verification_phrase)
+        user.email_verification_phrase_sent_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({})
+
+    if not request.json.get('phrase'):
+        return jsonify({'message': "Please provide the verification phrase!"}), 400
+
+    if user.email_verification_phrase_check_counter > 5:
+        return jsonify({'message': "Please try requesting a new verification phrase!"}), 400
+
+    clean_phrase = ' '.join([w for w in request.json['phrase'].lower().split(' ') if w])
+
+    if user.email_verification_phrase == clean_phrase:
+        user.email_verified = True
+        db.session.commit()
+        return jsonify({})
+    else:
+        time.sleep(2 ** user.email_verification_phrase_check_counter)
+        user.email_verification_phrase_check_counter += 1
         db.session.commit()
         return jsonify({'message': "Invalid verification phrase."}), 400
 

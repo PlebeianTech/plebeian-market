@@ -43,12 +43,23 @@ DOMAIN_NAME = "plebeian.market"
 LNAUTH_EXPIRE_MINUTES = 120
 JWT_EXPIRE_DAYS = 420
 
-MOCK_BTC = bool(int(os.environ.get("MOCK_BTC", 0)))
+MOCK_MAIL = bool(int(os.environ.get('MOCK_MAIL', 0)))
+if not MOCK_MAIL:
+    with open("/secrets/mail.json") as f:
+        MAIL_SECRETS = json.load(f)
+        MAIL_SERVER = MAIL_SECRETS['server']
+        MAIL_USERNAME = MAIL_SECRETS['username']
+        MAIL_PASSWORD = MAIL_SECRETS['password']
+        MAIL_DEFAULT_SENDER = MAIL_SECRETS['default_sender']
+else:
+    MAIL_SERVER = MAIL_USERNAME = MAIL_PASSWORD = MAIL_DEFAULT_SENDER = None
+
+MOCK_BTC = bool(int(os.environ.get('MOCK_BTC', 0)))
 
 MINIMUM_CONTRIBUTION_AMOUNT = 21
 CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.svelte
 
-MOCK_TWITTER = bool(int(os.environ.get("MOCK_TWITTER", 0)))
+MOCK_TWITTER = bool(int(os.environ.get('MOCK_TWITTER', 0)))
 TWITTER_USER_MIN_AGE_DAYS = 210
 TWITTER_USER_MIN_AGE_DAYS_WHITELIST = ["ghostofmtc", "civilbtcsaver", "shoresychirpstv"]
 TWITTER_SECRETS = "/secrets/twitter.json"
@@ -72,7 +83,7 @@ DEFAULT_NOSTR_RELAYS = [
     "wss://nostr.inosta.cc",
 ]
 
-MOCK_S3 = bool(int(os.environ.get("MOCK_S3", 0)))
+MOCK_S3 = bool(int(os.environ.get('MOCK_S3', 0)))
 S3_SECRETS = "/secrets/s3.json"
 S3_ENDPOINT_URL = "https://s3.us-west-004.backblazeb2.com"
 S3_BUCKET = 'plebeian-market'
