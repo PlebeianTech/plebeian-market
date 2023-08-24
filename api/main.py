@@ -246,33 +246,6 @@ def settle_btc_payments():
         else:
             time.sleep(10)
 
-@app.cli.command("set-campaign-banner")
-@click.argument("key", type=click.STRING)
-@click.argument("filename", type=click.STRING)
-@with_appcontext
-def set_campaign_banner(key, filename):
-    from utils import store_image
-
-    campaign = db.session.query(m.Campaign).filter_by(key=key).one_or_none()
-    if not campaign:
-        app.logger.error("Campaign not found.")
-        return
-
-    if not os.path.exists(filename):
-        app.logger.error("File not found.")
-        return
-
-    with open(filename, "rb") as f:
-        data = f.read()
-
-    url, _ = store_image(get_s3(), f"campaign_{key}_banner", True, filename, data)
-    if not url:
-        app.logger.error("Error saving banner.")
-        return
-
-    campaign.banner_url = url
-    db.session.commit()
-
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
 
