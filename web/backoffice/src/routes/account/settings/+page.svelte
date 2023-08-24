@@ -8,8 +8,6 @@
     import { user } from "$lib/stores";
     import Email from "$lib/components/settings/Email.svelte";
     import Stall from "$lib/components/settings/Stall.svelte";
-    import TwitterUsername from "$lib/components/settings/TwitterUsername.svelte";
-    import TwitterVerification from "$lib/components/settings/TwitterVerification.svelte";
     import Nostr from "$lib/components/settings/Nostr.svelte";
     import Login from "$lib/components/settings/Login.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
@@ -19,11 +17,10 @@
     let STALL_PAGE = "My Stall";
     let WALLET_PAGE = "Wallet";
     let EMAIL_PAGE = "Email";
-    let TWITTER_PAGE = "Twitter";
     let NOSTR_PAGE = "Nostr";
     let LOGIN_PAGE = "Login";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, EMAIL_PAGE, TWITTER_PAGE, NOSTR_PAGE, V4V_PAGE];
+    let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, EMAIL_PAGE, NOSTR_PAGE, V4V_PAGE];
     let WALLET_PAGE_INDEX = pages.indexOf(WALLET_PAGE);
     let currentPage: string | null = null;
 
@@ -60,20 +57,13 @@
             </ul>
         </div>
         <div class="lg:w-2/3 col-span-2">
-            <div class="">
+            <div>
                 {#if currentPage === null || currentPage === STALL_PAGE}
                     <Stall onSave={onSaved} />
                 {:else if currentPage === WALLET_PAGE}
                     <Wallet onSave={onSaved} />
                 {:else if currentPage === EMAIL_PAGE}
                     <Email onSave={onSaved} />
-                {:else if currentPage === TWITTER_PAGE}
-                    <TwitterUsername />
-                    {#if $user.twitterUsername !== null && !$user.twitterUsernameVerified}
-                        <div class="mt-4">
-                            <TwitterVerification />
-                        </div>
-                    {/if}
                 {:else if currentPage === NOSTR_PAGE}
                     <Nostr />
                 {:else if currentPage === LOGIN_PAGE}

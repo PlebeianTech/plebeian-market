@@ -60,12 +60,6 @@ MOCK_BTC = bool(int(os.environ.get('MOCK_BTC', 0)))
 MINIMUM_CONTRIBUTION_AMOUNT = 21
 CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.svelte
 
-MOCK_TWITTER = bool(int(os.environ.get('MOCK_TWITTER', 0)))
-TWITTER_USER_MIN_AGE_DAYS = 210
-TWITTER_USER_MIN_AGE_DAYS_WHITELIST = ["ghostofmtc", "civilbtcsaver", "shoresychirpstv"]
-TWITTER_SECRETS = "/secrets/twitter.json"
-TWITTER_USER = "PlebeianMarket"
-
 MOCK_NOSTR = bool(int(os.environ.get("MOCK_NOSTR", 0)))
 NOSTR_SECRETS = "/secrets/nostr.json"
 DEFAULT_NOSTR_RELAYS = [

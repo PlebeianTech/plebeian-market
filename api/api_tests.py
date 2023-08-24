@@ -428,32 +428,6 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['user']['email'], "goodemail@plebeian.market")
         self.assertFalse(response['user']['email_verified']) # we don't even support email verification yet!
 
-        # try to verify the Twitter username
-        code, response = self.put("/api/users/me/verify/twitter",
-            {'phrase': "i hate you"},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 400)
-
-        # check user details (again)
-        code, response = self.get("/api/users/me",
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'username1')
-        self.assertFalse(response['user']['twitter_username_verified'])
-
-        # verify Twitter for good now
-        code, response = self.put("/api/users/me/verify/twitter",
-            {'phrase': "i am ME"},
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-
-        # check user details (yet again)
-        code, response = self.get("/api/users/me",
-            headers=self.get_auth_headers(token_1))
-        self.assertEqual(code, 200)
-        self.assertEqual(response['user']['twitter_username'], 'username1')
-        self.assertTrue(response['user']['twitter_username_verified'])
-
         # can log in again with the same key
         self.nostr_auth(key_1, expect_success=True)
         """
@@ -586,7 +560,6 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
         self.assertEqual(response['user']['twitter_username'], 'username2')
-        self.assertFalse(response['user']['twitter_username_verified'])
         self.assertEqual(response['user']['email'], "goodemail2@plebeian.market")
         self.assertIsNotNone(response['user']['contribution_percent'])
 

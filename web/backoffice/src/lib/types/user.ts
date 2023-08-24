@@ -11,7 +11,6 @@ export interface IAccount {
 }
 
 export enum ExternalAccountProvider {
-    Twitter = 'twitter',
     Email = 'email',
 }
 
@@ -37,7 +36,6 @@ export class User implements IAccount {
     telegramUsernameVerified: boolean = false;
     twitterUsername: string | null = null;
     twitterUsernameVerified: boolean = false;
-    twitterVerificationPhraseSentAt: Date | null = null;
     stallBannerUrl: string | null = null;
     stallName: string | null = null;
     stallDescription: string | null = null;
@@ -91,7 +89,6 @@ export function fromJson(json: any): User {
     u.telegramUsernameVerified = <boolean>json.telegram_username_verified;
     u.twitterUsername = <string | null>json.twitter_username;
     u.twitterUsernameVerified = <boolean>json.twitter_username_verified;
-    u.twitterVerificationPhraseSentAt = json.twitter_verification_phrase_sent_at ? new Date(json.twitter_verification_phrase_sent_at) : null;
     u.stallBannerUrl = <string | null>json.stall_banner_url;
     u.stallName = <string | null>json.stall_name;
     u.stallDescription = <string | null>json.stall_description;

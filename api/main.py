@@ -2,7 +2,6 @@ import boto3
 from botocore.config import Config
 import click
 from datetime import datetime, timedelta
-import dateutil.parser
 from flask import Flask, jsonify, request, send_file
 from flask.cli import with_appcontext
 from flask_mail import Message
@@ -17,7 +16,6 @@ import magic
 from nostr.event import Event, EncryptedDirectMessage
 import os
 import requests
-from requests_oauthlib import OAuth1Session
 from requests.exceptions import JSONDecodeError
 import signal
 from sqlalchemy import desc
@@ -360,152 +358,6 @@ def get_btc_client():
         return MockBTCClient()
     else:
         return MempoolSpaceBTCClient()
-
-class MockTwitter:
-    class MockKey:
-        def __eq__(self, other):
-            return True
-
-    def __init__(self, **__):
-        pass
-
-    def get_verification_phrase(self, user):
-        return "i am me"
-
-    def get_user(self, username):
-        if app.config['ENV'] == 'test':
-            # hammer staging rather than picsum when running tests
-            random_image_small = "https://staging.plebeian.market/images/logo.jpg"
-        else:
-            random_image_small = "https://picsum.photos/200"
-        return {
-            'id': "MOCK_USER_ID",
-            'profile_image_url': random_image_small,
-            'pinned_tweet_id': "MOCK_PINNED_TWEET",
-            'created_at': datetime.now() - timedelta(days=(app.config['TWITTER_USER_MIN_AGE_DAYS'] + 1)),
-        }
-
-    def get_sale_tweets(self, user_id, entity_endpoint):
-        if not user_id.startswith('MOCK_USER'):
-            return None
-        time.sleep(5) # deliberately slow this down, so we can find possible issues in the UI
-        if app.config['ENV'] == 'test':
-            # hammer staging rather than picsum when running tests
-            random_image = "https://staging.plebeian.market/images/logo.jpg"
-        else:
-            random_image = "https://picsum.photos/1024"
-        return [{
-            'id': "MOCK_TWEET_ID",
-            'text': "Hello Mocked Tweet",
-            'created_at': datetime.now().isoformat(),
-            'auction_key': MockTwitter.MockKey(),
-            'photos': [
-                {'media_key': f"MOCK_PHOTO_{i}", 'url': random_image} for i in range(4)
-            ]
-        }]
-
-    def send_dm(self, user_id, body):
-        app.logger.info(f"Twitter DM: {body}!")
-        # NB: we are not actually testing that sending Twitter DMs works,
-        # but we are testing the notifications mechanism - so assume the DM went through
-        return True
-
-class Twitter:
-    BASE_URL = "https://api.twitter.com"
-    URL_PREFIXES = ["http://plebeian.market/%s/", "https://plebeian.market/%s/", "http://staging.plebeian.market/%s/", "https://staging.plebeian.market/%s/"]
-
-    def __init__(self, api_key, api_key_secret, access_token, access_token_secret):
-        self.session = OAuth1Session(api_key, api_key_secret, access_token, access_token_secret)
-
-    def get_verification_phrase(self, user):
-        return user.twitter_verification_phrase
-
-    def get(self, path, params=None):
-        if params is None:
-            params = {}
-        response = self.session.get(f"{Twitter.BASE_URL}{path}", params=params)
-        if response.status_code == 200:
-            return response.json()
-
-    def post(self, path, params_json):
-        response = self.session.post(f"{Twitter.BASE_URL}{path}", json=params_json)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            app.logger.error(f"Error when POSTing to Twitter -> {path}: {response.status_code=} {response.text=}")
-            return False
-
-    def get_user(self, username):
-        response_json = self.get(f"/2/users/by/username/{username}",
-            params={
-                'user.fields': "location,name,profile_image_url,pinned_tweet_id,created_at",
-            })
-
-        if not response_json or response_json.get('errors'):
-            return
-
-        twitter_user = response_json['data']
-
-        if '_normal' in twitter_user['profile_image_url']:
-            # pick high-res picture
-            # see https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/user-profile-images-and-banners
-            twitter_user['profile_image_url'] = twitter_user['profile_image_url'].replace('_normal', '')
-
-        twitter_user['created_at'] = dateutil.parser.isoparse(twitter_user['created_at']).replace(tzinfo=None)
-
-        return twitter_user
-
-    def get_sale_tweets(self, user_id, entity_endpoint):
-        response_json = self.get(f"/2/users/{user_id}/tweets",
-            params={
-                'max_results': 100,
-                'expansions': "attachments.media_keys",
-                'media.fields': "url",
-                'tweet.fields': "id,text,entities,created_at"})
-
-        if not response_json or response_json.get('errors'):
-            return []
-
-        auction_tweets = []
-        for tweet in response_json.get('data', []):
-            auction_key = None
-            for url in tweet.get('entities', {}).get('urls', []):
-                for p in Twitter.URL_PREFIXES:
-                    p = p % entity_endpoint
-                    if url['expanded_url'].startswith(p):
-                        auction_key = url['expanded_url'].removeprefix(p)
-                        break
-
-            if auction_key:
-                media_keys = tweet.get('attachments', {}).get('media_keys', [])
-                auction_tweets.append({
-                    'id': tweet['id'],
-                    'text': tweet['text'],
-                    'created_at': tweet['created_at'],
-                    'auction_key': auction_key,
-                    'photos': [
-                        m for m in response_json['includes']['media']
-                            if m['media_key'] in media_keys and m['type'].lower() in ('animated_gif', 'photo')
-                    ],
-                })
-
-        return auction_tweets
-
-    def send_dm(self, user_id, body):
-        response_json = self.post(f"/2/dm_conversations/with/{user_id}/messages", params_json={'text': body})
-        return bool(response_json)
-
-def get_twitter():
-    if app.config['MOCK_TWITTER']:
-        return MockTwitter()
-    else:
-        with open(app.config['TWITTER_SECRETS']) as f:
-            twitter_secrets = json.load(f)
-        api_key = twitter_secrets['API_KEY']
-        api_key_secret = twitter_secrets['API_KEY_SECRET']
-        access_token = twitter_secrets['ACCESS_TOKEN']
-        access_token_secret = twitter_secrets['ACCESS_TOKEN_SECRET']
-        return Twitter(api_key, api_key_secret, access_token, access_token_secret)
 
 class Birdwatcher:
     def __init__(self, base_url):

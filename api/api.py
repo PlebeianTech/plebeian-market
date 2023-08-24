@@ -19,7 +19,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_s3, get_twitter, get_mail
+from main import app, get_birdwatcher, get_s3, get_mail
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -199,21 +199,6 @@ def put_me(user: m.User):
 
             user.twitter_username = clean_username
             user.twitter_username_verified = False
-            user.generate_verification_phrase('twitter')
-
-            twitter = get_twitter()
-            twitter_user = twitter.get_user(user.twitter_username)
-            if not twitter_user:
-                return jsonify({'message': "Twitter profile not found!"}), 400
-
-            if app.config['ENV'] == 'prod':
-                if user.twitter_username not in app.config['TWITTER_USER_MIN_AGE_DAYS_WHITELIST']:
-                    if twitter_user['created_at'] > (datetime.utcnow() - timedelta(days=app.config['TWITTER_USER_MIN_AGE_DAYS'])):
-                        return jsonify({'message': f"Twitter profile needs to be at least {app.config['TWITTER_USER_MIN_AGE_DAYS']} days old!"}), 400
-
-            if not twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase):
-                return jsonify({'message': "Error sending Twitter DM!"}), 500
-            user.twitter_verification_phrase_sent_at = datetime.utcnow()
 
     if 'contribution_percent' in request.json:
         user.contribution_percent = request.json['contribution_percent']
@@ -273,41 +258,6 @@ def put_me(user: m.User):
         return jsonify({'message': "Please retry or contact support!"}), 500
 
     return jsonify({'user': user.to_dict(for_user=user.id), 'published_to_nostr': published_to_nostr})
-
-@api_blueprint.route('/api/users/me/verify/twitter', methods=['PUT'])
-@user_required
-def verify_twitter(user):
-    if request.json.get('resend'):
-        if user.twitter_verification_phrase_sent_at and user.twitter_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
-            return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
-        user.generate_verification_phrase('twitter')
-        twitter = get_twitter()
-        twitter_user = twitter.get_user(user.twitter_username)
-        if not twitter_user:
-            return jsonify({'message': "Twitter user not found!"}), 500
-        if not twitter.send_dm(twitter_user['id'], user.twitter_verification_phrase):
-            return jsonify({'message': f"Please allow DMs from @{app.config['TWITTER_USER']}"}), 400
-        user.twitter_verification_phrase_sent_at = datetime.utcnow()
-        db.session.commit()
-        return jsonify({})
-
-    if not request.json.get('phrase'):
-        return jsonify({'message': "Please provide the verification phrase!"}), 400
-
-    if user.twitter_verification_phrase_check_counter > 5:
-        return jsonify({'message': "Please try requesting a new verification phrase!"}), 400
-
-    clean_phrase = ' '.join([w for w in request.json['phrase'].lower().split(' ') if w])
-
-    if get_twitter().get_verification_phrase(user) == clean_phrase:
-        user.twitter_username_verified = True
-        db.session.commit()
-        return jsonify({})
-    else:
-        time.sleep(2 ** user.twitter_verification_phrase_check_counter)
-        user.twitter_verification_phrase_check_counter += 1
-        db.session.commit()
-        return jsonify({'message': "Invalid verification phrase."}), 400
 
 @api_blueprint.route("/api/users/me/verify/email", methods=['PUT'])
 @user_required
