@@ -189,6 +189,9 @@ class User(WalletMixin, db.Model):
 
     email = db.Column(db.String(64), unique=True, nullable=True, index=True)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
+    email_verification_phrase = db.Column(db.String(32), nullable=True)
+    email_verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)
+    email_verification_phrase_check_counter = db.Column(db.Integer, nullable=False, default=0)
 
     telegram_username = db.Column(db.String(64), unique=True, nullable=True, index=True)
     telegram_username_verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -205,7 +208,7 @@ class User(WalletMixin, db.Model):
     nostr_private_key = db.Column(db.String(64), nullable=True)
 
     def generate_verification_phrase(self, account):
-        if account not in ['twitter', 'nostr']:
+        if account not in ['twitter', 'email']:
             raise ValueError()
         setattr(self, f'{account}_verification_phrase', bip39gen.random_as_string(3))
         setattr(self, f'{account}_verification_phrase_check_counter', 0)
@@ -274,6 +277,7 @@ class User(WalletMixin, db.Model):
             'display_name': self.display_name,
             'email': self.email,
             'email_verified': self.email_verified,
+            'email_verification_phrase_sent_at': self.email_verification_phrase_sent_at.isoformat() + "Z" if self.email_verification_phrase_sent_at else None,
             'telegram_username': self.telegram_username,
             'telegram_username_verified': self.telegram_username_verified,
             'twitter_username': self.twitter_username,
