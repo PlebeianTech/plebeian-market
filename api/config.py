@@ -51,6 +51,7 @@ if not MOCK_MAIL:
         MAIL_USERNAME = MAIL_SECRETS['username']
         MAIL_PASSWORD = MAIL_SECRETS['password']
         MAIL_DEFAULT_SENDER = MAIL_SECRETS['default_sender']
+        MAIL_USE_TLS = True
 else:
     MAIL_SERVER = MAIL_USERNAME = MAIL_PASSWORD = MAIL_DEFAULT_SENDER = None
 
