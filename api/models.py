@@ -222,13 +222,6 @@ class User(WalletMixin, db.Model):
     bids = db.relationship('Bid', backref='buyer')
     messages = db.relationship('Message', backref='user')
 
-    def fetch_external_profile_image(self, external_profile_image_url, s3):
-        url, _ = store_image(s3, f"user_{self.id}_profile_image", True, external_profile_image_url, None)
-        if not url:
-            return False
-        self.profile_image_url = url
-        return True
-
     def get_contribution_amount(self, for_amount):
         contribution_percent = self.contribution_percent if self.contribution_percent is not None else app.config['CONTRIBUTION_PERCENT_DEFAULT']
         contribution_amount = int(contribution_percent / 100 * for_amount)
