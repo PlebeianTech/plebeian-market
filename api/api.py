@@ -165,8 +165,7 @@ def put_me(user: m.User):
             user.email = clean_email
             user.email_verified = False
             user.generate_verification_phrase('email')
-            get_mail().send(user.email, "Please verify your email address", user.email_verification_phrase)
-            user.email_verification_phrase_sent_at = datetime.utcnow()
+            user.send_email_verification()
 
     if 'telegram_username' in request.json:
         clean_username = (request.json['telegram_username'] or "").lower().strip()
@@ -266,8 +265,7 @@ def verify_email(user: m.User):
         if user.email_verification_phrase_sent_at and user.email_verification_phrase_sent_at >= datetime.utcnow() - timedelta(minutes=1):
             return jsonify({'message': "Please wait at least one minuted before requesting a new verification phrase!"}), 400
         user.generate_verification_phrase('email')
-        get_mail().send(user.email, "Please verify your email address", user.email_verification_phrase)
-        user.email_verification_phrase_sent_at = datetime.utcnow()
+        user.send_email_verification()
         db.session.commit()
         return jsonify({})
 

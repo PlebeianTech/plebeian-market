@@ -461,14 +461,15 @@ def get_s3():
         return S3(app.config['S3_ENDPOINT_URL'], s3_secrets['KEY_ID'], s3_secrets['APPLICATION_KEY'])
 
 class Mail:
-    def send(self, to, subject, body):
+    def send(self, to, subject, body, html):
         msg = Message(subject, recipients=[to])
         msg.body = body
+        msg.html = html
         mail.send(msg)
 
 class MockMail:
-    def send(self, to, subject, body):
-        app.logger.info(f"Mail: {to=} {subject=} {body=}")
+    def send(self, to, subject, body, html):
+        app.logger.info(f"Mail: {to=} {subject=} {body=} {html=}")
 
 def get_mail():
     if app.config['MOCK_MAIL']:

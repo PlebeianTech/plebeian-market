@@ -193,6 +193,16 @@ class User(WalletMixin, db.Model):
     email_verification_phrase_sent_at = db.Column(db.DateTime, nullable=True)
     email_verification_phrase_check_counter = db.Column(db.Integer, nullable=False, default=0)
 
+    def send_email_verification(self):
+        from main import get_mail
+        body = f"Your email verification phrase is: {self.email_verification_phrase}"
+        html = f"""
+        <p>Your email verification phrase is: <strong>{self.email_verification_phrase}</strong></p>
+        <p>Click <a href="{app.config['WWW_BASE_URL']}/admin/account/verify-email#phrase={self.email_verification_phrase.replace(" ", "%20")}">here</a> to verify your email address!</p>
+        """
+        get_mail().send(self.email, "Verify your email", body, html)
+        self.email_verification_phrase_sent_at = datetime.utcnow()
+
     telegram_username = db.Column(db.String(64), unique=True, nullable=True, index=True)
     telegram_username_verified = db.Column(db.Boolean, nullable=False, default=False)
 
