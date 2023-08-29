@@ -14,15 +14,6 @@ export enum ExternalAccountProvider {
     Email = 'email',
 }
 
-export interface Badge {
-    badge: number;
-    icon: string;
-}
-
-export function badgeFromJson(json: any): Badge {
-    return {badge: <number>json.badge, icon: <string>json.icon};
-}
-
 export class User implements IAccount {
     identity: string = '';
     hasLnauthKey: boolean = false;
@@ -52,27 +43,6 @@ export class User implements IAccount {
     hasPastAuctions: boolean = false;
     hasActiveListings: boolean = false;
     hasPastListings: boolean = false;
-    badges: Badge[] = [];
-
-    public hasBadge(badge) {
-        for (const b of this.badges) {
-            if (b.badge === badge) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public firstBadge(badge) {
-        for (const b of this.badges) {
-            if (b.badge === badge) {
-                return b;
-            }
-        }
-
-        return null;
-    }
 }
 
 export function fromJson(json: any): User {
@@ -105,7 +75,6 @@ export function fromJson(json: any): User {
     u.wallet = <string | null>json.wallet;
     u.walletName = <string | null>json.wallet_name;
     u.lightningAddress = <string | null>json.lightning_address;
-    u.badges = (json.badges as Array<any>).map(badgeFromJson);
 
     return u;
 }
