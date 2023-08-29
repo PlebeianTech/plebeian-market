@@ -573,7 +573,7 @@ def verify_lnauth_key(lnkey):
 def award_badge_tester(pubkey):
     badge_def = app.config['BADGE_DEFINITION_TESTER']
 
-    badge = m.Badge.query.filter(badge_id=badge_def['badge_id']).first()
+    badge = m.Badge.query.filter_by(badge_id=badge_def['badge_id']).first()
     if badge is None:
         badge = m.Badge(badge_id=badge_def['badge_id'])
         db.session.add(badge)
