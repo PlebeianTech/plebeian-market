@@ -239,10 +239,6 @@ class User(WalletMixin, db.Model):
             contribution_amount = 0 # probably not worth the fees, at least in the next few years
         return contribution_amount
 
-    def get_badges(self):
-        return [{'badge': b.badge, 'icon': b.icon, 'awarded_at': b.awarded_at}
-            for b in UserBadge.query.filter_by(user_id=self.id).all()]
-
     def get_relays(self):
         return [{'url': ur.relay.url} for ur in UserRelay.query.filter_by(user_id=self.id).all()]
 
@@ -303,8 +299,6 @@ class User(WalletMixin, db.Model):
             if d['has_own_items'] and d['has_active_auctions'] and d['has_past_auctions'] and d['has_active_listings'] and d['has_past_listings']:
                 break # short-circuit
 
-        d['badges'] = self.get_badges()
-
         if for_user == self.id:
             # only ever show these fields to the actual user
             d['contribution_percent'] = self.contribution_percent
@@ -318,15 +312,14 @@ class User(WalletMixin, db.Model):
 
         return d
 
-class UserBadge(db.Model):
-    __tablename__ = 'user_badges'
+class Badge(db.Model):
+    __tablename__ = 'badges'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    badge = db.Column(db.Integer, nullable=False)
-    icon = db.Column(db.String(32), nullable=False)
-    awarded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    badge_id = db.Column(db.String(32), nullable=False, primary_key=True)
+    name = db.Column(db.String(64), nullable=False)
+    description = db.Column(db.String(64), nullable=False)
+    image_hash = db.Column(db.String(64), nullable=False)
+    nostr_event_id = db.Column(db.String(64), nullable=False, unique=True, index=True)
 
 class Relay(db.Model):
     __tablename__ = 'relays'

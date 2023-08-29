@@ -7,6 +7,7 @@ from flask.cli import with_appcontext
 from flask_mail import Message
 from flask_migrate import Migrate
 from functools import wraps
+import hashlib
 import io
 import json
 import jwt
@@ -14,6 +15,7 @@ import logging
 from logging.config import dictConfig
 import magic
 from nostr.event import Event, EncryptedDirectMessage
+from nostr.key import PrivateKey
 import os
 import requests
 from requests.exceptions import JSONDecodeError
@@ -335,6 +337,13 @@ def get_btc_client():
 class Birdwatcher:
     def __init__(self, base_url):
         self.base_url = base_url
+        if app.config['MOCK_NOSTR']:
+            # NB: in test mode we just use a random private key!
+            self.private_key = PrivateKey()
+        else:
+            with open(app.config['NOSTR_SECRETS']) as f:
+                nostr_secrets = json.load(f)
+                self.private_key = PrivateKey.from_nsec(nostr_secrets['NSEC'])
 
     def add_relay(self, relay_url):
         response = requests.post(f"{self.base_url}/relays", json={'url': relay_url})
@@ -421,6 +430,34 @@ class Birdwatcher:
                 return event.id
         except:
             app.logger.exception(f"Error publishing bid status for bid {bid_event_id} via birdwatcher!")
+
+    def publish_badge_definition(self, badge_id, name, description, image_url):
+        try:
+            if app.config['ENV'] == 'staging':
+                badge_id_tag = badge_id + "-staging"
+                name_tag = name + " (staging)"
+            else:
+                badge_id_tag = badge_id
+                name_tag = name
+            event = Event(kind=30009, content="", tags=[['d', badge_id_tag], ['name', name_tag], ['description', description], ['image', image_url]])
+            self.private_key.sign_event(event)
+            if self.post_event(event):
+                return event.id
+        except:
+            app.logger.exception(f"Error publishing badge definition via birdwatcher!")
+
+    def publish_badge_award(self, badge_id, pubkey):
+        try:
+            if app.config['ENV'] == 'staging':
+                badge_id_tag = badge_id + "-staging"
+            else:
+                badge_id_tag = badge_id
+            event = Event(kind=8, content="", tags=[['a', f"30009:{self.private_key.public_key.hex()}:{badge_id_tag}"], ['p', pubkey]])
+            self.private_key.sign_event(event)
+            if self.post_event(event):
+                return event.id
+        except:
+            app.logger.exception(f"Error publishing badge award via birdwatcher!")
 
 def get_birdwatcher():
     return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
@@ -529,3 +566,40 @@ def verify_lnauth_key(lnkey):
     u = m.User.query.filter(m.User.new_lnauth_key_k1_generated_at != None).order_by(desc(m.User.new_lnauth_key_k1_generated_at)).first()
     u.lnauth_key = u.new_lnauth_key = lnkey
     db.session.commit()
+
+@app.cli.command("award-badge-tester")
+@click.argument("pubkey", type=click.STRING)
+@with_appcontext
+def award_badge_tester(pubkey):
+    badge_def = app.config['BADGE_DEFINITION_TESTER']
+
+    badge = m.Badge.query.filter(badge_id=badge_def['badge_id']).first()
+    if badge is None:
+        badge = m.Badge(badge_id=badge_def['badge_id'])
+        db.session.add(badge)
+
+    image_response = requests.get(badge_def['image_url'])
+    if image_response.status_code != 200:
+        click.echo(f"Cannot fetch image at {badge_def['image_url']}!")
+        return
+    image_data = image_response.content
+    sha = hashlib.sha256()
+    sha.update(image_data)
+    image_hash = sha.hexdigest()
+
+    birdwatcher = get_birdwatcher()
+    if badge.name != badge_def['name'] or badge.description != badge_def['description'] or badge.image_hash != image_hash:
+        nostr_event_id = birdwatcher.publish_badge_definition(badge_def['badge_id'], badge_def['name'], badge_def['description'], badge_def['image_url'])
+        if nostr_event_id is not None:
+            badge.name = badge_def['name']
+            badge.description = badge_def['description']
+            badge.image_hash = image_hash
+            badge.nostr_event_id = nostr_event_id
+            db.session.commit()
+            click.echo("Published badge definition!")
+        else:
+            click.echo("Failed to publish badge definition!")
+            return
+
+    if not birdwatcher.publish_badge_award(badge_def['badge_id'], pubkey):
+        click.echo("Failed to publish badge award!")

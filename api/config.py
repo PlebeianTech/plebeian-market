@@ -89,6 +89,13 @@ MODERATOR_USER_IDS = [(int(i) if i.isnumeric() else i) for i in os.environ.get('
 
 SATS_IN_BTC = 100000000
 
+BADGE_DEFINITION_TESTER = {
+    'badge_id': "tester",
+    'name': "Chief tester",
+    'description': "Helped us testing",
+    'image_url': f"{WWW_BASE_URL}/badges/tester.png"
+}
+
 SKIN_IN_THE_GAME_THRESHOLDS = [
     {'bid_amount_usd': 1000.0, 'required_amount_spent_usd': 50.0},
 ]
