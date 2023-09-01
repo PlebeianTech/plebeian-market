@@ -13,7 +13,6 @@ services:
     env_file: .env.staging
     environment:
       - S3_FILENAME_PREFIX=STAGING_
-      - MODERATOR_USER_IDS=ALL
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: gunicorn --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080

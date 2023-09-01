@@ -19,7 +19,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_s3, get_mail
+from main import app, get_birdwatcher, get_s3, get_site_admin_config
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -703,6 +703,12 @@ def put_publish(user, key, cls):
     if not entity:
         return jsonify({'message': "Not found."}), 404
 
+    if app.config['ENV'] in ('staging', 'prod'):
+        site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
+        site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
+        if not site_admin:
+            return jsonify({'message': "Site not configured!"}), 500
+
     if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized."}), 401
 
@@ -982,23 +988,20 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
 
-    try:
-        btc2usd = btc2fiat.get_value('kraken')
-    except Exception:
-        return jsonify({'message': "Error fetching the exchange rate!"}), 500
-
-    amount_spent = db.session.query(func.sum(m.Order.total_usd).label('total_amount_usd')) \
-        .filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).first() \
-        .total_amount_usd or 0
+    has_skin_in_the_game = False
+    # TODO: optimize query - join tables
+    for order in m.Order.query.filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).all():
+        if order.has_skin_in_the_game_badge():
+            has_skin_in_the_game = True
+            break
 
     is_settled = True
-    for threshold in app.config['SKIN_IN_THE_GAME_THRESHOLDS']:
-        threshold_bid_amount_sats = usd2sats(threshold['bid_amount_usd'], btc2usd)
-        threshold_required_amount_spent_sats = usd2sats(threshold['required_amount_spent_usd'], btc2usd)
-        if amount >= threshold_bid_amount_sats and amount_spent < threshold_required_amount_spent_sats:
-            message = f"You need at least ${int(threshold['required_amount_spent_usd'])} worth of successful purchases (skin in the game) in order to bid more."
-            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, donation_stall_ids=app.config['SKIN_IN_THE_GAME_DONATION_STALL_IDS'])
-            is_settled = False
+    if not has_skin_in_the_game:
+        site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
+        site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
+        message = f"You need Skin in the Game in order to place bids."
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, donation_stall_ids=site_admin.stall_id)
+        is_settled = False
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
     if is_settled:

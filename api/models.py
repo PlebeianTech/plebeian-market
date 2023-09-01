@@ -221,10 +221,6 @@ class User(WalletMixin, db.Model):
         setattr(self, f'{account}_verification_phrase_check_counter', 0)
         setattr(self, f'{account}_verification_phrase_sent_at', None)
 
-    @property
-    def is_moderator(self):
-        return (self.id in app.config['MODERATOR_USER_IDS']) or ('ALL' in app.config['MODERATOR_USER_IDS'])
-
     contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
@@ -1299,9 +1295,9 @@ class Order(db.Model):
 
         return 24 * 60
 
-    def has_skin_in_the_game_donation_items(self):
+    def has_skin_in_the_game_badge(self):
         for order_item in self.order_items:
-            if order_item.item.seller.stall_id in app.config['SKIN_IN_THE_GAME_DONATION_STALL_IDS']:
+            if order_item.listing_id is not None and order_item.listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']:
                 return True
 
     def to_dict(self):
