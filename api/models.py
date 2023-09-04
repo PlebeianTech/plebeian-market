@@ -246,7 +246,7 @@ class User(WalletMixin, db.Model):
             'currency': self.stall_currency,
             'shipping': [
                 {
-                    'id': hashlib.sha256(self.shipping_from.encode('utf-8')).hexdigest(),
+                    'id': hashlib.sha256((self.shipping_from or "").encode('utf-8')).hexdigest(),
                     'cost': self.shipping_domestic_usd,
                     'regions': [self.shipping_from],
                 },
@@ -855,6 +855,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     starting_bid = db.Column(db.Integer, nullable=False)
     reserve_bid = db.Column(db.Integer, nullable=False)
+
+    skin_in_the_game_required = db.Column(db.Boolean, nullable=False, default=False)
 
     twitter_id = db.Column(db.String(32), nullable=True)
 

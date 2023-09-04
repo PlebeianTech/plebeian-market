@@ -988,20 +988,20 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
 
-    has_skin_in_the_game = False
-    # TODO: optimize query - join tables
-    for order in m.Order.query.filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).all():
-        if order.has_skin_in_the_game_badge():
-            has_skin_in_the_game = True
-            break
-
     is_settled = True
-    if not has_skin_in_the_game:
-        site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
-        site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
-        message = f"You need Skin in the Game in order to place bids."
-        birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, donation_stall_ids=site_admin.stall_id)
-        is_settled = False
+    if auction.skin_in_the_game_required:
+        has_skin_in_the_game = False
+        # TODO: optimize query - join tables
+        for order in m.Order.query.filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).all():
+            if order.has_skin_in_the_game_badge():
+                has_skin_in_the_game = True
+                break
+        if not has_skin_in_the_game:
+            site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
+            site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
+            message = f"You need Skin in the Game in order to place bids."
+            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, donation_stall_ids=site_admin.stall_id)
+            is_settled = False
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
     if is_settled:

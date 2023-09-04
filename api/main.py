@@ -26,6 +26,7 @@ import time
 import uuid
 
 from extensions import cors, db, mail
+from utils import hash_create
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
@@ -464,16 +465,65 @@ class Birdwatcher:
         except:
             app.logger.exception(f"Error publishing badge award via birdwatcher!")
 
+class MockingBirdwatcher:
+    def add_relay(self, relay_url):
+        app.logger.info(f"add_relay url={relay_url}")
+        return True
+
+    def send_dm(self, sender_private_key, recipient_public_key, body):
+        app.logger.info(f"from={sender_private_key.hex()} to={recipient_public_key} {body=}")
+        return hash_create(4)
+
+    def publish_stall(self, merchant):
+        stall_json = merchant.to_nostr_stall()
+        app.logger.info(f"publish_stall id={stall_json['id']} name={stall_json['name']}")
+        return hash_create(4)
+
+    def delete_stall(self, merchant):
+        app.logger.info(f"delete_stall {merchant.stall_nostr_event_id}")
+        return hash_create(4)
+
+    def publish_product(self, entity, extra_media=None):
+        product_json = entity.to_nostr(extra_media)
+        app.logger.info(f"publish_product name={product_json['name']}")
+        return hash_create(4)
+
+    def delete_product(self, entity):
+        app.logger.info(f"delete_product {entity.nostr_event_id}")
+        return hash_create(4)
+
+    def publish_bid_status(self, _auction, bid_event_id, status, *_, **__):
+        app.logger.info(f"publish_bid_status {bid_event_id=} {status=}")
+        return hash_create(4)
+
+    def publish_badge_definition(self, badge_id, *_, **__):
+        app.logger.info(f"publish_badge_definition {badge_id=}")
+        return hash_create(4)
+
+    def publish_badge_award(self, badge_id, pubkey):
+        app.logger.info(f"publish_badge_award {badge_id=} {pubkey=}")
+        return hash_create(4)
+
 def get_birdwatcher():
-    return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
+    if app.config['ENV'] in ('staging', 'prod'):
+        return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
+    else:
+        return MockingBirdwatcher()
 
 def get_site_admin_config():
-    with open(app.config['SITE_ADMIN_SECRETS']) as f:
-        site_admin = json.load(f)
+    if app.config['ENV'] in ('staging', 'prod'):
+        with open(app.config['SITE_ADMIN_SECRETS']) as f:
+            site_admin = json.load(f)
+            return {
+                'nostr_private_key': PrivateKey.from_nsec(site_admin['NSEC']),
+                'wallet_xpub': site_admin['XPUB'],
+                'lightning_address': site_admin['LIGHTNING_ADDRESS'],
+            }
+    else:
         return {
-            'nostr_private_key': PrivateKey.from_nsec(site_admin['NSEC']),
-            'wallet_xpub': site_admin['XPUB'],
-            'lightning_address': site_admin['LIGHTNING_ADDRESS'],
+            'nostr_private_key': PrivateKey(bytes.fromhex("6441b05cc2b810d9d974d9c1308caa555d2beab7994ed10d9e37e945e6477714")),
+            'wallet_xpub': "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz",
+            'lightning_address': "ibz@stacker.news",
         }
 
 class MockS3:
@@ -527,33 +577,6 @@ def get_mail():
         return MockMail()
     else:
         return Mail()
-
-if __name__ == '__main__':
-    import lnurl
-    try:
-        lnurl.encode(app.config['API_BASE_URL'])
-    except lnurl.exceptions.InvalidUrl:
-        # HACK: allow URLs with http:// and no TLD in development mode (http://localhost)
-        from pydantic import AnyHttpUrl
-        class ClearnetUrl(AnyHttpUrl):
-            pass
-        app.logger.warning("Patching lnurl.types.ClearnetUrl!")
-        lnurl.types.ClearnetUrl = ClearnetUrl
-        lnurl.encode(app.config['API_BASE_URL']) # try parsing again to check that the patch worked
-
-    @app.route("/mock-s3-files/<string:filename>", methods=['GET'])
-    def mock_s3(filename):
-        app.logger.info(f"Fetch {filename} from MockS3!")
-        with open(f"/tmp/{filename}", "rb") as f:
-            data = f.read()
-            return send_file(io.BytesIO(data), mimetype=magic.from_buffer(data, mime=True))
-
-    app.run(host='0.0.0.0', port=5000, debug=True)
-else:
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
-
 
 @app.cli.command("lnauth")
 @click.argument("lnkey", type=click.STRING)
@@ -620,6 +643,9 @@ def award_badge_tester(pubkey):
 
 @app.cli.command("configure-site")
 @with_appcontext
+def configure_site_cmd():
+    configure_site()
+
 def configure_site():
     badge_def = app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']
     site_admin_config = get_site_admin_config()
@@ -629,13 +655,15 @@ def configure_site():
                         lightning_address=site_admin_config['lightning_address'],
                         stall_name=app.config['SITE_NAME'])
     site_admin.ensure_merchant_key()
+    app.logger.info("Publishing site admin stall...")
     site_admin.stall_nostr_event_id = birdwatcher.publish_stall(site_admin)
     if not site_admin.stall_nostr_event_id:
-        click.echo("Error publishing stall to Nostr!")
+        app.logger.error("Error publishing stall to Nostr!")
         return
+    app.logger.info("Saving site admin to DB...")
     db.session.add(site_admin)
     db.session.commit()
-    click.echo(f"Published stall to Nostr! event_id={site_admin.stall_nostr_event_id}")
+    app.logger.info(f"Published stall to Nostr! event_id={site_admin.stall_nostr_event_id}")
 
     badge_item = m.Item(seller_id=site_admin.id, title=badge_def['name'], description=badge_def['description'])
     db.session.add(badge_item)
@@ -643,7 +671,7 @@ def configure_site():
 
     image_response = requests.get(badge_def['image_url'])
     if image_response.status_code != 200:
-        click.echo(f"Cannot fetch image at {badge_def['image_url']}!")
+        app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
         return
     image_data = image_response.content
     sha = hashlib.sha256()
@@ -658,17 +686,47 @@ def configure_site():
     badge_listing.item_id = badge_item.id
     badge_listing.nostr_event_id = birdwatcher.publish_product(badge_listing)
     if not badge_listing.nostr_event_id:
-        click.echo("Error publishing badge listing to Nostr!")
+        app.logger.error("Error publishing badge listing to Nostr!")
         return
     db.session.add(badge_listing)
     db.session.commit()
-    click.echo(f"Published badge listing to Nostr! event_id={badge_listing.nostr_event_id}")
+    app.logger.info(f"Published badge listing to Nostr! event_id={badge_listing.nostr_event_id}")
 
     badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
     badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
     if badge.nostr_event_id is None:
-        click.echo("Failed to publish badge definition!")
+        app.logger.error("Failed to publish badge definition!")
         return
     db.session.add(badge)
     db.session.commit()
-    click.echo(f"Published badge definition to Nostr! event_id={badge.nostr_event_id}")
+    app.logger.info(f"Published badge definition to Nostr! event_id={badge.nostr_event_id}")
+
+if __name__ == '__main__': # dev / test
+    import lnurl
+    try:
+        lnurl.encode(app.config['API_BASE_URL'])
+    except lnurl.exceptions.InvalidUrl:
+        # HACK: allow URLs with http:// and no TLD in development mode (http://localhost)
+        from pydantic import AnyHttpUrl
+        class ClearnetUrl(AnyHttpUrl):
+            pass
+        app.logger.warning("Patching lnurl.types.ClearnetUrl!")
+        lnurl.types.ClearnetUrl = ClearnetUrl
+        lnurl.encode(app.config['API_BASE_URL']) # try parsing again to check that the patch worked
+
+    with app.app_context():
+        if m.User.query.filter_by(nostr_public_key=get_site_admin_config()['nostr_private_key'].public_key.hex()).first() is None:
+            configure_site()
+
+    @app.route("/mock-s3-files/<string:filename>", methods=['GET'])
+    def mock_s3(filename):
+        app.logger.info(f"Fetch {filename} from MockS3!")
+        with open(f"/tmp/{filename}", "rb") as f:
+            data = f.read()
+            return send_file(io.BytesIO(data), mimetype=magic.from_buffer(data, mime=True))
+
+    app.run(host='0.0.0.0', port=5000, debug=True)
+else: # staging / prod
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
