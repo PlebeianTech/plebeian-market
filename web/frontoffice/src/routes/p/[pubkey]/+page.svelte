@@ -101,7 +101,7 @@
 
             {#each badgesAccepted as badgeId}
                 {#if badgesDefinition.get(badgeId)}
-                    <div class="tooltip tooltip-accent" data-tip="{badgesDefinition.get(badgeId).name}" on:click={() => {currentBadge = badgeId; window.badge_modal.showModal()}}>
+                    <div class="tooltip tooltip-accent" data-tip="{badgesDefinition.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
                         <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
                             {#if badgesDefinition.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgesDefinition.get(badgeId).thumb)}
                                 <img src={badgesDefinition.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />

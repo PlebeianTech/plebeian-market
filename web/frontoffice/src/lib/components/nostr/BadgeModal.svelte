@@ -14,7 +14,7 @@
             <div class="flex w-full">
                 <div class="grid flex-grow place-items-center">
                     <figure class="avatar mask mask-squircle h-32 w-32 md:h-72 md:w-72">
-                        <img src={badgeInfo.image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                        <img id="badgeModalImg" src={badgeInfo.image ?? badgeImageFallback} on:load={(event) => {console.log('onLoad', event.srcElement); event.srcElement.style.visibility="visible"}} on:error={(event) => onImgError(event.srcElement)} alt="" />
                     </figure>
                 </div>
                 <div class="grid flex-grow place-items-center ml-4 md:ml-12">
