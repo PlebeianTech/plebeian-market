@@ -72,7 +72,7 @@
 {/if}
 
 {#if profile}
-    <div class="flex pb-8 leading-none relative">
+    <div class="flex pb-4 leading-none relative">
         <div class="avatar indicator align-bottom">
             <div class="w-24 h-24 mr-4 rounded-full">
                 <img src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
@@ -88,30 +88,32 @@
             {#if profile.lud16}
                 <p><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
             {/if}
-
-            {#if badgesAccepted.length}
-                <div class="mt-4">
-                    {#if data.pubkey === $NostrPublicKey}
-                        <p class="text-sm mb-2">Your Badges</p>
-                    {:else}
-                        <p class="text-sm mb-2">Badges</p>
-                    {/if}
-
-                    {#each badgesAccepted as badgeId}
-                        <div class="tooltip tooltip-accent" data-tip="{badgesDefinition.get(badgeId).name}" on:click={() => {currentBadge = badgeId; window.badge_modal.showModal()}}>
-                            <figure class="avatar mask mask-squircle h-14 w-14 cursor-pointer">
-                                {#if badgesDefinition.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgesDefinition.get(badgeId).thumb)}
-                                    <img src={badgesDefinition.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                {:else}
-                                    <img src={badgesDefinition.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                {/if}
-                            </figure>
-                        </div>
-                    {/each}
-                </div>
-            {/if}
         </div>
     </div>
+
+    {#if badgesAccepted.length}
+        <div class="mt-1 mb-6">
+            {#if data.pubkey === $NostrPublicKey}
+                <p class="text-md mb-1">Your Badges</p>
+            {:else}
+                <p class="text-md mb-1">Badges</p>
+            {/if}
+
+            {#each badgesAccepted as badgeId}
+                {#if badgesDefinition.get(badgeId)}
+                    <div class="tooltip tooltip-accent" data-tip="{badgesDefinition.get(badgeId).name}" on:click={() => {currentBadge = badgeId; window.badge_modal.showModal()}}>
+                        <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
+                            {#if badgesDefinition.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgesDefinition.get(badgeId).thumb)}
+                                <img src={badgesDefinition.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                            {:else}
+                                <img src={badgesDefinition.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                            {/if}
+                        </figure>
+                    </div>
+                {/if}
+            {/each}
+        </div>
+    {/if}
 {/if}
 
 <StallsBrowser merchantPubkey={data.pubkey} />
