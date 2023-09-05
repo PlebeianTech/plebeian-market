@@ -21,14 +21,40 @@
 
     $: profile = null;
 
-    $: badgesDefinition = new Map<string, object>();
     $: badgesAwarded = [];
     $: badgesAccepted = [];
+    $: badgeDefinitions = new Map<string, object>();
     $: currentBadge = null;
 
     export function onImgError(image) {
         image.onerror = "";
         image.src = badgeImageFallback;
+    }
+
+    function getBadgeDefinition(badge: object, isProfileBadge: boolean) {
+        filterTags(badge.tags, 'a').forEach(tagId => {
+            let badgeIDarray = tagId[1].split(':');
+            let badgeName: string = badgeIDarray[2];
+            let badgeAuthor: string = badgeIDarray[1];
+
+            getBadgeDefinitions(badgeName, badgeAuthor, (badgeDefinition) => {
+                // console.log('------- BadgeDefinition', badgeDefinition);
+
+                badgeDefinitions.set(badgeName, Object.fromEntries(badgeDefinition.tags));
+
+                if (isProfileBadge) {
+                    if (!badgesAccepted.includes(badgeName)) {
+                        badgesAccepted.push(badgeName);
+                        badgesAccepted = badgesAccepted;
+                    }
+                } else {
+                    if (!badgesAwarded.includes(badgeName)) {
+                        badgesAwarded.push(badgeName);
+                        badgesAwarded = badgesAwarded;
+                    }
+                }
+            });
+        });
     }
 
     onMount(async () => {
@@ -41,41 +67,13 @@
                 });
 
             getProfileBadges(data.pubkey, (profileBadge) => {
-                // console.log('------- ProfileBadge', profileBadge);
-
-                filterTags(profileBadge.tags, 'a').forEach(tagId => {
-                    let bedgeIDarray = tagId[1].split(':');
-
-                    getBadgeDefinitions(bedgeIDarray[2], bedgeIDarray[1], (badgeDefinition) => {
-                        // console.log('------- BadgeDefinition', badgeDefinition);
-
-                        badgesDefinition.set(bedgeIDarray[2], Object.fromEntries(badgeDefinition.tags));
-
-                        if (!badgesAccepted.includes(bedgeIDarray[2])) {
-                            badgesAccepted.push(bedgeIDarray[2]);
-                            badgesAccepted = badgesAccepted;
-                        }
-                    });
-                });
+                // console.log('------- getProfileBadges', profileBadge);
+                getBadgeDefinition(profileBadge, true);
             });
 
             getBadgeAward(data.pubkey, (badgeAward) => {
-                console.log('------- BadgeAward', badgeAward);
-
-                filterTags(badgeAward.tags, 'a').forEach(tagId => {
-                    let bedgeIDarray = tagId[1].split(':');
-
-                    getBadgeDefinitions(bedgeIDarray[2], bedgeIDarray[1], (badgeDefinition) => {
-                        console.log('------- BadgeDefinition_award', badgeDefinition);
-
-                        badgesDefinition.set(bedgeIDarray[2], Object.fromEntries(badgeDefinition.tags));
-
-                        if (!badgesAwarded.includes(bedgeIDarray[2])) {
-                            badgesAwarded.push(bedgeIDarray[2]);
-                            badgesAwarded = badgesAwarded;
-                        }
-                    });
-                });
+                // console.log('------- getBadgeAward', badgeAward);
+                getBadgeDefinition(badgeAward, false);
             });
         }
     });
@@ -117,13 +115,13 @@
 
             <!-- Accepted -->
             {#each badgesAccepted as badgeId}
-                {#if badgesDefinition.get(badgeId)}
-                    <div class="tooltip tooltip-accent" data-tip="{badgesDefinition.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                {#if badgeDefinitions.get(badgeId)}
+                    <div class="tooltip tooltip-accent" data-tip="{badgeDefinitions.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
                         <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
-                            {#if badgesDefinition.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgesDefinition.get(badgeId).thumb)}
-                                <img src={badgesDefinition.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                            {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                                <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
                             {:else}
-                                <img src={badgesDefinition.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
                             {/if}
                         </figure>
                     </div>
@@ -133,13 +131,13 @@
             <!-- Awarded -->
             {#if data.pubkey === $NostrPublicKey}
                 {#each badgesAwarded as badgeId}
-                    {#if !badgesAccepted.includes(badgeId) && badgesDefinition.get(badgeId)}
-                        <div class="tooltip tooltip-accent" data-tip="Unaccepted badge: {badgesDefinition.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                    {#if !badgesAccepted.includes(badgeId) && badgeDefinitions.get(badgeId)}
+                        <div class="tooltip tooltip-accent" data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
                             <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-20 hover:opacity-80">
-                                {#if badgesDefinition.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgesDefinition.get(badgeId).thumb)}
-                                    <img src={badgesDefinition.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                                    <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
                                 {:else}
-                                    <img src={badgesDefinition.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                    <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
                                 {/if}
                             </figure>
                         </div>
@@ -152,7 +150,7 @@
 
 <StallsBrowser merchantPubkey={data.pubkey} />
 
-<BadgeModal badgeInfo={currentBadge ? badgesDefinition.get(currentBadge) : null} {onImgError}  />
+<BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {onImgError}  />
 
 <!--
 <ResumeView pubkey={data.pubkey} />
