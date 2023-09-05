@@ -72,7 +72,7 @@
 {/if}
 
 {#if profile}
-    <div class="flex pb-4 leading-none relative">
+    <div class="flex pb-4 md:pb-8 leading-none relative">
         <div class="avatar indicator align-bottom">
             <div class="w-24 h-24 mr-4 rounded-full">
                 <img src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
@@ -92,7 +92,7 @@
     </div>
 
     {#if badgesAccepted.length}
-        <div class="mt-1 mb-6">
+        <div class="mt-1 pb-8 md:pb-10">
             {#if data.pubkey === $NostrPublicKey}
                 <p class="text-md mb-1">Your Badges</p>
             {:else}
