@@ -22,6 +22,7 @@
     $: profile = null;
 
     $: badgesDefinition = new Map<string, object>();
+    $: badgesAwarded = [];
     $: badgesAccepted = [];
     $: currentBadge = null;
 
@@ -59,7 +60,22 @@
             });
 
             getBadgeAward(data.pubkey, (badgeAward) => {
-                // console.log('------- BadgeAward', badgeAward);
+                console.log('------- BadgeAward', badgeAward);
+
+                filterTags(badgeAward.tags, 'a').forEach(tagId => {
+                    let bedgeIDarray = tagId[1].split(':');
+
+                    getBadgeDefinitions(bedgeIDarray[2], bedgeIDarray[1], (badgeDefinition) => {
+                        console.log('------- BadgeDefinition_award', badgeDefinition);
+
+                        badgesDefinition.set(bedgeIDarray[2], Object.fromEntries(badgeDefinition.tags));
+
+                        if (!badgesAwarded.includes(bedgeIDarray[2])) {
+                            badgesAwarded.push(bedgeIDarray[2]);
+                            badgesAwarded = badgesAwarded;
+                        }
+                    });
+                });
             });
         }
     });
@@ -91,14 +107,15 @@
         </div>
     </div>
 
-    {#if badgesAccepted.length}
+    {#if badgesAccepted.length || (data.pubkey === $NostrPublicKey && badgesAwarded.length)}
         <div class="mt-1 pb-8 md:pb-10">
             {#if data.pubkey === $NostrPublicKey}
-                <p class="text-md mb-1">Your Badges</p>
+                <p class="text-md mb-1 font-bold">Your Badges</p>
             {:else}
-                <p class="text-md mb-1">Badges</p>
+                <p class="text-md mb-1 font-bold">Badges</p>
             {/if}
 
+            <!-- Accepted -->
             {#each badgesAccepted as badgeId}
                 {#if badgesDefinition.get(badgeId)}
                     <div class="tooltip tooltip-accent" data-tip="{badgesDefinition.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
@@ -112,6 +129,23 @@
                     </div>
                 {/if}
             {/each}
+
+            <!-- Awarded -->
+            {#if data.pubkey === $NostrPublicKey}
+                {#each badgesAwarded as badgeId}
+                    {#if !badgesAccepted.includes(badgeId) && badgesDefinition.get(badgeId)}
+                        <div class="tooltip tooltip-accent" data-tip="Unaccepted badge: {badgesDefinition.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                            <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-20 hover:opacity-80">
+                                {#if badgesDefinition.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgesDefinition.get(badgeId).thumb)}
+                                    <img src={badgesDefinition.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {:else}
+                                    <img src={badgesDefinition.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {/if}
+                            </figure>
+                        </div>
+                    {/if}
+                {/each}
+            {/if}
         </div>
     {/if}
 {/if}
