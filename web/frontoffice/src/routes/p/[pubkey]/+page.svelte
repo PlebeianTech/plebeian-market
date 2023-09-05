@@ -13,7 +13,7 @@
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
-    import {getFirstTagValue} from "$sharedLib/nostr/utils";
+    import {filterTags} from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
 
     /** @type {import('./$types').PageData} */
@@ -40,23 +40,26 @@
                 });
 
             getProfileBadges(data.pubkey, (profileBadge) => {
-                console.log('------- ProfileBadge', profileBadge);
+                // console.log('------- ProfileBadge', profileBadge);
 
-                let badgeID = getFirstTagValue(profileBadge.tags, 'a');
-                let bedgeIDarray = badgeID.split(':');
+                filterTags(profileBadge.tags, 'a').forEach(tagId => {
+                    let bedgeIDarray = tagId[1].split(':');
 
-                getBadgeDefinitions(bedgeIDarray[2], bedgeIDarray[1], (badgeDefinition) => {
-                    console.log('------- BadgeDefinition', badgeDefinition);
+                    getBadgeDefinitions(bedgeIDarray[2], bedgeIDarray[1], (badgeDefinition) => {
+                        // console.log('------- BadgeDefinition', badgeDefinition);
 
-                    badgesDefinition.set('payjoin-supporter', Object.fromEntries(badgeDefinition.tags));
+                        badgesDefinition.set(bedgeIDarray[2], Object.fromEntries(badgeDefinition.tags));
 
-                    badgesAccepted.push(bedgeIDarray[2]);
-                    badgesAccepted = badgesAccepted;
+                        if (!badgesAccepted.includes(bedgeIDarray[2])) {
+                            badgesAccepted.push(bedgeIDarray[2]);
+                            badgesAccepted = badgesAccepted;
+                        }
+                    });
                 });
             });
 
             getBadgeAward(data.pubkey, (badgeAward) => {
-                console.log('------- BadgeAward', badgeAward);
+                // console.log('------- BadgeAward', badgeAward);
             });
         }
     });
