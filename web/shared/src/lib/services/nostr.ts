@@ -25,6 +25,12 @@ export const EVENT_KIND_PRODUCT = isStaging() ? 31018 : 30018;
 export const EVENT_KIND_AUCTION = isStaging() ? 31020 : 30020;
 export const EVENT_KIND_AUCTION_BID = isStaging() ? 2021 : 1021;
 export const EVENT_KIND_AUCTION_BID_STATUS = isStaging() ? 2022 : 1022;
+
+/* Badges (nip-58) */
+const EVENT_KIND_BADGE_AWARD = 8;
+const EVENT_KIND_PROFILE_BADGES = 30008;
+const EVENT_KIND_BADGE_DEFINITION = 30009;
+
 const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nips/blob/master/78.md
 
 const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
@@ -292,7 +298,43 @@ export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// NIP-78
+// Badges (nip-58)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function getProfileBadges(pubkey: string, receivedCB : (event) => void) {
+    get(NostrPool)
+        .sub(relayUrlList, [
+            {
+                kinds: [EVENT_KIND_PROFILE_BADGES],
+                authors: [pubkey],
+                '#d': ['profile_badges'],
+                limit: 1
+            }])
+        .on('event', receivedCB);
+}
+
+export function getBadgeAward(pubkey: string, receivedCB : (event) => void) {
+    get(NostrPool)
+        .sub(relayUrlList, [
+            {
+                kinds: [EVENT_KIND_BADGE_AWARD],
+                '#p': [pubkey]
+            }])
+        .on('event', receivedCB);
+}
+
+export function getBadgeDefinitions(badgeName: string, author: string, receivedCB : (event) => void) {
+    get(NostrPool)
+        .sub(relayUrlList, [
+            {
+                kinds: [EVENT_KIND_BADGE_DEFINITION],
+                authors: [author],
+                '#d': [badgeName]
+            }])
+        .on('event', receivedCB);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Arbitrary custom app data (nip-78)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function publishConfiguration(setup: object, tags, successCB: () => void) {
