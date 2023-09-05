@@ -3,16 +3,32 @@
     import ResumeView from "$lib/components/resume/View.svelte";
     import StallsBrowser from "$lib/components/stores/StallsBrowser.svelte";
     import {NostrPublicKey} from "$sharedLib/stores";
-    import {subscribeMetadata} from "$sharedLib/services/nostr";
+    import {
+        getBadgeAward,
+        getBadgeDefinitions,
+        getProfileBadges,
+        subscribeMetadata
+    } from "$sharedLib/services/nostr";
     import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
-    import {onImgError} from "$lib/shopping";
+    import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
+    import {getFirstTagValue} from "$sharedLib/nostr/utils";
+    import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
 
     /** @type {import('./$types').PageData} */
     export let data;
 
     $: profile = null;
+
+    $: badgesDefinition = new Map<string, object>();
+    $: badgesAccepted = [];
+    $: currentBadge = null;
+
+    export function onImgError(image) {
+        image.onerror = "";
+        image.src = badgeImageFallback;
+    }
 
     onMount(async () => {
         if (data && data.pubkey) {
@@ -22,6 +38,26 @@
                         profile = profileMeta;
                     }
                 });
+
+            getProfileBadges(data.pubkey, (profileBadge) => {
+                console.log('------- ProfileBadge', profileBadge);
+
+                let badgeID = getFirstTagValue(profileBadge.tags, 'a');
+                let bedgeIDarray = badgeID.split(':');
+
+                getBadgeDefinitions(bedgeIDarray[2], bedgeIDarray[1], (badgeDefinition) => {
+                    console.log('------- BadgeDefinition', badgeDefinition);
+
+                    badgesDefinition.set('payjoin-supporter', Object.fromEntries(badgeDefinition.tags));
+
+                    badgesAccepted.push(bedgeIDarray[2]);
+                    badgesAccepted = badgesAccepted;
+                });
+            });
+
+            getBadgeAward(data.pubkey, (badgeAward) => {
+                console.log('------- BadgeAward', badgeAward);
+            });
         }
     });
 </script>
@@ -49,11 +85,35 @@
             {#if profile.lud16}
                 <p><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
             {/if}
+
+            {#if badgesAccepted.length}
+                <div class="mt-4">
+                    {#if data.pubkey === $NostrPublicKey}
+                        <p class="text-sm mb-2">Your Badges</p>
+                    {:else}
+                        <p class="text-sm mb-2">Badges</p>
+                    {/if}
+
+                    {#each badgesAccepted as badgeId}
+                        <div class="tooltip tooltip-accent" data-tip="{badgesDefinition.get(badgeId).name}" on:click={() => {currentBadge = badgeId; window.badge_modal.showModal()}}>
+                            <figure class="avatar mask mask-squircle h-14 w-14 cursor-pointer">
+                                {#if badgesDefinition.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgesDefinition.get(badgeId).thumb)}
+                                    <img src={badgesDefinition.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {:else}
+                                    <img src={badgesDefinition.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {/if}
+                            </figure>
+                        </div>
+                    {/each}
+                </div>
+            {/if}
         </div>
     </div>
 {/if}
 
 <StallsBrowser merchantPubkey={data.pubkey} />
+
+<BadgeModal badgeInfo={currentBadge ? badgesDefinition.get(currentBadge) : null}  />
 
 <!--
 <ResumeView pubkey={data.pubkey} />
