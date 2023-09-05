@@ -1,6 +1,7 @@
 <script lang="ts">
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
 
+    export let onImgError = () => {};
     export let badgeInfo;
 </script>
 
@@ -13,7 +14,7 @@
             <div class="flex w-full">
                 <div class="grid flex-grow place-items-center">
                     <figure class="avatar mask mask-squircle h-32 w-32 md:h-72 md:w-72">
-                        <img src={badgeInfo.image ?? badgeImageFallback} alt="" />
+                        <img src={badgeInfo.image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
                     </figure>
                 </div>
                 <div class="grid flex-grow place-items-center ml-4 md:ml-12">
