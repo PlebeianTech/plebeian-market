@@ -674,7 +674,7 @@ def configure_site():
     app.logger.info("Saving site admin to DB...")    
     db.session.commit()
 
-    badge_listing = m.Listing.query.filter(m.Listing.key == badge_def['badge_id'] & m.Item.seller_id == site_admin.id).first()
+    badge_listing = m.Listing.query.filter((m.Listing.key == badge_def['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
     if badge_listing is None:
         badge_item = m.Item(seller=site_admin, title=badge_def['name'], description=badge_def['description'])
         db.session.add(badge_item)
