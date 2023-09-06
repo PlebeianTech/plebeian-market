@@ -72,7 +72,8 @@ export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string
             let jsonDecodedMetadata = JSON.parse(e.content);
             jsonDecodedMetadata.created_at = e.created_at;
             jsonDecodedMetadata.pubkey = e.pubkey;
-                receivedCB(e.pubkey, jsonDecodedMetadata);
+            jsonDecodedMetadata.tags = e.tags;
+            receivedCB(e.pubkey, jsonDecodedMetadata);
         } catch (error) { }
     });
 }
