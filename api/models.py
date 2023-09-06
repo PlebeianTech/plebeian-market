@@ -145,6 +145,8 @@ class User(WalletMixin, db.Model):
 
     @property
     def identity(self):
+        if self.id is None:
+            raise ValueError()
         sha = hashlib.sha256()
         sha.update((str(self.id) + app.config['SECRET_KEY']).encode('UTF-8'))
         return sha.hexdigest()
@@ -906,7 +908,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             extra_media = []
         return {
             'id': str(self.uuid),
-            'stall_id': self.item.seller.identity,
+            'stall_id': self.item.seller.stall_id,
             'name': self.item.title,
             'description': self.item.description,
             'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
@@ -1084,7 +1086,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             extra_media = []
         return {
             'id': str(self.uuid),
-            'stall_id': self.item.seller.identity,
+            'stall_id': self.item.seller.stall_id,
             'name': self.item.title,
             'description': self.item.description,
             'images': [media.url for media in self.item.media] + [media.url for media in extra_media],

@@ -658,6 +658,7 @@ def configure_site():
                             stall_name=app.config['SITE_NAME'])
         site_admin.ensure_merchant_key()
         db.session.add(site_admin)
+        db.session.commit() # this generates the stall ID
     else:
         app.logger.info("Found site admin user!")
 
@@ -671,7 +672,6 @@ def configure_site():
     else:
         app.logger.info("Found Nostr stall!")
 
-    app.logger.info("Saving site admin to DB...")    
     db.session.commit()
 
     image_response = requests.get(badge_def['image_url'])
@@ -708,7 +708,6 @@ def configure_site():
     else:
         app.logger.info("Found Nostr badge listing!")
 
-    app.logger.info("Saving badge listing to DB...")
     db.session.commit()
 
     badge = m.Badge.query.filter_by(badge_id=badge_def['badge_id']).first()
