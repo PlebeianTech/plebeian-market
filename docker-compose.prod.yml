@@ -16,7 +16,6 @@ services:
     env_file: .env.prod
     environment:
       - S3_FILENAME_PREFIX=P_
-      - MODERATOR_USER_IDS=1,5,328
   nginx:
     environment:
       - VIRTUAL_HOST=plebeian.market

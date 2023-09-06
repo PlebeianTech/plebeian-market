@@ -26,6 +26,7 @@ import time
 import uuid
 
 from extensions import cors, db, mail
+from utils import hash_create
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
 
@@ -232,13 +233,18 @@ def settle_btc_payments():
                             json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
                             continue
                         db.session.commit()
-                if order.paid_at and order.has_skin_in_the_game_donation_items():
-                    for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
-                        app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired Skin in the Game!")
-                        pending_bid.settled_at = datetime.utcnow()
-                        duration_extended = pending_bid.auction.extend()
-                        birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
-                        db.session.commit()
+                if order.paid_at and order.has_skin_in_the_game_badge():
+                    birdwatcher = get_birdwatcher()
+                    if not birdwatcher.publish_badge_award(app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id'], order.buyer_public_key):
+                        app.logger.error("Failed to publish Skin in the Game badge award!")
+                    else:
+                        app.logger.info(f"Awarded Skin in the Game badge for {order.buyer_public_key}!")
+                        for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
+                            app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired the Skin in the Game badge!")
+                            pending_bid.settled_at = datetime.utcnow()
+                            duration_extended = pending_bid.auction.extend()
+                            birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
+                            db.session.commit()
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
@@ -339,11 +345,11 @@ class Birdwatcher:
         self.base_url = base_url
         if app.config['MOCK_NOSTR']:
             # NB: in test mode we just use a random private key!
-            self.private_key = PrivateKey()
+            self.site_admin_private_key = PrivateKey()
         else:
-            with open(app.config['NOSTR_SECRETS']) as f:
-                nostr_secrets = json.load(f)
-                self.private_key = PrivateKey.from_nsec(nostr_secrets['NSEC'])
+            with open(app.config['SITE_ADMIN_SECRETS']) as f:
+                site_admin_secrets = json.load(f)
+                self.site_admin_private_key = PrivateKey.from_nsec(site_admin_secrets['NSEC'])
 
     def add_relay(self, relay_url):
         response = requests.post(f"{self.base_url}/relays", json={'url': relay_url})
@@ -440,7 +446,7 @@ class Birdwatcher:
                 badge_id_tag = badge_id
                 name_tag = name
             event = Event(kind=30009, content="", tags=[['d', badge_id_tag], ['name', name_tag], ['description', description], ['image', image_url]])
-            self.private_key.sign_event(event)
+            self.site_admin_private_key.sign_event(event)
             if self.post_event(event):
                 return event.id
         except:
@@ -452,15 +458,73 @@ class Birdwatcher:
                 badge_id_tag = badge_id + "-staging"
             else:
                 badge_id_tag = badge_id
-            event = Event(kind=8, content="", tags=[['a', f"30009:{self.private_key.public_key.hex()}:{badge_id_tag}"], ['p', pubkey]])
-            self.private_key.sign_event(event)
+            event = Event(kind=8, content="", tags=[['a', f"30009:{self.site_admin_private_key.public_key.hex()}:{badge_id_tag}"], ['p', pubkey]])
+            self.site_admin_private_key.sign_event(event)
             if self.post_event(event):
                 return event.id
         except:
             app.logger.exception(f"Error publishing badge award via birdwatcher!")
 
+class MockingBirdwatcher:
+    def add_relay(self, relay_url):
+        app.logger.info(f"add_relay url={relay_url}")
+        return True
+
+    def send_dm(self, sender_private_key, recipient_public_key, body):
+        app.logger.info(f"from={sender_private_key.hex()} to={recipient_public_key} {body=}")
+        return hash_create(4)
+
+    def publish_stall(self, merchant):
+        stall_json = merchant.to_nostr_stall()
+        app.logger.info(f"publish_stall id={stall_json['id']} name={stall_json['name']}")
+        return hash_create(4)
+
+    def delete_stall(self, merchant):
+        app.logger.info(f"delete_stall {merchant.stall_nostr_event_id}")
+        return hash_create(4)
+
+    def publish_product(self, entity, extra_media=None):
+        product_json = entity.to_nostr(extra_media)
+        app.logger.info(f"publish_product name={product_json['name']}")
+        return hash_create(4)
+
+    def delete_product(self, entity):
+        app.logger.info(f"delete_product {entity.nostr_event_id}")
+        return hash_create(4)
+
+    def publish_bid_status(self, _auction, bid_event_id, status, *_, **__):
+        app.logger.info(f"publish_bid_status {bid_event_id=} {status=}")
+        return hash_create(4)
+
+    def publish_badge_definition(self, badge_id, *_, **__):
+        app.logger.info(f"publish_badge_definition {badge_id=}")
+        return hash_create(4)
+
+    def publish_badge_award(self, badge_id, pubkey):
+        app.logger.info(f"publish_badge_award {badge_id=} {pubkey=}")
+        return hash_create(4)
+
 def get_birdwatcher():
-    return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
+    if app.config['ENV'] in ('staging', 'prod'):
+        return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
+    else:
+        return MockingBirdwatcher()
+
+def get_site_admin_config():
+    if app.config['ENV'] in ('staging', 'prod'):
+        with open(app.config['SITE_ADMIN_SECRETS']) as f:
+            site_admin = json.load(f)
+            return {
+                'nostr_private_key': PrivateKey.from_nsec(site_admin['NSEC']),
+                'wallet_xpub': site_admin['XPUB'],
+                'lightning_address': site_admin['LIGHTNING_ADDRESS'],
+            }
+    else:
+        return {
+            'nostr_private_key': PrivateKey(bytes.fromhex("6441b05cc2b810d9d974d9c1308caa555d2beab7994ed10d9e37e945e6477714")),
+            'wallet_xpub': "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz",
+            'lightning_address': "ibz@stacker.news",
+        }
 
 class MockS3:
     def get_url_prefix(self):
@@ -513,33 +577,6 @@ def get_mail():
         return MockMail()
     else:
         return Mail()
-
-if __name__ == '__main__':
-    import lnurl
-    try:
-        lnurl.encode(app.config['API_BASE_URL'])
-    except lnurl.exceptions.InvalidUrl:
-        # HACK: allow URLs with http:// and no TLD in development mode (http://localhost)
-        from pydantic import AnyHttpUrl
-        class ClearnetUrl(AnyHttpUrl):
-            pass
-        app.logger.warning("Patching lnurl.types.ClearnetUrl!")
-        lnurl.types.ClearnetUrl = ClearnetUrl
-        lnurl.encode(app.config['API_BASE_URL']) # try parsing again to check that the patch worked
-
-    @app.route("/mock-s3-files/<string:filename>", methods=['GET'])
-    def mock_s3(filename):
-        app.logger.info(f"Fetch {filename} from MockS3!")
-        with open(f"/tmp/{filename}", "rb") as f:
-            data = f.read()
-            return send_file(io.BytesIO(data), mimetype=magic.from_buffer(data, mime=True))
-
-    app.run(host='0.0.0.0', port=5000, debug=True)
-else:
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
-
 
 @app.cli.command("lnauth")
 @click.argument("lnkey", type=click.STRING)
@@ -603,3 +640,115 @@ def award_badge_tester(pubkey):
 
     if not birdwatcher.publish_badge_award(badge_def['badge_id'], pubkey):
         click.echo("Failed to publish badge award!")
+
+@app.cli.command("configure-site")
+@with_appcontext
+def configure_site_cmd():
+    configure_site()
+
+def configure_site():
+    badge_def = app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']
+    site_admin_config = get_site_admin_config()
+    birdwatcher = get_birdwatcher()
+    site_admin = m.User.query.filter_by(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex()).first()
+    if site_admin is None:
+        site_admin = m.User(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex(),
+                            wallet=site_admin_config['wallet_xpub'],
+                            lightning_address=site_admin_config['lightning_address'],
+                            stall_name=app.config['SITE_NAME'])
+        site_admin.ensure_merchant_key()
+        db.session.add(site_admin)
+        db.session.commit() # this generates the stall ID
+    else:
+        app.logger.info("Found site admin user!")
+
+    if site_admin.stall_nostr_event_id is None:
+        app.logger.info("Publishing site admin stall...")
+        site_admin.stall_nostr_event_id = birdwatcher.publish_stall(site_admin)
+        if site_admin.stall_nostr_event_id is None:
+            app.logger.error("Error publishing stall to Nostr!")
+            return
+        app.logger.info(f"Published stall to Nostr! event_id={site_admin.stall_nostr_event_id}")
+    else:
+        app.logger.info("Found Nostr stall!")
+
+    db.session.commit()
+
+    image_response = requests.get(badge_def['image_url'])
+    if image_response.status_code != 200:
+        app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
+        return
+    image_data = image_response.content
+    sha = hashlib.sha256()
+    sha.update(image_data)
+    image_hash = sha.hexdigest()
+
+    badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
+    if badge_listing is None:
+        badge_item = m.Item(seller=site_admin, title=badge_def['name'], description=badge_def['description'])
+        db.session.add(badge_item)
+        db.session.commit()
+
+        badge_media = m.Media(item_id=badge_item.id, index=0, url=badge_def['image_url'], content_hash=image_hash)
+        db.session.add(badge_media)
+        db.session.commit()
+
+        badge_listing = m.Listing(item=badge_item, key=badge_def['badge_id'], available_quantity=21000000, price_usd=badge_def['price_usd'])
+        db.session.add(badge_listing)
+        db.session.commit() # this generates the UUID!
+    else:
+        app.logger.info("Found badge listing!")
+
+    if badge_listing.nostr_event_id is None:
+        badge_listing.nostr_event_id = birdwatcher.publish_product(badge_listing)
+        if badge_listing.nostr_event_id is None:
+            app.logger.error("Error publishing badge listing to Nostr!")
+            return
+        app.logger.info(f"Published badge listing to Nostr! event_id={badge_listing.nostr_event_id}")
+    else:
+        app.logger.info("Found Nostr badge listing!")
+
+    db.session.commit()
+
+    badge = m.Badge.query.filter_by(badge_id=badge_def['badge_id']).first()
+    if badge is None:
+        badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
+        badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
+        if badge.nostr_event_id is None:
+            app.logger.error("Failed to publish badge definition!")
+            return
+        db.session.add(badge)
+        db.session.commit()
+        app.logger.info(f"Published badge definition to Nostr! event_id={badge.nostr_event_id}")
+    else:
+        app.logger.info("Found badge!")
+
+if __name__ == '__main__': # dev / test
+    import lnurl
+    try:
+        lnurl.encode(app.config['API_BASE_URL'])
+    except lnurl.exceptions.InvalidUrl:
+        # HACK: allow URLs with http:// and no TLD in development mode (http://localhost)
+        from pydantic import AnyHttpUrl
+        class ClearnetUrl(AnyHttpUrl):
+            pass
+        app.logger.warning("Patching lnurl.types.ClearnetUrl!")
+        lnurl.types.ClearnetUrl = ClearnetUrl
+        lnurl.encode(app.config['API_BASE_URL']) # try parsing again to check that the patch worked
+
+    with app.app_context():
+        if m.User.query.filter_by(nostr_public_key=get_site_admin_config()['nostr_private_key'].public_key.hex()).first() is None:
+            configure_site()
+
+    @app.route("/mock-s3-files/<string:filename>", methods=['GET'])
+    def mock_s3(filename):
+        app.logger.info(f"Fetch {filename} from MockS3!")
+        with open(f"/tmp/{filename}", "rb") as f:
+            data = f.read()
+            return send_file(io.BytesIO(data), mimetype=magic.from_buffer(data, mime=True))
+
+    app.run(host='0.0.0.0', port=5000, debug=True)
+else: # staging / prod
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)

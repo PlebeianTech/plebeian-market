@@ -145,6 +145,8 @@ class User(WalletMixin, db.Model):
 
     @property
     def identity(self):
+        if self.id is None:
+            raise ValueError()
         sha = hashlib.sha256()
         sha.update((str(self.id) + app.config['SECRET_KEY']).encode('UTF-8'))
         return sha.hexdigest()
@@ -221,10 +223,6 @@ class User(WalletMixin, db.Model):
         setattr(self, f'{account}_verification_phrase_check_counter', 0)
         setattr(self, f'{account}_verification_phrase_sent_at', None)
 
-    @property
-    def is_moderator(self):
-        return (self.id in app.config['MODERATOR_USER_IDS']) or ('ALL' in app.config['MODERATOR_USER_IDS'])
-
     contribution_percent = db.Column(db.Float, nullable=True)
 
     campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
@@ -250,7 +248,7 @@ class User(WalletMixin, db.Model):
             'currency': self.stall_currency,
             'shipping': [
                 {
-                    'id': hashlib.sha256(self.shipping_from.encode('utf-8')).hexdigest(),
+                    'id': hashlib.sha256((self.shipping_from or "").encode('utf-8')).hexdigest(),
                     'cost': self.shipping_domestic_usd,
                     'regions': [self.shipping_from],
                 },
@@ -860,6 +858,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     starting_bid = db.Column(db.Integer, nullable=False)
     reserve_bid = db.Column(db.Integer, nullable=False)
 
+    skin_in_the_game_required = db.Column(db.Boolean, nullable=False, default=False)
+
     twitter_id = db.Column(db.String(32), nullable=True)
 
     # None: winner not decided yet; True: winner was decided; False: nobody won
@@ -908,7 +908,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             extra_media = []
         return {
             'id': str(self.uuid),
-            'stall_id': self.item.seller.identity,
+            'stall_id': self.item.seller.stall_id,
             'name': self.item.title,
             'description': self.item.description,
             'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
@@ -1086,7 +1086,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             extra_media = []
         return {
             'id': str(self.uuid),
-            'stall_id': self.item.seller.identity,
+            'stall_id': self.item.seller.stall_id,
             'name': self.item.title,
             'description': self.item.description,
             'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
@@ -1299,9 +1299,9 @@ class Order(db.Model):
 
         return 24 * 60
 
-    def has_skin_in_the_game_donation_items(self):
+    def has_skin_in_the_game_badge(self):
         for order_item in self.order_items:
-            if order_item.item.seller.stall_id in app.config['SKIN_IN_THE_GAME_DONATION_STALL_IDS']:
+            if order_item.listing_id is not None and order_item.listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']:
                 return True
 
     def to_dict(self):

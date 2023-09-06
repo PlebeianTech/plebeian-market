@@ -39,6 +39,7 @@ API_BASE_URL_EXTERNAL = os.environ.get('API_BASE_URL_EXTERNAL') # used to mock S
 BIRDWATCHER_BASE_URL = os.environ.get('BIRDWATCHER_BASE_URL')
 WWW_BASE_URL = os.environ.get('WWW_BASE_URL')
 DOMAIN_NAME = "plebeian.market"
+SITE_NAME = "Plebeian Market"
 
 LNAUTH_EXPIRE_MINUTES = 120
 JWT_EXPIRE_DAYS = 420
@@ -61,7 +62,6 @@ MINIMUM_CONTRIBUTION_AMOUNT = 21
 CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.svelte
 
 MOCK_NOSTR = bool(int(os.environ.get("MOCK_NOSTR", 0)))
-NOSTR_SECRETS = "/secrets/nostr.json"
 DEFAULT_NOSTR_RELAYS = [
     "wss://relay.damus.io",
     "wss://relay.nostr.bg",
@@ -85,18 +85,21 @@ S3_BUCKET = 'plebeian-market'
 S3_FILENAME_PREFIX = os.environ.get('S3_FILENAME_PREFIX', "")
 S3_URL_PREFIX = f"https://f004.backblazeb2.com/file/{S3_BUCKET}/"
 
-MODERATOR_USER_IDS = [(int(i) if i.isnumeric() else i) for i in os.environ.get('MODERATOR_USER_IDS', "1").split(',')]
-
 SATS_IN_BTC = 100000000
 
+SITE_ADMIN_SECRETS = "/secrets/site-admin.json"
+
 BADGE_DEFINITION_TESTER = {
-    'badge_id': "tester",
-    'name': "Chief tester",
-    'description': "Helped us testing",
+    'badge_id': "pm-tester",
+    'name': f"{SITE_NAME} Chief tester",
+    'description': f"Helped testing {SITE_NAME}",
     'image_url': f"{WWW_BASE_URL}/badges/tester.png"
 }
 
-SKIN_IN_THE_GAME_THRESHOLDS = [
-    {'bid_amount_usd': 1000.0, 'required_amount_spent_usd': 50.0},
-]
-SKIN_IN_THE_GAME_DONATION_STALL_IDS = os.environ.get('SKIN_IN_THE_GAME_DONATION_STALL_IDS', "").split(",")
+BADGE_DEFINITION_SKIN_IN_THE_GAME = {
+    'badge_id': "pm-sitg",
+    'name': f"{SITE_NAME} Skin in the Game",
+    'description': f"Made a monetary contribution to {SITE_NAME}",
+    'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
+    'price_usd': 0.21 if ENV == 'staging' else 21,
+}
