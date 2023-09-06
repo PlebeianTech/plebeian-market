@@ -800,7 +800,7 @@ def post_merchant_message(pubkey):
             except Exception:
                 return jsonify({'message': "Error fetching the exchange rate!"}), 500
 
-            shipping_domestic_id = sha256(merchant.shipping_from.encode('utf-8')).hexdigest() if merchant.shipping_from else None
+            shipping_domestic_id = sha256(merchant.shipping_from.encode('utf-8')).hexdigest() if merchant.shipping_from else ""
 
             shipping_usd = None
             shipping_id = cleartext_content['shipping_id']

@@ -693,7 +693,7 @@ def configure_site():
         db.session.add(badge_media)
         db.session.commit()
 
-        badge_listing = m.Listing(item=badge_item, key=badge_def['badge_id'], available_quantity=21000000, price_usd=badge_def['price_usd'])
+        badge_listing = m.Listing(item=badge_item, key=badge_def['badge_id'], available_quantity=21000000, price_usd=badge_def['price_usd'], start_date=datetime.utcnow())
         db.session.add(badge_listing)
         db.session.commit() # this generates the UUID!
     else:
