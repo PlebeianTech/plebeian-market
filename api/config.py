@@ -91,15 +91,15 @@ SITE_ADMIN_SECRETS = "/secrets/site-admin.json"
 
 BADGE_DEFINITION_TESTER = {
     'badge_id': "pm-tester",
-    'name': "Chief tester",
-    'description': "Helped us testing",
+    'name': f"{SITE_NAME} Chief tester",
+    'description': f"Helped testing {SITE_NAME}",
     'image_url': f"{WWW_BASE_URL}/badges/tester.png"
 }
 
 BADGE_DEFINITION_SKIN_IN_THE_GAME = {
     'badge_id': "pm-sitg",
-    'name': "Skin in the Game",
-    'description': "Made a monetary contribution to Plebeian Market",
+    'name': f"{SITE_NAME} Skin in the Game",
+    'description': f"Made a monetary contribution to {SITE_NAME}",
     'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
     'price_usd': 0.21 if ENV == 'staging' else 21,
 }
