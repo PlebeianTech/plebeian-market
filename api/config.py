@@ -90,14 +90,14 @@ SATS_IN_BTC = 100000000
 SITE_ADMIN_SECRETS = "/secrets/site-admin.json"
 
 BADGE_DEFINITION_TESTER = {
-    'badge_id': "tester",
+    'badge_id': "pm-tester",
     'name': "Chief tester",
     'description': "Helped us testing",
     'image_url': f"{WWW_BASE_URL}/badges/tester.png"
 }
 
 BADGE_DEFINITION_SKIN_IN_THE_GAME = {
-    'badge_id': "skin-in-the-game",
+    'badge_id': "pm-sitg",
     'name': "Skin in the Game",
     'description': "Made a monetary contribution to Plebeian Market",
     'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
