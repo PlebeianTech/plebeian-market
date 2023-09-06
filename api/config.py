@@ -101,5 +101,5 @@ BADGE_DEFINITION_SKIN_IN_THE_GAME = {
     'name': "Skin in the Game",
     'description': "Made a monetary contribution to Plebeian Market",
     'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
-    'price_usd': 21,
+    'price_usd': 0.21 if ENV == 'staging' else 21,
 }
