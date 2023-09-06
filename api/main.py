@@ -650,56 +650,78 @@ def configure_site():
     badge_def = app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']
     site_admin_config = get_site_admin_config()
     birdwatcher = get_birdwatcher()
-    site_admin = m.User(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex(),
-                        wallet=site_admin_config['wallet_xpub'],
-                        lightning_address=site_admin_config['lightning_address'],
-                        stall_name=app.config['SITE_NAME'])
-    site_admin.ensure_merchant_key()
-    app.logger.info("Publishing site admin stall...")
-    site_admin.stall_nostr_event_id = birdwatcher.publish_stall(site_admin)
-    if not site_admin.stall_nostr_event_id:
-        app.logger.error("Error publishing stall to Nostr!")
-        return
-    app.logger.info("Saving site admin to DB...")
-    db.session.add(site_admin)
-    db.session.commit()
-    app.logger.info(f"Published stall to Nostr! event_id={site_admin.stall_nostr_event_id}")
+    site_admin = m.User.query.filter_by(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex()).first()
+    if site_admin is None:
+        site_admin = m.User(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex(),
+                            wallet=site_admin_config['wallet_xpub'],
+                            lightning_address=site_admin_config['lightning_address'],
+                            stall_name=app.config['SITE_NAME'])
+        site_admin.ensure_merchant_key()
+        db.session.add(site_admin)
+    else:
+        app.logger.info("Found site admin user!")
 
-    badge_item = m.Item(seller_id=site_admin.id, title=badge_def['name'], description=badge_def['description'])
-    db.session.add(badge_item)
-    db.session.commit()
+    if site_admin.stall_nostr_event_id is None:
+        app.logger.info("Publishing site admin stall...")
+        site_admin.stall_nostr_event_id = birdwatcher.publish_stall(site_admin)
+        if site_admin.stall_nostr_event_id is None:
+            app.logger.error("Error publishing stall to Nostr!")
+            return
+        app.logger.info(f"Published stall to Nostr! event_id={site_admin.stall_nostr_event_id}")
+    else:
+        app.logger.info("Found Nostr stall!")
 
-    image_response = requests.get(badge_def['image_url'])
-    if image_response.status_code != 200:
-        app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
-        return
-    image_data = image_response.content
-    sha = hashlib.sha256()
-    sha.update(image_data)
-    image_hash = sha.hexdigest()
-
-    badge_media = m.Media(item_id=badge_item.id, index=0, url=badge_def['image_url'], content_hash=image_hash)
-    db.session.add(badge_media)
+    app.logger.info("Saving site admin to DB...")    
     db.session.commit()
 
-    badge_listing = m.Listing(key=badge_def['badge_id'], available_quantity=-1, price_usd=badge_def['price_usd'])
-    badge_listing.item_id = badge_item.id
-    badge_listing.nostr_event_id = birdwatcher.publish_product(badge_listing)
-    if not badge_listing.nostr_event_id:
-        app.logger.error("Error publishing badge listing to Nostr!")
-        return
-    db.session.add(badge_listing)
-    db.session.commit()
-    app.logger.info(f"Published badge listing to Nostr! event_id={badge_listing.nostr_event_id}")
+    badge_listing = m.Listing.query.filter(m.Listing.key == badge_def['badge_id'] & m.Item.seller_id == site_admin.id).first()
+    if badge_listing is None:
+        badge_item = m.Item(seller=site_admin, title=badge_def['name'], description=badge_def['description'])
+        db.session.add(badge_item)
+        db.session.commit()
 
-    badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
-    badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
-    if badge.nostr_event_id is None:
-        app.logger.error("Failed to publish badge definition!")
-        return
-    db.session.add(badge)
+        image_response = requests.get(badge_def['image_url'])
+        if image_response.status_code != 200:
+            app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
+            return
+        image_data = image_response.content
+        sha = hashlib.sha256()
+        sha.update(image_data)
+        image_hash = sha.hexdigest()
+
+        badge_media = m.Media(item_id=badge_item.id, index=0, url=badge_def['image_url'], content_hash=image_hash)
+        db.session.add(badge_media)
+        db.session.commit()
+
+        badge_listing = m.Listing(item=badge_item, key=badge_def['badge_id'], available_quantity=-1, price_usd=badge_def['price_usd'])
+        db.session.add(badge_listing)
+    else:
+        app.logger.info("Found badge listing!")
+
+    if badge_listing.nostr_event_id is None:
+        badge_listing.nostr_event_id = birdwatcher.publish_product(badge_listing)
+        if badge_listing.nostr_event_id is None:
+            app.logger.error("Error publishing badge listing to Nostr!")
+            return
+        app.logger.info(f"Published badge listing to Nostr! event_id={badge_listing.nostr_event_id}")
+    else:
+        app.logger.info("Found Nostr badge listing!")
+
+    app.logger.info("Saving badge listing to DB...")
     db.session.commit()
-    app.logger.info(f"Published badge definition to Nostr! event_id={badge.nostr_event_id}")
+
+    badge = m.Badge.query.filter(badge_id=badge_def['badge_id']).first()
+    if badge is None:
+        badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
+        badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
+        if badge.nostr_event_id is None:
+            app.logger.error("Failed to publish badge definition!")
+            return
+        db.session.add(badge)
+        db.session.commit()
+        app.logger.info(f"Published badge definition to Nostr! event_id={badge.nostr_event_id}")
+    else:
+        app.logger.info("Found badge!")
 
 if __name__ == '__main__': # dev / test
     import lnurl
