@@ -695,6 +695,7 @@ def configure_site():
 
         badge_listing = m.Listing(item=badge_item, key=badge_def['badge_id'], available_quantity=-1, price_usd=badge_def['price_usd'])
         db.session.add(badge_listing)
+        db.session.commit() # this generates the UUID!
     else:
         app.logger.info("Found badge listing!")
 
