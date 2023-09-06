@@ -710,7 +710,7 @@ def configure_site():
     app.logger.info("Saving badge listing to DB...")
     db.session.commit()
 
-    badge = m.Badge.query.filter(badge_id=badge_def['badge_id']).first()
+    badge = m.Badge.query.filter_by(badge_id=badge_def['badge_id']).first()
     if badge is None:
         badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
         badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
