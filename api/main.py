@@ -674,20 +674,20 @@ def configure_site():
     app.logger.info("Saving site admin to DB...")    
     db.session.commit()
 
+    image_response = requests.get(badge_def['image_url'])
+    if image_response.status_code != 200:
+        app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
+        return
+    image_data = image_response.content
+    sha = hashlib.sha256()
+    sha.update(image_data)
+    image_hash = sha.hexdigest()
+
     badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
     if badge_listing is None:
         badge_item = m.Item(seller=site_admin, title=badge_def['name'], description=badge_def['description'])
         db.session.add(badge_item)
         db.session.commit()
-
-        image_response = requests.get(badge_def['image_url'])
-        if image_response.status_code != 200:
-            app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
-            return
-        image_data = image_response.content
-        sha = hashlib.sha256()
-        sha.update(image_data)
-        image_hash = sha.hexdigest()
 
         badge_media = m.Media(item_id=badge_item.id, index=0, url=badge_def['image_url'], content_hash=image_hash)
         db.session.add(badge_media)
