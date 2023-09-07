@@ -258,12 +258,22 @@ export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB 
         }
 
         let decryptedContent;
-        if (hasExtension()) {
-            decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
+        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
+            try {
+                decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
+            } catch (error) {
+                console.error("getPrivateMessages - Error decrypting a private message with the Nostr extension.");
+                return false;
+            }
         } else {
             let privateKey = get(NostrPrivateKey);
             if (privateKey) {
-                decryptedContent = await nip04.decrypt(privateKey, decryptPubkey, content);
+                try {
+                    decryptedContent = await nip04.decrypt(privateKey, decryptPubkey, content);
+                } catch (error) {
+                    console.error("getPrivateMessages - Error decrypting a private message with the private key.");
+                    return false;
+                }
             } else {
                 return false;
             }
