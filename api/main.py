@@ -239,6 +239,9 @@ def settle_btc_payments():
                         app.logger.error("Failed to publish Skin in the Game badge award!")
                     else:
                         app.logger.info(f"Awarded Skin in the Game badge for {order.buyer_public_key}!")
+                        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                            json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': True, 'message': "Skin in the Game badge awarded!"})):
+                            app.logger.error("Error sending Nostr reply to the buyer.")
                         for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
                             app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired the Skin in the Game badge!")
                             pending_bid.settled_at = datetime.utcnow()
