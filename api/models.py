@@ -241,23 +241,16 @@ class User(WalletMixin, db.Model):
         return [{'url': ur.relay.url} for ur in UserRelay.query.filter_by(user_id=self.id).all()]
 
     def to_nostr_stall(self):
+        shipping = [{'id': 'WORLD', 'cost': self.shipping_worldwide_usd, 'regions': ["Worldwide"]}]
+        if self.shipping_from and self.shipping_domestic_usd != self.shipping_worldwide_usd:
+            domestic_shipping_zone_id = hashlib.sha256(self.shipping_from.encode('utf-8')).hexdigest()
+            shipping += [{'id': domestic_shipping_zone_id, 'cost': self.shipping_domestic_usd, 'regions': [self.shipping_from]}]
         return {
             'id': self.stall_id,
             'name': self.stall_name,
             'description': self.stall_description,
             'currency': self.stall_currency,
-            'shipping': [
-                {
-                    'id': hashlib.sha256((self.shipping_from or "").encode('utf-8')).hexdigest(),
-                    'cost': self.shipping_domestic_usd,
-                    'regions': [self.shipping_from],
-                },
-                {
-                    'id': 'WORLD',
-                    'cost': self.shipping_worldwide_usd,
-                    'regions': ["Worldwide"],
-                },
-            ]
+            'shipping': shipping,
         }
 
     def to_dict(self, for_user=None):
