@@ -344,6 +344,21 @@ export function getBadgeDefinitions(badgeName: string, author: string, receivedC
             }])
         .on('event', receivedCB);
 }
+
+export async function nostrAcceptBadge(newProfileBadgeTags, successCB: () => void) {
+    if (newProfileBadgeTags.length < 3) {
+        console.error('Tags for Accepted badges for the profile must have at least 3 tags if you just added one');
+        return;
+    }
+
+    const event = await createEvent(
+        EVENT_KIND_PROFILE_BADGES,
+        '',
+        newProfileBadgeTags
+    );
+    get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Arbitrary custom app data (nip-78)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
