@@ -11,6 +11,8 @@ RUN cd /web/frontoffice \
  && npm install \
  && npm run build$BUILD_MODE
 
+RUN mv /web/frontoffice/static/config-pm.json /web/frontoffice/static/config.json
+
 RUN cd /web/backoffice \
  && npm install \
  && npm run build$BUILD_MODE
