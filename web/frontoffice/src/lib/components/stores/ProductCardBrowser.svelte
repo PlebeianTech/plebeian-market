@@ -56,7 +56,7 @@
 
         let config = await getConfigurationFromFile();
 
-        if (config && config.admin_pubkey.length === 64) {
+        if (config && config.admin_pubkeys.length > 0) {
             // admin pubkey specified, so let's wait
             // to give some time for the homepage setup
             // to get here from Nostr relays...

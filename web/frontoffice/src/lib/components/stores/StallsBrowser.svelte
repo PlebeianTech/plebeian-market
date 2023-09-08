@@ -96,7 +96,7 @@
         refreshStalls();
 
         let config = await getConfigurationFromFile();
-        if (config && config.admin_pubkey.length === 64 && $NostrPublicKey === config.admin_pubkey) {
+        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
             isSuperAdmin = true;
         }
     });
