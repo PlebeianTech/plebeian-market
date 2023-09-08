@@ -32,6 +32,7 @@ if bool(int(os.environ.get("SQLALCHEMY_DISABLE_POOLING", 0))):
     from sqlalchemy.pool import NullPool
     SQLALCHEMY_ENGINE_OPTIONS = {'poolclass': NullPool}
 
+APP = os.environ.get('APP')
 ENV = os.environ.get('ENV')
 
 API_BASE_URL = os.environ.get('API_BASE_URL')
@@ -93,7 +94,7 @@ BADGE_DEFINITION_TESTER = {
     'badge_id': "pm-tester",
     'name': f"{SITE_NAME} Chief tester",
     'description': f"Helped testing {SITE_NAME}",
-    'image_url': f"{WWW_BASE_URL}/badges/tester.png"
+    'image_url': f"{WWW_BASE_URL}/badges/tester.png",
 }
 
 BADGE_DEFINITION_SKIN_IN_THE_GAME = {

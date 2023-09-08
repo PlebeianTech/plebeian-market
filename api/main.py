@@ -1,3 +1,4 @@
+import base64
 import boto3
 from botocore.config import Config
 import click
@@ -300,11 +301,11 @@ def user_required(f):
 
 class MockBTCClient:
     def get_funding_txs(self, addr):
-        sale = db.session.query(m.Sale).filter(m.Sale.address == addr).first()
-        if sale:
-            confirmed = sale.txid is not None
+        order = db.session.query(m.Order).filter(m.Order.on_chain_address == addr).first()
+        if order:
+            confirmed = order.txid is not None
             block_time = datetime.utcnow() - timedelta(seconds=5) if confirmed else None
-            return [{'txid': 'MOCK_TXID', 'value': sale.amount + sale.shipping_domestic + int(sale.shipping_domestic / 100), 'confirmed': confirmed, 'block_time': block_time}]
+            return [{'txid': 'MOCK_TXID', 'value': order.total, 'confirmed': confirmed, 'block_time': block_time}]
         else:
             return []
 
@@ -677,14 +678,17 @@ def configure_site():
 
     db.session.commit()
 
-    image_response = requests.get(badge_def['image_url'])
-    if image_response.status_code != 200:
-        app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
-        return
-    image_data = image_response.content
-    sha = hashlib.sha256()
-    sha.update(image_data)
-    image_hash = sha.hexdigest()
+    if app.config['ENV'] == 'test':
+        image_hash = hash_create(4)
+    else:
+        image_response = requests.get(badge_def['image_url'])
+        if image_response.status_code != 200:
+            app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
+            return
+        image_data = image_response.content
+        sha = hashlib.sha256()
+        sha.update(image_data)
+        image_hash = sha.hexdigest()
 
     badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
     if badge_listing is None:
@@ -739,16 +743,17 @@ if __name__ == '__main__': # dev / test
         lnurl.types.ClearnetUrl = ClearnetUrl
         lnurl.encode(app.config['API_BASE_URL']) # try parsing again to check that the patch worked
 
-    with app.app_context():
-        if m.User.query.filter_by(nostr_public_key=get_site_admin_config()['nostr_private_key'].public_key.hex()).first() is None:
-            configure_site()
-
     @app.route("/mock-s3-files/<string:filename>", methods=['GET'])
     def mock_s3(filename):
         app.logger.info(f"Fetch {filename} from MockS3!")
         with open(f"/tmp/{filename}", "rb") as f:
             data = f.read()
             return send_file(io.BytesIO(data), mimetype=magic.from_buffer(data, mime=True))
+
+    if app.config['APP'] == 'api':
+        with app.app_context():
+            app.logger.info("Configuring the site!")
+            configure_site()
 
     app.run(host='0.0.0.0', port=5000, debug=True)
 else: # staging / prod

@@ -936,6 +936,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'description': self.item.description,
             'category': self.item.category,
             'duration_hours': self.duration_hours,
+            'skin_in_the_game_required': self.skin_in_the_game_required,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
@@ -1021,6 +1022,13 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         if 'start_date' in validated and 'duration_hours' in validated:
             validated['end_date'] = validated['start_date'] + timedelta(hours=validated['duration_hours'])
+        for k in ['skin_in_the_game_required']:
+            if k not in d:
+                continue
+            try:
+                validated[k] = bool(int(d[k]))
+            except (ValueError, TypeError):
+                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
 class Listing(GeneratedKeyMixin, StateMixin, db.Model):

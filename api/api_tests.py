@@ -622,7 +622,8 @@ class TestApi(unittest.TestCase):
              'extra_shipping_domestic_usd': 5,
              'extra_shipping_worldwide_usd': 10,
              'starting_bid': 10,
-             'reserve_bid': 10},
+             'reserve_bid': 69420,
+             'skin_in_the_game_required': True},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
         self.assertIn('auction', response)
@@ -762,21 +763,61 @@ class TestApi(unittest.TestCase):
 
         token_3 = self.nostr_auth(PrivateKey())
 
-        # place a bid
-        code, response = self.post(f"/api/merchants/{auction_merchant_public_key}/auctions/{auction_after_edit_nostr_event_id}/bids", signed_event_json)
-        self.assertEqual(code, 200)
-
-        # cannot place a huge bid
-        """
-        above_threshold_usd = app.config['SKIN_IN_THE_GAME_THRESHOLDS'][0]['bid_amount_usd'] + 1
-        above_threshold_sats = int(ONE_DOLLAR_SATS * above_threshold_usd)
+        # try to place bid > reserve price
+        above_threshold_sats = 69421
         huge_bid_event = Event(kind=BID_NOSTR_EVENT_KIND, content=str(above_threshold_sats))
         NOSTR_BUYER_PRIVATE_KEY.sign_event(huge_bid_event)
         signed_huge_event_json = json.loads(huge_bid_event.to_message())[1]
         code, response = self.post(f"/api/merchants/{auction_merchant_public_key}/auctions/{auction_after_edit_nostr_event_id}/bids", signed_huge_event_json)
-        self.assertEqual(code, 400)
-        self.assertIn("skin in the game", response['message'].lower())
-        """
+        self.assertEqual(code, 200)
+
+        # auction has no bids! (because Skin in the Game is required)
+        code, response = self.get(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 0)
+        self.assertIsNone(response['auction']['has_winner'])
+
+        # place a bid
+        code, response = self.post(f"/api/merchants/{auction_merchant_public_key}/auctions/{auction_after_edit_nostr_event_id}/bids", signed_event_json)
+        self.assertEqual(code, 200)
+
+        # auction has a bid!
+        code, response = self.get(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertIsNone(response['auction']['has_winner'])
+
+        # try to buy the badge
+        code, response = self.get(f"/api/listings/{app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']}")
+        self.assertEqual(code, 200)
+        site_admin_merchant_public_key = response['listing']['merchant_public_key']
+        badge_uuid = response['listing']['uuid']
+        badge_purchase_event_json = {
+            'type': 0,
+            'id': hash_create(4),
+            'name': "Сато́си Накамо́то",
+            'address': "7 Záhony u. Budapest, 1031 Hungary",
+            'contact': {'email': "satoshi@nakamo.to"},
+            'items': [{'product_id': badge_uuid, 'quantity': 1}],
+            'shipping_id': 'WORLD',
+        }
+        purchase_event = EncryptedDirectMessage(recipient_pubkey=site_admin_merchant_public_key, cleartext_content=json.dumps(badge_purchase_event_json))
+        NOSTR_BUYER_PRIVATE_KEY.sign_event(purchase_event)
+        signed_event_json = json.loads(purchase_event.to_message())[1]
+
+        # place the order for buying the badge
+        code, response = self.post(f"/api/merchants/{site_admin_merchant_public_key}/messages", signed_event_json)
+        self.assertEqual(code, 200)
+
+        time.sleep(5)
+
+        # auction has two bids now (because the big one was confirmed after the badge purchase)!
+        code, response = self.get(f"/api/auctions/{auction_key}",
+            headers=self.get_auth_headers(token_2))
+        self.assertEqual(code, 200)
+        self.assertEqual(len(response['auction']['bids']), 2)
 
         # cannot EDIT the auction anymore once it has a bid
         code, response = self.put(f"/api/auctions/{auction_key}",
@@ -790,13 +831,6 @@ class TestApi(unittest.TestCase):
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 403)
         self.assertIn("cannot edit auctions that already have bids", response['message'].lower())
-
-        # auction has a bid!
-        code, response = self.get(f"/api/auctions/{auction_key}",
-            headers=self.get_auth_headers(token_2))
-        self.assertEqual(code, 200)
-        self.assertEqual(len(response['auction']['bids']), 1)
-        self.assertIsNone(response['auction']['has_winner'])
 
         # can't place a bid lower than the previous one now
         lower_bid_event = Event(kind=BID_NOSTR_EVENT_KIND, content="777")
@@ -875,12 +909,12 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/api/auctions/{auction_key}",
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertEqual(len(response['auction']['bids']), 2)
         self.assertTrue(response['auction']['has_winner'])
 
         # another user can also see the auction has a winner
         code, response = self.get(f"/api/auctions/{auction_key}",
             headers=self.get_auth_headers(token_3))
         self.assertEqual(code, 200)
-        self.assertEqual(len(response['auction']['bids']), 1)
+        self.assertEqual(len(response['auction']['bids']), 2)
         self.assertTrue(response['auction']['has_winner'])

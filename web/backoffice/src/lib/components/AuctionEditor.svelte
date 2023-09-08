@@ -59,8 +59,8 @@
                     </label>
                     <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48" placeholder={auction.descriptionPlaceholder}></textarea>
                 </div>
-                <div class="flex mt-3">
-                    <div class="form-control w-1/2 max-w-xs mr-1">
+                <div class="flex mt-3 gap-3">
+                    <div class="form-control w-1/3 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
                             <span class="label-text">Starting bid (optional)</span>
                         </label>
@@ -70,7 +70,7 @@
                             <span class="label-text-alt">sats</span>
                         </label>
                     </div>
-                    <div class="form-control w-1/2 max-w-xs ml-1">
+                    <div class="form-control w-1/3 max-w-xs ml-1">
                         <label class="label" for="reserve-bid">
                             <span class="label-text">Reserve bid (optional)</span>
                         </label>
@@ -79,6 +79,15 @@
                             <span class="label-text-alt"><AmountFormatter satsAmount={auction.reserve_bid} format={AmountFormat.Usd} /></span>
                             <span class="label-text-alt">sats</span>
                         </label>
+                    </div>
+                    <div class="form-control w-1/3 max-w-xs ml-1">
+                        <label class="label" for="reserve-bid">
+                            <span class="label-text">Skin in the Game required</span>
+                            <div class="tooltip tooltip-left" data-tip="Get extra protection by requiring bidders to purchase Skin in the Game for bids above the reserve price">
+                                <InfoIcon />
+                            </div>
+                        </label>
+                        <input bind:checked={auction.skin_in_the_game_required} type="checkbox" class="toggle toggle-lg" />
                     </div>
                 </div>
                 {#if (auction.key === null || auction.key === "")} <!-- duration -->

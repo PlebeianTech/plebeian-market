@@ -989,7 +989,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         return jsonify({'message': message}), 400
 
     is_settled = True
-    if auction.skin_in_the_game_required:
+    if auction.skin_in_the_game_required and amount > auction.reserve_bid:
         has_skin_in_the_game = False
         # TODO: optimize query - join tables
         for order in m.Order.query.filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).all():
