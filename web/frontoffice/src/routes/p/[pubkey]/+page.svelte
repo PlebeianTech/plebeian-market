@@ -29,6 +29,8 @@
     $: badgeDefinitions = new Map<string, object>();
     $: currentBadge = null;
 
+    $: profileBadgesLastEvent = null;
+
     $: externalIdentities = [];
 
     export function onImgError(image) {
@@ -36,25 +38,32 @@
         image.src = badgeImageFallback;
     }
 
-    function getBadgeDefinition(badge: object, isProfileBadge: boolean) {
-        filterTags(badge.tags, 'a').forEach(tagId => {
-            let badgeIDarray = tagId[1].split(':');
+    function getBadgeDefinition(badgeEvent: object, isProfileBadge: boolean) {
+        filterTags(badgeEvent.tags, 'a').forEach(tagId => {
+            const badgeFullName = tagId[1];
+            let badgeIDarray = badgeFullName.split(':');
             let badgeName: string = badgeIDarray[2];
             let badgeAuthor: string = badgeIDarray[1];
 
             getBadgeDefinitions(badgeName, badgeAuthor, (badgeDefinition) => {
                 // console.log('------- BadgeDefinition', badgeDefinition);
 
-                badgeDefinitions.set(badgeName, Object.fromEntries(badgeDefinition.tags));
+                let badgeObject = Object.fromEntries(badgeDefinition.tags);
+
+                badgeObject.badgeFullName = badgeFullName;
+                badgeObject.eventId = badgeEvent.id;        // Event ID from the "Badge Award"
+                badgeObject.accepted = isProfileBadge;
+
+                badgeDefinitions.set(badgeFullName, badgeObject);
 
                 if (isProfileBadge) {
-                    if (!badgesAccepted.includes(badgeName)) {
-                        badgesAccepted.push(badgeName);
+                    if (!badgesAccepted.includes(badgeFullName)) {
+                        badgesAccepted.push(badgeFullName);
                         badgesAccepted = badgesAccepted;
                     }
                 } else {
-                    if (!badgesAwarded.includes(badgeName)) {
-                        badgesAwarded.push(badgeName);
+                    if (!badgesAwarded.includes(badgeFullName)) {
+                        badgesAwarded.push(badgeFullName);
                         badgesAwarded = badgesAwarded;
                     }
                 }
@@ -116,12 +125,7 @@
                     if (profile === null || profile.created_at < profileMeta.created_at) {
                         profile = profileMeta;
 
-                        console.log('profileMeta',profileMeta);
-
                         filterTags(profile.tags, 'i').forEach(externalIdentity => {
-                            console.log('externalIdentity', externalIdentity);
-                            console.log('externalIdentity[1]', externalIdentity[1]);
-
                             const externalIdentityToken: string = externalIdentity[1] + ':' + externalIdentity[2];
 
                             if (!externalIdentities.includes(externalIdentityToken)) {
@@ -132,14 +136,15 @@
                     }
                 });
 
-            getProfileBadges(data.pubkey, (profileBadge) => {
-                // console.log('------- getProfileBadges', profileBadge);
-                getBadgeDefinition(profileBadge, true);
+            getProfileBadges(data.pubkey, (profileBadgeEvent) => {
+                if (profileBadgesLastEvent === null || profileBadgesLastEvent.created_at < profileBadgeEvent.created_at) {
+                    getBadgeDefinition(profileBadgeEvent, true);
+                    profileBadgesLastEvent = profileBadgeEvent;
+                }
             });
 
-            getBadgeAward(data.pubkey, (badgeAward) => {
-                // console.log('------- getBadgeAward', badgeAward);
-                getBadgeDefinition(badgeAward, false);
+            getBadgeAward(data.pubkey, (badgeAwardEvent) => {
+                getBadgeDefinition(badgeAwardEvent, false);
             });
         }
     });
@@ -209,7 +214,9 @@
         <!-- Accepted -->
         {#each badgesAccepted as badgeId}
             {#if badgeDefinitions.get(badgeId)}
-                <div class="tooltip tooltip-accent" data-tip="{badgeDefinitions.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                <div class="tooltip tooltip-accent"
+                     data-tip="{badgeDefinitions.get(badgeId).name}"
+                     on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
                     <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
                         {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
                             <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
@@ -225,8 +232,10 @@
         {#if data.pubkey === $NostrPublicKey}
             {#each badgesAwarded as badgeId}
                 {#if !badgesAccepted.includes(badgeId) && badgeDefinitions.get(badgeId)}
-                    <div class="tooltip tooltip-accent" data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}" on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
-                        <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-20 hover:opacity-80">
+                    <div class="tooltip tooltip-accent"
+                         data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}"
+                         on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                        <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-40 hover:opacity-80">
                             {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
                                 <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
                             {:else}
@@ -242,7 +251,7 @@
 
 <StallsBrowser merchantPubkey={data.pubkey} />
 
-<BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {onImgError}  />
+<BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {profileBadgesLastEvent} {onImgError}  />
 
 <!--
 <ResumeView pubkey={data.pubkey} />
