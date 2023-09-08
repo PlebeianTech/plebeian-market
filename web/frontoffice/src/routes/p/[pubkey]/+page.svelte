@@ -52,9 +52,14 @@
 
                 badgeObject.badgeFullName = badgeFullName;
                 badgeObject.eventId = badgeEvent.id;        // Event ID from the "Badge Award"
-                badgeObject.accepted = isProfileBadge;
 
-                badgeDefinitions.set(badgeFullName, badgeObject);
+                if (!badgeDefinitions.get(badgeFullName)) {
+                    if (isProfileBadge) {
+                        badgeObject.accepted = isProfileBadge;
+                    }
+
+                    badgeDefinitions.set(badgeFullName, badgeObject);
+                }
 
                 if (isProfileBadge) {
                     if (!badgesAccepted.includes(badgeFullName)) {
@@ -137,6 +142,7 @@
                 });
 
             getProfileBadges(data.pubkey, (profileBadgeEvent) => {
+                console.log('profileBadgeEvent',profileBadgeEvent);
                 if (profileBadgesLastEvent === null || profileBadgesLastEvent.created_at < profileBadgeEvent.created_at) {
                     getBadgeDefinition(profileBadgeEvent, true);
                     profileBadgesLastEvent = profileBadgeEvent;
@@ -144,6 +150,7 @@
             });
 
             getBadgeAward(data.pubkey, (badgeAwardEvent) => {
+                console.log('badgeAwardEvent',badgeAwardEvent);
                 getBadgeDefinition(badgeAwardEvent, false);
             });
         }
