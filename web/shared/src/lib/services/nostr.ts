@@ -374,13 +374,13 @@ export async function publishConfiguration(setup: object, tags, successCB: () =>
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export function subscribeConfiguration(pubkey: string, receivedCB: (setup: string, createdAt: number) => void) {
+export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: string, createdAt: number) => void) {
     let sub = get(NostrPool).sub(
         relayUrlList,
         [
             {
                 kinds: [EVENT_KIND_APP_SETUP],
-                authors: [pubkey],
+                authors: pubkeys,
                 '#p': [SITE_SPECIFIC_CONFIG_KEY],
             }
         ]

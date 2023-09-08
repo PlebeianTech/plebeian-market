@@ -30,8 +30,12 @@ Our vision of the future involves small communities around the world running the
 * (optional) Copy the file config-example.json to config.json:
   `cd web/frontoffice/build ; cp config-example.json config.json`
 
-* (optional) Edit the `config.json` file and add your Nostr public key to the `admin_pubkey` key:
-  ```"admin_pubkey": "1234567890",```
+* (optional) Edit the `config.json` file and add your Nostr public key to the `admin_pubkeys` array:
+  ```"admin_pubkeys": [
+      "123456789012345678901234567890",
+      "another_admin_nostr_public_key"
+  ]
+  ```
 
 * Copy the content of the `web/frontoffice/build` directory to your web server using your app of choice.
 

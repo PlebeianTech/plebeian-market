@@ -1,4 +1,6 @@
 {
-  "admin_pubkey": "",
+  "admin_pubkeys": [
+    ""
+  ],
   "homepage_banner_image": ""
 }

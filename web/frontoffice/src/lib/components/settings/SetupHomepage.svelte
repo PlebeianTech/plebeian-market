@@ -70,7 +70,7 @@
 
     onMount(async () => {
         let config = await getConfigurationFromFile();
-        if (config && $NostrPublicKey === config.admin_pubkey) {
+        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
             isSuperAdmin = true;
         }
 

@@ -65,8 +65,8 @@
 
         let config = await getConfigurationFromFile();
 
-        if (config && config.admin_pubkey.length === 64) {
-            subscribeConfiguration(config.admin_pubkey,
+        if (config && config.admin_pubkeys.length > 0) {
+            subscribeConfiguration(config.admin_pubkeys,
                 (setup, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;
