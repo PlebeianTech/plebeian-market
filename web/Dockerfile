@@ -4,6 +4,8 @@ ARG BUILD_MODE
 
 COPY ./web /web
 
+RUN mv /web/frontoffice/static/config-pm.json /web/frontoffice/static/config.json
+
 RUN cd /web/shared \
  && npm install
 

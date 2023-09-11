@@ -142,7 +142,6 @@
                 });
 
             getProfileBadges(data.pubkey, (profileBadgeEvent) => {
-                console.log('profileBadgeEvent',profileBadgeEvent);
                 if (profileBadgesLastEvent === null || profileBadgesLastEvent.created_at < profileBadgeEvent.created_at) {
                     getBadgeDefinition(profileBadgeEvent, true);
                     profileBadgesLastEvent = profileBadgeEvent;
@@ -150,7 +149,6 @@
             });
 
             getBadgeAward(data.pubkey, (badgeAwardEvent) => {
-                console.log('badgeAwardEvent',badgeAwardEvent);
                 getBadgeDefinition(badgeAwardEvent, false);
             });
         }
