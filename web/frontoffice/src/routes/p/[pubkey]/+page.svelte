@@ -31,6 +31,9 @@
 
     $: profileBadgesLastEvent = null;
 
+    $: pm_badges = false;
+    $: other_badges = false;
+
     $: externalIdentities = [];
 
     export function onImgError(image) {
@@ -52,6 +55,15 @@
 
                 badgeObject.badgeFullName = badgeFullName;
                 badgeObject.eventId = badgeEvent.id;        // Event ID from the "Badge Award"
+
+                if (badgeDefinition.pubkey === '76cc29acb8008c68b105cf655d34de0b1f7bc0215eaae6bbc83173d6d3f7b987') {
+                    badgeObject.pm_issued = true;
+                    pm_badges = true;
+                } else {
+                    badgeObject.pm_issued = false;
+                    other_badges = true;
+                }
+
 
                 if (!badgeDefinitions.get(badgeFullName)) {
                     if (isProfileBadge) {
@@ -210,37 +222,16 @@
 
 {#if badgesAccepted.length || (data.pubkey === $NostrPublicKey && badgesAwarded.length)}
     <div class="mt-1 pb-8 md:pb-10">
-        {#if data.pubkey === $NostrPublicKey}
-            <p class="text-md mb-1 font-bold">Your Badges</p>
-        {:else}
-            <p class="text-md mb-1 font-bold">Badges</p>
-        {/if}
+        {#if pm_badges}
+            <p class="text-md mb-1 font-bold">Plebeian Market badges</p>
 
-        <!-- Accepted -->
-        {#each badgesAccepted as badgeId}
-            {#if badgeDefinitions.get(badgeId)}
-                <div class="tooltip tooltip-accent"
-                     data-tip="{badgeDefinitions.get(badgeId).name}"
-                     on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
-                    <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
-                        {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
-                            <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                        {:else}
-                            <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                        {/if}
-                    </figure>
-                </div>
-            {/if}
-        {/each}
-
-        <!-- Awarded -->
-        {#if data.pubkey === $NostrPublicKey}
-            {#each badgesAwarded as badgeId}
-                {#if !badgesAccepted.includes(badgeId) && badgeDefinitions.get(badgeId)}
+            <!-- Accepted -->
+            {#each badgesAccepted as badgeId}
+                {#if badgeDefinitions.get(badgeId) && badgeDefinitions.get(badgeId).pm_issued}
                     <div class="tooltip tooltip-accent"
-                         data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}"
+                         data-tip="{badgeDefinitions.get(badgeId).name}"
                          on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
-                        <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-40 hover:opacity-80">
+                        <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
                             {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
                                 <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
                             {:else}
@@ -250,6 +241,69 @@
                     </div>
                 {/if}
             {/each}
+
+            <!-- Awarded -->
+            {#if data.pubkey === $NostrPublicKey}
+                {#each badgesAwarded as badgeId}
+                    {#if !badgesAccepted.includes(badgeId) && badgeDefinitions.get(badgeId).pm_issued && badgeDefinitions.get(badgeId)}
+                        <div class="tooltip tooltip-accent"
+                             data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}"
+                             on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                            <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-40 hover:opacity-80">
+                                {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                                    <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {:else}
+                                    <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {/if}
+                            </figure>
+                        </div>
+                    {/if}
+                {/each}
+            {/if}
+        {/if}
+
+        {#if other_badges}
+            {#if pm_badges}
+                <p class="text-md mb-1 font-bold">Other badges</p>
+            {:else}
+                <p class="text-md mb-1 font-bold">Badges</p>
+            {/if}
+
+            <!-- Accepted -->
+            {#each badgesAccepted as badgeId}
+                {#if badgeDefinitions.get(badgeId) && !badgeDefinitions.get(badgeId).pm_issued}
+                    <div class="tooltip tooltip-accent"
+                         data-tip="{badgeDefinitions.get(badgeId).name}"
+                         on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                        <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
+                            {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                                <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                            {:else}
+                                <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                            {/if}
+                        </figure>
+                    </div>
+                {/if}
+            {/each}
+
+            <!-- Awarded -->
+            {#if data.pubkey === $NostrPublicKey}
+                {#each badgesAwarded as badgeId}
+                    {#if !badgesAccepted.includes(badgeId) && !badgeDefinitions.get(badgeId).pm_issued && badgeDefinitions.get(badgeId)}
+                        <div class="tooltip tooltip-accent"
+                             data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}"
+                             on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                            <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-40 hover:opacity-80">
+                                {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                                    <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {:else}
+                                    <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {/if}
+                            </figure>
+                        </div>
+                    {/if}
+                {/each}
+            {/if}
         {/if}
     </div>
 {/if}
