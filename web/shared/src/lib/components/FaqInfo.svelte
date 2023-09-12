@@ -18,7 +18,7 @@
             <div class="collapse-title text-xl font-medium">General FAQ</div>
             <div class="collapse-content">
                 <div class="collapse collapse-plus bg-base-300">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         Do you take a percentage?
                     </div>
@@ -28,7 +28,7 @@
                 </div>
 
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         Is Plebeian Market open source?
                     </div>
@@ -38,7 +38,7 @@
                 </div>
 
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         What kind of software license is this project using?
                     </div>
@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         Where can I share my question or feedback?
                     </div>
@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         Plebeian?
                     </div>
@@ -68,7 +68,7 @@
                 </div>
 
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         Do you hold the funds in escrow?
                     </div>
@@ -79,12 +79,12 @@
             </div>
         </div>
 
-        <div class="collapse {role === 'buyer' ? 'todo_delete_this_collapse-open' : ''}">
-            <input type="checkbox" />
+        <div class="collapse">
+            <input type="checkbox" checked={role === 'buyer'} />
             <div class="collapse-title text-xl font-medium">Buyer FAQ</div>
             <div class="collapse-content">
                 <div class="collapse collapse-plus bg-base-300">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         How do I place a bid?
                     </div>
@@ -93,7 +93,17 @@
                     </div>
                 </div>
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    <input type="radio" name="my-accordion-3" />
+                    {(console.log('question', question), '')}
+                    <input type="radio" checked={question === 'howToGetPMBadge'} />
+                    <div class="collapse-title text-xl font-medium">
+                        How do I get a Plebeian Market badge?
+                    </div>
+                    <div class="collapse-content">
+                        <p class="text-s">There are 3 ways to get a PM badge:</p>
+                    </div>
+                </div>
+                <div class="collapse collapse-plus bg-base-300 mt-4">
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         How does the shipping works?
                     </div>
@@ -104,12 +114,12 @@
             </div>
         </div>
 
-        <div class="collapse {role === 'seller' ? 'todo_delete_this_collapse-open' : ''}">
-            <input type="checkbox" />
+        <div class="collapse">
+            <input type="checkbox" checked={role === 'seller'} />
             <div class="collapse-title text-xl font-medium">Seller FAQ</div>
             <div class="collapse-content">
-                <div class="collapse {question === 'xpub' ? 'collapse-open' : ''} collapse-plus bg-base-300">
-                    <input type="radio" name="my-accordion-3" />
+                <div class="collapse collapse-plus bg-base-300">
+                    <input type="radio" checked={question === 'xpub'} />
                     <div class="collapse-title text-xl font-medium">
                         How do I get the XPUB/YPUB/ZPUB from my wallet?
                     </div>
@@ -119,7 +129,7 @@
                 </div>
 
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    <input type="radio" name="my-accordion-3" />
+                    <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
                         How does the shipping work?
                     </div>
