@@ -93,13 +93,17 @@
                     </div>
                 </div>
                 <div class="collapse collapse-plus bg-base-300 mt-4">
-                    {(console.log('question', question), '')}
                     <input type="radio" checked={question === 'howToGetPMBadge'} />
                     <div class="collapse-title text-xl font-medium">
                         How do I get a Plebeian Market badge?
                     </div>
                     <div class="collapse-content">
                         <p class="text-s">There are 3 ways to get a PM badge:</p>
+                        <ul class="mt-3">
+                            <li>- Setting up your Plebeian Market merchant profile to sell and auction stuff</li>
+                            <li>- Using Plebeian Market to buy and sell stuff</li>
+                            <li>- Buying a "Skin in the Game" badge</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="collapse collapse-plus bg-base-300 mt-4">
