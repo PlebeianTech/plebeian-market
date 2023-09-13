@@ -98,10 +98,8 @@
 
     <ToastContainer let:data={data}>
         <div class:alert-error={data.type === 'error'} class:alert-info={data.type === 'info'} class="alert shadow-lg">
-            <div>
-                <AlertInfo />
-                <span class:text-2xl={data.placement === 'center-center'}>{data.description}</span>
-            </div>
+            <AlertInfo />
+            <span class:text-2xl={data.placement === 'center-center'}>{data.description}</span>
         </div>
     </ToastContainer>
 </div>
