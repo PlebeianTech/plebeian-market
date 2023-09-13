@@ -1,7 +1,7 @@
 <script>
     import {products, stalls} from "$lib/stores";
     import {NostrPublicKey, privateMessages, Info} from "$sharedLib/stores";
-    import {formatTimestamp} from "$sharedLib/nostr/utils";
+    import {formatTimestamp, newNostrConversation} from "$sharedLib/nostr/utils";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
@@ -12,6 +12,7 @@
     import {bech32} from "bech32";
     import {Buffer as BufferPolyfill} from "buffer";
     import { afterNavigate } from "$app/navigation";
+    import EmailIcon from "$sharedLib/components/icons/Email.svelte";
 
     let paymentModalVisible = false;
     let paymentConfirmationModalVisible = false;
@@ -359,6 +360,16 @@
                                             ❌ Order not shipped yet
                                         {/if}
                                     </p>
+
+                                    {#if order.paid || order.message.includes('TxID:')}
+                                        <button class="btn btn-outline btn-primary hover:btn-success h-16 md:h-12 gap-2 mt-4 mb-4 md:mb-2" on:click={() => newNostrConversation(order.pubkey)}>
+                                            <span class="w-8 h-8">
+                                                <EmailIcon />
+                                            </span>
+                                            Contact the merchant
+                                        </button>
+                                    {/if}
+
                                     {#if order.message && !['Payment received.'].includes(order.message)}
                                         <p class="text-sm text-ellipsis overflow-hidden mt-2">
                                             {#if order.message.includes('TxID:')}
