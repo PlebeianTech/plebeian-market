@@ -761,6 +761,10 @@ def get_user_entities(nym, plural):
 def get_relays():
     return jsonify({'relays': [{'url': r.url} for r in m.Relay.query.all()]})
 
+@api_blueprint.route("/api/keys/<pubkey>/metadata", methods=['GET'])
+def query_metadata(pubkey):
+    return jsonify(get_birdwatcher().query_metadata(pubkey))
+
 @api_blueprint.route("/api/merchants/<pubkey>", methods=['GET'])
 def get_merchant(pubkey):
     seller = m.User.query.filter_by(merchant_public_key=pubkey).one_or_none()

@@ -355,6 +355,14 @@ class Birdwatcher:
                 site_admin_secrets = json.load(f)
                 self.site_admin_private_key = PrivateKey.from_nsec(site_admin_secrets['NSEC'])
 
+    def query_metadata(self, public_key):
+        response = requests.post(f"{self.base_url}/query", json={'metadata': True, 'authors': [public_key]})
+        if response.status_code == 200:
+            return response.json()
+        else:
+            app.logger.error(f"Error querying birdwatcher for {public_key} metadata!")
+            return None
+
     def add_relay(self, relay_url):
         response = requests.post(f"{self.base_url}/relays", json={'url': relay_url})
         if response.status_code == 200:
@@ -470,6 +478,9 @@ class Birdwatcher:
             app.logger.exception(f"Error publishing badge award via birdwatcher!")
 
 class MockingBirdwatcher:
+    def query_metadata(self, _public_key):
+        return {'events': {}, 'verified_identities': []}
+
     def add_relay(self, relay_url):
         app.logger.info(f"add_relay url={relay_url}")
         return True
