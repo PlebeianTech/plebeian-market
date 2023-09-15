@@ -4,10 +4,12 @@
     import Nostr from "$lib/components/settings/Nostr.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import SetupHomepage from "$lib/components/settings/SetupHomepage.svelte";
+    import ExternalIdentities from "$lib/components/settings/ExternalIdentities.svelte";
 
     let NOSTR_PAGE = "Nostr";
     let SETUP_HOMEPAGE = "Setup homepage";
-    let pages = [NOSTR_PAGE, SETUP_HOMEPAGE];
+    let EXTERNAL_IDENTITIES = "External identities";
+    let pages = [NOSTR_PAGE, EXTERNAL_IDENTITIES, SETUP_HOMEPAGE];
     let currentPage: string | null = NOSTR_PAGE;
 
     let params = {};
@@ -44,6 +46,8 @@
     <div class="lg:col-span-3 w-full items-center justify-center">
         {#if currentPage === NOSTR_PAGE}
             <Nostr />
+        {:else if currentPage === EXTERNAL_IDENTITIES}
+            <ExternalIdentities />
         {:else if currentPage === SETUP_HOMEPAGE}
             <SetupHomepage />
         {/if}

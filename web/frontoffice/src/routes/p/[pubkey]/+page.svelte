@@ -13,7 +13,7 @@
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
-    import {encodeNpub, filterTags} from "$sharedLib/nostr/utils";
+    import {askAPIForVerification, encodeNpub, filterTags, getExternalIdentityUrl} from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
     import Twitter from "$sharedLib/components/icons/Twitter.svelte";
     import Telegram from "$sharedLib/components/icons/Telegram.svelte";
@@ -106,21 +106,6 @@
         }
     }
 
-    function getExternalIdentityUrl(channel: string, identity: string, proof: string) {
-        switch (channel) {
-            case 'github':
-                return 'https://gist.github.com/' + identity + '/' + proof;
-            case 'twitter':
-                return 'https://twitter.com/' + identity + '/status/' + proof;
-            case 'telegram':
-                return 'https://t.me/' + proof;
-            case 'mastodon':
-                return 'https://' + identity + '/' + proof;
-            default:
-                return '';
-        }
-    }
-
     function splitString(str, length) {
         var words = str.split(" ");
         for (var j = 0; j < words.length; j++) {
@@ -153,6 +138,9 @@
                             }
                         });
                     }
+                },
+                () => {
+                    askAPIForVerification(data.pubkey);
                 });
 
             getProfileBadges(data.pubkey, (profileBadgeEvent) => {
