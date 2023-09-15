@@ -73,7 +73,7 @@
 <div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full max-w-lg">
         <label class="label" for="wallet">
-            <span class="label-text flex"><span>XPUB / ZPUB</span><a href="/faq?question=xpub" target="_blank" class="lg:tooltip" data-tip="Click to read: How do I get the XPUB/YPUB/ZPUB from my wallet?"><QuestionIcon /></a></span>
+            <span class="label-text flex"><span>XPUB / ZPUB</span><a href="/faq?question=xpub" target="_blank" class="lg:tooltip" data-tip="Click to read: How do I get the XPUB/YPUB/ZPUB from my wallet?"><span class="w-4 h-4"><QuestionIcon /></span></a></span>
             <div class="lg:tooltip" data-tip="We use your XPUB to generate addresses where you will receive Bitcoin payments.">
                 <InfoIcon />
             </div>
