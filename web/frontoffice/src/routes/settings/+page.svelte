@@ -6,11 +6,13 @@
     import SetupHomepage from "$lib/components/settings/SetupHomepage.svelte";
     import ExternalIdentities from "$lib/components/settings/ExternalIdentities.svelte";
 
-    let NOSTR_PAGE = "Nostr";
-    let SETUP_HOMEPAGE = "Setup homepage";
-    let EXTERNAL_IDENTITIES = "External identities";
-    let pages = [NOSTR_PAGE, EXTERNAL_IDENTITIES, SETUP_HOMEPAGE];
-    let currentPage: string | null = NOSTR_PAGE;
+    const pages = [
+        {key: 'NOSTR_PAGE', title: 'Nostr'},
+        {key: 'EXTERNAL_IDENTITIES', title: 'Setup homepage'},
+        {key: 'SETUP_HOMEPAGE', title: 'External identities'},
+    ];
+
+    let currentPage = 'NOSTR_PAGE';
 
     let params = {};
 
@@ -24,7 +26,7 @@
         }
 
         if (params['page']) {
-            currentPage = pages[parseInt(params['page'])];
+            currentPage = params['page'];
         }
     });
 </script>
@@ -39,16 +41,16 @@
     <div class="md:grow-0 pb-10">
         <ul class="md:w-52 mt-3 p-2 menu menu-compact bg-base-300 rounded-box">
             {#each pages as page}
-                <li><a class:active={page === currentPage} href={null} on:click={() => currentPage = page}>{page}</a></li>
+                <li><a class:active={page.key === currentPage} href={null} on:click={() => currentPage = page.key}>{page.title}</a></li>
             {/each}
         </ul>
     </div>
     <div class="lg:col-span-3 w-full items-center justify-center">
-        {#if currentPage === NOSTR_PAGE}
+        {#if currentPage === 'NOSTR_PAGE'}
             <Nostr />
-        {:else if currentPage === EXTERNAL_IDENTITIES}
+        {:else if currentPage === 'EXTERNAL_IDENTITIES'}
             <ExternalIdentities />
-        {:else if currentPage === SETUP_HOMEPAGE}
+        {:else if currentPage === 'SETUP_HOMEPAGE'}
             <SetupHomepage />
         {/if}
     </div>
