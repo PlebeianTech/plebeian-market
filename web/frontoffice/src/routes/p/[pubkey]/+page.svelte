@@ -296,12 +296,13 @@
     </div>
 
     {#if other_badges}
-        <div class="collapse bg-base-200 w-1/5">
+        <div class="collapse bg-base-200 w-full md:w-2/5">
             <input type="checkbox" bind:checked={otherBadgesOpened} />
             <div class="collapse-title">
                 <p class="text-md font-bold">
-                    Other badges
-                    <input type="checkbox" class="toggle toggle-info right-0 text-right float-right" bind:checked={otherBadgesOpened} />
+                    <input type="checkbox" class="toggle toggle-info mr-4 left-0 text-left float-left" bind:checked={otherBadgesOpened} />
+                    See other badges
+                    <!-- <input type="checkbox" class="toggle toggle-info right-0 text-right float-right" bind:checked={otherBadgesOpened} /> -->
                 </p>
 
             </div>
