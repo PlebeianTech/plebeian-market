@@ -257,7 +257,7 @@ export async function askAPIForVerification(pubkey: string) {
             console.debug('responseJson.token', responseJson.token);
         }
     } catch (error) {
-        console.debug("tryLoginToBackend (2) - Could not contact with a backend, so auto-login-to-backend is not done.");
+        console.debug("tryLoginToBackend (2) - Could not contact with a backend, so API verification cannot be done.");
         return false;
     }
 }
