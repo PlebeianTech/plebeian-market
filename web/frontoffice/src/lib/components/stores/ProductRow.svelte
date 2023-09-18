@@ -16,9 +16,9 @@
     <td>{#if product.description}{product.description}{/if}</td>
     <td>
         {#if product.event.kind === EVENT_KIND_AUCTION}
-            <div class="badge badge-info gap-2">auction</div>
+            <div class="btn btn-info gap-2">auction</div>
         {:else}
-            <div class="badge badge-success gap-2">fixed price</div>
+            <div class="btn btn-success gap-2">fixed price</div>
         {/if}
     </td>
     <td class="text-center">
