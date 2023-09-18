@@ -13,7 +13,13 @@
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
-    import {askAPIForVerification, encodeNpub, filterTags, getExternalIdentityUrl} from "$sharedLib/nostr/utils";
+    import {
+        askAPIForVerification,
+        decodeNpub,
+        encodeNpub,
+        filterTags,
+        getExternalIdentityUrl
+    } from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
     import Twitter from "$sharedLib/components/icons/Twitter.svelte";
     import Telegram from "$sharedLib/components/icons/Telegram.svelte";
@@ -124,6 +130,10 @@
 
     onMount(async () => {
         if (data && data.pubkey) {
+            if (data.pubkey.startsWith('npub')) {
+                data.pubkey = decodeNpub(data.pubkey);
+            }
+
             subscribeMetadata([data.pubkey],
                 (pk, profileMeta) => {
                     if (profile === null || profile.created_at < profileMeta.created_at) {
