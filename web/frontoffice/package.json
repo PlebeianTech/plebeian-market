@@ -4,7 +4,7 @@
   "devDependencies": {
     "@sveltejs/kit": "^1.25.0",
     "autoprefixer": "^10.4.15",
-    "daisyui": "^3.7.4",
+    "daisyui": "^3.7.5",
     "eslint": "^8.49.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.12.1",
