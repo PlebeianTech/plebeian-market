@@ -2,5 +2,6 @@
   "admin_pubkeys": [
     ""
   ],
-  "homepage_banner_image": ""
+  "homepage_banner_image": "",
+  "backend_present": false
 }

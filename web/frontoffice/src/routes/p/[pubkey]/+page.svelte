@@ -24,6 +24,10 @@
     import Twitter from "$sharedLib/components/icons/Twitter.svelte";
     import Telegram from "$sharedLib/components/icons/Telegram.svelte";
     import Github from "$sharedLib/components/icons/Github.svelte";
+    import Clock from "$sharedLib/components/icons/Clock.svelte";
+    import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
+    import X from "$sharedLib/components/icons/X.svelte";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -40,7 +44,15 @@
     $: pm_badges = false;
     $: other_badges = false;
 
+    $: backend_present = true;
     $: externalIdentities = [];
+    const identityTypesSupported = ['twitter', 'github', 'telegram'];
+    let externalIdentitiesVerification = {
+        twitter: {verified: 'waiting'},
+        github: {verified: 'verified-ok'},
+        telegram: {verified: 'verfied-notok'}
+    }
+    $: verificationCanBeDone = true;
 
     let otherBadgesOpened = false;
 
@@ -96,22 +108,6 @@
         });
     }
 
-    function verifyExternalIdentity(channel: string, identity: string, proof: string) {
-        switch (channel) {
-            case "github":
-                console.log("Github", identity, proof);
-                let testUrl = 'https://gist.github.com/' + identity + '/' + proof;
-
-                fetch(testUrl)
-                    //.then((response) => response.json())
-                    //.then((json) => console.log(json));
-                    .then((response) => console.log('response', response));
-                return '';
-            default:
-                return '';
-        }
-    }
-
     function splitString(str, length) {
         var words = str.split(" ");
         for (var j = 0; j < words.length; j++) {
@@ -134,6 +130,11 @@
                 data.pubkey = decodeNpub(data.pubkey);
             }
 
+            let config = await getConfigurationFromFile();
+            if (config) {
+                backend_present = config.backend_present ?? true;
+            }
+
             subscribeMetadata([data.pubkey],
                 (pk, profileMeta) => {
                     if (profile === null || profile.created_at < profileMeta.created_at) {
@@ -149,8 +150,15 @@
                         });
                     }
                 },
-                () => {
-                    askAPIForVerification(data.pubkey);
+                async () => {
+                    if (backend_present) {
+                        const verification = await askAPIForVerification(data.pubkey);
+                        if (!verification) {
+                            verificationCanBeDone = false;
+                        }
+                    } else {
+                        verificationCanBeDone = false;
+                    }
                 });
 
             getProfileBadges(data.pubkey, (profileBadgeEvent) => {
@@ -181,11 +189,11 @@
             </div>
         </div>
 
-        <div class="mt-2 text-xl">
-            <p class="mb-1 font-bold">{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)}</p>
+        <div class="mt-2">
+            <p class="mb-1 font-bold text-xl">{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)}</p>
 
             {#if profile.about}
-                <p>{profile.about}</p>
+                <p class="text-lg">{profile.about}</p>
             {/if}
             {#if profile.lud16}
                 <p><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
@@ -196,11 +204,11 @@
 
 {#if externalIdentities.length}
     <div class="mt-1 pb-4 md:pb-6">
-        <p class="text-md mb-1 font-bold">External Identities</p>
+        <p class="mb-1 font-bold text-xl">External Identities</p>
 
         {#each externalIdentities as identity}
-            <div class="mt-2 mb-3">
-                <a class="flex hover:underline" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
+            {#if identityTypesSupported.includes(identity.split(':')[0])}
+                <div class="mt-2 mb-3 flex text-lg">
                     {#if identity.split(':')[0] === 'twitter'}
                         <Twitter />
                     {:else if identity.split(':')[0] === 'github'}
@@ -209,19 +217,33 @@
                         <Telegram />
                     {/if}
 
-                    <div class="ml-2">{identity.split(':')[1]}</div>
-                </a>
-            </div>
+                    <a class="hover:underline" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
+                        <div class="ml-2">{identity.split(':')[1]}</div>
+                    </a>
+
+                    {#if backend_present}
+                        {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting'}
+                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Waiting for verification of the identity..."><Clock /></div>
+                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok'}
+                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-success text-green-500" data-tip="Identity verified by Plebeian Market"><VerificationMark /></div>
+                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-notok'}
+                            <div class="w-5 h-5 ml-2 tooltip tooltip-error text-red-500" data-tip="This identity couldn't be verified by Plebeian Market as belonging to this user"><X /></div>
+                        {/if}
+                    {/if}
+                </div>
+            {/if}
         {/each}
 
-        <p class="text-xs leading-4">
-            You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub(data.pubkey)}</span><span class="flex md:hidden">{splitString(encodeNpub(data.pubkey), 32) }</span>
-        </p>
+        {#if !backend_present || !verificationCanBeDone}
+            <p class="text-lg leading-4">
+                You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub(data.pubkey)}</span><span class="flex md:hidden">{splitString(encodeNpub(data.pubkey), 32) }</span>
+            </p>
+        {/if}
     </div>
 {/if}
 
 <div class="mt-1 pb-8 md:pb-10">
-    <p class="text-md mb-1 font-bold">Plebeian Market badges</p>
+    <p class="mb-1 font-bold text-xl">Plebeian Market badges</p>
 
     {#if pm_badges}
         <!-- Accepted -->
@@ -261,7 +283,7 @@
         {/if}
     {/if}
 
-    <div class="mt-1 mb-8">
+    <div class="mt-1 mb-8 text-lg">
         {#if data.pubkey === $NostrPublicKey}
             {#if pm_badges}
                 Learn how to get more PM badges to show in your profile <a href="/faq?question=howToGetPMBadge" target="_blank" class="lg:tooltip underline" data-tip="Click to read: How do I get a Plebeian Market badge?">here</a>.
@@ -274,12 +296,13 @@
     </div>
 
     {#if other_badges}
-        <div class="collapse bg-base-200 w-1/5">
+        <div class="collapse bg-base-200 w-full md:w-2/5">
             <input type="checkbox" bind:checked={otherBadgesOpened} />
             <div class="collapse-title">
-                <p class="text-md font-bold">
-                    Other badges
-                    <input type="checkbox" class="toggle toggle-info right-0 text-right float-right" bind:checked={otherBadgesOpened} />
+                <p class="text-xl font-bold">
+                    <input type="checkbox" class="toggle toggle-info mr-4 left-0 text-left float-left" bind:checked={otherBadgesOpened} />
+                    See other badges
+                    <!-- <input type="checkbox" class="toggle toggle-info right-0 text-right float-right" bind:checked={otherBadgesOpened} /> -->
                 </p>
 
             </div>

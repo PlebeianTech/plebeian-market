@@ -8,8 +8,8 @@
 
     const pages = [
         {key: 'NOSTR_PAGE', title: 'Nostr'},
-        {key: 'EXTERNAL_IDENTITIES', title: 'Setup homepage'},
-        {key: 'SETUP_HOMEPAGE', title: 'External identities'},
+        {key: 'EXTERNAL_IDENTITIES', title: 'External identities'},
+        {key: 'SETUP_HOMEPAGE', title: 'Setup homepage'},
     ];
 
     let currentPage = 'NOSTR_PAGE';

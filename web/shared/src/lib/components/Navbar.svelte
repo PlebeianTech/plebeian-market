@@ -4,7 +4,7 @@
     import { afterNavigate } from "$app/navigation";
     import {NostrPublicKey, privateMessages, ShoppingCart, BTC2USD} from "$sharedLib/stores";
     import { getValue } from 'btc2fiat';
-    import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
+    import {isProduction, getEnvironmentInfo, logout, requestLoginModal, getConfigurationFromFile} from "$sharedLib/utils";
     import Modal from "$sharedLib/components/Modal.svelte";
     import CompactShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
     import PrivateMessages from "$sharedLib/components/nostr/PrivateMessages.svelte";
@@ -31,6 +31,8 @@
     let prefersDark = false;
 
     let showMobileMenu = false;
+
+    $: backend_present = true;
 
     function toggleMobileMenu() {
         showMobileMenu = !showMobileMenu;
@@ -67,7 +69,12 @@
             prefersDark = false;
         }
 
-        if (!isFrontOffice) {
+        if (isFrontOffice) {
+            let config = await getConfigurationFromFile();
+            if (config) {
+                backend_present = config.backend_present ?? true;
+            }
+        } else {
             fetchFiatRate();
         }
     });
@@ -221,11 +228,13 @@
                                 </a>
                             </li>
                         {/if}
-                        <li>
-                            <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin">
-                                <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
-                            </a>
-                        </li>
+                        {#if backend_present}
+                            <li>
+                                <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin">
+                                    <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
+                                </a>
+                            </li>
+                        {/if}
                         {#if $NostrPublicKey}
                             {#if isFrontOffice}
                                 <li>
