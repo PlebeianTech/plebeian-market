@@ -44,35 +44,106 @@
 
 <h2 class="text-center my-12 lg:text-8xl font-bold text-4xl">Team</h2>
 
-<div class="lg:w-2/3 mx-auto grid lg:grid-cols-3 gap-4 my-20 p-4">
-    <a class="bg-gray-300/20 p-4 rounded hover:scale-95 duration-300" target="_blank" rel="noreferrer" href="https://snort.social/p/npub1a3um269aaf3u5cy37kuykrrrnsg2pyv7za06pxjduv25lq5sdujs2qmdj6">
-        <h2 class="text-3xl font-bold my-4">Chiefmonkey</h2>
-        <h3 class="uppercase my-2 font-bold text-sm">Founder</h3>
+<div class="lg:columns-3 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-4 ">
+    <a target="_blank" rel="noreferrer" href="/p/npub1a3um269aaf3u5cy37kuykrrrnsg2pyv7za06pxjduv25lq5sdujs2qmdj6">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/chiefmonkey2.jpg" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">Chiefmonkey</div>
+                    <div class="uppercase my-2 font-bold text-sm">Founder</div>
+                </div>
+            </div>
+        </div>
     </a>
-
-    <a class="bg-gray-300/20 p-4 rounded hover:scale-95 duration-300" target="_blank" rel="noreferrer" href="https://snort.social/p/npub1lxpdhu4q5jjgfjvvtjachqapajhktzwtyefwryupzk94v3h7y0tqtx73vg">
-        <h2 class="text-3xl font-bold my-4">ibz</h2>
-        <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
+    <a target="_blank" rel="noreferrer" href="/p/npub1lxpdhu4q5jjgfjvvtjachqapajhktzwtyefwryupzk94v3h7y0tqtx73vg">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/ibz.jpg" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">ibz</div>
+                    <div class="uppercase my-2 font-bold text-sm">Senior Developer</div>
+                </div>
+            </div>
+        </div>
     </a>
-
-    <a class="bg-gray-300/20 p-4 rounded hover:scale-95 duration-300" target="_blank" rel="noreferrer" href="https://twitter.com/BitkoYinowsky">
-        <h2 class="text-3xl font-bold my-4">Bitko Yinowsky</h2>
-        <h3 class="uppercase my-2 font-bold text-sm">Artist</h3>
+    <a target="_blank" rel="noreferrer" href="/p/npub18ekka6n399pskjzjusvduscem5c99dewg2swe3u68vdce92cmxgszeht3g">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/bekka.jpg" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">Bekka</div>
+                    <div class="uppercase my-2 font-bold text-sm">Communications</div>
+                </div>
+            </div>
+        </div>
     </a>
-
-    <a class="bg-gray-300/20 p-4 rounded hover:scale-95 duration-300" target="_blank" rel="noreferrer" href="https://snort.social/p/npub1qw6sxmwrmwpxqsc8cxty62ujvst6j8pmz8hhtwnv54gpn6dh5c4qms4882">
-        <h2 class="text-3xl font-bold my-4">Luis Miguel</h2>
-        <h3 class="uppercase my-2 font-bold text-sm">Senior Developer</h3>
+    <a target="_blank" rel="noreferrer" href="https://twitter.com/BitkoYinowsky">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300 ">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/bitkoyinowsky.jpg" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">Bitko Yinowsky</div>
+                    <div class="uppercase my-2 font-bold text-sm">Artist</div>
+                </div>
+            </div>
+        </div>
     </a>
-
-    <a class="bg-gray-300/20 p-4 rounded hover:scale-95 duration-300" target="_blank" rel="noreferrer" href="https://snort.social/p/npub18ekka6n399pskjzjusvduscem5c99dewg2swe3u68vdce92cmxgszeht3g">
-        <h2 class="text-3xl font-bold my-4">Bekka</h2>
-        <h3 class="uppercase my-2 font-bold text-sm">Communications</h3>
+    <a target="_blank" rel="noreferrer" href="/p/npub1qw6sxmwrmwpxqsc8cxty62ujvst6j8pmz8hhtwnv54gpn6dh5c4qms4882">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/luismiguel.jpg" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">Luis Miguel</div>
+                    <div class="uppercase my-2 font-bold text-sm">Senior Developer</div>
+                </div>
+            </div>
+        </div>
     </a>
-
-    <a class="group bg-gray-300/20 p-4 rounded hover:scale-150 duration-300" href={null}>
-        <h2 class="text-3xl font-bold my-4">You?</h2>
-        <p class="visible group-hover:visible lg:invisible lg:group-hover:visible text-xl font-bold my-4"><a class="link" href="/contact">Contact us!</a></p>
-        <h3 class="uppercase my-2 font-bold text-sm">Bitcoiner, remnant and shadowy super coder</h3>
+    <a target="_blank" rel="noreferrer" href="/p/npub1c37zfj85qq9g8a00e5hhatdw47u0j4phqf7lxd2068qp6lu9ykpshddaf4">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/MTC.jpg" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">MTC</div>
+                    <div class="uppercase my-2 font-bold text-sm">Description</div>
+                </div>
+            </div>
+        </div>
+    </a>
+    <a target="_blank" rel="noreferrer" href="/p/npub1cjw49ftnxene9wdxujz3tp7zspp0kf862cjud4nm3j2usag6eg2smwj2rh">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/hodlonaut.jpg" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">Hodlonaut</div>
+                    <div class="uppercase my-2 font-bold text-sm">Description</div>
+                </div>
+            </div>
+        </div>
+    </a>
+    <a target="_blank" rel="noreferrer" href="/contact">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">You?</div>
+                    <div class="uppercase my-2 font-bold text-sm">Bitcoiner , remnant and shadowy super coder</div>
+                </div>
+            </div>
+        </div>
     </a>
 </div>
