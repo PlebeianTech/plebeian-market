@@ -26,6 +26,7 @@ ENV = os.environ.get('ENV')
 API_BASE_URL = os.environ.get('API_BASE_URL')
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
 PROCESSED_EVENT_IDS_FILENAME = os.environ.get('PROCESSED_EVENT_IDS_FILENAME')
+GECKODRIVER_BINARY = os.environ.get('GECKODRIVER_BINARY')
 
 dictConfig({
     'version': 1,
@@ -231,7 +232,7 @@ async def get_url_aiohttp(url):
             return await response.text()
 
 async def get_url_arsenic(url):
-    service = Geckodriver()
+    service = Geckodriver(binary=GECKODRIVER_BINARY) if GECKODRIVER_BINARY else Geckodriver()
     browser = Firefox(**{'moz:firefoxOptions': {'args': ['-headless']}})
     async with get_session(service, browser) as session:
         await session.get(url)
@@ -244,8 +245,14 @@ async def verify_external_identity(pk, external_identity, proof):
             getter, url = get_url_arsenic, f"https://twitter.com/{claimed_id}/status/{proof}"
         case 'github':
             getter, url = get_url_aiohttp, f"https://gist.githubusercontent.com/{claimed_id}/{proof}/raw/gistfile1.txt"
+        case _:
+            return pk, external_identity, False
 
-    response_text = await getter(url)
+    try:
+        response_text = await getter(url)
+    except:
+        response_text = ""
+        logging.exception("Error verifying external identity.")
 
     return pk, external_identity, pk2npub(pk) in response_text
 
