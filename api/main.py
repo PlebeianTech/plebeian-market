@@ -372,16 +372,20 @@ class Birdwatcher:
                 try:
                     validate_event(event)
                     validated_response['events'].append(event)
-                    for tag in event['tags']:
-                        if tag[0] == 'i':
-                            external_identity = tag[1]
-                            if external_identity in response_json['verified_identities']:
-                                # NB: we only keep 'verified_identities' from events we have validated
-                                # rather than all identities, which could include identities of invalid events!
-                                # But at the same time, these identities have to have been verified by the birdwatcher...
-                                validated_response['verified_identities'].append(external_identity)
                 except EventValidationError as e:
                     app.logger.warning(f"Skipping invalid event received from birdwatcher: {e.message}!")
+
+            # in the case of "metadata" events we only need to keep the last one!
+            if len(validated_response['events']) > 1:
+                validated_response['events'] = [max(validated_response['events'], key=lambda e: e.get('created_at', 0))]
+
+            if len(validated_response['events']) > 0:
+                for tag in validated_response['events'][0]['tags']:
+                    if tag[0] == 'i':
+                        external_identity = tag[1]
+                        if external_identity in response_json['verified_identities'] and external_identity not in validated_response['verified_identities']:
+                            validated_response['verified_identities'].append(external_identity)
+
             return validated_response
         else:
             app.logger.error(f"Error querying birdwatcher for {public_key} metadata!")

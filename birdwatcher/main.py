@@ -304,29 +304,37 @@ async def main(relays: list[Relay]):
                 del relay.active_queries[subscription_id]
                 del relay.query_results[subscription_id]
 
+        # NB: for "metadata" events, we also validate the external identities here...
+
         seen_identities = set()
         verified_identities = []
         verifying_identities = []
 
         for event in query_results.values():
-            for tag in event['tags']:
-                if tag[0] == 'i':
-                    external_identity = tag[1]
-                    if external_identity in seen_identities:
-                        continue
-                    seen_identities.add(external_identity)
-                    external_identity_proof = tag[2]
-                    if external_identity in verified_external_identities.get(event['pubkey'], []):
-                        logging.info(f"Cached external identity verification for {event['pubkey']}: {external_identity}.")
-                        verified_identities.append(external_identity)
-                    else:
-                        logging.info(f"Verifying external identity for {event['pubkey']}: {external_identity}.")
-                        verifying_identities.append(await verify_external_identity(event['pubkey'], external_identity, external_identity_proof))
+            if event['kind'] == EventKind.METADATA:
+                for tag in event['tags']:
+                    if tag[0] == 'i':
+                        external_identity = tag[1]
+                        if external_identity in seen_identities:
+                            continue
+                        seen_identities.add(external_identity)
+                        external_identity_proof = tag[2]
+                        if external_identity in verified_external_identities.get(event['pubkey'], []):
+                            logging.info(f"Cached external identity verification for {event['pubkey']}: {external_identity}.")
+                            verified_identities.append(external_identity)
+                        else:
+                            logging.info(f"Verifying external identity for {event['pubkey']}: {external_identity}.")
+                            verifying_identities.append(await verify_external_identity(event['pubkey'], external_identity, external_identity_proof))
 
         for pk, external_identity, verification_result in verifying_identities:
             if verification_result:
                 verified_external_identities.setdefault(pk, set()).add(external_identity)
                 verified_identities.append(external_identity)
+
+        # NB: we return *all* events because this "query" endpoint is supposed to be as dumb as possible...
+        # ... it is simply a way to hit the relays and return the results, without much hidden logic ...
+        # In the case of metadata events, for example, the caller should only pick the latest event,
+        # but that would not be the case if we later - for example - give this endpoint the ability to query TEXT events!
 
         return web.json_response({'events': list(query_results.values()), 'verified_identities': verified_identities})
 
