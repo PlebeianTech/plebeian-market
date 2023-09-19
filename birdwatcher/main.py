@@ -304,6 +304,7 @@ async def main(relays: list[Relay]):
                 del relay.active_queries[subscription_id]
                 del relay.query_results[subscription_id]
 
+        seen_identities = set()
         verified_identities = []
         verifying_identities = []
 
@@ -311,6 +312,9 @@ async def main(relays: list[Relay]):
             for tag in event['tags']:
                 if tag[0] == 'i':
                     external_identity = tag[1]
+                    if external_identity in seen_identities:
+                        continue
+                    seen_identities.add(external_identity)
                     external_identity_proof = tag[2]
                     if external_identity in verified_external_identities.get(event['pubkey'], []):
                         logging.info(f"Cached external identity verification for {event['pubkey']}: {external_identity}.")
