@@ -27,6 +27,7 @@ import time
 import uuid
 
 from extensions import cors, db, mail
+from nostr_utils import EventValidationError, validate_event
 from utils import hash_create
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
@@ -358,7 +359,30 @@ class Birdwatcher:
     def query_metadata(self, public_key):
         response = requests.post(f"{self.base_url}/query", json={'metadata': True, 'authors': [public_key]})
         if response.status_code == 200:
-            return response.json()
+            response_json = response.json()
+            # NB: The birdwatcher is "dumb" - it simply returns the events it got from relays without validating signatures,
+            # which we therefore need to validate here!
+            # We could, in theory, also move this verification to the birdwatcher for this particular case (*we* querying *him*),
+            # and that would indeed simplify the logic,
+            # but we still need to perform the validation in the API whenever the birdwatcher himself POSTs events, such as DMs received,
+            # otherwise anyone could pretend to be the birdwatcher and simply POST fake events!
+            # So for that reason I decided to just do all signature validation in the backend and keep birdwatcher "dumb"!
+            validated_response = {'events': [], 'verified_identities': []}
+            for event in response_json['events']:
+                try:
+                    validate_event(event)
+                    validated_response['events'].append(event)
+                    for tag in event['tags']:
+                        if tag[0] == 'i':
+                            external_identity = tag[1]
+                            if external_identity in response_json['verified_identities']:
+                                # NB: we only keep 'verified_identities' from events we have validated
+                                # rather than all identities, which could include identities of invalid events!
+                                # But at the same time, these identities have to have been verified by the birdwatcher...
+                                validated_response['verified_identities'].append(external_identity)
+                except EventValidationError as e:
+                    app.logger.warning(f"Skipping invalid event received from birdwatcher: {e.message}!")
+            return validated_response
         else:
             app.logger.error(f"Error querying birdwatcher for {public_key} metadata!")
             return None
