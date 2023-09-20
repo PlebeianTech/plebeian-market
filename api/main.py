@@ -259,6 +259,79 @@ def settle_btc_payments():
         else:
             time.sleep(10)
 
+@app.cli.command("lightning-payments-processor")
+@with_appcontext
+def lightning_payments_processor():
+    from lightning_utils import LightningInvoiceUtil
+    invoice_util = LightningInvoiceUtil()
+
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
+    app.logger.info(f"Processing Lightning Network payments...")
+
+    while True:
+        active_order_filter = (m.Order.paid_at == None) & (m.Order.expired_at == None) & (m.Order.canceled_at == None)
+
+        active_orders_with_lightning = db.session.query(m.Order).join(m.LightningInvoice).filter((m.Order.lightning_address != None) & active_order_filter)
+
+        if active_orders_with_lightning.all():
+
+            try:
+                # There are unpaid orders, so get the logs for those orders and let's see how's the status...
+                active_orders_with_lightning_ids = {record["id"]: record for record in active_orders_with_lightning}
+                active_orders_with_lightning_logs = db.session.query(m.LightningPaymentLog).filter(m.LightningPaymentLog.order_id in active_orders_with_lightning_ids)
+
+                ln_payment_logs_util = LightningPaymentLogsUtil(active_orders_with_lightning_logs)
+
+                incoming_invoices = invoice_util.get_incoming_invoices()
+
+                for order in active_orders_with_lightning:
+                    app.logger.info(f"Processing order {order.id}...")
+
+                    # INCOMING PAYMENT
+                    if ln_payment_logs_util.check_incoming_payment(order.id, order.lightning_invoice_id, order.total):
+                        app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
+                    else:
+                        app.logger.info(f"Checking if payment for order.id={order.id} is received...")
+
+                        if not incoming_invoices:
+                            app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!!")
+                        else:
+                            record = incoming_invoices.get(order.id)
+
+                            if record:
+                                print("Invoice found:", record)
+                                ln_payment_logs_util.add_incoming_payment_log(order.id, order.lightning_invoice_id, order.total)
+                            else:
+                                app.logger.info(f"Payment for order.id={order.id} not received yet.")
+
+                    # OUTGOING PAYMENTS
+                    payout_information = get_payout_information(order.user_id)
+
+                    if not payout_information:
+                        app.logger.error(f"ERROR: There is no payment information for order.id={order.id} !!!!!")
+                    else:
+                        for payout in payout_information:
+                            payout_percent = payout['percent']
+                            payout_amount = order.total * payout_percent
+
+                            if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout['ln_address'], payout_amount):
+                                app.logger.info(f"Payout for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount} WAS already paid.")
+                            else:
+                                app.logger.info(f"Paying for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount}...")
+                                # TODO
+
+            except:
+                app.logger.exception("Error while getting information about Lightning Network payments.")
+                #db.session.rollback()
+
+            time.sleep(60)
+
+        else:
+            app.logger.info(f"There aren't active orders with Lightning Network pending. Sleeping for a while.")
+            time.sleep(10)
+
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
 

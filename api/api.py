@@ -930,7 +930,11 @@ def post_merchant_message(pubkey):
             if order.on_chain_address:
                 payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
             if order.lightning_address:
-                payment_options.append({'type': 'lnurl', 'link': order.lightning_address, 'amount_sats': order.total})
+                invoice_util = LightningInvoiceUtil()
+                invoice_information = invoice_util.create_invoice(order.id, order.total)
+
+                if invoice_information and invoice_information['payment_request']:
+                    payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
 
             if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
                 json.dumps({

@@ -104,3 +104,15 @@ BADGE_DEFINITION_SKIN_IN_THE_GAME = {
     'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
     'price_usd': 0.21 if ENV == 'staging' else 21,
 }
+
+LNDHUB_URL = os.environ.get('LNDHUB_URL', "https://ln.getalby.com")
+LNDHUB_USER = os.environ.get('LNDHUB_USER')
+LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD')
+
+if LNDHUB_USER is None or LNDHUB_PASSWORD is None:
+    with open("/secrets/lndhub.json") as f:
+        db = json.load(f)
+        if LNDHUB_USER is None:
+            LNDHUB_USER = db['LNDHUB_USER']
+        if LNDHUB_PASSWORD is None:
+            LNDHUB_PASSWORD = db['LNDHUB_PASSWORD']
