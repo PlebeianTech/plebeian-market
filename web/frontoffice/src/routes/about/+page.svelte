@@ -118,7 +118,7 @@
             <div>
                 <div class="w-full text-center">
                     <div class="text-xl font-extrabold">MTC</div>
-                    <div class="uppercase my-2 font-bold text-sm">Description</div>
+                    <div class="uppercase my-2 font-bold text-sm">Advisor</div>
                 </div>
             </div>
         </div>
@@ -131,7 +131,7 @@
             <div>
                 <div class="w-full text-center">
                     <div class="text-xl font-extrabold">Hodlonaut</div>
-                    <div class="uppercase my-2 font-bold text-sm">Description</div>
+                    <div class="uppercase my-2 font-bold text-sm">Advisor</div>
                 </div>
             </div>
         </div>
