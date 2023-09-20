@@ -1,5 +1,6 @@
 import requests, json
 import models as m
+import time
 from extensions import db
 from flask import current_app as app
 
@@ -26,6 +27,13 @@ class LightningInvoiceUtil:
         )
 
         json_res = r.json()
+        app.logger.debug(f"get_login_token - json_res = ({json_res})...")
+
+        if (json_res['error']):
+            app.logger.error(f"get_login_token - {json_res['message']}")
+            time.sleep(60)
+            return False
+
         access_token = json_res['access_token']
         app.logger.info(f"get_login_token - Access token = {access_token}")
 
