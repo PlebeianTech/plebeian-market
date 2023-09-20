@@ -231,16 +231,24 @@ class Relay:
 async def get_url_aiohttp(url):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
-            return await response.text()
+            return response.url, await response.text()
 
 async def get_url_arsenic(url):
     service = Geckodriver(binary=GECKODRIVER_BINARY) if GECKODRIVER_BINARY else Geckodriver()
     browser = Firefox(**{'moz:firefoxOptions': {'args': ['-headless']}})
     async with get_session(service, browser) as session:
         await session.get(url)
-        return await session.get_page_source()
+        return await session.get_url(), await session.get_page_source()
 
-def telegram_verifier(txt, npub, claimed_id):
+def twitter_verifier(url, txt, npub, claimed_id):
+    # NB: https://twitter.com/saylor/status/1701877505437675910 redirects to https://twitter.com/ibz/status/1701877505437675910
+    # so we need to check the final URL in addition to checking that the tweet contains the pubkey
+    id_ok = url.startswith(f"https://twitter.com/{claimed_id}/")
+    key_ok = npub in txt
+
+    return id_ok and key_ok
+
+def telegram_verifier(_url, txt, npub, claimed_id):
     bs = BeautifulSoup(txt, features="html.parser")
     try:
         id_ok = bs.select("a.tgme_widget_message_author_name")[0]['href'] == f"https://t.me/{claimed_id}"
@@ -257,21 +265,22 @@ async def verify_external_identity(pk, external_identity, proof):
     service, claimed_id = external_identity.split(":")
     match service:
         case 'twitter':
-            getter, url, verifier = get_url_arsenic, f"https://twitter.com/{claimed_id}/status/{proof}", lambda txt, npub, _: npub in txt
+            getter, url, verifier = get_url_arsenic, f"https://twitter.com/{claimed_id}/status/{proof}", twitter_verifier
         case 'github':
-            getter, url, verifier = get_url_aiohttp, f"https://gist.githubusercontent.com/{claimed_id}/{proof}/raw/gistfile1.txt", lambda txt, npub, _: npub in txt
+            getter, url, verifier = get_url_aiohttp, f"https://gist.githubusercontent.com/{claimed_id}/{proof}/raw/gistfile1.txt", lambda _url, txt, npub, _: npub in txt
         case 'telegram':
             getter, url, verifier = get_url_aiohttp, f"https://t.me/{proof}?embed=1&mode=tme", telegram_verifier
         case _:
             return pk, external_identity, False
 
     try:
-        response_text = await getter(url)
+        response_url, response_text = await getter(url)
+        logging.debug(f"Got {response_url}: {len(response_text)} bytes!")
     except:
         logging.exception("Error verifying external identity.")
         return pk, external_identity, False
 
-    return pk, external_identity, verifier(response_text, pk2npub(pk), claimed_id)
+    return pk, external_identity, verifier(response_url, response_text, pk2npub(pk), claimed_id)
 
 async def main(relays: list[Relay]):
     for relay in relays:
