@@ -7,6 +7,7 @@ from arsenic.browsers import Firefox
 from arsenic.services import Geckodriver
 import asyncio
 import bech32
+from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from enum import IntEnum
 import json
@@ -239,23 +240,38 @@ async def get_url_arsenic(url):
         await session.get(url)
         return await session.get_page_source()
 
+def telegram_verifier(txt, npub, claimed_id):
+    bs = BeautifulSoup(txt, features="html.parser")
+    try:
+        id_ok = bs.select("a.tgme_widget_message_author_name")[0]['href'] == f"https://t.me/{claimed_id}"
+    except (IndexError, KeyError):
+        return False
+    try:
+        key_ok = npub in bs.select("div.tgme_widget_message_text")[0].text
+    except IndexError:
+        return False
+
+    return id_ok and key_ok
+
 async def verify_external_identity(pk, external_identity, proof):
     service, claimed_id = external_identity.split(":")
     match service:
         case 'twitter':
-            getter, url = get_url_arsenic, f"https://twitter.com/{claimed_id}/status/{proof}"
+            getter, url, verifier = get_url_arsenic, f"https://twitter.com/{claimed_id}/status/{proof}", lambda txt, npub, _: npub in txt
         case 'github':
-            getter, url = get_url_aiohttp, f"https://gist.githubusercontent.com/{claimed_id}/{proof}/raw/gistfile1.txt"
+            getter, url, verifier = get_url_aiohttp, f"https://gist.githubusercontent.com/{claimed_id}/{proof}/raw/gistfile1.txt", lambda txt, npub, _: npub in txt
+        case 'telegram':
+            getter, url, verifier = get_url_aiohttp, f"https://t.me/{proof}?embed=1&mode=tme", telegram_verifier
         case _:
             return pk, external_identity, False
 
     try:
         response_text = await getter(url)
     except:
-        response_text = ""
         logging.exception("Error verifying external identity.")
+        return pk, external_identity, False
 
-    return pk, external_identity, pk2npub(pk) in response_text
+    return pk, external_identity, verifier(response_text, pk2npub(pk), claimed_id)
 
 async def main(relays: list[Relay]):
     for relay in relays:
