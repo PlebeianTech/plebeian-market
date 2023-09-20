@@ -139,9 +139,9 @@
     <a target="_blank" rel="noreferrer" href="/contact">
         <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
             <div>
-                <div class="w-full text-center">
-                    <div class="text-xl font-extrabold">You?</div>
-                    <div class="uppercase my-2 font-bold text-sm">Bitcoiner, remnant and shadowy super coder</div>
+                <div class=" w-full text-center">
+                    <p class="text-xl font-extrabold mt-16">You?</p>
+                    <p class="align-middle uppercase mt-8 font-bold text-sm items-center">Bitcoiner, remnant and shadowy super coder</p>
                 </div>
             </div>
         </div>
