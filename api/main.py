@@ -357,7 +357,7 @@ class Birdwatcher:
                 self.site_admin_private_key = PrivateKey.from_nsec(site_admin_secrets['NSEC'])
 
     def query_metadata(self, public_key):
-        response = requests.post(f"{self.base_url}/query", json={'metadata': True, 'authors': [public_key]})
+        response = requests.post(f"{self.base_url}/query", json={'metadata': True, 'author': public_key})
         if response.status_code == 200:
             response_json = response.json()
             # NB: The birdwatcher is "dumb" - it simply returns the events it got from relays without validating signatures,

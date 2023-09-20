@@ -291,8 +291,8 @@ async def main(relays: list[Relay]):
     async def query(request):
         query_json = await request.json()
         filters = None
-        if query_json.get('metadata'):
-            filters = {'kinds': [EventKind.METADATA], 'authors': query_json.get('authors', [])}
+        if query_json.get('metadata') and query_json.get('author'):
+            filters = {'kinds': [EventKind.METADATA], 'authors': [query_json['author']]}
         if filters is None:
             raise web.HTTPBadRequest()
 
