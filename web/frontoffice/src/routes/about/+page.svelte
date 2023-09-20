@@ -141,7 +141,7 @@
             <div>
                 <div class="w-full text-center">
                     <div class="text-xl font-extrabold">You?</div>
-                    <div class="uppercase my-2 font-bold text-sm">Bitcoiner , remnant and shadowy super coder</div>
+                    <div class="uppercase my-2 font-bold text-sm">Bitcoiner, remnant and shadowy super coder</div>
                 </div>
             </div>
         </div>
