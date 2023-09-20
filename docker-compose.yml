@@ -56,7 +56,7 @@ services:
       dockerfile: ./birdwatcher/Dockerfile
     image: plebeianmarket-birdwatcher
     restart: on-failure
-    stop_grace_period: 1m
+    stop_grace_period: 15s
     networks:
       - db_network
 networks:
