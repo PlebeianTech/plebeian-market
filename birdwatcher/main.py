@@ -26,6 +26,7 @@ ENV = os.environ.get('ENV')
 API_BASE_URL = os.environ.get('API_BASE_URL')
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
 PROCESSED_EVENT_IDS_FILENAME = os.environ.get('PROCESSED_EVENT_IDS_FILENAME')
+VERIFIED_EXTERNAL_IDENTITIES_FILENAME = os.environ.get('VERIFIED_EXTERNAL_IDENTITIES_FILENAME')
 GECKODRIVER_BINARY = os.environ.get('GECKODRIVER_BINARY')
 
 dictConfig({
@@ -263,8 +264,17 @@ async def main(relays: list[Relay]):
     app = web.Application()
     routes = web.RouteTableDef()
 
-    # cache of verified NIP-39 identities. should we perhaps persist this in a file?
+    # cache of verified NIP-39 identities
     verified_external_identities = {}
+    if VERIFIED_EXTERNAL_IDENTITIES_FILENAME:
+        if os.path.isfile(VERIFIED_EXTERNAL_IDENTITIES_FILENAME):
+            with open(VERIFIED_EXTERNAL_IDENTITIES_FILENAME, 'r') as f:
+                for line in f:
+                    pk, external_identity = line.strip().split(" ", 1)
+                    verified_external_identities.setdefault(pk, set()).add(external_identity)
+        logging.info(f"Verified external identities for: {len(verified_external_identities)} keys.")
+    else:
+        logging.warning("Verified external identities will not be persisted!")
 
     @routes.post("/events")
     async def post_event(request):
@@ -329,6 +339,9 @@ async def main(relays: list[Relay]):
         for pk, external_identity, verification_result in verifying_identities:
             if verification_result:
                 verified_external_identities.setdefault(pk, set()).add(external_identity)
+                if VERIFIED_EXTERNAL_IDENTITIES_FILENAME:
+                    async with async_open(VERIFIED_EXTERNAL_IDENTITIES_FILENAME, 'a') as f:
+                        await f.write(f"{pk} {external_identity}\n")
                 verified_identities.append(external_identity)
 
         # NB: we return *all* events because this "query" endpoint is supposed to be as dumb as possible...
