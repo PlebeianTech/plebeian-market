@@ -2,5 +2,6 @@ aiofile
 aiohttp
 arsenic
 bech32
+bs4
 requests
 websockets
