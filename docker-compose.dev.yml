@@ -35,14 +35,14 @@ services:
     volumes:
       - "./api:/app"
     command: flask settle-btc-payments
-  lightning_payments_processor:
+  lightning-payments-processor:
     depends_on:
       api: # this is because in dev & test mode, the api is the one initializing the database, on start
         condition: service_healthy
     env_file: .env.dev
     volumes:
       - "./api:/app"
-    command: flask lightning_payments_processor
+    command: flask lightning-payments-processor
   birdwatcher:
     env_file: .env.dev
     ports:

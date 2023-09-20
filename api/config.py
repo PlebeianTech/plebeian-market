@@ -104,3 +104,7 @@ BADGE_DEFINITION_SKIN_IN_THE_GAME = {
     'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
     'price_usd': 0.21 if ENV == 'staging' else 21,
 }
+
+LNDHUB_URL = os.environ.get('LNDHUB_URL', "")
+LNDHUB_USER = os.environ.get('LNDHUB_USER', "")
+LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD', "")
