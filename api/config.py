@@ -106,14 +106,14 @@ BADGE_DEFINITION_SKIN_IN_THE_GAME = {
 }
 
 LNDHUB_URL = os.environ.get('LNDHUB_URL', "https://ln.getalby.com")
-LNDHUB_USER = os.environ.get('LNDHUB_USER', "")
-LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD', "")
+LNDHUB_USER = os.environ.get('LNDHUB_USER')
+LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD')
 
 if LNDHUB_USER is None or LNDHUB_PASSWORD is None:
     # NB: we check for None, not for ""
     # for the tests we set these to "", so no secrets file is needed, but that will result in an invalid SQLALCHEMY_DATABASE_URI
     # which is fine, since the tests should not access the database directly!
-    with open("/secrets/lndhub") as f:
+    with open("/secrets/lndhub.json") as f:
         db = json.load(f)
         if LNDHUB_USER is None:
             LNDHUB_USER = db['LNDHUB_USER']
