@@ -270,7 +270,7 @@ async def main(relays: list[Relay]):
         if os.path.isfile(VERIFIED_EXTERNAL_IDENTITIES_FILENAME):
             with open(VERIFIED_EXTERNAL_IDENTITIES_FILENAME, 'r') as f:
                 for line in f:
-                    pk, external_identity = line.split(" ", 1)
+                    pk, external_identity = line.strip().split(" ", 1)
                     verified_external_identities.setdefault(pk, set()).add(external_identity)
         logging.info(f"Verified external identities for: {len(verified_external_identities)} keys.")
     else:
