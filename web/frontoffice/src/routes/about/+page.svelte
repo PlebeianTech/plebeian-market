@@ -113,7 +113,7 @@
     <a target="_blank" rel="noreferrer" href="/p/npub1c37zfj85qq9g8a00e5hhatdw47u0j4phqf7lxd2068qp6lu9ykpshddaf4">
         <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
             <div class="avatar mask mask-circle h-40 w-40">
-                <img src="/team/MTC.jpg" alt=""/>
+                <img src="/team/mtc.jpg" alt=""/>
             </div>
             <div>
                 <div class="w-full text-center">
