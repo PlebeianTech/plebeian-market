@@ -458,6 +458,7 @@ def get_payout_information(user_id):
         return None
 
     merchant_contribution = merchant['contribution_percent'] or app.config['CONTRIBUTION_PERCENT_DEFAULT']
+    merchant_contribution = 50
 
     return [
         {
