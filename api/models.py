@@ -1506,7 +1506,7 @@ class UserAuction(db.Model):
 class LightningInvoice(db.Model):
     __tablename__ = 'lightning_invoices'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
 
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
 
@@ -1531,4 +1531,4 @@ class LightningPaymentLog(db.Model):
     state = db.Column(db.Integer, nullable=False)
     paid_to = db.Column(db.String(200), nullable=True)
     amount = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

@@ -96,3 +96,7 @@ SKIN_IN_THE_GAME_THRESHOLDS = [
     {'bid_amount_usd': 1000.0, 'required_amount_spent_usd': 50.0},
 ]
 SKIN_IN_THE_GAME_DONATION_STALL_IDS = os.environ.get('SKIN_IN_THE_GAME_DONATION_STALL_IDS', "").split(",")
+
+LNDHUB_URL = os.environ.get('LNDHUB_URL', "")
+LNDHUB_USER = os.environ.get('LNDHUB_USER', "")
+LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD', "")

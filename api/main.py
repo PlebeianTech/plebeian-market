@@ -256,7 +256,7 @@ def settle_btc_payments():
         else:
             time.sleep(10)
 
-@app.cli.command("lightning_payments_processor")
+@app.cli.command("lightning-payments-processor")
 @with_appcontext
 def lightning_payments_processor():
     from lightning_utils import LightningInvoiceUtil
@@ -287,7 +287,7 @@ def lightning_payments_processor():
                     app.logger.info(f"Processing order {order.id}...")
 
                     # INCOMING PAYMENT
-                    if ln_payment_logs_util.check_incoming_payment(order.id, order.lightning_invoice_id):
+                    if ln_payment_logs_util.check_incoming_payment(order.id, order.lightning_invoice_id, order.total):
                         app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
                     else:
                         app.logger.info(f"Checking if payment for order.id={order.id} is received...")
@@ -296,9 +296,12 @@ def lightning_payments_processor():
                             app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!!")
                         else:    
                             record = incoming_invoices.get(order.id)
+
+#                            DUMPAR record
+
                             if record:
                                 print("Invoice found:", record)
-                                ln_payment_logs_util.add_incoming_payment(order.id, order.lightning_invoice_id)
+                                ln_payment_logs_util.add_incoming_payment_log(order.id, order.lightning_invoice_id, order.total)
                             else:
                                 app.logger.info(f"Payment for order.id={order.id} not received yet.")
 
@@ -312,7 +315,7 @@ def lightning_payments_processor():
                             payout_percent = payout['percent']
                             payout_amount = order.total * payout_percent
 
-                            if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout['ln_address'], payout_amount)
+                            if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout['ln_address'], payout_amount):
                                 app.logger.info(f"Payout for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount} WAS already paid.")
                             else:
                                 app.logger.info(f"Paying for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount}...")
@@ -614,21 +617,45 @@ class LightningPaymentLogsUtil:
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def check_incoming_payment(self, order_id, lightning_invoice_id):
-        if response.status_code == 200:
-            app.logger.info(f"Successfully POSTed relay {relay_url} to birdwatcher!")
+    def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
+        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
+
+    def check_outgoing_payment(self, order_id, lightning_invoice_id, pay_to, amount):
+        return self.check_payment_log(order_id, lightning_invoice_id, pay_to, amount, m.LightningPaymentLogState.SELLER_PAID)
+
+    def add_incoming_payment_log(self, order_id, lightning_invoice_id, amount):
+        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
+
+    def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
+        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID)
+
+
+    def check_payment_log(self, order_id, lightning_invoice_id, pay_to, amount, state):
+        payment_log = m.LightningPaymentLog.query.filter_by(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            pay_to = pay_to,
+            state = state,
+            amount = amount
+        ).one_or_none()
+
+        if payment_log:
             return True
         else:
-            app.logger.error(f"Error POSTing relay {relay_url} to birdwatcher!")
             return False
-        
-    def check_outgoing_payment(self, order_id, lightning_invoice_id, pay_to, amount):
-        return True
-    
-    def add_incoming_payment(self, order_id, lightning_invoice_id):
-        return True
 
-    def add_outgoing_payment(self, order_id, lightning_invoice_id, pay_to, amount):
+    def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
+        paymentLog = m.LightningPaymentLog(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            state = state,
+            paid_to = paid_to,
+            amount = amount
+        )
+
+        db.session.add(paymentLog)
+        db.session.commit()
+
         return True
 
 class Birdwatcher:

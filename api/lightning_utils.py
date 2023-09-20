@@ -1,17 +1,19 @@
 import requests, json
 import models as m
-from main import app
 from extensions import db
+from flask import current_app as app
 
-lndhub_url = 'https://ln.getalby.com'
 auth_header = ''
+lndhub_url = ''
 
 class LightningInvoiceUtil:
     def __init__(self):
+        self.lndhub_url = app.config['LNDHUB_URL']
+        app.logger.info(f"init  - LNDHUB_URL={self.lndhub_url}")
         self.auth_header = self.get_login_token()
 
     def get_login_token(self):
-        app.logger.info(f"LndHub API error. Probably the token expired!")
+        app.logger.info(f"get_login_token - Trying login to LndHub API ({self.lndhub_url})...")
 
         payload = {
             'login': app.config['LNDHUB_USER'],
@@ -19,13 +21,13 @@ class LightningInvoiceUtil:
         }
 
         r = requests.post(
-            lndhub_url + '/auth',
+            self.lndhub_url + '/auth',
             data=payload
         )
 
         json_res = r.json()
         access_token = json_res['access_token']
-        #print('Access token: ', access_token)
+        app.logger.info(f"get_login_token - Access token = {access_token}")
 
         headers = {"Authorization": "Bearer " + access_token}
 
@@ -38,7 +40,7 @@ class LightningInvoiceUtil:
         }
 
         response_invoice = requests.post(
-            lndhub_url + '/v2/invoices',
+            self.lndhub_url + '/v2/invoices',
             headers = self.auth_header,
             data=payload
         )
@@ -82,7 +84,7 @@ class LightningInvoiceUtil:
 
     def get_incoming_invoices(self):
         response_invoices_status = requests.get(
-            lndhub_url + '/v2/invoices/incoming',
+            self.lndhub_url + '/v2/invoices/incoming',
             headers = self.auth_header
         )
 
@@ -100,7 +102,7 @@ class LightningInvoiceUtil:
             app.logger.info(f"LndHub API error. Probably the token expired!")
 
             self.auth_header = self.get_login_token()
-            return self.get_invoices_status()
+            return self.get_incoming_invoices()
 
         else:
             print("Another thing happened")

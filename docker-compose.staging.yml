@@ -53,11 +53,11 @@ services:
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask settle-btc-payments
-  lightning_payments_processor:
+  lightning-payments-processor:
     env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
-    command: flask lightning_payments_processor
+    command: flask lightning-payments-processor
   birdwatcher:
     env_file: .env.staging
     volumes:

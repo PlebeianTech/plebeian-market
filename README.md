@@ -72,7 +72,7 @@ All the generated static files will be inside the `build` folder. You can copy t
 
 ```settle-btc-payments``` - monitors on-chain payments that are "pending" in our database and looks up the corresponding transactions in the mempool or on-chain
 
-```lightning_payments_processor``` - monitors incoming payments from buyers, and make outgoing payments to sellers
+```lightning-payments-processor``` - monitors incoming payments from buyers, and make outgoing payments to sellers
 
 ## Non-standard nip-15 extension
 

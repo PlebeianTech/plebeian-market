@@ -38,7 +38,7 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
-  lightning_payments_processor:
+  lightning-payments-processor:
     build:
       context: ./
       dockerfile: ./ln_payments_processor/Dockerfile
