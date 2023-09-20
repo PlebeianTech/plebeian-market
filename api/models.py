@@ -1502,14 +1502,6 @@ class UserAuction(db.Model):
 
     following = db.Column(db.Boolean, nullable=False)
 
-class UserAuction(db.Model):
-    __tablename__ = 'user_auctions'
-
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False, primary_key=True)
-    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False, primary_key=True)
-
-    following = db.Column(db.Boolean, nullable=False)
-
 class LightningInvoice(db.Model):
     __tablename__ = 'lightning_invoices'
 
