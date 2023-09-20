@@ -53,8 +53,7 @@
         title: 'How to verify your Telegram account',
         description:
             '<p class="mt-4">To verify your Telegram account, you need to be able to write a message to a <i>public</i> Telegram room. We suggest using the ' +
-                '<b><a class="underline" target="_blank" href="https://web.telegram.org/k/#@nostr_protocol">Nostr</a></b> or the ' +
-                '<b><a class="underline" target="_blank" href="https://web.telegram.org/k/#@PlebeianMarket">Plebeian Market</a></b> channels.</p>' +
+            '<b><a class="underline" target="_blank" href="https://web.telegram.org/k/#@PlebeianMarket">Plebeian Market</a></b> channel.</p>' +
             '<ol class="mt-6 list-decimal list-inside">' +
                 '<li class="mb-2">Introduce the <b>Telegram username</b> into the first field. If you don\'t know it, you can find it by opening the Telegram app/web, clicking on the hamburguer menu, and then clicking on Settings. The username is the token preceded by a @.</li>' +
                 '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + encodeNpub($NostrPublicKey) + '</span></li>' +
