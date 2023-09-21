@@ -29,7 +29,7 @@ class LightningInvoiceUtil:
         json_res = r.json()
         app.logger.debug(f"get_login_token - json_res = ({json_res})...")
 
-        if error in json_res:
+        if 'error' in json_res:
             app.logger.error(f"get_login_token - {json_res['message']}")
             time.sleep(60)
             return False
