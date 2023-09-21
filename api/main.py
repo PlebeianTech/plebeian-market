@@ -369,8 +369,8 @@ class LightningPaymentLogsUtil:
     def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
         return self.check_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
 
-    def check_outgoing_payment(self, order_id, lightning_invoice_id, pay_to, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, pay_to, amount, m.LightningPaymentLogState.SELLER_PAID)
+    def check_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
+        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID)
 
     def add_incoming_payment_log(self, order_id, lightning_invoice_id, amount):
         return self.add_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
@@ -379,11 +379,11 @@ class LightningPaymentLogsUtil:
         return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID)
 
 
-    def check_payment_log(self, order_id, lightning_invoice_id, pay_to, amount, state):
+    def check_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
         payment_log = m.LightningPaymentLog.query.filter_by(
             order_id = order_id,
             lightning_invoice_id = lightning_invoice_id,
-            pay_to = pay_to,
+            paid_to = paid_to,
             state = state,
             amount = amount
         ).one_or_none()
