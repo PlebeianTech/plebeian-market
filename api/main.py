@@ -357,9 +357,6 @@ def get_payout_information(user_id):
     ]
 
 class LightningPaymentLogsUtil:
-    def __init__(self, base_url):
-        self.base_url = base_url
-
     def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
         return self.check_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
 
