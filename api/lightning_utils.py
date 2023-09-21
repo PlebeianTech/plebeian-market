@@ -43,9 +43,10 @@ class LightningInvoiceUtil:
 
     def create_invoice(self, order_id, sats):
         payload = {
-            'amount':sats,
+            'amount':sats * 1000,
             'description':'Payment for Order #' + str(order_id)
         }
+        app.logger.debug(f"Creating invoice for order: {payload}")
 
         response_invoice = requests.post(
             self.lndhub_url + '/v2/invoices',

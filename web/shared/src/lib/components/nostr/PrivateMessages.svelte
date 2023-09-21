@@ -109,7 +109,6 @@
                                 ||
                                 (privateMessage.type === $privateMessages.automatic[orderId].type && privateMessage.created_at > $privateMessages.automatic[orderId].created_at)
                             ) {
-
                                 $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
                             } else {
                                 $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
@@ -121,6 +120,7 @@
 
                         // This is needed to fire reactivity when a new message arrives
                         $privateMessages.automatic[orderId] = $privateMessages.automatic[orderId];
+
                     } else {
                         // "Human" messages
                         let pubKey = privateMessage.pubkey;
