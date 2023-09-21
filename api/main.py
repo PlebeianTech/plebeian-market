@@ -275,19 +275,19 @@ def lightning_payments_processor():
 
         active_orders_with_lightning = db.session.query(m.Order).join(m.LightningInvoice).filter((m.Order.lightning_address != None) & active_order_filter)
 
+        app.logger.info(f"***** active_order_filter {active_order_filter}")
+        app.logger.info(f"***** active_orders_with_lightning {active_orders_with_lightning.all()}")
+
         if active_orders_with_lightning.all():
 
             try:
-                # There are unpaid orders, so get the logs for those orders and let's see how's the status...
-                active_orders_with_lightning_ids = {record["id"]: record for record in active_orders_with_lightning}
-                active_orders_with_lightning_logs = db.session.query(m.LightningPaymentLog).filter(m.LightningPaymentLog.order_id in active_orders_with_lightning_ids)
-
-                ln_payment_logs_util = LightningPaymentLogsUtil(active_orders_with_lightning_logs)
-
                 incoming_invoices = invoice_util.get_incoming_invoices()
+                app.logger.info(f"********* incoming_invoices = {incoming_invoices}")
 
-                for order in active_orders_with_lightning:
-                    app.logger.info(f"Processing order {order.id}...")
+                ln_payment_logs_util = LightningPaymentLogsUtil()
+
+                for order in active_orders_with_lightning.all():
+                    app.logger.info(f"     ---- Processing order {order.id}...")
 
                     # INCOMING PAYMENT
                     if ln_payment_logs_util.check_incoming_payment(order.id, order.lightning_invoice_id, order.total):
@@ -331,6 +331,75 @@ def lightning_payments_processor():
         else:
             app.logger.info(f"There aren't active orders with Lightning Network pending. Sleeping for a while.")
             time.sleep(10)
+
+def get_payout_information(user_id):
+    app.logger.info(f"Getting payout information for user={user_id}...")
+
+    # Only the merchant for now. There could be more actors in the future
+    merchant = m.User.query.filter_by(id=user_id).one_or_none()
+
+    if not merchant:
+        app.logger.error(f"ERROR: There is no merchant with user_id={user_id}...")
+        return None
+
+    if not merchant['lightning_address']:
+        app.logger.error(f"ERROR: The merchant (user_id={user_id}) doesn't have a Lightning address to receive his money...")
+        return None
+
+    merchant_contribution = merchant['contribution_percent'] or app.config['CONTRIBUTION_PERCENT_DEFAULT']
+    merchant_contribution = 50
+
+    return [
+        {
+            'ln_address': merchant['lightning_address'],
+            'percent': 100 - merchant_contribution
+        }
+    ]
+
+class LightningPaymentLogsUtil:
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
+        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
+
+    def check_outgoing_payment(self, order_id, lightning_invoice_id, pay_to, amount):
+        return self.check_payment_log(order_id, lightning_invoice_id, pay_to, amount, m.LightningPaymentLogState.SELLER_PAID)
+
+    def add_incoming_payment_log(self, order_id, lightning_invoice_id, amount):
+        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
+
+    def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
+        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID)
+
+
+    def check_payment_log(self, order_id, lightning_invoice_id, pay_to, amount, state):
+        payment_log = m.LightningPaymentLog.query.filter_by(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            pay_to = pay_to,
+            state = state,
+            amount = amount
+        ).one_or_none()
+
+        if payment_log:
+            return True
+        else:
+            return False
+
+    def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
+        paymentLog = m.LightningPaymentLog(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            state = state,
+            paid_to = paid_to,
+            amount = amount
+        )
+
+        db.session.add(paymentLog)
+        db.session.commit()
+
+        return True
 
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
