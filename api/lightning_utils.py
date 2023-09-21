@@ -103,7 +103,7 @@ class LightningInvoiceUtil:
             json_response_invoices_status = response_invoices_status.json()
             print(json.dumps(json_response_invoices_status, indent=2))
 
-            records_by_id = {record["payment_request"]: record for record in json_response_invoices_status}
+            records_by_id = {record['payment_request']: record for record in json_response_invoices_status}
             return records_by_id
 
         elif (response_invoices_status.status_code == 401):

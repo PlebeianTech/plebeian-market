@@ -283,9 +283,6 @@ def lightning_payments_processor():
             try:
                 incoming_invoices = invoice_util.get_incoming_invoices()
 
-                incoming_invoices_dict = { invoice.payment_request : invoice for invoice in incoming_invoices }
-                app.logger.info(f"     ---- incoming_invoices_dict {incoming_invoices_dict}")
-
                 ln_payment_logs_util = LightningPaymentLogsUtil()
 
                 for order in active_orders_with_lightning.all():
@@ -297,8 +294,10 @@ def lightning_payments_processor():
                     for invoice in invoices:
                         app.logger.info(f"       -- Invoice: {invoice.id} - {invoice.invoice}")
 
+                        incoming_payment_found = False
+
                         # INCOMING PAYMENT
-                        if ln_payment_logs_util.check_incoming_payment(order.id, order.invoices.one().id, order.total):
+                        if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
                             app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
                         else:
                             app.logger.info(f"Checking if payment for order.id={order.id} is received...")
@@ -306,29 +305,31 @@ def lightning_payments_processor():
                             if not incoming_invoices:
                                 app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!!")
                             else:
-                                record = incoming_invoices.get(order.id)
+                                incoming_invoice = incoming_invoices.get(invoice.invoice)
 
-                                if record:
-                                    print("Invoice found:", record)
-                                    ln_payment_logs_util.add_incoming_payment_log(order.id, order.invoices.one().id, order.total)
+                                if incoming_invoice:
+                                    app.logger.info(f"Incoming invoice found: {incoming_invoice}")
+                                    ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
                                 else:
                                     app.logger.info(f"Payment for order.id={order.id} not received yet.")
 
                         # OUTGOING PAYMENTS
-                        payout_information = get_payout_information(order.user_id)
+                        if incoming_payment_found:
+                            payout_information = get_payout_information(order.user_id)
+                            app.logger.info(f"Payout information - payout_information = {payout_information}")
 
-                        if not payout_information:
-                            app.logger.error(f"ERROR: There is no payment information for order.id={order.id} !!!!!")
-                        else:
-                            for payout in payout_information:
-                                payout_percent = payout['percent']
-                                payout_amount = order.total * payout_percent
+                            if not payout_information:
+                                app.logger.error(f"ERROR: There is no payment information for order.id={order.id} !!!!!")
+                            else:
+                                for payout in payout_information:
+                                    payout_percent = payout['percent']
+                                    payout_amount = order.total * payout_percent
 
-                                if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout['ln_address'], payout_amount):
-                                    app.logger.info(f"Payout for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount} WAS already paid.")
-                                else:
-                                    app.logger.info(f"Paying for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount}...")
-                                    # TODO
+                                    if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout['ln_address'], payout_amount):
+                                        app.logger.info(f"Payout for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount} WAS already paid.")
+                                    else:
+                                        app.logger.info(f"Paying for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount}...")
+                                        # TODO
 
             except:
                 app.logger.exception("Error while getting information about Lightning Network payments.")
