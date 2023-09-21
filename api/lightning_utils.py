@@ -44,7 +44,7 @@ class LightningInvoiceUtil:
     def create_invoice(self, order_id, sats):
         payload = {
             'amount':sats,
-            'description':'Payment for Order #' + order_id
+            'description':'Payment for Order #' + str(order_id)
         }
 
         response_invoice = requests.post(
