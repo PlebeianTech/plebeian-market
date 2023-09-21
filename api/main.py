@@ -282,6 +282,8 @@ def lightning_payments_processor():
 
                 ln_payment_logs_util = LightningPaymentLogsUtil()
 
+                birdwatcher = get_birdwatcher()
+
                 for order in active_orders_with_lightning.all():
                     app.logger.info(f"     ---- Processing order {order.id}... Order = {order}")
 
@@ -309,6 +311,15 @@ def lightning_payments_processor():
 
                                     if incoming_invoice['is_paid']:
                                         ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
+
+                                        order.tx_confirmed = True
+                                        order.paid_at = datetime.utcnow()
+                                        db.session.commit()
+
+                                        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                                            json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed"})):
+                                            app.logger.info(f"     ********************** ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
+
                                     else:
                                         app.logger.info(f"   ***** But not yet paid *****")
 
