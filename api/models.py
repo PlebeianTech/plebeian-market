@@ -1283,6 +1283,8 @@ class Order(db.Model):
     order_items = db.relationship('OrderItem', backref='order')
 
     seller = db.relationship('User')
+    invoices = db.relationship('LightningInvoice', back_populates="order",  order_by="desc(LightningInvoice.created_at)")
+    payment_logs = db.relationship('LightningPaymentLog', back_populates="order", order_by="desc(LightningPaymentLog.created_at)")
 
     @property
     def timeout_minutes(self):
@@ -1513,9 +1515,12 @@ class LightningInvoice(db.Model):
     payment_hash = db.Column(db.String(128), nullable=False)
     price = db.Column(db.Integer, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     # TODO is this needed?
     paid = db.Column(db.Boolean, nullable=False, default=False)
+
+    order = db.relationship('Order', back_populates="order")
 
 class LightningPaymentLogState(Enum):
     RECEIVED = 0
@@ -1531,3 +1536,5 @@ class LightningPaymentLog(db.Model):
     paid_to = db.Column(db.String(200), nullable=True)
     amount = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    order = db.relationship('Order', back_populates="order")
