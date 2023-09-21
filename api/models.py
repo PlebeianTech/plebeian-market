@@ -1520,7 +1520,7 @@ class LightningInvoice(db.Model):
     # TODO is this needed?
     paid = db.Column(db.Boolean, nullable=False, default=False)
 
-    order = db.relationship('Order', back_populates="order")
+    order = db.relationship('Order', back_populates="invoices")
 
 class LightningPaymentLogState(Enum):
     RECEIVED = 0
@@ -1530,6 +1530,8 @@ class LightningPaymentLogState(Enum):
 class LightningPaymentLog(db.Model):
     __tablename__ = 'lightning_payment_logs'
 
+    id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
+
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
     lightning_invoice_id = db.Column(db.Integer, db.ForeignKey(LightningInvoice.id), nullable=False, primary_key=True)
     state = db.Column(db.Integer, nullable=False)
@@ -1537,4 +1539,4 @@ class LightningPaymentLog(db.Model):
     amount = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    order = db.relationship('Order', back_populates="order")
+    order = db.relationship('Order', back_populates="payment_logs")
