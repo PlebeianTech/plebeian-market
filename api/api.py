@@ -22,6 +22,7 @@ import models as m
 from main import app, get_birdwatcher, get_s3, get_site_admin_config
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
+from lightning_utils import LightningInvoiceUtil
 from nostr_utils import EventValidationError, validate_event
 from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
 
