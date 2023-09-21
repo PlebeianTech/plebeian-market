@@ -222,7 +222,7 @@ class Relay:
                             if subscription_id in self.active_queries:
                                 self.query_results[subscription_id].append(event)
                             else:
-                                self.process_event(event)
+                                await self.process_event(event)
             except Exception:
                 self.ws = None
                 logging.exception(f"({self.url}) Connection closed.")
