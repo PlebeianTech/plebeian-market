@@ -367,16 +367,16 @@ def get_payout_information(user_id):
 
 class LightningPaymentLogsUtil:
     def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
+        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED.value)
 
     def check_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID)
+        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID.value)
 
     def add_incoming_payment_log(self, order_id, lightning_invoice_id, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED)
+        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED.value)
 
     def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID)
+        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID.value)
 
 
     def check_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
