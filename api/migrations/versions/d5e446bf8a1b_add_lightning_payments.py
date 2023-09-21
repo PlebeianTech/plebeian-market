@@ -1,7 +1,7 @@
 """add_lightning_payments
 
 Revision ID: d5e446bf8a1b
-Revises: 3e2210c258eb
+Revises: 8e5794f2abd4
 Create Date: 2023-09-20 10:58:50.145132
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'd5e446bf8a1b'
-down_revision = '3e2210c258eb'
+down_revision = '8e5794f2abd4'
 branch_labels = None
 depends_on = None
 
