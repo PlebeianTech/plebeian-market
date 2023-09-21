@@ -282,15 +282,16 @@ def lightning_payments_processor():
 
             try:
                 incoming_invoices = invoice_util.get_incoming_invoices()
-                app.logger.info(f"********* incoming_invoices = {incoming_invoices}")
 
                 ln_payment_logs_util = LightningPaymentLogsUtil()
 
                 for order in active_orders_with_lightning.all():
-                    app.logger.info(f"     ---- Processing order {order.id}...")
+                    app.logger.info(f"     ---- Processing order {order.id}... Order = {order}")
+
+                    app.logger.info(f"       -- Invoices for Order {order.id}... Invoice = {order.invoices.one()}")
 
                     # INCOMING PAYMENT
-                    if ln_payment_logs_util.check_incoming_payment(order.id, order.lightning_invoice_id, order.total):
+                    if ln_payment_logs_util.check_incoming_payment(order.id, order.invoices.one().id, order.total):
                         app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
                     else:
                         app.logger.info(f"Checking if payment for order.id={order.id} is received...")
@@ -302,7 +303,7 @@ def lightning_payments_processor():
 
                             if record:
                                 print("Invoice found:", record)
-                                ln_payment_logs_util.add_incoming_payment_log(order.id, order.lightning_invoice_id, order.total)
+                                ln_payment_logs_util.add_incoming_payment_log(order.id, order.invoices.one().id, order.total)
                             else:
                                 app.logger.info(f"Payment for order.id={order.id} not received yet.")
 
