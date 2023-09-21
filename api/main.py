@@ -275,9 +275,6 @@ def lightning_payments_processor():
 
         active_orders_with_lightning = db.session.query(m.Order).join(m.LightningInvoice).filter((m.Order.lightning_address != None) & active_order_filter)
 
-        app.logger.info(f"***** active_order_filter {active_order_filter}")
-        app.logger.info(f"***** active_orders_with_lightning {active_orders_with_lightning.all()}")
-
         if active_orders_with_lightning.all():
 
             try:
@@ -300,7 +297,7 @@ def lightning_payments_processor():
                         if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
                             app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
                         else:
-                            app.logger.info(f"Checking if payment for order.id={order.id} is received...")
+                            app.logger.info(f"Checking if payment for order id={order.id} is received...")
 
                             if not incoming_invoices:
                                 app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!!")
@@ -309,7 +306,12 @@ def lightning_payments_processor():
 
                                 if incoming_invoice:
                                     app.logger.info(f"Incoming invoice found: {incoming_invoice}")
-                                    ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
+
+                                    if incoming_invoice.is_paid:
+                                        ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
+                                    else:
+                                        app.logger.info(f"   ***** But not yet paid *****")
+
                                 else:
                                     app.logger.info(f"Payment for order.id={order.id} not received yet.")
 
