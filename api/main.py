@@ -286,7 +286,7 @@ def lightning_payments_processor():
                     app.logger.info(f"     ---- Processing order {order.id}... Order = {order}")
 
                     invoices = order.invoices
-                    app.logger.info(f"       -- Invoices for Order {order.id}... Invoice = {invoices}")
+                    # app.logger.info(f"       -- Invoices for Order {order.id}... Invoice = {invoices}")
 
                     for invoice in invoices:
                         app.logger.info(f"       -- Invoice: {invoice.id} - {invoice.invoice}")
@@ -307,7 +307,7 @@ def lightning_payments_processor():
                                 if incoming_invoice:
                                     app.logger.info(f"Incoming invoice found: {incoming_invoice}")
 
-                                    if incoming_invoice.is_paid:
+                                    if incoming_invoice['is_paid']:
                                         ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
                                     else:
                                         app.logger.info(f"   ***** But not yet paid *****")
