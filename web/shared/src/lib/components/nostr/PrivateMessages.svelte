@@ -79,12 +79,17 @@
                                 if (paymentOption.type === 'ln') {
                                     const decodedInvoice = decode(paymentOption.link);
 
-                                    paymentOption.amount_sats =
-                                        decodedInvoice.sections.filter((section) => {
-                                            return section.name === 'amount'
-                                        })[0].value / 1000;
+                                    const amountSectionFromInvoice = decodedInvoice.sections.filter((section) => {
+                                        return section.name === 'amount'
+                                    });
 
-                                    paymentOption.expiry = decodedInvoice.expiry;
+                                    if (amountSectionFromInvoice.length) {
+                                        paymentOption.amount_sats = amountSectionFromInvoice[0].value / 1000;
+                                    }
+
+                                    if (decodedInvoice.expiry) {
+                                        paymentOption.expiry = decodedInvoice.expiry;
+                                    }
                                 }
                             }
                         }
