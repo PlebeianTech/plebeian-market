@@ -335,7 +335,7 @@ def lightning_payments_processor():
 
                         # OUTGOING PAYMENTS
                         if incoming_payment_found:
-                            payout_information = get_payout_information(order.user_id)
+                            payout_information = get_payout_information(order.seller_id)
                             app.logger.info(f"Payout information - payout_information = {payout_information}")
 
                             if not payout_information:
@@ -360,22 +360,28 @@ def lightning_payments_processor():
 
         time.sleep(5)
 
-def get_payout_information(user_id):
-    app.logger.info(f"Getting payout information for user={user_id}...")
+def get_payout_information(seller_id):
+    app.logger.info(f"Getting payout information for seller={seller_id}...")
 
     # Only the merchant for now. There could be more actors in the future
-    merchant = m.User.query.filter_by(id=user_id).one_or_none()
+    merchant = m.User.query.filter_by(id=seller_id).one_or_none()
 
     if not merchant:
-        app.logger.error(f"ERROR: There is no merchant with user_id={user_id}...")
+        app.logger.error(f"ERROR: There is no merchant with seller_id={seller_id}...")
         return None
 
     if not merchant['lightning_address']:
-        app.logger.error(f"ERROR: The merchant (user_id={user_id}) doesn't have a Lightning address to receive his money...")
+        app.logger.error(f"ERROR: The merchant (seller_id={seller_id}) doesn't have a Lightning address to receive his money...")
         return None
 
+    app.logger.info(f"get_payout_information - contribution_percent: {merchant['contribution_percent']}")
+    app.logger.info(f"get_payout_information - CONTRIBUTION_PERCENT_DEFAULT: {app.config['CONTRIBUTION_PERCENT_DEFAULT']}")
+
     merchant_contribution = merchant['contribution_percent'] or app.config['CONTRIBUTION_PERCENT_DEFAULT']
+    app.logger.info(f"get_payout_information_1 - merchant_contribution={seller_id}%...")
+
     merchant_contribution = 50
+    app.logger.info(f"get_payout_information_2 - merchant_contribution={seller_id}%...")
 
     return [
         {
