@@ -280,6 +280,11 @@ def lightning_payments_processor():
             try:
                 incoming_invoices = invoice_util.get_incoming_invoices()
 
+                if not incoming_invoices:
+                    app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!! Sleeping 60 seconds...")
+                    time.sleep(60)
+                    continue
+
                 ln_payment_logs_util = LightningPaymentLogsUtil()
 
                 birdwatcher = get_birdwatcher()
@@ -303,33 +308,30 @@ def lightning_payments_processor():
                         else:
                             app.logger.info(f"Checking if payment for order id={order.id} is received...")
 
-                            if not incoming_invoices:
-                                app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!!")
-                            else:
-                                incoming_invoice = incoming_invoices.get(invoice.invoice)
+                            incoming_invoice = incoming_invoices.get(invoice.invoice)
 
-                                if incoming_invoice:
-                                    app.logger.info(f"Incoming invoice found: {incoming_invoice}")
+                            if incoming_invoice:
+                                app.logger.info(f"Incoming invoice found: {incoming_invoice}")
 
-                                    if incoming_invoice['is_paid']:
-                                        app.logger.info(f"   ******* _____ Invoice is paid _____ *******")
+                                if incoming_invoice['is_paid']:
+                                    app.logger.info(f"   ******* _____ Invoice is paid _____ *******")
 
-                                        ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
+                                    ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
 
-                                        incoming_payment_found = True;
+                                    incoming_payment_found = True;
 
-                                        order.paid_at = datetime.utcnow()
-                                        db.session.commit()
+                                    order.paid_at = datetime.utcnow()
+                                    db.session.commit()
 
-                                        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
-                                            json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed"})):
-                                            app.logger.info(f"     ********************** ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
-
-                                    else:
-                                        app.logger.info(f"   **** But not yet paid ****")
+                                    if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                                        json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed"})):
+                                        app.logger.info(f"     ********************** ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
 
                                 else:
-                                    app.logger.info(f"Payment for order.id={order.id} not received yet.")
+                                    app.logger.info(f"   **** But not yet paid ****")
+
+                            else:
+                                app.logger.info(f"Payment for order.id={order.id} not received yet.")
 
                         # OUTGOING PAYMENTS
                         if incoming_payment_found:
