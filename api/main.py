@@ -346,7 +346,7 @@ def lightning_payments_processor():
                                 for payout in payout_information:
                                     payout_ln_address = payout['ln_address']
                                     payout_percent = payout['percent']
-                                    payout_amount = order.total * payout_percent
+                                    payout_amount = order.total * payout_percent / 100
 
                                     if ln_payment_logs_util.check_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount):
                                         app.logger.info(f"Payment for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount} WAS already paid.")
