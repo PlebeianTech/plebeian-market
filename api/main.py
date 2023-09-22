@@ -380,16 +380,20 @@ def get_payout_information(seller_id):
         app.logger.error(f"ERROR: There is no merchant with seller_id={seller_id}...")
         return None
 
-    app.logger.info(f"get_payout_information - Merchant: {merchant}...")
+    merchant_dict = merchant.to_dict(for_user=seller_id)
+    app.logger.info(f"get_payout_information - Merchant: {merchant_dict}...")
 
-    if not merchant['lightning_address']:
+    if not merchant_dict['lightning_address']:
         app.logger.error(f"ERROR: The merchant (seller_id={seller_id}) doesn't have a Lightning address to receive his money...")
         return None
 
-    app.logger.info(f"get_payout_information - contribution_percent: {merchant['contribution_percent']}")
-    app.logger.info(f"get_payout_information - CONTRIBUTION_PERCENT_DEFAULT: {app.config['CONTRIBUTION_PERCENT_DEFAULT']}")
+    if 'contribution_percent' in merchant:
+        app.logger.info(f"get_payout_information - contribution_percent: {merchant['contribution_percent']}")
+        merchant_contribution = merchant['contribution_percent']
+    else:
+        app.logger.info(f"get_payout_information - No contribution info for the user. Taking the contribution from CONTRIBUTION_PERCENT_DEFAULT = {app.config['CONTRIBUTION_PERCENT_DEFAULT']}")
+        merchant_contribution = app.config['CONTRIBUTION_PERCENT_DEFAULT']
 
-    merchant_contribution = merchant['contribution_percent'] or app.config['CONTRIBUTION_PERCENT_DEFAULT']
     app.logger.info(f"get_payout_information_1 - merchant_contribution={seller_id}%...")
 
     merchant_contribution = 50
@@ -397,7 +401,7 @@ def get_payout_information(seller_id):
 
     return [
         {
-            'ln_address': merchant['lightning_address'],
+            'ln_address': merchant_dict['lightning_address'],
             'percent': 100 - merchant_contribution
         }
     ]
