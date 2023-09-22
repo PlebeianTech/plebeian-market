@@ -140,7 +140,7 @@ class LightningInvoiceUtil:
             return json_response_invoice
 
         elif (response_invoice.status_code == 400 or response_invoice.status_code == 401):
-            app.logger.info(f"pay_to_ln_address - LndHub API error. Probably the token expired!")
+            app.logger.info(f"pay_to_ln_address - LndHub API error. Probably the token expired! {response_invoice.json()}")
 
             self.auth_header = self.get_login_token()
             return self.pay_to_ln_address(ln_address, amount, comment)
