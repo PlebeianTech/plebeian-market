@@ -293,11 +293,13 @@ def lightning_payments_processor():
                     for invoice in invoices:
                         app.logger.info(f"       -- Invoice: {invoice.id} - {invoice.invoice}")
 
+                        # INCOMING PAYMENT
                         incoming_payment_found = False
 
-                        # INCOMING PAYMENT
                         if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
+                            incoming_payment_found = True
                             app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
+
                         else:
                             app.logger.info(f"Checking if payment for order id={order.id} is received...")
 
@@ -312,7 +314,8 @@ def lightning_payments_processor():
                                     if incoming_invoice['is_paid']:
                                         ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
 
-                                        order.tx_confirmed = True
+                                        incoming_payment_found = True;
+
                                         order.paid_at = datetime.utcnow()
                                         db.session.commit()
 
