@@ -1535,7 +1535,7 @@ class LightningPaymentLog(db.Model):
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
     lightning_invoice_id = db.Column(db.Integer, db.ForeignKey(LightningInvoice.id), nullable=False, primary_key=True)
     state = db.Column(db.Integer, nullable=False)
-    paid_to = db.Column(db.String(200), nullable=True)
+    paid_to = db.Column(db.String(200), nullable=True, primary_key=True)
     amount = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
