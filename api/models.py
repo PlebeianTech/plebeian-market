@@ -1530,7 +1530,7 @@ class LightningPaymentLogState(Enum):
 class LightningPaymentLog(db.Model):
     __tablename__ = 'lightning_payment_logs'
 
-    id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
+    # id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
 
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
     lightning_invoice_id = db.Column(db.Integer, db.ForeignKey(LightningInvoice.id), nullable=False, primary_key=True)
