@@ -380,6 +380,8 @@ def get_payout_information(seller_id):
         app.logger.error(f"ERROR: There is no merchant with seller_id={seller_id}...")
         return None
 
+    app.logger.info(f"get_payout_information - Merchant: {merchant}...")
+
     if not merchant['lightning_address']:
         app.logger.error(f"ERROR: The merchant (seller_id={seller_id}) doesn't have a Lightning address to receive his money...")
         return None
