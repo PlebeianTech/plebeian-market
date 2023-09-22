@@ -312,7 +312,7 @@ def lightning_payments_processor():
                                     app.logger.info(f"Incoming invoice found: {incoming_invoice}")
 
                                     if incoming_invoice['is_paid']:
-                                        app.logger.info(f"Invoice is paid")
+                                        app.logger.info(f"   ******* _____ Invoice is paid _____ *******")
 
                                         ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
 
@@ -326,7 +326,7 @@ def lightning_payments_processor():
                                             app.logger.info(f"     ********************** ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
 
                                     else:
-                                        app.logger.info(f"   ***** But not yet paid *****")
+                                        app.logger.info(f"   **** But not yet paid ****")
 
                                 else:
                                     app.logger.info(f"Payment for order.id={order.id} not received yet.")
