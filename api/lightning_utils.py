@@ -10,7 +10,7 @@ lndhub_url = ''
 class LightningInvoiceUtil:
     def __init__(self):
         self.lndhub_url = app.config['LNDHUB_URL']
-        app.logger.info(f"init  - LNDHUB_URL={self.lndhub_url}")
+        app.logger.info(f"init - LNDHUB_URL={self.lndhub_url}")
         self.auth_header = self.get_login_token()
 
     def get_login_token(self):
@@ -46,7 +46,7 @@ class LightningInvoiceUtil:
             'amount':sats,
             'description':'Payment for Order #' + str(order_id)
         }
-        app.logger.debug(f"Creating invoice for order: {payload}")
+        app.logger.debug(f"create_invoice - Creating invoice for order: {payload}")
 
         response_invoice = requests.post(
             self.lndhub_url + '/v2/invoices',
@@ -55,12 +55,10 @@ class LightningInvoiceUtil:
         )
 
         if (response_invoice.status_code == 200):
-            print("The request to create a new LN invoice was a success!")
-            app.logger.info(f"The request to create a new LN invoice was a success!")
+            app.logger.info(f"create_invoice - The request to create a new LN invoice was a success!")
 
             json_response_invoice = response_invoice.json()
-            print(json.dumps(json_response_invoice, indent=2))
-            app.logger.debug(f"The request to create a new LN invoice was a success!")
+            app.logger.debug(f"create_invoice - The request to create a new LN invoice was a success!")
 
             payment_hash = json_response_invoice['payment_hash']
             invoice = json_response_invoice['payment_request']
@@ -79,15 +77,13 @@ class LightningInvoiceUtil:
             return json_response_invoice
 
         elif (response_invoice.status_code == 401):
-            print("LndHub API error. Probably the token expired!")
-            app.logger.info(f"LndHub API error. Probably the token expired!")
+            app.logger.info(f"create_invoice - LndHub API error. Probably the token expired!")
 
             self.auth_header = self.get_login_token()
             return self.create_invoice(order_id, sats)
 
         else:
-            print("Another thing happened")
-            app.logger.error(f"Another thing happened status_code: {response_invoice.status_code}")
+            app.logger.error(f"create_invoice - Another thing happened status_code: {response_invoice.status_code}")
 
             return None
 
@@ -98,7 +94,7 @@ class LightningInvoiceUtil:
         )
 
         if (response_invoices_status.status_code == 200):
-            app.logger.info(f"get_invoices_status - 200 OK")
+            app.logger.info(f"get_incoming_invoices - 200 OK")
 
             json_response_invoices_status = response_invoices_status.json()
             # print(json.dumps(json_response_invoices_status, indent=2))
@@ -107,20 +103,52 @@ class LightningInvoiceUtil:
             return records_by_id
 
         elif (response_invoices_status.status_code == 401):
-            print("get_invoices_status - LndHub API error. Probably the token expired!")
-            app.logger.info(f"LndHub API error. Probably the token expired!")
+            app.logger.info(f"get_incoming_invoices - LndHub API error. Probably the token expired!")
 
             self.auth_header = self.get_login_token()
             return self.get_incoming_invoices()
 
         else:
-            print("Another thing happened")
-            app.logger.error(f"get_invoices_status - Another thing happened status_code: {response_invoices_status.status_code}")
+            app.logger.error(f"get_incoming_invoices - Another thing happened status_code: {response_invoices_status.status_code}")
             return None
 
     def pay_to_ln_address(self, ln_address, amount, comment):
-        self.get_ln_invoice_from_ln_address(ln_address, amount, comment)
-        return False
+        ln_invoice = self.get_ln_invoice_from_ln_address(ln_address, amount, comment)
+
+        if not ln_invoice:
+            return False
+
+        payload = {
+            'amount':amount,
+            'invoice':ln_invoice
+        }
+        app.logger.info(f"pay_to_ln_address - payload: {payload}")
+
+        response_invoice = requests.post(
+            self.lndhub_url + '/v2/payments/bolt11',
+            headers = self.auth_header,
+            json=payload
+        )
+
+        if (response_invoice.status_code == 200):
+            app.logger.info(f"pay_to_ln_address - The request to pay a LN address ({ln_address} - {amount} sats) was a success!")
+
+            json_response_invoice = response_invoice.json()
+            # print(json.dumps(json_response_invoice, indent=2))
+            app.logger.debug(f"pay_to_ln_address - ****************** {json_response_invoice}")
+
+            return json_response_invoice
+
+        elif (response_invoice.status_code == 400 or response_invoice.status_code == 401):
+            app.logger.info(f"pay_to_ln_address - LndHub API error. Probably the token expired!")
+
+            self.auth_header = self.get_login_token()
+            return self.pay_to_ln_address(ln_address, amount, comment)
+
+        else:
+            app.logger.error(f"pay_to_ln_address - Another thing happened status_code: {response_invoice.status_code}")
+
+            return False
 
     def get_ln_invoice_from_ln_address(self, ln_address, amount, comment):
         alby_lnaddress_proxy_url = 'https://lnaddressproxy.getalby.com/generate-invoice?'

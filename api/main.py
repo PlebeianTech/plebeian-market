@@ -316,7 +316,7 @@ def lightning_payments_processor():
                                 if incoming_invoice['is_paid']:
                                     app.logger.info(f"   ******* _____ Invoice is paid _____ *******")
 
-                                    ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
+                                    ln_payment_logs_util.add_incoming_payment(order.id, invoice.id, order.total)
 
                                     incoming_payment_received = True;
 
@@ -356,8 +356,11 @@ def lightning_payments_processor():
                                         if not invoice_util.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
                                             outgoing_payments_sent = False
                                             app.logger.error(f"ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
+                                        else:
+                                            ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
 
                         if incoming_payment_received and outgoing_payments_sent:
+                            app.logger.info(f"    ********* EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
                             order.paid_at = datetime.utcnow()
                             db.session.commit()
 
@@ -413,7 +416,7 @@ class LightningPaymentLogsUtil:
     def check_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
         return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID.value)
 
-    def add_incoming_payment_log(self, order_id, lightning_invoice_id, amount):
+    def add_incoming_payment(self, order_id, lightning_invoice_id, amount):
         return self.add_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED.value)
 
     def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
