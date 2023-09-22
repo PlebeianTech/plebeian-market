@@ -101,7 +101,7 @@ class LightningInvoiceUtil:
             app.logger.info(f"get_invoices_status - 200 OK")
 
             json_response_invoices_status = response_invoices_status.json()
-            print(json.dumps(json_response_invoices_status, indent=2))
+            # print(json.dumps(json_response_invoices_status, indent=2))
 
             records_by_id = {record['payment_request']: record for record in json_response_invoices_status}
             return records_by_id

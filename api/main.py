@@ -312,6 +312,8 @@ def lightning_payments_processor():
                                     app.logger.info(f"Incoming invoice found: {incoming_invoice}")
 
                                     if incoming_invoice['is_paid']:
+                                        app.logger.info(f"Invoice is paid")
+
                                         ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
 
                                         incoming_payment_found = True;
@@ -351,11 +353,10 @@ def lightning_payments_processor():
                 app.logger.exception("Error while getting information about Lightning Network payments.")
                 #db.session.rollback()
 
-            time.sleep(60)
-
         else:
             app.logger.info(f"There aren't active orders with Lightning Network pending. Sleeping for a while.")
-            time.sleep(10)
+
+        time.sleep(5)
 
 def get_payout_information(user_id):
     app.logger.info(f"Getting payout information for user={user_id}...")
