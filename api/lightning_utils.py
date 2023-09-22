@@ -117,3 +117,44 @@ class LightningInvoiceUtil:
             print("Another thing happened")
             app.logger.error(f"get_invoices_status - Another thing happened status_code: {response_invoices_status.status_code}")
             return None
+
+    def pay_to_ln_address(self, ln_address, amount, comment):
+        return self.get_ln_invoice_from_ln_address(ln_address, amount, comment)
+
+    def get_ln_invoice_from_ln_address(self, ln_address, amount, comment):
+        alby_lnaddress_proxy_url = 'https://lnaddressproxy.getalby.com/generate-invoice?'
+
+        if not ln_address:
+            app.logger.error(f"get_ln_invoice_from_ln_address - No ln_address provided")
+            return False
+
+        if not amount:
+            app.logger.error(f"get_ln_invoice_from_ln_address - No amount_sats provided ln_address={ln_address}")
+            return False
+
+        amount *= 1000      # amount is sats, but here millisats are required
+
+        alby_lnaddress_proxy_url += 'ln=' + ln_address + '&amount=' + amount
+
+        if comment:
+            alby_lnaddress_proxy_url += '&comment=' + comment
+
+        app.logger.info(f"get_ln_invoice_from_ln_address - Making request to Alby proxy ({alby_lnaddress_proxy_url}) ...")
+        r = requests.get(alby_lnaddress_proxy_url)
+
+        json_res = r.json()
+        app.logger.info(f"get_ln_invoice_from_ln_address - response from Alby: {json_res}")
+
+        if 'error' in json_res:
+            app.logger.error(f"get_ln_invoice_from_ln_address - {json_res}")
+            return False
+
+        try:
+            ln_invoice = json_res['invoice']['pr']
+            app.logger.info(f"get_ln_invoice_from_ln_address - ln_invoice = {ln_invoice}")
+
+        except:
+            app.logger.error(f"get_ln_invoice_from_ln_address - Error getting the ln invoice from the response")
+            return False
+
+        return ln_invoice

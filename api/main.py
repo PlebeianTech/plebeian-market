@@ -299,10 +299,10 @@ def lightning_payments_processor():
                         app.logger.info(f"       -- Invoice: {invoice.id} - {invoice.invoice}")
 
                         # INCOMING PAYMENT
-                        incoming_payment_found = False
+                        incoming_payment_received = False
 
                         if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
-                            incoming_payment_found = True
+                            incoming_payment_received = True
                             app.logger.info(f"Payment for order.id={order.id} WAS already recorded as received...")
 
                         else:
@@ -318,11 +318,10 @@ def lightning_payments_processor():
 
                                     ln_payment_logs_util.add_incoming_payment_log(order.id, invoice.id, order.total)
 
-                                    incoming_payment_found = True;
+                                    incoming_payment_received = True;
 
-                                    order.paid_at = datetime.utcnow()
-                                    db.session.commit()
-
+                                    # We don't mark the order as paid yet for the seller, but the buyer already paid,
+                                    # so we want him to have the order marked as paid so the QR dissapears from the screen
                                     if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                         json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed"})):
                                         app.logger.info(f"     ********************** ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
@@ -334,22 +333,33 @@ def lightning_payments_processor():
                                 app.logger.info(f"Payment for order.id={order.id} not received yet.")
 
                         # OUTGOING PAYMENTS
-                        if incoming_payment_found:
+                        outgoing_payments_sent = True;
+
+                        if incoming_payment_received:
                             payout_information = get_payout_information(order.seller_id)
                             app.logger.info(f"Payout information - payout_information = {payout_information}")
 
                             if not payout_information:
-                                app.logger.error(f"ERROR: There is no payment information for order.id={order.id} !!!!!")
+                                app.logger.error(f"ERROR: There is no payout information for order.id={order.id}, order.seller_id={order.seller_id}  !!!!!")
+                                outgoing_payments_sent = False
                             else:
                                 for payout in payout_information:
+                                    payout_ln_address = payout['ln_address']
                                     payout_percent = payout['percent']
                                     payout_amount = order.total * payout_percent
 
-                                    if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout['ln_address'], payout_amount):
-                                        app.logger.info(f"Payout for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount} WAS already paid.")
+                                    if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout_ln_address, payout_amount):
+                                        app.logger.info(f"Payout for order.id={order.id}, ln_address={payout_ln_address}, amount={payout_amount} WAS already paid.")
                                     else:
-                                        app.logger.info(f"Paying for order.id={order.id}, ln_address={payout['ln_address']}, amount={payout_amount}...")
-                                        # TODO
+                                        app.logger.info(f"Paying for order.id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
+                                        
+                                        if not invoice_util.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                            outgoing_payments_sent = False
+                                            app.logger.error(f"ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
+
+                        if incoming_payment_received and outgoing_payments_sent:
+                            order.paid_at = datetime.utcnow()
+                            db.session.commit()
 
             except:
                 app.logger.exception("Error while getting information about Lightning Network payments.")
