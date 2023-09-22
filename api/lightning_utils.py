@@ -119,7 +119,8 @@ class LightningInvoiceUtil:
             return None
 
     def pay_to_ln_address(self, ln_address, amount, comment):
-        return self.get_ln_invoice_from_ln_address(ln_address, amount, comment)
+        self.get_ln_invoice_from_ln_address(ln_address, amount, comment)
+        return False
 
     def get_ln_invoice_from_ln_address(self, ln_address, amount, comment):
         alby_lnaddress_proxy_url = 'https://lnaddressproxy.getalby.com/generate-invoice?'

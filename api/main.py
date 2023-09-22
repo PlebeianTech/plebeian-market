@@ -348,7 +348,7 @@ def lightning_payments_processor():
                                     payout_percent = payout['percent']
                                     payout_amount = order.total * payout_percent
 
-                                    if ln_payment_logs_util.check_outgoing_payment(order.id, order.lightning_invoice_id, payout_ln_address, payout_amount):
+                                    if ln_payment_logs_util.check_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount):
                                         app.logger.info(f"Payout for order.id={order.id}, ln_address={payout_ln_address}, amount={payout_amount} WAS already paid.")
                                     else:
                                         app.logger.info(f"Paying for order.id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
@@ -394,10 +394,10 @@ def get_payout_information(seller_id):
         app.logger.info(f"get_payout_information - No contribution info for the user. Taking the contribution from CONTRIBUTION_PERCENT_DEFAULT = {app.config['CONTRIBUTION_PERCENT_DEFAULT']}")
         merchant_contribution = app.config['CONTRIBUTION_PERCENT_DEFAULT']
 
-    app.logger.info(f"get_payout_information_1 - merchant_contribution={seller_id}%...")
+    app.logger.info(f"get_payout_information_1 - merchant_contribution={merchant_contribution}%...")
 
     merchant_contribution = 50
-    app.logger.info(f"get_payout_information_2 - merchant_contribution={seller_id}%...")
+    app.logger.info(f"get_payout_information_2 - merchant_contribution={merchant_contribution}%...")
 
     return [
         {
