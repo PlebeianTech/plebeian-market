@@ -135,7 +135,7 @@ class LightningInvoiceUtil:
 
         amount *= 1000      # amount is sats, but here millisats are required
 
-        alby_lnaddress_proxy_url += 'ln=' + ln_address + '&amount=' + amount
+        alby_lnaddress_proxy_url += 'ln=' + ln_address + '&amount=' + str(amount)
 
         if comment:
             alby_lnaddress_proxy_url += '&comment=' + comment
