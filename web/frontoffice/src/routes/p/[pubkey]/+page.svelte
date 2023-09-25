@@ -49,8 +49,8 @@
     const identityTypesSupported = ['twitter', 'github', 'telegram'];
     let externalIdentitiesVerification = {
         twitter: {verified: 'waiting'},
-        github: {verified: 'verified-ok'},
-        telegram: {verified: 'verfied-notok'}
+        github: {verified: 'waiting'},
+        telegram: {verified: 'waiting'}
     }
     $: verificationCanBeDone = true;
 
@@ -152,11 +152,15 @@
                 },
                 async () => {
                     if (backend_present) {
-                        const verification = await askAPIForVerification(data.pubkey);
-                        console.log('askAPIForVerification', askAPIForVerification);
+                        const verifiedIdentities = await askAPIForVerification(data.pubkey) ?? [];
+                        console.log('askAPIForVerification - verifiedIdentities', verifiedIdentities);
 
-                        if (!verification) {
+                        if (!verifiedIdentities) {
                             verificationCanBeDone = false;
+                        } else {
+                            verifiedIdentities.forEach(verifiedIdentity => {
+                                externalIdentitiesVerification[verifiedIdentity.split(':')[0]].verified = 'verified-ok';
+                            });
                         }
                     } else {
                         verificationCanBeDone = false;
@@ -225,7 +229,7 @@
 
                     {#if backend_present}
                         {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting'}
-                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Waiting for verification of the identity..."><Clock /></div>
+                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
                         {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok'}
                             <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-success text-green-500" data-tip="Identity verified by Plebeian Market"><VerificationMark /></div>
                         {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-notok'}
