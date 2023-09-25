@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {loggedIn, requestLoginModal} from "$sharedLib/utils";
+    import {getConfigurationFromFile, loggedIn, requestLoginModal} from "$sharedLib/utils";
     import { onMount } from 'svelte';
     import {publishMetadata, subscribeMetadata} from "$sharedLib/services/nostr";
     import {askAPIForVerification, encodeNpub, filterTags, getExternalIdentityUrl} from "$sharedLib/nostr/utils";
@@ -8,6 +8,9 @@
     import Github from "$sharedLib/components/icons/Github.svelte";
     import Twitter from "$sharedLib/components/icons/Twitter.svelte";
     import Question from "$sharedLib/components/icons/Question.svelte";
+    import Clock from "$sharedLib/components/icons/Clock.svelte";
+    import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
+    import X from "$sharedLib/components/icons/X.svelte";
 
     $: profile = null;
     $: externalIdentities = [];
@@ -17,6 +20,15 @@
     let type = 'twitter';
     let url = '';
     let user = '';
+
+    let externalIdentitiesVerification = {
+        twitter: {verified: 'waiting'},
+        github: {verified: 'waiting'},
+        telegram: {verified: 'waiting'}
+    }
+    $: verificationCanBeDone = true;
+
+    $: backend_present = true;
 
     let verifyHelpInfo: [] = []
     verifyHelpInfo['twitter'] = {
@@ -185,11 +197,27 @@
 
         await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
 
-        await askAPIForVerification($NostrPublicKey);
+        if (backend_present) {
+            const verifiedIdentities = await askAPIForVerification($NostrPublicKey) ?? [];
+            console.log('askAPIForVerification - verifiedIdentities', verifiedIdentities);
+
+            if (!verifiedIdentities) {
+                verificationCanBeDone = false;
+            } else {
+                verifiedIdentities.forEach(verifiedIdentity => {
+                    externalIdentitiesVerification[verifiedIdentity.split(':')[0]].verified = 'verified-ok';
+                });
+            }
+        }
     }
 
-    onMount(() => {
+    onMount(async () => {
         getMetadata();
+
+        let config = await getConfigurationFromFile();
+        if (config) {
+            backend_present = config.backend_present ?? true;
+        }
     });
 </script>
 
@@ -220,21 +248,31 @@
         <h2>External identities:</h2>
         {#if externalIdentities.length === 0}
             <p class="mt-2">Your Nostr profile doesn't have any external identity yet. Add one using the form above.</p>
+        {:else}
+            {#each externalIdentities as identity}
+                <a class="flex hover:underline mt-5" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
+                    {#if identity.split(':')[0] === 'twitter'}
+                        <Twitter />
+                    {:else if identity.split(':')[0] === 'github'}
+                        <Github />
+                    {:else if identity.split(':')[0] === 'telegram'}
+                        <Telegram />
+                    {/if}
+
+                    <div class="ml-2">{identity.split(':')[1]}</div>
+
+                    {#if backend_present}
+                        {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting'}
+                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
+                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok'}
+                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-success text-green-500" data-tip="Identity verified by Plebeian Market"><VerificationMark /></div>
+                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-notok'}
+                            <div class="w-5 h-5 ml-2 tooltip tooltip-error text-red-500" data-tip="This identity couldn't be verified by Plebeian Market as belonging to this user"><X /></div>
+                        {/if}
+                    {/if}
+                </a>
+            {/each}
         {/if}
-
-        {#each externalIdentities as identity}
-            <a class="flex hover:underline mt-5" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
-                {#if identity.split(':')[0] === 'twitter'}
-                    <Twitter />
-                {:else if identity.split(':')[0] === 'github'}
-                    <Github />
-                {:else if identity.split(':')[0] === 'telegram'}
-                    <Telegram />
-                {/if}
-
-                <div class="ml-2">{identity.split(':')[1]}</div>
-            </a>
-        {/each}
 
         {#if changesMade}
             <div class="mt-6">
