@@ -9,7 +9,7 @@
 <div class="lg:w-2/3 mx-auto">
     <ListView
         loader={{endpoint: "users/me/orders", responseField: 'orders', fromJson: orderFromJson}}
-        columns={["Date", "Total Sats / Fiat", "Received sats", "Tx", "Status"]}
+        columns={["UUID", "Date", "Total Sats / Fiat", "Received sats", "Tx", "Status"]}
         card={OrderRow}
         editor={null}
         style={ListViewStyle.Table} />
