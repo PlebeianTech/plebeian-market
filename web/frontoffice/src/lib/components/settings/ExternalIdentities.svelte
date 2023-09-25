@@ -183,9 +183,7 @@
             ]);
         });
 
-        profile.tags = iFilteredProfileTags;
-
-        await publishMetadata(profile);      // Saving profile with new 'i' tags to Nostr
+        await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
 
         await askAPIForVerification($NostrPublicKey);
     }

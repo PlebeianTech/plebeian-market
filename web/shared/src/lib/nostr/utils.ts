@@ -226,10 +226,7 @@ export function getExternalIdentityUrl(channel: string, identity: string, proof:
 }
 
 export async function askAPIForVerification(pubkey: string) {
-    return false;
-
-    //const apiHost = getApiBaseUrl();
-    const apiHost = 'https://staging.plebeian.market/';
+    const apiHost = getApiBaseUrl();
     const apiUrl = 'api/keys/';
     const apiUrlSuffix = '/metadata';
 

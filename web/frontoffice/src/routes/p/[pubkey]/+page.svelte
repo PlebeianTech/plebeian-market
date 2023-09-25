@@ -153,6 +153,8 @@
                 async () => {
                     if (backend_present) {
                         const verification = await askAPIForVerification(data.pubkey);
+                        console.log('askAPIForVerification', askAPIForVerification);
+
                         if (!verification) {
                             verificationCanBeDone = false;
                         }

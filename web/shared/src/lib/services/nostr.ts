@@ -240,29 +240,23 @@ export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string
             receivedCB(e.pubkey, jsonDecodedMetadata);
         } catch (error) { }
     });
-    sub.on('eose', eoseCB);
+    if (eoseCB) {
+        sub.on('eose', eoseCB);
+    }
 }
 
 export async function publishMetadata(profile, tags, successCB: () => void) {
-    console.log('profile_1', profile);
-
     // We put this on the profile for easier access, but cannot be
     // saved to the profile, so we remove them before publishing
     delete profile.created_at;
     delete profile.pubkey;
     delete profile.tags;
 
-    console.log('profile_2', profile);
-    console.log('tags', tags);
-
     const event = await createEvent(Kind.Metadata, JSON.stringify(profile), tags);
-    console.log('publishMetadata event', event);
-    /*
+
     get(NostrPool)
         .publish(relayUrlList, event)
         .on('ok', successCB);
-
-     */
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
