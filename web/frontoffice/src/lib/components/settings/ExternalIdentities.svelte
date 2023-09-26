@@ -1,16 +1,11 @@
 <script lang="ts">
-    import {getConfigurationFromFile, loggedIn, requestLoginModal} from "$sharedLib/utils";
+    import {loggedIn, requestLoginModal} from "$sharedLib/utils";
     import { onMount } from 'svelte';
     import {publishMetadata, subscribeMetadata} from "$sharedLib/services/nostr";
-    import {askAPIForVerification, encodeNpub, filterTags, getExternalIdentityUrl} from "$sharedLib/nostr/utils";
+    import {encodeNpub, filterTags} from "$sharedLib/nostr/utils";
     import {Info, Error, NostrPublicKey} from "$sharedLib/stores";
-    import Telegram from "$sharedLib/components/icons/Telegram.svelte";
-    import Github from "$sharedLib/components/icons/Github.svelte";
-    import Twitter from "$sharedLib/components/icons/Twitter.svelte";
     import Question from "$sharedLib/components/icons/Question.svelte";
-    import Clock from "$sharedLib/components/icons/Clock.svelte";
-    import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
-    import X from "$sharedLib/components/icons/X.svelte";
+    import ShowExternalIdentities from "$lib/components/nostr/ShowExternalIdentities.svelte";
 
     $: profile = null;
     $: externalIdentities = [];
@@ -21,15 +16,13 @@
     let url = '';
     let user = '';
 
-    const identityTypesSupported = ['twitter', 'github', 'telegram'];
     let externalIdentitiesVerification = {
         twitter: {verified: 'waiting', recently_added: false},
         github: {verified: 'waiting', recently_added: false},
         telegram: {verified: 'waiting', recently_added: false}
     }
-    $: verificationCanBeDone = true;
 
-    $: backend_present = true;
+    let verifyIdentities;
 
     let verifyHelpInfo: [] = []
     verifyHelpInfo['twitter'] = {
@@ -170,16 +163,6 @@
 
             return !match;
         });
-        /*
-        externalIdentities.forEach(identity => {
-            console.log('iterating identity:', identity);
-
-            if (identity === externalIdentityToDelete) {
-                console.log('esta es la que hay que borrar');
-                changesMade = true;
-                return false;
-            }
-        });*/
     }
 
     async function saveIdentitiesToNostr() {
@@ -214,34 +197,6 @@
         await verifyIdentities();
     }
 
-    async function verifyIdentities() {
-        if (backend_present) {
-            if (externalIdentities.length === 0) {
-                console.log('No verifying nada');
-                return;
-            }
-
-            const verifiedIdentities = await askAPIForVerification($NostrPublicKey) ?? [];
-            if (!verifiedIdentities) {
-                verificationCanBeDone = false;
-            } else {
-                verifiedIdentities.forEach(verifiedIdentity => {
-                    externalIdentitiesVerification[verifiedIdentity.split(':')[0]].verified = 'verified-ok';
-
-                    externalIdentitiesVerification[verifiedIdentity.split(':')[0]].recently_added = false;
-                });
-
-                identityTypesSupported.forEach(identityType => {
-                    if (externalIdentitiesVerification[identityType].verified !== 'verified-ok') {
-                        externalIdentitiesVerification[identityType].verified = 'verified-notok';
-                    }
-                });
-            }
-        } else {
-            verificationCanBeDone = false;
-        }
-    }
-
     function getMetadata() {
         if ($NostrPublicKey) {
             subscribeMetadata([$NostrPublicKey],
@@ -261,18 +216,13 @@
                 },
                 async () => {
                     lastProfileLoaded = true;
-                    await verifyIdentities()
+                    await verifyIdentities();
                 });
         }
     }
 
     onMount(async () => {
         getMetadata();
-
-        let config = await getConfigurationFromFile();
-        if (config) {
-            backend_present = config.backend_present ?? true;
-        }
     });
 </script>
 
@@ -304,39 +254,13 @@
         {#if externalIdentities.length === 0}
             <p class="mt-2">Your Nostr profile doesn't have any external identity yet. Add one using the form above.</p>
         {:else}
-            {#each externalIdentities as identity}
-                <div class="flex mt-5">
-                    <div class="w-5 h-5 mr-4 tooltip tooltip-error" data-tip="Delete this identity from your Nostr Profile" on:click={() => {deleteIdentity(identity)}}><X /></div>
-
-                    <a class="flex hover:underline" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
-                        {#if identity.split(':')[0] === 'twitter'}
-                            <Twitter />
-                        {:else if identity.split(':')[0] === 'github'}
-                            <Github />
-                        {:else if identity.split(':')[0] === 'telegram'}
-                            <Telegram />
-                        {/if}
-
-                        <div class="ml-2">{identity.split(':')[1]}</div>
-
-                        {#if backend_present}
-                            {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
-                                <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
-                            {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
-                                <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-success text-green-500" data-tip="Identity verified by Plebeian Market"><VerificationMark /></div>
-                            {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-notok' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
-                                <div class="w-5 h-5 ml-2 tooltip tooltip-error text-red-500" data-tip="This identity couldn't be verified by Plebeian Market as belonging to this user"><X /></div>
-                            {/if}
-                        {/if}
-                    </a>
-                </div>
-            {/each}
-
-            {#if !backend_present || !verificationCanBeDone}
-                <p class="text-lg leading-4">
-                    You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub($NostrPublicKey)}</span><span class="flex md:hidden">{splitString(encodeNpub($NostrPublicKey), 32) }</span>
-                </p>
-            {/if}
+            <ShowExternalIdentities
+                    {externalIdentities}
+                    {externalIdentitiesVerification}
+                    showDeleteButton={true}
+                    nostrPublicKey={$NostrPublicKey}
+                    bind:verifyIdentities={verifyIdentities}
+            />
         {/if}
 
         {#if changesMade}
