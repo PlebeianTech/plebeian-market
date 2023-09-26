@@ -128,7 +128,6 @@
             }
 
             if (user.startsWith('@')) {
-                console.log('Removing the @...');
                 user = user.substring(1);
             }
 
