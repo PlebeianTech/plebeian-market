@@ -226,13 +226,12 @@ export function getExternalIdentityUrl(channel: string, identity: string, proof:
 }
 
 export async function askAPIForVerification(pubkey: string) {
-    //const apiHost = getApiBaseUrl();
-    const apiHost = 'https://staging.plebeian.market/';
+    const apiHost = getApiBaseUrl();
     const apiUrl = 'api/keys/';
     const apiUrlSuffix = '/metadata';
 
     if (!pubkey) {
-        console.error('Called askAPIForVerification without pubkey');
+        console.error('Called askAPIForVerification without a pubkey');
         return;
     }
 
@@ -245,16 +244,13 @@ export async function askAPIForVerification(pubkey: string) {
 
         const responseJson = await response.json();
 
-        console.log('responseJson', responseJson);
-        console.log('verified_identities', responseJson.verified_identities);
-
-        if (responseJson.success === true && responseJson.verified_identities) {
+        if (responseJson && responseJson.verified_identities) {
             return responseJson.verified_identities;
         } else {
             return false;
         }
     } catch (error) {
-        console.debug("tryLoginToBackend (2) - Could not contact with a backend, so API verification cannot be done.");
+        console.debug("askAPIForVerification - Could not contact with a backend, so API verification cannot be done:", error);
         return false;
     }
 }

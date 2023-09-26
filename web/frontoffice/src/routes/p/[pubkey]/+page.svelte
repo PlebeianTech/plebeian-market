@@ -161,6 +161,12 @@
                             verifiedIdentities.forEach(verifiedIdentity => {
                                 externalIdentitiesVerification[verifiedIdentity.split(':')[0]].verified = 'verified-ok';
                             });
+
+                            identityTypesSupported.forEach(identityType => {
+                                if (externalIdentitiesVerification[identityType].verified !== 'verified-ok') {
+                                    externalIdentitiesVerification[identityType].verified = 'verified-notok';
+                                }
+                            });
                         }
                     } else {
                         verificationCanBeDone = false;

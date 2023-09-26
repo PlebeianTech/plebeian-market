@@ -21,10 +21,11 @@
     let url = '';
     let user = '';
 
+    const identityTypesSupported = ['twitter', 'github', 'telegram'];
     let externalIdentitiesVerification = {
-        twitter: {verified: 'waiting'},
-        github: {verified: 'waiting'},
-        telegram: {verified: 'waiting'}
+        twitter: {verified: 'waiting', recently_added: false},
+        github: {verified: 'waiting', recently_added: false},
+        telegram: {verified: 'waiting', recently_added: false}
     }
     $: verificationCanBeDone = true;
 
@@ -78,7 +79,7 @@
             '<p class="mt-1">https://t.me/nostr_protocol/118763</p>'
     };
 
-    function addData() {
+    function addIdentity() {
         if (!type || !url) {
             Info.set('You must enter the URL before adding');
             return;
@@ -133,10 +134,17 @@
                 return;
             }
 
+            if (user.startsWith('@')) {
+                console.log('Removing the @...');
+                user = user.substring(1);
+            }
+
             const channel = urlTokens[3];
             const proof = channel + '/' + urlTokens[4];
             newEntry = type + ':' + user + ':' + proof;
         }
+
+        externalIdentitiesVerification[type].recently_added = true;
 
         externalIdentities.push(newEntry);
         externalIdentities = externalIdentities;
@@ -147,6 +155,91 @@
         user = '';
 
         changesMade = true;
+    }
+
+    function deleteIdentity(externalIdentityToDelete) {
+        console.log('deleteIdentity - identity', externalIdentityToDelete);
+
+        externalIdentities = externalIdentities.filter(function(identity){
+            const match = identity === externalIdentityToDelete;
+
+            if (match) {
+                console.log('esta es la que hay que borrar');
+                changesMade = true;
+            }
+
+            return !match;
+        });
+        /*
+        externalIdentities.forEach(identity => {
+            console.log('iterating identity:', identity);
+
+            if (identity === externalIdentityToDelete) {
+                console.log('esta es la que hay que borrar');
+                changesMade = true;
+                return false;
+            }
+        });*/
+    }
+
+    async function saveIdentitiesToNostr() {
+        if (!changesMade) {
+            Info.set('No changes made, so there is nothing to save')
+        }
+        if (!lastProfileLoaded) {
+            Info.set('There was a problem loading your profile, so no changes are allowed. Reload the page and try again.')
+            return;
+        }
+
+        // Filtering out 'i' tags to start clean
+        let iFilteredProfileTags;
+
+        if (profile.tags) {
+            iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
+                return tag[0] !== 'i';
+            });
+        }
+
+        // Adding current i tags to the profile
+        externalIdentities.forEach(identity => {
+            iFilteredProfileTags.push([
+                'i',
+                identity.split(':')[0] + ':' + identity.split(':')[1],
+                identity.split(':')[2]
+            ]);
+        });
+
+        await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
+
+        await verifyIdentities();
+    }
+
+    async function verifyIdentities() {
+        if (backend_present) {
+            if (externalIdentities.length === 0) {
+                console.log('No verifying nada');
+                return;
+            }
+
+            const verifiedIdentities = await askAPIForVerification($NostrPublicKey) ?? [];
+            if (!verifiedIdentities) {
+                verificationCanBeDone = false;
+            } else {
+                verifiedIdentities.forEach(verifiedIdentity => {
+                    externalIdentitiesVerification[verifiedIdentity.split(':')[0]].verified = 'verified-ok';
+
+                    externalIdentitiesVerification[verifiedIdentity.split(':')[0]].recently_added = false;
+                });
+
+                identityTypesSupported.forEach(identityType => {
+                    if (externalIdentitiesVerification[identityType].verified !== 'verified-ok') {
+                        externalIdentitiesVerification[identityType].verified = 'verified-notok';
+                    }
+                });
+            }
+        } else {
+            verificationCanBeDone = false;
+        }
     }
 
     function getMetadata() {
@@ -166,48 +259,10 @@
                         });
                     }
                 },
-                () => {
+                async () => {
                     lastProfileLoaded = true;
+                    await verifyIdentities()
                 });
-        }
-    }
-
-    async function saveIdentitiesToNostr() {
-        if (!changesMade) {
-            Info.set('No changes made, so there is nothing to save')
-        }
-        if (!lastProfileLoaded) {
-            Info.set('There was a problem loading your profile, so no changes are allowed. Reload the page and try again.')
-            return;
-        }
-
-        // Filtering out 'i' tags to start clean
-        let iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
-            return tag[0] !== 'i';
-        });
-
-        // Adding current i tags to the profile
-        externalIdentities.forEach(identity => {
-            iFilteredProfileTags.push([
-                'i',
-                identity.split(':')[0] + ':' + identity.split(':')[1],
-                identity.split(':')[2]
-            ]);
-        });
-
-        await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
-
-        if (backend_present) {
-            const verifiedIdentities = await askAPIForVerification($NostrPublicKey) ?? [];
-            console.log('askAPIForVerification - verifiedIdentities', verifiedIdentities);
-
-            if (!verifiedIdentities) {
-                verificationCanBeDone = false;
-            } else {
-                verifiedIdentities.forEach(verifiedIdentity => {
-                    externalIdentitiesVerification[verifiedIdentity.split(':')[0]].verified = 'verified-ok';
-                });
-            }
         }
     }
 
@@ -240,7 +295,7 @@
                 <input class="input-info border rounded py-2 px-3" type="text" placeholder="Telegram user" bind:value={user}>
             {/if}
             <input class="w-2/3 input-info border rounded py-2 px-3" type="text" placeholder="URL" bind:value={url}>
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addData}>Add</button>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addIdentity}>Add</button>
         </div>
     </div>
 
@@ -250,33 +305,43 @@
             <p class="mt-2">Your Nostr profile doesn't have any external identity yet. Add one using the form above.</p>
         {:else}
             {#each externalIdentities as identity}
-                <a class="flex hover:underline mt-5" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
-                    {#if identity.split(':')[0] === 'twitter'}
-                        <Twitter />
-                    {:else if identity.split(':')[0] === 'github'}
-                        <Github />
-                    {:else if identity.split(':')[0] === 'telegram'}
-                        <Telegram />
-                    {/if}
+                <div class="flex mt-5">
+                    <div class="w-5 h-5 mr-4 tooltip tooltip-error" data-tip="Delete this identity from your Nostr Profile" on:click={() => {deleteIdentity(identity)}}><X /></div>
 
-                    <div class="ml-2">{identity.split(':')[1]}</div>
-
-                    {#if backend_present}
-                        {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting'}
-                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
-                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok'}
-                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-success text-green-500" data-tip="Identity verified by Plebeian Market"><VerificationMark /></div>
-                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-notok'}
-                            <div class="w-5 h-5 ml-2 tooltip tooltip-error text-red-500" data-tip="This identity couldn't be verified by Plebeian Market as belonging to this user"><X /></div>
+                    <a class="flex hover:underline" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
+                        {#if identity.split(':')[0] === 'twitter'}
+                            <Twitter />
+                        {:else if identity.split(':')[0] === 'github'}
+                            <Github />
+                        {:else if identity.split(':')[0] === 'telegram'}
+                            <Telegram />
                         {/if}
-                    {/if}
-                </a>
+
+                        <div class="ml-2">{identity.split(':')[1]}</div>
+
+                        {#if backend_present}
+                            {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
+                                <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
+                            {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
+                                <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-success text-green-500" data-tip="Identity verified by Plebeian Market"><VerificationMark /></div>
+                            {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-notok' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
+                                <div class="w-5 h-5 ml-2 tooltip tooltip-error text-red-500" data-tip="This identity couldn't be verified by Plebeian Market as belonging to this user"><X /></div>
+                            {/if}
+                        {/if}
+                    </a>
+                </div>
             {/each}
+
+            {#if !backend_present || !verificationCanBeDone}
+                <p class="text-lg leading-4">
+                    You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub($NostrPublicKey)}</span><span class="flex md:hidden">{splitString(encodeNpub($NostrPublicKey), 32) }</span>
+                </p>
+            {/if}
         {/if}
 
         {#if changesMade}
             <div class="mt-6">
-                <button class="mt-4 py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded" on:click={saveIdentitiesToNostr}>Verify and Save</button>
+                <button class="mt-4 py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded" on:click={saveIdentitiesToNostr}>{externalIdentities.length === 0 ? 'Save' : 'Verify and Save'}</button>
             </div>
         {/if}
     </div>
@@ -297,7 +362,7 @@
                 <input class="input-info border rounded py-2 px-3" type="text" placeholder="Telegram user" bind:value={user}>
             {/if}
             <input class="input-info border rounded py-2 px-3" type="text" placeholder="URL" bind:value={url}>
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addData}>Add</button>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addIdentity}>Add</button>
         </p>
         <div class="modal-action">
             <form method="dialog">
