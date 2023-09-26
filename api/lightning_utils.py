@@ -37,9 +37,7 @@ class LightningInvoiceUtil:
         access_token = json_res['access_token']
         app.logger.info(f"get_login_token - Access token = {access_token}")
 
-        headers = {"Authorization": "Bearer " + access_token}
-
-        return headers
+        return {"Authorization": "Bearer " + access_token}
 
     def create_invoice(self, order_id, sats):
         payload = {
