@@ -259,9 +259,9 @@ def settle_btc_payments():
         else:
             time.sleep(10)
 
-@app.cli.command("lightning-payments-processor")
+@app.cli.command("settle-lightning-payments")
 @with_appcontext
-def lightning_payments_processor():
+def settle_lightning_payments():
     from lightning_utils import LightningInvoiceUtil
     invoice_util = LightningInvoiceUtil()
 

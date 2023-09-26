@@ -7,7 +7,7 @@ services:
     env_file: .env.test
   settle-btc-payments:
     env_file: .env.test
-  lightning-payments-processor:
+  settle-lightning-payments:
     env_file: .env.test
   birdwatcher:
     env_file: .env.test
