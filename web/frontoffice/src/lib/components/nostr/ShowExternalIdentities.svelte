@@ -15,6 +15,7 @@
     export let externalIdentitiesVerification;
     export let showDeleteButton = false;
     export let nostrPublicKey;
+    export let deleteIdentity;
 
     export const verifyIdentities = callAPIVerifyIdentities;
 

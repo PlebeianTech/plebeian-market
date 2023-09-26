@@ -150,13 +150,10 @@
     }
 
     function deleteIdentity(externalIdentityToDelete) {
-        console.log('deleteIdentity - identity', externalIdentityToDelete);
-
         externalIdentities = externalIdentities.filter(function(identity){
             const match = identity === externalIdentityToDelete;
 
             if (match) {
-                console.log('esta es la que hay que borrar');
                 changesMade = true;
             }
 
@@ -259,6 +256,7 @@
                     showDeleteButton={true}
                     nostrPublicKey={$NostrPublicKey}
                     bind:verifyIdentities={verifyIdentities}
+                    {deleteIdentity}
             />
         {/if}
 
