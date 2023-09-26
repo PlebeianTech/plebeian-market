@@ -171,7 +171,7 @@
         }
 
         // Filtering out 'i' tags to start clean
-        let iFilteredProfileTags;
+        let iFilteredProfileTags = [];
 
         if (profile.tags) {
             iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
