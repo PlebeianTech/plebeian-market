@@ -348,7 +348,13 @@ async def main(relays: list[Relay]):
 
         for relay in relays:
             if subscription_id in relay.active_queries:
-                await relay.active_queries[subscription_id].wait()
+                try:
+                    await asyncio.wait_for(relay.active_queries[subscription_id].wait(), timeout=1.0)
+                except asyncio.TimeoutError:
+                    logging.error(f"Relay {relay.url} did not finish the reply on time!")
+
+                logging.info(f"Got {len(relay.query_results[subscription_id])} results from {relay.url}!")
+
                 for event in relay.query_results[subscription_id]:
                     query_results[event['id']] = event # NB: if we get the same event from multiple relays, we only store it once!
                 del relay.active_queries[subscription_id]
