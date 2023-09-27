@@ -1,6 +1,4 @@
 import requests, json
-import models as m
-import time
 from extensions import db
 from flask import current_app as app
 
