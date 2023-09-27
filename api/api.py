@@ -932,7 +932,14 @@ def post_merchant_message(pubkey):
                 payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
 
             if order.lightning_address:
-                invoice_information = get_lndhub_client().create_invoice(order.id, order.total)
+                lndhub_client = get_lndhub_client()
+                invoice_information = lndhub_client.create_invoice(order.id, order.total)
+
+                if not invoice_information:
+                    app.logger.info(f"Error while trying to create_invoice. Retrying...")
+                    time.sleep(5)
+                    lndhub_client.get_login_token()
+                    invoice_information = lndhub_client.create_invoice(order.id, order.total)
 
                 if invoice_information and invoice_information['payment_request']:
                     lightning_invoice = m.LightningInvoice(

@@ -269,7 +269,7 @@ def get_lndhub_client():
 @app.cli.command("settle-lightning-payments")
 @with_appcontext
 def settle_lightning_payments():
-    lnd_hub_client = LndHubClient()
+    lndhub_client = get_lndhub_client()
 
     app.logger.setLevel(getattr(logging, LOG_LEVEL))
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
@@ -284,12 +284,18 @@ def settle_lightning_payments():
         if active_orders_with_lightning.all():
 
             try:
-                incoming_invoices = lnd_hub_client.get_incoming_invoices()
+                incoming_invoices = lndhub_client.get_incoming_invoices()
 
                 if not incoming_invoices:
-                    app.logger.info(f"There is no information about any incoming Lightning invoices from the LNDhub provider yet. Sleeping...")
-                    time.sleep(10)
-                    continue
+                    app.logger.info(f"Error while trying to get the list of incoming invoices. Retrying...")
+                    time.sleep(5)
+                    lndhub_client.get_login_token()
+                    incoming_invoices = lndhub_client.get_incoming_invoices()
+                
+                    if not incoming_invoices:
+                        app.logger.info(f"There is no information about any incoming Lightning invoices from the LNDhub provider yet.")
+                        time.sleep(10)
+                        continue
 
                 ln_payment_logs_util = m.LightningPaymentLog
 
@@ -360,9 +366,14 @@ def settle_lightning_payments():
                                     else:
                                         app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
                                         
-                                        if not lnd_hub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
-                                            outgoing_payments_sent = False
-                                            app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
+                                        if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                            time.sleep(5)
+                                            lndhub_client.get_login_token()
+
+                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                                outgoing_payments_sent = False
+                                                app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
+
                                         else:
                                             ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
 

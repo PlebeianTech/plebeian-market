@@ -62,17 +62,12 @@ class LndHubClient:
             return response_invoice.json()
 
         elif (response_invoice.status_code == 401):
-            app.logger.info(f"create_invoice - LndHub API error. Probably the token expired! Retrying in a moment...")
-            time.sleep(5)
-
-            self.auth_header = self.get_login_token()
-
-            return self.create_invoice(order_id, sats)
+            app.logger.info(f"create_invoice - LndHub API error 401. Probably the token expired!")
+            return False
 
         else:
             app.logger.error(f"create_invoice - Another thing happened status_code: {response_invoice.status_code}")
-
-            return None
+            return False
 
     def get_incoming_invoices(self):
         response_invoices_status = requests.get(
@@ -82,21 +77,15 @@ class LndHubClient:
 
         if (response_invoices_status.status_code == 200):
             app.logger.info(f"get_incoming_invoices - 200 OK")
-
-            json_response_invoices_status = response_invoices_status.json()
-
-            records_by_id = {record['payment_request']: record for record in json_response_invoices_status}
-            return records_by_id
+            return {record['payment_request']: record for record in response_invoices_status.json()}
 
         elif (response_invoices_status.status_code == 401):
-            app.logger.info(f"get_incoming_invoices - LndHub API error. Probably the token expired!")
-
-            self.auth_header = self.get_login_token()
-            return self.get_incoming_invoices()
+            app.logger.info(f"get_incoming_invoices - LndHub API error 401. Probably the token expired!")
+            return False
 
         else:
             app.logger.error(f"get_incoming_invoices - Another thing happened status_code: {response_invoices_status.status_code}")
-            return None
+            return False
 
     def pay_to_ln_address(self, ln_address, amount, comment):
         ln_invoice = self.get_ln_invoice_from_ln_address(ln_address, amount, comment)
@@ -125,14 +114,11 @@ class LndHubClient:
             return json_response_invoice
 
         elif (response_invoice.status_code == 400 or response_invoice.status_code == 401):
-            app.logger.info(f"pay_to_ln_address - LndHub API error. Probably the token expired! {response_invoice.json()}")
-
-            self.auth_header = self.get_login_token()
-            return self.pay_to_ln_address(ln_address, amount, comment)
+            app.logger.info(f"pay_to_ln_address - LndHub API error 400. Probably the token expired! {response_invoice.json()}")
+            return False
 
         else:
             app.logger.error(f"pay_to_ln_address - Another thing happened status_code: {response_invoice.status_code}")
-
             return False
 
     def get_ln_invoice_from_ln_address(self, ln_address, amount, comment):
