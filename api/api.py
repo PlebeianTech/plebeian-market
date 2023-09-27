@@ -938,15 +938,13 @@ def post_merchant_message(pubkey):
 
                 if invoice_information and invoice_information['payment_request']:
                     invoice = invoice_information['payment_request']
-                    payment_hash = invoice_information['payment_hash']
-                    expires_at = invoice_information['expires_at']
 
                     lightning_invoice = m.LightningInvoice(
                         order_id=order.id,
                         invoice=invoice,
-                        payment_hash=payment_hash,
+                        payment_hash=invoice_information['payment_hash'],
                         price=order.total,
-                        expires_at=expires_at
+                        expires_at=invoice_information['expires_at']
                     )
                     db.session.add(lightning_invoice)
                     db.session.commit()
