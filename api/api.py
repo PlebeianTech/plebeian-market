@@ -937,11 +937,9 @@ def post_merchant_message(pubkey):
                 invoice_information = invoice_util.create_invoice(order.id, order.total)
 
                 if invoice_information and invoice_information['payment_request']:
-                    invoice = invoice_information['payment_request']
-
                     lightning_invoice = m.LightningInvoice(
                         order_id=order.id,
-                        invoice=invoice,
+                        invoice=invoice_information['payment_request'],
                         payment_hash=invoice_information['payment_hash'],
                         price=order.total,
                         expires_at=invoice_information['expires_at']
@@ -949,7 +947,7 @@ def post_merchant_message(pubkey):
                     db.session.add(lightning_invoice)
                     db.session.commit()
 
-                    payment_options.append({'type': 'ln', 'link': invoice, 'amount_sats': order.total})
+                    payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
 
             if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
                 json.dumps({
