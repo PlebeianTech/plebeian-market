@@ -25,6 +25,7 @@ from sqlalchemy import desc
 import sys
 import time
 import uuid
+from LndHubClient import LndHubClient, MockLndHubClient
 
 from extensions import cors, db, mail
 from nostr_utils import EventValidationError, validate_event
@@ -259,11 +260,16 @@ def settle_btc_payments():
         else:
             time.sleep(10)
 
+def get_lndhub_client():
+    if app.config['ENV'] in ('staging', 'prod'):
+        return LndHubClient()
+    else:
+        return MockLndHubClient()
+
 @app.cli.command("settle-lightning-payments")
 @with_appcontext
 def settle_lightning_payments():
-    from lightning_utils import LightningInvoiceUtil
-    invoice_util = LightningInvoiceUtil()
+    lnd_hub_client = LndHubClient()
 
     app.logger.setLevel(getattr(logging, LOG_LEVEL))
     signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
@@ -278,7 +284,7 @@ def settle_lightning_payments():
         if active_orders_with_lightning.all():
 
             try:
-                incoming_invoices = invoice_util.get_incoming_invoices()
+                incoming_invoices = lnd_hub_client.get_incoming_invoices()
 
                 if not incoming_invoices:
                     app.logger.info(f"There is no information about any incoming Lightning invoices from the LNDhub provider yet. Sleeping...")
@@ -354,7 +360,7 @@ def settle_lightning_payments():
                                     else:
                                         app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
                                         
-                                        if not invoice_util.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                        if not lnd_hub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
                                             outgoing_payments_sent = False
                                             app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
                                         else:

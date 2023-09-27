@@ -19,10 +19,9 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_s3, get_site_admin_config
+from main import app, get_birdwatcher, get_lndhub_client, get_s3, get_site_admin_config
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
-from lightning_utils import LightningInvoiceUtil
 from nostr_utils import EventValidationError, validate_event
 from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
 
@@ -933,8 +932,7 @@ def post_merchant_message(pubkey):
                 payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
 
             if order.lightning_address:
-                invoice_util = LightningInvoiceUtil()
-                invoice_information = invoice_util.create_invoice(order.id, order.total)
+                invoice_information = get_lndhub_client().create_invoice(order.id, order.total)
 
                 if invoice_information and invoice_information['payment_request']:
                     lightning_invoice = m.LightningInvoice(
@@ -949,13 +947,16 @@ def post_merchant_message(pubkey):
 
                     payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
 
+                else:
+                    return jsonify({'message': "Error sending the payment options back to the buyer (couldn't create a new LN invoice)"}), 500
+
             if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
                 json.dumps({
                     'id': order.uuid,
                     'type': 1,
                     'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
                     'payment_options': payment_options})):
-                return jsonify({'message': "Error sending the payment options back to the buyer."}), 500
+                return jsonify({'message': "Error sending the payment options back to the buyer (couldn't send the nostr type=1 message)"}), 500
 
             db.session.commit()
 

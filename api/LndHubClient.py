@@ -7,11 +7,17 @@ from flask import current_app as app
 auth_header = ''
 lndhub_url = ''
 
-class LightningInvoiceUtil:
+class LndHubClient:
     def __init__(self):
         self.lndhub_url = app.config['LNDHUB_URL']
-        app.logger.info(f"init - LNDHUB_URL={self.lndhub_url}")
-        self.auth_header = self.get_login_token()
+        app.logger.debug(f"init - LNDHUB_URL={self.lndhub_url}")
+        login_token = self.get_login_token()
+
+        if not login_token:
+            app.logger.error(f"__init__ - Couldn't get the login_token ({self.lndhub_url})...")
+            return False
+
+        self.auth_header = login_token
 
     def get_login_token(self):
         app.logger.info(f"get_login_token - Trying login to LndHub API ({self.lndhub_url})...")
@@ -30,8 +36,7 @@ class LightningInvoiceUtil:
         app.logger.debug(f"get_login_token - json_res = ({json_res})...")
 
         if 'error' in json_res:
-            app.logger.error(f"get_login_token - {json_res['message']}")
-            time.sleep(60)
+            app.logger.error(f"get_login_token - error while trying to get the login_token from the LndHub {json_res['message']}")
             return False
 
         access_token = json_res['access_token']
@@ -57,9 +62,11 @@ class LightningInvoiceUtil:
             return response_invoice.json()
 
         elif (response_invoice.status_code == 401):
-            app.logger.info(f"create_invoice - LndHub API error. Probably the token expired!")
+            app.logger.info(f"create_invoice - LndHub API error. Probably the token expired! Retrying in a moment...")
+            time.sleep(5)
 
             self.auth_header = self.get_login_token()
+
             return self.create_invoice(order_id, sats)
 
         else:
@@ -77,7 +84,6 @@ class LightningInvoiceUtil:
             app.logger.info(f"get_incoming_invoices - 200 OK")
 
             json_response_invoices_status = response_invoices_status.json()
-            # print(json.dumps(json_response_invoices_status, indent=2))
 
             records_by_id = {record['payment_request']: record for record in json_response_invoices_status}
             return records_by_id
@@ -114,7 +120,6 @@ class LightningInvoiceUtil:
             app.logger.info(f"pay_to_ln_address - The request to pay a LN address ({ln_address} - {amount} sats) was a success!")
 
             json_response_invoice = response_invoice.json()
-            # print(json.dumps(json_response_invoice, indent=2))
             app.logger.debug(f"pay_to_ln_address - ****************** {json_response_invoice}")
 
             return json_response_invoice
@@ -167,3 +172,22 @@ class LightningInvoiceUtil:
             return False
 
         return ln_invoice
+
+class MockLndHubClient:
+    def __init__(self):
+        return None
+    
+    def get_login_token(self):
+        return None
+    
+    def create_invoice(self, order_id, sats):
+        return None
+    
+    def get_incoming_invoices(self):
+        return None
+    
+    def pay_to_ln_address(self, ln_address, amount, comment):
+        return None
+    
+    def get_ln_invoice_from_ln_address(self, ln_address, amount, comment):
+        return None
