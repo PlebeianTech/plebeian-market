@@ -1540,3 +1540,43 @@ class LightningPaymentLog(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     order = db.relationship('Order', back_populates="payment_logs")
+
+    def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
+        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogState.RECEIVED.value)
+
+    def check_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
+        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogState.SELLER_PAID.value)
+
+    def add_incoming_payment(self, order_id, lightning_invoice_id, amount):
+        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogState.RECEIVED.value)
+
+    def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
+        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogState.SELLER_PAID.value)
+
+    def check_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
+        payment_log = LightningPaymentLog.query.filter_by(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            paid_to = paid_to,
+            amount = amount,
+            state = state
+        ).one_or_none()
+
+        if payment_log:
+            return True
+        else:
+            return False
+
+    def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
+        paymentLog = LightningPaymentLog(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            paid_to = paid_to,
+            amount = amount,
+            state = state
+        )
+
+        db.session.add(paymentLog)
+        db.session.commit()
+
+        return True

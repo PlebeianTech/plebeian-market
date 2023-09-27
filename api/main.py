@@ -285,7 +285,7 @@ def settle_lightning_payments():
                     time.sleep(60)
                     continue
 
-                ln_payment_logs_util = LightningPaymentLogsUtil()
+                ln_payment_logs_util = m.LightningPaymentLog
 
                 birdwatcher = get_birdwatcher()
 
@@ -409,48 +409,6 @@ def get_payout_information(seller_id):
             'percent': 100 - merchant_contribution
         }
     ]
-
-class LightningPaymentLogsUtil:
-    def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED.value)
-
-    def check_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID.value)
-
-    def add_incoming_payment(self, order_id, lightning_invoice_id, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, m.LightningPaymentLogState.RECEIVED.value)
-
-    def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, m.LightningPaymentLogState.SELLER_PAID.value)
-
-
-    def check_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
-        payment_log = m.LightningPaymentLog.query.filter_by(
-            order_id = order_id,
-            lightning_invoice_id = lightning_invoice_id,
-            paid_to = paid_to,
-            state = state,
-            amount = amount
-        ).one_or_none()
-
-        if payment_log:
-            return True
-        else:
-            return False
-
-    def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
-        paymentLog = m.LightningPaymentLog(
-            order_id = order_id,
-            lightning_invoice_id = lightning_invoice_id,
-            state = state,
-            paid_to = paid_to,
-            amount = amount
-        )
-
-        db.session.add(paymentLog)
-        db.session.commit()
-
-        return True
 
 def get_token_from_request():
     return request.headers.get('X-Access-Token')
