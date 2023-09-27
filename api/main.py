@@ -281,7 +281,7 @@ def settle_lightning_payments():
                 incoming_invoices = invoice_util.get_incoming_invoices()
 
                 if not incoming_invoices:
-                    app.logger.error(f"Error: there is no information about incoming Lightning invoices from the LNDhub provider!! Sleeping...")
+                    app.logger.info(f"There is no information about any incoming Lightning invoices from the LNDhub provider yet. Sleeping...")
                     time.sleep(10)
                     continue
 
