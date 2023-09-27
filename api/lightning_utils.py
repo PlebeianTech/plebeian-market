@@ -54,25 +54,7 @@ class LightningInvoiceUtil:
 
         if (response_invoice.status_code == 200):
             app.logger.info(f"create_invoice - The request to create a new LN invoice was a success!")
-
-            json_response_invoice = response_invoice.json()
-            app.logger.debug(f"create_invoice - The request to create a new LN invoice was a success!")
-
-            payment_hash = json_response_invoice['payment_hash']
-            invoice = json_response_invoice['payment_request']
-            expires_at = json_response_invoice['expires_at']
-
-            lightning_invoice = m.LightningInvoice(
-                order_id=order_id,
-                invoice=invoice,
-                payment_hash=payment_hash,
-                price=sats,
-                expires_at=expires_at         # "2023-08-03T08:52:07.473598061Z"
-            )
-            db.session.add(lightning_invoice)
-            db.session.commit()
-
-            return json_response_invoice
+            return response_invoice.json()
 
         elif (response_invoice.status_code == 401):
             app.logger.info(f"create_invoice - LndHub API error. Probably the token expired!")

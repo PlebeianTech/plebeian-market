@@ -928,14 +928,30 @@ def post_merchant_message(pubkey):
                 app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
 
             payment_options = []
+
             if order.on_chain_address:
                 payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
+
             if order.lightning_address:
                 invoice_util = LightningInvoiceUtil()
                 invoice_information = invoice_util.create_invoice(order.id, order.total)
 
                 if invoice_information and invoice_information['payment_request']:
-                    payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
+                    invoice = invoice_information['payment_request']
+                    payment_hash = invoice_information['payment_hash']
+                    expires_at = invoice_information['expires_at']
+
+                    lightning_invoice = m.LightningInvoice(
+                        order_id=order.id,
+                        invoice=invoice,
+                        payment_hash=payment_hash,
+                        price=order.total,
+                        expires_at=expires_at
+                    )
+                    db.session.add(lightning_invoice)
+                    db.session.commit()
+
+                    payment_options.append({'type': 'ln', 'link': invoice, 'amount_sats': order.total})
 
             if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
                 json.dumps({
