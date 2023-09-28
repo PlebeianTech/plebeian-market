@@ -2,16 +2,16 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
-    "@sveltejs/kit": "^1.25.0",
-    "autoprefixer": "^10.4.15",
-    "daisyui": "^3.7.5",
-    "eslint": "^8.49.0",
+    "@sveltejs/kit": "^1.25.1",
+    "autoprefixer": "^10.4.16",
+    "daisyui": "^3.8.1",
+    "eslint": "^8.50.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.12.1",
     "npm-run-all": "4.x",
-    "postcss": "^8.4.29",
+    "postcss": "^8.4.30",
     "svelte": "^3.59.2",
-    "svelte-check": "^3.5.1",
+    "svelte-check": "^3.5.2",
     "svelte-meta-tags": "^2.8.0",
     "svelte-toasts": "1.x",
     "svelte-typewriter": "^3.1.6",
@@ -39,6 +39,6 @@
     "light-bolt11-decoder": "^3.0.0",
     "svelte-lazy-loader": "^1.0.0",
     "svelte-qr": "^1.0.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   }
 }
