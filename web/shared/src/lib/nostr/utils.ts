@@ -1,6 +1,6 @@
 import {getEventHash, nip05, nip19, Kind, getSignature} from "nostr-tools";
 import {goto} from "$app/navigation";
-import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod} from "$sharedLib/stores";
+import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, token} from "$sharedLib/stores";
 import {get} from "svelte/store";
 import {getApiBaseUrl} from "$sharedLib/utils";
 
@@ -196,6 +196,7 @@ export async function tryLoginToBackend(successCB: () => void = () => {}) {
 
         if (responseJson.success === true && responseJson.token) {
             localStorage.setItem('token', responseJson.token);
+            token.set(responseJson.token);
             successCB();
         } else {
             console.debug('responseJson.token', responseJson.token);
@@ -251,6 +252,36 @@ export async function askAPIForVerification(pubkey: string) {
         }
     } catch (error) {
         console.debug("askAPIForVerification - Could not contact with a backend, so API verification cannot be done:", error);
+        return false;
+    }
+}
+
+export async function getStallKeys() {
+    //const apiHost = getApiBaseUrl();
+    const apiHost = 'https://staging.plebeian.market/';
+    const apiUrl = 'api/users/me';
+
+    try {
+        let headers = {};
+        headers['X-Access-Token'] = get(token);
+
+        const response = await fetch(apiHost + apiUrl, {headers});
+        if (!response.ok) {
+            console.debug("getStallKeys - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+            return false;
+        }
+
+        const responseJson = await response.json();
+        console.log('responseJson', responseJson);
+
+        //if (responseJson && responseJson.verified_identities) {
+        if (responseJson) {
+            return responseJson;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.debug("getStallKeys - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
         return false;
     }
 }
