@@ -82,10 +82,15 @@
                                     if (paymentOption.type === 'ln') {
                                         const decodedInvoice = decode(paymentOption.link);
 
-                                        paymentOption.amount_sats =
-                                            decodedInvoice.sections.filter((section) => {
-                                                return section.name === 'amount'
-                                            })[0].value / 1000;
+                                        const amountSections = decodedInvoice.sections.filter((section) => {
+                                            return section.name === 'amount'
+                                        });
+
+                                        if (amountSections.length > 0) {
+                                            paymentOption.amount_sats = amountSections[0].value / 1000;
+                                        } else {
+                                            console.error('Lightning invoice without amount or with amount = 0 !!!');
+                                        }
 
                                         paymentOption.expiry = decodedInvoice.expiry;
                                     }
