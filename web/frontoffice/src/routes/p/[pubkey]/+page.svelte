@@ -149,13 +149,17 @@
         </div>
 
         <div class="mt-2">
-            <p class="mb-1 font-bold text-xl">{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)}</p>
-
+            {#if profile.display_name || profile.name}
+                <p class="mb-1 font-bold text-xl">{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)}</p>
+                <p class="mb-1 text-xs">{nip19.npubEncode(profile.pubkey)}</p>
+            {:else}
+                <p class="mb-1 font-bold text-xl">{nip19.npubEncode(profile.pubkey)}</p>
+            {/if}
             {#if profile.about}
                 <p class="text-lg">{profile.about}</p>
             {/if}
             {#if profile.lud16}
-                <p><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
+                <p class="mt-3"><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
             {/if}
         </div>
     </div>
