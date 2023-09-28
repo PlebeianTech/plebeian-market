@@ -215,7 +215,12 @@ export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:
             jsonDecodedMessage.created_at = e.created_at;
             jsonDecodedMessage.pubkey = messagePubkey;
             jsonDecodedMessage.contentType = 'json';
-            receivedCB(jsonDecodedMessage);
+
+            try {
+                receivedCB(jsonDecodedMessage);
+            } catch (error) {
+                console.error('------------------------------ Error calling getPrivateMessages callback for automatic (order) messages:', error);
+            }
         } catch (error) {
             let humanMessage = {
                 id: e.id,
