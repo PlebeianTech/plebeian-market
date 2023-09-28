@@ -1283,8 +1283,8 @@ class Order(db.Model):
     order_items = db.relationship('OrderItem', backref='order')
 
     seller = db.relationship('User')
-    invoices = db.relationship('LightningInvoice', back_populates="order",  order_by="desc(LightningInvoice.created_at)")
-    payment_logs = db.relationship('LightningPaymentLog', back_populates="order", order_by="desc(LightningPaymentLog.created_at)")
+    lightning_invoices = db.relationship('LightningInvoice', back_populates="order",  order_by="desc(LightningInvoice.created_at)")
+    lightning_payment_logs = db.relationship('LightningPaymentLog', back_populates="order", order_by="desc(LightningPaymentLog.created_at)")
 
     @property
     def timeout_minutes(self):
@@ -1520,7 +1520,7 @@ class LightningInvoice(db.Model):
     # TODO is this needed?
     paid = db.Column(db.Boolean, nullable=False, default=False)
 
-    order = db.relationship('Order', back_populates="invoices")
+    order = db.relationship('Order', back_populates="lightning_invoices")
 
 class LightningPaymentLogState(Enum):
     RECEIVED = 0
@@ -1539,7 +1539,7 @@ class LightningPaymentLog(db.Model):
     amount = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    order = db.relationship('Order', back_populates="payment_logs")
+    order = db.relationship('Order', back_populates="lightning_payment_logs")
 
     def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
         return self.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogState.RECEIVED.value)
@@ -1561,6 +1561,8 @@ class LightningPaymentLog(db.Model):
             amount = amount,
             state = state
         ).one_or_none()
+
+        return not payment_log
 
         if payment_log:
             return True

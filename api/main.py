@@ -304,10 +304,10 @@ def settle_lightning_payments():
                 for order in active_orders_with_lightning.all():
                     app.logger.info(f"  -------- Processing order {order.id}...")
 
-                    invoices = order.invoices
-                    # app.logger.info(f"       -- Invoices for Order {order.id}... Invoice = {invoices}")
+                    lightning_invoices = order.lightning_invoices
+                    # app.logger.info(f"       -- Invoices for Order {order.id}... Invoices = {lightning_invoices}")
 
-                    for invoice in invoices:
+                    for invoice in lightning_invoices:
                         app.logger.info(f"    ------ Invoice: {invoice.id} - {invoice.invoice}")
 
                         # INCOMING PAYMENT
