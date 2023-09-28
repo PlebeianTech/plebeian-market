@@ -168,11 +168,11 @@
                     </li>
                 {/if}
 
-                {#each sortedConversations as [privateKey, conversation]}
+                {#each sortedConversations as [publicKey, conversation]}
                     <li class="rounded-lg w-full"
-                        class:bg-accent={selectedConversationPubkey === privateKey}
-                        class:text-black={selectedConversationPubkey === privateKey}
-                        on:click={() => selectConversation(privateKey)}
+                        class:bg-accent={selectedConversationPubkey === publicKey}
+                        class:text-black={selectedConversationPubkey === publicKey}
+                        on:click={() => selectConversation(publicKey)}
                     >
                         <div class="w-full">
                             <div class="avatar indicator">
@@ -186,10 +186,10 @@
                                 </div>
                             </div>
                             <div class="text-lg truncate">
-                                {conversation.name ?? nip19.npubEncode(privateKey)}
+                                {conversation.name ?? nip19.npubEncode(publicKey)}
                             </div>
                             <div>
-                                {#if conversation && !conversation.merchantPrivateKey}
+                                {#if conversation && conversation.merchantPrivateKey}
                                     <span class="indicator-item badge badge-sm badge-info">
                                         Merchant message
                                     </span>
@@ -255,10 +255,10 @@
                     </li>
                 {/if}
 
-                {#each sortedConversations as [privateKey, conversation]}
+                {#each sortedConversations as [publicKey, conversation]}
                     <li class="rounded-lg w-full"
-                        class:bg-primary={selectedConversationPubkey === privateKey}
-                        on:click={() => selectConversation(privateKey)}
+                        class:bg-primary={selectedConversationPubkey === publicKey}
+                        on:click={() => selectConversation(publicKey)}
                     >
                         <div class="w-full">
                             <div class="avatar indicator">
@@ -272,7 +272,7 @@
                                 </div>
                             </div>
                             <div class="text-lg truncate">
-                                {conversation.name ?? nip19.npubEncode(privateKey)}
+                                {conversation.name ?? nip19.npubEncode(publicKey)}
                             </div>
                         </div>
                     </li>
@@ -299,8 +299,8 @@
 
                 {:else}
 
-                    {#each sortedConversations as [conversationPrivateKey, conversation]}
-                        {#if selectedConversationPubkey === conversationPrivateKey}
+                    {#each sortedConversations as [conversationPublicKey, conversation]}
+                        {#if selectedConversationPubkey === conversationPublicKey}
                             <div class="avatar indicator align-bottom">
                                 <div class="w-12 h-12 mr-3 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
