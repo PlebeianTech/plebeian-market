@@ -25,7 +25,7 @@ from sqlalchemy import desc
 import sys
 import time
 import uuid
-from LndHubClient import LndHubClient, MockLndHubClient
+from lnd_hub_client import LndHubClient, MockLndHubClient
 
 from extensions import cors, db, mail
 from nostr_utils import EventValidationError, validate_event
