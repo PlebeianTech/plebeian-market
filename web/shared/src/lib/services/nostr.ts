@@ -154,7 +154,7 @@ export async function sendPrivateMessage(receiverPubkey: string, message: string
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB = () => {}) {
+export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:string | boolean = false, receivedCB, eoseCB = () => {}) {
     let sub = get(NostrPool).sub(relayUrlList, [
         {
             kinds: [EVENT_KIND_PM],
@@ -179,26 +179,36 @@ export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB 
         }
 
         let decryptedContent;
-        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
-            try {
-                decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
-            } catch (error) {
-                console.error("getPrivateMessages - Error decrypting a private message with the Nostr extension.");
-                return false;
-            }
-        } else {
-            let privateKey = get(NostrPrivateKey);
-            if (privateKey) {
+        if (!merchantPrivateKey) {
+            if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
                 try {
-                    decryptedContent = await nip04.decrypt(privateKey, decryptPubkey, content);
+                    decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
                 } catch (error) {
-                    console.error("getPrivateMessages - Error decrypting a private message with the private key.");
+                    console.error("getPrivateMessages - Error decrypting a private message with the Nostr extension.");
                     return false;
                 }
             } else {
+                let privateKey = get(NostrPrivateKey);
+                if (privateKey) {
+                    try {
+                        decryptedContent = await nip04.decrypt(privateKey, decryptPubkey, content);
+                    } catch (error) {
+                        console.error("getPrivateMessages - Error decrypting a private message with the private key.");
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            try {
+                decryptedContent = await nip04.decrypt(merchantPrivateKey, decryptPubkey, content);
+            } catch (error) {
+                console.error("getPrivateMessages - Error decrypting a private message with the private key.");
                 return false;
             }
         }
+
 
         try {
             let jsonDecodedMessage = JSON.parse(decryptedContent);

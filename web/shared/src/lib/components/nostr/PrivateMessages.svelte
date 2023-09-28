@@ -55,7 +55,7 @@
     }
 
     export async function getNostrDMs(publicKey: string, merchantPrivateKey:string | boolean = false) {
-        await getPrivateMessages(publicKey,
+        await getPrivateMessages(publicKey, merchantPrivateKey,
             (privateMessage) => {
                 if (privateMessage !== null && typeof privateMessage === 'object') {
                     if (privateMessage.contentType === 'json' && !merchantPrivateKey) {

@@ -79,7 +79,7 @@
                 async (relay) => {
                     chatTextareaMobile.value = '';
                     chatTextareaDesktop.value = '';
-                    console.log('-------- Private message accepted by relay:', relay);
+                    console.debug('-------- Private message accepted by relay:', relay);
                 }
             );
         }
