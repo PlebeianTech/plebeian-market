@@ -58,76 +58,78 @@
         await getPrivateMessages(publicKey, merchantPrivateKey,
             (privateMessage) => {
                 if (privateMessage !== null && typeof privateMessage === 'object') {
-                    if (privateMessage.contentType === 'json' && !merchantPrivateKey) {
-                        let type;
+                    if (privateMessage.contentType === 'json') {
+                        if (!merchantPrivateKey) {
+                            let type;
 
-                        if (privateMessage['type'] !== undefined) {
-                            type = Number(privateMessage.type);
-                        } else {
-                            // Workaround until NostrMarket adds the "type" property
-                            if (privateMessage.paid) {
-                                type = 2;
-                            } else if (privateMessage.payment_options) {
-                                type = 1;
+                            if (privateMessage['type'] !== undefined) {
+                                type = Number(privateMessage.type);
                             } else {
-                                type = 0;
-                            }
-                        }
-
-                        privateMessage.type = type;
-
-                        if (type === 1) {
-                            for (const paymentOption of privateMessage.payment_options) {
-                                if (paymentOption.type === 'ln') {
-                                    const decodedInvoice = decode(paymentOption.link);
-
-                                    paymentOption.amount_sats =
-                                        decodedInvoice.sections.filter((section) => {
-                                            return section.name === 'amount'
-                                        })[0].value / 1000;
-
-                                    paymentOption.expiry = decodedInvoice.expiry;
+                                // Workaround until NostrMarket adds the "type" property
+                                if (privateMessage.paid) {
+                                    type = 2;
+                                } else if (privateMessage.payment_options) {
+                                    type = 1;
+                                } else {
+                                    type = 0;
                                 }
                             }
-                        }
 
-                        if (type === 10) {
-                            privateMessage.isAuction = true;
-                        }
+                            privateMessage.type = type;
 
-                        let orderId = privateMessage.id;
+                            if (type === 1) {
+                                for (const paymentOption of privateMessage.payment_options) {
+                                    if (paymentOption.type === 'ln') {
+                                        const decodedInvoice = decode(paymentOption.link);
 
-                        if (orderId === undefined) {
-                            return;
-                        }
+                                        paymentOption.amount_sats =
+                                            decodedInvoice.sections.filter((section) => {
+                                                return section.name === 'amount'
+                                            })[0].value / 1000;
 
-                        if (orderId in $privateMessages.automatic) {
-                            // We need to merge objects because some properties
-                            // are the same in different types like "message",
-                            // but we want to have the last one
-
-                            if (
-                                ((privateMessage.type > $privateMessages.automatic[orderId].type) && privateMessage.type !== 10)
-                                ||
-                                (privateMessage.type === $privateMessages.automatic[orderId].type && privateMessage.created_at > $privateMessages.automatic[orderId].created_at)
-                            ) {
-
-                                $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
-                            } else {
-                                $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
+                                        paymentOption.expiry = decodedInvoice.expiry;
+                                    }
+                                }
                             }
 
-                        } else {
-                            $privateMessages.automatic[orderId] = privateMessage;
-                        }
+                            if (type === 10) {
+                                privateMessage.isAuction = true;
+                            }
 
-                        // This is needed to fire reactivity when a new message arrives
-                        $privateMessages.automatic[orderId] = $privateMessages.automatic[orderId];
+                            let orderId = privateMessage.id;
+
+                            if (orderId === undefined) {
+                                return;
+                            }
+
+                            if (orderId in $privateMessages.automatic) {
+                                // We need to merge objects because some properties
+                                // are the same in different types like "message",
+                                // but we want to have the last one
+
+                                if (
+                                    ((privateMessage.type > $privateMessages.automatic[orderId].type) && privateMessage.type !== 10)
+                                    ||
+                                    (privateMessage.type === $privateMessages.automatic[orderId].type && privateMessage.created_at > $privateMessages.automatic[orderId].created_at)
+                                ) {
+
+                                    $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
+                                } else {
+                                    $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
+                                }
+
+                            } else {
+                                $privateMessages.automatic[orderId] = privateMessage;
+                            }
+
+                            // This is needed to fire reactivity when a new message arrives
+                            $privateMessages.automatic[orderId] = $privateMessages.automatic[orderId];
+                        }
                     } else {
                         // "Human" messages
                         let pubKey = privateMessage.pubkey;
 
-                        if (pubKey === $NostrPublicKey) {
+                        if (pubKey === publicKey) {
                             // This is a message of mine. What conversation does it belong to?
                             pubKey = privateMessage.sender;
                         }
