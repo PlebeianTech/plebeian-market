@@ -75,7 +75,7 @@
         }
 
         if (content.length > 0) {
-            await sendPrivateMessage(selectedConversationPubkey, content,
+            await sendPrivateMessage(selectedConversationPubkey, content, $privateMessages.human[selectedConversationPubkey].merchantPrivateKey,
                 async (relay) => {
                     chatTextareaMobile.value = '';
                     chatTextareaDesktop.value = '';
@@ -177,9 +177,9 @@
                         <div class="w-full">
                             <div class="avatar indicator">
                                 {#if conversation.unreadMessages}
-                                <span class="indicator-item badge badge-sm badge-error">
-                                    {conversation.unreadMessages}
-                                </span>
+                                    <span class="indicator-item badge badge-sm badge-error">
+                                        {conversation.unreadMessages}
+                                    </span>
                                 {/if}
                                 <div class="w-16 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
@@ -187,6 +187,13 @@
                             </div>
                             <div class="text-lg truncate">
                                 {conversation.name ?? nip19.npubEncode(privateKey)}
+                            </div>
+                            <div>
+                                {#if conversation && !conversation.merchantPrivateKey}
+                                    <span class="indicator-item badge badge-sm badge-info">
+                                        Merchant message
+                                    </span>
+                                {/if}
                             </div>
                         </div>
                     </li>

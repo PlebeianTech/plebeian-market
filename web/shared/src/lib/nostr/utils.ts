@@ -256,23 +256,23 @@ export async function askAPIForVerification(pubkey: string) {
     }
 }
 
-export async function getStallKeys() {
+export async function getMerchantKey() {
     //const apiHost = getApiBaseUrl();
     const apiHost = 'https://staging.plebeian.market/';
     const apiUrl = 'api/users/me';
 
     try {
-        let headers = {};
-        headers['X-Access-Token'] = get(token);
+        let headers = {
+            'X-Access-Token': get(token)
+        };
 
         const response = await fetch(apiHost + apiUrl, {headers});
         if (!response.ok) {
-            console.debug("getStallKeys - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+            console.debug("getMerchantKey - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
             return false;
         }
 
         const responseJson = await response.json();
-        console.log('responseJson', responseJson);
 
         //if (responseJson && responseJson.verified_identities) {
         if (responseJson) {
@@ -281,7 +281,7 @@ export async function getStallKeys() {
             return false;
         }
     } catch (error) {
-        console.debug("getStallKeys - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+        console.debug("getMerchantKey - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
         return false;
     }
 }

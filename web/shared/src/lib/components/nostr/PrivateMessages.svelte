@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import EmailIcon from "$sharedLib/components/icons/Email.svelte";
     import {NostrPublicKey, privateMessages, token} from "$sharedLib/stores.js";
     import {getPrivateMessages, subscribeMetadata} from "$sharedLib/services/nostr.js";
     import {decode} from "light-bolt11-decoder";
     import { goto } from "$app/navigation";
-    import {getStallKeys} from "$sharedLib/nostr/utils";
+    import {getMerchantKey} from "$sharedLib/nostr/utils";
+    import {getPublicKey} from "nostr-tools";
 
     let unreadConversations = 0;
 
@@ -54,11 +54,11 @@
         $privateMessages.human = $privateMessages.human;
     }
 
-    export async function getNostrDMs(publicKey: string) {
+    export async function getNostrDMs(publicKey: string, merchantPrivateKey:string | boolean = false) {
         await getPrivateMessages(publicKey,
             (privateMessage) => {
                 if (privateMessage !== null && typeof privateMessage === 'object') {
-                    if (privateMessage.contentType === 'json') {
+                    if (privateMessage.contentType === 'json' && !merchantPrivateKey) {
                         let type;
 
                         if (privateMessage['type'] !== undefined) {
@@ -146,7 +146,8 @@
 
                         } else {
                             $privateMessages.human[pubKey] = {
-                                messages: [privateMessage]
+                                messages: [privateMessage],
+                                merchantPrivateKey: merchantPrivateKey
                             };
                         }
 
@@ -180,20 +181,18 @@
     }
 
     $: if ($token) {
-        console.log('----- token', $token);
+        getMerchantNostrDMs();
     }
 
-    onMount(async () => {
-        const stallKeys = await getStallKeys();
-        console.log('*************** stallKeys', stallKeys);
-/*
-        stallKeys.forEach(stallKey => {
-            console.log('',);
-            // TODO ¿Better (posible?) to get all the keys and subscribe to all at once?
-            //getNostrDMs(stallKey.publicKey);
-        });
-*/
-    });
+    async function getMerchantNostrDMs() {
+        const userInfo = await getMerchantKey();
+
+        if (userInfo && userInfo.user && userInfo.user.merchant_private_key) {
+            await getNostrDMs(getPublicKey(userInfo.user.merchant_private_key), userInfo.user.merchant_private_key);
+        } else {
+            console.debug("getMerchantNostrDMs - the merchant private key couldn't be obtained - userInfo:", userInfo);
+        }
+    }
 </script>
 
 <div class="indicator" on:click={gotoMessages}>

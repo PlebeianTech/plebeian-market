@@ -130,20 +130,24 @@ export async function sendReaction(noteId: string, notePubkey: string, reaction:
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export async function sendPrivateMessage(receiverPubkey: string, message: string, successCB) {
+export async function sendPrivateMessage(receiverPubkey: string, message: string, merchantPrivateKey: string | boolean, successCB) {
     let cipheredMessage;
 
     if (loggedIn()) {
-        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
-            cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message);
+        if (!merchantPrivateKey) {
+            if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
+                cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message);
+            } else {
+                cipheredMessage = await nip04.encrypt(get(NostrPrivateKey), receiverPubkey, message);
+            }
         } else {
-            cipheredMessage = await nip04.encrypt(get(NostrPrivateKey), receiverPubkey, message);
+            cipheredMessage = await nip04.encrypt(merchantPrivateKey, receiverPubkey, message);
         }
     } else {
         if (!await waitAndShowLoginIfNotLoggedAlready()) {
             return;
         }
-        await sendPrivateMessage(receiverPubkey, message, successCB);
+        await sendPrivateMessage(receiverPubkey, message, merchantPrivateKey, successCB);
     }
 
     const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', receiverPubkey]]);
