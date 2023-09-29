@@ -135,8 +135,8 @@
                         let pubKey = privateMessage.pubkey;
 
                         if (pubKey === publicKey) {
-                            // This is a message of mine. What conversation does it belong to?
-                            pubKey = privateMessage.sender;
+                            // This is a message of mine (the logged-in user). What conversation does it belong to?
+                            pubKey = privateMessage.my_message_replying_to_this_pubkey;
                         }
 
                         if (pubKey in $privateMessages.human) {
@@ -149,6 +149,7 @@
 
                             if (includeMessage) {
                                 $privateMessages.human[pubKey].messages.push(privateMessage);
+                                $privateMessages.human[pubKey].merchantPrivateKey = merchantPrivateKey;
                             }
 
                         } else {
