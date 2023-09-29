@@ -1508,33 +1508,25 @@ class LightningInvoice(db.Model):
     __tablename__ = 'lightning_invoices'
 
     id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
-
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
-
     invoice = db.Column(db.String, nullable=False)
     payment_hash = db.Column(db.String(128), nullable=False)
     price = db.Column(db.Integer, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    # TODO is this needed?
-    paid = db.Column(db.Boolean, nullable=False, default=False)
-
     order = db.relationship('Order', back_populates="lightning_invoices")
 
-class LightningPaymentLogState(Enum):
+class LightningPaymentLogType(Enum):
     RECEIVED = 0
-    SELLER_PAID = 1
-    OTHER_PAID = 2
+    SENT = 1
 
 class LightningPaymentLog(db.Model):
     __tablename__ = 'lightning_payment_logs'
 
-    # id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
-
     order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
     lightning_invoice_id = db.Column(db.Integer, db.ForeignKey(LightningInvoice.id), nullable=False, primary_key=True)
-    state = db.Column(db.Integer, nullable=False)
+    type = db.Column(db.Integer, nullable=False)
     paid_to = db.Column(db.String(200), nullable=False, primary_key=True)
     amount = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -1542,24 +1534,24 @@ class LightningPaymentLog(db.Model):
     order = db.relationship('Order', back_populates="lightning_payment_logs")
 
     def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogState.RECEIVED.value)
+        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
 
     def check_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogState.SELLER_PAID.value)
+        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
 
     def add_incoming_payment(self, order_id, lightning_invoice_id, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogState.RECEIVED.value)
+        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
 
     def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogState.SELLER_PAID.value)
+        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
 
-    def check_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
+    def check_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, type):
         payment_log = LightningPaymentLog.query.filter_by(
             order_id = order_id,
             lightning_invoice_id = lightning_invoice_id,
             paid_to = paid_to,
             amount = amount,
-            state = state
+            type = type
         ).one_or_none()
 
         return not payment_log
@@ -1569,13 +1561,13 @@ class LightningPaymentLog(db.Model):
         else:
             return False
 
-    def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, state):
+    def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, type):
         paymentLog = LightningPaymentLog(
             order_id = order_id,
             lightning_invoice_id = lightning_invoice_id,
             paid_to = paid_to,
             amount = amount,
-            state = state
+            type = type
         )
 
         db.session.add(paymentLog)
