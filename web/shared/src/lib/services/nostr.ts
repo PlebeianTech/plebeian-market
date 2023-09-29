@@ -150,7 +150,7 @@ export async function sendPrivateMessage(receiverPubkey: string, message: string
         await sendPrivateMessage(receiverPubkey, message, merchantPrivateKey, successCB);
     }
 
-    const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', receiverPubkey]]);
+    const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', recipientPubkey]], merchantPrivateKey);
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 

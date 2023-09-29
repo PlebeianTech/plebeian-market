@@ -1,4 +1,4 @@
-import {getEventHash, nip05, nip19, Kind, getSignature} from "nostr-tools";
+import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nostr-tools";
 import {goto} from "$app/navigation";
 import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, token} from "$sharedLib/stores";
 import {get} from "svelte/store";
@@ -29,7 +29,7 @@ export function hasExtension() {
     return !!(window as any).nostr;
 }
 
-export async function createEvent(kind: number, content: any, tags: any = []) {
+export async function createEvent(kind: number, content: any, tags: any = [], merchantPrivateKey: string | boolean = false) {
     let event: any = {
         kind,
         content,
@@ -37,21 +37,30 @@ export async function createEvent(kind: number, content: any, tags: any = []) {
         created_at: Math.floor(Date.now() / 1000),
     }
 
-    if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
-        event.pubkey = await (window as any).nostr.getPublicKey();
-        event.id = getEventHash(event);
-        return await (window as any).nostr.signEvent(event);
-    } else {
-        let pubKey = get(NostrPublicKey);
-        let privKey = get(NostrPrivateKey);
+    if (!merchantPrivateKey) {
+        // Standard events send from the logged-in account
+        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
+            event.pubkey = await (window as any).nostr.getPublicKey();
+            event.id = getEventHash(event);
+            return await (window as any).nostr.signEvent(event);
+        } else {
+            let pubKey = get(NostrPublicKey);
+            let privKey = get(NostrPrivateKey);
 
-        if (!pubKey || !privKey) {
-            return false;
+            if (!pubKey || !privKey) {
+                return false;
+            }
+
+            event.pubkey = pubKey;
+            event.id = getEventHash(event);
+            event.sig = getSignature(event, privKey);
+            return event;
         }
-
-        event.pubkey = pubKey;
+    } else {
+        // Events sent on behalf of the Merchant using his merchantPrivateKey
+        event.pubkey = getPublicKey(merchantPrivateKey);
         event.id = getEventHash(event);
-        event.sig = getSignature(event, privKey);
+        event.sig = getSignature(event, merchantPrivateKey);
         return event;
     }
 }
