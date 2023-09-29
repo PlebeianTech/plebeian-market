@@ -75,7 +75,12 @@
         }
 
         if (content.length > 0) {
-            await sendPrivateMessage(selectedConversationPubkey, content, $privateMessages.human[selectedConversationPubkey].merchantPrivateKey,
+            let merchantPrivateKey;
+            if ($privateMessages.human[selectedConversationPubkey] && $privateMessages.human[selectedConversationPubkey].merchantPrivateKey) {
+                merchantPrivateKey = $privateMessages.human[selectedConversationPubkey].merchantPrivateKey;
+            }
+
+            await sendPrivateMessage(selectedConversationPubkey, content, merchantPrivateKey,
                 async (relay) => {
                     chatTextareaMobile.value = '';
                     chatTextareaDesktop.value = '';
@@ -191,7 +196,7 @@
                             <div>
                                 {#if conversation && conversation.merchantPrivateKey}
                                     <span class="indicator-item badge badge-sm badge-info">
-                                        Merchant message
+                                        Received on the stall
                                     </span>
                                 {/if}
                             </div>
