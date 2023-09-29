@@ -1554,12 +1554,7 @@ class LightningPaymentLog(db.Model):
             type = type
         ).one_or_none()
 
-        return not payment_log
-
-        if payment_log:
-            return True
-        else:
-            return False
+        return bool(payment_log)
 
     def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, type):
         paymentLog = LightningPaymentLog(
