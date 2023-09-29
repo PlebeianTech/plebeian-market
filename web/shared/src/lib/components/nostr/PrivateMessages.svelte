@@ -1,9 +1,11 @@
 <script lang="ts">
     import EmailIcon from "$sharedLib/components/icons/Email.svelte";
-    import {NostrPublicKey, privateMessages} from "$sharedLib/stores.js";
+    import {NostrPublicKey, privateMessages, token} from "$sharedLib/stores.js";
     import {getPrivateMessages, subscribeMetadata} from "$sharedLib/services/nostr.js";
     import {decode} from "light-bolt11-decoder";
     import { goto } from "$app/navigation";
+    import {getMerchantKey} from "$sharedLib/nostr/utils";
+    import {getPublicKey} from "nostr-tools";
 
     let unreadConversations = 0;
 
@@ -52,82 +54,89 @@
         $privateMessages.human = $privateMessages.human;
     }
 
-    export async function getNostrDMs() {
-        await getPrivateMessages($NostrPublicKey,
+    export async function getNostrDMs(publicKey: string, merchantPrivateKey:string | boolean = false) {
+        await getPrivateMessages(publicKey, merchantPrivateKey,
             (privateMessage) => {
                 if (privateMessage !== null && typeof privateMessage === 'object') {
                     if (privateMessage.contentType === 'json') {
-                        let type;
+                        if (!merchantPrivateKey) {
+                            let type;
 
-                        if (privateMessage['type'] !== undefined) {
-                            type = Number(privateMessage.type);
-                        } else {
-                            // Workaround until NostrMarket adds the "type" property
-                            if (privateMessage.paid) {
-                                type = 2;
-                            } else if (privateMessage.payment_options) {
-                                type = 1;
+                            if (privateMessage['type'] !== undefined) {
+                                type = Number(privateMessage.type);
                             } else {
-                                type = 0;
-                            }
-                        }
-
-                        privateMessage.type = type;
-
-                        if (type === 1) {
-                            for (const paymentOption of privateMessage.payment_options) {
-                                if (paymentOption.type === 'ln') {
-                                    const decodedInvoice = decode(paymentOption.link);
-
-                                    paymentOption.amount_sats =
-                                        decodedInvoice.sections.filter((section) => {
-                                            return section.name === 'amount'
-                                        })[0].value / 1000;
-
-                                    paymentOption.expiry = decodedInvoice.expiry;
+                                // Workaround until NostrMarket adds the "type" property
+                                if (privateMessage.paid) {
+                                    type = 2;
+                                } else if (privateMessage.payment_options) {
+                                    type = 1;
+                                } else {
+                                    type = 0;
                                 }
                             }
-                        }
 
-                        if (type === 10) {
-                            privateMessage.isAuction = true;
-                        }
+                            privateMessage.type = type;
 
-                        let orderId = privateMessage.id;
+                            if (type === 1) {
+                                for (const paymentOption of privateMessage.payment_options) {
+                                    if (paymentOption.type === 'ln') {
+                                        const decodedInvoice = decode(paymentOption.link);
 
-                        if (orderId === undefined) {
-                            return;
-                        }
+                                        const amountSections = decodedInvoice.sections.filter((section) => {
+                                            return section.name === 'amount'
+                                        });
 
-                        if (orderId in $privateMessages.automatic) {
-                            // We need to merge objects because some properties
-                            // are the same in different types like "message",
-                            // but we want to have the last one
+                                        if (amountSections.length > 0) {
+                                            paymentOption.amount_sats = amountSections[0].value / 1000;
+                                        } else {
+                                            console.error('Lightning invoice without amount or with amount = 0 !!!');
+                                        }
 
-                            if (
-                                ((privateMessage.type > $privateMessages.automatic[orderId].type) && privateMessage.type !== 10)
-                                ||
-                                (privateMessage.type === $privateMessages.automatic[orderId].type && privateMessage.created_at > $privateMessages.automatic[orderId].created_at)
-                            ) {
-
-                                $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
-                            } else {
-                                $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
+                                        paymentOption.expiry = decodedInvoice.expiry;
+                                    }
+                                }
                             }
 
-                        } else {
-                            $privateMessages.automatic[orderId] = privateMessage;
-                        }
+                            if (type === 10) {
+                                privateMessage.isAuction = true;
+                            }
 
-                        // This is needed to fire reactivity when a new message arrives
-                        $privateMessages.automatic[orderId] = $privateMessages.automatic[orderId];
+                            let orderId = privateMessage.id;
+
+                            if (orderId === undefined) {
+                                return;
+                            }
+
+                            if (orderId in $privateMessages.automatic) {
+                                // We need to merge objects because some properties
+                                // are the same in different types like "message",
+                                // but we want to have the last one
+
+                                if (
+                                    ((privateMessage.type > $privateMessages.automatic[orderId].type) && privateMessage.type !== 10)
+                                    ||
+                                    (privateMessage.type === $privateMessages.automatic[orderId].type && privateMessage.created_at > $privateMessages.automatic[orderId].created_at)
+                                ) {
+
+                                    $privateMessages.automatic[orderId] = {...$privateMessages.automatic[orderId], ...privateMessage};
+                                } else {
+                                    $privateMessages.automatic[orderId] = {...privateMessage, ...$privateMessages.automatic[orderId]};
+                                }
+
+                            } else {
+                                $privateMessages.automatic[orderId] = privateMessage;
+                            }
+
+                            // This is needed to fire reactivity when a new message arrives
+                            $privateMessages.automatic[orderId] = $privateMessages.automatic[orderId];
+                        }
                     } else {
                         // "Human" messages
                         let pubKey = privateMessage.pubkey;
 
-                        if (pubKey === $NostrPublicKey) {
-                            // This is a message of mine. What conversation does it belong to?
-                            pubKey = privateMessage.sender;
+                        if (pubKey === publicKey) {
+                            // This is a message of mine (the logged-in user). What conversation does it belong to?
+                            pubKey = privateMessage.my_message_replying_to_this_pubkey;
                         }
 
                         if (pubKey in $privateMessages.human) {
@@ -140,11 +149,13 @@
 
                             if (includeMessage) {
                                 $privateMessages.human[pubKey].messages.push(privateMessage);
+                                $privateMessages.human[pubKey].merchantPrivateKey = merchantPrivateKey;
                             }
 
                         } else {
                             $privateMessages.human[pubKey] = {
-                                messages: [privateMessage]
+                                messages: [privateMessage],
+                                merchantPrivateKey: merchantPrivateKey
                             };
                         }
 
@@ -174,7 +185,21 @@
     }
 
     $: if ($NostrPublicKey) {
-        getNostrDMs();
+        getNostrDMs($NostrPublicKey);
+    }
+
+    $: if ($token) {
+        getMerchantNostrDMs();
+    }
+
+    async function getMerchantNostrDMs() {
+        const userInfo = await getMerchantKey();
+
+        if (userInfo && userInfo.user && userInfo.user.merchant_private_key) {
+            await getNostrDMs(getPublicKey(userInfo.user.merchant_private_key), userInfo.user.merchant_private_key);
+        } else {
+            console.debug("getMerchantNostrDMs - the merchant private key couldn't be obtained - userInfo:", userInfo);
+        }
     }
 </script>
 

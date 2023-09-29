@@ -75,11 +75,16 @@
         }
 
         if (content.length > 0) {
-            await sendPrivateMessage(selectedConversationPubkey, content,
+            let merchantPrivateKey;
+            if ($privateMessages.human[selectedConversationPubkey] && $privateMessages.human[selectedConversationPubkey].merchantPrivateKey) {
+                merchantPrivateKey = $privateMessages.human[selectedConversationPubkey].merchantPrivateKey;
+            }
+
+            await sendPrivateMessage(selectedConversationPubkey, content, merchantPrivateKey,
                 async (relay) => {
                     chatTextareaMobile.value = '';
                     chatTextareaDesktop.value = '';
-                    console.log('-------- Private message accepted by relay:', relay);
+                    console.debug('-------- Private message accepted by relay:', relay);
                 }
             );
         }
@@ -168,25 +173,32 @@
                     </li>
                 {/if}
 
-                {#each sortedConversations as [privateKey, conversation]}
+                {#each sortedConversations as [publicKey, conversation]}
                     <li class="rounded-lg w-full"
-                        class:bg-accent={selectedConversationPubkey === privateKey}
-                        class:text-black={selectedConversationPubkey === privateKey}
-                        on:click={() => selectConversation(privateKey)}
+                        class:bg-accent={selectedConversationPubkey === publicKey}
+                        class:text-black={selectedConversationPubkey === publicKey}
+                        on:click={() => selectConversation(publicKey)}
                     >
                         <div class="w-full">
                             <div class="avatar indicator">
                                 {#if conversation.unreadMessages}
-                                <span class="indicator-item badge badge-sm badge-error">
-                                    {conversation.unreadMessages}
-                                </span>
+                                    <span class="indicator-item badge badge-sm badge-error">
+                                        {conversation.unreadMessages}
+                                    </span>
                                 {/if}
                                 <div class="w-16 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
                             <div class="text-lg truncate">
-                                {conversation.name ?? nip19.npubEncode(privateKey)}
+                                {conversation.name ?? nip19.npubEncode(publicKey)}
+                            </div>
+                            <div>
+                                {#if conversation && conversation.merchantPrivateKey}
+                                    <span class="indicator-item badge badge-sm badge-info">
+                                        Received on the stall
+                                    </span>
+                                {/if}
                             </div>
                         </div>
                     </li>
@@ -248,10 +260,10 @@
                     </li>
                 {/if}
 
-                {#each sortedConversations as [privateKey, conversation]}
+                {#each sortedConversations as [publicKey, conversation]}
                     <li class="rounded-lg w-full"
-                        class:bg-primary={selectedConversationPubkey === privateKey}
-                        on:click={() => selectConversation(privateKey)}
+                        class:bg-primary={selectedConversationPubkey === publicKey}
+                        on:click={() => selectConversation(publicKey)}
                     >
                         <div class="w-full">
                             <div class="avatar indicator">
@@ -265,7 +277,7 @@
                                 </div>
                             </div>
                             <div class="text-lg truncate">
-                                {conversation.name ?? nip19.npubEncode(privateKey)}
+                                {conversation.name ?? nip19.npubEncode(publicKey)}
                             </div>
                         </div>
                     </li>
@@ -292,8 +304,8 @@
 
                 {:else}
 
-                    {#each sortedConversations as [conversationPrivateKey, conversation]}
-                        {#if selectedConversationPubkey === conversationPrivateKey}
+                    {#each sortedConversations as [conversationPublicKey, conversation]}
+                        {#if selectedConversationPubkey === conversationPublicKey}
                             <div class="avatar indicator align-bottom">
                                 <div class="w-12 h-12 mr-3 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />

@@ -130,27 +130,38 @@ export async function sendReaction(noteId: string, notePubkey: string, reaction:
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export async function sendPrivateMessage(receiverPubkey: string, message: string, successCB) {
+/**
+ * @param {string} recipientPubkey - the public key of the Nostr account where we're sending the message
+ * @param {string} message - the message content
+ * @param {string} merchantPrivateKey - (optional) if available, the message will be sent using this private key.
+ *              This is used to reply to messages as a merchant, and not with the logged-in personal account.
+ * @param successCB
+ */
+export async function sendPrivateMessage(recipientPubkey: string, message: string, merchantPrivateKey: string | boolean, successCB) {
     let cipheredMessage;
 
     if (loggedIn()) {
-        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
-            cipheredMessage = await (window as any).nostr.nip04.encrypt(receiverPubkey, message);
+        if (!merchantPrivateKey) {
+            if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
+                cipheredMessage = await (window as any).nostr.nip04.encrypt(recipientPubkey, message);
+            } else {
+                cipheredMessage = await nip04.encrypt(get(NostrPrivateKey), recipientPubkey, message);
+            }
         } else {
-            cipheredMessage = await nip04.encrypt(get(NostrPrivateKey), receiverPubkey, message);
+            cipheredMessage = await nip04.encrypt(merchantPrivateKey, recipientPubkey, message);
         }
     } else {
         if (!await waitAndShowLoginIfNotLoggedAlready()) {
             return;
         }
-        await sendPrivateMessage(receiverPubkey, message, successCB);
+        await sendPrivateMessage(recipientPubkey, message, merchantPrivateKey, successCB);
     }
 
-    const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', receiverPubkey]]);
+    const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', recipientPubkey]], merchantPrivateKey);
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB = () => {}) {
+export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:string | boolean = false, receivedCB, eoseCB = () => {}) {
     let sub = get(NostrPool).sub(relayUrlList, [
         {
             kinds: [EVENT_KIND_PM],
@@ -166,42 +177,59 @@ export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB 
         const messagePubkey = e.pubkey;
 
         let decryptPubkey;
-        let sender: string | null = null;
+        let my_message_replying_to_this_pubkey: string | null = null;
         if (messagePubkey === userPubkey) {
-            sender = e.tags.find(([k, v]) => k === 'p' && v && v !== '')[1];
-            decryptPubkey = sender;         // My messages (output)
+            // Message sent by the userPubkey owner
+            my_message_replying_to_this_pubkey = e.tags.find(([k, v]) => k === 'p' && v && v !== '')[1];
+            decryptPubkey = my_message_replying_to_this_pubkey;         // My messages (output)
         } else {
+            // Message received by the userPubkey owner
             decryptPubkey = messagePubkey;  // Replies
         }
 
         let decryptedContent;
-        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
-            try {
-                decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
-            } catch (error) {
-                console.error("getPrivateMessages - Error decrypting a private message with the Nostr extension.");
-                return false;
-            }
-        } else {
-            let privateKey = get(NostrPrivateKey);
-            if (privateKey) {
+        if (!merchantPrivateKey) {
+            if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
                 try {
-                    decryptedContent = await nip04.decrypt(privateKey, decryptPubkey, content);
+                    decryptedContent = await (window as any).nostr.nip04.decrypt(decryptPubkey, content);
                 } catch (error) {
-                    console.error("getPrivateMessages - Error decrypting a private message with the private key.");
+                    console.error("getPrivateMessages - Error decrypting a private message with the Nostr extension.");
                     return false;
                 }
             } else {
+                let privateKey = get(NostrPrivateKey);
+                if (privateKey) {
+                    try {
+                        decryptedContent = await nip04.decrypt(privateKey, decryptPubkey, content);
+                    } catch (error) {
+                        console.error("getPrivateMessages - Error decrypting a private message with the private key of the logged-in user.");
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            try {
+                decryptedContent = await nip04.decrypt(merchantPrivateKey, decryptPubkey, content);
+            } catch (error) {
+                console.error("getPrivateMessages - Error decrypting a private message with the private key of the merchant.");
                 return false;
             }
         }
+
 
         try {
             let jsonDecodedMessage = JSON.parse(decryptedContent);
             jsonDecodedMessage.created_at = e.created_at;
             jsonDecodedMessage.pubkey = messagePubkey;
             jsonDecodedMessage.contentType = 'json';
-            receivedCB(jsonDecodedMessage);
+
+            try {
+                receivedCB(jsonDecodedMessage);
+            } catch (error) {
+                console.error('------------------------------ Error calling getPrivateMessages callback for automatic (order) messages:', error);
+            }
         } catch (error) {
             let humanMessage = {
                 id: e.id,
@@ -211,8 +239,8 @@ export async function getPrivateMessages(userPubkey: string, receivedCB, eoseCB 
                 contentType: 'human',
             };
 
-            if (sender) {
-                humanMessage.sender = sender;
+            if (my_message_replying_to_this_pubkey) {
+                humanMessage.my_message_replying_to_this_pubkey = my_message_replying_to_this_pubkey;
             }
 
             receivedCB(humanMessage);

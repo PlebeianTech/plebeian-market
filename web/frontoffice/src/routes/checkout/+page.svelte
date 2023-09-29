@@ -82,7 +82,7 @@
                 let messageOrder = JSON.stringify(order);
                 console.log('************ jsonOrder:  ', order);
 
-                await sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder,
+                await sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder, false,
                     async (relay) => {
                         console.log('-------- Order accepted by relay:', relay);
 
