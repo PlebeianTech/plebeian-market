@@ -300,6 +300,7 @@ class User(WalletMixin, db.Model):
             d['shipping_from'] = self.shipping_from
             d['shipping_domestic_usd'] = self.shipping_domestic_usd
             d['shipping_worldwide_usd'] = self.shipping_worldwide_usd
+            d['merchant_private_key'] = self.merchant_private_key
 
         return d
 

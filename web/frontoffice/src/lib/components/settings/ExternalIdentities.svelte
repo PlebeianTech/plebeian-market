@@ -2,12 +2,10 @@
     import {loggedIn, requestLoginModal} from "$sharedLib/utils";
     import { onMount } from 'svelte';
     import {publishMetadata, subscribeMetadata} from "$sharedLib/services/nostr";
-    import {askAPIForVerification, encodeNpub, filterTags, getExternalIdentityUrl} from "$sharedLib/nostr/utils";
+    import {encodeNpub, filterTags} from "$sharedLib/nostr/utils";
     import {Info, Error, NostrPublicKey} from "$sharedLib/stores";
-    import Telegram from "$sharedLib/components/icons/Telegram.svelte";
-    import Github from "$sharedLib/components/icons/Github.svelte";
-    import Twitter from "$sharedLib/components/icons/Twitter.svelte";
     import Question from "$sharedLib/components/icons/Question.svelte";
+    import ShowExternalIdentities from "$lib/components/nostr/ShowExternalIdentities.svelte";
 
     $: profile = null;
     $: externalIdentities = [];
@@ -17,6 +15,14 @@
     let type = 'twitter';
     let url = '';
     let user = '';
+
+    let externalIdentitiesVerification = {
+        twitter: {verified: 'waiting', recently_added: false},
+        github: {verified: 'waiting', recently_added: false},
+        telegram: {verified: 'waiting', recently_added: false}
+    }
+
+    let verifyIdentities;
 
     let verifyHelpInfo: [] = []
     verifyHelpInfo['twitter'] = {
@@ -66,7 +72,7 @@
             '<p class="mt-1">https://t.me/nostr_protocol/118763</p>'
     };
 
-    function addData() {
+    function addIdentity() {
         if (!type || !url) {
             Info.set('You must enter the URL before adding');
             return;
@@ -121,10 +127,16 @@
                 return;
             }
 
+            if (user.startsWith('@')) {
+                user = user.substring(1);
+            }
+
             const channel = urlTokens[3];
             const proof = channel + '/' + urlTokens[4];
             newEntry = type + ':' + user + ':' + proof;
         }
+
+        externalIdentitiesVerification[type].recently_added = true;
 
         externalIdentities.push(newEntry);
         externalIdentities = externalIdentities;
@@ -137,27 +149,16 @@
         changesMade = true;
     }
 
-    function getMetadata() {
-        if ($NostrPublicKey) {
-            subscribeMetadata([$NostrPublicKey],
-                (pk, profileMeta) => {
-                    if (profile === null || profile.created_at < profileMeta.created_at) {
-                        profile = profileMeta;
+    function deleteIdentity(externalIdentityToDelete) {
+        externalIdentities = externalIdentities.filter(function(identity){
+            const match = identity === externalIdentityToDelete;
 
-                        filterTags(profile.tags, 'i').forEach(externalIdentity => {
-                            const externalIdentityToken: string = externalIdentity[1] + ':' + externalIdentity[2];
+            if (match) {
+                changesMade = true;
+            }
 
-                            if (!externalIdentities.includes(externalIdentityToken)) {
-                                externalIdentities.push(externalIdentityToken);
-                                externalIdentities = externalIdentities;
-                            }
-                        });
-                    }
-                },
-                () => {
-                    lastProfileLoaded = true;
-                });
-        }
+            return !match;
+        });
     }
 
     async function saveIdentitiesToNostr() {
@@ -170,9 +171,13 @@
         }
 
         // Filtering out 'i' tags to start clean
-        let iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
-            return tag[0] !== 'i';
-        });
+        let iFilteredProfileTags = [];
+
+        if (profile.tags) {
+            iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
+                return tag[0] !== 'i';
+            });
+        }
 
         // Adding current i tags to the profile
         externalIdentities.forEach(identity => {
@@ -183,14 +188,38 @@
             ]);
         });
 
-        profile.tags = iFilteredProfileTags;
+        await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
 
-        await publishMetadata(profile);      // Saving profile with new 'i' tags to Nostr
-
-        await askAPIForVerification($NostrPublicKey);
+        await verifyIdentities();
     }
 
-    onMount(() => {
+    function getMetadata() {
+        if ($NostrPublicKey) {
+            subscribeMetadata([$NostrPublicKey],
+                (pk, profileMeta) => {
+                    if (profile === null || profile.created_at < profileMeta.created_at) {
+                        profile = profileMeta;
+
+                        externalIdentities = [];
+
+                        filterTags(profile.tags, 'i').forEach(externalIdentity => {
+                            const externalIdentityToken: string = externalIdentity[1] + ':' + externalIdentity[2];
+
+                            if (!externalIdentities.includes(externalIdentityToken)) {
+                                externalIdentities.push(externalIdentityToken);
+                                externalIdentities = externalIdentities;
+                            }
+                        });
+                    }
+                },
+                async () => {
+                    lastProfileLoaded = true;
+                    await verifyIdentities();
+                });
+        }
+    }
+
+    onMount(async () => {
         getMetadata();
     });
 </script>
@@ -214,7 +243,7 @@
                 <input class="input-info border rounded py-2 px-3" type="text" placeholder="Telegram user" bind:value={user}>
             {/if}
             <input class="w-2/3 input-info border rounded py-2 px-3" type="text" placeholder="URL" bind:value={url}>
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addData}>Add</button>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addIdentity}>Add</button>
         </div>
     </div>
 
@@ -222,25 +251,20 @@
         <h2>External identities:</h2>
         {#if externalIdentities.length === 0}
             <p class="mt-2">Your Nostr profile doesn't have any external identity yet. Add one using the form above.</p>
+        {:else}
+            <ShowExternalIdentities
+                    {externalIdentities}
+                    {externalIdentitiesVerification}
+                    showDeleteButton={true}
+                    nostrPublicKey={$NostrPublicKey}
+                    bind:verifyIdentities={verifyIdentities}
+                    {deleteIdentity}
+            />
         {/if}
-
-        {#each externalIdentities as identity}
-            <a class="flex hover:underline mt-5" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
-                {#if identity.split(':')[0] === 'twitter'}
-                    <Twitter />
-                {:else if identity.split(':')[0] === 'github'}
-                    <Github />
-                {:else if identity.split(':')[0] === 'telegram'}
-                    <Telegram />
-                {/if}
-
-                <div class="ml-2">{identity.split(':')[1]}</div>
-            </a>
-        {/each}
 
         {#if changesMade}
             <div class="mt-6">
-                <button class="mt-4 py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded" on:click={saveIdentitiesToNostr}>Verify and Save</button>
+                <button class="mt-4 py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded" on:click={saveIdentitiesToNostr}>{externalIdentities.length === 0 ? 'Save' : 'Verify and Save'}</button>
             </div>
         {/if}
     </div>
@@ -261,7 +285,7 @@
                 <input class="input-info border rounded py-2 px-3" type="text" placeholder="Telegram user" bind:value={user}>
             {/if}
             <input class="input-info border rounded py-2 px-3" type="text" placeholder="URL" bind:value={url}>
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addData}>Add</button>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={addIdentity}>Add</button>
         </p>
         <div class="modal-action">
             <form method="dialog">

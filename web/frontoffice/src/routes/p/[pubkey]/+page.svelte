@@ -13,21 +13,9 @@
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
-    import {
-        askAPIForVerification,
-        decodeNpub,
-        encodeNpub,
-        filterTags,
-        getExternalIdentityUrl
-    } from "$sharedLib/nostr/utils";
+    import {decodeNpub,filterTags} from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
-    import Twitter from "$sharedLib/components/icons/Twitter.svelte";
-    import Telegram from "$sharedLib/components/icons/Telegram.svelte";
-    import Github from "$sharedLib/components/icons/Github.svelte";
-    import Clock from "$sharedLib/components/icons/Clock.svelte";
-    import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
-    import X from "$sharedLib/components/icons/X.svelte";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
+    import ShowExternalIdentities from "$lib/components/nostr/ShowExternalIdentities.svelte";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -44,15 +32,14 @@
     $: pm_badges = false;
     $: other_badges = false;
 
-    $: backend_present = true;
     $: externalIdentities = [];
-    const identityTypesSupported = ['twitter', 'github', 'telegram'];
     let externalIdentitiesVerification = {
         twitter: {verified: 'waiting'},
-        github: {verified: 'verified-ok'},
-        telegram: {verified: 'verfied-notok'}
+        github: {verified: 'waiting'},
+        telegram: {verified: 'waiting'}
     }
-    $: verificationCanBeDone = true;
+
+    let verifyIdentities;
 
     let otherBadgesOpened = false;
 
@@ -108,37 +95,18 @@
         });
     }
 
-    function splitString(str, length) {
-        var words = str.split(" ");
-        for (var j = 0; j < words.length; j++) {
-            var l = words[j].length;
-            if (l > length) {
-                var result = [], i = 0;
-                while (i < l) {
-                    result.push(words[j].substr(i, length))
-                    i += length;
-                }
-                words[j] = result.join(" ");
-            }
-        }
-        return words.join(" ");
-    }
-
     onMount(async () => {
         if (data && data.pubkey) {
             if (data.pubkey.startsWith('npub')) {
                 data.pubkey = decodeNpub(data.pubkey);
             }
 
-            let config = await getConfigurationFromFile();
-            if (config) {
-                backend_present = config.backend_present ?? true;
-            }
-
             subscribeMetadata([data.pubkey],
                 (pk, profileMeta) => {
                     if (profile === null || profile.created_at < profileMeta.created_at) {
                         profile = profileMeta;
+
+                        externalIdentities = [];
 
                         filterTags(profile.tags, 'i').forEach(externalIdentity => {
                             const externalIdentityToken: string = externalIdentity[1] + ':' + externalIdentity[2];
@@ -151,14 +119,7 @@
                     }
                 },
                 async () => {
-                    if (backend_present) {
-                        const verification = await askAPIForVerification(data.pubkey);
-                        if (!verification) {
-                            verificationCanBeDone = false;
-                        }
-                    } else {
-                        verificationCanBeDone = false;
-                    }
+                    await verifyIdentities();
                 });
 
             getProfileBadges(data.pubkey, (profileBadgeEvent) => {
@@ -190,13 +151,17 @@
         </div>
 
         <div class="mt-2">
-            <p class="mb-1 font-bold text-xl">{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)}</p>
-
+            {#if profile.display_name || profile.name}
+                <p class="mb-1 font-bold text-xl">{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)}</p>
+                <p class="mb-1 text-xs">{nip19.npubEncode(profile.pubkey)}</p>
+            {:else}
+                <p class="mb-1 font-bold text-xl">{nip19.npubEncode(profile.pubkey)}</p>
+            {/if}
             {#if profile.about}
                 <p class="text-lg">{profile.about}</p>
             {/if}
             {#if profile.lud16}
-                <p><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
+                <p class="mt-3"><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
             {/if}
         </div>
     </div>
@@ -206,39 +171,12 @@
     <div class="mt-1 pb-4 md:pb-6">
         <p class="mb-1 font-bold text-xl">External Identities</p>
 
-        {#each externalIdentities as identity}
-            {#if identityTypesSupported.includes(identity.split(':')[0])}
-                <div class="mt-2 mb-3 flex text-lg">
-                    {#if identity.split(':')[0] === 'twitter'}
-                        <Twitter />
-                    {:else if identity.split(':')[0] === 'github'}
-                        <Github />
-                    {:else if identity.split(':')[0] === 'telegram'}
-                        <Telegram />
-                    {/if}
-
-                    <a class="hover:underline" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
-                        <div class="ml-2">{identity.split(':')[1]}</div>
-                    </a>
-
-                    {#if backend_present}
-                        {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting'}
-                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Waiting for verification of the identity..."><Clock /></div>
-                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok'}
-                            <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-success text-green-500" data-tip="Identity verified by Plebeian Market"><VerificationMark /></div>
-                        {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-notok'}
-                            <div class="w-5 h-5 ml-2 tooltip tooltip-error text-red-500" data-tip="This identity couldn't be verified by Plebeian Market as belonging to this user"><X /></div>
-                        {/if}
-                    {/if}
-                </div>
-            {/if}
-        {/each}
-
-        {#if !backend_present || !verificationCanBeDone}
-            <p class="text-lg leading-4">
-                You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub(data.pubkey)}</span><span class="flex md:hidden">{splitString(encodeNpub(data.pubkey), 32) }</span>
-            </p>
-        {/if}
+        <ShowExternalIdentities
+                {externalIdentities}
+                {externalIdentitiesVerification}
+                nostrPublicKey={$NostrPublicKey}
+                bind:verifyIdentities={verifyIdentities}
+        />
     </div>
 {/if}
 

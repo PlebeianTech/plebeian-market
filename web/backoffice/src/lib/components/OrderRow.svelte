@@ -15,6 +15,9 @@
 
 <tr>
     <td>
+        {order.uuid}
+    </td>
+    <td>
         {#if order.requested_at}
             <DateFormatter date={order.requested_at} style={DateStyle.Short} />
         {/if}

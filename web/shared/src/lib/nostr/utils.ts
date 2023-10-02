@@ -1,6 +1,6 @@
-import {getEventHash, nip05, nip19, Kind, getSignature} from "nostr-tools";
+import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nostr-tools";
 import {goto} from "$app/navigation";
-import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod} from "$sharedLib/stores";
+import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, token} from "$sharedLib/stores";
 import {get} from "svelte/store";
 import {getApiBaseUrl} from "$sharedLib/utils";
 
@@ -29,7 +29,7 @@ export function hasExtension() {
     return !!(window as any).nostr;
 }
 
-export async function createEvent(kind: number, content: any, tags: any = []) {
+export async function createEvent(kind: number, content: any, tags: any = [], merchantPrivateKey: string | boolean = false) {
     let event: any = {
         kind,
         content,
@@ -37,21 +37,30 @@ export async function createEvent(kind: number, content: any, tags: any = []) {
         created_at: Math.floor(Date.now() / 1000),
     }
 
-    if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
-        event.pubkey = await (window as any).nostr.getPublicKey();
-        event.id = getEventHash(event);
-        return await (window as any).nostr.signEvent(event);
-    } else {
-        let pubKey = get(NostrPublicKey);
-        let privKey = get(NostrPrivateKey);
+    if (!merchantPrivateKey) {
+        // Standard events send from the logged-in account
+        if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
+            event.pubkey = await (window as any).nostr.getPublicKey();
+            event.id = getEventHash(event);
+            return await (window as any).nostr.signEvent(event);
+        } else {
+            let pubKey = get(NostrPublicKey);
+            let privKey = get(NostrPrivateKey);
 
-        if (!pubKey || !privKey) {
-            return false;
+            if (!pubKey || !privKey) {
+                return false;
+            }
+
+            event.pubkey = pubKey;
+            event.id = getEventHash(event);
+            event.sig = getSignature(event, privKey);
+            return event;
         }
-
-        event.pubkey = pubKey;
+    } else {
+        // Events sent on behalf of the Merchant using his merchantPrivateKey
+        event.pubkey = getPublicKey(merchantPrivateKey);
         event.id = getEventHash(event);
-        event.sig = getSignature(event, privKey);
+        event.sig = getSignature(event, merchantPrivateKey);
         return event;
     }
 }
@@ -196,6 +205,7 @@ export async function tryLoginToBackend(successCB: () => void = () => {}) {
 
         if (responseJson.success === true && responseJson.token) {
             localStorage.setItem('token', responseJson.token);
+            token.set(responseJson.token);
             successCB();
         } else {
             console.debug('responseJson.token', responseJson.token);
@@ -226,15 +236,12 @@ export function getExternalIdentityUrl(channel: string, identity: string, proof:
 }
 
 export async function askAPIForVerification(pubkey: string) {
-    return false;
-
-    //const apiHost = getApiBaseUrl();
-    const apiHost = 'https://staging.plebeian.market/';
+    const apiHost = getApiBaseUrl();
     const apiUrl = 'api/keys/';
     const apiUrlSuffix = '/metadata';
 
     if (!pubkey) {
-        console.error('Called askAPIForVerification without pubkey');
+        console.error('Called askAPIForVerification without a pubkey');
         return;
     }
 
@@ -247,17 +254,43 @@ export async function askAPIForVerification(pubkey: string) {
 
         const responseJson = await response.json();
 
-        console.log('responseJson', responseJson);
-        console.log('verified_identities', responseJson.verified_identities);
-
-        if (responseJson.success === true && responseJson.token) {
-            localStorage.setItem('token', responseJson.token);
-            successCB();
+        if (responseJson && responseJson.verified_identities) {
+            return responseJson.verified_identities;
         } else {
-            console.debug('responseJson.token', responseJson.token);
+            return false;
         }
     } catch (error) {
-        console.debug("tryLoginToBackend (2) - Could not contact with a backend, so API verification cannot be done.");
+        console.debug("askAPIForVerification - Could not contact with a backend, so API verification cannot be done:", error);
+        return false;
+    }
+}
+
+export async function getMerchantKey() {
+    //const apiHost = getApiBaseUrl();
+    const apiHost = 'https://staging.plebeian.market/';
+    const apiUrl = 'api/users/me';
+
+    try {
+        let headers = {
+            'X-Access-Token': get(token)
+        };
+
+        const response = await fetch(apiHost + apiUrl, {headers});
+        if (!response.ok) {
+            console.debug("getMerchantKey - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+            return false;
+        }
+
+        const responseJson = await response.json();
+
+        //if (responseJson && responseJson.verified_identities) {
+        if (responseJson) {
+            return responseJson;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.debug("getMerchantKey - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
         return false;
     }
 }
