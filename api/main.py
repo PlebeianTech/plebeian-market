@@ -237,20 +237,8 @@ def settle_btc_payments():
                             continue
                         db.session.commit()
                 if order.paid_at and order.has_skin_in_the_game_badge():
-                    birdwatcher = get_birdwatcher()
-                    if not birdwatcher.publish_badge_award(app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id'], order.buyer_public_key):
-                        app.logger.error("Failed to publish Skin in the Game badge award!")
-                    else:
-                        app.logger.info(f"Awarded Skin in the Game badge for {order.buyer_public_key}!")
-                        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
-                            json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': True, 'message': "Skin in the Game badge awarded!"})):
-                            app.logger.error("Error sending Nostr reply to the buyer.")
-                        for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
-                            app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired the Skin in the Game badge!")
-                            pending_bid.settled_at = datetime.utcnow()
-                            duration_extended = pending_bid.auction.extend()
-                            birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
-                            db.session.commit()
+                    award_badge(order)
+
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
@@ -265,6 +253,22 @@ def get_lndhub_client():
         return LndHubClient()
     else:
         return MockLndHubClient()
+
+def award_badge(order):
+    birdwatcher = get_birdwatcher()
+    if not birdwatcher.publish_badge_award(app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id'], order.buyer_public_key):
+        app.logger.error("Failed to publish Skin in the Game badge award!")
+    else:
+        app.logger.info(f"Awarded Skin in the Game badge for {order.buyer_public_key}!")
+        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+            json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': True, 'message': "Skin in the Game badge awarded!"})):
+            app.logger.error("Error sending Nostr reply to the buyer while trying to award the badge.")
+        for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
+            app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired the Skin in the Game badge!")
+            pending_bid.settled_at = datetime.utcnow()
+            duration_extended = pending_bid.auction.extend()
+            birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
+            db.session.commit()
 
 @app.cli.command("settle-lightning-payments")
 @with_appcontext
@@ -379,6 +383,10 @@ def settle_lightning_payments():
 
                         if incoming_payment_received and outgoing_payments_sent:
                             app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
+
+                            if order.has_skin_in_the_game_badge():
+                                award_badge(order)
+
                             order.paid_at = datetime.utcnow()
                             db.session.commit()
 
