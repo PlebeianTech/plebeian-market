@@ -1533,19 +1533,24 @@ class LightningPaymentLog(db.Model):
 
     order = db.relationship('Order', back_populates="lightning_payment_logs")
 
-    def check_incoming_payment(self, order_id, lightning_invoice_id, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
+    @classmethod
+    def check_incoming_payment(cls, order_id, lightning_invoice_id, amount):
+        return cls.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
 
-    def check_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
+    @classmethod
+    def check_outgoing_payment(cls, order_id, lightning_invoice_id, paid_to, amount):
+        return cls.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
 
-    def add_incoming_payment(self, order_id, lightning_invoice_id, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
+    @classmethod
+    def add_incoming_payment(cls, order_id, lightning_invoice_id, amount):
+        return cls.add_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
 
-    def add_outgoing_payment(self, order_id, lightning_invoice_id, paid_to, amount):
-        return self.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
+    @classmethod
+    def add_outgoing_payment(cls, order_id, lightning_invoice_id, paid_to, amount):
+        return cls.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
 
-    def check_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, type):
+    @classmethod
+    def check_payment_log(cls, order_id, lightning_invoice_id, paid_to, amount, type):
         payment_log = LightningPaymentLog.query.filter_by(
             order_id = order_id,
             lightning_invoice_id = lightning_invoice_id,
@@ -1556,7 +1561,8 @@ class LightningPaymentLog(db.Model):
 
         return bool(payment_log)
 
-    def add_payment_log(self, order_id, lightning_invoice_id, paid_to, amount, type):
+    @classmethod
+    def add_payment_log(cls, order_id, lightning_invoice_id, paid_to, amount, type):
         paymentLog = LightningPaymentLog(
             order_id = order_id,
             lightning_invoice_id = lightning_invoice_id,
