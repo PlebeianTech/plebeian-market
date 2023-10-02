@@ -425,7 +425,6 @@ def get_payout_information(seller_id):
 
     app.logger.info(f"get_payout_information_1 - merchant_contribution={merchant_contribution}%...")
 
-    merchant_contribution = 50
     app.logger.info(f"get_payout_information_2 - merchant_contribution={merchant_contribution}%...")
 
     return [
