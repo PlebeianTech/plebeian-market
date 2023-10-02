@@ -106,6 +106,8 @@
                     if (profile === null || profile.created_at < profileMeta.created_at) {
                         profile = profileMeta;
 
+                        externalIdentities = [];
+
                         filterTags(profile.tags, 'i').forEach(externalIdentity => {
                             const externalIdentityToken: string = externalIdentity[1] + ':' + externalIdentity[2];
 
