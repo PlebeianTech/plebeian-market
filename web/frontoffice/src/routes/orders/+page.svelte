@@ -445,7 +445,7 @@
             <div class="py-4 bg-white">
                 <QRLocal {paymentInfo} />
 
-                {#if paymentInfo.protocol === 'lightning'}
+                {#if paymentInfo.protocol === 'lightning' && paymentOptionSelected === 'lnurl'}
                     <div class="mt-4 md:mt-6 pb-0 flex flex-col justify-center items-center">
                         <div class="block justify-center items-center mx-auto mb-4">
                             <button class="btn btn-success" on:click|preventDefault={() => paymentConfirmationModalVisible = true}>Mark as paid</button>

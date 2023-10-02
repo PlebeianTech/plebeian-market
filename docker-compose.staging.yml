@@ -52,6 +52,12 @@ services:
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
     command: flask settle-btc-payments
+  settle-lightning-payments:
+    env_file: .env.staging
+    volumes:
+      - "/home/www/plebeian-market-secrets:/secrets"
+      - "./api:/app"
+    command: flask settle-lightning-payments
   birdwatcher:
     env_file: .env.staging
     volumes:

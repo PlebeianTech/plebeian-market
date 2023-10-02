@@ -19,7 +19,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_s3, get_site_admin_config
+from main import app, get_birdwatcher, get_lndhub_client, get_s3, get_site_admin_config
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -927,10 +927,35 @@ def post_merchant_message(pubkey):
                 app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
 
             payment_options = []
+
             if order.on_chain_address:
                 payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
+
             if order.lightning_address:
-                payment_options.append({'type': 'lnurl', 'link': order.lightning_address, 'amount_sats': order.total})
+                lndhub_client = get_lndhub_client()
+                invoice_information = lndhub_client.create_invoice(order.id, order.total)
+
+                if not invoice_information:
+                    app.logger.info(f"Error while trying to create_invoice. Retrying...")
+                    time.sleep(5)
+                    lndhub_client.get_login_token()
+                    invoice_information = lndhub_client.create_invoice(order.id, order.total)
+
+                if invoice_information and invoice_information['payment_request']:
+                    lightning_invoice = m.LightningInvoice(
+                        order_id=order.id,
+                        invoice=invoice_information['payment_request'],
+                        payment_hash=invoice_information['payment_hash'],
+                        price=order.total,
+                        expires_at=invoice_information['expires_at']
+                    )
+                    db.session.add(lightning_invoice)
+                    db.session.commit()
+
+                    payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
+
+                else:
+                    return jsonify({'message': "Error sending the payment options back to the buyer (couldn't create a new LN invoice)"}), 500
 
             if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
                 json.dumps({
@@ -938,7 +963,7 @@ def post_merchant_message(pubkey):
                     'type': 1,
                     'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
                     'payment_options': payment_options})):
-                return jsonify({'message': "Error sending the payment options back to the buyer."}), 500
+                return jsonify({'message': "Error sending the payment options back to the buyer (couldn't send the nostr type=1 message)"}), 500
 
             db.session.commit()
 

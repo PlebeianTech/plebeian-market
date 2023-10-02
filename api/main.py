@@ -25,6 +25,7 @@ from sqlalchemy import desc
 import sys
 import time
 import uuid
+from lnd_hub_client import LndHubClient, MockLndHubClient
 
 from extensions import cors, db, mail
 from nostr_utils import EventValidationError, validate_event
@@ -236,20 +237,8 @@ def settle_btc_payments():
                             continue
                         db.session.commit()
                 if order.paid_at and order.has_skin_in_the_game_badge():
-                    birdwatcher = get_birdwatcher()
-                    if not birdwatcher.publish_badge_award(app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id'], order.buyer_public_key):
-                        app.logger.error("Failed to publish Skin in the Game badge award!")
-                    else:
-                        app.logger.info(f"Awarded Skin in the Game badge for {order.buyer_public_key}!")
-                        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
-                            json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': True, 'message': "Skin in the Game badge awarded!"})):
-                            app.logger.error("Error sending Nostr reply to the buyer.")
-                        for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
-                            app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired the Skin in the Game badge!")
-                            pending_bid.settled_at = datetime.utcnow()
-                            duration_extended = pending_bid.auction.extend()
-                            birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
-                            db.session.commit()
+                    award_badge(order)
+
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
             db.session.rollback()
@@ -258,6 +247,192 @@ def settle_btc_payments():
             time.sleep(1)
         else:
             time.sleep(10)
+
+def get_lndhub_client():
+    if app.config['ENV'] in ('staging', 'prod'):
+        return LndHubClient()
+    else:
+        return MockLndHubClient()
+
+def award_badge(order):
+    birdwatcher = get_birdwatcher()
+    if not birdwatcher.publish_badge_award(app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id'], order.buyer_public_key):
+        app.logger.error("Failed to publish Skin in the Game badge award!")
+    else:
+        app.logger.info(f"Awarded Skin in the Game badge for {order.buyer_public_key}!")
+        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+            json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': True, 'message': "Skin in the Game badge awarded!"})):
+            app.logger.error("Error sending Nostr reply to the buyer while trying to award the badge.")
+        for pending_bid in m.Bid.query.filter_by(buyer_nostr_public_key=order.buyer_public_key, settled_at=None).all():
+            app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired the Skin in the Game badge!")
+            pending_bid.settled_at = datetime.utcnow()
+            duration_extended = pending_bid.auction.extend()
+            birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
+            db.session.commit()
+
+@app.cli.command("settle-lightning-payments")
+@with_appcontext
+def settle_lightning_payments():
+    lndhub_client = get_lndhub_client()
+
+    app.logger.setLevel(getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGTERM, lambda _, __: sys.exit(0))
+
+    app.logger.info(f"Processing Lightning Network payments...")
+
+    while True:
+        active_order_filter = (m.Order.paid_at == None) & (m.Order.expired_at == None) & (m.Order.canceled_at == None)
+
+        active_orders_with_lightning = db.session.query(m.Order).join(m.LightningInvoice).filter((m.Order.lightning_address != None) & active_order_filter)
+
+        if active_orders_with_lightning.all():
+
+            try:
+                incoming_invoices = lndhub_client.get_incoming_invoices()
+
+                if not incoming_invoices:
+                    app.logger.info(f"Error while trying to get the list of incoming invoices. Retrying...")
+                    time.sleep(5)
+                    lndhub_client.get_login_token()
+                    incoming_invoices = lndhub_client.get_incoming_invoices()
+                
+                    if not incoming_invoices:
+                        app.logger.info(f"There is no information about any incoming Lightning invoices from the LNDhub provider yet.")
+                        time.sleep(10)
+                        continue
+
+                ln_payment_logs_util = m.LightningPaymentLog
+
+                birdwatcher = get_birdwatcher()
+
+                for order in active_orders_with_lightning.all():
+                    app.logger.info(f"  -------- Processing order {order.id}...")
+
+                    lightning_invoices = order.lightning_invoices
+                    # app.logger.info(f"       -- Invoices for Order {order.id}... Invoices = {lightning_invoices}")
+
+                    for invoice in lightning_invoices:
+                        app.logger.info(f"    ------ Invoice: {invoice.id} - {invoice.invoice}")
+
+                        # INCOMING PAYMENT
+                        incoming_payment_received = False
+
+                        if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
+                            incoming_payment_received = True
+                            app.logger.info(f"      ---- Payment for order.id={order.id}, invoice.id={invoice.id} WAS already recorded as received...")
+
+                        else:
+                            app.logger.info(f"      ---- Checking if payment for order.id={order.id}, invoice.id={invoice.id} is received...")
+
+                            incoming_invoice = incoming_invoices.get(invoice.invoice)
+
+                            if incoming_invoice:
+                                app.logger.info(f"        -- Incoming invoice found: {incoming_invoice}")
+
+                                if incoming_invoice['is_paid']:
+                                    app.logger.info(f"        - AND IT'S PAID!")
+
+                                    ln_payment_logs_util.add_incoming_payment(order.id, invoice.id, order.total)
+
+                                    incoming_payment_received = True;
+
+                                    # We don't mark the order as paid yet for the seller, but the buyer already paid,
+                                    # so we want him to have the order marked as paid so the QR dissapears from the screen
+                                    if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                                        json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed"})):
+                                        app.logger.info(f"        -  ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
+
+                                else:
+                                    app.logger.info(f"        - But not yet paid ****")
+
+                            else:
+                                app.logger.info(f"        -- Payment for order.id={order.id}, invoice.id={invoice.id} not received yet.")
+
+                        # OUTGOING PAYMENTS
+                        outgoing_payments_sent = True;
+
+                        if incoming_payment_received:
+                            payout_information = get_payout_information(order.seller_id)
+                            app.logger.info(f"      ---- Payout information - payout_information = {payout_information}")
+
+                            if not payout_information:
+                                app.logger.error(f"        -- ERROR: There is no payout information for order.id={order.id}, order.seller_id={order.seller_id}  !!!!!")
+                                outgoing_payments_sent = False
+                            else:
+                                for payout in payout_information:
+                                    payout_ln_address = payout['ln_address']
+                                    payout_percent = payout['percent']
+                                    payout_amount = order.total * payout_percent / 100
+                                    payout_amount = round(payout_amount)
+
+                                    if ln_payment_logs_util.check_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount):
+                                        app.logger.info(f"        -- Payment for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount} WAS already paid.")
+                                    else:
+                                        app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
+                                        
+                                        if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                            time.sleep(5)
+                                            lndhub_client.get_login_token()
+
+                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                                outgoing_payments_sent = False
+                                                app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
+
+                                        else:
+                                            ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
+
+                        if incoming_payment_received and outgoing_payments_sent:
+                            app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
+
+                            if order.has_skin_in_the_game_badge():
+                                award_badge(order)
+
+                            order.paid_at = datetime.utcnow()
+                            db.session.commit()
+
+            except:
+                app.logger.exception("Error while getting information about Lightning Network payments.")
+                #db.session.rollback()
+
+        else:
+            app.logger.info(f"There aren't active orders with Lightning Network pending. Sleeping for a while.")
+
+        time.sleep(5)
+
+def get_payout_information(seller_id):
+    app.logger.info(f"Getting payout information for seller={seller_id}...")
+
+    # Only the merchant for now. There could be more actors in the future
+    merchant = m.User.query.filter_by(id=seller_id).one_or_none()
+
+    if not merchant:
+        app.logger.error(f"ERROR: There is no merchant with seller_id={seller_id}...")
+        return None
+
+    merchant_dict = merchant.to_dict(for_user=seller_id)
+    app.logger.info(f"get_payout_information - Merchant: {merchant_dict}...")
+
+    if not merchant_dict['lightning_address']:
+        app.logger.error(f"ERROR: The merchant (seller_id={seller_id}) doesn't have a Lightning address to receive his money...")
+        return None
+
+    if 'contribution_percent' in merchant_dict:
+        app.logger.info(f"get_payout_information - contribution_percent: {merchant_dict['contribution_percent']}")
+        merchant_contribution = merchant_dict['contribution_percent']
+    else:
+        app.logger.info(f"get_payout_information - No contribution info for the user. Taking the contribution from CONTRIBUTION_PERCENT_DEFAULT = {app.config['CONTRIBUTION_PERCENT_DEFAULT']}")
+        merchant_contribution = app.config['CONTRIBUTION_PERCENT_DEFAULT']
+
+    app.logger.info(f"get_payout_information_1 - merchant_contribution={merchant_contribution}%...")
+
+    app.logger.info(f"get_payout_information_2 - merchant_contribution={merchant_contribution}%...")
+
+    return [
+        {
+            'ln_address': merchant_dict['lightning_address'],
+            'percent': 100 - merchant_contribution
+        }
+    ]
 
 def get_token_from_request():
     return request.headers.get('X-Access-Token')

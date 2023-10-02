@@ -86,13 +86,15 @@
                                             return section.name === 'amount'
                                         });
 
-                                        if (amountSections.length > 0) {
+                                        if (amountSections.length) {
                                             paymentOption.amount_sats = amountSections[0].value / 1000;
                                         } else {
                                             console.error('Lightning invoice without amount or with amount = 0 !!!');
                                         }
 
-                                        paymentOption.expiry = decodedInvoice.expiry;
+                                        if (decodedInvoice.expiry) {
+                                            paymentOption.expiry = decodedInvoice.expiry;
+                                        }
                                     }
                                 }
                             }

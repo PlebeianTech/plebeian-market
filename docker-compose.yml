@@ -40,13 +40,23 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
+  settle-lightning-payments:
+    build:
+      context: ./
+      dockerfile: ./ln_payments_processor/Dockerfile
+    image: plebeianmarket-ln-payments
+    depends_on: [db]
+    restart: on-failure
+    stop_grace_period: 30s
+    networks:
+      - db_network
   birdwatcher:
     build:
       context: ./
       dockerfile: ./birdwatcher/Dockerfile
     image: plebeianmarket-birdwatcher
     restart: on-failure
-    stop_grace_period: 1m
+    stop_grace_period: 15s
     networks:
       - db_network
 networks:

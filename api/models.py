@@ -1284,6 +1284,8 @@ class Order(db.Model):
     order_items = db.relationship('OrderItem', backref='order')
 
     seller = db.relationship('User')
+    lightning_invoices = db.relationship('LightningInvoice', back_populates="order",  order_by="desc(LightningInvoice.created_at)")
+    lightning_payment_logs = db.relationship('LightningPaymentLog', back_populates="order", order_by="desc(LightningPaymentLog.created_at)")
 
     @property
     def timeout_minutes(self):
@@ -1502,3 +1504,75 @@ class UserAuction(db.Model):
     auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False, primary_key=True)
 
     following = db.Column(db.Boolean, nullable=False)
+
+class LightningInvoice(db.Model):
+    __tablename__ = 'lightning_invoices'
+
+    id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
+    order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
+    invoice = db.Column(db.String, nullable=False)
+    payment_hash = db.Column(db.String(128), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    order = db.relationship('Order', back_populates="lightning_invoices")
+
+class LightningPaymentLogType(Enum):
+    RECEIVED = 0
+    SENT = 1
+
+class LightningPaymentLog(db.Model):
+    __tablename__ = 'lightning_payment_logs'
+
+    order_id = db.Column(db.Integer, db.ForeignKey(Order.id), nullable=False, primary_key=True)
+    lightning_invoice_id = db.Column(db.Integer, db.ForeignKey(LightningInvoice.id), nullable=False, primary_key=True)
+    type = db.Column(db.Integer, nullable=False)
+    paid_to = db.Column(db.String(200), nullable=False, primary_key=True)
+    amount = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    order = db.relationship('Order', back_populates="lightning_payment_logs")
+
+    @classmethod
+    def check_incoming_payment(cls, order_id, lightning_invoice_id, amount):
+        return cls.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
+
+    @classmethod
+    def check_outgoing_payment(cls, order_id, lightning_invoice_id, paid_to, amount):
+        return cls.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
+
+    @classmethod
+    def add_incoming_payment(cls, order_id, lightning_invoice_id, amount):
+        return cls.add_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
+
+    @classmethod
+    def add_outgoing_payment(cls, order_id, lightning_invoice_id, paid_to, amount):
+        return cls.add_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
+
+    @classmethod
+    def check_payment_log(cls, order_id, lightning_invoice_id, paid_to, amount, type):
+        payment_log = LightningPaymentLog.query.filter_by(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            paid_to = paid_to,
+            amount = amount,
+            type = type
+        ).one_or_none()
+
+        return bool(payment_log)
+
+    @classmethod
+    def add_payment_log(cls, order_id, lightning_invoice_id, paid_to, amount, type):
+        paymentLog = LightningPaymentLog(
+            order_id = order_id,
+            lightning_invoice_id = lightning_invoice_id,
+            paid_to = paid_to,
+            amount = amount,
+            type = type
+        )
+
+        db.session.add(paymentLog)
+        db.session.commit()
+
+        return True
