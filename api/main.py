@@ -395,7 +395,7 @@ def settle_lightning_payments():
                 #db.session.rollback()
 
         else:
-            app.logger.info(f"There aren't active orders with Lightning Network pending. Sleeping for a while.")
+            app.logger.info(f"There aren't active orders with Lightning Network payments pending. Sleeping for a while.")
 
         time.sleep(5)
 
@@ -423,9 +423,7 @@ def get_payout_information(seller_id):
         app.logger.info(f"get_payout_information - No contribution info for the user. Taking the contribution from CONTRIBUTION_PERCENT_DEFAULT = {app.config['CONTRIBUTION_PERCENT_DEFAULT']}")
         merchant_contribution = app.config['CONTRIBUTION_PERCENT_DEFAULT']
 
-    app.logger.info(f"get_payout_information_1 - merchant_contribution={merchant_contribution}%...")
-
-    app.logger.info(f"get_payout_information_2 - merchant_contribution={merchant_contribution}%...")
+    app.logger.info(f"get_payout_information - merchant_contribution={merchant_contribution}%...")
 
     return [
         {
