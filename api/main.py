@@ -221,21 +221,8 @@ def settle_btc_payments():
                         else:
                             app.logger.warning(f"Found unexpected transaction when trying to settle {order.id=}: {order.total=} vs {tx['value']=}.")
                 else:
-                    if order.requested_at < datetime.utcnow() - timedelta(minutes=order.timeout_minutes):
-                        app.logger.warning(f"Order too old. Marking as expired. {order.id=}")
-                        order.expired_at = datetime.utcnow()
-                        for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
-                            # expired orders increment the stock with the quantity that was decremented when the order was created
-                            # (for Listings, not for Auctions - auctions with expired orders are taken care of in finalize-auctions,
-                            # where we detect the expired order and pick the next highest bidder as the new winner!)
-                            if order_item.listing_id:
-                                listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
-                                listing.available_quantity += order_item.quantity
-                                birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
-                        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
-                            json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
-                            continue
-                        db.session.commit()
+                    check_expire_order(order)
+
                 if order.paid_at and order.has_skin_in_the_game_badge():
                     award_badge(order)
 
@@ -269,6 +256,29 @@ def award_badge(order):
             duration_extended = pending_bid.auction.extend()
             birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
             db.session.commit()
+
+def check_expire_order(order):
+    if not order.paid_at and order.requested_at < datetime.utcnow() - timedelta(minutes=order.timeout_minutes):
+        app.logger.warning(f"Order too old. Marking as expired. {order.id=}")
+        order.expired_at = datetime.utcnow()
+
+        birdwatcher = get_birdwatcher()
+
+        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+            json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
+            db.session.rollback()
+            return
+
+        for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
+            # expired orders increment the stock with the quantity that was decremented when the order was created
+            # (for Listings, not for Auctions - auctions with expired orders are taken care of in finalize-auctions,
+            # where we detect the expired order and pick the next highest bidder as the new winner!)
+            if order_item.listing_id:
+                listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
+                listing.available_quantity += order_item.quantity
+                birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
+
+        db.session.commit()
 
 @app.cli.command("settle-lightning-payments")
 @with_appcontext
@@ -308,15 +318,13 @@ def settle_lightning_payments():
                 for order in active_orders_with_lightning.all():
                     app.logger.info(f"  -------- Processing order {order.id}...")
 
-                    lightning_invoices = order.lightning_invoices
-                    # app.logger.info(f"       -- Invoices for Order {order.id}... Invoices = {lightning_invoices}")
+                    incoming_payment_received = False
+                    outgoing_payments_sent = False;
 
-                    for invoice in lightning_invoices:
+                    for invoice in order.lightning_invoices:
                         app.logger.info(f"    ------ Invoice: {invoice.id} - {invoice.invoice}")
 
                         # INCOMING PAYMENT
-                        incoming_payment_received = False
-
                         if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
                             incoming_payment_received = True
                             app.logger.info(f"      ---- Payment for order.id={order.id}, invoice.id={invoice.id} WAS already recorded as received...")
@@ -349,9 +357,9 @@ def settle_lightning_payments():
                                 app.logger.info(f"        -- Payment for order.id={order.id}, invoice.id={invoice.id} not received yet.")
 
                         # OUTGOING PAYMENTS
-                        outgoing_payments_sent = True;
-
                         if incoming_payment_received:
+                            outgoing_payments_sent = True
+
                             payout_information = get_payout_information(order.seller_id)
                             app.logger.info(f"      ---- Payout information - payout_information = {payout_information}")
 
@@ -381,21 +389,22 @@ def settle_lightning_payments():
                                         else:
                                             ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
 
-                        if incoming_payment_received and outgoing_payments_sent:
-                            app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
+                    if incoming_payment_received and outgoing_payments_sent:
+                        app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
 
-                            if order.has_skin_in_the_game_badge():
-                                award_badge(order)
+                        if order.has_skin_in_the_game_badge():
+                            award_badge(order)
 
-                            order.paid_at = datetime.utcnow()
-                            db.session.commit()
+                        order.paid_at = datetime.utcnow()
+                        db.session.commit()
+                    else:
+                        check_expire_order(order)
 
             except:
                 app.logger.exception("Error while getting information about Lightning Network payments.")
-                #db.session.rollback()
 
         else:
-            app.logger.info(f"There aren't active orders with Lightning Network pending. Sleeping for a while.")
+            app.logger.info(f"There aren't active orders with Lightning Network payments pending. Sleeping for a while.")
 
         time.sleep(5)
 
@@ -423,9 +432,7 @@ def get_payout_information(seller_id):
         app.logger.info(f"get_payout_information - No contribution info for the user. Taking the contribution from CONTRIBUTION_PERCENT_DEFAULT = {app.config['CONTRIBUTION_PERCENT_DEFAULT']}")
         merchant_contribution = app.config['CONTRIBUTION_PERCENT_DEFAULT']
 
-    app.logger.info(f"get_payout_information_1 - merchant_contribution={merchant_contribution}%...")
-
-    app.logger.info(f"get_payout_information_2 - merchant_contribution={merchant_contribution}%...")
+    app.logger.info(f"get_payout_information - merchant_contribution={merchant_contribution}%...")
 
     return [
         {
