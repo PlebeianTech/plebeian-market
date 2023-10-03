@@ -110,7 +110,8 @@ LNDHUB_URL = os.environ.get('LNDHUB_URL')
 LNDHUB_USER = os.environ.get('LNDHUB_USER')
 LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD')
 
-if LNDHUB_USER is None or LNDHUB_PASSWORD is None:
+MOCK_LNDHUB = bool(int(os.environ.get('MOCK_LNDHUB', 0)))
+if not MOCK_LNDHUB:
     with open("/secrets/lndhub.json") as f:
         db = json.load(f)
         if LNDHUB_USER is None:
