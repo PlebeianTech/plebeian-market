@@ -267,7 +267,7 @@ def check_expire_order(order):
         if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
             json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
             db.session.rollback()
-            return False
+            return
 
         for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
             # expired orders increment the stock with the quantity that was decremented when the order was created
