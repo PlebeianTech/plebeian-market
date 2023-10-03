@@ -259,10 +259,15 @@ def award_badge(order):
 
 def check_expire_order(order):
     if not order.paid_at and order.requested_at < datetime.utcnow() - timedelta(minutes=order.timeout_minutes):
-        birdwatcher = get_birdwatcher()
-
         app.logger.warning(f"Order too old. Marking as expired. {order.id=}")
         order.expired_at = datetime.utcnow()
+
+        birdwatcher = get_birdwatcher()
+
+        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+            json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
+            db.session.rollback()
+            return False
 
         for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
             # expired orders increment the stock with the quantity that was decremented when the order was created
@@ -272,11 +277,6 @@ def check_expire_order(order):
                 listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
                 listing.available_quantity += order_item.quantity
                 birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
-
-        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
-            json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
-            db.session.rollback()
-            return False
 
         db.session.commit()
 
