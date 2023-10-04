@@ -19,8 +19,6 @@
     let phone = null;
     let email = null;
 
-    let shippingOption = null;
-
     export async function buyNow() {
         console.log('---- buyNow start ----');
 
