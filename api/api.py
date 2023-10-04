@@ -239,9 +239,15 @@ def put_me(user: m.User):
                 user.shipping_worldwide_usd = 0
         user.ensure_merchant_key()
         if user.stall_name:
-            user.stall_nostr_event_id = get_birdwatcher().publish_stall(user)
+            birdwatcher = get_birdwatcher()
+            user.stall_nostr_event_id = birdwatcher.publish_stall(user)
             if not user.stall_nostr_event_id:
+                app.logger.error(f"Error publishing Nostr stall for user id={user.id}")
                 return jsonify({'message': "Error publishing stall to Nostr!"}), 500
+            if not birdwatcher.publish_merchant_metadata(user):
+                # NB: this is a non-critical error - everything works just fine without the metadata,
+                # except the merchant would not have a "friendly name". so we just log the error and ignore!
+                app.logger.error(f"Error publishing merchant metadata for user id={user.id}")
             published_to_nostr = True
         else:
             published_to_nostr = False

@@ -602,6 +602,15 @@ class Birdwatcher:
         except:
             app.logger.exception(f"Error sending DM for {recipient_public_key} via birdwatcher!")
 
+    def publish_merchant_metadata(self, merchant):
+        try:
+            event = Event(kind=0, content=json.dumps({'name': merchant.stall_name, 'about': merchant.stall_description}))
+            merchant.parse_merchant_private_key().sign_event(event)
+            if self.post_event(event):
+                return event.id
+        except:
+            app.logger.exception(f"Error publishing merchant metadata for {merchant.merchant_public_key} via birdwatcher!")
+
     def publish_stall(self, merchant):
         STALL_EVENT_KIND = 31017 if app.config['ENV'] == 'staging' else 30017
         stall_json = merchant.to_nostr_stall()
@@ -698,6 +707,10 @@ class MockingBirdwatcher:
 
     def send_dm(self, sender_private_key, recipient_public_key, body):
         app.logger.info(f"from={sender_private_key.hex()} to={recipient_public_key} {body=}")
+        return hash_create(4)
+
+    def publish_merchant_metadata(self, merchant):
+        app.logger.info(f"publish_merchant_metadata name={merchant.stall_name}")
         return hash_create(4)
 
     def publish_stall(self, merchant):
