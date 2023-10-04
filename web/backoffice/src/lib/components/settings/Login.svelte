@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { ErrorHandler, putVerifyLnurl, getProfile } from "$lib/services/api";
+    import { ErrorHandler, putVerifyLnurl, getProfile, putMigrate } from "$lib/services/api";
     import { user } from "$lib/stores";
-    import { Info, token } from "$sharedLib/stores";
+    import { Info, token, Error } from "$sharedLib/stores";
     import Wallets from "$lib/components/notifications/Wallets.svelte";
     import Loading from "$lib/components/Loading.svelte";
     import QR from "$lib/components/QR.svelte";
@@ -22,6 +22,8 @@
             clearTimeout(checkTimeout);
         }
     }
+
+    let userExists = false;
 
     function checkLnurl() {
         putVerifyLnurl($token, k1,
@@ -45,13 +47,43 @@
                     }
                 });
             },
-            new ErrorHandler(true,
+            new ErrorHandler(false,
                 (response) => {
-                    if (response.status === 400 || response.status === 410) {
-                        k1 = null;
-                        checkTimeout = setTimeout(checkLnurl, 1000);
-                    }
+                    response.json().then(
+                        data => {
+                            if (data.user_exists) {
+                                userExists = true;
+                            } else if (data.message) {
+                                Error.set(data.message);
+
+                                if (response.status === 400 || response.status === 410) {
+                                    k1 = null;
+                                    checkTimeout = setTimeout(checkLnurl, 1000);
+                                }
+                            }
+                        });
                 }));
+    }
+
+    let migrating = false;
+    function migrate() {
+        migrating = true;
+        putMigrate($token,
+            () => {
+                Info.set("User migration complete!");
+                migrating = false;
+                userExists = false;
+                getProfile($token, 'me', u => {
+                    user.set(u);
+                    if ($user) {
+                        hasLnauthKey = $user.hasLnauthKey;
+                        if (hasLnauthKey) {
+                            Info.set("Your Lightning wallet has been verified!");
+                        }
+                    }
+                });
+            },
+            new ErrorHandler(true, (_) => { migrating = false; }));
     }
 
     onMount(async () => {
@@ -89,14 +121,19 @@
             </div>
         </div>
     {:else}
-        {#if qr}
-            <div>
-                <Wallets />
-
-                <QR qr={qr} protocol="lightning" address={lnurl} />
-            </div>
+        {#if userExists}
+            <p class="text-3xl my-4">An old-style user with this Lightning log in already exists!</p>
+            <button class="btn btn-secondary" class:btn-disabled={migrating} on:click={migrate}>Import user</button>
         {:else}
-            <Loading />
+            {#if qr}
+                <div>
+                    <Wallets />
+
+                    <QR qr={qr} protocol="lightning" address={lnurl} />
+                </div>
+            {:else}
+                <Loading />
+            {/if}
         {/if}
     {/if}
 

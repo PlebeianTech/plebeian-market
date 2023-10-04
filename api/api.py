@@ -14,7 +14,6 @@ import pyqrcode
 import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql.functions import func
 import time
 
 from extensions import db
@@ -89,7 +88,6 @@ def auth_lnurl():
 
     if not user:
         return jsonify({'message': "User not found. Please create an account first."}), 400
-
     db.session.delete(lnauth)
     db.session.commit()
 
@@ -319,10 +317,45 @@ def verify_lnurl_put(user):
             # the new key was verified, but we didn't manage to set it as the "main" key,
             # which means it was a duplicate!
             # ... see the logic in verify_lnurl_get (GET /api/users/me/verify/lnurl) to understand why!
-            return jsonify({'message': "This wallet is already associated with another Plebeian Market user!"}), 400
+            return jsonify({'message': "This wallet is already associated with another Plebeian Market user!", 'user_exists': True}), 400
     else:
         # waiting for the user to scan the QR code...
         return jsonify({'success': False})
+
+@api_blueprint.route("/api/users/me/migrate", methods=['PUT'])
+@user_required
+def migrate_user(user):
+    old_user = m.User.query.filter_by(lnauth_key=user.new_lnauth_key).first()
+    for old_item in old_user.items:
+        item = m.Item(seller=user,
+                      title=old_item.title, description=old_item.description, category=old_item.category,
+                      extra_shipping_domestic_usd=old_item.extra_shipping_domestic_usd, extra_shipping_worldwide_usd=old_item.extra_shipping_worldwide_usd,
+                      is_hidden=old_item.is_hidden)
+        db.session.add(item)
+        db.session.commit()
+        for old_media in old_item.media:
+            media = m.Media(item_id=item.id, index=old_media.index, content_hash=old_media.content_hash, url=old_media.url)
+            db.session.add(media)
+        for old_listing in old_item.listings:
+            listing = m.Listing(item_id=item.id,
+                                start_date=old_listing.start_date,
+                                price_usd=old_listing.price_usd, available_quantity=old_listing.available_quantity)
+            listing.generate_key()
+            db.session.add(listing)
+    db.session.commit()
+
+    old_user.lnauth_key = None
+    old_user.migrated_at = datetime.utcnow()
+    old_user.migrated_to_user_id = user.id
+    db.session.commit()
+
+    user.lnauth_key = user.new_lnauth_key
+
+    db.session.commit()
+
+    # TODO: award badge
+
+    return jsonify({})
 
 # request made by the Lightning wallet, includes a key and a signature
 @api_blueprint.route("/api/users/me/verify/lnurl", methods=['GET'])

@@ -118,6 +118,15 @@ class User(WalletMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+    # These fields get set on Plebeian Market v1 users (users with lnauth_key and no nostr_public_key)
+    # after they get migrated to a v2 user (a user with nostr_public_key).
+    # At that moment, the lnauth_key of the old user becomes NULL (because it has a UNIQUE constraint),
+    # and the new user gets the lnauth_key.
+    # But we keep this info around, in case we need to redo the migration
+    # or something goes wrong and we need to find the v1 user corresponding to a v2 user...
+    migrated_at = db.Column(db.DateTime, nullable=True)
+    migrated_to_user_id = db.Column(db.Integer, nullable=True)
+
     lnauth_key = db.Column(db.String(128), unique=True, nullable=True, index=True)
 
     # fields used when changing the lnauth_key of an existing user

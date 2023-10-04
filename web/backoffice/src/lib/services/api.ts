@@ -275,6 +275,20 @@ export function putVerify(tokenValue, accountProvider: ExternalAccountProvider, 
         });
 }
 
+export function putMigrate(tokenValue, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/users/me/migrate", 'PUT', tokenValue,
+        JSON.stringify({}), "application/json",
+        response => {
+            if (response.status === 200) {
+                response.json().then(_ => {
+                    successCB();
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
 export function putVerifyLnurl(tokenValue, k1, initialResponseCB: (response: {k1: string, lnurl: string, qr: string}) => void, waitResponseCB: () => void, successResponseCB: () => void, errorHandler = new ErrorHandler()) {
     let payload = {};
     if (k1) {

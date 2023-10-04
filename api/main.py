@@ -22,6 +22,7 @@ import requests
 from requests.exceptions import JSONDecodeError
 import signal
 from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
 import sys
 import time
 import uuid
@@ -803,6 +804,18 @@ def get_mail():
     else:
         return Mail()
 
+@app.cli.command("create-lnauth-user")
+@click.argument("lnkey", type=click.STRING)
+@with_appcontext
+def create_lnauth_user(lnkey):
+    """
+    Create an "old style" user - which has lnauth and no nostr.
+    This is used only for testing the migration process - to be deleted afterwards!
+    """
+    user = m.User(lnauth_key=lnkey)
+    db.session.add(user)
+    db.session.commit()
+
 @app.cli.command("lnauth")
 @click.argument("lnkey", type=click.STRING)
 @with_appcontext
@@ -826,8 +839,15 @@ def verify_lnauth_key(lnkey):
     """
     click.echo(f"Setting latest key: {lnkey}")
     u = m.User.query.filter(m.User.new_lnauth_key_k1_generated_at != None).order_by(desc(m.User.new_lnauth_key_k1_generated_at)).first()
-    u.lnauth_key = u.new_lnauth_key = lnkey
+
+    u.new_lnauth_key = lnkey
     db.session.commit()
+
+    u.lnauth_key = lnkey
+    try:
+        db.session.commit()
+    except IntegrityError:
+        click.echo("DUPE!")
 
 @app.cli.command("award-badge-tester")
 @click.argument("pubkey", type=click.STRING)
