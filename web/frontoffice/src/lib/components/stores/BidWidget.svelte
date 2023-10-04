@@ -186,7 +186,7 @@
         {#if started}
             <div class="pb-5">
                 <p class="mb-2">Auction ends in</p>
-                <Countdown totalSeconds={endsAt - now} />
+                <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
                 {#if totalTimeExtension > 0}
                     <div class="badge badge-info badge-lg mt-4">Time has been extended</div>
                     <div class="dropdown dropdown-hover">

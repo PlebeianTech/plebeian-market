@@ -12,6 +12,8 @@
 
     export let style: CountdownStyle = CountdownStyle.Large;
 
+    export let ended: boolean;
+
     let days, hours, minutes, seconds;
 
     $: lastMinute = (days === 0) && (hours === 0) && (minutes === 0);
@@ -39,6 +41,9 @@
         } else {
             totalSeconds = 0;
             days = hours = minutes = seconds = 0;
+
+            console.log('------------ Auction ended, setting ENDED=TRUE ------------');
+            ended = true;
         }
     }
 
