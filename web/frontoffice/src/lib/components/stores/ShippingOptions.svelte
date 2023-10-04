@@ -1,5 +1,5 @@
 <script>
-    import {stalls} from "$lib/stores.ts";
+    import {stalls} from "$lib/stores";
 
     export let stallId;
     export let i;
@@ -15,8 +15,10 @@
             {/if}
         </p>
 
-        <p class="mx-2 md:mx-3 mt-1">
-            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].shipping}
+        {#if !$stalls.stalls[stallId] || !$stalls.stalls[stallId].shipping}
+            <p class="mx-2 md:mx-3 mt-1">Loading shipping options...</p>
+        {:else if !($stalls.stalls[stallId].shipping.length === 1 && $stalls.stalls[stallId].shipping[0].cost === 0)}
+            <p class="mx-2 md:mx-3 mt-1">
                 {#if $stalls.stalls[stallId].shipping.length > 1 && $stalls.stalls[stallId].shippingOption === '0'}
                     <div class="w-10 h-10 p-2 -mt-4 -mb-1 animate-bounce text-red-600 bg-white dark:bg-slate-800 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex items-center justify-center mx-auto">
                         <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,9 +49,7 @@
                         </option>
                     {/each}
                 </select>
-            {:else}
-                Loading shipping options...
-            {/if}
-        </p>
+            </p>
+        {/if}
     </td>
 </tr>
