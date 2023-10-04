@@ -11,6 +11,7 @@ import json
 import jwt
 import lnurl
 import pyqrcode
+import requests
 import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
@@ -353,7 +354,8 @@ def migrate_user(user):
 
     db.session.commit()
 
-    # TODO: award badge
+    if not get_birdwatcher().publish_badge_award(app.config['BADGE_DEFINITION_OG']['badge_id'], user.nostr_public_key):
+        app.logger.warning(f"Failed to publish badge award for {user.nostr_public_key}")
 
     return jsonify({})
 

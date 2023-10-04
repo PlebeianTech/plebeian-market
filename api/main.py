@@ -225,7 +225,7 @@ def settle_btc_payments():
                     check_expire_order(order)
 
                 if order.paid_at and order.has_skin_in_the_game_badge():
-                    award_badge(order)
+                    award_badge_skin_in_the_game(order)
 
         except:
             app.logger.exception("Error while settling BTC payments. Will roll back and retry.")
@@ -242,7 +242,7 @@ def get_lndhub_client():
     else:
         return MockLndHubClient()
 
-def award_badge(order):
+def award_badge_skin_in_the_game(order):
     birdwatcher = get_birdwatcher()
     if not birdwatcher.publish_badge_award(app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id'], order.buyer_public_key):
         app.logger.error("Failed to publish Skin in the Game badge award!")
@@ -394,7 +394,7 @@ def settle_lightning_payments():
                         app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
 
                         if order.has_skin_in_the_game_badge():
-                            award_badge(order)
+                            award_badge_skin_in_the_game(order)
 
                         order.paid_at = datetime.utcnow()
                         db.session.commit()
@@ -892,7 +892,8 @@ def configure_site_cmd():
     configure_site()
 
 def configure_site():
-    badge_def = app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']
+    badge_def_skin_in_the_game = app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']
+    badge_def_og = app.config['BADGE_DEFINITION_OG']
     site_admin_config = get_site_admin_config()
     birdwatcher = get_birdwatcher()
     site_admin = m.User.query.filter_by(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex()).first()
@@ -922,26 +923,26 @@ def configure_site():
     if app.config['ENV'] == 'test':
         image_hash = hash_create(4)
     else:
-        image_response = requests.get(badge_def['image_url'])
+        image_response = requests.get(badge_def_skin_in_the_game['image_url'])
         if image_response.status_code != 200:
-            app.logger.error(f"Cannot fetch image at {badge_def['image_url']}!")
+            app.logger.error(f"Cannot fetch image at {badge_def_skin_in_the_game['image_url']}!")
             return
         image_data = image_response.content
         sha = hashlib.sha256()
         sha.update(image_data)
         image_hash = sha.hexdigest()
 
-    badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
+    badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def_skin_in_the_game['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
     if badge_listing is None:
-        badge_item = m.Item(seller=site_admin, title=badge_def['name'], description=badge_def['description'])
+        badge_item = m.Item(seller=site_admin, title=badge_def_skin_in_the_game['name'], description=badge_def_skin_in_the_game['description'])
         db.session.add(badge_item)
         db.session.commit()
 
-        badge_media = m.Media(item_id=badge_item.id, index=0, url=badge_def['image_url'], content_hash=image_hash)
+        badge_media = m.Media(item_id=badge_item.id, index=0, url=badge_def_skin_in_the_game['image_url'], content_hash=image_hash)
         db.session.add(badge_media)
         db.session.commit()
 
-        badge_listing = m.Listing(item=badge_item, key=badge_def['badge_id'], available_quantity=21000000, price_usd=badge_def['price_usd'], start_date=datetime.utcnow())
+        badge_listing = m.Listing(item=badge_item, key=badge_def_skin_in_the_game['badge_id'], available_quantity=21000000, price_usd=badge_def_skin_in_the_game['price_usd'], start_date=datetime.utcnow())
         db.session.add(badge_listing)
         db.session.commit() # this generates the UUID!
     else:
@@ -958,18 +959,19 @@ def configure_site():
 
     db.session.commit()
 
-    badge = m.Badge.query.filter_by(badge_id=badge_def['badge_id']).first()
-    if badge is None:
-        badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
-        badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
-        if badge.nostr_event_id is None:
-            app.logger.error("Failed to publish badge definition!")
-            return
-        db.session.add(badge)
-        db.session.commit()
-        app.logger.info(f"Published badge definition to Nostr! event_id={badge.nostr_event_id}")
-    else:
-        app.logger.info("Found badge!")
+    for badge_def in [badge_def_skin_in_the_game, badge_def_og]:
+        badge = m.Badge.query.filter_by(badge_id=badge_def['badge_id']).first()
+        if badge is None:
+            badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
+            badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
+            if badge.nostr_event_id is None:
+                app.logger.error("Failed to publish badge definition!")
+                return
+            db.session.add(badge)
+            db.session.commit()
+            app.logger.info(f"Published badge definition to Nostr: {badge_def['name']}! event_id={badge.nostr_event_id}")
+        else:
+            app.logger.info(f"Found badge: {badge_def['name']}!")
 
 if __name__ == '__main__': # dev / test
     import lnurl

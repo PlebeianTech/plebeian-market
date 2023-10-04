@@ -98,6 +98,13 @@ BADGE_DEFINITION_TESTER = {
     'image_url': f"{WWW_BASE_URL}/badges/tester.png",
 }
 
+BADGE_DEFINITION_OG = {
+    'badge_id': "pm-og",
+    'name': f"{SITE_NAME} OG",
+    'description': f"Early {SITE_NAME} user",
+    'image_url': f"{WWW_BASE_URL}/badges/og.png",
+}
+
 BADGE_DEFINITION_SKIN_IN_THE_GAME = {
     'badge_id': "pm-sitg",
     'name': f"{SITE_NAME} Skin in the Game",
