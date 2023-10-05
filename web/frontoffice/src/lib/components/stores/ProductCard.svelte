@@ -23,7 +23,7 @@
 
 <div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-16 md:4">
     <figure>
-        <a href=null on:click|preventDefault={openProduct}>
+        <a class="cursor-pointer" href={null} on:click|preventDefault={openProduct}>
             <Image
                     loading="lazy"
                     placeholder="{productImageFallback}"
@@ -38,7 +38,7 @@
         {/if}
 
         <h2 class="card-title">
-            {#if product.name}<a class="hover:underline" href=null on:click|preventDefault={openProduct}>{product.name}</a>{/if}
+            {#if product.name}<a class="cursor-pointer hover:underline" href={null} on:click|preventDefault={openProduct}>{product.name}</a>{/if}
         </h2>
 
         {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}

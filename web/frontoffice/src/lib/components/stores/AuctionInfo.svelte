@@ -75,7 +75,7 @@
             {#if started}
                 <div class="pb-5">
                     <p class="mb-2">Auction ends in</p>
-                    <Countdown totalSeconds={endsAt - now} />
+                    <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
                 </div>
 
                 <div class="flex flex-wrap min-h-[6rem] min-w-[18rem] max-w-4xl gap-2 p-6 items-center justify-center overflow-x-hidden">

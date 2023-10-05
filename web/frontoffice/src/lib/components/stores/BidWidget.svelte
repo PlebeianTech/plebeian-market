@@ -119,8 +119,7 @@
         if (!userProfileInfoMap.has(pubKey)) {
             userProfileInfoMap.set(pubKey, null);
 
-            subscribeMetadata(
-                [pubKey],
+            subscribeMetadata([pubKey],
                 async (pk, userProfileInfo) => {
                     // nip-05 verification
                     if (userProfileInfo.nip05) {
@@ -141,7 +140,8 @@
 
                     userProfileInfoMap.set(pk, userProfileInfo);
                     userProfileInfoMap = userProfileInfoMap;    // For reactivity
-                }
+                },
+                () => {}
             );
         }
     }
@@ -179,14 +179,11 @@
         <h3 class="text-2xl text-center my-2">
             Auction ended at {formatTimestamp(endsAt, true)}
         </h3>
-
-        <BidList {sortedBids} {userProfileInfoMap} />
-
     {:else} <!-- not ended -->
         {#if started}
             <div class="pb-5">
                 <p class="mb-2">Auction ends in</p>
-                <Countdown totalSeconds={endsAt - now} />
+                <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
                 {#if totalTimeExtension > 0}
                     <div class="badge badge-info badge-lg mt-4">Time has been extended</div>
                     <div class="dropdown dropdown-hover">
@@ -219,12 +216,13 @@
                     </button>
                 </div>
             </div>
-
-            <BidList {sortedBids} {userProfileInfoMap} />
-
         {:else}
             Auction starts at {formatTimestamp(product.start_date, true)} and will run for {product.duration / 60} hours until {formatTimestamp(product.start_date + product.duration, true)}.
             <div class="divider"></div>
         {/if}
+    {/if}
+
+    {#if !(!started && !ended)}
+        <BidList {sortedBids} {userProfileInfoMap} />
     {/if}
 {/if}
