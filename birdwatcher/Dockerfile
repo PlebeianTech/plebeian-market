@@ -1,9 +1,9 @@
-FROM python:3.11-bullseye
+FROM python:3.11-slim-bullseye
 
 COPY ./birdwatcher/requirements.txt /
 
 RUN apt-get update \
- && apt-get install -y wget \
+ && apt-get install -y wget gcc \
  && pip3 install -r /requirements.txt \
  && echo "deb http://deb.debian.org/debian/ unstable main contrib non-free" >> /etc/apt/sources.list.d/debian.list \
  && apt-get update \
