@@ -120,7 +120,7 @@ class LndHubClient:
             return False
 
     def get_ln_invoice_from_ln_address(self, ln_address, amount, comment):
-        alby_lnaddress_proxy_url = 'https://lnaddressproxy.getalby.com/generate-invoice?'
+        alby_lnaddress_proxy_url = 'https://api.getalby.com/lnurl/generate-invoice?'
 
         if not ln_address:
             app.logger.error(f"get_ln_invoice_from_ln_address - No ln_address provided")
