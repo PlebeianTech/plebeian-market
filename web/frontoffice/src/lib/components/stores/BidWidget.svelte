@@ -1,6 +1,6 @@
 <script lang="ts">
     import {filterTags, formatTimestamp, queryNip05} from "$sharedLib/nostr/utils";
-    import Countdown from "$lib/components/Countdown.svelte";
+    import Countdown from "$sharedLib/components/Countdown.svelte";
     import BidList from "$lib/components/stores/BidList.svelte";
     import {
         EVENT_KIND_AUCTION_BID,

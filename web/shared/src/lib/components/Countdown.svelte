@@ -8,11 +8,14 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
 
-    export let totalSeconds: number | null = null;
-
     export let style: CountdownStyle = CountdownStyle.Large;
 
     export let ended: boolean;
+    export let totalSeconds: number | null = null;
+
+    let secondsRemanining: number | null = null;
+
+    let timeWhenTotalSecondsWasReceived = Date.now();
 
     let days, hours, minutes, seconds;
 
@@ -27,22 +30,18 @@
             return;
         }
 
-        if (totalSeconds > 0) {
-            totalSeconds--;
+        secondsRemanining = totalSeconds - ((Date.now() - timeWhenTotalSecondsWasReceived) / 1000);
 
-            var delta = totalSeconds;
-            days = Math.floor(delta / 86400);
-            delta -= days * 86400;
-            hours = Math.floor(delta / 3600) % 24;
-            delta -= hours * 3600;
-            minutes = Math.floor(delta / 60) % 60;
-            delta -= minutes * 60;
-            seconds = delta % 60;
+        if (secondsRemanining > 0) {
+            days = Math.floor(secondsRemanining / 86400);
+            secondsRemanining -= days * 86400;
+            hours = Math.floor(secondsRemanining / 3600) % 24;
+            secondsRemanining -= hours * 3600;
+            minutes = Math.floor(secondsRemanining / 60) % 60;
+            secondsRemanining -= minutes * 60;
+            seconds = secondsRemanining % 60;
         } else {
-            totalSeconds = 0;
             days = hours = minutes = seconds = 0;
-
-            console.log('------------ Auction ended, setting ENDED=TRUE ------------');
             ended = true;
         }
     }
@@ -50,6 +49,7 @@
     let interval: ReturnType<typeof setInterval> | undefined;
 
     onMount(async () => {
+        secondsRemanining = totalSeconds;
         refresh();
         interval = setInterval(refresh, 1000);
     });

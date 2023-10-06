@@ -8,7 +8,7 @@
     import { Listing } from "$lib/types/listing";
     import type { Item } from "$lib/types/item";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
-    import Countdown, { CountdownStyle } from "$lib/components/Countdown.svelte";
+    import Countdown, { CountdownStyle } from "$sharedLib/components/Countdown.svelte";
     import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
     import Pencil from "$sharedLib/components/icons/Pencil.svelte";
     import Trash from "$sharedLib/components/icons/Trash2.svelte";
