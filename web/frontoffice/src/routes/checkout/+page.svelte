@@ -7,7 +7,7 @@
     import {sendPrivateMessage} from "$sharedLib/services/nostr";
     import {afterNavigate, goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready, cleanShoppingCart} from "$sharedLib/utils";
+    import {waitAndShowLoginIfNotLoggedAlready, cleanShoppingCart} from "$sharedLib/utils";
     import {onDestroy} from "svelte";
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";
@@ -49,6 +49,13 @@
                 });
             }
 
+            // If there is no shippingOption chosen by the user and there is only
+            // one shipping option, it's becaues we didn't even show the list to
+            // the user, so let's auto-choose the only shipping option available
+            if (!$stalls.stalls[stallId].shippingOption && $stalls.stalls[stallId].shipping.length === 1) {
+                $stalls.stalls[stallId].shippingOption = $stalls.stalls[stallId].shipping[0].id;
+            }
+
             const order = {
                 id: uuidv4(),
                 stall_id: stallId,
@@ -86,7 +93,7 @@
 
                         cleanShoppingCart();
 
-                        await new Promise(resolve => setTimeout(resolve, 3500));
+                        await new Promise(resolve => setTimeout(resolve, 2500));
 
                         await goto('/orders');
                     }
