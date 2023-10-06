@@ -3,7 +3,7 @@
     import {stalls} from "$lib/stores";
     import {NostrPublicKey, privateMessages, Error, Info} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
-    import {goto} from "$app/navigation";
+    import {afterNavigate, goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import {onDestroy, onMount} from "svelte";
@@ -189,14 +189,16 @@
             address = contactDetails.address ?? '';
             phone = contactDetails.phone ?? '';
             email = contactDetails.email ?? '';
-        } else {
-            requestLoginModal();
         }
     });
     onDestroy(nostrPublicKeyUnsubscribe);
 
     onMount(async () => {
         refreshStalls();
+    });
+
+    afterNavigate(async () => {
+        await waitAndShowLoginIfNotLoggedAlready();
     });
 </script>
 

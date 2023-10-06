@@ -5,7 +5,7 @@
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import { v4 as uuidv4 } from "uuid";
     import {sendPrivateMessage} from "$sharedLib/services/nostr";
-    import {goto} from "$app/navigation";
+    import {afterNavigate, goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready, cleanShoppingCart} from "$sharedLib/utils";
     import {onDestroy} from "svelte";
@@ -112,11 +112,13 @@
             address = contactDetails.address ?? '';
             phone = contactDetails.phone ?? '';
             email = contactDetails.email ?? '';
-        } else {
-            requestLoginModal();
         }
     });
     onDestroy(nostrPublicKeyUnsubscribe);
+
+    afterNavigate(async () => {
+        await waitAndShowLoginIfNotLoggedAlready();
+    });
 </script>
 
 <svelte:head>

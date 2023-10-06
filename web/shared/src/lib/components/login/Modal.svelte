@@ -34,6 +34,10 @@
         $loginModalState.openRequested = false
     }
 
+    $: if (open && $NostrPublicKey && $NostrLoginMethod) {
+        hide();
+    }
+
     export function show(loginSuccessCB: () => void = () => {}, loginBackofficeSuccessCB: () => void = () => {}) {
         open = true;
 
@@ -49,10 +53,10 @@
     export let onLoginBackoffice: () => void = () => {};
 
     onMount(async () => {
-        $NostrLoginMethod = localStorage.getItem("nostrLoginMethod");
-        $NostrPrivateKey =  localStorage.getItem("nostrPrivateKey");
         $NostrPublicKey =   localStorage.getItem("nostrPublicKey");
+        $NostrPrivateKey =  localStorage.getItem("nostrPrivateKey");
         $token =            localStorage.getItem("token");
+        $NostrLoginMethod = localStorage.getItem("nostrLoginMethod");
     });
 </script>
 
