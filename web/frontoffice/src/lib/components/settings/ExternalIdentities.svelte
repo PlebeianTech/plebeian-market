@@ -255,7 +255,6 @@
             <ShowExternalIdentities
                     {externalIdentities}
                     {externalIdentitiesVerification}
-                    showDeleteButton={true}
                     nostrPublicKey={$NostrPublicKey}
                     bind:verifyIdentities={verifyIdentities}
                     {deleteIdentity}
