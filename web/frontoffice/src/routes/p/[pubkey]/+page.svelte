@@ -289,7 +289,7 @@
 
 <StallsBrowser merchantPubkey={data.pubkey} />
 
-<BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {profileBadgesLastEvent} {onImgError}  />
+<BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {profileBadgesLastEvent} {onImgError} myBadge={data.pubkey === $NostrPublicKey}  />
 
 <!--
 <ResumeView pubkey={data.pubkey} />

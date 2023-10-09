@@ -6,6 +6,7 @@
     export let onImgError = () => {};
     export let profileBadgesLastEvent;
     export let badgeInfo;
+    export let myBadge = false;
 
     function acceptBadge() {
         if (badgeInfo.accepted) {
@@ -53,7 +54,7 @@
                     <p class="text-lg md:text-xl align-top">{badgeInfo.description}</p>
                 </div>
             </div>
-            {#if !badgeInfo.accepted}
+            {#if myBadge && !badgeInfo.accepted}
                 <div class="mt-8 grid flex-grow place-items-center">
                     <p>You have been awarded this badge. If you consider it valuable, <b>you can accept it to have it displayed on your profile</b>.</p>
                     <button class="btn btn-primary" on:click={acceptBadge}>Accept badge</button>
