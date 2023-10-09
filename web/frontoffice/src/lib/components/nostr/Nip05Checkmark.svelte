@@ -12,7 +12,7 @@
     </label>
     <ul tabindex="0" class="dropdown-content translate-x-20">
         <li>
-            <div class="badge badge-accent whitespace-nowrap">{address}</div>
+            <div class="badge badge-accent whitespace-nowrap pt-0">{address}</div>
         </li>
     </ul>
 </div>

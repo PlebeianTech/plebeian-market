@@ -1,10 +1,10 @@
 <script lang="ts">
     import EmailIcon from "$sharedLib/components/icons/Email.svelte";
-    import {NostrPublicKey, privateMessages, token} from "$sharedLib/stores.js";
-    import {getPrivateMessages, subscribeMetadata} from "$sharedLib/services/nostr.js";
+    import {NostrPublicKey, privateMessages, token} from "$sharedLib/stores";
+    import {getPrivateMessages, subscribeMetadata} from "$sharedLib/services/nostr";
     import {decode} from "light-bolt11-decoder";
     import { goto } from "$app/navigation";
-    import {getMerchantKey} from "$sharedLib/nostr/utils";
+    import {getMerchantKey, queryNip05} from "$sharedLib/nostr/utils";
     import {getPublicKey} from "nostr-tools";
 
     let unreadConversations = 0;
@@ -172,12 +172,37 @@
 
     export async function getMetadataForHumanPubkeys() {
         subscribeMetadata(Object.keys($privateMessages.human),
-            (pubKey, m) => {
-                if (m.name !== undefined) {
-                    $privateMessages.human[pubKey].name = m.name;
-                }
-                if (m.picture !== undefined) {
-                    $privateMessages.human[pubKey].picture = m.picture;
+            async (pubKey: string, userProfileInfo) => {
+                if (!$privateMessages.human[pubKey].created_at || userProfileInfo.created_at > $privateMessages.human[pubKey].created_at) {
+                    $privateMessages.human[pubKey].created_at = userProfileInfo.created_at;
+
+                    if (userProfileInfo.name !== undefined) {
+                        $privateMessages.human[pubKey].name = userProfileInfo.name;
+                    } else {
+                        $privateMessages.human[pubKey].name = false;
+                    }
+
+                    if (userProfileInfo.picture !== undefined) {
+                        $privateMessages.human[pubKey].picture = userProfileInfo.picture;
+                    } else {
+                        $privateMessages.human[pubKey].picture = false;
+                    }
+
+                    if (userProfileInfo.nip05) {
+                        let nip05verificationResult = await queryNip05(userProfileInfo.nip05);
+
+                        if (nip05verificationResult !== null) {
+                            if (pubKey === nip05verificationResult) {
+                                let nip05Address = userProfileInfo.nip05;
+
+                                if (nip05Address.startsWith('_@')) {
+                                    $privateMessages.human[pubKey].nip05VerifiedAddress = nip05Address.substring(2);
+                                } else {
+                                    $privateMessages.human[pubKey].nip05VerifiedAddress = nip05Address;
+                                }
+                            }
+                        }
+                    }
                 }
             });
     }

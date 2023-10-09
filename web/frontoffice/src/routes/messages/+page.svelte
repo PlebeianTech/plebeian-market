@@ -11,6 +11,7 @@
     import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
+    import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
 
     let selectedConversationPubkey = null;
     let sortedConversations;
@@ -190,9 +191,15 @@
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
-                            <div class="text-lg truncate">
-                                {conversation.name ?? nip19.npubEncode(publicKey)}
+                            <div class="flex ml-1">
+                                <span class="text-lg truncate">{conversation.name ?? nip19.npubEncode(publicKey)}</span>
+                                {#if conversation.nip05VerifiedAddress}
+                                    <span class="ml-2 mt-2">
+                                        <Nip05Checkmark address={conversation.nip05VerifiedAddress} />
+                                    </span>
+                                {/if}
                             </div>
+
                             <div>
                                 {#if conversation && conversation.merchantPrivateKey}
                                     <span class="indicator-item badge badge-sm badge-info">
