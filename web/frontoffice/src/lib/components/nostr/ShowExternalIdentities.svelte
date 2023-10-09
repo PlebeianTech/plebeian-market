@@ -1,21 +1,18 @@
 <script lang="ts">
     import {askAPIForVerification, encodeNpub, getExternalIdentityUrl} from "$sharedLib/nostr/utils";
-    import {NostrPublicKey} from "$sharedLib/stores";
-
+    import {onMount} from "svelte";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
     import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
     import X from "$sharedLib/components/icons/X.svelte";
     import Telegram from "$sharedLib/components/icons/Telegram.svelte";
     import Github from "$sharedLib/components/icons/Github.svelte";
     import Twitter from "$sharedLib/components/icons/Twitter.svelte";
-    import {onMount} from "svelte";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
 
     export let externalIdentities;
     export let externalIdentitiesVerification;
-    export let showDeleteButton = false;
     export let nostrPublicKey;
-    export let deleteIdentity;
+    export let deleteIdentity = false;
 
     export const verifyIdentities = callAPIVerifyIdentities;
 
@@ -76,7 +73,7 @@
 
 {#each externalIdentities as identity}
     <div class="flex mt-5">
-        {#if showDeleteButton}
+        {#if deleteIdentity}
             <div class="w-5 h-5 mr-4 tooltip tooltip-error" data-tip="Delete this identity from your Nostr Profile" on:click={() => {deleteIdentity(identity)}}><X /></div>
         {/if}
 
@@ -106,6 +103,6 @@
 
 {#if !backend_present || !verificationCanBeDone}
     <p class="text-lg leading-4 mt-8">
-        You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub($NostrPublicKey)}</span><span class="flex md:hidden">{splitString(encodeNpub($NostrPublicKey), 32) }</span>
+        You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub(nostrPublicKey)}</span><span class="flex md:hidden">{splitString(encodeNpub(nostrPublicKey), 32) }</span>
     </p>
 {/if}

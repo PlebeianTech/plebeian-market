@@ -167,14 +167,14 @@
     </div>
 {/if}
 
-{#if externalIdentities.length}
+{#if profile && externalIdentities.length}
     <div class="mt-1 pb-4 md:pb-6">
         <p class="mb-1 font-bold text-xl">External Identities</p>
 
         <ShowExternalIdentities
                 {externalIdentities}
                 {externalIdentitiesVerification}
-                nostrPublicKey={$NostrPublicKey}
+                nostrPublicKey={profile.pubkey}
                 bind:verifyIdentities={verifyIdentities}
         />
     </div>
