@@ -194,8 +194,8 @@
                             <div class="flex ml-1">
                                 <span class="text-lg truncate">{conversation.name ?? nip19.npubEncode(publicKey)}</span>
                                 {#if conversation.nip05VerifiedAddress}
-                                    <span class="ml-2 mt-2">
-                                        <Nip05Checkmark address={conversation.nip05VerifiedAddress} />
+                                    <span class="ml-2 mt-1">
+                                        <Nip05Checkmark address={conversation.nip05VerifiedAddress} verificationMarkSize="5" />
                                     </span>
                                 {/if}
                             </div>
@@ -285,6 +285,9 @@
                             </div>
                             <div class="text-lg truncate">
                                 {conversation.name ?? nip19.npubEncode(publicKey)}
+                                {#if conversation.nip05VerifiedAddress}
+                                    <Nip05Checkmark address={conversation.nip05VerifiedAddress} verificationMarkSize="5" />
+                                {/if}
                             </div>
                         </div>
                     </li>
@@ -319,8 +322,13 @@
                                 </div>
                             </div>
 
-                            <div class="flex flex-grow w-0 mt-2 text-xl truncate">
+                            <div class="flex flex-grow w-0 mt-2 text-xl overflow-x-clip overflow-y-visible">
                                 {conversation.name ?? nip19.npubEncode(selectedConversationPubkey)}
+                                {#if conversation.nip05VerifiedAddress}
+                                    <span class="ml-2 mt-0">
+                                        <Nip05Checkmark address={conversation.nip05VerifiedAddress} verificationMarkSize="6" />
+                                    </span>
+                                {/if}
                             </div>
                         {/if}
                     {/each}
