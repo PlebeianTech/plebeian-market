@@ -229,7 +229,9 @@
                 You don't have Plebeian Market badges yet. Learn how to get one <a href="/faq?question=howToGetPMBadge" target="_blank" class="lg:tooltip underline" data-tip="Click to read: How do I get a Plebeian Market badge?">here</a>.
             {/if}
         {:else}
-            <span>This user doesn't have any Plebeian Market badge yet.</span>
+            {#if !pm_badges}
+                <span>This user doesn't have any Plebeian Market badge yet.</span>
+            {/if}
         {/if}
     </div>
 
