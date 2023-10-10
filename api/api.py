@@ -11,7 +11,6 @@ import json
 import jwt
 import lnurl
 import pyqrcode
-import requests
 import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
@@ -1078,8 +1077,13 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         if not has_skin_in_the_game:
             site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
             site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
+            if not site_admin:
+                return jsonify({'message': "Site not configured!"}), 500
+            badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
+            if not badge_listing:
+                return jsonify({'message': "Site not configured!"}), 500
             message = f"You need Skin in the Game in order to place bids."
-            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, donation_stall_ids=site_admin.stall_id)
+            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=site_admin.stall_id, badge_product_id=badge_listing.uuid)
             is_settled = False
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)

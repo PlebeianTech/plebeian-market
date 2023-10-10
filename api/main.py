@@ -1,4 +1,3 @@
-import base64
 import boto3
 from botocore.config import Config
 import click
@@ -650,7 +649,7 @@ class Birdwatcher:
         except:
             app.logger.exception(f"Error deleting product for merchant {entity.item.seller.merchant_public_key} via birdwatcher!")
 
-    def publish_bid_status(self, auction, bid_event_id, status, message=None, duration_extended=0, donation_stall_ids=None, extra_tags=None):
+    def publish_bid_status(self, auction, bid_event_id, status, message=None, duration_extended=0, badge_stall_id=None, badge_product_id=None, extra_tags=None):
         BID_STATUS_EVENT_KIND = 2022 if app.config['ENV'] == 'staging' else 1022
         try:
             if extra_tags is None:
@@ -660,8 +659,10 @@ class Birdwatcher:
                 content_json['message'] = message
             if duration_extended != 0:
                 content_json['duration_extended'] = duration_extended
-            if donation_stall_ids is not None:
-                content_json['donation_stall_ids'] = donation_stall_ids
+            if badge_stall_id is not None:
+                content_json['badge_stall_id'] = badge_stall_id
+            if badge_product_id is not None:
+                content_json['badge_product_id'] = badge_product_id
             event = Event(kind=BID_STATUS_EVENT_KIND, content=json.dumps(content_json), tags=([['e', auction.nostr_event_id], ['e', bid_event_id]] + extra_tags))
             auction.item.seller.parse_merchant_private_key().sign_event(event)
             if self.post_event(event):
