@@ -128,6 +128,7 @@ class User(WalletMixin, db.Model):
     migrated_to_user_id = db.Column(db.Integer, nullable=True)
 
     lnauth_key = db.Column(db.String(128), unique=True, nullable=True, index=True)
+    lnauth_key_name = db.Column(db.String(128), nullable=True)
 
     # fields used when changing the lnauth_key of an existing user
     # (once verified, lnauth_key will become new_lnauth_key and it will be usable for logging in)
@@ -268,6 +269,7 @@ class User(WalletMixin, db.Model):
         d = {
             'identity': self.identity,
             'has_lnauth_key': self.lnauth_key is not None, # no reason to return the actual key to the client - just whether there is one or not
+            'lnauth_key_name': self.lnauth_key_name,
             'nostr_public_key': self.nostr_public_key,
             'nym': self.nym,
             'display_name': self.display_name,

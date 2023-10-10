@@ -192,6 +192,7 @@ export function getProfile(tokenValue, nym: string, successCB: (User) => void, e
 
 export type UserProfile = {
     twitterUsername?: string,
+    lnauthKeyName?: string | null,
     email?: string,
     contributionPercent?: string,
     wallet?: string,
@@ -209,6 +210,9 @@ export function putProfile(tokenValue, profile: UserProfile, successCB: (user: U
     var json: any = {};
     if (profile.twitterUsername !== undefined) {
         json.twitter_username = profile.twitterUsername;
+    }
+    if (profile.lnauthKeyName !== undefined) {
+        json.lnauth_key_name = profile.lnauthKeyName;
     }
     if (profile.email !== undefined) {
         json.email = profile.email;

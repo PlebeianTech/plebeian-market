@@ -17,6 +17,7 @@ export enum ExternalAccountProvider {
 export class User implements IAccount {
     identity: string = '';
     hasLnauthKey: boolean = false;
+    lnauthKeyName: string | null = null;
     nostrPublicKey: string | null = null;
     nym: string | null = null;
     displayName: string | null = null;
@@ -49,6 +50,7 @@ export function fromJson(json: any): User {
     var u = new User();
     u.identity = <string>json.identity;
     u.hasLnauthKey = <boolean>json.has_lnauth_key;
+    u.lnauthKeyName = <string | null>json.lnauth_key_name;
     u.nostrPublicKey = <string | null>json.nostr_public_key;
     u.nym = <string | null>json.nym;
     u.displayName = <string | null>json.display_name;

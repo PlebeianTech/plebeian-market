@@ -152,6 +152,9 @@ def put_me(user: m.User):
                 return jsonify({'message': "Your nym is already in use!", 'field': 'nym', 'reason': 'duplicated'}), 400
             user.nym = clean_nym
 
+    if 'lnauth_key_name' in request.json:
+        user.lnauth_key_name = request.json['lnauth_key_name']
+
     if 'email' in request.json:
         clean_email = (request.json['email'] or "").lower().strip()
         try:

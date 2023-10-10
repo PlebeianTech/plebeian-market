@@ -2,6 +2,7 @@
     import StallSettings from "$lib/components/settings/Stall.svelte";
     import WalletSettings from "$lib/components/settings/Wallet.svelte";
     import EmailSettings from "$lib/components/settings/Email.svelte";
+    import LightningLoginSettings from "$lib/components/settings/LightningLogin.svelte";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
     import { user } from "$lib/stores";
 
@@ -14,9 +15,13 @@
                 step = 2;
             } else if ($user.email === null || $user.email === "" || !$user.emailVerified) {
                 step = 3;
+            } else if ($user.lnauthKeyName === null) {
+                step = 4;
             }
         }
     }
+
+    let lightningLoginSettings: LightningLoginSettings;
 
 </script>
 
@@ -26,6 +31,7 @@
             <li class="step" class:step-primary={step >= 1}>Wallet</li>
             <li class="step" class:step-primary={step >= 2}>Stall</li>
             <li class="step" class:step-primary={step >= 3}>Communications</li>
+            <li class="step" class:step-primary={step >= 4}>Login</li>
         </ul>
     </div>
 
@@ -36,7 +42,7 @@
                     <InfoBox>
                         Do you want to be taken seriously on Plebeian Market?
                         <br />
-                        We highly recommend you fill out your profile in full... Just 3 steps
+                        We highly recommend you fill out your profile in full...
                     </InfoBox>
                 </div>
             </div>
@@ -49,6 +55,16 @@
             <StallSettings />
         {:else if step === 3}
             <EmailSettings />
+        {:else if step === 4}
+            <div class="text-center mt-8">
+                <div class="text-center text-3xl my-4">
+                    Set up Lightning log in as a backup for your Nostr log in.
+                </div>
+                <LightningLoginSettings bind:this={lightningLoginSettings} />
+                {#if !$user?.hasLnauthKey}
+                    <button class="btn btn-secondary" on:click={lightningLoginSettings.skip}>Skip</button>
+                {/if}
+            </div>
         {/if}
     </div>
 </div>
