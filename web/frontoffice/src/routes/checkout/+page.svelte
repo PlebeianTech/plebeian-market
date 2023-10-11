@@ -3,14 +3,13 @@
     import {stalls} from "$lib/stores";
     import {NostrPublicKey, ShoppingCart, Error, Info} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
-    import { v4 as uuidv4 } from "uuid";
-    import {sendPrivateMessage} from "$sharedLib/services/nostr";
     import {afterNavigate, goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {waitAndShowLoginIfNotLoggedAlready, cleanShoppingCart} from "$sharedLib/utils";
     import {onDestroy} from "svelte";
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";
+    import {sendOrder} from "$sharedLib/nostr/utils";
 
     let name = null;
     let address = null;
@@ -50,64 +49,22 @@
             }
 
             // If there is no shippingOption chosen by the user and there is only
-            // one shipping option, it's becaues we didn't even show the list to
+            // one shipping option, it's because we didn't even show the list to
             // the user, so let's auto-choose the only shipping option available
             if (!$stalls.stalls[stallId].shippingOption && $stalls.stalls[stallId].shipping.length === 1) {
                 $stalls.stalls[stallId].shippingOption = $stalls.stalls[stallId].shipping[0].id;
             }
 
-            const order = {
-                id: uuidv4(),
-                stall_id: stallId,
-                type: 0,
-                contact: {
-                    nostr: $NostrPublicKey
-                },
-                items: orderItems,
-                shipping_id: $stalls.stalls[stallId].shippingOption
-            };
-
-            if (name && name !== '') {
-                order.name = name;
-            }
-            if (address && address !== '') {
-                order.address = address;
-            }
-            if (message && message !== '') {
-                order.message = message;
-            }
-            if (phone && phone !== '') {
-                order.contact.phone = phone;
-            }
-            if (email && email !== '') {
-                order.contact.email = email;
-            }
-
-            try {
-                let messageOrder = JSON.stringify(order);
-                console.log('************ jsonOrder:  ', order);
-
-                await sendPrivateMessage($stalls.stalls[stallId].merchantPubkey, messageOrder, false,
-                    async (relay) => {
-                        console.log('-------- Order accepted by relay:', relay);
-
-                        cleanShoppingCart();
-
-                        await new Promise(resolve => setTimeout(resolve, 2500));
-
-                        await goto('/orders');
-                    }
-                );
-
-                Info.set('All the orders have been sent.');
-
-                console.log('---- buyNow end ----');
-
-            } catch (e) {
-                Error.set('There was an error trying to buy the products. Check that you have a Nostr extension in the browser or you have generated the Nostr key correctly.');
-                console.log('Error trying to buy the products:', e);
-            }
+            await sendOrder(stallId, orderItems, null, name, address, message, phone, email);
         }
+
+        Info.set('All the orders have been sent.');
+
+        cleanShoppingCart();
+
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        await goto('/orders');
     }
 
     const nostrPublicKeyUnsubscribe = NostrPublicKey.subscribe(async nostrPublicKeyValue => {
