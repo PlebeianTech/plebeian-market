@@ -15,7 +15,6 @@
 
     export let merchantPubkey: string | null;
     export let showStallFilter: boolean = true;
-    export let donationStalls: boolean = false;
 
     let isSuperAdmin: boolean = false;
 
@@ -32,21 +31,6 @@
                     .sort((a, b) => {
                         return b[1].createdAt - a[1].createdAt;
                     });
-            } else if (donationStalls && typeof window !== 'undefined') {
-                const donationStallIDsJSON: string | null = localStorage.getItem('donationStallIDs');
-
-                if (donationStallIDsJSON) {
-                    const donationStallIDs = JSON.parse(donationStallIDsJSON);
-
-                    sortedStalls = Object.entries($stalls.stalls)
-                        .filter(([, stall]) => {
-                            return donationStallIDs.includes(stall.id);
-                        })
-                        .sort((a, b) => {
-                            return b[1].createdAt - a[1].createdAt;
-                        });
-                }
-
             } else {
                 sortedStalls = Object.entries($stalls.stalls)
                     .sort((a, b) => {
