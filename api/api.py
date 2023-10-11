@@ -204,17 +204,21 @@ def put_me(user: m.User):
         user.contribution_percent = request.json['contribution_percent']
 
     if 'wallet' in request.json:
-        try:
-            k = parse_xpub(request.json['wallet'])
-        except UnknownKeyTypeError as e:
-            return jsonify({'message': "Invalid wallet."}), 400
-        try:
-            _ = k.subkey(0).subkey(0).address()
-        except AttributeError:
-            return jsonify({'message': "Invalid wallet."}), 400
-        user.wallet = request.json['wallet']
-        user.wallet_index = 0
-        user.wallet_name = request.json.get('wallet_name')
+        if request.json.get('wallet'):
+            try:
+                k = parse_xpub(request.json['wallet'])
+            except UnknownKeyTypeError as e:
+                return jsonify({'message': "Invalid wallet."}), 400
+            try:
+                _ = k.subkey(0).subkey(0).address()
+            except AttributeError:
+                return jsonify({'message': "Invalid wallet."}), 400
+            user.wallet = request.json['wallet']
+            user.wallet_index = 0
+            user.wallet_name = request.json.get('wallet_name')
+        else:
+            user.wallet = user.wallet_name = None
+            user.wallet_index = 0
 
     if 'lightning_address' in request.json:
         if "@" not in request.json['lightning_address']:

@@ -9,11 +9,11 @@
     let step = 0;
     $: {
         if ($user) {
-            if ($user.wallet === null || $user.wallet === "" || $user.lightningAddress === null || $user.lightningAddress === "") {
+            if ($user.stallName === null || $user.stallName === "") {
                 step = 0;
-            } else if ($user.stallName === null || $user.stallName === "") {
-                step = 2;
             } else if ($user.email === null || $user.email === "" || !$user.emailVerified) {
+                step = 2;
+            } else if ($user.lightningAddress === null || $user.lightningAddress === "") {
                 step = 3;
             } else if ($user.lnauthKeyName === null) {
                 step = 4;
@@ -28,9 +28,9 @@
 <div class="mt-12">
     <div class="flex justify-center items-center">
         <ul class="steps steps-vertical lg:steps-horizontal">
-            <li class="step" class:step-primary={step >= 1}>Wallet</li>
-            <li class="step" class:step-primary={step >= 2}>Stall</li>
-            <li class="step" class:step-primary={step >= 3}>Communications</li>
+            <li class="step" class:step-primary={step >= 1}>Stall</li>
+            <li class="step" class:step-primary={step >= 2}>Communications</li>
+            <li class="step" class:step-primary={step >= 3}>Wallet</li>
             <li class="step" class:step-primary={step >= 4}>Login</li>
         </ul>
     </div>
@@ -50,11 +50,11 @@
                 <button id="save" class="btn btn-primary btn-lg" on:click|preventDefault={() => step += 1}>Go!</button>
             </div>            
         {:else if step === 1}
-            <WalletSettings />
-        {:else if step === 2}
             <StallSettings />
-        {:else if step === 3}
+        {:else if step === 2}
             <EmailSettings />
+        {:else if step === 3}
+            <WalletSettings />
         {:else if step === 4}
             <div class="text-center mt-8">
                 <div class="text-center text-3xl my-4">

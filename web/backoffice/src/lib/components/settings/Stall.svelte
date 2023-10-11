@@ -81,7 +81,7 @@
 <div class="w-full flex items-center justify-center mt-2">
     <div class="form-control w-full max-w-lg">
         <label class="label" for="description">
-            <span class="label-text">Description</span>
+            <span class="label-text">Description (optional)</span>
         </label>
         <textarea bind:value={stallDescription} rows="6" class="textarea textarea-bordered h-48"></textarea>
     </div>
@@ -90,8 +90,8 @@
 <div class="w-full flex items-center justify-center my-8 gap-2 flex-col">
     <div class="form-control w-full max-w-xs">
         <label class="label" for="shippingFrom">
-            <span class="label-text">Shipping from</span>
-            <div class="tooltip tooltip-left" data-tip="We use this to provide shipping options to the buyers. Be as vague or as specific as you want / need to be.">
+            <span class="label-text">Shipping from (optional)</span>
+            <div class="tooltip tooltip-left" data-tip="We use this to provide shipping options to the buyers. Be as vague or as specific as you want / need to be, eg: US / UK / London / Europe / etc. PS: you can ignore this for digital items!">
                 <InfoIcon />
             </div>
         </label>
@@ -102,8 +102,8 @@
 <div class="w-full flex items-center justify-center my-8 gap-2 flex-col">
     <div class="form-control w-full max-w-xs">
         <label class="label" for="shippingDomesticUsd">
-            <span class="label-text">Domestic ($)</span>
-            <div class="tooltip tooltip-left" data-tip="How much does shipping cost within the area specified as shipping from?">
+            <span class="label-text">Domestic shipping $ (optional)</span>
+            <div class="tooltip tooltip-left" data-tip="How much does shipping cost within the area specified as shipping from? PS: this can also be set later on a per-item level.">
                 <InfoIcon />
             </div>
         </label>
@@ -114,8 +114,8 @@
 <div class="w-full flex items-center justify-center my-8 gap-2 flex-col">
     <div class="form-control w-full max-w-xs">
         <label class="label" for="shippingWorldwideUsd">
-            <span class="label-text">Worldwide ($)</span>
-            <div class="tooltip tooltip-left" data-tip="How much does shipping cost outside the area you are shipping?">
+            <span class="label-text">Worldwide shipping $ (optional)</span>
+            <div class="tooltip tooltip-left" data-tip="How much does shipping cost outside the area you are shipping from? PS: this can also be set later on a per-item level.">
                 <InfoIcon />
             </div>
         </label>
