@@ -1033,6 +1033,11 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
 
     birdwatcher = get_birdwatcher()
 
+    if request.json['pubkey'] == merchant_pubkey:
+        message = "Cannot bid on one's own auction!"
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
+
     try:
         amount = int(request.json['content'])
     except TypeError:
@@ -1055,18 +1060,22 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         return jsonify({'message': message}), 400
 
     top_bid = auction.get_top_bid()
+    if top_bid and top_bid.buyer_nostr_public_key == request.json['pubkey']:
+        message = f"Cannot accept consecutive bids from the same user!"
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
     if top_bid and amount <= top_bid.amount:
-        message = f"The top bid is currently {top_bid.amount}. Your bid needs to be higher!"
+        message = f"Amount needs to be higher than the previous top bid!"
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
     elif amount < auction.starting_bid:
-        message = f"Your bid needs to be equal to or higher than {auction.starting_bid}, the starting bid."
+        message = f"Amount needs to be at least {auction.starting_bid}, the starting bid."
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
 
     buyer_metadata = birdwatcher.query_metadata(request.json['pubkey'])
     if len(buyer_metadata['verified_identities']) < app.config['BID_REQUIRED_VERIFIED_IDENTITIES_COUNT']:
-        message = f"You need at least {app.config['BID_REQUIRED_VERIFIED_IDENTITIES_COUNT']} verified external identities in order to bid!"
+        message = f"User needs at least {app.config['BID_REQUIRED_VERIFIED_IDENTITIES_COUNT']} verified external identities in order to bid!"
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
 
@@ -1086,7 +1095,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
             badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
             if not badge_listing:
                 return jsonify({'message': "Site not configured!"}), 500
-            message = f"You need Skin in the Game in order to place bids."
+            message = f"User needs Skin in the Game in order to bid."
             birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=site_admin.stall_id, badge_product_id=badge_listing.uuid)
             is_settled = False
 
