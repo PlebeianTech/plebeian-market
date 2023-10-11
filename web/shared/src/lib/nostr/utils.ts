@@ -1,8 +1,7 @@
 import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nostr-tools";
 import {goto} from "$app/navigation";
 import {get} from "svelte/store";
-import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, token, Error} from "$sharedLib/stores";
-import {stalls} from "$lib/stores";
+import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, stalls, token, Error} from "$sharedLib/stores";
 import {getApiBaseUrl} from "$sharedLib/utils";
 import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";

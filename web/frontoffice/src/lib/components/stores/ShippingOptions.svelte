@@ -1,5 +1,5 @@
 <script>
-    import {stalls} from "$lib/stores";
+    import {stalls} from "$sharedLib/stores";
 
     export let stallId;
     export let i;

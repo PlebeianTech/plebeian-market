@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import {NostrGlobalConfig, stalls} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {NostrGlobalConfig} from "$lib/stores";
+    import {NostrPublicKey, stalls} from "$sharedLib/stores";
     import {formatTimestamp} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
     import Plus from "$sharedLib/components/icons/Plus.svelte";

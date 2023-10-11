@@ -4,7 +4,7 @@
     import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$sharedLib/services/nostr";
     import {onImgError, refreshStalls} from "$lib/shopping";
     import {afterNavigate, goto} from "$app/navigation";
-    import {stalls} from "$lib/stores";
+    import {stalls} from "$sharedLib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import Quantity from "$lib/components/stores/Quantity.svelte";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
