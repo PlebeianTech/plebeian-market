@@ -1,7 +1,7 @@
 <script>
     import {products} from "$lib/stores";
     import {NostrPublicKey, stalls, privateMessages, Info} from "$sharedLib/stores";
-    import {formatTimestamp, newNostrConversation} from "$sharedLib/nostr/utils";
+    import {formatTimestamp, newNostrConversation, pmStallId} from "$sharedLib/nostr/utils";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
@@ -37,9 +37,8 @@
 
     $: {
         sortedOrders = Object.entries($privateMessages.automatic)
-            .filter(([, automaticMessage]) => {
-                //return automaticMessage.type !== 10;
-                return true;
+            .filter(([, order]) => {
+                return order.stall_id !== pmStallId;
             })
             .sort((a, b) => {
                 return b[1].created_at - a[1].created_at;
@@ -47,6 +46,10 @@
 
         ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([, order]) => {
             if (order.type === 1) {
+                if (order.stall_id === pmStallId) {
+                    return false;
+                }
+
                 if (order.payment_options) {
                     for (const payment_option of order.payment_options) {
                         if (payment_option.type === 'ln') {
@@ -221,7 +224,7 @@
 
 <Titleh1>Orders</Titleh1>
 
-{#if Object.keys($privateMessages.automatic).length > 0}
+{#if Object.keys(sortedOrders).length > 0}
     <div class="grid w-full lg:mx-20 gap-6 lg:gap-10 justify-center items-center place-content-center">
         {#if Object.entries(ordersToBePaidNow).length > 0}
             <div class="alert alert-warning shadow-lg">
