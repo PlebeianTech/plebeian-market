@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {filterTags, formatTimestamp, queryNip05} from "$sharedLib/nostr/utils";
+    import {filterTags, formatTimestamp, queryNip05, sendSitgBadgeOrder} from "$sharedLib/nostr/utils";
     import Countdown from "$sharedLib/components/Countdown.svelte";
     import BidList from "$lib/components/stores/BidList.svelte";
     import {
@@ -10,6 +10,8 @@
         subscribeMetadata
     } from "$sharedLib/services/nostr";
     import type {UserMetadata} from "$sharedLib/services/nostr";
+    import {privateMessages} from "$sharedLib/stores";
+    import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
 
     export let product;
 
@@ -28,6 +30,13 @@
     let userProfileInfoMap = new Map<string, null | UserMetadata>();
 
     let alreadySubscribed: boolean = false;
+
+    let orderToBePaid = null;
+    let orderToBePaidId: string | null = null;
+    let badgeModalIShouldBuy = false;
+    let badgeModalPaying = false;
+
+    let showPaymentDetails;
 
     $: if (product) {
         now = Math.floor(Date.now() / 1000);
@@ -68,6 +77,7 @@
 
                         try {
                             let bidResponse = JSON.parse(auctionEvent.content);
+                            bidResponse.created_at = auctionEvent.created_at;
 
                             const eTags = filterTags(auctionEvent.tags, 'e');
 
@@ -75,6 +85,19 @@
                                 let tagValue = eTags[i][1];
                                 if (product.event.id !== tagValue) {
                                     let bidInfo = bids[tagValue];
+
+                                    if (bidResponse.status === 'accepted' || bidResponse.status === 'winner') {
+                                        // This kind of response always have priority, so let them go
+                                    } else {
+                                        if (!bidInfo.backendResponse || bidInfo.backendResponse < bidResponse.created_at) {
+                                            // We don't yet have a response from backend, or the response we have
+                                            // is older than this one. So this response is the latest one, let it go.
+                                        } else {
+                                            // We already have a response from backend, and it's newer than this one.
+                                            // So let's ignore this one.
+                                            return;
+                                        }
+                                    }
 
                                     if (bidResponse.status === 'winner' || (bidResponse.status !== 'winner' && bidInfo.backendResponse?.status !== 'winner' )) {
                                         if (bidResponse.status === 'winner') {
@@ -167,6 +190,39 @@
             }
         }
     }
+
+    $: {
+        if (orderToBePaidId) {
+            Object.entries($privateMessages.automatic).forEach(([orderId, order]) => {
+                if (orderToBePaidId === orderId && order.type === 1) {
+                    orderToBePaid = order;
+                }
+            });
+        }
+    }
+
+    async function openSitgBadgeInfo(badgeStallId, badgeProductId, isCurrentUser) {
+        resetEverything();
+
+        badgeModalIShouldBuy = isCurrentUser;
+
+        if (isCurrentUser) {
+            orderToBePaidId = await sendSitgBadgeOrder(badgeStallId, badgeProductId);
+        }
+
+        window.skin_in_the_game_modal.showModal();
+    }
+
+    function closeSitgBadgeInfo() {
+        window.skin_in_the_game_modal.close();
+        resetEverything();
+    }
+
+    function resetEverything() {
+        orderToBePaidId = null;
+        orderToBePaid = null;
+        badgeModalPaying = false;
+    }
 </script>
 
 {#if product && product.start_date}
@@ -218,6 +274,51 @@
     {/if}
 
     {#if !(!started && !ended)}
-        <BidList {sortedBids} {userProfileInfoMap} />
+        <BidList {sortedBids} {userProfileInfoMap} {openSitgBadgeInfo} />
     {/if}
 {/if}
+
+<dialog id="skin_in_the_game_modal" class="modal">
+    <div class="modal-box">
+        {#if !badgeModalPaying}
+            <h3 class="font-bold text-lg">Skin in the Game proof needed!</h3>
+            <p class="py-4 text-base">Bidding for this auction has reached a threshold, and participants are required to complete a <b>"Skin In The Game"</b> test as an <b>anti-spam</b> measure.</p>
+            {#if badgeModalIShouldBuy}
+                <p class="py-4 text-base">You have to buy the Plebeian Market <b>"Skin In The Game"</b> badge which costs $20. This has to be done <b>just once</b>, and you'll be able to bid on as many auctions as you want.</p>
+            {:else}
+                <p class="py-4 text-base">The user that made the bid have to buy the Plebeian Market <b>"Skin In The Game"</b> badge.</p>
+            {/if}
+            <div class="h-64 inline-flex">
+                <img class="mx-auto" src="/badges/skin-in-the-game.png" alt="Skin In The Game Badge" />
+            </div>
+            {#if badgeModalIShouldBuy}
+                <p class="text-base">As soon as you have the badge, <b>your bid will be approved</b>.</p>
+            {:else}
+                <p class="text-base">As soon as the user buys the badge, <b>the bid will be approved</b>.</p>
+            {/if}
+        {:else}
+            {#if orderToBePaid}
+                <PaymentWidget {orderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
+            {/if}
+        {/if}
+
+        <div class="modal-action">
+            {#if badgeModalIShouldBuy}
+                {#if !badgeModalPaying}
+                    <div class="inline-flex">
+                        {#if orderToBePaid}
+                            <button class="btn btn-primary" on:click|preventDefault={() => badgeModalPaying = true}>Buy badge</button>
+                        {:else}
+                            <button class="btn btn-success no-animation cursor-default" on:click|preventDefault={() => showPaymentDetails = true}>
+                                <span class="loading loading-spinner"></span>
+                                Preparing order...
+                            </button>
+                        {/if}
+                    </div>
+                {/if}
+            {/if}
+
+            <button class="btn mt-0" on:click={closeSitgBadgeInfo}>Close</button>
+        </div>
+    </div>
+</dialog>

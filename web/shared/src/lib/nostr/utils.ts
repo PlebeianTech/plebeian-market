@@ -7,6 +7,8 @@ import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
+export const pmMasterPublicKey = import.meta.env.VITE_NOSTR_PM_MASTER_PUBLIC_KEY;
+export const pmStallId = import.meta.env.VITE_NOSTR_PM_STALL_ID;
 
 export const relayUrlList = [
     // Amethyst relays
@@ -24,8 +26,6 @@ export const relayUrlList = [
     "wss://nostr.inosta.cc",
     //"wss://relay.taxi"
 ];
-
-export const pmMasterPublicKey = 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75c4eff1cfb634839bb8';
 
 export function hasExtension() {
     return !!(window as any).nostr;
@@ -300,7 +300,7 @@ export async function getMerchantKey() {
 export async function sendOrder(
     stallId: string | number,
     orderItems,
-    shipping_id: number | null = null,
+    shipping_id: string | null = null,
     name: string | null = null,
     address: string | null = null,
     message: string | null = null,
@@ -352,19 +352,24 @@ export async function sendOrder(
         } catch (e) {
             Error.set('There was an error trying to buy the products. Check that you have a Nostr extension in the browser or you have generated the Nostr key correctly.');
             console.log('Error trying to buy the products:', e);
-            reject();
+            reject(e);
         }
     });
 }
 
-export function sendSitgBadgeOrder(stall_id: string | number, badge_id: string) {
-    sendOrder(stall_id,
-        [{
-            product_id: badge_id,
-            quantity: 1
-        }],
-        0
-    ).then(orderId => {
-        console.log('-------- Order ID: ', orderId);
-    })
+export async function sendSitgBadgeOrder(stallId: string | number, badgeId: string) {
+    return new Promise(function(resolve, reject) {
+        sendOrder(stallId,
+            [{
+                product_id: badgeId,
+                quantity: 1
+            }],
+            'WORLD'
+        ).then(orderId => {
+            resolve(orderId);
+        }).catch(function(err) {
+            console.error('sendSitgBadgeOrder - Error trying to create the order to buy the badge:', err);
+            reject(err);
+        });
+    });
 }

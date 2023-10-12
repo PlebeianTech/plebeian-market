@@ -102,7 +102,7 @@
                     </div>
                 </div>
 
-                <!-- <BidList {sortedBids} {userProfileInfoMap} /> -->
+                <!-- <BidList {sortedBids} {userProfileInfoMap} {openSitgBadgeInfo} /> -->
 
             {:else}
                 Auction starts at {formatTimestamp(product.start_date, true)} and will run for {product.duration / 60} hours until {formatTimestamp(product.start_date + product.duration, true)}.
