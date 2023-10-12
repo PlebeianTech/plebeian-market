@@ -352,19 +352,24 @@ export async function sendOrder(
         } catch (e) {
             Error.set('There was an error trying to buy the products. Check that you have a Nostr extension in the browser or you have generated the Nostr key correctly.');
             console.log('Error trying to buy the products:', e);
-            reject();
+            reject(e);
         }
     });
 }
 
-export function sendSitgBadgeOrder(stallId: string | number, badgeId: string) {
-    sendOrder(stallId,
-        [{
-            product_id: badgeId,
-            quantity: 1
-        }],
-        'WORLD'
-    ).then(orderId => {
-        console.log('-------- Order ID: ', orderId);
-    })
+export async function sendSitgBadgeOrder(stallId: string | number, badgeId: string) {
+    return new Promise(function(resolve, reject) {
+        sendOrder(stallId,
+            [{
+                product_id: badgeId,
+                quantity: 1
+            }],
+            'WORLD'
+        ).then(orderId => {
+            resolve(orderId);
+        }).catch(function(err) {
+            console.error('sendSitgBadgeOrder - Error trying to create the order to buy the badge:', err);
+            reject(err);
+        });
+    });
 }

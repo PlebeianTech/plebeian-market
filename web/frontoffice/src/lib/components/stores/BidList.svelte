@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {formatTimestamp, sendSitgBadgeOrder} from "$sharedLib/nostr/utils";
+    import {formatTimestamp} from "$sharedLib/nostr/utils";
     import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
     import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
@@ -8,17 +8,9 @@
 
     export let sortedBids;
     export let userProfileInfoMap;
+    export let openSitgBadgeInfo;
 
     const winnerColor = 'bg-green-300 dark:bg-[#446600]';
-
-    function openSitgBadgeInfo(badgeStallId, badgeProductId, isCurrentUser) {
-        if (isCurrentUser) {
-            const orderId = sendSitgBadgeOrder(badgeStallId, badgeProductId);
-            console.log('   ******************** orderId', orderId);
-        }
-
-        window.skin_in_the_game_modal.showModal();
-    }
 </script>
 
 {#if sortedBids && sortedBids.length > 0}
@@ -189,17 +181,3 @@
         </table>
     </div>
 {/if}
-
-<dialog id="skin_in_the_game_modal" class="modal">
-    <div class="modal-box">
-        <h3 class="font-bold text-lg">Skin in the Game proof needed!</h3>
-        <p class="py-4 text-base">Bidding for this auction has reached a threshold, and participants are required to complete a <b>"Skin In The Game"</b> test as an <b>anti-spam</b> measure.</p>
-        <p class="py-4 text-base">You have to buy the Plebeian Market <b>"Skin In The Game"</b> badge which costs $20. This has to be done <b>just once</b>, and you'll be able to bid on as many auctions as you want.</p>
-        <p class="py-6 text-base">As soon as you have the <b>"Skin In The Game"</b> badge, <b>your bid will be approved</b>.</p>
-        <div class="modal-action">
-            <form method="dialog">
-                <button class="btn">Close</button>
-            </form>
-        </div>
-    </div>
-</dialog>
