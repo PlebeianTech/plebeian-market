@@ -197,6 +197,9 @@
                 if (orderToBePaidId === orderId && order.type === 1) {
                     orderToBePaid = order;
                 }
+                if (orderToBePaidId === orderId && order.type === 2 && order.paid) {
+                    closeSitgBadgeInfo();
+                }
             });
         }
     }
