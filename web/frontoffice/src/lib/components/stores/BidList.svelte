@@ -169,14 +169,14 @@
                             </div>
                             <div class="flex">
                                 {#if userProfileInfoMap.get(bid.pubkey)}
-                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name}</span>
+                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name ?? bid.pubkey.substring(0,6) + '...'}</span>
                                     {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
                                         <span class="mt-1 ml-2">
                                             <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
                                         </span>
                                     {/if}
                                 {:else}
-                                    <span class="tooltip" data-tip="{bid.pubkey}">{bid.pubkey.substring(0,6)}...</span>
+                                    <span class="tooltip" data-tip="{bid.pubkey}">{bid.pubkey.substring(0,6) + '...'}</span>
                                 {/if}
                             </div>
                         </div>
