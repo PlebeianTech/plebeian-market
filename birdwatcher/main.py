@@ -77,20 +77,21 @@ class Relay:
         async def do_post(session, url, json):
             async with session.post(url, json=json) as response:
                 logging.debug(f"POST to merchant {merchant_pubkey}: {dm_event}")
-                if response.status == 200:
-                    logging.info(f"Forwarded message to merchant {merchant_pubkey}.")
-                elif response.status == 409:
-                    logging.info(f"Order already exists at {merchant_pubkey}.")
-                elif response.status in PERMANENT_API_ERROR_STATI or response.status in RECOVERABLE_API_ERROR_STATI:
-                    logging.error(f"Error posting to merchant {merchant_pubkey}: {response.status}.")
-                else:
-                    logging.error(f"Unknown status when posting to merchant {merchant_pubkey}: {response.status}.")
+                response_json = None
                 try:
                     response_json = await response.json()
                     logging.debug(f"POST responded with {response_json}!")
                 except Exception:
                     response_text = await response.text()
                     logging.debug(f"POST responded with {response_text}!")
+                if response.status == 200:
+                    logging.info(f"Forwarded message to merchant {merchant_pubkey}.")
+                elif response.status == 409:
+                    logging.info(f"Order already exists at {merchant_pubkey}.")
+                elif response.status in PERMANENT_API_ERROR_STATI or response.status in RECOVERABLE_API_ERROR_STATI:
+                    logging.error(f"Error posting to merchant {merchant_pubkey}: {response.status}; message={response_json.get('message') if response_json else None}.")
+                else:
+                    logging.error(f"Unknown status when posting to merchant {merchant_pubkey}: {response.status}.")
                 return response.status
         async with aiohttp.ClientSession() as session:
             task = asyncio.create_task(do_post(session, f"{API_BASE_URL}/api/merchants/{merchant_pubkey}/messages", dm_event))
