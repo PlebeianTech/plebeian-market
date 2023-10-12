@@ -56,13 +56,13 @@
                                     <div class="mx-auto tooltip" data-tip="Bid pending"><Clock /></div>
                                     <p class="line-clamp-3 mt-1 whitespace-normal">
                                         {#if bid.backendResponse.badge_stall_id}
-                                            {#if bid.backendResponse.winnerPubkey === $NostrPublicKey}
-                                                You need to pass the "<b>Skin in the Game</b>" process before the bid is accepted.
+                                            {#if bid.pubkey === $NostrPublicKey}
+                                                <p>You need to pass the "<b>Skin in the Game</b>" process before the bid is accepted.</p>
+                                                <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>See more details here</button>
                                             {:else}
-                                                "<b>Skin in the Game</b>" process needs to be done by this user before the bid is accepted.
+                                                <p>"<b>Skin in the Game</b>" process needs to be done by this user before the bid is accepted.</p>
+                                                <a class="cursor-pointer underline" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, false)}>See more details here</a>.
                                             {/if}
-                                            <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id)}>See more details here</button>
-                                            <label for="skin_in_the_game_modal" class="cursor-pointer underline">See more details here</label>.
                                         {:else}
                                             {bid.backendResponse.message}
                                         {/if}
@@ -89,7 +89,7 @@
                             </div>
                             <div class="flex">
                                 {#if userProfileInfoMap.get(bid.pubkey)}
-                                    <span class="tooltip font-normal" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name}</span>
+                                    <span class="tooltip font-normal" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name ?? bid.pubkey.substring(0,6) + '...'}</span>
                                     {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
                                         <span class="ml-1">
                                             <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
@@ -139,13 +139,13 @@
                                 <div class="w-8 h-8 mx-auto text-xl tooltip" data-tip="Bid pending"><Clock /></div>
                                 <p class="line-clamp-3 mt-1 whitespace-normal">
                                     {#if bid.backendResponse.badge_stall_id}
-                                        {#if bid.backendResponse.winnerPubkey === $NostrPublicKey}
-                                            You need to pass the "<b>Skin in the Game</b>" process before the bid is accepted.
+                                        {#if bid.pubkey === $NostrPublicKey}
+                                            <p class="mb-2">You need to pass the "<b>Skin in the Game</b>" process before the bid is accepted.</p>
+                                            <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>See how to do it here</button>
                                         {:else}
-                                            "<b>Skin in the Game</b>" process needs to be done by this user before the bid is accepted.
+                                            <p class="mb-1">"<b>Skin in the Game</b>" process needs to be done by this user before the bid is accepted.</p>
+                                            <a class="cursor-pointer underline" href={null} on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, false)}>(more details)</a>
                                         {/if}
-                                        <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id)}>See more details here</button>
-                                        <label for="skin_in_the_game_modal" class="cursor-pointer underline">See more details here</label>.
                                     {:else}
                                         {bid.backendResponse.message}
                                     {/if}
@@ -171,14 +171,14 @@
                             </div>
                             <div class="flex">
                                 {#if userProfileInfoMap.get(bid.pubkey)}
-                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name ?? bid.pubkey.substring(0,6) + '...'}</span>
+                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name ?? bid.pubkey.substring(0,12) + '...'}</span>
                                     {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
                                         <span class="mt-1 ml-2">
                                             <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
                                         </span>
                                     {/if}
                                 {:else}
-                                    <span class="tooltip" data-tip="{bid.pubkey}">{bid.pubkey.substring(0,6) + '...'}</span>
+                                    <span class="tooltip" data-tip="{bid.pubkey}">{bid.pubkey.substring(0,12) + '...'}</span>
                                 {/if}
                             </div>
                         </div>
@@ -190,15 +190,16 @@
     </div>
 {/if}
 
-<input type="checkbox" id="skin_in_the_game_modal" class="modal-toggle" />
-<div class="modal">
+<dialog id="skin_in_the_game_modal" class="modal">
     <div class="modal-box">
         <h3 class="font-bold text-lg">Skin in the Game proof needed!</h3>
         <p class="py-4 text-base">Bidding for this auction has reached a threshold, and participants are required to complete a <b>"Skin In The Game"</b> test as an <b>anti-spam</b> measure.</p>
         <p class="py-4 text-base">You have to buy the Plebeian Market <b>"Skin In The Game"</b> badge which costs $20. This has to be done <b>just once</b>, and you'll be able to bid on as many auctions as you want.</p>
         <p class="py-6 text-base">As soon as you have the <b>"Skin In The Game"</b> badge, <b>your bid will be approved</b>.</p>
         <div class="modal-action">
-            <label for="skin_in_the_game_modal" class="btn">Close</label>
+            <form method="dialog">
+                <button class="btn">Close</button>
+            </form>
         </div>
     </div>
-</div>
+</dialog>
