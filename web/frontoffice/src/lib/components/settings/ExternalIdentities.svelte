@@ -10,7 +10,7 @@
     $: profile = null;
     $: externalIdentities = [];
     let changesMade = false;
-    let lastProfileLoaded = false;
+    let profileFinishedLoading = false;
 
     let type = 'twitter';
     let url = '';
@@ -165,7 +165,7 @@
         if (!changesMade) {
             Info.set('No changes made, so there is nothing to save')
         }
-        if (!lastProfileLoaded) {
+        if (!profileFinishedLoading) {
             Info.set('There was a problem loading your profile, so no changes are allowed. Reload the page and try again.')
             return;
         }
@@ -173,7 +173,7 @@
         // Filtering out 'i' tags to start clean
         let iFilteredProfileTags = [];
 
-        if (profile.tags) {
+        if (profile && profile.tags) {
             iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
                 return tag[0] !== 'i';
             });
@@ -187,6 +187,10 @@
                 identity.split(':')[2]
             ]);
         });
+
+        if (!profile) {
+            profile = {};
+        }
 
         await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
 
@@ -213,7 +217,10 @@
                     }
                 },
                 async () => {
-                    lastProfileLoaded = true;
+                    profileFinishedLoading = true;
+                    if (!verifyIdentities) {
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                    }
                     await verifyIdentities();
                 });
         }
