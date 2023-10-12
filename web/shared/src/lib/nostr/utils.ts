@@ -300,7 +300,7 @@ export async function getMerchantKey() {
 export async function sendOrder(
     stallId: string | number,
     orderItems,
-    shipping_id: number | null = null,
+    shipping_id: string | null = null,
     name: string | null = null,
     address: string | null = null,
     message: string | null = null,
@@ -357,13 +357,13 @@ export async function sendOrder(
     });
 }
 
-export function sendSitgBadgeOrder(stall_id: string | number, badge_id: string) {
-    sendOrder(stall_id,
+export function sendSitgBadgeOrder(stallId: string | number, badgeId: string) {
+    sendOrder(stallId,
         [{
-            product_id: badge_id,
+            product_id: badgeId,
             quantity: 1
         }],
-        0
+        'WORLD'
     ).then(orderId => {
         console.log('-------- Order ID: ', orderId);
     })

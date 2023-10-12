@@ -11,9 +11,11 @@
 
     const winnerColor = 'bg-green-300 dark:bg-[#446600]';
 
-    function openSitgBadgeInfo(badge_stall_id, badge_product_id) {
-        const orderId = sendSitgBadgeOrder(badge_stall_id, badge_product_id);
-        console.log('   ******************** orderId', orderId);
+    function openSitgBadgeInfo(badgeStallId, badgeProductId, isCurrentUser) {
+        if (isCurrentUser) {
+            const orderId = sendSitgBadgeOrder(badgeStallId, badgeProductId);
+            console.log('   ******************** orderId', orderId);
+        }
 
         window.skin_in_the_game_modal.showModal();
     }
