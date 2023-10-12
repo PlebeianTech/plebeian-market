@@ -1124,7 +1124,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
             if not badge_listing:
                 return jsonify({'message': "Site not configured!"}), 500
             message = f"User needs Skin in the Game in order to bid."
-            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=site_admin.stall_id, badge_product_id=badge_listing.uuid)
+            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=site_admin.stall_id, badge_product_id=str(badge_listing.uuid))
             is_settled = False
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
