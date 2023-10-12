@@ -8,6 +8,7 @@ from enum import Enum
 import hashlib
 from io import BytesIO
 from itertools import chain
+import jwt
 import math
 from nostr.key import PrivateKey
 import pyqrcode
@@ -207,10 +208,15 @@ class User(WalletMixin, db.Model):
 
     def send_email_verification(self):
         from main import get_mail
+        token_payload = {
+            'user_id': self.id,
+            'exp': datetime.utcnow() + timedelta(hours=1),
+        }
+        token = jwt.encode(token_payload, app.config['SECRET_KEY'], "HS256")
         body = f"Your email verification phrase is: {self.email_verification_phrase}"
         html = f"""
         <p>Your email verification phrase is: <strong>{self.email_verification_phrase}</strong></p>
-        <p>Click <a href="{app.config['WWW_BASE_URL']}/admin/account/verify-email#phrase={self.email_verification_phrase.replace(" ", "%20")}">here</a> to verify your email address!</p>
+        <p>Click <a href="{app.config['WWW_BASE_URL']}/admin/account/verify-email#token={token}&phrase={self.email_verification_phrase.replace(" ", "%20")}">here</a> to verify your email address!</p>
         """
         get_mail().send(self.email, "Verify your email", body, html)
         self.email_verification_phrase_sent_at = datetime.utcnow()

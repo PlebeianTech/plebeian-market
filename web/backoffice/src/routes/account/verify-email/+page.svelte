@@ -21,7 +21,7 @@
             }
         }
 
-        let token = localStorage.getItem("token");
+        let token = params['token'];
 
         if (token === null) {
             missingToken = true;
