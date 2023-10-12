@@ -51,10 +51,11 @@ class EventKind(IntEnum):
     BID = 2021 if ENV == 'staging' else 1021
 
 class Relay:
-    def __init__(self, url, args, processed_event_ids):
+    def __init__(self, url, args, processed_event_ids, event_ids_being_processed):
         self.url = url
         self.args = args
         self.processed_event_ids = processed_event_ids
+        self.event_ids_being_processed = event_ids_being_processed
 
         self.subscribed_auction_event_ids = set()
         self.subscribed_merchant_pubkeys = set()
@@ -176,27 +177,35 @@ class Relay:
             case EventKind.STALL:
                 await self.check_ours(event, self.subscribe_dm)
             case EventKind.DM:
-                if event['id'] not in self.processed_event_ids:
-                    merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
-                    logging.info(f"({self.url}) POSTing DM event to API: {event['id']}")
-                    post_status = await self.post_dm(merchant_pubkey, event)
-                    if post_status not in RECOVERABLE_API_ERROR_STATI:
-                        self.processed_event_ids.add(event['id'])
-                        if PROCESSED_EVENT_IDS_FILENAME:
-                            async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
-                                await f.write(f"{event['id']}\n")
+                if event['id'] not in self.processed_event_ids and event['id'] not in self.event_ids_being_processed:
+                    self.event_ids_being_processed.add(event['id'])
+                    try:
+                        merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
+                        logging.info(f"({self.url}) POSTing DM event to API: {event['id']}")
+                        post_status = await self.post_dm(merchant_pubkey, event)
+                        if post_status not in RECOVERABLE_API_ERROR_STATI:
+                            self.processed_event_ids.add(event['id'])
+                            if PROCESSED_EVENT_IDS_FILENAME:
+                                async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
+                                    await f.write(f"{event['id']}\n")
+                    finally:
+                        self.event_ids_being_processed.remove(event['id'])
                 else:
                     logging.info(f"({self.url}) Skipping DM event: {event['id']}")
             case EventKind.BID:
-                if event['id'] not in self.processed_event_ids:
-                    auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
-                    logging.info(f"({self.url}) POSTing bid event to API: {event['id']}")
-                    post_status = await self.post_bid(auction_event_id, event)
-                    if post_status not in RECOVERABLE_API_ERROR_STATI:
-                        self.processed_event_ids.add(event['id'])
-                        if PROCESSED_EVENT_IDS_FILENAME:
-                            async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
-                                await f.write(f"{event['id']}\n")
+                if event['id'] not in self.processed_event_ids and event['id'] not in self.event_ids_being_processed:
+                    self.event_ids_being_processed.add(event['id'])
+                    try:
+                        auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
+                        logging.info(f"({self.url}) POSTing bid event to API: {event['id']}")
+                        post_status = await self.post_bid(auction_event_id, event)
+                        if post_status not in RECOVERABLE_API_ERROR_STATI:
+                            self.processed_event_ids.add(event['id'])
+                            if PROCESSED_EVENT_IDS_FILENAME:
+                                async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
+                                    await f.write(f"{event['id']}\n")
+                    finally:
+                        self.event_ids_being_processed.remove(event['id'])
                 else:
                     logging.info(f"({self.url}) Skipping bid event: {event['id']}")
 
@@ -403,7 +412,7 @@ async def main(relays: list[Relay]):
         relay_json = await request.json()
         logging.info(f"Adding new relay: {relay_json['url']}!")
         try:
-            relay = Relay(relay_json['url'], args, processed_event_ids)
+            relay = Relay(relay_json['url'], args, processed_event_ids, event_ids_being_processed)
             relays.append(relay)
             asyncio.create_task(relay.listen())
             return web.json_response({})
@@ -430,6 +439,7 @@ parser.add_argument("-a", "--auction", help="event ID of the auction to listen t
 args = parser.parse_args()
 
 processed_event_ids = set()
+event_ids_being_processed = set()
 
 if PROCESSED_EVENT_IDS_FILENAME:
     if os.path.isfile(PROCESSED_EVENT_IDS_FILENAME):
@@ -445,7 +455,7 @@ logging.warning("No API_BASE_URL to connect to!")
 relays: list[Relay] = []
 
 if args.relay:
-    relays.append(Relay(args.relay, args, processed_event_ids))
+    relays.append(Relay(args.relay, args, processed_event_ids, event_ids_being_processed))
 else:
     if API_BASE_URL:
         while True:
@@ -453,7 +463,7 @@ else:
             try:
                 response = requests.get(f"{API_BASE_URL}/api/relays").json()
                 for relay in response['relays']:
-                    relays.append(Relay(relay['url'], args, processed_event_ids))
+                    relays.append(Relay(relay['url'], args, processed_event_ids, event_ids_being_processed))
                 logging.info(f"Got {len(response['relays'])} relays!")
                 break
             except Exception:
