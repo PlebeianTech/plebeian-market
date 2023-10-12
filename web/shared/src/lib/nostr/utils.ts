@@ -7,6 +7,8 @@ import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
+export const pmMasterPublicKey = import.meta.env.VITE_NOSTR_PM_MASTER_PUBLIC_KEY;
+export const pmStallId = import.meta.env.VITE_NOSTR_PM_STALL_ID;
 
 export const relayUrlList = [
     // Amethyst relays
@@ -24,8 +26,6 @@ export const relayUrlList = [
     "wss://nostr.inosta.cc",
     //"wss://relay.taxi"
 ];
-
-export const pmMasterPublicKey = 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75c4eff1cfb634839bb8';
 
 export function hasExtension() {
     return !!(window as any).nostr;
