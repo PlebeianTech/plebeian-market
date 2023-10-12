@@ -4,7 +4,7 @@
     import { page } from "$app/stores";
     import { ErrorHandler, putVerify } from "$lib/services/api";
     import { ExternalAccountProvider } from "$lib/types/user";
-    import { Info } from "$sharedLib/stores";
+    import { Info, token } from "$sharedLib/stores";
 
     let params = {};
 
@@ -21,16 +21,18 @@
             }
         }
 
-        let token = params['token'];
+        let tokenFromRequest = params['token'];
 
-        if (token === null) {
+        if (tokenFromRequest === null) {
             missingToken = true;
         } else if (params['phrase'] === undefined || params['phrase'] === null || params['phrase'] == "") {
             missingPhrase = true;
         } else {
-            putVerify(token, ExternalAccountProvider.Email, false, params['phrase'].replaceAll("%20", " "),
+            putVerify(tokenFromRequest, ExternalAccountProvider.Email, false, params['phrase'].replaceAll("%20", " "),
                 () => {
                     Info.set("Your email address has been verified!");
+                    token.set(tokenFromRequest);
+                    localStorage.setItem('token', tokenFromRequest);
                     goto("/admin");
                 },
                 new ErrorHandler(true, () => { verificationFailed = true; }));

@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { page } from '$app/stores';
-    import { ErrorHandler, putProfile, putVerify, type UserProfile } from "$lib/services/api";
+    import { ErrorHandler, putProfile, putVerify, type UserProfile, getProfile } from "$lib/services/api";
     import { user } from "$lib/stores";
     import { ExternalAccountProvider } from "$lib/types/user";
     import { Info, token } from "$sharedLib/stores";
@@ -19,6 +19,8 @@
 
     $: verifyActive = !inRequest && $user && phrase !== "";
 
+    let checkTimeout: ReturnType<typeof setTimeout> | null = null;
+
     let inRequest = false;
     function save() {
         inRequest = true;
@@ -31,8 +33,21 @@
                 user.set(u);
                 Info.set("Your email has been saved!");
                 inRequest = false;
+                checkTimeout = setTimeout(checkVerified, 1000);
             },
             new ErrorHandler(true, () => inRequest = false));
+    }
+
+    function checkVerified() {
+        getProfile($token, 'me', u => {
+            if (u && u.emailVerified) {
+                user.set(u);
+                Info.set("Your email address has been verified!");
+                onSave();
+            } else {
+                checkTimeout = setTimeout(checkVerified, 1000);
+            }
+        });
     }
 
     function verify() {
@@ -61,6 +76,12 @@
     onMount(async () => {
         if ($user) {
             email = $user.email ? $user.email : "";
+        }
+    });
+
+    onDestroy(() => {
+        if (checkTimeout !== null) {
+            clearTimeout(checkTimeout);
         }
     });
 </script>
