@@ -34,7 +34,7 @@
         if (!paymentOptionSelected) {
             // No payment option selected, pre-selecting the default one
             let paymentOptions = [];
-console.log('orderToBePaid', orderToBePaid);
+
             for (const payment_option of orderToBePaid.payment_options) {
                 paymentOptions[paymentOptions.length] = payment_option.type;
             }
