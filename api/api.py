@@ -834,185 +834,213 @@ def post_merchant_message(pubkey):
 
     merchant_private_key = merchant.parse_merchant_private_key()
 
-    if request.json['kind'] == 4:
+    if request.json['kind'] != 4:
+        # this should not happen as the birdwatcher already filters DMs
+        app.logger.warning("Received a non-DM as a merchant message. Ignoring.")
+        return jsonify({})
+
+    cleartext_content = None
+    try:
         cleartext_content = json.loads(merchant_private_key.decrypt_message(request.json['content'], public_key_hex=request.json['pubkey']))
+    except json.decoder.JSONDecodeError:
+        app.logger.info("DM content is not JSON. Ignoring.")
+        return jsonify({})
 
-        if int(cleartext_content['type']) == 0:
-            order = m.Order.query.filter_by(uuid=cleartext_content['id']).one_or_none()
+    if 'type' not in cleartext_content:
+        app.logger.info("Missing message type. Ignoring.")
+        return jsonify({})
 
-            if order and order.buyer_public_key != request.json['pubkey']:
-                return jsonify({'message': "Not allowed!"}), 403
+    message_type = None
+    try:
+        message_type = int(cleartext_content['type'])
+    except (TypeError, ValueError):
+        app.logger.info("Invalid message type. Ignoring.")
+        return jsonify({})
 
-            if order and (order.paid_at or order.shipped_at or order.expired_at or order.canceled_at):
-                return jsonify({'message': "Order already exists and it is paid, shipped, expired or canceled!"}), 409
+    if message_type != 0:
+        app.logger.info("Message is not an order request. Ignoring.")
+        return jsonify({})
 
+    if 'id' not in cleartext_content or 'shipping_id' not in cleartext_content:
+        message = "Invalid order: missing id or shipping_id."
+        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+        return jsonify({'message': message}), 400
+
+    order = m.Order.query.filter_by(uuid=cleartext_content['id']).one_or_none()
+
+    if order and order.buyer_public_key != request.json['pubkey']:
+        return jsonify({'message': "Not allowed!"}), 403
+
+    if order and (order.paid_at or order.shipped_at or order.expired_at or order.canceled_at):
+        return jsonify({'message': "Order already exists and it is paid, shipped, expired or canceled!"}), 409
+
+    try:
+        btc2usd = btc2fiat.get_value('kraken')
+    except Exception:
+        return jsonify({'message': "Error fetching the exchange rate!"}), 500
+
+    shipping_domestic_id = sha256(merchant.shipping_from.encode('utf-8')).hexdigest() if merchant.shipping_from else ""
+
+    shipping_usd = None
+    shipping_id = cleartext_content['shipping_id']
+    if shipping_id == 'WORLD':
+        shipping_usd = merchant.shipping_worldwide_usd
+    elif shipping_id == shipping_domestic_id:
+        shipping_usd = merchant.shipping_domestic_usd
+    else:
+        message = "Invalid shipping zone!"
+        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+        return jsonify({'message': message}), 400
+
+    if not order:
+        if merchant.wallet:
             try:
-                btc2usd = btc2fiat.get_value('kraken')
-            except Exception:
-                return jsonify({'message': "Error fetching the exchange rate!"}), 500
+                on_chain_address = merchant.get_new_address()
+            except m.AddressGenerationError as e:
+                return jsonify({'message': str(e)}), 500
+            except MempoolSpaceError as e:
+                return jsonify({'message': str(e)}), 500
+        else:
+            on_chain_address = None
+        lightning_address = merchant.lightning_address
 
-            shipping_domestic_id = sha256(merchant.shipping_from.encode('utf-8')).hexdigest() if merchant.shipping_from else ""
-
-            shipping_usd = None
-            shipping_id = cleartext_content['shipping_id']
-            if shipping_id == 'WORLD':
-                shipping_usd = merchant.shipping_worldwide_usd
-            elif shipping_id == shipping_domestic_id:
-                shipping_usd = merchant.shipping_domestic_usd
-            else:
-                message = "Invalid shipping zone!"
-                get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
-                return jsonify({'message': message}), 400
-
-            if not order:
-                if merchant.wallet:
-                    try:
-                        on_chain_address = merchant.get_new_address()
-                    except m.AddressGenerationError as e:
-                        return jsonify({'message': str(e)}), 500
-                    except MempoolSpaceError as e:
-                        return jsonify({'message': str(e)}), 500
-                else:
-                    on_chain_address = None
-                lightning_address = merchant.lightning_address
-
-                order_listings = [] # [(listing, quantity), ...]
-                for item in cleartext_content['items']:
-                    # NB: we only look for listings here. auction orders are generated in finalize-auctions!
-                    listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
-                    if listing:
-                        if not listing.started or listing.ended:
-                            message = "Listing not active."
-                            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
-                            return jsonify({'message': message}), 403
-                        if listing.available_quantity < item['quantity']:
-                            message = "Not enough items in stock!"
-                            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
-                            return jsonify({'message': message}), 400
-                        order_listings.append((listing, item['quantity']))
-
-                if len(order_listings) == 0:
-                    message = "Empty order!"
+        order_listings = [] # [(listing, quantity), ...]
+        for item in cleartext_content.get('items', []):
+            # NB: we only look for listings here. auction orders are generated in finalize-auctions!
+            listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
+            if listing:
+                if not listing.started or listing.ended:
+                    message = "Listing not active."
+                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+                    return jsonify({'message': message}), 403
+                if listing.available_quantity < item['quantity']:
+                    message = "Not enough items in stock!"
                     get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
                     return jsonify({'message': message}), 400
+                order_listings.append((listing, item['quantity']))
 
-                order = m.Order(
-                    uuid=cleartext_content['id'],
-                    seller_id=merchant.id,
-                    event_id=request.json['id'],
-                    buyer_public_key=request.json['pubkey'],
-                    buyer_name=cleartext_content.get('name'),
-                    buyer_address=cleartext_content.get('address'),
-                    buyer_message=cleartext_content.get('message'),
-                    buyer_contact=cleartext_content.get('contact'),
-                    requested_at=datetime.utcnow(),
-                    on_chain_address=on_chain_address,
-                    lightning_address=lightning_address)
-                db.session.add(order)
-                db.session.commit()
+        if len(order_listings) == 0:
+            message = "Empty order!"
+            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+            return jsonify({'message': message}), 400
 
-                for listing, quantity in order_listings:
-                    # here we "lock" the quantity. it is given back if the order expires
-                    listing.available_quantity -= quantity
-                    # NB: we need to update the quantity in Nostr as well!
-                    listing.nostr_event_id = get_birdwatcher().publish_product(listing)
+        order = m.Order(
+            uuid=cleartext_content['id'],
+            seller_id=merchant.id,
+            event_id=request.json['id'],
+            buyer_public_key=request.json['pubkey'],
+            buyer_name=cleartext_content.get('name'),
+            buyer_address=cleartext_content.get('address'),
+            buyer_message=cleartext_content.get('message'),
+            buyer_contact=cleartext_content.get('contact'),
+            requested_at=datetime.utcnow(),
+            on_chain_address=on_chain_address,
+            lightning_address=lightning_address)
+        db.session.add(order)
+        db.session.commit()
 
-                    order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
-                    db.session.add(order_item)
+        for listing, quantity in order_listings:
+            # here we "lock" the quantity. it is given back if the order expires
+            listing.available_quantity -= quantity
+            # NB: we need to update the quantity in Nostr as well!
+            listing.nostr_event_id = get_birdwatcher().publish_product(listing)
 
-                    if shipping_id == 'WORLD':
-                        shipping_usd += listing.item.extra_shipping_worldwide_usd * quantity
-                    elif shipping_id == shipping_domestic_id:
-                        shipping_usd += listing.item.extra_shipping_domestic_usd * quantity
+            order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
+            db.session.add(order_item)
 
-                    order.total_usd += listing.price_usd * quantity
+            if shipping_id == 'WORLD':
+                shipping_usd += listing.item.extra_shipping_worldwide_usd * quantity
+            elif shipping_id == shipping_domestic_id:
+                shipping_usd += listing.item.extra_shipping_domestic_usd * quantity
 
-                order.shipping_usd = shipping_usd
+            order.total_usd += listing.price_usd * quantity
 
-                order.total_usd += order.shipping_usd
-                order.total = usd2sats(order.total_usd, btc2usd)
+        order.shipping_usd = shipping_usd
 
-                app.logger.info(f"New order for merchant {pubkey}: {order.uuid=} {len(order_listings)} items, {order.total_usd=}, {order.total=}!")
-            else: # order exists, so we can edit it here
-                # NB: this is mostly used for orders where the item bought is an auction,
-                # which are generated by us in finalize-auctions and the client will re-submit the order to add their name/address/etc
-                # but in theory this could be used for any orders as long as they are not already paid/shipped/expired/canceled!
-                order.buyer_name = cleartext_content.get('name')
-                order.buyer_address = cleartext_content.get('address')
-                order.buyer_message = cleartext_content.get('message')
-                order.buyer_contact = cleartext_content.get('contact')
+        order.total_usd += order.shipping_usd
+        order.total = usd2sats(order.total_usd, btc2usd)
 
-                order.total = order.total_usd = 0
+        app.logger.info(f"New order for merchant {pubkey}: {order.uuid=} {len(order_listings)} items, {order.total_usd=}, {order.total=}!")
+    else: # order exists, so we can edit it here
+        # NB: this is mostly used for orders where the item bought is an auction,
+        # which are generated by us in finalize-auctions and the client will re-submit the order to add their name/address/etc
+        # but in theory this could be used for any orders as long as they are not already paid/shipped/expired/canceled!
+        order.buyer_name = cleartext_content.get('name')
+        order.buyer_address = cleartext_content.get('address')
+        order.buyer_message = cleartext_content.get('message')
+        order.buyer_contact = cleartext_content.get('contact')
 
-                listing_count = 0
-                auction_count = 0
-                for order_item in order.order_items:
-                    if order_item.listing_id:
-                        listing = m.Listing.query.filter_by(id=order_item.listing_id).first()
-                        order.total_usd += listing.price_usd * order_item.quantity
-                        listing_count += 1
-                    elif order_item.auction_id:
-                        auction = m.Auction.query.filter_by(id=order_item.auction_id).first()
-                        winning_bid = auction.get_winning_bid()
-                        order.total += winning_bid.amount
-                        auction_count += 1
+        order.total = order.total_usd = 0
 
-                    if shipping_id == 'WORLD':
-                        shipping_usd += order_item.item.extra_shipping_worldwide_usd * order_item.quantity
-                    elif shipping_id == shipping_domestic_id:
-                        shipping_usd += order_item.item.extra_shipping_domestic_usd * order_item.quantity
+        listing_count = 0
+        auction_count = 0
+        for order_item in order.order_items:
+            if order_item.listing_id:
+                listing = m.Listing.query.filter_by(id=order_item.listing_id).first()
+                order.total_usd += listing.price_usd * order_item.quantity
+                listing_count += 1
+            elif order_item.auction_id:
+                auction = m.Auction.query.filter_by(id=order_item.auction_id).first()
+                winning_bid = auction.get_winning_bid()
+                order.total += winning_bid.amount
+                auction_count += 1
 
-                order.shipping_usd = shipping_usd
+            if shipping_id == 'WORLD':
+                shipping_usd += order_item.item.extra_shipping_worldwide_usd * order_item.quantity
+            elif shipping_id == shipping_domestic_id:
+                shipping_usd += order_item.item.extra_shipping_domestic_usd * order_item.quantity
 
-                if order.total_usd:
-                    order.total_usd += order.shipping_usd
-                    order.total = usd2sats(order.total_usd, btc2usd)
-                else:
-                    order.total += usd2sats(order.shipping_usd, btc2usd)
-                    order.total_usd = sats2usd(order.total, btc2usd)
+        order.shipping_usd = shipping_usd
 
-                app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
+        if order.total_usd:
+            order.total_usd += order.shipping_usd
+            order.total = usd2sats(order.total_usd, btc2usd)
+        else:
+            order.total += usd2sats(order.shipping_usd, btc2usd)
+            order.total_usd = sats2usd(order.total, btc2usd)
 
-            payment_options = []
+        app.logger.info(f"Edited order for merchant {pubkey}: {order.uuid=} {listing_count} listings, {auction_count} auctions, {order.total_usd=}, {order.total=}!")
 
-            if order.on_chain_address:
-                payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
+    payment_options = []
 
-            if order.lightning_address:
-                lndhub_client = get_lndhub_client()
-                invoice_information = lndhub_client.create_invoice(order.id, order.total)
+    if order.on_chain_address:
+        payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
 
-                if not invoice_information:
-                    app.logger.info(f"Error while trying to create_invoice. Retrying...")
-                    time.sleep(5)
-                    lndhub_client.get_login_token()
-                    invoice_information = lndhub_client.create_invoice(order.id, order.total)
+    if order.lightning_address:
+        lndhub_client = get_lndhub_client()
+        invoice_information = lndhub_client.create_invoice(order.id, order.total)
 
-                if invoice_information and invoice_information['payment_request']:
-                    lightning_invoice = m.LightningInvoice(
-                        order_id=order.id,
-                        invoice=invoice_information['payment_request'],
-                        payment_hash=invoice_information['payment_hash'],
-                        price=order.total,
-                        expires_at=invoice_information['expires_at']
-                    )
-                    db.session.add(lightning_invoice)
-                    db.session.commit()
+        if not invoice_information:
+            app.logger.info(f"Error while trying to create_invoice. Retrying...")
+            time.sleep(5)
+            lndhub_client.get_login_token()
+            invoice_information = lndhub_client.create_invoice(order.id, order.total)
 
-                    payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
-
-                else:
-                    return jsonify({'message': "Error sending the payment options back to the buyer (couldn't create a new LN invoice)"}), 500
-
-            if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
-                json.dumps({
-                    'id': order.uuid,
-                    'type': 1,
-                    'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
-                    'payment_options': payment_options})):
-                return jsonify({'message': "Error sending the payment options back to the buyer (couldn't send the nostr type=1 message)"}), 500
-
+        if invoice_information and invoice_information['payment_request']:
+            lightning_invoice = m.LightningInvoice(
+                order_id=order.id,
+                invoice=invoice_information['payment_request'],
+                payment_hash=invoice_information['payment_hash'],
+                price=order.total,
+                expires_at=invoice_information['expires_at']
+            )
+            db.session.add(lightning_invoice)
             db.session.commit()
+
+            payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
+
+        else:
+            return jsonify({'message': "Error sending the payment options back to the buyer (couldn't create a new LN invoice)"}), 500
+
+    if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
+        json.dumps({
+            'id': order.uuid,
+            'type': 1,
+            'message': f"Please send the {order.total} sats ({1 / app.config['SATS_IN_BTC'] * order.total :.9f} BTC) directly to the seller.",
+            'payment_options': payment_options})):
+        return jsonify({'message': "Error sending the payment options back to the buyer (couldn't send the nostr type=1 message)"}), 500
+
+    db.session.commit()
 
     return jsonify({})
 
