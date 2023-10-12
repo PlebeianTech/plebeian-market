@@ -360,34 +360,37 @@ def settle_lightning_payments():
                         if incoming_payment_received:
                             outgoing_payments_sent = True
 
-                            payout_information = get_payout_information(order.seller_id)
-                            app.logger.info(f"      ---- Payout information - payout_information = {payout_information}")
-
-                            if not payout_information:
-                                app.logger.error(f"        -- ERROR: There is no payout information for order.id={order.id}, order.seller_id={order.seller_id}  !!!!!")
-                                outgoing_payments_sent = False
+                            if order.has_skin_in_the_game_badge():
+                                app.logger.info(f"      ---- This is a payment for a Skin In The Game badge, so we keep the money and don't pay anyone")
                             else:
-                                for payout in payout_information:
-                                    payout_ln_address = payout['ln_address']
-                                    payout_percent = payout['percent']
-                                    payout_amount = order.total * payout_percent / 100
-                                    payout_amount = round(payout_amount)
+                                payout_information = get_payout_information(order.seller_id)
+                                app.logger.info(f"      ---- Payout information - payout_information = {payout_information}")
 
-                                    if ln_payment_logs_util.check_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount):
-                                        app.logger.info(f"        -- Payment for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount} WAS already paid.")
-                                    else:
-                                        app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
-                                        
-                                        if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
-                                            time.sleep(5)
-                                            lndhub_client.get_login_token()
+                                if not payout_information:
+                                    app.logger.error(f"        -- ERROR: There is no payout information for order.id={order.id}, order.seller_id={order.seller_id}  !!!!!")
+                                    outgoing_payments_sent = False
+                                else:
+                                    for payout in payout_information:
+                                        payout_ln_address = payout['ln_address']
+                                        payout_percent = payout['percent']
+                                        payout_amount = order.total * payout_percent / 100
+                                        payout_amount = round(payout_amount)
 
-                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
-                                                outgoing_payments_sent = False
-                                                app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
-
+                                        if ln_payment_logs_util.check_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount):
+                                            app.logger.info(f"        -- Payment for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount} WAS already paid.")
                                         else:
-                                            ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
+                                            app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
+                                            
+                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                                time.sleep(5)
+                                                lndhub_client.get_login_token()
+
+                                                if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                                    outgoing_payments_sent = False
+                                                    app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
+
+                                            else:
+                                                ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
 
                     if incoming_payment_received and outgoing_payments_sent:
                         app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
