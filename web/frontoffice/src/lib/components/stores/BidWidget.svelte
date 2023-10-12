@@ -68,6 +68,7 @@
 
                         try {
                             let bidResponse = JSON.parse(auctionEvent.content);
+                            bidResponse.created_at = auctionEvent.created_at;
 
                             const eTags = filterTags(auctionEvent.tags, 'e');
 
@@ -75,6 +76,19 @@
                                 let tagValue = eTags[i][1];
                                 if (product.event.id !== tagValue) {
                                     let bidInfo = bids[tagValue];
+
+                                    if (bidResponse.status === 'accepted' || bidResponse.status === 'winner') {
+                                        // This kind of response always have priority, so let them go
+                                    } else {
+                                        if (!bidInfo.backendResponse || bidInfo.backendResponse < bidResponse.created_at) {
+                                            // We don't yet have a response from backend, or the response we have
+                                            // is older than this one. So this response is the latest one, let it go.
+                                        } else {
+                                            // We already have a response from backend, and it's newer than this one.
+                                            // So let's ignore this one.
+                                            return;
+                                        }
+                                    }
 
                                     if (bidResponse.status === 'winner' || (bidResponse.status !== 'winner' && bidInfo.backendResponse?.status !== 'winner' )) {
                                         if (bidResponse.status === 'winner') {
