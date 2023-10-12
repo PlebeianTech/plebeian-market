@@ -2,7 +2,7 @@
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import Quantity from "./Quantity.svelte";
     import {addToCart} from "$lib/shopping";
-    import {stalls} from "$lib/stores";
+    import {stalls} from "$sharedLib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import { goto } from "$app/navigation";
     import {EVENT_KIND_AUCTION} from "$sharedLib/services/nostr";

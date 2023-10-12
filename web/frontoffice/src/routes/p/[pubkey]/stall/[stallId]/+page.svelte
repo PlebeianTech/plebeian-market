@@ -5,7 +5,7 @@
     import Contract from "$sharedLib/components/icons/Contract.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import {onMount} from "svelte";
-    import {stalls} from "$lib/stores";
+    import {stalls} from "$sharedLib/stores";
     import {getStallsByMerchant, refreshStalls} from "$lib/shopping";
     import {getChannelIdForStall} from "$sharedLib/nostr/utils";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";

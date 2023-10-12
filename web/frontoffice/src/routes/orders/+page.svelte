@@ -1,6 +1,6 @@
 <script>
-    import {products, stalls} from "$lib/stores";
-    import {NostrPublicKey, privateMessages, Info} from "$sharedLib/stores";
+    import {products} from "$lib/stores";
+    import {NostrPublicKey, stalls, privateMessages, Info} from "$sharedLib/stores";
     import {formatTimestamp, newNostrConversation} from "$sharedLib/nostr/utils";
     import QRLocal from "$lib/components/QRLocal.svelte";
     import {refreshProducts, refreshStalls} from "$lib/shopping";
@@ -184,8 +184,8 @@
             refreshStalls();
             refreshProducts();
 
-            await new Promise(resolve => setTimeout(resolve, 2500));
-            showAutomaticPayments = true;
+            // await new Promise(resolve => setTimeout(resolve, 2500));
+            // showAutomaticPayments = true;
         }
     });
     onDestroy(nostrPublicKeyUnsubscribe);

@@ -96,9 +96,9 @@
                                         }
                                     }
 
-                                    if (bidResponse.status === 'pending' && bidResponse.donation_stall_ids) {
-                                        setDonationStallIDs(bidResponse.donation_stall_ids);
-                                    }
+                                    //if (bidResponse.status === 'pending' && bidResponse.badge_stall_id) {
+                                        //setDonationStallIDs(bidResponse.badge_stall_id, bidResponse.badge_product_id);
+                                    //}
                                 }
                             }
 
@@ -166,11 +166,6 @@
                 bidAmount = maxBid + Math.round(maxBid * 0.1);
             }
         }
-    }
-
-    function setDonationStallIDs(donationStallIDs: string[]) {
-        console.log('setDonationStallIDs: ', donationStallIDs);
-        localStorage.setItem('donationStallIDs', JSON.stringify(donationStallIDs));
     }
 </script>
 

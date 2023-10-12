@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import {NostrGlobalConfig, stalls} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {NostrGlobalConfig} from "$lib/stores";
+    import {NostrPublicKey, stalls} from "$sharedLib/stores";
     import {formatTimestamp} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
     import Plus from "$sharedLib/components/icons/Plus.svelte";
@@ -15,7 +15,6 @@
 
     export let merchantPubkey: string | null;
     export let showStallFilter: boolean = true;
-    export let donationStalls: boolean = false;
 
     let isSuperAdmin: boolean = false;
 
@@ -32,21 +31,6 @@
                     .sort((a, b) => {
                         return b[1].createdAt - a[1].createdAt;
                     });
-            } else if (donationStalls && typeof window !== 'undefined') {
-                const donationStallIDsJSON: string | null = localStorage.getItem('donationStallIDs');
-
-                if (donationStallIDsJSON) {
-                    const donationStallIDs = JSON.parse(donationStallIDsJSON);
-
-                    sortedStalls = Object.entries($stalls.stalls)
-                        .filter(([, stall]) => {
-                            return donationStallIDs.includes(stall.id);
-                        })
-                        .sort((a, b) => {
-                            return b[1].createdAt - a[1].createdAt;
-                        });
-                }
-
             } else {
                 sortedStalls = Object.entries($stalls.stalls)
                     .sort((a, b) => {

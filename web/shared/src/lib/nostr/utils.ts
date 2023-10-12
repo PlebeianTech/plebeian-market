@@ -1,8 +1,7 @@
 import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nostr-tools";
 import {goto} from "$app/navigation";
 import {get} from "svelte/store";
-import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, token, Error} from "$sharedLib/stores";
-import {stalls} from "$lib/stores";
+import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, stalls, token, Error} from "$sharedLib/stores";
 import {getApiBaseUrl} from "$sharedLib/utils";
 import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
@@ -308,46 +307,64 @@ export async function sendOrder(
     phone: string | null = null,
     email: string | null = null
 ) {
-    const order = {
-        id: uuidv4(),
-        stall_id: stallId,
-        type: 0,
-        contact: {
-            nostr: get(NostrPublicKey)
-        },
-        items: orderItems,
-        shipping_id: shipping_id ?? get(stalls).stalls[stallId].shippingOption
-    };
+    return new Promise(function(resolve, reject) {
+        const uuid = uuidv4();
 
-    if (name && name !== '') {
-        order.name = name;
-    }
-    if (address && address !== '') {
-        order.address = address;
-    }
-    if (message && message !== '') {
-        order.message = message;
-    }
-    if (phone && phone !== '') {
-        order.contact.phone = phone;
-    }
-    if (email && email !== '') {
-        order.contact.email = email;
-    }
+        const order = {
+            id: uuid,
+            stall_id: stallId,
+            type: 0,
+            contact: {
+                nostr: get(NostrPublicKey)
+            },
+            items: orderItems,
+            shipping_id: shipping_id ?? get(stalls).stalls[stallId].shippingOption
+        };
 
-    try {
-        console.debug('************ jsonOrder:  ', order);
+        if (name && name !== '') {
+            order.name = name;
+        }
+        if (address && address !== '') {
+            order.address = address;
+        }
+        if (message && message !== '') {
+            order.message = message;
+        }
+        if (phone && phone !== '') {
+            order.contact.phone = phone;
+        }
+        if (email && email !== '') {
+            order.contact.email = email;
+        }
 
-        const messageOrder: string = JSON.stringify(order);
+        try {
+            console.debug('************ jsonOrder:  ', order);
 
-        await sendPrivateMessage(get(stalls).stalls[stallId].merchantPubkey, messageOrder, false,
-            async (relay) => {
-                console.debug('-------- Order accepted by relay:', relay);
-            }
-        );
+            const messageOrder: string = JSON.stringify(order);
 
-    } catch (e) {
-        Error.set('There was an error trying to buy the products. Check that you have a Nostr extension in the browser or you have generated the Nostr key correctly.');
-        console.log('Error trying to buy the products:', e);
-    }
+            sendPrivateMessage(get(stalls).stalls[stallId].merchantPubkey, messageOrder, false,
+                async (relay) => {
+                    console.debug('-------- Order accepted by relay:', relay);
+                    resolve(uuid);
+                }
+            );
+
+        } catch (e) {
+            Error.set('There was an error trying to buy the products. Check that you have a Nostr extension in the browser or you have generated the Nostr key correctly.');
+            console.log('Error trying to buy the products:', e);
+            reject();
+        }
+    });
+}
+
+export function sendSitgBadgeOrder(stall_id: string | number, badge_id: string) {
+    sendOrder(stall_id,
+        [{
+            product_id: badge_id,
+            quantity: 1
+        }],
+        0
+    ).then(orderId => {
+        console.log('-------- Order ID: ', orderId);
+    })
 }
