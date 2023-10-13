@@ -861,9 +861,15 @@ def post_merchant_message(pubkey):
         app.logger.info("Message is not an order request. Ignoring.")
         return jsonify({})
 
-    if 'id' not in cleartext_content or 'shipping_id' not in cleartext_content:
-        message = "Invalid order: missing id or shipping_id."
+    if 'id' not in cleartext_content:
+        message = "Invalid order: missing id."
         get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+        return jsonify({'message': message}), 400
+
+    if 'shipping_id' not in cleartext_content:
+        message = "Invalid order: missing shipping zone."
+        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+            json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
         return jsonify({'message': message}), 400
 
     order = m.Order.query.filter_by(uuid=cleartext_content['id']).one_or_none()
@@ -889,7 +895,8 @@ def post_merchant_message(pubkey):
         shipping_usd = merchant.shipping_domestic_usd
     else:
         message = "Invalid shipping zone!"
-        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+            json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
         return jsonify({'message': message}), 400
 
     if not order:
@@ -911,17 +918,20 @@ def post_merchant_message(pubkey):
             if listing:
                 if not listing.started or listing.ended:
                     message = "Listing not active."
-                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+                        json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
                     return jsonify({'message': message}), 403
                 if listing.available_quantity < item['quantity']:
                     message = "Not enough items in stock!"
-                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+                        json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
                     return jsonify({'message': message}), 400
                 order_listings.append((listing, item['quantity']))
 
         if len(order_listings) == 0:
             message = "Empty order!"
-            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+                json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
             return jsonify({'message': message}), 400
 
         order = m.Order(
