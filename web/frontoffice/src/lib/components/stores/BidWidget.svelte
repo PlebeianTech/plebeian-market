@@ -53,12 +53,17 @@
                 (auctionEvent) => {
                     if (auctionEvent.kind === EVENT_KIND_AUCTION_BID) {
 
-                        bids[auctionEvent.id] = {
-                            amount: Number(auctionEvent.content),
-                            date: auctionEvent.created_at,
-                            pubkey: auctionEvent.pubkey,
-                            backendResponse: null
-                        };
+                        if (bids[auctionEvent.id] === undefined) {
+                            bids[auctionEvent.id] = {};
+                        }
+
+                        bids[auctionEvent.id].amount = Number(auctionEvent.content);
+                        bids[auctionEvent.id].date = auctionEvent.created_at;
+                        bids[auctionEvent.id].pubkey = auctionEvent.pubkey;
+
+                        if (!bids[auctionEvent.id].backendResponse) {
+                            bids[auctionEvent.id].backendResponse = null;
+                        }
 
                         sortedBids = Object.entries(bids).sort((a, b) => {
                             return b[1].amount - a[1].amount;
@@ -84,12 +89,19 @@
                             for (let i = 0; i < eTags.length; i++) {
                                 let tagValue = eTags[i][1];
                                 if (product.event.id !== tagValue) {
+
+                                    if (bids[tagValue] === undefined) {
+                                        bids[tagValue] = {
+                                            backendResponse: null
+                                        };
+                                    }
+
                                     let bidInfo = bids[tagValue];
 
                                     if (bidResponse.status === 'accepted' || bidResponse.status === 'winner') {
                                         // This kind of response always have priority, so let them go
                                     } else {
-                                        if (!bidInfo.backendResponse || bidInfo.backendResponse < bidResponse.created_at) {
+                                        if (!bidInfo.backendResponse || (bidInfo.backendResponse && bidInfo.backendResponse.created_at < bidResponse.created_at)) {
                                             // We don't yet have a response from backend, or the response we have
                                             // is older than this one. So this response is the latest one, let it go.
                                         } else {
@@ -118,10 +130,6 @@
                                             totalTimeExtension += timeToExtend;
                                         }
                                     }
-
-                                    //if (bidResponse.status === 'pending' && bidResponse.badge_stall_id) {
-                                        //setDonationStallIDs(bidResponse.badge_stall_id, bidResponse.badge_product_id);
-                                    //}
                                 }
                             }
 
