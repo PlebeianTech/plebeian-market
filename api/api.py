@@ -921,7 +921,7 @@ def post_merchant_message(pubkey):
                     get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
                         json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
                     return jsonify({'message': message}), 403
-                if listing.available_quantity < item['quantity']:
+                if listing.available_quantity is not None and listing.available_quantity < item['quantity']:
                     message = "Not enough items in stock!"
                     get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
                         json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
@@ -950,10 +950,11 @@ def post_merchant_message(pubkey):
         db.session.commit()
 
         for listing, quantity in order_listings:
-            # here we "lock" the quantity. it is given back if the order expires
-            listing.available_quantity -= quantity
-            # NB: we need to update the quantity in Nostr as well!
-            listing.nostr_event_id = get_birdwatcher().publish_product(listing)
+            if listing.available_quantity is not None:
+                # here we "lock" the quantity. it is given back if the order expires
+                listing.available_quantity -= quantity
+                # NB: we need to update the quantity in Nostr as well!
+                listing.nostr_event_id = get_birdwatcher().publish_product(listing)
 
             order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
             db.session.add(order_item)
