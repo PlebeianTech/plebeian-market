@@ -70,5 +70,9 @@ services:
       - "/home/www/plebeian-market-state:/state"
     command: python main.py
 
+networks:
+  proxy:
+    external: true
+
 volumes:
   buyer-app-static-content:
