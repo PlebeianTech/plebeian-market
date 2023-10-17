@@ -71,8 +71,6 @@ services:
     command: python main.py
 
 networks:
-  proxy:
-    external: true
   relay_network:
     external: true
 
