@@ -144,7 +144,7 @@
 
 <!-- Title for mobile: visible only in conversation view -->
 {#if !selectedConversationPubkey}
-    <div class="block lg:hidden">
+    <div class="block md:hidden">
         <Titleh1>Private Messages</Titleh1>
     </div>
 {/if}
@@ -247,7 +247,7 @@
 
         <!-- Mobile -->
         {#if !selectedConversationPubkey}
-            <div class="lg:hidden flex w-full h-auto p-1 max-h-full gap-2 menu card rounded-box bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden
+            <div class="lg:hidden flex-grow flex-nowrap menu card w-full gap-2 p-1 -mt-6 max-h-full rounded-box bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden
                         scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300
                         scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 hover:scrollbar-thumb:!bg-slate-400/80">
                 {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
@@ -341,7 +341,7 @@
                  id="conversationMessagesMobile" style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);">
 
                 <div class="mt-2 ml-1">
-                    {#each sortedMessages as [publicKey, message]}
+                    {#each sortedMessages as [_, message]}
                         {#if typeof message === 'object'}
                             <SimpleNote {message} />
                         {/if}
