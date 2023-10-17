@@ -2,7 +2,7 @@
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import ResumeView from "$lib/components/resume/View.svelte";
     import StallsBrowser from "$lib/components/stores/StallsBrowser.svelte";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {Info, NostrPublicKey} from "$sharedLib/stores";
     import {
         getBadgeAward,
         getBadgeDefinitions,
@@ -16,6 +16,7 @@
     import {decodeNpub,filterTags} from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
     import ShowExternalIdentities from "$lib/components/nostr/ShowExternalIdentities.svelte";
+    import Copy from "$sharedLib/components/icons/Copy.svelte";
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -138,30 +139,48 @@
 
 {#if data.pubkey === $NostrPublicKey}
     <Titleh1>Your profile</Titleh1>
-{:else}
-    <Titleh1>Profile of user</Titleh1>
 {/if}
 
+
 {#if profile}
-    <div class="flex pb-4 md:pb-8 leading-none relative">
-        <div class="avatar indicator align-bottom">
-            <div class="w-24 h-24 mr-4 rounded-full">
-                <img src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
+    {#if data.pubkey !== $NostrPublicKey && (profile.display_name || profile.name)}
+        <Titleh1>
+            {profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)?.substring(0,20)}
+        </Titleh1>
+    {/if}
+
+    <div class="lg:flex w-full pb-4 md:pb-8">
+        <!-- Desktop -->
+        <div class="avatar hidden lg:block mr-8">
+            <div class="w-36 h-36 mx-auto rounded-full">
+                <img class="mx-auto" src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
+            </div>
+        </div>
+        <!-- Mobile -->
+        <div class="avatar container block lg:hidden -mt-4 mb-4">
+            <div class="w-36 h-36 mx-auto rounded-full">
+                <img class="mx-auto" src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
             </div>
         </div>
 
         <div class="mt-2">
-            {#if profile.display_name || profile.name}
-                <p class="mb-1 font-bold text-xl">{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)}</p>
-                <p class="mb-1 text-xs">{nip19.npubEncode(profile.pubkey)}</p>
-            {:else}
-                <p class="mb-1 font-bold text-xl">{nip19.npubEncode(profile.pubkey)}</p>
-            {/if}
+            <div class="w-full mb-4 flex">
+                <p class="font-bold text-ellipsis overflow-hidden lg:mr-2">
+                    {nip19.npubEncode(profile.pubkey)}
+                </p>
+                <button class="btn btn-square btn-xs"
+                        on:click={() => {
+                            navigator.clipboard.writeText(nip19.npubEncode(profile.pubkey));
+                            Info.set('Public key copied to clipboard.')
+                        }}>
+                    <Copy />
+                </button>
+            </div>
             {#if profile.about}
-                <p class="text-lg">{profile.about}</p>
+                <p class="mb-6 text-justify text-lg">{profile.about}</p>
             {/if}
             {#if profile.lud16}
-                <p class="mt-3"><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
+                <p class="mb-1 text-xl"><a class="hover:underline tooltip tooltip-bottom" data-tip="Tip with Lightning" href="lightning:{profile.lud16}">⚡ Tips</a></p>
             {/if}
         </div>
     </div>
