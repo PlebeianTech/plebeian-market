@@ -275,8 +275,9 @@ def check_expire_order(order):
             # where we detect the expired order and pick the next highest bidder as the new winner!)
             if order_item.listing_id:
                 listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
-                listing.available_quantity += order_item.quantity
-                birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
+                if listing.available_quantity is not None:
+                    listing.available_quantity += order_item.quantity
+                    birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
 
         db.session.commit()
 
@@ -949,6 +950,7 @@ def configure_site():
         sha.update(image_data)
         image_hash = sha.hexdigest()
 
+    need_listing_republish = False
     badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def_skin_in_the_game['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
     if badge_listing is None:
         badge_item = m.Item(seller=site_admin, title=badge_def_skin_in_the_game['name'], description=badge_def_skin_in_the_game['description'])
@@ -964,8 +966,12 @@ def configure_site():
         db.session.commit() # this generates the UUID!
     else:
         app.logger.info("Found badge listing!")
+        if badge_listing.available_quantity is not None:
+            badge_listing.available_quantity = None
+            db.session.commit()
+            need_listing_republish = True
 
-    if badge_listing.nostr_event_id is None:
+    if badge_listing.nostr_event_id is None or need_listing_republish:
         badge_listing.nostr_event_id = birdwatcher.publish_product(badge_listing)
         if badge_listing.nostr_event_id is None:
             app.logger.error("Error publishing badge listing to Nostr!")

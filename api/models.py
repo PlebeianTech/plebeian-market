@@ -1081,7 +1081,9 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
         return self.available_quantity == 0
 
     price_usd = db.Column(db.Float, nullable=False)
-    available_quantity = db.Column(db.Integer, nullable=False)
+
+    # NB: available_quantity NULL means there are unlimited items available (digital goods, badges, etc...)
+    available_quantity = db.Column(db.Integer, nullable=True)
 
     twitter_id = db.Column(db.String(32), nullable=True)
 
