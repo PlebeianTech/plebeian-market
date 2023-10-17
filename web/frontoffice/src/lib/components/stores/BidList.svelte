@@ -82,7 +82,7 @@
                                 </div>
                                 <div class="flex">
                                     {#if userProfileInfoMap.get(bid.pubkey)}
-                                        <span class="tooltip font-normal" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name ?? bid.pubkey.substring(0,6) + '...'}</span>
+                                        <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name?.substring(0,14) ?? bid.pubkey.substring(0,6) + '...'}</span>
                                         {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
                                             <span class="ml-1">
                                                 <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
@@ -166,7 +166,7 @@
                                 </div>
                                 <div class="flex">
                                     {#if userProfileInfoMap.get(bid.pubkey)}
-                                        <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name ?? bid.pubkey.substring(0,12) + '...'}</span>
+                                        <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name?.substring(0,30) ?? bid.pubkey.substring(0,12) + '...'}</span>
                                         {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
                                             <span class="mt-1 ml-2">
                                                 <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
