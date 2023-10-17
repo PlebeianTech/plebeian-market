@@ -7,6 +7,12 @@ services:
         type: tmpfs
     ports:
       - "5432:5432"
+  relay:
+    volumes:
+      - target: /app/strfry-db
+        type: tmpfs
+    ports:
+      - "7777:7777"
   api:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/healthcheck"]

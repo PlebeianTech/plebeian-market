@@ -7,6 +7,12 @@ services:
       dockerfile: ./services/postgres/Dockerfile
     networks:
       - db_network
+  relay:
+    build:
+      context: ./
+      dockerfile: ./services/strfry/Dockerfile
+    networks:
+      - relay_network
   api:
     build:
       context: ./
@@ -24,7 +30,7 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
-    image: plebeianmarket-api
+    image: plebeianmarket-finalize-auctions
     depends_on: [db]
     restart: on-failure
     stop_grace_period: 1m
@@ -34,7 +40,7 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
-    image: plebeianmarket-api
+    image: plebeianmarket-btc-payments
     depends_on: [db]
     restart: on-failure
     stop_grace_period: 1m
@@ -44,7 +50,7 @@ services:
     build:
       context: ./
       dockerfile: ./ln_payments_processor/Dockerfile
-    image: plebeianmarket-ln-payments
+    image: plebeianmarket-lightning-payments
     depends_on: [db]
     restart: on-failure
     stop_grace_period: 30s
@@ -61,6 +67,8 @@ services:
       - db_network
 networks:
   db_network:
+    driver: bridge
+  relay_network:
     driver: bridge
   proxy:
     driver: bridge

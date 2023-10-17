@@ -1,0 +1,1 @@
+FROM dockurr/strfry:latest

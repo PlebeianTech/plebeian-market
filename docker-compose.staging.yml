@@ -4,6 +4,11 @@ services:
   db:
     volumes:
       - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
+  relay:
+    volumes:
+      - "/home/www/plebeian-market-relaydata:/app/strfry-db"
+    ports:
+      - "7777:7777"
   api:
     healthcheck:
       test: ["CMD", "curl", "-f", "https://staging.plebeian.market/api/healthcheck"]
@@ -67,6 +72,8 @@ services:
 
 networks:
   proxy:
+    external: true
+  relay_network:
     external: true
 
 volumes:
