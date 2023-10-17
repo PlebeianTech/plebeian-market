@@ -1,6 +1,6 @@
 <script lang="ts">
     import {formatTimestamp} from "$sharedLib/nostr/utils";
-    import Countdown from "$sharedLib/components/Countdown.svelte";
+    import Countdown, { CountdownStyle } from "$sharedLib/components/Countdown.svelte";
     import {EVENT_KIND_AUCTION_BID, subscribeAuction} from "$sharedLib/services/nostr";
     import {Kind} from "nostr-tools";
     import {goto} from "$app/navigation";
@@ -27,8 +27,6 @@
 
         if (started && !ended && !alreadySubscribedToReactions && product.event.id) {
             alreadySubscribedToReactions = true;
-
-//            console.log('SUBSCRIBING!!!', product.id);
 
             subscribeAuction([product.event.id],
                 (auctionEvent) => {
@@ -75,7 +73,12 @@
             {#if started}
                 <div class="pb-5">
                     <p class="mb-2">Auction ends in</p>
-                    <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
+                    <div class="hidden lg:block">
+                        <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
+                    </div>
+                    <div class="block lg:hidden">
+                        <Countdown totalSeconds={endsAt - now} style={CountdownStyle.Compact} bind:ended={ended} />
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap min-h-[6rem] min-w-[18rem] max-w-4xl gap-2 p-6 items-center justify-center overflow-x-hidden">
