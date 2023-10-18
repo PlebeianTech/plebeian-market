@@ -5,6 +5,7 @@
     import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
     import {NostrPublicKey} from "$sharedLib/stores";
+    import {nip19} from "nostr-tools";
 
     export let sortedBids;
     export let userProfileInfoMap;
@@ -81,15 +82,11 @@
                                     <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
                                 </div>
                                 <div class="flex">
-                                    {#if userProfileInfoMap.get(bid.pubkey)}
-                                        <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name?.substring(0,14) ?? bid.pubkey.substring(0,6) + '...'}</span>
-                                        {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
-                                            <span class="ml-1">
-                                                <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
-                                            </span>
-                                        {/if}
-                                    {:else}
-                                        <span class="tooltip" data-tip="{bid.pubkey}">{bid.pubkey.substring(0,6)}...</span>
+                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,15) ?? bid.pubkey.substring(0,6) + '...'}</span>
+                                    {#if userProfileInfoMap.get(bid.pubkey)?.nip05VerifiedAddress}
+                                        <span class="ml-1">
+                                            <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
+                                        </span>
                                     {/if}
                                 </div>
                             </div>
@@ -165,15 +162,16 @@
                                     <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
                                 </div>
                                 <div class="flex">
-                                    {#if userProfileInfoMap.get(bid.pubkey)}
-                                        <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey).name?.substring(0,30) ?? bid.pubkey.substring(0,12) + '...'}</span>
-                                        {#if userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}
-                                            <span class="mt-1 ml-2">
-                                                <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
-                                            </span>
-                                        {/if}
-                                    {:else}
-                                        <span class="tooltip" data-tip="{bid.pubkey}">{bid.pubkey.substring(0,12) + '...'}</span>
+                                    <a href="/p/{nip19.npubEncode(bid.pubkey)}"
+                                       target="_blank"
+                                       class="tooltip underline"
+                                       data-tip="{bid.pubkey}">
+                                        {userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,30) ?? bid.pubkey.substring(0,12) + '...'}
+                                    </a>
+                                    {#if userProfileInfoMap.get(bid.pubkey)?.nip05VerifiedAddress}
+                                        <span class="mt-1 ml-2">
+                                            <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
+                                        </span>
                                     {/if}
                                 </div>
                             </div>
