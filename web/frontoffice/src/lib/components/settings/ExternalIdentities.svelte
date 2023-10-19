@@ -5,7 +5,7 @@
     import {encodeNpub, filterTags} from "$sharedLib/nostr/utils";
     import {Info, Error, NostrPublicKey} from "$sharedLib/stores";
     import Question from "$sharedLib/components/icons/Question.svelte";
-    import ShowExternalIdentities from "$lib/components/nostr/ShowExternalIdentities.svelte";
+    import ShowExternalIdentities from "$sharedLib/components/nostr/ShowExternalIdentities.svelte";
 
     $: profile = null;
     $: externalIdentities = [];
@@ -260,11 +260,10 @@
             <p class="mt-2">Your Nostr profile doesn't have any external identity yet. Add one using the form above.</p>
         {:else}
             <ShowExternalIdentities
-                    {externalIdentities}
-                    {externalIdentitiesVerification}
-                    nostrPublicKey={$NostrPublicKey}
-                    bind:verifyIdentities={verifyIdentities}
-                    {deleteIdentity}
+                {externalIdentities}
+                nostrPublicKey={$NostrPublicKey}
+                bind:verifyIdentities={verifyIdentities}
+                {deleteIdentity}
             />
         {/if}
 

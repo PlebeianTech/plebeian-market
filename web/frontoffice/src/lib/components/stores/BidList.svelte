@@ -4,12 +4,16 @@
     import Clock from "$sharedLib/components/icons/Clock.svelte";
     import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
+    import UserInfoPopup from "$sharedLib/components/nostr/UserInfoPopup.svelte";
     import {NostrPublicKey} from "$sharedLib/stores";
     import {nip19} from "nostr-tools";
 
     export let sortedBids;
     export let userProfileInfoMap;
     export let openSitgBadgeInfo;
+
+    let openModalWithPubkey = null;
+    let hoverTimer = null;
 
     const winnerColor = 'bg-green-300 dark:bg-[#446600]';
 </script>
@@ -78,11 +82,11 @@
                         </th>
                         <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
                             <div class="flex w-fit mx-auto mt-1 space-x-3 items-center">
-                                <div class="avatar mask mask-squircle w-12 h-12">
+                                <div class="avatar mask mask-squircle w-12 h-12" on:click={() => {openModalWithPubkey=bid.pubkey}}>
                                     <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
                                 </div>
                                 <div class="flex">
-                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,15) ?? bid.pubkey.substring(0,6) + '...'}</span>
+                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,15) ?? bid.pubkey.substring(0,9) + '...'}</span>
                                     {#if userProfileInfoMap.get(bid.pubkey)?.nip05VerifiedAddress}
                                         <span class="ml-1">
                                             <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
@@ -158,7 +162,15 @@
                         </td>
                         <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             <div class="flex items-center space-x-3 p-3">
-                                <div class="avatar mask mask-squircle w-12 h-12">
+                                <div class="avatar mask mask-squircle w-12 h-12"
+                                     on:mouseover={() => {hoverTimer=window.setTimeout(function(){openModalWithPubkey=bid.pubkey},500)}}
+                                     on:mouseout={() => {
+                                         if (hoverTimer) {
+                                            window.clearTimeout(hoverTimer);
+                                         }
+                                         openModalWithPubkey = null;
+                                     }}
+                                >
                                     <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
                                 </div>
                                 <div class="flex">
@@ -183,3 +195,5 @@
         </table>
     </div>
 {/if}
+
+<UserInfoPopup bind:userPubkey={openModalWithPubkey} />
