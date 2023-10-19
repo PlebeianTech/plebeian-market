@@ -9,7 +9,7 @@ import {get} from "svelte/store";
 import { UserResume } from "$sharedLib/types/user";
 import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
 import {NostrPool, NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
-import {loggedIn, waitAndShowLoginIfNotLoggedAlready, isStaging} from "$sharedLib/utils";
+import {loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
 export type UserMetadata = {
     name?: string;
@@ -20,11 +20,11 @@ export type UserMetadata = {
 
 const EVENT_KIND_PM = 4;
 const EVENT_KIND_RESUME = 66;
-const EVENT_KIND_STALL = isStaging() ? 31017 : 30017;
-export const EVENT_KIND_PRODUCT = isStaging() ? 31018 : 30018;
-export const EVENT_KIND_AUCTION = isStaging() ? 31020 : 30020;
-export const EVENT_KIND_AUCTION_BID = isStaging() ? 2021 : 1021;
-export const EVENT_KIND_AUCTION_BID_STATUS = isStaging() ? 2022 : 1022;
+const EVENT_KIND_STALL = 30017;
+export const EVENT_KIND_PRODUCT = 30018;
+export const EVENT_KIND_AUCTION = 30020;
+export const EVENT_KIND_AUCTION_BID = 1021;
+export const EVENT_KIND_AUCTION_BID_STATUS = 1022;
 
 /* Badges (nip-58) */
 const EVENT_KIND_BADGE_AWARD = 8;

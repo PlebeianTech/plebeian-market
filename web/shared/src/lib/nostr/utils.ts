@@ -2,7 +2,7 @@ import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nost
 import {goto} from "$app/navigation";
 import {get} from "svelte/store";
 import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, stalls, token, Error} from "$sharedLib/stores";
-import {getApiBaseUrl} from "$sharedLib/utils";
+import {getApiBaseUrl, isStaging, isProduction} from "$sharedLib/utils";
 import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
 
@@ -10,7 +10,9 @@ export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHA
 export const pmMasterPublicKey = import.meta.env.VITE_NOSTR_PM_MASTER_PUBLIC_KEY;
 export const pmStallId = import.meta.env.VITE_NOSTR_PM_STALL_ID;
 
-export const relayUrlList = [
+export const relayUrlList =
+(isStaging() ? ["wss://staging.plebeian.market/relay"] : <string[]>[])
+.concat([
     // Amethyst relays
     "wss://relay.damus.io",
     "wss://relay.nostr.bg",
@@ -25,7 +27,7 @@ export const relayUrlList = [
     "wss://relay.nostr.com.au",
     "wss://nostr.inosta.cc",
     //"wss://relay.taxi"
-];
+]);
 
 export function hasExtension() {
     return !!(window as any).nostr;

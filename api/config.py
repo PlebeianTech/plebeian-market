@@ -64,21 +64,6 @@ MINIMUM_CONTRIBUTION_AMOUNT = 21
 CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.svelte
 
 MOCK_NOSTR = bool(int(os.environ.get("MOCK_NOSTR", 0)))
-DEFAULT_NOSTR_RELAYS = [
-    "wss://relay.damus.io",
-    "wss://relay.nostr.bg",
-    "wss://nostr.mom",
-    "wss://nos.lol",
-    "wss://nostr.bitcoiner.social",
-    "wss://nostr-pub.wellorder.net",
-    "wss://nostr.wine",
-    "wss://eden.nostr.land",
-    "wss://relay.orangepill.dev",
-    "wss://no.str.cr",
-    "wss://puravida.nostr.land",
-    "wss://relay.nostr.com.au",
-    "wss://nostr.inosta.cc",
-]
 
 MOCK_S3 = bool(int(os.environ.get('MOCK_S3', 0)))
 S3_SECRETS = "/secrets/s3.json"
