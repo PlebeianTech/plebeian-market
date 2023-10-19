@@ -46,9 +46,9 @@ def pk2npub(pk):
 class EventKind(IntEnum):
     METADATA = 0
     DM = 4
-    STALL = 31017 if ENV == 'staging' else 30017
-    AUCTION = 31020 if ENV == 'staging' else 30020
-    BID = 2021 if ENV == 'staging' else 1021
+    STALL = 30017
+    AUCTION = 30020
+    BID = 1021
 
 class Relay:
     def __init__(self, url, args, processed_event_ids, event_ids_being_processed):
