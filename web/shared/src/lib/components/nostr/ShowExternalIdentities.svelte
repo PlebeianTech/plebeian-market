@@ -1,18 +1,26 @@
 <script lang="ts">
-    import {askAPIForVerification, encodeNpub, getExternalIdentityUrl} from "$sharedLib/nostr/utils";
+    import {askAPIForVerification, encodeNpub, getExternalIdentityUrl} from "$sharedLib/nostr/utils.js";
     import {onMount} from "svelte";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
+    import {getConfigurationFromFile} from "$sharedLib/utils.js";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
     import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
     import X from "$sharedLib/components/icons/X.svelte";
     import Telegram from "$sharedLib/components/icons/Telegram.svelte";
     import Github from "$sharedLib/components/icons/Github.svelte";
     import Twitter from "$sharedLib/components/icons/Twitter.svelte";
+    import Copy from "$sharedLib/components/icons/Copy.svelte";
+    import {Info} from "$sharedLib/stores.js";
 
     export let externalIdentities;
-    export let externalIdentitiesVerification;
     export let nostrPublicKey;
     export let deleteIdentity = false;
+    export let compact = false;
+
+    let externalIdentitiesVerification = {
+        twitter: {verified: 'waiting'},
+        github: {verified: 'waiting'},
+        telegram: {verified: 'waiting'}
+    }
 
     export const verifyIdentities = callAPIVerifyIdentities;
 
@@ -72,12 +80,12 @@
 </script>
 
 {#each externalIdentities as identity}
-    <div class="flex mt-5">
+    <div class="flex mt-5" class:mt-5={!compact} class:mt-3={compact}>
         {#if deleteIdentity}
             <div class="w-5 h-5 mr-4 tooltip tooltip-error" data-tip="Delete this identity from your Nostr Profile" on:click={() => {deleteIdentity(identity)}}><X /></div>
         {/if}
 
-        <a class="flex hover:underline" target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
+        <a class="flex hover:underline" class:text-base={compact} target="_blank" href="{getExternalIdentityUrl(identity.split(':')[0], identity.split(':')[1], identity.split(':')[2])}">
             {#if identity.split(':')[0] === 'twitter'}
                 <Twitter />
             {:else if identity.split(':')[0] === 'github'}
@@ -101,8 +109,22 @@
     </div>
 {/each}
 
-{#if !backend_present || !verificationCanBeDone}
-    <p class="text-lg leading-4 mt-8">
-        You can check that this identities match the external ones by clicking on each link and searching for <span class="hidden md:contents">{encodeNpub(nostrPublicKey)}</span><span class="flex md:hidden">{splitString(encodeNpub(nostrPublicKey), 32) }</span>
-    </p>
+{#if !compact && (!backend_present || !verificationCanBeDone)}
+    <div class="flex mt-6 mb-4 w-11/12 lg:w-8/12 zzzw-max zzzzmax-w-fit" class:text-lg={!compact} class:text-xs={compact}>
+        <p class="text-ellipsis overflow-hidden mx-auto">
+            {#if !compact}
+                You can check that this identities match the external ones by clicking on each link and searching for {encodeNpub(nostrPublicKey)}
+            {:else}
+                Check that this identities match the external ones by clicking on each link and searching for the npub of the user.
+            {/if}
+
+            <button class="btn btn-square btn-xs ml-1 mt-2"
+                    on:click={() => {
+                    navigator.clipboard.writeText(encodeNpub(nostrPublicKey));
+                    Info.set('Public key copied to clipboard.')
+                }}>
+                <Copy />
+            </button>
+        </p>
+    </div>
 {/if}

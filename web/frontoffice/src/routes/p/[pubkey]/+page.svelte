@@ -3,42 +3,33 @@
     import ResumeView from "$lib/components/resume/View.svelte";
     import StallsBrowser from "$lib/components/stores/StallsBrowser.svelte";
     import {Info, NostrPublicKey} from "$sharedLib/stores";
-    import {
-        getBadgeAward,
-        getBadgeDefinitions,
-        getProfileBadges,
-        subscribeMetadata
-    } from "$sharedLib/services/nostr";
     import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
     import {decodeNpub,filterTags} from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
-    import ShowExternalIdentities from "$lib/components/nostr/ShowExternalIdentities.svelte";
+    import ShowExternalIdentities from "$sharedLib/components/nostr/ShowExternalIdentities.svelte";
     import Copy from "$sharedLib/components/icons/Copy.svelte";
+    import UserProfileInformation from "$sharedLib/components/nostr/UserProfileInformation.svelte";
+
 
     /** @type {import('./$types').PageData} */
     export let data;
 
     $: profile = null;
 
+    // Badges
     $: badgesAwarded = [];
     $: badgesAccepted = [];
     $: badgeDefinitions = new Map<string, object>();
     $: currentBadge = null;
-
     $: profileBadgesLastEvent = null;
-
     $: pm_badges = false;
     $: other_badges = false;
 
+    // External identities
     $: externalIdentities = [];
-    let externalIdentitiesVerification = {
-        twitter: {verified: 'waiting'},
-        github: {verified: 'waiting'},
-        telegram: {verified: 'waiting'}
-    }
 
     let verifyIdentities;
 
@@ -49,101 +40,17 @@
         image.src = badgeImageFallback;
     }
 
-    function getBadgeDefinition(badgeEvent: object, isProfileBadge: boolean) {
-        filterTags(badgeEvent.tags, 'a').forEach(tagId => {
-            const badgeFullName = tagId[1];
-            let badgeIDarray = badgeFullName.split(':');
-            let badgeName: string = badgeIDarray[2];
-            let badgeAuthor: string = badgeIDarray[1];
-
-            getBadgeDefinitions(badgeName, badgeAuthor, (badgeDefinition) => {
-                // console.log('------- BadgeDefinition', badgeDefinition);
-
-                let badgeObject = Object.fromEntries(badgeDefinition.tags);
-
-                badgeObject.badgeFullName = badgeFullName;
-                badgeObject.eventId = badgeEvent.id;        // Event ID from the "Badge Award"
-
-                if (badgeDefinition.pubkey === '76cc29acb8008c68b105cf655d34de0b1f7bc0215eaae6bbc83173d6d3f7b987') {
-                    badgeObject.pm_issued = true;
-                    pm_badges = true;
-                } else {
-                    badgeObject.pm_issued = false;
-                    other_badges = true;
-                }
-
-
-                if (!badgeDefinitions.get(badgeFullName)) {
-                    if (isProfileBadge) {
-                        badgeObject.accepted = isProfileBadge;
-                    }
-
-                    badgeDefinitions.set(badgeFullName, badgeObject);
-                }
-
-                if (isProfileBadge) {
-                    if (!badgesAccepted.includes(badgeFullName)) {
-                        badgesAccepted.push(badgeFullName);
-                        badgesAccepted = badgesAccepted;
-                    }
-                } else {
-                    if (!badgesAwarded.includes(badgeFullName)) {
-                        badgesAwarded.push(badgeFullName);
-                        badgesAwarded = badgesAwarded;
-                    }
-                }
-            });
-        });
-    }
-
     onMount(async () => {
         if (data && data.pubkey) {
             if (data.pubkey.startsWith('npub')) {
                 data.pubkey = decodeNpub(data.pubkey);
             }
-
-            subscribeMetadata([data.pubkey],
-                (pk, profileMeta) => {
-                    if (profile === null || profile.created_at < profileMeta.created_at) {
-                        profile = profileMeta;
-
-                        externalIdentities = [];
-
-                        filterTags(profile.tags, 'i').forEach(externalIdentity => {
-                            const externalIdentityToken: string = externalIdentity[1] + ':' + externalIdentity[2];
-
-                            if (!externalIdentities.includes(externalIdentityToken)) {
-                                externalIdentities.push(externalIdentityToken);
-                                externalIdentities = externalIdentities;
-                            }
-                        });
-                    }
-                },
-                async () => {
-                    await verifyIdentities();
-                });
-
-            getProfileBadges(data.pubkey, (profileBadgeEvent) => {
-                if (profileBadgesLastEvent === null || profileBadgesLastEvent.created_at < profileBadgeEvent.created_at) {
-                    getBadgeDefinition(profileBadgeEvent, true);
-                    profileBadgesLastEvent = profileBadgeEvent;
-                }
-            });
-
-            getBadgeAward(data.pubkey, (badgeAwardEvent) => {
-                getBadgeDefinition(badgeAwardEvent, false);
-            });
         }
     });
 </script>
 
-{#if data.pubkey === $NostrPublicKey}
-    <Titleh1>Your profile</Titleh1>
-{/if}
-
-
 {#if profile}
-    {#if data.pubkey !== $NostrPublicKey && (profile.display_name || profile.name)}
+    {#if profile.display_name || profile.name}
         <Titleh1>
             {profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)?.substring(0,20)}
         </Titleh1>
@@ -191,10 +98,9 @@
         <p class="mb-1 font-bold text-xl">External Identities</p>
 
         <ShowExternalIdentities
-                {externalIdentities}
-                {externalIdentitiesVerification}
-                nostrPublicKey={profile.pubkey}
-                bind:verifyIdentities={verifyIdentities}
+            {externalIdentities}
+            nostrPublicKey={profile.pubkey}
+            bind:verifyIdentities={verifyIdentities}
         />
     </div>
 {/if}
@@ -306,10 +212,25 @@
     {/if}
 </div>
 
-<StallsBrowser merchantPubkey={data.pubkey} />
+{#if data.pubkey && !data.pubkey.startsWith('npub')}
+    <StallsBrowser merchantPubkey={data.pubkey} />
 
-<BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {profileBadgesLastEvent} {onImgError} myBadge={data.pubkey === $NostrPublicKey}  />
+    <BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {profileBadgesLastEvent} {onImgError} myBadge={data.pubkey === $NostrPublicKey}  />
 
-<!--
-<ResumeView pubkey={data.pubkey} />
--->
+    <UserProfileInformation
+        userPubkey={data.pubkey}
+        bind:profile={profile}
+        bind:badgesAwarded={badgesAwarded}
+        bind:badgesAccepted={badgesAccepted}
+        bind:badgeDefinitions={badgeDefinitions}
+        bind:profileBadgesLastEvent={profileBadgesLastEvent}
+        bind:pm_badges={pm_badges}
+        bind:other_badges={other_badges}
+        bind:externalIdentities={externalIdentities}
+        {verifyIdentities}
+    />
+
+    <!--
+    <ResumeView pubkey={data.pubkey} />
+    -->
+{/if}
