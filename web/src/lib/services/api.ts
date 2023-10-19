@@ -391,8 +391,8 @@ export async function deleteEntityAsync(tokenValue, entity: IEntity) {
     }
 }
 
-export function hideAuction(tokenValue, auctionKey, successCB: () => void, errorHandler = new ErrorHandler()) {
-    fetchAPI(`/auctions/${auctionKey}`, 'PUT', tokenValue,
+export function hide(tokenValue, what, key, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${what}/${key}`, 'PUT', tokenValue,
         JSON.stringify({"is_hidden": true}), "application/json",
         response => {
             if (response.status === 200) {

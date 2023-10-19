@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import SvelteMarkdown from 'svelte-markdown';
-    import { ErrorHandler, deleteEntity, hideAuction, putPublish } from "$lib/services/api";
+    import { ErrorHandler, deleteEntity, hide, putPublish } from "$lib/services/api";
     import { Error, Info, token, user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
@@ -49,8 +49,8 @@
             new ErrorHandler(true, () => inRequest = false));
     }
 
-    function hide() {
-        hideAuction($token, item.key,
+    function hideItem() {
+        hide($token, item.endpoint, item.key,
             () => {
                 Info.set("Hidden from homepage.");
             },
@@ -179,7 +179,7 @@
                 <button class="btn btn-primary" class:btn-disabled={inRequest} on:click|preventDefault={publish}>Publish</button>
             {/if}
             {#if $user && $user.isModerator && showHide}
-                <button class="btn btn-outline self-center md:float-right" on:click|preventDefault={hide} on:keypress={hide}>Hide from homepage</button>
+                <button class="btn btn-outline self-center md:float-right" on:click|preventDefault={hideItem} on:keypress={hideItem}>Hide from homepage</button>
             {/if}
         </div>
     </div>
