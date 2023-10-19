@@ -104,7 +104,7 @@
             <p class="text-xs">
                 {#if item instanceof Auction}
                     {#if item.has_winner && item.winner}
-                        Winner: <a rel="external" class="link" href="/stall/{item.winner.nym}">{item.winner.nym}</a>
+                        Winner: <a rel="external" class="link" href="/p/{item.winner.nym}">{item.winner.nym}</a>
                         <br />
                         Amount: <AmountFormatter satsAmount={item.topAmount()} />
                     {:else if item.bids.length !== 0}
