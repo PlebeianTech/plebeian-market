@@ -953,7 +953,10 @@ def configure_site():
     need_listing_republish = False
     badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def_skin_in_the_game['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
     if badge_listing is None:
-        badge_item = m.Item(seller=site_admin, title=badge_def_skin_in_the_game['name'], description=badge_def_skin_in_the_game['description'])
+        item_title = badge_def_skin_in_the_game['name']
+        if app.config['ENV'] == 'staging':
+            item_title += " (staging)"
+        badge_item = m.Item(seller=site_admin, title=item_title, description=badge_def_skin_in_the_game['description'])
         db.session.add(badge_item)
         db.session.commit()
 
