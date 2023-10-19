@@ -912,7 +912,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
 
     @property
     def nostr_event_kind(self):
-        return 31020 if app.config['ENV'] == 'staging' else 30020
+        return 30020
 
     def to_nostr(self, extra_media=None):
         if extra_media is None:
@@ -1100,7 +1100,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
 
     @property
     def nostr_event_kind(self):
-        return 31018 if app.config['ENV'] == 'staging' else 30018
+        return 30018
 
     def to_nostr(self, extra_media=None):
         if extra_media is None:

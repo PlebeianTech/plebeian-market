@@ -615,7 +615,7 @@ class Birdwatcher:
             app.logger.exception(f"Error publishing merchant metadata for {merchant.merchant_public_key} via birdwatcher!")
 
     def publish_stall(self, merchant):
-        STALL_EVENT_KIND = 31017 if app.config['ENV'] == 'staging' else 30017
+        STALL_EVENT_KIND = 30017
         stall_json = merchant.to_nostr_stall()
         try:
             event = Event(kind=STALL_EVENT_KIND, content=json.dumps(stall_json), tags=[['d', stall_json['id']]])
@@ -654,7 +654,7 @@ class Birdwatcher:
             app.logger.exception(f"Error deleting product for merchant {entity.item.seller.merchant_public_key} via birdwatcher!")
 
     def publish_bid_status(self, auction, bid_event_id, status, message=None, duration_extended=0, badge_stall_id=None, badge_product_id=None, extra_tags=None):
-        BID_STATUS_EVENT_KIND = 2022 if app.config['ENV'] == 'staging' else 1022
+        BID_STATUS_EVENT_KIND = 1022
         try:
             if extra_tags is None:
                 extra_tags = []
