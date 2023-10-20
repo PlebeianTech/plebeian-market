@@ -31,8 +31,8 @@
 
     let alreadySubscribed: boolean = false;
 
-    let orderToBePaid = null;
-    let orderToBePaidId: string | null = null;
+    let badgeOrderToBePaid = null;
+    let badgeOrderToBePaidId: string | null = null;
     let badgeModalIShouldBuy = false;
     let badgeModalPaying = false;
 
@@ -200,12 +200,12 @@
     }
 
     $: {
-        if (orderToBePaidId) {
+        if (badgeOrderToBePaidId) {
             Object.entries($privateMessages.automatic).forEach(([orderId, order]) => {
-                if (orderToBePaidId === orderId && order.type === 1) {
-                    orderToBePaid = order;
+                if (badgeOrderToBePaidId === orderId && order.type === 1) {
+                    badgeOrderToBePaid = order;
                 }
-                if (orderToBePaidId === orderId && order.type === 2 && order.paid) {
+                if (badgeOrderToBePaidId === orderId && order.type === 2 && order.paid) {
                     closeSitgBadgeInfo();
                 }
             });
@@ -218,7 +218,7 @@
         badgeModalIShouldBuy = isCurrentUser;
 
         if (isCurrentUser) {
-            orderToBePaidId = await sendSitgBadgeOrder(badgeStallId, badgeProductId);
+            badgeOrderToBePaidId = await sendSitgBadgeOrder(badgeStallId, badgeProductId);
         }
 
         window.skin_in_the_game_modal.showModal();
@@ -230,8 +230,8 @@
     }
 
     function resetEverything() {
-        orderToBePaidId = null;
-        orderToBePaid = null;
+        badgeOrderToBePaidId = null;
+        badgeOrderToBePaid = null;
         badgeModalPaying = false;
     }
 </script>
@@ -308,8 +308,8 @@
                 <p class="text-base">As soon as the user buys the badge, <b>the bid will be approved</b>.</p>
             {/if}
         {:else}
-            {#if orderToBePaid}
-                <PaymentWidget {orderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
+            {#if badgeOrderToBePaid}
+                <PaymentWidget {badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
             {/if}
         {/if}
 
@@ -317,7 +317,7 @@
             {#if badgeModalIShouldBuy}
                 {#if !badgeModalPaying}
                     <div class="inline-flex">
-                        {#if orderToBePaid}
+                        {#if badgeOrderToBePaid}
                             <button class="btn btn-primary" on:click|preventDefault={() => badgeModalPaying = true}>Buy badge</button>
                         {:else}
                             <button class="btn btn-success no-animation cursor-default" on:click|preventDefault={() => showPaymentDetails = true}>
