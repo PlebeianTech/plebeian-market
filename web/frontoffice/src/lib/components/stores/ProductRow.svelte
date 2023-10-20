@@ -6,7 +6,7 @@
     import {goto} from "$app/navigation";
     import {Image} from "svelte-lazy-loader";
 
-    export let product: string;
+    export let product;
     export let onImgError = () => {};
     export let orderQuantity = 1;
 </script>
@@ -35,10 +35,12 @@
         <div class="card bg-base-100 shadow-xl w-full lg:w-32">
             <figure>
                 <a href="/product/{product.id}">
-                    <Image
+                    {#key `${product.id}-${product.images ? product.images[0] : product.image ?? productImageFallback}`}
+                        <Image
                             loading="lazy"
                             placeholder="{productImageFallback}"
                             src="{product.images ? product.images[0] : product.image ?? productImageFallback}" />
+                    {/key}
                 </a>
             </figure>
         </div>

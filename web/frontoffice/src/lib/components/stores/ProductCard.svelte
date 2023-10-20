@@ -9,7 +9,7 @@
     import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
     import { Image } from 'svelte-lazy-loader';
 
-    export let product: string;
+    export let product;
     export let onImgError = () => {};
     export let isOnStall: boolean;
     export let orderQuantity = 1;
@@ -24,10 +24,12 @@
 <div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-16 md:4">
     <figure>
         <a class="cursor-pointer" href="/product/{product.id}" on:click|preventDefault={openProduct}>
-            <Image
+            {#key `${product.id}-${product.images ? product.images[0] : product.image ?? productImageFallback}`}
+                <Image
                     loading="lazy"
                     placeholder="{productImageFallback}"
                     src="{product.images ? product.images[0] : product.image ?? productImageFallback}" />
+            {/key}
         </a>
     </figure>
     <div class="card-body items-center text-center">

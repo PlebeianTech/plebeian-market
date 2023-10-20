@@ -28,27 +28,28 @@
         getProducts(merchantPubkey, null,
             (productEvent) => {
                 let content = JSON.parse(productEvent.content);
-                content.event = productEvent;
-
-                if (!content.id) {
-                    let productId = getFirstTagValue(productEvent.tags, 'd');
-                    if (productId !== null) {
-                        content.id = productId;
-                    } else {
-                        return;
-                    }
-                }
-
-                // Calculate if ended
-                if (productEvent.kind === EVENT_KIND_AUCTION) {
-                    let now = Math.floor(Date.now() / 1000);
-                    let endsAt = content.start_date + content.duration;
-                    content.ended = now > endsAt;
-                }
-
-                let productId = content.id;
 
                 if (content.stall_id === stallId) {
+                    content.event = productEvent;
+
+                    if (!content.id) {
+                        let productId = getFirstTagValue(productEvent.tags, 'd');
+                        if (productId !== null) {
+                            content.id = productId;
+                        } else {
+                            return;
+                        }
+                    }
+
+                    // Calculate if ended
+                    if (productEvent.kind === EVENT_KIND_AUCTION) {
+                        let now = Math.floor(Date.now() / 1000);
+                        let endsAt = content.start_date + content.duration;
+                        content.ended = now > endsAt;
+                    }
+
+                    let productId = content.id;
+
                     if (productId in products) {
                         if (products[productId].event.created_at < productEvent.created_at) {
                             products[productId] = content;
