@@ -950,10 +950,12 @@ def configure_site():
         sha.update(image_data)
         image_hash = sha.hexdigest()
 
-    need_listing_republish = False
     badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def_skin_in_the_game['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
     if badge_listing is None:
-        badge_item = m.Item(seller=site_admin, title=badge_def_skin_in_the_game['name'], description=badge_def_skin_in_the_game['description'])
+        item_title = badge_def_skin_in_the_game['name']
+        if app.config['ENV'] == 'staging':
+            item_title += " (staging)"
+        badge_item = m.Item(seller=site_admin, title=item_title, description=badge_def_skin_in_the_game['description'])
         db.session.add(badge_item)
         db.session.commit()
 
@@ -961,17 +963,13 @@ def configure_site():
         db.session.add(badge_media)
         db.session.commit()
 
-        badge_listing = m.Listing(item=badge_item, key=badge_def_skin_in_the_game['badge_id'], available_quantity=21000000, price_usd=badge_def_skin_in_the_game['price_usd'], start_date=datetime.utcnow())
+        badge_listing = m.Listing(item=badge_item, key=badge_def_skin_in_the_game['badge_id'], available_quantity=None, price_usd=badge_def_skin_in_the_game['price_usd'], start_date=datetime.utcnow())
         db.session.add(badge_listing)
         db.session.commit() # this generates the UUID!
     else:
         app.logger.info("Found badge listing!")
-        if badge_listing.available_quantity is not None:
-            badge_listing.available_quantity = None
-            db.session.commit()
-            need_listing_republish = True
 
-    if badge_listing.nostr_event_id is None or need_listing_republish:
+    if badge_listing.nostr_event_id is None:
         badge_listing.nostr_event_id = birdwatcher.publish_product(badge_listing)
         if badge_listing.nostr_event_id is None:
             app.logger.error("Error publishing badge listing to Nostr!")
