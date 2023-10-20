@@ -108,7 +108,10 @@
                     <th>Bid</th>
                     <th>Date</th>
                     <th>Status</th>
-                    <th>Bidder</th>
+                    <th>
+                        Bidder
+                        <p class="text-[10px]">(hover profile pictures with the mouse)</p>
+                    </th>
                 </tr>
             </thead>
             <tbody>
