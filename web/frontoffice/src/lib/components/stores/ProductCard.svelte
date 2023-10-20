@@ -69,13 +69,17 @@
         {:else}
             <div class="columns-2">
                 <div>
-                    Stock: {product.quantity ?? 0}
+                    {#if product.quantity === null}
+                        Stock: Unlimited
+                    {:else}
+                        Stock: {product.quantity}
+                    {/if}
                 </div>
                 <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
             </div>
-            <div class="mt-3 justify-end {!product.quantity ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
+            <div class="mt-3 justify-end {product.quantity === 0 ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
                 <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
-                <button class="btn btn-primary mt-4" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
+                <button class="btn btn-primary mt-4" class:btn-disabled={product.quantity === 0} on:click|preventDefault={() => addToCart(product, orderQuantity)}>
                     Add to cart
                 </button>
             </div>

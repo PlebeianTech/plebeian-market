@@ -23,7 +23,11 @@
     </td>
     <td class="text-center">
         {#if product.event.kind !== EVENT_KIND_AUCTION}
-            {product.quantity ?? 0}
+            {#if product.quantity === null}
+                Unlimited
+            {:else}
+                {product.quantity}
+            {/if}
         {/if}
     </td>
     <td class="text-center">
@@ -47,9 +51,9 @@
     </td>
 
     {#if product.event.kind !== EVENT_KIND_AUCTION}
-        <td class="{!product.quantity ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
+        <td class="{product.quantity === 0 ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
             <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
-            <button class="btn btn-primary" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
+            <button class="btn btn-primary" class:btn-disabled={product.quantity === 0} on:click|preventDefault={() => addToCart(product, orderQuantity)}>
                 Add to cart
             </button>
         </td>
