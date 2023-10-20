@@ -141,9 +141,9 @@
                         filter === null ||
                         (
                             filter !== null && (
-                                stall.name.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.description.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.id.toLowerCase() === filter.toLowerCase()
+                                stall.name?.toLowerCase().includes(filter.toLowerCase()) ||
+                                stall.description?.toLowerCase().includes(filter.toLowerCase()) ||
+                                stall.id?.toLowerCase() === filter.toLowerCase()
                             )
                         )
                     }
@@ -207,9 +207,9 @@
                         filter === null ||
                         (
                             filter !== null && (
-                                stall.name.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.description.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.id.toLowerCase() === filter.toLowerCase()
+                                stall.name?.toLowerCase().includes(filter.toLowerCase()) ||
+                                stall.description?.toLowerCase().includes(filter.toLowerCase()) ||
+                                stall.id?.toLowerCase() === filter.toLowerCase()
                             )
                         )
                     }
