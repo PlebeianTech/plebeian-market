@@ -9,7 +9,6 @@
 
     export let userPubkey = null;
 
-    $: console.log('POPUP userPubkey', userPubkey);
     let open = false;
 
     $: if (window.user_information_modal) {
@@ -99,7 +98,6 @@
                 {#if pm_badges}
                     <!-- Awarded and accepted -->
                     {#each [...new Set([...badgesAccepted ,...badgesAwarded])] as badgeId}
-                        {(console.log('  ----badgeId', badgeId), '')}
                         {#if badgeDefinitions.get(badgeId)?.pm_issued}
                             <div class="tooltip tooltip-accent"
                                  data-tip="{badgeDefinitions.get(badgeId).name}"
