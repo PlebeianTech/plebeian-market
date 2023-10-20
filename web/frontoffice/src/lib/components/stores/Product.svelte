@@ -141,17 +141,21 @@
                 {#if product.event.kind === EVENT_KIND_PRODUCT}
                     <div class="columns-2 my-12">
                         <div>
-                            Stock: {product.quantity ?? 0}
+                            {#if product.quantity === null}
+                                Stock: Unlimited
+                            {:else}
+                                Stock: {product.quantity}
+                            {/if}
                         </div>
                         <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
                     </div>
 
-                    {#if product.quantity}
+                    {#if product.quantity === null || product.quantity > 0}
                         <div class="block mb-6 text-xl">
                             <div class="flex justify-center">
                                 <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
                             </div>
-                            <button class="btn btn-primary mt-2" class:btn-disabled={!product.quantity} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
+                            <button class="btn btn-primary mt-2" class:btn-disabled={product.quantity === 0} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
                                 Add to cart
                             </button>
                         </div>

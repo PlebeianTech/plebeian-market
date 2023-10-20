@@ -14,7 +14,7 @@ export function onImgError(image) {
 
 // =============================== Shopping Cart ===============================
 export function addToCart(addedProduct: ShoppingCartItem, orderQuantity, saveToLocalStorage = true) {
-    if (orderQuantity > addedProduct.quantity) {
+    if (addedProduct.quantity !== null && orderQuantity > addedProduct.quantity) {
         Error.set('There are just ' + addedProduct.quantity + ' products in stock. You cannot order ' + orderQuantity + '.');
         return false;
     }
@@ -40,7 +40,7 @@ export function addToCart(addedProduct: ShoppingCartItem, orderQuantity, saveToL
                 stall.set(addedProduct.id, addedProduct);
                 productAdded = true;
             } else {
-                if ((product.orderQuantity + orderQuantity) > addedProduct.quantity) {
+                if (addedProduct.quantity !== null && ((product.orderQuantity + orderQuantity) > addedProduct.quantity)) {
                     Error.set('There are just ' + addedProduct.quantity + ' products in stock. You already have ' + product.orderQuantity + ' on your shopping card, so you cannot order ' + orderQuantity + ' more.');
                 } else {
                     product.orderQuantity = product.orderQuantity + orderQuantity;
