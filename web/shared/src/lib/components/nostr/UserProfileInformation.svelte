@@ -39,7 +39,9 @@
                 }
             },
             async () => {
-                await verifyIdentities();
+                if (externalIdentities.length > 0) {
+                    await verifyIdentities();
+                }
             });
 
         getProfileBadges(userPubkey, (profileBadgeEvent) => {
