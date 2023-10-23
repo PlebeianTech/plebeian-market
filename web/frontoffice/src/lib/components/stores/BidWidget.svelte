@@ -10,7 +10,7 @@
         subscribeMetadata
     } from "$sharedLib/services/nostr";
     import type {UserMetadata} from "$sharedLib/services/nostr";
-    import {privateMessages} from "$sharedLib/stores";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
 
     export let product;
@@ -25,7 +25,11 @@
     let bids: object[] = [];
     let sortedBids;
     let numBids: number = 0;
+    let numAcceptedBids: number = 0;
     let bidAmount: number = 0;
+    $: higgerAcceptedBid = null;
+
+    let didIBidOnThisProduct: boolean = false;
 
     let userProfileInfoMap = new Map<string, null | UserMetadata>();
 
@@ -63,6 +67,10 @@
 
                         if (!bids[auctionEvent.id].backendResponse) {
                             bids[auctionEvent.id].backendResponse = null;
+                        }
+
+                        if (auctionEvent.pubkey === $NostrPublicKey) {
+                            didIBidOnThisProduct = true;
                         }
 
                         sortedBids = Object.entries(bids).sort((a, b) => {
@@ -144,6 +152,21 @@
         } else {
             setRecommendedBidAmount();
         }
+    }
+
+    $: if (sortedBids && sortedBids.length > 0) {
+        numAcceptedBids = 0;
+        higgerAcceptedBid = null;
+
+        sortedBids.forEach(([bidId, bidInfo]) => {
+            if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'accepted') {
+                if (higgerAcceptedBid === null) {
+                    higgerAcceptedBid = bidInfo;
+                }
+
+                numAcceptedBids++;
+            }
+        });
     }
 
     function getUserMetadata(pubKey) {
@@ -254,6 +277,27 @@
                             <li><a class="active">Time gets extended each time a new bid come in the last 5 minutes of the auction</a></li>
                         </ul>
                     </div>
+                {/if}
+            </div>
+
+            <div class="p-3 pb-3">
+                {#if numBids === 0}
+                    This auction doesn't have any bid yet. Be the first to bid!
+                {:else if numAcceptedBids === 0}
+                    This auction doesn't have any accepted bid yet. Be the first to bid!
+                {:else}
+                    {#if didIBidOnThisProduct}
+                        {#if higgerAcceptedBid && higgerAcceptedBid.pubkey === $NostrPublicKey}
+                            <span class="font-bold">You're currently the top bidder!</span>
+                        {:else}
+                            <span class="font-bold">Somebody outbid you! Bid again to become the top bidder.</span>
+                        {/if}
+                    {/if}
+
+                    {#if higgerAcceptedBid.backendResponse && !higgerAcceptedBid.backendResponse.reserve_bid_reached}
+                        <p class="pt-9 font-bold">The reserve price hasn't been met yet.</p>
+                        <p class="text-xs">The reserve price is the minimum price that the seller is willing to accept for the item.</p>
+                    {/if}
                 {/if}
             </div>
 
