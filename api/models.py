@@ -791,7 +791,6 @@ class Item(db.Model):
 
     is_hidden = db.Column(db.Boolean, nullable=False, default=False)
 
-    seller = db.relationship('User')
     auctions = db.relationship('Auction', backref='item')
     listings = db.relationship('Listing', backref='item')
 
