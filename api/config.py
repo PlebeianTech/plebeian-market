@@ -95,7 +95,7 @@ BADGE_DEFINITION_SKIN_IN_THE_GAME = {
     'name': f"{SITE_NAME} Skin in the Game",
     'description': f"Made a monetary contribution to {SITE_NAME}",
     'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
-    'price_usd': 0.21 if ENV == 'staging' else 21,
+    'price_usd': 0.2 if ENV == 'staging' else 21,
 }
 
 LNDHUB_URL = os.environ.get('LNDHUB_URL')
