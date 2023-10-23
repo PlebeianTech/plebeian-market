@@ -39,9 +39,7 @@
                 }
             },
             async () => {
-                if (profile) {
-                    profileFinishedLoading = true;
-                }
+                profileFinishedLoading = true;
             });
 
         getProfileBadges(userPubkey, (profileBadgeEvent) => {
