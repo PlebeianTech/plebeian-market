@@ -658,7 +658,7 @@ class Birdwatcher:
         try:
             if extra_tags is None:
                 extra_tags = []
-            content_json = {'status': status}
+            content_json = {'status': status, 'reserve_bid_reached': auction.reserve_bid_reached}
             if message is not None:
                 content_json['message'] = message
             if duration_extended != 0:
