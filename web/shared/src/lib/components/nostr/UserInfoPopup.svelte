@@ -46,7 +46,11 @@
 <dialog id="user_information_modal" class="modal">
     <div class="modal-box">
         {#if !profile}
-            <p>Loading user information...</p>
+            {#if profileFinishedLoading}
+                <p>This user has no nostr profile, so there is nothing to show.</p>
+            {:else}
+                <p>Loading user information...</p>
+            {/if}
         {:else}
             {#if profile.display_name || profile.name}
                 <h2>{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)?.substring(0,20)}</h2>
@@ -122,7 +126,7 @@
         <!-- Buttons -->
         <div class="modal-action flex">
             <form method="dialog" class="mx-auto">
-                <a class="btn btn-info" href="/p/{profile?.pubkey}" target="_blank">View full profile</a>
+                <a class="btn btn-info" class:btn-disabled={!profile} href="/p/{profile?.pubkey}" target="_blank">View full profile</a>
                 <button class="btn btn-outline btn-error" on:click|preventDefault={close}>Close</button>
             </form>
         </div>
