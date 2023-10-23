@@ -1099,6 +1099,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         return jsonify({'message': message}), 400
 
     top_bid = auction.get_top_bid()
+
     if top_bid and top_bid.buyer_nostr_public_key == request.json['pubkey']:
         message = f"Cannot accept consecutive bids from the same user!"
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
@@ -1118,8 +1119,8 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         app.logger.info(f"{message} pubkey={request.json['pubkey']} verified_identities={buyer_metadata['verified_identities']}")
 
         ######### DISABLED for now because it is broken!
-        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
-        return jsonify({'message': message}), 400
+        # birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        # return jsonify({'message': message}), 400
         #########
 
     is_settled = True
@@ -1153,6 +1154,8 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
 
     if is_settled:
         birdwatcher.publish_bid_status(auction, request.json['id'], 'accepted', duration_extended=duration_extended)
+        birdwatcher.send_dm(merchant.parse_merchant_private_key(), top_bid.buyer_nostr_public_key,
+                            f"You have been outbid on the auction: {auction.item.title}!")
 
     db.session.commit()
 
