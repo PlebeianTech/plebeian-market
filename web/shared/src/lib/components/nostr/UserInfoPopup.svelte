@@ -9,8 +9,6 @@
 
     export let userPubkey = null;
 
-    let open = false;
-
     $: if (window.user_information_modal) {
         if (userPubkey) {
             window.user_information_modal.showModal();
@@ -30,7 +28,6 @@
 
     // External identities
     $: externalIdentities = [];
-    let verifyIdentities;
 
     function close() {
         window.user_information_modal.close();
