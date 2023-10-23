@@ -61,11 +61,11 @@
 
 <div bind:this={box} class="group">
     {#if isEditable}
-        <div class="flex flex-row-reverse gap-2 invisible group-hover:visible">
+        <div class="flex gap-2 invisible group-hover:visible">
             <div class="btn-xs"></div>
                 {#if item instanceof Listing || (item instanceof Auction && (!item.started || (item.bids.length === 0)))}
-                    <button class="btn btn-primary btn-circle btn-xs" on:click={del}><Trash /></button>
-                    <button class="btn btn-primary btn-circle btn-xs" on:click={() => onEdit(item)}><Pencil /></button>
+                    <button class="btn btn-accent btn-circle btn-sm" on:click={() => onEdit(item)}><Pencil /></button>
+                    <button class="btn btn-error btn-circle btn-sm" on:click={del}><Trash /></button>
                 {/if}
         </div>
     {/if}
@@ -79,7 +79,7 @@
             </figure>
         </a>
         <div class="card-body">
-            <h2 class="card-title mb-2 lg:text-3xl text-2xl font-bold">
+            <h2 class="card-title mb-2 lg:text-3xl text-2xl font-bold" class:hover:link={item.started}>
                 <a href={url}>{item.title}</a>
             </h2>
             {#if showCampaign && item.campaign_name !== null}
@@ -92,7 +92,7 @@
             {/if}
             {#if item instanceof Auction}
                 {#if item.started && !item.ended}
-                    <Countdown totalSeconds={item.ends_in_seconds} style={CountdownStyle.Compact} />
+                    <Countdown totalSeconds={item.ends_in_seconds} style={CountdownStyle.Compact} ended={item.ended} />
                 {:else if item.ended}
                     <div class="badge badge-primary">ended</div>
                 {/if}
