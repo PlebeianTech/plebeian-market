@@ -10,8 +10,9 @@
         subscribeMetadata
     } from "$sharedLib/services/nostr";
     import type {UserMetadata} from "$sharedLib/services/nostr";
-    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {Info, NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
     export let product;
 
@@ -200,7 +201,12 @@
         }
     }
 
-    function makeNewBid() {
+    async function makeNewBid() {
+        if (!await waitAndShowLoginIfNotLoggedAlready()) {
+            Info.set('You need to be logged in to bid on an auction');
+            return;
+        }
+
         sendMessage('' + bidAmount, null, product.event, EVENT_KIND_AUCTION_BID,
             () => {
                 console.log('Bid received by relay')
