@@ -8,6 +8,7 @@
     import ShowExternalIdentities from "$sharedLib/components/nostr/ShowExternalIdentities.svelte";
 
     $: profile = null;
+    $: profileFinishedLoading = false;
     $: externalIdentities = [];
     let changesMade = false;
 
@@ -253,7 +254,7 @@
             <p class="mt-2">Your Nostr profile doesn't have any external identity yet. Add one using the form above.</p>
         {:else}
             <ShowExternalIdentities
-                {profile}
+                {profileFinishedLoading}
                 {externalIdentities}
                 nostrPublicKey={$NostrPublicKey}
                 {deleteIdentity}

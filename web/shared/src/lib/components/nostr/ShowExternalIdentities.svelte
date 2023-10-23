@@ -11,7 +11,7 @@
     import Copy from "$sharedLib/components/icons/Copy.svelte";
     import {Info} from "$sharedLib/stores.js";
 
-    export let profile;
+    export let profileFinishedLoading = false;
     export let externalIdentities;
     export let nostrPublicKey;
     export let deleteIdentity = false;
@@ -23,7 +23,7 @@
     $: backend_present = true;
     $: verificationCanBeDone = true;
 
-    $: if (backend_present && profile && profile.finishedLoading) {
+    $: if (backend_present && profileFinishedLoading) {
         verifyIdentities();
     }
 

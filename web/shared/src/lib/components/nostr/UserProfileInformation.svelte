@@ -5,6 +5,7 @@
 
     export let userPubkey: string = null;
     export let profile = null;
+    export let profileFinishedLoading = false;
 
     export let badgesAwarded = [];
     export let badgesAccepted = [];
@@ -39,7 +40,7 @@
             },
             async () => {
                 if (profile) {
-                    profile.finishedLoading = true;
+                    profileFinishedLoading = true;
                 }
             });
 

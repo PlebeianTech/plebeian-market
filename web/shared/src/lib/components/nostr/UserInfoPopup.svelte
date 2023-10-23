@@ -16,6 +16,7 @@
     }
 
     $: profile = null;
+    $: profileFinishedLoading = false;
 
     // Badges
     $: badgesAwarded = [];
@@ -33,6 +34,7 @@
         window.user_information_modal.close();
         profile = null;
         userPubkey = null;
+        profileFinishedLoading = false;
     }
 
     export function onImgError(image) {
@@ -78,7 +80,7 @@
                         <p class="font-bold text-lg">External Identities</p>
 
                         <ShowExternalIdentities
-                            {profile}
+                            {profileFinishedLoading}
                             {externalIdentities}
                             nostrPublicKey={$NostrPublicKey}
                             compact={true}
@@ -131,6 +133,7 @@
     <UserProfileInformation
         userPubkey={userPubkey}
         bind:profile={profile}
+        bind:profileFinishedLoading={profileFinishedLoading}
         bind:badgesAwarded={badgesAwarded}
         bind:badgesAccepted={badgesAccepted}
         bind:badgeDefinitions={badgeDefinitions}

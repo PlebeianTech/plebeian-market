@@ -10,8 +10,9 @@
         subscribeMetadata
     } from "$sharedLib/services/nostr";
     import type {UserMetadata} from "$sharedLib/services/nostr";
-    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {Info, NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
     export let product;
 
@@ -67,10 +68,6 @@
 
                         if (!bids[auctionEvent.id].backendResponse) {
                             bids[auctionEvent.id].backendResponse = null;
-                        }
-
-                        if (auctionEvent.pubkey === $NostrPublicKey) {
-                            didIBidOnThisProduct = true;
                         }
 
                         sortedBids = Object.entries(bids).sort((a, b) => {
@@ -160,6 +157,10 @@
 
         sortedBids.forEach(([bidId, bidInfo]) => {
             if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'accepted') {
+                if (bidInfo.pubkey === $NostrPublicKey) {
+                    didIBidOnThisProduct = true;
+                }
+
                 if (higgerAcceptedBid === null) {
                     higgerAcceptedBid = bidInfo;
                 }
@@ -200,7 +201,12 @@
         }
     }
 
-    function makeNewBid() {
+    async function makeNewBid() {
+        if (!await waitAndShowLoginIfNotLoggedAlready()) {
+            Info.set('You need to be logged in to bid on an auction');
+            return;
+        }
+
         sendMessage('' + bidAmount, null, product.event, EVENT_KIND_AUCTION_BID,
             () => {
                 console.log('Bid received by relay')
@@ -353,7 +359,7 @@
             {/if}
         {:else}
             {#if badgeOrderToBePaid}
-                <PaymentWidget {badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
+                <PaymentWidget orderToBePaid={badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
             {/if}
         {/if}
 

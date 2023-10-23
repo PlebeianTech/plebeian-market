@@ -18,6 +18,7 @@
     export let data;
 
     $: profile = null;
+    $: profileFinishedLoading = false;
 
     // Badges
     $: badgesAwarded = [];
@@ -96,7 +97,7 @@
         <p class="mb-1 font-bold text-xl">External Identities</p>
 
         <ShowExternalIdentities
-            {profile}
+            {profileFinishedLoading}
             {externalIdentities}
             nostrPublicKey={profile.pubkey}
         />
@@ -218,6 +219,7 @@
     <UserProfileInformation
         userPubkey={data.pubkey}
         bind:profile={profile}
+        bind:profileFinishedLoading={profileFinishedLoading}
         bind:badgesAwarded={badgesAwarded}
         bind:badgesAccepted={badgesAccepted}
         bind:badgeDefinitions={badgeDefinitions}
