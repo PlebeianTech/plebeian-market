@@ -69,10 +69,6 @@
                             bids[auctionEvent.id].backendResponse = null;
                         }
 
-                        if (auctionEvent.pubkey === $NostrPublicKey) {
-                            didIBidOnThisProduct = true;
-                        }
-
                         sortedBids = Object.entries(bids).sort((a, b) => {
                             return b[1].amount - a[1].amount;
                         });
@@ -160,6 +156,10 @@
 
         sortedBids.forEach(([bidId, bidInfo]) => {
             if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'accepted') {
+                if (bidInfo.pubkey === $NostrPublicKey) {
+                    didIBidOnThisProduct = true;
+                }
+
                 if (higgerAcceptedBid === null) {
                     higgerAcceptedBid = bidInfo;
                 }
