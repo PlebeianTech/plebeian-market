@@ -14,7 +14,6 @@
     export let other_badges;
 
     export let externalIdentities = [];
-    export let verifyIdentities;
 
     $: if (browser && userPubkey) {
         getUserProfileInformation(userPubkey);
@@ -39,7 +38,9 @@
                 }
             },
             async () => {
-                await verifyIdentities();
+                if (profile) {
+                    profile.finishedLoading = true;
+                }
             });
 
         getProfileBadges(userPubkey, (profileBadgeEvent) => {

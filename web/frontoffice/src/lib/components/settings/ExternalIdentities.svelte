@@ -10,7 +10,6 @@
     $: profile = null;
     $: externalIdentities = [];
     let changesMade = false;
-    let profileFinishedLoading = false;
 
     let type = 'twitter';
     let url = '';
@@ -21,8 +20,6 @@
         github: {verified: 'waiting', recently_added: false},
         telegram: {verified: 'waiting', recently_added: false}
     }
-
-    let verifyIdentities;
 
     let verifyHelpInfo: [] = []
     verifyHelpInfo['twitter'] = {
@@ -165,7 +162,7 @@
         if (!changesMade) {
             Info.set('No changes made, so there is nothing to save')
         }
-        if (!profileFinishedLoading) {
+        if (!profile.finishedLoading) {
             Info.set('There was a problem loading your profile, so no changes are allowed. Reload the page and try again.')
             return;
         }
@@ -193,8 +190,6 @@
         }
 
         await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
-
-        await verifyIdentities();
     }
 
     function getMetadata() {
@@ -217,11 +212,9 @@
                     }
                 },
                 async () => {
-                    profileFinishedLoading = true;
-                    if (!verifyIdentities) {
-                        await new Promise(resolve => setTimeout(resolve, 3000));
+                    if (profile) {
+                        profile.finishedLoading = true;
                     }
-                    await verifyIdentities();
                 });
         }
     }
@@ -260,9 +253,9 @@
             <p class="mt-2">Your Nostr profile doesn't have any external identity yet. Add one using the form above.</p>
         {:else}
             <ShowExternalIdentities
+                {profile}
                 {externalIdentities}
                 nostrPublicKey={$NostrPublicKey}
-                bind:verifyIdentities={verifyIdentities}
                 {deleteIdentity}
             />
         {/if}

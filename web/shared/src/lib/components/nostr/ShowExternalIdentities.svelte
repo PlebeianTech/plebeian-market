@@ -11,28 +11,33 @@
     import Copy from "$sharedLib/components/icons/Copy.svelte";
     import {Info} from "$sharedLib/stores.js";
 
+    export let profile;
     export let externalIdentities;
     export let nostrPublicKey;
     export let deleteIdentity = false;
     export let compact = false;
 
-    let externalIdentitiesVerification = {
-        twitter: {verified: 'waiting'},
-        github: {verified: 'waiting'},
-        telegram: {verified: 'waiting'}
-    }
-
-    export const verifyIdentities = callAPIVerifyIdentities;
+    $: externalIdentitiesVerification = {};
 
     const identityTypesSupported = ['twitter', 'github', 'telegram'];
     $: backend_present = true;
     $: verificationCanBeDone = true;
 
-    async function callAPIVerifyIdentities() {
+    $: if (backend_present && profile && profile.finishedLoading) {
+        verifyIdentities();
+    }
+
+    async function verifyIdentities() {
         if (backend_present) {
             if (externalIdentities.length === 0) {
                 return;
             }
+
+            externalIdentitiesVerification = {
+                twitter: {verified: 'waiting'},
+                github: {verified: 'waiting'},
+                telegram: {verified: 'waiting'}
+            };
 
             const verifiedIdentities = await askAPIForVerification(nostrPublicKey) ?? [];
             if (!verifiedIdentities) {
@@ -53,22 +58,6 @@
         } else {
             verificationCanBeDone = false;
         }
-    }
-
-    function splitString(str, length) {
-        var words = str.split(" ");
-        for (var j = 0; j < words.length; j++) {
-            var l = words[j].length;
-            if (l > length) {
-                var result = [], i = 0;
-                while (i < l) {
-                    result.push(words[j].substr(i, length))
-                    i += length;
-                }
-                words[j] = result.join(" ");
-            }
-        }
-        return words.join(" ");
     }
 
     onMount(async () => {
@@ -96,7 +85,7 @@
 
             <div class="ml-2">{identity.split(':')[1]}</div>
 
-            {#if backend_present}
+            {#if backend_present && externalIdentitiesVerification[identity.split(':')[0]]}
                 {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
                     <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
                 {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}

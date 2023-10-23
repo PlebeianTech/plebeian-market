@@ -10,7 +10,7 @@
         subscribeMetadata
     } from "$sharedLib/services/nostr";
     import type {UserMetadata} from "$sharedLib/services/nostr";
-    import {privateMessages} from "$sharedLib/stores";
+    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
 
     export let product;
@@ -25,14 +25,18 @@
     let bids: object[] = [];
     let sortedBids;
     let numBids: number = 0;
+    let numAcceptedBids: number = 0;
     let bidAmount: number = 0;
+    $: higgerAcceptedBid = null;
+
+    let didIBidOnThisProduct: boolean = false;
 
     let userProfileInfoMap = new Map<string, null | UserMetadata>();
 
     let alreadySubscribed: boolean = false;
 
-    let orderToBePaid = null;
-    let orderToBePaidId: string | null = null;
+    let badgeOrderToBePaid = null;
+    let badgeOrderToBePaidId: string | null = null;
     let badgeModalIShouldBuy = false;
     let badgeModalPaying = false;
 
@@ -63,6 +67,10 @@
 
                         if (!bids[auctionEvent.id].backendResponse) {
                             bids[auctionEvent.id].backendResponse = null;
+                        }
+
+                        if (auctionEvent.pubkey === $NostrPublicKey) {
+                            didIBidOnThisProduct = true;
                         }
 
                         sortedBids = Object.entries(bids).sort((a, b) => {
@@ -146,6 +154,21 @@
         }
     }
 
+    $: if (sortedBids && sortedBids.length > 0) {
+        numAcceptedBids = 0;
+        higgerAcceptedBid = null;
+
+        sortedBids.forEach(([bidId, bidInfo]) => {
+            if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'accepted') {
+                if (higgerAcceptedBid === null) {
+                    higgerAcceptedBid = bidInfo;
+                }
+
+                numAcceptedBids++;
+            }
+        });
+    }
+
     function getUserMetadata(pubKey) {
         if (!userProfileInfoMap.has(pubKey)) {
             userProfileInfoMap.set(pubKey, null);
@@ -200,12 +223,12 @@
     }
 
     $: {
-        if (orderToBePaidId) {
+        if (badgeOrderToBePaidId) {
             Object.entries($privateMessages.automatic).forEach(([orderId, order]) => {
-                if (orderToBePaidId === orderId && order.type === 1) {
-                    orderToBePaid = order;
+                if (badgeOrderToBePaidId === orderId && order.type === 1) {
+                    badgeOrderToBePaid = order;
                 }
-                if (orderToBePaidId === orderId && order.type === 2 && order.paid) {
+                if (badgeOrderToBePaidId === orderId && order.type === 2 && order.paid) {
                     closeSitgBadgeInfo();
                 }
             });
@@ -218,7 +241,7 @@
         badgeModalIShouldBuy = isCurrentUser;
 
         if (isCurrentUser) {
-            orderToBePaidId = await sendSitgBadgeOrder(badgeStallId, badgeProductId);
+            badgeOrderToBePaidId = await sendSitgBadgeOrder(badgeStallId, badgeProductId);
         }
 
         window.skin_in_the_game_modal.showModal();
@@ -230,8 +253,8 @@
     }
 
     function resetEverything() {
-        orderToBePaidId = null;
-        orderToBePaid = null;
+        badgeOrderToBePaidId = null;
+        badgeOrderToBePaid = null;
         badgeModalPaying = false;
     }
 </script>
@@ -254,6 +277,27 @@
                             <li><a class="active">Time gets extended each time a new bid come in the last 5 minutes of the auction</a></li>
                         </ul>
                     </div>
+                {/if}
+            </div>
+
+            <div class="p-3 pb-3">
+                {#if numBids === 0}
+                    This auction doesn't have any bid yet. Be the first to bid!
+                {:else if numAcceptedBids === 0}
+                    This auction doesn't have any accepted bid yet. Be the first to bid!
+                {:else}
+                    {#if didIBidOnThisProduct}
+                        {#if higgerAcceptedBid && higgerAcceptedBid.pubkey === $NostrPublicKey}
+                            <span class="font-bold">You're currently the top bidder!</span>
+                        {:else}
+                            <span class="font-bold">Somebody outbid you! Bid again to become the top bidder.</span>
+                        {/if}
+                    {/if}
+
+                    {#if higgerAcceptedBid.backendResponse && !higgerAcceptedBid.backendResponse.reserve_bid_reached}
+                        <p class="pt-9 font-bold">The reserve price hasn't been met yet.</p>
+                        <p class="text-xs">The reserve price is the minimum price that the seller is willing to accept for the item.</p>
+                    {/if}
                 {/if}
             </div>
 
@@ -308,8 +352,8 @@
                 <p class="text-base">As soon as the user buys the badge, <b>the bid will be approved</b>.</p>
             {/if}
         {:else}
-            {#if orderToBePaid}
-                <PaymentWidget {orderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
+            {#if badgeOrderToBePaid}
+                <PaymentWidget {badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
             {/if}
         {/if}
 
@@ -317,7 +361,7 @@
             {#if badgeModalIShouldBuy}
                 {#if !badgeModalPaying}
                     <div class="inline-flex">
-                        {#if orderToBePaid}
+                        {#if badgeOrderToBePaid}
                             <button class="btn btn-primary" on:click|preventDefault={() => badgeModalPaying = true}>Buy badge</button>
                         {:else}
                             <button class="btn btn-success no-animation cursor-default" on:click|preventDefault={() => showPaymentDetails = true}>
