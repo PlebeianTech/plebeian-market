@@ -31,8 +31,6 @@
     // External identities
     $: externalIdentities = [];
 
-    let verifyIdentities;
-
     let otherBadgesOpened = false;
 
     export function onImgError(image) {
@@ -98,9 +96,9 @@
         <p class="mb-1 font-bold text-xl">External Identities</p>
 
         <ShowExternalIdentities
+            {profile}
             {externalIdentities}
             nostrPublicKey={profile.pubkey}
-            bind:verifyIdentities={verifyIdentities}
         />
     </div>
 {/if}
@@ -227,7 +225,6 @@
         bind:pm_badges={pm_badges}
         bind:other_badges={other_badges}
         bind:externalIdentities={externalIdentities}
-        {verifyIdentities}
     />
 
     <!--

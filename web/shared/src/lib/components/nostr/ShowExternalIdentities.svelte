@@ -11,6 +11,7 @@
     import Copy from "$sharedLib/components/icons/Copy.svelte";
     import {Info} from "$sharedLib/stores.js";
 
+    export let profile;
     export let externalIdentities;
     export let nostrPublicKey;
     export let deleteIdentity = false;
@@ -18,13 +19,15 @@
 
     $: externalIdentitiesVerification = {};
 
-    export const verifyIdentities = callAPIVerifyIdentities;
-
     const identityTypesSupported = ['twitter', 'github', 'telegram'];
     $: backend_present = true;
     $: verificationCanBeDone = true;
 
-    async function callAPIVerifyIdentities() {
+    $: if (backend_present && profile && profile.finishedLoading) {
+        verifyIdentities();
+    }
+
+    async function verifyIdentities() {
         if (backend_present) {
             if (externalIdentities.length === 0) {
                 return;

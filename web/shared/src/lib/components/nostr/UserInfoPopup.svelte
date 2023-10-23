@@ -4,7 +4,7 @@
     import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import ShowExternalIdentities from "$sharedLib/components/nostr/ShowExternalIdentities.svelte";
-    import {Info} from "$sharedLib/stores.js";
+    import {Info, NostrPublicKey} from "$sharedLib/stores.js";
     import Copy from "$sharedLib/components/icons/Copy.svelte";
 
     export let userPubkey = null;
@@ -81,9 +81,9 @@
                         <p class="font-bold text-lg">External Identities</p>
 
                         <ShowExternalIdentities
+                            {profile}
                             {externalIdentities}
-                            nostrPublicKey="03b5036dc3db82604307c1964d2b926417a91c3b11ef75ba6ca55019e9b7a62a"
-                            bind:verifyIdentities={verifyIdentities}
+                            nostrPublicKey={$NostrPublicKey}
                             compact={true}
                         />
                     </div>
@@ -141,6 +141,5 @@
         bind:pm_badges={pm_badges}
         bind:other_badges={other_badges}
         bind:externalIdentities={externalIdentities}
-        {verifyIdentities}
     />
 {/if}
