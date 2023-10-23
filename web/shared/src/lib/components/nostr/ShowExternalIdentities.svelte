@@ -57,22 +57,6 @@
         }
     }
 
-    function splitString(str, length) {
-        var words = str.split(" ");
-        for (var j = 0; j < words.length; j++) {
-            var l = words[j].length;
-            if (l > length) {
-                var result = [], i = 0;
-                while (i < l) {
-                    result.push(words[j].substr(i, length))
-                    i += length;
-                }
-                words[j] = result.join(" ");
-            }
-        }
-        return words.join(" ");
-    }
-
     onMount(async () => {
         let config = await getConfigurationFromFile();
         if (config) {
