@@ -16,11 +16,7 @@
     export let deleteIdentity = false;
     export let compact = false;
 
-    let externalIdentitiesVerification = {
-        twitter: {verified: 'waiting'},
-        github: {verified: 'waiting'},
-        telegram: {verified: 'waiting'}
-    }
+    $: externalIdentitiesVerification = {};
 
     export const verifyIdentities = callAPIVerifyIdentities;
 
@@ -33,6 +29,12 @@
             if (externalIdentities.length === 0) {
                 return;
             }
+
+            externalIdentitiesVerification = {
+                twitter: {verified: 'waiting'},
+                github: {verified: 'waiting'},
+                telegram: {verified: 'waiting'}
+            };
 
             const verifiedIdentities = await askAPIForVerification(nostrPublicKey) ?? [];
             if (!verifiedIdentities) {
@@ -96,7 +98,7 @@
 
             <div class="ml-2">{identity.split(':')[1]}</div>
 
-            {#if backend_present}
+            {#if backend_present && externalIdentitiesVerification[identity.split(':')[0]]}
                 {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
                     <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
                 {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
