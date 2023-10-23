@@ -359,7 +359,7 @@
             {/if}
         {:else}
             {#if badgeOrderToBePaid}
-                <PaymentWidget {badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
+                <PaymentWidget orderToBePaid={badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
             {/if}
         {/if}
 
