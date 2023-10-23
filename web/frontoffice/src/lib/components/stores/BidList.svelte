@@ -46,7 +46,7 @@
                                 {:else if bid.backendResponse.status === 'rejected'}
                                     <div class="mx-auto tooltip" data-tip="Bid rejected: {bid.backendResponse.message}">❌</div>
                                 {:else if bid.backendResponse.status === 'pending'}
-                                    <div class="mx-auto tooltip" data-tip={ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }><Clock /></div>
+                                    <div class="w-8 h-8 mx-auto tooltip" data-tip={ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }><Clock /></div>
                                     {#if bid.pubkey === $NostrPublicKey}
                                         <p class="line-clamp-3 mt-1 whitespace-normal">
                                             <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>Skin in the Game required</button>
@@ -111,7 +111,9 @@
                             {:else if bid.backendResponse.status === 'pending'}
                                 <div class="w-8 h-8 mx-auto text-xl tooltip" data-tip="{ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }"><Clock /></div>
                                 {#if bid.pubkey === $NostrPublicKey}
-                                    <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>Skin in the Game required</button>
+                                    <div>
+                                        <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>Skin in the Game required</button>
+                                    </div>
                                 {/if}
                             {:else if bid.backendResponse.status === 'winner'}
                                 <div class="text-xl mx-auto tooltip" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? "Congratulations!" : ""}"><div class="w-8 h-8 mx-auto"><WinnerBadge /></div></div>
