@@ -255,8 +255,9 @@ def award_badge_skin_in_the_game(order):
             pending_bid.settled_at = datetime.utcnow()
             duration_extended = pending_bid.auction.extend()
             birdwatcher.publish_bid_status(pending_bid.auction, pending_bid.nostr_event_id, 'accepted', duration_extended=duration_extended)
-            birdwatcher.send_dm(pending_bid.auction.item.seller.parse_merchant_private_key(), previous_top_bid.buyer_nostr_public_key,
-                                f"You have been outbid on the auction: {pending_bid.auction.item.title}!")
+            if previous_top_bid:
+                birdwatcher.send_dm(pending_bid.auction.item.seller.parse_merchant_private_key(), previous_top_bid.buyer_nostr_public_key,
+                                    f"You have been outbid on the auction: {pending_bid.auction.item.title}!")
             app.logger.info(f"Confirmed bid {pending_bid.id} after having acquired the Skin in the Game badge!")
             db.session.commit()
 

@@ -1154,8 +1154,9 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
 
     if is_settled:
         birdwatcher.publish_bid_status(auction, request.json['id'], 'accepted', duration_extended=duration_extended)
-        birdwatcher.send_dm(merchant.parse_merchant_private_key(), top_bid.buyer_nostr_public_key,
-                            f"You have been outbid on the auction: {auction.item.title}!")
+        if top_bid:
+            birdwatcher.send_dm(merchant.parse_merchant_private_key(), top_bid.buyer_nostr_public_key,
+                                f"You have been outbid on the auction: {auction.item.title}!")
 
     db.session.commit()
 
