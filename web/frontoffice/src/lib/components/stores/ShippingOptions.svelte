@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import {stalls} from "$sharedLib/stores";
 
     export let stallId;

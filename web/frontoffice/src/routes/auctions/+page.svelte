@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {NostrPublicKey, privateMessages, stalls, Error, Info} from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";

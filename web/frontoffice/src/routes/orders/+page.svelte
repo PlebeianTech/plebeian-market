@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import {products} from "$lib/stores";
     import {NostrPublicKey, stalls, privateMessages, Info} from "$sharedLib/stores";
     import {formatTimestamp, newNostrConversation, pmStallId} from "$sharedLib/nostr/utils";

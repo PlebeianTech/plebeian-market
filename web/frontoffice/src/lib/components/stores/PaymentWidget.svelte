@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import QRLocal from "$lib/components/QRLocal.svelte";
     import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
     import {bech32} from "bech32";
