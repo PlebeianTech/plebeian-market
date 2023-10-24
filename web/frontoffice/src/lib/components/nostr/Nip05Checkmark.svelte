@@ -5,7 +5,7 @@
     export let verificationMarkSize = "4";
 </script>
 
-<div class="dropdown dropdown-bottom dropdown-hover dropdown-end z-[100]">
+<div class="dropdown dropdown-left dropdown-hover dropdown-end z-[100]">
     <label tabindex="0" class="hover:cursor-pointer hover:scale-110 duration-300">
         <div class="w-{verificationMarkSize} h-{verificationMarkSize} text-blue-700 opacity-70">
             <VerificationMark />
