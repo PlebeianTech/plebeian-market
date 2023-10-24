@@ -300,7 +300,7 @@
                         {/if}
                     {/if}
 
-                    {#if higgerAcceptedBid.backendResponse?.reserve_bid > 0}
+                    {#if 'reserve_bid_reached' in higgerAcceptedBid.backendResponse}
                         {#if higgerAcceptedBid.backendResponse.reserve_bid_reached}
                             <p class="pt-9">The reserve price has been met.</p>
                         {:else}
