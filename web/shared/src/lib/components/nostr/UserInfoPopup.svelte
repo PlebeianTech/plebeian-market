@@ -92,36 +92,35 @@
                     </div>
                 </div>
             {/if}
-
-
-            <!-- Badges -->
-            <div class="mt-8">
-                <p class="mb-2 font-bold text-lg">Plebeian Market badges</p>
-
-                {#if pm_badges}
-                    <!-- Awarded and accepted -->
-                    {#each [...new Set([...badgesAccepted ,...badgesAwarded])] as badgeId}
-                        {#if badgeDefinitions.get(badgeId)?.pm_issued}
-                            <div class="tooltip tooltip-accent"
-                                 data-tip="{badgeDefinitions.get(badgeId).name}"
-                                 on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
-                                <figure class="h-14 w-14 ml-1 mr-1 md:ml-2 md:mr-2 avatar mask mask-squircle cursor-pointer">
-                                    {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
-                                        <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                    {:else}
-                                        <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                    {/if}
-                                </figure>
-                            </div>
-                        {/if}
-                    {/each}
-                {:else}
-                    <div class="mt-1 mb-8 text-sm">
-                        <span>This user doesn't have any Plebeian Market badge yet.</span>
-                    </div>
-                {/if}
-            </div>
         {/if}
+
+        <!-- Badges -->
+        <div class="mt-8">
+            <p class="mb-2 font-bold text-lg">Plebeian Market badges</p>
+
+            {#if pm_badges}
+                <!-- Awarded and accepted -->
+                {#each [...new Set([...badgesAccepted ,...badgesAwarded])] as badgeId}
+                    {#if badgeDefinitions.get(badgeId)?.pm_issued}
+                        <div class="tooltip tooltip-accent"
+                             data-tip="{badgeDefinitions.get(badgeId).name}"
+                             on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                            <figure class="h-14 w-14 ml-1 mr-1 md:ml-2 md:mr-2 avatar mask mask-squircle cursor-pointer">
+                                {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                                    <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {:else}
+                                    <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                                {/if}
+                            </figure>
+                        </div>
+                    {/if}
+                {/each}
+            {:else}
+                <div class="mt-1 mb-8 text-sm">
+                    <span>This user doesn't have any Plebeian Market badge yet.</span>
+                </div>
+            {/if}
+        </div>
 
         <!-- Buttons -->
         <div class="modal-action flex">
