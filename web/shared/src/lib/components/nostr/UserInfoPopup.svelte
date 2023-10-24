@@ -46,11 +46,13 @@
 <dialog id="user_information_modal" class="modal">
     <div class="modal-box">
         {#if !profile}
-            {#if profileFinishedLoading}
-                <p>This user has no nostr profile, so there is nothing to show.</p>
-            {:else}
-                <p>Loading user information...</p>
-            {/if}
+            <p class="mt-3" class:text-sm={pm_badges && profileFinishedLoading}>
+                {#if profileFinishedLoading}
+                    This user has no nostr profile, so there is nothing to show.
+                {:else}
+                    Loading user information...
+                {/if}
+            </p>
         {:else}
             {#if profile.display_name || profile.name}
                 <h2>{profile.display_name ?? profile.name ?? nip19.npubEncode(profile.pubkey)?.substring(0,20)}</h2>
