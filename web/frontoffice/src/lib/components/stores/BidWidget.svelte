@@ -300,8 +300,12 @@
                         {/if}
                     {/if}
 
-                    {#if higgerAcceptedBid.backendResponse && !higgerAcceptedBid.backendResponse.reserve_bid_reached}
-                        <p class="pt-9 font-bold">The reserve price hasn't been met yet.</p>
+                    {#if higgerAcceptedBid.backendResponse?.reserve_bid > 0}
+                        {#if higgerAcceptedBid.backendResponse.reserve_bid_reached}
+                            <p class="pt-9">The reserve price has been met.</p>
+                        {:else}
+                            <p class="pt-9 font-bold">The reserve price hasn't been met yet.</p>
+                        {/if}
                         <p class="text-xs">The reserve price is the minimum price that the seller is willing to accept for the item.</p>
                     {/if}
                 {/if}
