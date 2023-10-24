@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import {NostrLoginMethod, NostrPrivateKey, Info} from "$sharedLib/stores";
     import {logout} from "$sharedLib/utils";
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";

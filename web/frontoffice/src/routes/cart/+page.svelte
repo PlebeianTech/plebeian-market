@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import ShoppingCart from "$lib/components/stores/ShoppingCart.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 </script>
