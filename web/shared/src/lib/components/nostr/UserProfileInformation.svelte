@@ -21,6 +21,15 @@
     }
 
     export function getUserProfileInformation(userPubkey: string) {
+        externalIdentities = [];
+        profile = null;
+        profileFinishedLoading = false;
+        badgesAwarded = [];
+        badgesAccepted = [];
+        badgeDefinitions = new Map<string, object>();
+        pm_badges = false;
+        other_badges = false;
+
         subscribeMetadata([userPubkey],
             (pk, profileMeta) => {
                 if (profile === null || profile.created_at < profileMeta.created_at) {
