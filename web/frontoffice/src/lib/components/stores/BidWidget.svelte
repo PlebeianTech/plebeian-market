@@ -10,7 +10,7 @@
         subscribeMetadata
     } from "$sharedLib/services/nostr";
     import type {UserMetadata} from "$sharedLib/services/nostr";
-    import {Info, NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {Info, Error, NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
     import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
@@ -30,7 +30,8 @@
     let bidAmount: number = 0;
     $: higgerAcceptedBid = null;
 
-    let didIBidOnThisProduct: boolean = false;
+    let didIBidSuccessfullyOnThisProduct: boolean = false;
+    let doIHaveSITGPending: boolean | null = null;
 
     let userProfileInfoMap = new Map<string, null | UserMetadata>();
 
@@ -154,18 +155,31 @@
     $: if (sortedBids && sortedBids.length > 0) {
         numAcceptedBids = 0;
         higgerAcceptedBid = null;
+        doIHaveSITGPending = null;
 
-        sortedBids.forEach(([bidId, bidInfo]) => {
+        sortedBids.forEach(([_, bidInfo]) => {
             if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'accepted') {
-                if (bidInfo.pubkey === $NostrPublicKey) {
-                    didIBidOnThisProduct = true;
-                }
-
                 if (higgerAcceptedBid === null) {
                     higgerAcceptedBid = bidInfo;
                 }
 
                 numAcceptedBids++;
+
+                if (bidInfo.pubkey === $NostrPublicKey) {
+                    didIBidSuccessfullyOnThisProduct = true;
+
+                    if (doIHaveSITGPending === null) {
+                        doIHaveSITGPending = false;
+                    }
+                }
+            }
+
+            if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'pending') {
+                if (bidInfo.pubkey === $NostrPublicKey) {
+                    if (doIHaveSITGPending === null) {
+                        doIHaveSITGPending = true;
+                    }
+                }
             }
         });
     }
@@ -204,6 +218,11 @@
     async function makeNewBid() {
         if (!await waitAndShowLoginIfNotLoggedAlready()) {
             Info.set('You need to be logged in to bid on an auction');
+            return;
+        }
+
+        if (doIHaveSITGPending) {
+            Error.set('This auction has reached a threshold and you have to complete the Skin In The Game test before bidding.');
             return;
         }
 
@@ -292,7 +311,7 @@
                 {:else if numAcceptedBids === 0}
                     This auction doesn't have any accepted bid yet. Be the first to bid!
                 {:else}
-                    {#if didIBidOnThisProduct}
+                    {#if didIBidSuccessfullyOnThisProduct}
                         {#if higgerAcceptedBid && higgerAcceptedBid.pubkey === $NostrPublicKey}
                             <span class="font-bold">You're currently the top bidder!</span>
                         {:else}
