@@ -27,7 +27,7 @@
         setLoginMethod('extension');
 
         localStorage.setItem('nostrPublicKey', publicKey);
-        $NostrPublicKey.set(publicKey);
+        NostrPublicKey.set(publicKey);
 
         await waitAndLogin();
         closeLoginModal();
