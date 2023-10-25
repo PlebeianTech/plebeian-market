@@ -235,6 +235,8 @@ class Relay:
                     logging.debug(f"({self.url}) Received: {message}!")
                     message = json.loads(message)
                     match message[0]:
+                        case 'NOTICE':
+                            logging.info(f"({self.url}) NOTICE {message[1]}...")
                         case 'EOSE':
                             subscription_id = message[1]
                             if subscription_id in self.active_queries:
