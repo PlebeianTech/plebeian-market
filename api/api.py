@@ -1100,10 +1100,6 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
 
     top_bid = auction.get_top_bid()
 
-    if top_bid and top_bid.buyer_nostr_public_key == request.json['pubkey']:
-        message = f"Cannot accept consecutive bids from the same user!"
-        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
-        return jsonify({'message': message}), 400
     if top_bid and amount <= top_bid.amount:
         message = f"Amount needs to be higher than the previous top bid!"
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
