@@ -476,6 +476,10 @@ def put_order(user, uuid):
         message = "Your order was canceled by the seller!"
         order.canceled_at = datetime.utcnow()
 
+    if request.json.get('expired') == False:
+        message = "Your order was marked as active by the seller!"
+        order.expired_at = None
+
     if not get_birdwatcher().send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
         json.dumps({'id': order.uuid, 'type': 2, 'paid': order.paid_at is not None, 'shipped': order.shipped_at is not None, 'message': message})):
         return jsonify({'message': "Error sending Nostr reply to the buyer."}), 500

@@ -40,6 +40,9 @@
             <div class="btn-circle btn-xs btn-error ml-1">
                 <X />
             </div>
+            {#if order.expired_at !== null}
+                <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>Not expired</button>
+            {/if}
         {:else if order.shipped_at !== null}
             Shipped!
         {:else}
