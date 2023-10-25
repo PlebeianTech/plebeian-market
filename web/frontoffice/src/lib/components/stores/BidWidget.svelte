@@ -242,7 +242,33 @@
                 bidAmount = 100;
             } else {
                 let maxBid = sortedBids[0][1].amount;
-                bidAmount = maxBid + Math.round(maxBid * 0.1);
+
+                let head = String(maxBid).slice(0, 2);
+                const rest = String(maxBid).slice(2);
+
+                if (head[0] === "1") {
+                    head = String(Number(head) + 1);
+                } else if (head[0] === "2") {
+                    head = String(Number(head) + 2);
+                } else if (head[0] === "3" || head[0] === "4") {
+                    if (head[1] === "0") {
+                        head = head[0] + "2";
+                    } else if (head[1] === "1" || head[1] === "2" || head[1] === "3") {
+                        head = head[0] + "5";
+                    } else if (head[1] === "4" || head[1] === "5" || head[1] === "6" ||  head[1] === "7") {
+                        head = head[0] + "8";
+                    } else {
+                        head = String(Number(head[0]) + 1) + "0";
+                    }
+                } else {
+                    if (head[1] === "0" || head[1] === "1" || head[1] === "2" || head[1] === "3") {
+                        head = head[0] + "5";
+                    } else {
+                        head = String(Number(head[0]) + 1) + "0";
+                    }
+                }
+
+                bidAmount = Number(head + rest);
             }
         }
     }
