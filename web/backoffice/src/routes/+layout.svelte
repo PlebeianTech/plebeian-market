@@ -5,7 +5,7 @@
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
     import { user } from "$lib/stores";
-    import { Info, Error, token } from "$sharedLib/stores";
+    import { Info, Error, token, NostrPublicKey } from "$sharedLib/stores";
     import type { Placement } from "$sharedLib/stores";
     import { getProfile } from "$lib/services/api";
     import Navbar from "$sharedLib/components/Navbar.svelte";
@@ -53,7 +53,7 @@
 	onDestroy(errorUnsubscribe);
 
     function fetchProfile(tokenValue) {
-        getProfile(tokenValue, "me", (u) => { user.set(u); });
+        getProfile(tokenValue, "me", (u) => { user.set(u); NostrPublicKey.set(u.nostrPublicKey); });
     }
 
     const tokenUnsubscribe = token.subscribe((t) => {
