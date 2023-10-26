@@ -363,7 +363,7 @@ async def main(relays: list[Relay]):
                 try:
                     await asyncio.wait_for(relay.active_queries[subscription_id].wait(), timeout=1.0)
                 except asyncio.TimeoutError:
-                    logging.error(f"Relay {relay.url} did not finish the reply on time!")
+                    logging.error(f"Relay {relay.url} did not finish the reply for {subscription_id} on time!")
 
                 logging.info(f"Got {len(relay.query_results[subscription_id])} results from {relay.url}!")
 
