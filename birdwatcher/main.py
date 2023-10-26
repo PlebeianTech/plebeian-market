@@ -377,13 +377,16 @@ async def main(relays: list[Relay]):
                     del relay.query_results[subscription_id]
             return query_results
 
-        await asyncio.create_task(send_query())
+        try:
+            await asyncio.create_task(send_query())
 
-        await asyncio.sleep(0) # give the query a chance to execute!
+            await asyncio.sleep(0) # give the query a chance to execute!
 
-        query_results_task = asyncio.create_task(collect_query_results())
-        await query_results_task
-        query_results = query_results_task.result()
+            query_results_task = asyncio.create_task(collect_query_results())
+            await query_results_task
+            query_results = query_results_task.result()
+        except:
+            logging.exception("Error performing query.")
 
         # NB: for "metadata" events, we also validate the external identities here...
 
