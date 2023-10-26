@@ -381,7 +381,9 @@ async def main(relays: list[Relay]):
 
         await asyncio.sleep(0) # give the query a chance to execute!
 
-        query_results = await asyncio.create_task(collect_query_results())
+        query_results_task = asyncio.create_task(collect_query_results())
+        await query_results_task
+        query_results = query_results_task.result()
 
         # NB: for "metadata" events, we also validate the external identities here...
 
