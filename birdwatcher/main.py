@@ -57,6 +57,8 @@ class Relay:
         self.processed_event_ids = processed_event_ids
         self.event_ids_being_processed = event_ids_being_processed
 
+        self.ws = None
+
         self.subscribed_auction_event_ids = set()
         self.subscribed_merchant_pubkeys = set()
         self.auction_owners = {} # event ID to pubkey
