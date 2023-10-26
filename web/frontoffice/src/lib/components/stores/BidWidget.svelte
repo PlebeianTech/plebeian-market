@@ -50,8 +50,6 @@
         ended = now > endsAt;
         started = now > product.start_date;
 
-        setRecommendedBidAmount();
-
         if (!alreadySubscribed && product.event.id) {
             alreadySubscribed = true;
 
@@ -143,7 +141,11 @@
                                 return b[1].amount - a[1].amount;
                             });
 
-                        } catch (error) { }
+                            setRecommendedBidAmount();
+
+                        } catch (error) {
+                            console.error('BidWidget.svelte - Error while getting bids information:', error);
+                        }
                     }
                 },
                 null);
