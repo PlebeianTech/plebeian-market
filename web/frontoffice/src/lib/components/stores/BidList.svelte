@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { fade } from 'svelte/transition';
     import {formatTimestamp} from "$sharedLib/nostr/utils";
     import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
@@ -12,10 +13,48 @@
     export let userProfileInfoMap;
     export let openSitgBadgeInfo;
 
-    let openModalWithPubkey = null;
+    let modalPubkey = null;
     let hoverTimer = null;
+    let mobile = false;
 
     const winnerColor = 'bg-green-300 dark:bg-[#446600]';
+
+    async function showUserProfilePopup(event, pubkey) {
+        mobile = !event;
+
+        modalPubkey = pubkey;
+
+        if (mobile) {
+            window.user_information_modal.showModal();
+        } else {
+            const userInfoPopup = document.getElementById('user-information-popup');
+            console.log('myPopup', userInfoPopup);
+
+            console.log(' ***** showUserProfilePopup - event', event);
+
+            if (userInfoPopup) {
+                const mouseX = event.pageX;
+                const mouseY = event.pageY;
+
+                const width = userInfoPopup.offsetWidth;
+                userInfoPopup.style.left = `${mouseX - (width / 2)}px`;
+                userInfoPopup.style.top = `${mouseY + 6}px`;
+            }
+        }
+
+    }
+
+    function hideUserProfilePopup() {
+        if (!mobile) {
+            if (hoverTimer) {
+                window.clearTimeout(hoverTimer);
+            }
+        } else {
+            window.user_information_modal.close();
+        }
+
+        modalPubkey = null;
+    }
 </script>
 
 {#if sortedBids && sortedBids.length > 0}
@@ -60,12 +99,12 @@
                             </div>
                         </th>
                         <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
-                            <div class="flex w-fit mx-auto mt-1 space-x-3 items-center">
-                                <div class="avatar mask mask-squircle w-12 h-12" on:click={() => {openModalWithPubkey=bid.pubkey}}>
+                            <div class="flex w-fit mx-auto mt-1 space-x-3 items-center" on:click={() => {showUserProfilePopup(null, bid.pubkey)}}>
+                                <div class="avatar mask mask-squircle w-12 h-12">
                                     <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
                                 </div>
                                 <div class="flex">
-                                    <span class="tooltip" data-tip="{bid.pubkey}">{userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,15) ?? bid.pubkey.substring(0,9) + '...'}</span>
+                                    <span>{userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,15) ?? bid.pubkey.substring(0,9) + '...'}</span>
                                     {#if userProfileInfoMap.get(bid.pubkey)?.nip05VerifiedAddress}
                                         <span class="ml-1">
                                             <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
@@ -122,32 +161,26 @@
                             {/if}
                         </td>
                         <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
-                            <div class="flex items-center space-x-3 p-3">
-                                <div class="avatar mask mask-squircle w-12 h-12"
-                                     on:mouseover={() => {hoverTimer=window.setTimeout(function(){openModalWithPubkey=bid.pubkey},500)}}
-                                     on:mouseout={() => {
-                                         if (hoverTimer) {
-                                            window.clearTimeout(hoverTimer);
-                                         }
-                                         openModalWithPubkey = null;
-                                     }}
+                            <a href="/p/{nip19.npubEncode(bid.pubkey)}"
+                               target="_blank"
+                               class="underline">
+                                <div class="flex items-center space-x-3 p-3"
+                                     on:mouseenter={(e) => {hoverTimer=window.setTimeout(function(){showUserProfilePopup(e, bid.pubkey)},250)}}
+                                     on:mouseleave={hideUserProfilePopup}
                                 >
-                                    <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
-                                </div>
-                                <div class="flex">
-                                    <a href="/p/{nip19.npubEncode(bid.pubkey)}"
-                                       target="_blank"
-                                       class="tooltip underline"
-                                       data-tip="{bid.pubkey}">
+                                    <div class="avatar mask mask-squircle w-12 h-12 cursor-pointer">
+                                        <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
+                                    </div>
+                                    <div class="flex">
                                         {userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,30) ?? bid.pubkey.substring(0,12) + '...'}
-                                    </a>
-                                    {#if userProfileInfoMap.get(bid.pubkey)?.nip05VerifiedAddress}
-                                        <span class="mt-1 ml-2">
-                                            <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
-                                        </span>
-                                    {/if}
+                                        {#if userProfileInfoMap.get(bid.pubkey)?.nip05VerifiedAddress}
+                                            <span class="mt-1 ml-2">
+                                                <Nip05Checkmark address="{userProfileInfoMap.get(bid.pubkey).nip05VerifiedAddress}" />
+                                            </span>
+                                        {/if}
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         </th>
                     </tr>
                 {/if}
@@ -157,4 +190,20 @@
     </div>
 {/if}
 
-<UserInfoPopup bind:userPubkey={openModalWithPubkey} />
+
+<dialog id="user_information_modal" class="modal">
+    <div class="modal-box">
+        {#if mobile}
+            <UserInfoPopup bind:userPubkey={modalPubkey} />
+        {/if}
+    </div>
+</dialog>
+
+<div id="user-information-popup" transition:fade class:absolute={modalPubkey} class:opacity-0={!modalPubkey} class:opacity-100={modalPubkey} class="w-96 m-4 transition-opacity ease-in-out delay-75 duration-200 card card-compact z-[200] bg-base-200 border-2 border-neutral-content/50 shadow shadow-neutral-content/50 ">
+    <div class="card-body">
+        {#if !mobile}
+            <UserInfoPopup bind:userPubkey={modalPubkey} />
+        {/if}
+    </div>
+</div>
+
