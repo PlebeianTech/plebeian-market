@@ -395,6 +395,8 @@ export function getBadgeDefinitions(badgeName: string, author: string, receivedC
 }
 
 export async function nostrAcceptBadge(newProfileBadgeTags, successCB: () => void) {
+    let callBackCalled = false;
+
     if (newProfileBadgeTags.length < 3) {
         console.error('Tags for Accepted badges for the profile must have at least 3 tags if you just added one');
         return;
@@ -405,7 +407,12 @@ export async function nostrAcceptBadge(newProfileBadgeTags, successCB: () => voi
         '',
         newProfileBadgeTags
     );
-    get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
+    get(NostrPool).publish(relayUrlList, event).on('ok', () => {
+        if (successCB && !callBackCalled) {
+            callBackCalled = true;
+            successCB();
+        }
+    });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

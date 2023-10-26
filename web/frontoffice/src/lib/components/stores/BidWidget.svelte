@@ -10,7 +10,7 @@
         subscribeMetadata
     } from "$sharedLib/services/nostr";
     import type {UserMetadata} from "$sharedLib/services/nostr";
-    import {Info, NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {Info, Error, NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
     import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
@@ -30,7 +30,8 @@
     let bidAmount: number = 0;
     $: higgerAcceptedBid = null;
 
-    let didIBidOnThisProduct: boolean = false;
+    let didIBidSuccessfullyOnThisProduct: boolean = false;
+    let doIHaveSITGPending: boolean | null = null;
 
     let userProfileInfoMap = new Map<string, null | UserMetadata>();
 
@@ -48,8 +49,6 @@
         endsAt = product.start_date + product.duration + totalTimeExtension;
         ended = now > endsAt;
         started = now > product.start_date;
-
-        setRecommendedBidAmount();
 
         if (!alreadySubscribed && product.event.id) {
             alreadySubscribed = true;
@@ -142,7 +141,11 @@
                                 return b[1].amount - a[1].amount;
                             });
 
-                        } catch (error) { }
+                            setRecommendedBidAmount();
+
+                        } catch (error) {
+                            console.error('BidWidget.svelte - Error while getting bids information:', error);
+                        }
                     }
                 },
                 null);
@@ -154,18 +157,31 @@
     $: if (sortedBids && sortedBids.length > 0) {
         numAcceptedBids = 0;
         higgerAcceptedBid = null;
+        doIHaveSITGPending = null;
 
-        sortedBids.forEach(([bidId, bidInfo]) => {
+        sortedBids.forEach(([_, bidInfo]) => {
             if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'accepted') {
-                if (bidInfo.pubkey === $NostrPublicKey) {
-                    didIBidOnThisProduct = true;
-                }
-
                 if (higgerAcceptedBid === null) {
                     higgerAcceptedBid = bidInfo;
                 }
 
                 numAcceptedBids++;
+
+                if (bidInfo.pubkey === $NostrPublicKey) {
+                    didIBidSuccessfullyOnThisProduct = true;
+
+                    if (doIHaveSITGPending === null) {
+                        doIHaveSITGPending = false;
+                    }
+                }
+            }
+
+            if (bidInfo.backendResponse && bidInfo.backendResponse.status === 'pending') {
+                if (bidInfo.pubkey === $NostrPublicKey) {
+                    if (doIHaveSITGPending === null) {
+                        doIHaveSITGPending = true;
+                    }
+                }
             }
         });
     }
@@ -207,6 +223,11 @@
             return;
         }
 
+        if (doIHaveSITGPending) {
+            Error.set('This auction has reached a threshold and you have to complete the Skin In The Game test before bidding.');
+            return;
+        }
+
         sendMessage('' + bidAmount, null, product.event, EVENT_KIND_AUCTION_BID,
             () => {
                 console.log('Bid received by relay')
@@ -223,7 +244,33 @@
                 bidAmount = 100;
             } else {
                 let maxBid = sortedBids[0][1].amount;
-                bidAmount = maxBid + Math.round(maxBid * 0.1);
+
+                let head = String(maxBid).slice(0, 2);
+                const rest = String(maxBid).slice(2);
+
+                if (head[0] === "1") {
+                    head = String(Number(head) + 1);
+                } else if (head[0] === "2") {
+                    head = String(Number(head) + 2);
+                } else if (head[0] === "3" || head[0] === "4") {
+                    if (head[1] === "0") {
+                        head = head[0] + "2";
+                    } else if (head[1] === "1" || head[1] === "2" || head[1] === "3") {
+                        head = head[0] + "5";
+                    } else if (head[1] === "4" || head[1] === "5" || head[1] === "6" ||  head[1] === "7") {
+                        head = head[0] + "8";
+                    } else {
+                        head = String(Number(head[0]) + 1) + "0";
+                    }
+                } else {
+                    if (head[1] === "0" || head[1] === "1" || head[1] === "2" || head[1] === "3") {
+                        head = head[0] + "5";
+                    } else {
+                        head = String(Number(head[0]) + 1) + "0";
+                    }
+                }
+
+                bidAmount = Number(head + rest);
             }
         }
     }
@@ -292,7 +339,7 @@
                 {:else if numAcceptedBids === 0}
                     This auction doesn't have any accepted bid yet. Be the first to bid!
                 {:else}
-                    {#if didIBidOnThisProduct}
+                    {#if didIBidSuccessfullyOnThisProduct}
                         {#if higgerAcceptedBid && higgerAcceptedBid.pubkey === $NostrPublicKey}
                             <span class="font-bold">You're currently the top bidder!</span>
                         {:else}

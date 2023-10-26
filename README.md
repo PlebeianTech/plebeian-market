@@ -31,7 +31,8 @@ Our vision of the future involves small communities around the world running the
   `cd web/frontoffice/build ; cp config-example.json config.json`
 
 * (optional) Edit the `config.json` file and add your Nostr public key to the `admin_pubkeys` array:
-  ```"admin_pubkeys": [
+  ```
+  "admin_pubkeys": [
       "123456789012345678901234567890",
       "another_admin_nostr_public_key"
   ]
