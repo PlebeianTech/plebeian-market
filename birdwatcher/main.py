@@ -362,7 +362,7 @@ async def main(relays: list[Relay]):
 
         async def collect_query_results():
             query_results = {}
-            async for relay in relays:
+            for relay in relays:
                 if subscription_id in relay.active_queries:
                     try:
                         await asyncio.wait_for(relay.active_queries[subscription_id].wait(), timeout=1.0)
