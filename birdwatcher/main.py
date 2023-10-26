@@ -351,31 +351,37 @@ async def main(relays: list[Relay]):
         if filters is None:
             raise web.HTTPBadRequest()
 
-        query_results = {}
-
         subscription_id = os.urandom(10).hex()
 
-        for relay in relays:
-            try:
-                await relay.send_query(subscription_id, filters)
-            except Exception:
-                logging.exception(f"Error sending query to {relay.url}!")
+        async def send_query():
+            for relay in relays:
+                try:
+                    await relay.send_query(subscription_id, filters)
+                except Exception:
+                    logging.exception(f"Error sending query to {relay.url}!")
+
+        async def collect_query_results():
+            query_results = {}
+            async for relay in relays:
+                if subscription_id in relay.active_queries:
+                    try:
+                        await asyncio.wait_for(relay.active_queries[subscription_id].wait(), timeout=1.0)
+                    except asyncio.TimeoutError:
+                        logging.error(f"Relay {relay.url} did not finish the reply for {subscription_id} on time!")
+
+                    logging.info(f"Got {len(relay.query_results[subscription_id])} results from {relay.url}!")
+
+                    for event in relay.query_results[subscription_id]:
+                        query_results[event['id']] = event # NB: if we get the same event from multiple relays, we only store it once!
+                    del relay.active_queries[subscription_id]
+                    del relay.query_results[subscription_id]
+            return query_results
+
+        await asyncio.create_task(send_query())
 
         await asyncio.sleep(0) # give the query a chance to execute!
 
-        for relay in relays:
-            if subscription_id in relay.active_queries:
-                try:
-                    await asyncio.wait_for(relay.active_queries[subscription_id].wait(), timeout=1.0)
-                except asyncio.TimeoutError:
-                    logging.error(f"Relay {relay.url} did not finish the reply for {subscription_id} on time!")
-
-                logging.info(f"Got {len(relay.query_results[subscription_id])} results from {relay.url}!")
-
-                for event in relay.query_results[subscription_id]:
-                    query_results[event['id']] = event # NB: if we get the same event from multiple relays, we only store it once!
-                del relay.active_queries[subscription_id]
-                del relay.query_results[subscription_id]
+        query_results = await asyncio.create_task(collect_query_results())
 
         # NB: for "metadata" events, we also validate the external identities here...
 
