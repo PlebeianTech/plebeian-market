@@ -234,8 +234,9 @@ class Relay:
                 return
 
             try:
-                async for message in self.ws:
-                    logging.debug(f"({self.url}) Received: {message}!")
+                message = await self.ws.recv()
+                logging.debug(f"({self.url}) Received: {message}!")
+                try:
                     message = json.loads(message)
                     match message[0]:
                         case 'NOTICE':
@@ -253,6 +254,8 @@ class Relay:
                                 self.query_results[subscription_id].append(event)
                             else:
                                 await self.process_event(event)
+                except:
+                    logging.exception("Error processing message!")
             except Exception:
                 self.ws = None
                 logging.exception(f"({self.url}) Connection closed.")
@@ -313,8 +316,11 @@ async def verify_external_identity(pk, external_identity, proof):
     return pk, external_identity, verifier(response_url, response_text, pk2npub(pk), claimed_id)
 
 async def main(relays: list[Relay]):
+    listen_tasks = set()
+
     for relay in relays:
-        asyncio.create_task(relay.listen())
+        task = asyncio.create_task(relay.listen())
+        listen_tasks.add(task)
 
     app = web.Application()
     routes = web.RouteTableDef()
