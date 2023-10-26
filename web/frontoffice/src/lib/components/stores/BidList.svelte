@@ -28,17 +28,21 @@
             window.user_information_modal.showModal();
         } else {
             const userInfoPopup = document.getElementById('user-information-popup');
-            console.log('myPopup', userInfoPopup);
-
-            console.log(' ***** showUserProfilePopup - event', event);
 
             if (userInfoPopup) {
                 const mouseX = event.pageX;
                 const mouseY = event.pageY;
 
-                const width = userInfoPopup.offsetWidth;
-                userInfoPopup.style.left = `${mouseX - (width / 2)}px`;
-                userInfoPopup.style.top = `${mouseY + 6}px`;
+                const popupWidth = userInfoPopup.offsetWidth;
+                const popupHeight = userInfoPopup.offsetHeight;
+
+                if (event.clientY <= (window.innerHeight / 2)) {
+                    userInfoPopup.style.left = `${mouseX - (popupWidth / 2)}px`;
+                    userInfoPopup.style.top = `${mouseY + 10}px`;
+                } else {
+                    userInfoPopup.style.left = `${mouseX - (popupWidth / 2)}px`;
+                    userInfoPopup.style.top = `${mouseY - popupHeight - 40}px`;
+                }
             }
         }
 
