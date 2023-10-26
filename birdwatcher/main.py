@@ -211,12 +211,13 @@ class Relay:
 
     async def listen(self):
         while True:
-            logging.info(f"({self.url}) Connecting...")
-            try:
-                self.ws = await websockets.connect(self.url)
-            except Exception:
-                logging.exception(f"({self.url}) Cannot connect.")
-                return
+            if self.ws is None:
+                logging.info(f"({self.url}) Connecting...")
+                try:
+                    self.ws = await websockets.connect(self.url)
+                except Exception:
+                    logging.exception(f"({self.url}) Cannot connect.")
+                    return
 
             try:
                 if self.args.merchant:
@@ -357,6 +358,8 @@ async def main(relays: list[Relay]):
                 await relay.send_query(subscription_id, filters)
             except Exception:
                 logging.exception(f"Error sending query to {relay.url}!")
+
+        await asyncio.sleep(0) # give the query a chance to execute!
 
         for relay in relays:
             if subscription_id in relay.active_queries:
