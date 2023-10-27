@@ -1117,11 +1117,8 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
     if len(buyer_metadata['verified_identities']) < app.config['BID_REQUIRED_VERIFIED_IDENTITIES_COUNT']:
         message = f"User needs at least {app.config['BID_REQUIRED_VERIFIED_IDENTITIES_COUNT']} verified external identities in order to bid!"
         app.logger.info(f"{message} pubkey={request.json['pubkey']} verified_identities={buyer_metadata['verified_identities']}")
-
-        ######### DISABLED for now because it is broken!
-        # birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
-        # return jsonify({'message': message}), 400
-        #########
+        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+        return jsonify({'message': message}), 400
 
     is_settled = True
     if auction.skin_in_the_game_required and amount > auction.reserve_bid:
