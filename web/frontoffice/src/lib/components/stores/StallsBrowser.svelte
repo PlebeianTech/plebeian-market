@@ -12,14 +12,17 @@
     import {newNostrConversation} from "$sharedLib/nostr/utils";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
+    import Store from "$sharedLib/components/icons/Store.svelte";
 
     export let merchantPubkey: string | null;
     export let showStallFilter: boolean = true;
 
-    let isSuperAdmin: boolean = false;
+    let isSuperAdmin: boolean = true;
 
     let sortedStalls = [];
     let filter = null;
+
+    let descriptionLength = 125;
 
     $: {
         if ($stalls && $stalls.stalls) {
@@ -102,7 +105,7 @@
     {#if merchantPubkey === $NostrPublicKey}
         <InfoBox classText="mx-auto mt-3">
             <b>You don't have a market stall</b> yet.<br />
-            If you want to create one to <b>sell</b> or <b>auction</b> your products, login to the <a rel="external" href="/admin" class="underline"><b>Stall manager</b></a>.
+            If you want to create one to <b>sell</b> or <b>auction</b> your products, go to the <a rel="external" href="/admin" class="underline"><b>Stall manager</b></a>.
         </InfoBox>
     {:else}
         <InfoBox classText="mb-8 md:mb-12">
@@ -114,128 +117,93 @@
 
 {#if !merchantPubkey || (merchantPubkey && sortedStalls.length !== 0)}
     {#if merchantPubkey}
-        <h2>
-            <b>Market stalls:</b>
-        </h2>
+        <h2 class="font-bold">Market stalls:</h2>
     {/if}
 
     <div class="relative overflow-x-hidden shadow-md rounded border border-gray-400">
-        <!-- Desktop -->
-        <table class="hidden md:block w-full text-sm text-left pb-32">
-            <thead class="text-xs uppercase">
-                <tr>
-                    <th scope="col" class="px-6 py-3">Stall Name</th>
-                    <th scope="col" class="px-6 py-3">Description</th>
-                    <th scope="col" class="px-6 py-3">Currency</th>
-                    <th scope="col" class="px-6 py-3">Shipping</th>
-                    <th scope="col" class="px-6 py-3 text-center">Since</th>
-                    {#if isSuperAdmin}
-                        <th scope="col" class="px-6 py-3 text-center">Admin actions</th>
-                    {/if}
-                </tr>
-            </thead>
-
-            <tbody>
-                {#each sortedStalls as [stallId, stall]}
-                    {#if
-                        filter === null ||
-                        (
-                            filter !== null && (
-                                stall.name?.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.description?.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.id?.toLowerCase() === filter.toLowerCase()
+        <div class="bg-gray-100 dark:bg-gray-800 font-sans">
+            <main class="container mx-auto p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-8 z-[300] mt-2 mb-2">
+                    {#each sortedStalls as [stallId, stall]}
+                        {#if
+                            filter === null ||
+                            (
+                                filter !== null && (
+                                    stall.name?.toLowerCase().includes(filter.toLowerCase()) ||
+                                    stall.description?.toLowerCase().includes(filter.toLowerCase()) ||
+                                    stall.id?.toLowerCase() === filter.toLowerCase()
+                                )
                             )
-                        )
-                    }
-                        <tr class="border-y border-gray-400 hover cursor-pointer">
-                            <th class="px-6 py-4 font-medium whitespace-nowrap" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>{#if stall.name}{stall.name}{/if}</th>
-                            <td class="px-6 py-4 text-left {stall.description && stall.description.length > 100 ? 'tooltip tooltip-primary' : ''}" data-tip={stall.description && stall.description.length > 100 ? stall.description : ''} on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>{#if stall.description}{stall.description.substring(0,100)}{#if stall.description.length > 100}...{/if}{/if}</td>
-                            <td class="px-6 py-4 text-center" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>{#if stall.currency}{stall.currency}{/if}</td>
-                            <td class="px-6 py-4" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
-                                {#if stall.shipping}
-                                    <ul>
-                                        {#each stall.shipping as s}
-                                            <li>
-                                                {#if s.name}{s.name} - {/if}{s.cost} {stall.currency} - {s.countries?.join(", ")}
-                                            </li>
-                                        {/each}
-                                    </ul>
-                                {/if}
-                            </td>
-                            <td class="px-6 py-4" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
-                                <p class="mr-1">
-                                    {#if stall.createdAt}{formatTimestamp(stall.createdAt)}{/if}
-                                </p>
-                            </td>
-                            {#if isSuperAdmin}
-                                <th scope="col" class="px-6 py-3 text-center">
-                                    {#if !$NostrGlobalConfig.homepage_sections}
-                                        {#if $NostrGlobalConfig.homepage_include_stalls && $NostrGlobalConfig.homepage_include_stalls.includes(stall.id)}
-                                            <div class="tooltip tooltip-primary tooltip-left" data-tip="Remove products from the Homepage">
-                                                <button class="btn btn-s btn-circle btn-ghost" on:click|preventDefault={() => removeStallFromHomePage(stall.id)}><span class="w-6 text-rose-500"><Minus /></span></button>
+                        }
+                            <div class="bg-white dark:bg-black rounded-lg shadow-md hover:scale-110 duration-300">
+                                <div class="p-4 md:p-6">
+                                    <a href="/p/{stall.merchantPubkey}/stall/{stall.id}">
+                                        <div class="cursor-pointer">
+                                            <div class="float-left h-7 w-7 mr-3"><Store /></div>
+                                            <h3 class="text-lg font-semibold">
+                                                {#if stall.name}{stall.name}{/if}
+                                            </h3>
+                                            <p class="mt-2 lg:mt-3 text-gray-600 dark:text-gray-400 {stall.description && stall.description.length > descriptionLength ? 'tooltip tooltip-primary text-left' : ''}" data-tip={stall.description && stall.description.length > descriptionLength ? stall.description : ''}>
+                                                {#if stall.description}{stall.description.substring(0,descriptionLength)}{#if stall.description.length > descriptionLength}...{/if}{/if}
+                                            </p>
+                                            {#if stall.shipping}
+                                                <div class="mt-3 text-xs opacity-75">
+                                                    <ul>
+                                                        {#each stall.shipping as s}
+                                                            {#if s.countries}
+                                                                <li>{#if s.name}{s.name} - {/if} {s.cost} {stall.currency} - {s.countries?.join(", ")}</li>
+                                                            {/if}
+                                                        {/each}
+                                                    </ul>
+                                                </div>
+                                            {/if}
+                                            {#if stall.createdAt}
+                                                <div class="mt-3 text-xs opacity-70">Since {formatTimestamp(stall.createdAt)}</div>
+                                            {/if}
+                                        </div>
+                                    </a>
+                                    {#if isSuperAdmin}
+                                        <div class="mt-3 md:mt-5">
+                                            <hr>
+                                            <div class="flex mt-2 md:mt-4">
+                                            <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
+                                            {#if !$NostrGlobalConfig.homepage_sections}
+                                                {#if $NostrGlobalConfig.homepage_include_stalls && $NostrGlobalConfig.homepage_include_stalls.includes(stall.id)}
+                                                    <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
+                                                          data-tip="Remove products from the Homepage"
+                                                          on:click|preventDefault={() => removeStallFromHomePage(stall.id)}
+                                                    >
+                                                        <Minus />
+                                                    </span>
+                                                {:else}
+                                                    <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right"
+                                                          data-tip="Add products to the Homepage"
+                                                          on:click|preventDefault={() => addStallToHomePage(stall.id)}
+                                                    >
+                                                        <Plus />
+                                                    </span>
+                                                {/if}
+                                            {:else}
+                                                <div class="dropdown dropdown-left">
+                                                    <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add products">
+                                                        <button class="btn btn-s btn-circle btn-ghost"><span class="w-6 text-green-500"><Plus /></span></button>
+                                                    </div>
+                                                    <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52 rounded border border-gray-400">
+                                                        {#each $NostrGlobalConfig.homepage_sections as section}
+                                                            <li><a>{section.title}</a></li>
+                                                        {/each}
+                                                    </ul>
+                                                </div>
+                                            {/if}
                                             </div>
-                                        {:else}
-                                            <div class="tooltip tooltip-primary tooltip-left" data-tip="Add products to the Homepage">
-                                                <button class="btn btn-s btn-circle btn-ghost" on:click|preventDefault={() => addStallToHomePage(stall.id)}><span class="w-6 text-green-500"><Plus /></span></button>
-                                            </div>
-                                        {/if}
-                                    {:else}
-                                        <div class="dropdown dropdown-left">
-                                            <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add products">
-                                                <button class="btn btn-s btn-circle btn-ghost"><span class="w-6 text-green-500"><Plus /></span></button>
-                                            </div>
-                                            <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52 rounded border border-gray-400">
-                                                {#each $NostrGlobalConfig.homepage_sections as section}
-                                                    <li><a>{section.title}</a></li>
-                                                {/each}
-                                            </ul>
                                         </div>
                                     {/if}
-                                </th>
-                            {/if}
-                        </tr>
-                    {/if}
-                {/each}
-            </tbody>
-        </table>
-
-        <!-- Mobile -->
-        <table class="md:hidden w-full text-left">
-            <tbody>
-                {#each sortedStalls as [stallId, stall]}
-                    {#if
-                        filter === null ||
-                        (
-                            filter !== null && (
-                                stall.name?.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.description?.toLowerCase().includes(filter.toLowerCase()) ||
-                                stall.id?.toLowerCase() === filter.toLowerCase()
-                            )
-                        )
-                    }
-                        <tr class="border-b border-gray-400 cursor-pointer" on:click={() => goto('/p/'+stall.merchantPubkey+'/stall/'+stall.id)}>
-                            <th class="p-4 font-medium">
-                                <div>
-                                    <div class="font-bold">{#if stall.name}{stall.name}{/if}</div>
-                                    <div class="text-sm opacity-50">{#if stall.description}{stall.description.substring(0,100)}{#if stall.description.length > 100}...{/if}{/if}</div>
-                                    {#if stall.createdAt}
-                                        <div class="mt-1 text-xs opacity-50">Since {formatTimestamp(stall.createdAt)}</div>
-                                    {/if}
-                                    <div class="mt-1 text-xs opacity-50">
-                                        {#if stall.shipping}
-                                            <ul>
-                                                {#each stall.shipping as s}
-                                                    <li>{#if s.name}{s.name} - {/if} {s.cost} {stall.currency} - {s.countries?.join(", ")}</li>
-                                                {/each}
-                                            </ul>
-                                        {/if}
-                                    </div>
                                 </div>
-                            </th>
-                        </tr>
-                    {/if}
-                {/each}
-            </tbody>
-        </table>
+                            </div>
+                        {/if}
+                    {/each}
+                </div>
+            </main>
+        </div>
     </div>
 {/if}
