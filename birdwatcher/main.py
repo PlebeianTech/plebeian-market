@@ -59,6 +59,8 @@ class Relay:
 
         self.ws = None
 
+        self.events_to_process = asyncio.queues.Queue()
+
         self.subscribed_auction_event_ids = set()
         self.subscribed_merchant_pubkeys = set()
         self.auction_owners = {} # event ID to pubkey
@@ -250,13 +252,24 @@ class Relay:
                             subscription_id = message[1]
                             event = message[2]
                             if subscription_id in self.active_queries:
+                                logging.info(f"({self.url}) Got EVENT as a reply for query {subscription_id}.")
                                 self.query_results[subscription_id].append(event)
                             else:
-                                await self.process_event(event)
+                                logging.info(f"({self.url}) Got EVENT {event}. Adding to queue...")
+                                self.events_to_process.put_nowait(event)
             except Exception:
                 self.ws = None
                 logging.exception(f"({self.url}) Connection closed.")
                 await asyncio.sleep(10)
+
+    async def process_events(self):
+        while True:
+            if self.events_to_process.empty():
+                await asyncio.sleep(0.1)
+                continue
+            event = await self.events_to_process.get()
+            logging.info(f"({self.url}) Processing event {event['id']}...")
+            await asyncio.create_task(self.process_event(event))
 
 async def get_url_aiohttp(url):
     async with aiohttp.ClientSession() as session:
@@ -313,8 +326,10 @@ async def verify_external_identity(pk, external_identity, proof):
     return pk, external_identity, verifier(response_url, response_text, pk2npub(pk), claimed_id)
 
 async def main(relays: list[Relay]):
+    all_tasks = []
     for relay in relays:
-        asyncio.create_task(relay.listen())
+        all_tasks.append(asyncio.create_task(relay.listen()))
+        all_tasks.append(asyncio.create_task(relay.process_events()))
 
     app = web.Application()
     routes = web.RouteTableDef()
@@ -434,7 +449,8 @@ async def main(relays: list[Relay]):
         try:
             relay = Relay(relay_json['url'], args, processed_event_ids, event_ids_being_processed)
             relays.append(relay)
-            asyncio.create_task(relay.listen())
+            all_tasks.append(asyncio.create_task(relay.listen()))
+            all_tasks.append(asyncio.create_task(relay.process_events()))
             return web.json_response({})
         except Exception:
             logging.exception(f"Error adding relay: {relay['url']}!")
