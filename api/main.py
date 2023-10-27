@@ -578,7 +578,7 @@ class Birdwatcher:
 
             return validated_response
         else:
-            app.logger.error(f"Error querying birdwatcher for {public_key} metadata!")
+            app.logger.error(f"Error querying birdwatcher for {public_key} metadata: {response.status_code}: {response.text}!")
             return None
 
     def add_relay(self, relay_url):

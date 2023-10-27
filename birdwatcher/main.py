@@ -59,6 +59,8 @@ class Relay:
 
         self.ws = None
 
+        self.events_to_process = asyncio.queues.Queue()
+
         self.subscribed_auction_event_ids = set()
         self.subscribed_merchant_pubkeys = set()
         self.auction_owners = {} # event ID to pubkey
@@ -179,37 +181,23 @@ class Relay:
             case EventKind.STALL:
                 await self.check_ours(event, self.subscribe_dm)
             case EventKind.DM:
-                if event['id'] not in self.processed_event_ids and event['id'] not in self.event_ids_being_processed:
-                    self.event_ids_being_processed.add(event['id'])
-                    try:
-                        merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
-                        logging.info(f"({self.url}) POSTing DM event to API: {event['id']}")
-                        post_status = await self.post_dm(merchant_pubkey, event)
-                        if post_status not in RECOVERABLE_API_ERROR_STATI:
-                            self.processed_event_ids.add(event['id'])
-                            if PROCESSED_EVENT_IDS_FILENAME:
-                                async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
-                                    await f.write(f"{event['id']}\n")
-                    finally:
-                        self.event_ids_being_processed.remove(event['id'])
-                else:
-                    logging.info(f"({self.url}) Skipping DM event: {event['id']}")
+                merchant_pubkey = [t for t in event['tags'] if t[0] == 'p'][0][1]
+                logging.info(f"({self.url}) POSTing DM event to API: {event['id']}")
+                post_status = await self.post_dm(merchant_pubkey, event)
+                if post_status not in RECOVERABLE_API_ERROR_STATI:
+                    self.processed_event_ids.add(event['id'])
+                    if PROCESSED_EVENT_IDS_FILENAME:
+                        async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
+                            await f.write(f"{event['id']}\n")
             case EventKind.BID:
-                if event['id'] not in self.processed_event_ids and event['id'] not in self.event_ids_being_processed:
-                    self.event_ids_being_processed.add(event['id'])
-                    try:
-                        auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
-                        logging.info(f"({self.url}) POSTing bid event to API: {event['id']}")
-                        post_status = await self.post_bid(auction_event_id, event)
-                        if post_status not in RECOVERABLE_API_ERROR_STATI:
-                            self.processed_event_ids.add(event['id'])
-                            if PROCESSED_EVENT_IDS_FILENAME:
-                                async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
-                                    await f.write(f"{event['id']}\n")
-                    finally:
-                        self.event_ids_being_processed.remove(event['id'])
-                else:
-                    logging.info(f"({self.url}) Skipping bid event: {event['id']}")
+                auction_event_id = [t for t in event['tags'] if t[0] == 'e'][0][1]
+                logging.info(f"({self.url}) POSTing bid event to API: {event['id']}")
+                post_status = await self.post_bid(auction_event_id, event)
+                if post_status not in RECOVERABLE_API_ERROR_STATI:
+                    self.processed_event_ids.add(event['id'])
+                    if PROCESSED_EVENT_IDS_FILENAME:
+                        async with async_open(PROCESSED_EVENT_IDS_FILENAME, 'a') as f:
+                            await f.write(f"{event['id']}\n")
 
     async def listen(self):
         while True:
@@ -250,13 +238,33 @@ class Relay:
                             subscription_id = message[1]
                             event = message[2]
                             if subscription_id in self.active_queries:
+                                logging.info(f"({self.url}) Got EVENT as a reply for query {subscription_id}.")
                                 self.query_results[subscription_id].append(event)
                             else:
-                                await self.process_event(event)
+                                logging.info(f"({self.url}) Got EVENT {event}. Adding to queue...")
+                                self.events_to_process.put_nowait(event)
             except Exception:
                 self.ws = None
                 logging.exception(f"({self.url}) Connection closed.")
                 await asyncio.sleep(10)
+
+    async def process_events(self):
+        while True:
+            if self.events_to_process.empty():
+                await asyncio.sleep(0.1)
+                continue
+            event = await self.events_to_process.get()
+            if event['id'] in self.event_ids_being_processed:
+                logging.info(f"({self.url}) Skipping event currently being processed: {event['id']}!")
+            elif event['id'] in self.processed_event_ids:
+                logging.info(f"({self.url}) Skipping event already processed: {event['id']}!")
+            else:
+                logging.info(f"({self.url}) Processing event {event['id']}...")
+                self.event_ids_being_processed.add(event['id'])
+                try:
+                    await asyncio.create_task(self.process_event(event))
+                finally:
+                    self.event_ids_being_processed.remove(event['id'])
 
 async def get_url_aiohttp(url):
     async with aiohttp.ClientSession() as session:
@@ -313,8 +321,10 @@ async def verify_external_identity(pk, external_identity, proof):
     return pk, external_identity, verifier(response_url, response_text, pk2npub(pk), claimed_id)
 
 async def main(relays: list[Relay]):
+    all_tasks = []
     for relay in relays:
-        asyncio.create_task(relay.listen())
+        all_tasks.append(asyncio.create_task(relay.listen()))
+        all_tasks.append(asyncio.create_task(relay.process_events()))
 
     app = web.Application()
     routes = web.RouteTableDef()
@@ -351,31 +361,39 @@ async def main(relays: list[Relay]):
         if filters is None:
             raise web.HTTPBadRequest()
 
-        query_results = {}
-
         subscription_id = os.urandom(10).hex()
 
-        for relay in relays:
-            try:
-                await relay.send_query(subscription_id, filters)
-            except Exception:
-                logging.exception(f"Error sending query to {relay.url}!")
-
-        await asyncio.sleep(0) # give the query a chance to execute!
-
-        for relay in relays:
-            if subscription_id in relay.active_queries:
+        async def send_query():
+            for relay in relays:
                 try:
-                    await asyncio.wait_for(relay.active_queries[subscription_id].wait(), timeout=1.0)
-                except asyncio.TimeoutError:
-                    logging.error(f"Relay {relay.url} did not finish the reply for {subscription_id} on time!")
+                    await relay.send_query(subscription_id, filters)
+                except Exception:
+                    logging.exception(f"Error sending query to {relay.url}!")
 
-                logging.info(f"Got {len(relay.query_results[subscription_id])} results from {relay.url}!")
+        async def collect_query_results():
+            query_results = {}
+            for relay in relays:
+                if subscription_id in relay.active_queries:
+                    try:
+                        await asyncio.wait_for(relay.active_queries[subscription_id].wait(), timeout=1.0)
+                    except asyncio.TimeoutError:
+                        logging.error(f"Relay {relay.url} did not finish the reply for {subscription_id} on time!")
 
-                for event in relay.query_results[subscription_id]:
-                    query_results[event['id']] = event # NB: if we get the same event from multiple relays, we only store it once!
-                del relay.active_queries[subscription_id]
-                del relay.query_results[subscription_id]
+                    logging.info(f"Got {len(relay.query_results[subscription_id])} results from {relay.url}!")
+
+                    for event in relay.query_results[subscription_id]:
+                        query_results[event['id']] = event # NB: if we get the same event from multiple relays, we only store it once!
+                    del relay.active_queries[subscription_id]
+                    del relay.query_results[subscription_id]
+            return query_results
+
+        await asyncio.create_task(send_query())
+
+        await asyncio.sleep(0.1) # give the query a chance to execute!
+
+        query_results_task = asyncio.create_task(collect_query_results())
+        await query_results_task
+        query_results = query_results_task.result()
 
         # NB: for "metadata" events, we also validate the external identities here...
 
@@ -421,7 +439,8 @@ async def main(relays: list[Relay]):
         try:
             relay = Relay(relay_json['url'], args, processed_event_ids, event_ids_being_processed)
             relays.append(relay)
-            asyncio.create_task(relay.listen())
+            all_tasks.append(asyncio.create_task(relay.listen()))
+            all_tasks.append(asyncio.create_task(relay.process_events()))
             return web.json_response({})
         except Exception:
             logging.exception(f"Error adding relay: {relay['url']}!")
