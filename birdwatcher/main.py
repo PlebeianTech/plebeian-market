@@ -395,9 +395,7 @@ async def main(relays: list[Relay]):
         try:
             await asyncio.create_task(send_query())
 
-            logging.info("Before sleep")
             await asyncio.sleep(0.1) # give the query a chance to execute!
-            logging.info("After sleep")
 
             query_results_task = asyncio.create_task(collect_query_results())
             await query_results_task
