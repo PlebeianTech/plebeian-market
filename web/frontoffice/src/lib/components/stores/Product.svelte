@@ -90,7 +90,7 @@
                 {/if}
 
                 <div class="w-full align-top mb-5 md:mb-0 {product.images && product.images.length > 1 ? 'md:w-8/12' : 'md:w-12/12' }">
-                    <img class="rounded-lg" src="{activeImage ? activeImage : product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
+                    <img class="rounded-lg min-w-full" src="{activeImage ? activeImage : product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} />
                 </div>
 
                 <!-- Mobile image chooser -->
