@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from "$app/environment";
-    import {filterTags} from "$sharedLib/nostr/utils";
+    import {filterTags, pmStallPubkey} from "$sharedLib/nostr/utils";
     import {getBadgeDefinitions, getBadgeAward, getProfileBadges, subscribeMetadata} from "$sharedLib/services/nostr";
 
     export let userPubkey: string = null;
@@ -71,14 +71,12 @@
             const badgeAuthor: string = badgeIDarray[1];
 
             getBadgeDefinitions(badgeName, badgeAuthor, (badgeDefinition) => {
-                // console.log('------- BadgeDefinition', badgeDefinition);
-
                 const badgeObject = Object.fromEntries(badgeDefinition.tags);
 
                 badgeObject.badgeFullName = badgeFullName;
                 badgeObject.eventId = badgeEvent.id;        // Event ID from the "Badge Award"
 
-                if (badgeDefinition.pubkey === '76cc29acb8008c68b105cf655d34de0b1f7bc0215eaae6bbc83173d6d3f7b987') {
+                if (badgeDefinition.pubkey === pmStallPubkey) {
                     badgeObject.pm_issued = true;
                     pm_badges = true;
                 } else {

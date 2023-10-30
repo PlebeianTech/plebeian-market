@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
 export const pmMasterPublicKey = import.meta.env.VITE_NOSTR_PM_MASTER_PUBLIC_KEY;
 export const pmStallId = import.meta.env.VITE_NOSTR_PM_STALL_ID;
+export const pmStallPubkey = import.meta.env.VITE_NOSTR_PM_STALL_PUBLIC_KEY;
 
 export const relayUrlList =
 (isStaging() ? ["wss://staging.plebeian.market/relay"] : <string[]>[])

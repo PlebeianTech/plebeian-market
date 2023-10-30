@@ -1,10 +1,11 @@
 <script lang="ts">
-    import {filterTags, formatTimestamp, queryNip05, sendSitgBadgeOrder} from "$sharedLib/nostr/utils";
+    import {filterTags, formatTimestamp, pmStallPubkey, queryNip05, sendSitgBadgeOrder} from "$sharedLib/nostr/utils";
     import Countdown from "$sharedLib/components/Countdown.svelte";
     import BidList from "$lib/components/stores/BidList.svelte";
     import {
         EVENT_KIND_AUCTION_BID,
-        EVENT_KIND_AUCTION_BID_STATUS,
+        EVENT_KIND_AUCTION_BID_STATUS, getBadgeDefinitions,
+        nostrAcceptBadge,
         sendMessage,
         subscribeAuction,
         subscribeMetadata
@@ -13,6 +14,7 @@
     import {Info, Error, NostrPublicKey, privateMessages} from "$sharedLib/stores";
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
     import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
+    import UserProfileInformation from "$sharedLib/components/nostr/UserProfileInformation.svelte";
 
     export let product;
 
@@ -40,7 +42,11 @@
     let badgeOrderToBePaid = null;
     let badgeOrderToBePaidId: string | null = null;
     let badgeModalIShouldBuy = false;
-    let badgeModalPaying = false;
+    let badgeModalStep: string = 'instructions';  // instructions, paying, paid
+
+    // Needed to be able to accept the SITG badge
+    $: profileBadgesLastEvent = null;
+    $: badgeDefinitions = new Map<string, object>();
 
     let showPaymentDetails;
 
@@ -282,7 +288,7 @@
                     badgeOrderToBePaid = order;
                 }
                 if (badgeOrderToBePaidId === orderId && order.type === 2 && order.paid) {
-                    closeSitgBadgeInfo();
+                    badgeModalStep = 'paid';
                 }
             });
         }
@@ -308,7 +314,36 @@
     function resetEverything() {
         badgeOrderToBePaidId = null;
         badgeOrderToBePaid = null;
-        badgeModalPaying = false;
+        badgeModalStep = 'instructions';
+    }
+
+    function acceptBadge() {
+        const badgeInfo = badgeDefinitions.get('30009:' + pmStallPubkey + ':pm-sitg-staging');
+
+        if (badgeInfo.accepted) {
+            Error.set('Badge already accepted!');
+            console.error('This badge was already accepted');
+            return;
+        }
+
+        if (badgeInfo && profileBadgesLastEvent) {
+            if (profileBadgesLastEvent.tags.length < 3) {
+                console.debug("nostrAcceptBadge - profile doesn't have a single entire badge");
+                profileBadgesLastEvent.tags = [['d', 'profile_badges']];
+            } else {
+                console.debug("nostrAcceptBadge - adding new badge to profile");
+            }
+
+            profileBadgesLastEvent.tags.push(['a', badgeInfo.badgeFullName]);   // Adding "Badge Definition" key
+            profileBadgesLastEvent.tags.push(['e', badgeInfo.eventId]);          // Adding "Badge Award" event id
+
+            nostrAcceptBadge(profileBadgesLastEvent.tags, () => {
+                Info.set("Badge accepted!");
+                closeSitgBadgeInfo();
+            });
+        } else {
+            Error.set("Error while accepting the badge. You can try to do this from your Me page.");
+        }
     }
 </script>
 
@@ -392,7 +427,7 @@
 
 <dialog id="skin_in_the_game_modal" class="modal">
     <div class="modal-box">
-        {#if !badgeModalPaying}
+        {#if badgeModalStep === 'instructions'}
             <h3 class="font-bold text-lg">Skin in the Game proof needed!</h3>
             <p class="py-4 text-base">Bidding for this auction has reached a threshold, and participants are required to complete a <b>"Skin In The Game"</b> test as an <b>anti-spam</b> measure.</p>
             {#if badgeModalIShouldBuy}
@@ -408,28 +443,41 @@
             {:else}
                 <p class="text-base">As soon as the user buys the badge, <b>the bid will be approved</b>.</p>
             {/if}
-        {:else}
-            {#if badgeOrderToBePaid}
-                <PaymentWidget orderToBePaid={badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
-            {/if}
+
+        {:else if badgeModalStep === 'paying' && badgeOrderToBePaid}
+            <PaymentWidget orderToBePaid={badgeOrderToBePaid} bind:showPaymentDetails={showPaymentDetails} />
+
+        {:else if badgeModalStep === 'paid'}
+            <p class="py-4 text-base">You have successfully purchased the <b>"Skin In The Game badge"</b>.</p>
+
+            <div class="h-64 inline-flex">
+                <img class="mx-auto" src="/badges/skin-in-the-game.png" alt="Skin In The Game Badge" />
+            </div>
+
+            <p class="text-base">If you consider it valuable, <b>you can accept it to have it displayed on your profile</b> so others can see it.</p>
+
+            <UserProfileInformation
+                    userPubkey={$NostrPublicKey}
+                    bind:badgeDefinitions={badgeDefinitions}
+                    bind:profileBadgesLastEvent={profileBadgesLastEvent}
+            />
         {/if}
 
         <div class="modal-action">
-            {#if badgeModalIShouldBuy}
-                {#if !badgeModalPaying}
-                    <div class="inline-flex">
-                        {#if badgeOrderToBePaid}
-                            <button class="btn btn-primary" on:click|preventDefault={() => badgeModalPaying = true}>Buy badge</button>
-                        {:else}
-                            <button class="btn btn-success no-animation cursor-default" on:click|preventDefault={() => showPaymentDetails = true}>
-                                <span class="loading loading-spinner"></span>
-                                Preparing order...
-                            </button>
-                        {/if}
-                    </div>
-                {/if}
+            {#if badgeModalStep === 'instructions' && badgeModalIShouldBuy}
+                <div class="inline-flex">
+                    {#if badgeOrderToBePaid}
+                        <button class="btn btn-primary" on:click|preventDefault={() => badgeModalStep = 'paying'}>Buy badge</button>
+                    {:else}
+                        <button class="btn btn-success no-animation cursor-default" on:click|preventDefault={() => showPaymentDetails = true}>
+                            <span class="loading loading-spinner"></span>
+                            Preparing order...
+                        </button>
+                    {/if}
+                </div>
+            {:else if badgeModalStep === 'paid'}
+                <button class="btn btn-primary" class:btn-disabled={!profileBadgesLastEvent || badgeDefinitions.size} on:click={acceptBadge}>Accept badge</button>
             {/if}
-
             <button class="btn mt-0" on:click={closeSitgBadgeInfo}>Close</button>
         </div>
     </div>
