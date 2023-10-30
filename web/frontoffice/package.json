@@ -2,9 +2,9 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
-    "@sveltejs/kit": "^1.27.1",
+    "@sveltejs/kit": "^1.27.2",
     "autoprefixer": "^10.4.16",
-    "daisyui": "^3.9.3",
+    "daisyui": "^3.9.4",
     "eslint": "^8.52.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.13.1",
