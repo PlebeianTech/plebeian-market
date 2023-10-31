@@ -43,16 +43,15 @@
 
                         // If valid ID, get product information
                         getProducts(null, [product_id],
-                            (productEvent) => {
-                                if (!product || (product && productEvent.created_at > product.created_at)) {
-                                    product = JSON.parse(productEvent.content);
-                                    product.created_at = productEvent.created_at;
+                            (newProductInfo) => {
+                                if (!product || (product && newProductInfo.event.created_at > product.event.created_at)) {
+                                    product = newProductInfo;
 
-                                    stallId = product.stall_id;
+                                    stallId = newProductInfo.stall_id;
 
                                     // If valid Product, get bids information
-                                    if (productEvent.id) {
-                                        subscribeAuction([productEvent.id],
+                                    if (newProductInfo.event.id) {
+                                        subscribeAuction([newProductInfo.event.id],
                                             (auctionEvent) => {
                                                 if (auctionEvent.kind === EVENT_KIND_AUCTION_BID) {
                                                     // Bid previous information
@@ -66,7 +65,7 @@
                                                     });
 
                                                 } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
-                                                    if (auctionEvent.pubkey !== productEvent.pubkey) {
+                                                    if (auctionEvent.pubkey !== newProductInfo.event.pubkey) {
                                                         console.error('WARNING! Someone tried to cheat on the auction, but we caught them!')
                                                         return;
                                                     }
@@ -79,7 +78,7 @@
 
                                                             for (let i = 0; i < eTags.length; i++) {
                                                                 let tagValue = eTags[i][1];
-                                                                if (productEvent.id !== tagValue) {
+                                                                if (newProductInfo.event.id !== tagValue) {
                                                                     // Bid previous information
                                                                     let bidInfo = bids[tagValue];
 
@@ -104,7 +103,9 @@
                                                                 });
                                                         }
 
-                                                    } catch (error) { }
+                                                    } catch (error) {
+                                                        console.error('Error parsing bid response:', error);
+                                                    }
                                                 }
                                             });
                                     }

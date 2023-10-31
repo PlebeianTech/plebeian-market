@@ -64,18 +64,15 @@
         }
 
         getProducts(null, null,
-            (productEvent) => {
-                let content = JSON.parse(productEvent.content);
-                content.event = productEvent;
-
-                if (!content.image && (!content.images || (content.images && content.images.length === 0 ) )) {
+            (newProductInfo) => {
+                if (!newProductInfo.image && (!newProductInfo.images || (newProductInfo.images && newProductInfo.images.length === 0 ) )) {
                     return;
                 }
 
                 // Calculate if auction is already ended
-                if (productEvent.kind === EVENT_KIND_AUCTION) {
+                if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
                     let now = Math.floor(Date.now() / 1000);
-                    let endsAt = content.start_date + content.duration;
+                    let endsAt = newProductInfo.start_date + newProductInfo.duration;
 
                     if (now > endsAt) {
                         // Auction already ended
@@ -83,48 +80,38 @@
                     }
                 }
 
-                if (!content.id) {
-                    let productId = getFirstTagValue(productEvent.tags, 'd');
+                if (!newProductInfo.id) {
+                    let productId = getFirstTagValue(newProductInfo.event.tags, 'd');
                     if (productId !== null) {
-                        content.id = productId;
+                        newProductInfo.id = productId;
                     } else {
                         return;
                     }
                 }
 
-                let categoryTags = filterTags(productEvent.tags, 't');
-                if (categoryTags.length > 0) {
-                    categoryTags.forEach((category) => {
-                        let tag = category[1].trim().toLowerCase();
+                filterTags(newProductInfo.event.tags, 't').forEach((category) => {
+                    let tag = category[1].trim().toLowerCase();
 
-                        // vitamin the product with categories
-                        if (content.tags) {
-                            content.tags.push(tag);
-                        } else {
-                            content.tags = [tag];
-                        }
+                    // Add to global categories
+                    if (tag in categories) {
+                        categories[tag].amount++;
+                    } else {
+                        categories[tag] = {
+                            amount: 1,
+                            selected: false
+                        };
+                    }
 
-                        // Add to global categories
-                        if (tag in categories) {
-                            categories[tag].amount++;
-                        } else {
-                            categories[tag] = {
-                                amount: 1,
-                                selected: false
-                            };
-                        }
+                    categories['All'].amount++;
 
-                        categories['All'].amount++;
+                    categories = categories;
+                });
 
-                        categories = categories;
-                    });
-                }
-
-                let productId = content.id;
+                let productId = newProductInfo.id;
 
                 if (productId in products) {
-                    if (products[productId].event.created_at < productEvent.created_at) {
-                        products[productId] = content;
+                    if (products[productId].event.created_at < newProductInfo.event.created_at) {
+                        products[productId] = newProductInfo;
                     }
                 } else {
                     // If whiteListedStalls is provided, don't limit the number of loaded products
@@ -150,7 +137,7 @@
                             )
                         )
                     ) {
-                        products[productId] = content;
+                        products[productId] = newProductInfo;
                         productsLoaded++;
                     }
                 }

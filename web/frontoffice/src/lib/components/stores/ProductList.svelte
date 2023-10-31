@@ -26,36 +26,32 @@
         products = {};
 
         getProducts(merchantPubkey, null,
-            (productEvent) => {
-                let content = JSON.parse(productEvent.content);
-
-                if (content.stall_id === stallId) {
-                    content.event = productEvent;
-
-                    if (!content.id) {
-                        let productId = getFirstTagValue(productEvent.tags, 'd');
+            (newProductInfo) => {
+                if (newProductInfo.stall_id === stallId) {
+                    if (!newProductInfo.id) {
+                        let productId = getFirstTagValue(newProductInfo.event.tags, 'd');
                         if (productId !== null) {
-                            content.id = productId;
+                            newProductInfo.id = productId;
                         } else {
                             return;
                         }
                     }
 
                     // Calculate if ended
-                    if (productEvent.kind === EVENT_KIND_AUCTION) {
+                    if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
                         let now = Math.floor(Date.now() / 1000);
-                        let endsAt = content.start_date + content.duration;
-                        content.ended = now > endsAt;
+                        let endsAt = newProductInfo.start_date + newProductInfo.duration;
+                        newProductInfo.ended = now > endsAt;
                     }
 
-                    let productId = content.id;
+                    let productId = newProductInfo.id;
 
                     if (productId in products) {
-                        if (products[productId].event.created_at < productEvent.created_at) {
-                            products[productId] = content;
+                        if (products[productId].event.created_at < newProductInfo.event.created_at) {
+                            products[productId] = newProductInfo;
                         }
                     } else {
-                        products[productId] = content;
+                        products[productId] = newProductInfo;
                     }
                 }
             });

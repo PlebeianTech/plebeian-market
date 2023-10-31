@@ -4,7 +4,9 @@
     import BidList from "$lib/components/stores/BidList.svelte";
     import {
         EVENT_KIND_AUCTION_BID,
-        EVENT_KIND_AUCTION_BID_STATUS, getBadgeDefinitions,
+        EVENT_KIND_AUCTION_BID_STATUS,
+        getBadgeDefinitions,
+        getProducts,
         nostrAcceptBadge,
         sendMessage,
         subscribeAuction,
@@ -39,6 +41,7 @@
 
     let alreadySubscribed: boolean = false;
 
+    let badgeProductInformation = null;
     let badgeOrderToBePaid = null;
     let badgeOrderToBePaidId: string | null = null;
     let badgeModalIShouldBuy = false;
@@ -299,6 +302,14 @@
 
         badgeModalIShouldBuy = isCurrentUser;
 
+        badgeProductInformation = null;
+        getProducts(null, [badgeProductId],
+            (newProductInfo) => {
+                if (!badgeProductInformation || (badgeProductInformation && newProductInfo.event.created_at > badgeProductInformation.event.created_at)) {
+                    badgeProductInformation = newProductInfo;
+                }
+            });
+
         if (isCurrentUser) {
             badgeOrderToBePaidId = await sendSitgBadgeOrder(badgeStallId, badgeProductId);
         }
@@ -431,7 +442,11 @@
             <h3 class="font-bold text-lg">Skin in the Game proof needed!</h3>
             <p class="py-4 text-base">Bidding for this auction has reached a threshold, and participants are required to complete a <b>"Skin In The Game"</b> test as an <b>anti-spam</b> measure.</p>
             {#if badgeModalIShouldBuy}
-                <p class="py-4 text-base">You have to buy the Plebeian Market <b>"Skin In The Game"</b> badge which costs $20. This has to be done <b>just once</b>, and you'll be able to bid on as many auctions as you want.</p>
+                {#if badgeProductInformation && badgeProductInformation.price && badgeProductInformation.price > 0}
+                    <p class="py-4 text-base">You have to buy the Plebeian Market <b>"Skin In The Game"</b> badge which costs ${badgeProductInformation.price}. This has to be done <b>just once</b>, and you'll be able to bid on as many auctions as you want.</p>
+                {:else}
+                    <p class="py-4 text-base">You have to buy the Plebeian Market <b>"Skin In The Game"</b> badge. This has to be done <b>just once</b>, and you'll be able to bid on as many auctions as you want.</p>
+                {/if}
             {:else}
                 <p class="py-4 text-base">The user that made the bid have to buy the Plebeian Market <b>"Skin In The Game"</b> badge.</p>
             {/if}
