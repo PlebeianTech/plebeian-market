@@ -24,24 +24,9 @@
 
         if (product_id) {
             getProducts(null, [product_id],
-                (productEvent) => {
-                    if (!product || (product && productEvent.created_at > product.event.created_at)) {
-                        product = JSON.parse(productEvent.content);
-                        product.event = productEvent;
-
-                        let categoryTags = filterTags(productEvent.tags, 't');
-                        if (categoryTags.length > 0) {
-                            categoryTags.forEach((category) => {
-                                let tag = category[1].trim().toLowerCase();
-
-                                // vitamin the product with categories
-                                if (product.tags) {
-                                    product.tags.push(tag);
-                                } else {
-                                    product.tags = [tag];
-                                }
-                            });
-                        }
+                (newProductInfo) => {
+                    if (!product || (product && newProductInfo.event.created_at > product.event.created_at)) {
+                        product = newProductInfo;
                     }
                 });
         }

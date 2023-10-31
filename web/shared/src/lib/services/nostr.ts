@@ -321,7 +321,23 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
     }
 
     const sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
-    sub.on('event', e => {receivedCB(e);});
+    sub.on('event', productEvent => {
+        let product = JSON.parse(productEvent.content);
+        product.event = productEvent;
+
+        filterTags(productEvent.tags, 't').forEach((category) => {
+            let tag = category[1].trim().toLowerCase();
+
+            // vitamin the product with categories
+            if (product.tags) {
+                product.tags.push(tag);
+            } else {
+                product.tags = [tag];
+            }
+        });
+
+        receivedCB(product);
+    });
     sub.on('eose', () => {
         // sub.unsub()
     })
