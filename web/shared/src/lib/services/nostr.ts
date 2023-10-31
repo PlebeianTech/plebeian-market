@@ -346,7 +346,7 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
 /**
  * Used to subscribe to all the information about a specific auction
  */
-export function subscribeAuction(listOfAuctionsToGetInfo, receivedCB: (event) => void, eoseCB) {
+export function subscribeAuction(listOfAuctionsToGetInfo, receivedCB: (event) => void, eoseCB = () => {}) {
     const sub = get(NostrPool)
         .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID, EVENT_KIND_AUCTION_BID_STATUS ], '#e': listOfAuctionsToGetInfo }]);
     sub.on('event', receivedCB);
