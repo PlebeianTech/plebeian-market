@@ -40,7 +40,7 @@ export async function closePool() {
 }
 
 export function getNostrEvent(listOfEventIds, receivedCB: (event) => void, eoseCB) {
-    let sub = get(NostrPool)
+    const sub = get(NostrPool)
         .sub(relayUrlList, [{ 'ids': listOfEventIds }]);
     sub.on('event', receivedCB);
     if (eoseCB) {
@@ -49,12 +49,12 @@ export function getNostrEvent(listOfEventIds, receivedCB: (event) => void, eoseC
 }
 
 export function subscribeResumes(receivedCB: (pubkey: string, resume: UserResume, createdAt: number) => void) {
-    let sub = get(NostrPool).sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME] }]);
+    const sub = get(NostrPool).sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME] }]);
     sub.on('event', e => receivedCB(e.pubkey, UserResume.fromJson(JSON.parse(e.content)), e.created_at));
 }
 
 export function subscribeResume(pubkey: string, receivedCB: (resume: UserResume, createdAt: number) => void) {
-    let sub = get(NostrPool).sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME], authors: [pubkey] }]);
+    const sub = get(NostrPool).sub(relayUrlList, [{ kinds: [EVENT_KIND_RESUME], authors: [pubkey] }]);
     sub.on('event', e => receivedCB(UserResume.fromJson(JSON.parse(e.content)), e.created_at));
 }
 
@@ -162,7 +162,7 @@ export async function sendPrivateMessage(recipientPubkey: string, message: strin
 }
 
 export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:string | boolean = false, receivedCB, eoseCB = () => {}) {
-    let sub = get(NostrPool).sub(relayUrlList, [
+    const sub = get(NostrPool).sub(relayUrlList, [
         {
             kinds: [EVENT_KIND_PM],
             authors: [userPubkey]       // My messages (output)
@@ -258,7 +258,7 @@ export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string, metadata: UserMetadata) => void, eoseCB: () => void) {
-    let sub = get(NostrPool).sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
+    const sub = get(NostrPool).sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
     sub.on('event', e => {
         try {
             let jsonDecodedMetadata = JSON.parse(e.content);
@@ -302,7 +302,7 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
         }
     }
 
-    let sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
+    const sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
     sub.on('event', e => receivedCB(e));
     sub.on('eose', () => {
         // sub.unsub()
@@ -320,7 +320,7 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
         filter['#d'] = productIds;
     }
 
-    let sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
+    const sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
     sub.on('event', e => {receivedCB(e);});
     sub.on('eose', () => {
         // sub.unsub()
@@ -331,7 +331,7 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
  * Used to subscribe to all the information about a specific auction
  */
 export function subscribeAuction(listOfAuctionsToGetInfo, receivedCB: (event) => void, eoseCB) {
-    let sub = get(NostrPool)
+    const sub = get(NostrPool)
         .sub(relayUrlList, [{ kinds: [ EVENT_KIND_AUCTION_BID, EVENT_KIND_AUCTION_BID_STATUS ], '#e': listOfAuctionsToGetInfo }]);
     sub.on('event', receivedCB);
     if (eoseCB) {
@@ -345,7 +345,7 @@ export function subscribeAuction(listOfAuctionsToGetInfo, receivedCB: (event) =>
 export function subscribeWonAuctions(pubkey, receivedCB: (event) => void, eoseCB) {
     const expiryDays = 3;
 
-    let sub = get(NostrPool)
+    const sub = get(NostrPool)
         .sub(relayUrlList, [{
             kinds: [ EVENT_KIND_AUCTION_BID_STATUS ],
             '#p': [pubkey],
@@ -431,7 +431,7 @@ export async function publishConfiguration(setup: object, tags, successCB: () =>
 }
 
 export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: string, createdAt: number) => void) {
-    let sub = get(NostrPool).sub(
+    const sub = get(NostrPool).sub(
         relayUrlList,
         [
             {
