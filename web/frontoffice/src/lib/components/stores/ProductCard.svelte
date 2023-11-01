@@ -32,19 +32,21 @@
             {/key}
         </a>
     </figure>
-    <div class="card-body items-center text-center">
+    <div class="card-body items-center text-center p-3 md:p-8">
         {#if product.event.kind === EVENT_KIND_AUCTION}
             <div class="badge badge-info gap-2">auction</div>
         {:else}
             <div class="badge badge-success gap-2 mb-2">fixed price</div>
         {/if}
 
-        <h2 class="card-title">
-            {#if product.name}<a class="cursor-pointer hover:underline" href="/product/{product.id}" on:click|preventDefault={openProduct}>{product.name}</a>{/if}
-        </h2>
+        {#if product.name}
+        <span class="card-title atext-sm md:text-lg">
+            <a class="cursor-pointer hover:underline" href="/product/{product.id}" on:click|preventDefault={openProduct}>{product.name}</a>
+        </span>
+        {/if}
 
         {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}
-            <div class="alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.event.pubkey+'/stall/'+product.stall_id)}>
+            <div class="mt-1 md:mt-3 p-3 md:p-4 alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.event.pubkey+'/stall/'+product.stall_id)}>
                 <span class="text-sm">
                     <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
                         <Store />
@@ -54,10 +56,13 @@
             </div>
         {/if}
 
-        <div class="mb-4">{#if product.description}{product.description}{/if}</div>
+        {#if product.description}
+            <div class="md:hidden mt-1 md:mt-4">{product.description.substring(0,110)}{#if product.description.length > 110}...{/if}</div>
+            <div class="hidden md:block mt-1 md:mt-4">{product.description.substring(0,350)}{#if product.description.length > 350}...{/if}</div>
+        {/if}
 
         {#if product.tags}
-            <div class="card-actions justify-center mb-4">
+            <div class="card-actions justify-center mt-2 md:mt-4">
                 {#each product.tags as tag}
                     <div class="badge badge-outline">{tag}</div>
                 {/each}
@@ -67,7 +72,7 @@
         {#if product.event.kind === EVENT_KIND_AUCTION}
             <AuctionInfo {product} />
         {:else}
-            <div class="columns-2">
+            <div class="columns-2 mt-2 md:mt-4">
                 <div>
                     {#if product.quantity === null}
                         Stock: Unlimited
@@ -77,9 +82,9 @@
                 </div>
                 <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
             </div>
-            <div class="mt-3 justify-end {product.quantity === 0 ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
+            <div class="mt-2 md:mt-3 justify-end {product.quantity === 0 ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
                 <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
-                <button class="btn btn-primary mt-4" class:btn-disabled={product.quantity === 0} on:click|preventDefault={() => addToCart(product, orderQuantity)}>
+                <button class="btn btn-primary mt-1 md:mt-3" class:btn-disabled={product.quantity === 0} on:click|preventDefault={() => addToCart(product, orderQuantity)}>
                     Add to cart
                 </button>
             </div>
