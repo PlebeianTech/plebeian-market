@@ -96,6 +96,33 @@ export function formatTimestamp(ts, show_date_always = false) {
     return formatter.format(new Date(ts * 1000));
 }
 
+/*
+    New formatTimestamp function that shows the date if the timestamp
+    is older than 24 hours and the time if it's less than 24 hours.
+    We'll probably be migrating code from formatTimestamp to this
+    function.
+ */
+export function formatTimestampNG(ts) {
+    const today = new Date().setHours(0, 0, 0, 0);
+    const thatDay = new Date(ts * 1000).setHours(0, 0, 0, 0);
+
+    let format;
+
+    if (today === thatDay) {
+        format = {
+            timeStyle: 'short'
+        };
+    } else {
+        format = {
+            dateStyle: 'medium'
+        };
+    }
+
+    const formatter = new Intl.DateTimeFormat('en-US', format);
+
+    return formatter.format(new Date(ts * 1000));
+}
+
 export function getChannelIdForStall(stallPubkey) {
     // Please, don't change any of this, since we're faking channel
     // creation, so we need the same channel ID every time

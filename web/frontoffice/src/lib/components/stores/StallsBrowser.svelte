@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import {NostrGlobalConfig} from "$lib/stores";
     import {NostrPublicKey, stalls} from "$sharedLib/stores";
-    import {formatTimestamp} from "$sharedLib/nostr/utils.js";
+    import {formatTimestampNG} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
@@ -158,7 +158,7 @@
                                                 </div>
                                             {/if}
                                             {#if stall.createdAt}
-                                                <div class="mt-3 text-xs opacity-70">Since {formatTimestamp(stall.createdAt)}</div>
+                                                <div class="mt-3 text-xs opacity-70">Available since {formatTimestampNG(stall.createdAt)}</div>
                                             {/if}
                                         </div>
                                     </a>
