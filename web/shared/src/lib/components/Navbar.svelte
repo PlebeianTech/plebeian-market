@@ -150,7 +150,7 @@
                     </div>
 
                     {#if isFrontOffice}
-                        <div class="dropdown dropdown-end dropdown-open xl:mr-3">
+                        <div class="dropdown dropdown-end xl:mr-3">
                             <label tabindex="0" class="btn btn-ghost btn-circle">
                                 <div class="w-8 h-8 text-black-800 dark:text-gray-200 focus:outline-none indicator" >
                                     <ShoppingCartIcon />
