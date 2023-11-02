@@ -5,7 +5,7 @@
     import Trash from "$sharedLib/components/icons/Trash.svelte";
     import Quantity from "./Quantity.svelte";
 
-    export let compact: boolean;
+    export let compact = false;
 
     $: {
         // When you are viewing the full-featured-cart, you'll run this code twice: one for the compact cart
@@ -42,7 +42,7 @@
 <div class="md:grid justify-center">
 {#if $ShoppingCart.summary.numProducts && $stalls && $stalls.stalls}
     <!-- Desktop -->
-    <table class="hidden md:block table table-auto w-full {compact ? 'table-md' : 'rounded border border-gray-400'}" >
+    <table class="hidden md:block table table-auto w-full {compact ? 'table-md' : 'border rounded border-gray-400'}" >
         <thead>
             <tr class="text-center">
                 <th>Name</th>
@@ -74,7 +74,7 @@
                     </td>
                 </tr>
 
-                {#each [...products] as [productId, product]}
+                {#each [...products] as [_, product]}
                     <tr>
                         <th>{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
                         {#if !compact}
@@ -103,23 +103,22 @@
     </table>
 
     <!-- Mobile -->
-    <table class="w-fit rounded-md md:hidden text-left" class:table-sm={compact}>
+    <table class="table table-auto w-full md:hidden text-left {compact ? 'table-sm' : 'border rounded border-gray-400'}">
         <thead>
             <tr class="text-center">
-                <th>Name</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Total</th>
+                <th class="text-left pl-1 pr-0">Name</th>
+                <th class="px-0">Price</th>
+                <th class="px-1">Quantity</th>
+                <th class="px-0">Total</th>
                 <th></th>
             </tr>
         </thead>
-
-        <tbody class="text-xs">
+        <tbody>
             {#each [...$ShoppingCart.products] as [stallId, products]}
                 {#if $stalls.stalls[stallId]}
                     <tr class="bg-gray-300 dark:bg-gray-700">
                         <td colspan="5">
-                            <p class="mx-3">
+                            <p class:mx-3={!compact}>
                                 <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
                                     {#if $stalls !== null && $stalls.stalls[stallId]}
                                         Stall: {$stalls.stalls[stallId].name ?? ''}
@@ -131,15 +130,15 @@
                         </td>
                     </tr>
 
-                    {#each [...products] as [productId, product]}
-                        <tr>
-                            <th class="text-xs">{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
-                            <td class="text-center">{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
-                            <td>
-                                <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} compact={true} />
+                    {#each [...products] as [_, product]}
+                        <tr class="text-xs text-center">
+                            <th class="text-left text-xs pl-1 pr-0">{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
+                            <td class="px-0">{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                            <td class="px-1">
+                                <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
                             </td>
-                            <td class="text-center">{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
-                            <td class="hover:cursor-pointer" on:click={() => deleteFromCart(stallId, product.id)}>
+                            <td class="px-0">{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                            <td class="pl-1 pr-1" on:click={() => deleteFromCart(stallId, product.id)}>
                                 <div class="w-5 h-5"><Trash /></div>
                             </td>
                         </tr>
@@ -157,7 +156,7 @@
         </div>
     {:else}
         <div class="mt-6 card-actions justify-center">
-            <a class="btn btn-info" href="/stalls">Continue shopping</a>
+            <a class="btn btn-info mr-1" href="/stalls">Continue shopping</a>
             <a class="btn btn-success" href="/checkout">Checkout</a>
         </div>
     {/if}

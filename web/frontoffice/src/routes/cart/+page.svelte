@@ -9,4 +9,4 @@
 
 <Titleh1>Shopping Cart</Titleh1>
 
-<ShoppingCart />
+<ShoppingCart compact={false} />

@@ -139,7 +139,7 @@
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0">
             <div class="lg:flex items-center justify-start 2xl:space-x-2">
                 <div class="float-right">
-                    <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
+                    <label class="swap swap-rotate 2xl:mr-3" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
                         <div class="swap-off w-9 h-9"><Sun /></div>
                         <div class="swap-on w-9 h-9"><Moon /></div>
@@ -150,17 +150,17 @@
                     </div>
 
                     {#if isFrontOffice}
-                        <div class="dropdown dropdown-end xl:mr-4">
+                        <div class="dropdown dropdown-end xl:mr-3">
                             <label tabindex="0" class="btn btn-ghost btn-circle">
-                                <div class="indicator">
+                                <div class="w-8 h-8 text-black-800 dark:text-gray-200 focus:outline-none indicator" >
                                     <ShoppingCartIcon />
                                     {#if $ShoppingCart.summary.totalQuantity}
                                         <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
                                     {/if}
                                 </div>
                             </label>
-                            <div tabindex="0" class="mt-3 card card-compact card-bordered border-black dark:border-white dropdown-content w-fit bg-base-300 shadow-xl z-50">
-                                <div class="card-body">
+                            <div tabindex="0" class="!fixed lg:float w-[97%] lg:w-fit mt-0 mr-1 bg-base-300 card card-compact card-bordered border-black dark:border-white dropdown-content shadow-xl z-50">
+                                <div class="card-body !px-2">
                                     <CompactShoppingCart compact={true} />
                                 </div>
                             </div>
@@ -219,7 +219,7 @@
                             </a>
                         </li>
                         {#if $NostrPublicKey}
-                            <li class="menu-title mt-2">
+                            <li class="menu-title mt-1">
                                 <span class="text-lg">Account</span>
                             </li>
                             <li>
