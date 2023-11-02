@@ -74,7 +74,7 @@
                     </td>
                 </tr>
 
-                {#each [...products] as [productId, product]}
+                {#each [...products] as [_, product]}
                     <tr>
                         <th>{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
                         {#if !compact}
@@ -157,7 +157,7 @@
         </div>
     {:else}
         <div class="mt-6 card-actions justify-center">
-            <a class="btn btn-info" href="/stalls">Continue shopping</a>
+            <a class="btn btn-info mr-1" href="/stalls">Continue shopping</a>
             <a class="btn btn-success" href="/checkout">Checkout</a>
         </div>
     {/if}

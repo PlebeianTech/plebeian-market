@@ -157,7 +157,7 @@
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0">
             <div class="lg:flex items-center justify-start 2xl:space-x-2">
                 <div class="float-right">
-                    <label class="swap swap-rotate 2xl:mr-2" on:click={toggleTheme} on:keypress={toggleTheme}>
+                    <label class="swap swap-rotate 2xl:mr-3" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
                         <div class="swap-off w-9 h-9"><Sun /></div>
                         <div class="swap-on w-9 h-9"><Moon /></div>
@@ -219,7 +219,7 @@
                             </a>
                         </li>
                         {#if $NostrPublicKey}
-                            <li class="menu-title mt-2">
+                            <li class="menu-title mt-1">
                                 <span class="text-lg">Account</span>
                             </li>
                             <li>

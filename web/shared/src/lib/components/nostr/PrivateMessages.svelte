@@ -231,7 +231,7 @@
 </script>
 
 <div class="indicator" on:click={gotoMessages}>
-    <div class="w-8 h-8">
+    <div class="w-9 h-9">
         <EmailIcon />
     </div>
 

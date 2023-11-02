@@ -16,7 +16,7 @@
         plus ? quantity++ : quantity--;
 
         if (maxStock !== null && quantity > maxStock) {
-            Error.set('There are just ' + maxStock + ' products in stock. You cannot order ' + quantity);
+            Error.set('There are just ' + maxStock + ' products in stock. You cannot order ' + quantity + '.');
             quantity--;
         }
 
