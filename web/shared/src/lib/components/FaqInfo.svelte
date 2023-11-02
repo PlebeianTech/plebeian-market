@@ -2,9 +2,9 @@
     import {page} from "$app/stores";
     import {onMount} from "svelte";
 
-    export let role: string;
+    export let role: string | undefined = undefined;
 
-    let question: string = '';
+    let question: string | null = '';
 
     onMount(() => {
         question = $page.url.searchParams.get('question');
@@ -14,7 +14,7 @@
 <div class="flex justify-center items-center md:mb-20 p-2">
     <div class="lg:w-2/3 space-y-6">
         <div class="collapse">
-            <input type="checkbox" />
+            <input type="checkbox" checked={role === undefined} />
             <div class="collapse-title text-xl font-medium">General FAQ</div>
             <div class="collapse-content">
                 <div class="collapse collapse-plus bg-base-300">
@@ -73,53 +73,39 @@
                         Do you hold the funds in escrow?
                     </div>
                     <div class="collapse-content">
-                        <p>We do not touch the money at any point in the transaction, we simply run the auction to help you find the market value. The winner is put in contact with the seller and the two complete the payment directly. In the future we may develop an escrow system that does not require a trusted third party, such as a multisig Bitcoin escrow with a security deposit to protect buyer and seller, but we do not intend to ever be the trusted third party or hold the funds at any point during the transaction.</p>
+                        <p>We do not hold the money at any point. We simply run the auctions or display your listings and help you find the market value. The buyers are put in contact with the sellers and the two complete the payment directly. In the future we may develop an escrow system that does not require a trusted third party, such as a multisig Bitcoin escrow with a security deposit to protect buyer and seller, but we do not intend to ever be the trusted third party or hold the funds at any point during the transaction.</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="collapse">
-            <input type="checkbox" checked={role === 'buyer'} />
+            <input type="checkbox" checked={role === 'buyer' || role === undefined} />
             <div class="collapse-title text-xl font-medium">Buyer FAQ</div>
             <div class="collapse-content">
-                <div class="collapse collapse-plus bg-base-300">
-                    <input type="radio" />
-                    <div class="collapse-title text-xl font-medium">
-                        How do I place a bid?
-                    </div>
-                    <div class="collapse-content">
-                        <p class="text-s">Scan a QR code using your lightning wallet to place a bid. Bidding on an auction costs 21 sats. These sats will go directly to funding open-source initiatives such as <a target="_blank" href="https://opensats.org">OpenSats</a>.</p>
-                    </div>
-                </div>
                 <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" checked={question === 'howToGetPMBadge'} />
                     <div class="collapse-title text-xl font-medium">
-                        How do I get a Plebeian Market badge?
+                        What is Skin in the Game?
                     </div>
                     <div class="collapse-content">
-                        <p class="text-s">There are 3 ways to get a PM badge:</p>
-                        <ul class="mt-3">
-                            <li>- Setting up your Plebeian Market merchant profile to sell and auction stuff</li>
-                            <li>- Using Plebeian Market to buy and sell stuff</li>
-                            <li>- Buying a "Skin in the Game" badge</li>
-                        </ul>
+                        <p>Skin in the Game is a Nostr NIP-58 badge that you can get by making a donation to Plebeian Market. It is a way to show your support for us but also a way for new users to show that they are committed to Plebeian Market and to avoid trolls.</p>
                     </div>
                 </div>
                 <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
-                        How does the shipping works?
+                        How does shipping work?
                     </div>
                     <div class="collapse-content">
-                        <p>You'll be able to see the shipping options and cost for each stall in the Stall Browser. Also, you'll be able to see and choose a shipping option during the checkout process. If you need additional information about the shipping cost for a specific listing, please reach out to the merchant of that listing directly using the <b>Contact the merchant</b> button available in the stall.</p>
+                        <p>You'll be able to see the shipping options and cost for each stall in the Stall Browser. Also, you'll be able to see and choose a shipping option during the checkout process. If you need additional information about the shipping cost for a specific listing, please reach out to the merchant of that listing directly using the contact button available on the stall page.</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="collapse">
-            <input type="checkbox" checked={role === 'seller'} />
+            <input type="checkbox" checked={role === 'seller' || role === undefined} />
             <div class="collapse-title text-xl font-medium">Seller FAQ</div>
             <div class="collapse-content">
                 <div class="collapse collapse-plus bg-base-300">
@@ -135,7 +121,7 @@
                 <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
-                        How does the shipping work?
+                        How does shipping work?
                     </div>
                     <div class="collapse-content">
                         <p>When you create (or edit) your stall, you can specify different options of places where you ship your products to, and the cost to ship the products there.</p>

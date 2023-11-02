@@ -9,4 +9,4 @@
 
 <Titleh1>FAQ</Titleh1>
 
-<FaqInfo role="buyer" />
+<FaqInfo />
