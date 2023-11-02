@@ -5,7 +5,7 @@
     import Trash from "$sharedLib/components/icons/Trash.svelte";
     import Quantity from "./Quantity.svelte";
 
-    export let compact: boolean;
+    export let compact = false;
 
     $: {
         // When you are viewing the full-featured-cart, you'll run this code twice: one for the compact cart
