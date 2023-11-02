@@ -120,24 +120,6 @@
                 </div>
             </div>
 
-            {#if isFrontOffice}
-                <div class="dropdown dropdown-end xl:mr-4">
-                    <label tabindex="0" class="btn btn-ghost btn-circle">
-                        <div class="w-7 h-7 text-black-800 dark:text-gray-200 focus:outline-none indicator" >
-                            <ShoppingCartIcon />
-                            {#if $ShoppingCart.summary.totalQuantity}
-                                <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
-                            {/if}
-                        </div>
-                    </label>
-                    <div tabindex="0" class="!fixed w-[95%] mt-2 mr-2 bg-base-300 card card-compact card-bordered border-black dark:border-white dropdown-content shadow-xl z-50">
-                        <div class="card-body">
-                            <CompactShoppingCart compact={true} />
-                        </div>
-                    </div>
-                </div>
-            {/if}
-
             <!-- Mobile menu button -->
             <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-2 -mr-3">
                 <button type="button" class="text-black-800 dark:text-gray-200 focus:outline-none">
@@ -166,6 +148,24 @@
                     <div class="btn btn-ghost btn-circle 2xl:mr-2">
                         <PrivateMessages />
                     </div>
+
+                    {#if isFrontOffice}
+                        <div class="dropdown dropdown-end dropdown-open xl:mr-3">
+                            <label tabindex="0" class="btn btn-ghost btn-circle">
+                                <div class="w-8 h-8 text-black-800 dark:text-gray-200 focus:outline-none indicator" >
+                                    <ShoppingCartIcon />
+                                    {#if $ShoppingCart.summary.totalQuantity}
+                                        <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
+                                    {/if}
+                                </div>
+                            </label>
+                            <div tabindex="0" class="!fixed lg:float w-[97%] lg:w-fit mt-0 mr-1 bg-base-300 card card-compact card-bordered border-black dark:border-white dropdown-content shadow-xl z-50">
+                                <div class="card-body !px-2">
+                                    <CompactShoppingCart compact={true} />
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
                 </div>
 
                 <div class="lg:dropdown lg:dropdown-end h-screen lg:h-fit clear-both" on:click={hideMobileMenu} on:keydown={hideMobileMenu}>
