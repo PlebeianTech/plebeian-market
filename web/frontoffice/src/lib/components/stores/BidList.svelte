@@ -8,10 +8,12 @@
     import UserInfoPopup from "$sharedLib/components/nostr/UserInfoPopup.svelte";
     import {NostrPublicKey} from "$sharedLib/stores";
     import {nip19} from "nostr-tools";
+    import FiatConverter from "$sharedLib/components/FiatConverter.svelte";
 
     export let sortedBids;
     export let userProfileInfoMap;
     export let openSitgBadgeInfo;
+    export let bidSuscriptionFinished = false;
 
     let modalPubkey = null;
     let hoverTimer = null;
@@ -75,8 +77,11 @@
             {#each sortedBids as [_, bid]}
                 {#if bid.amount}
                     <tr class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
-                        <th class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
+                        <th class="text-center grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             {bid.amount} sats
+                            {#if bidSuscriptionFinished}
+                                <FiatConverter satsAmount={bid.amount} classStyle="text-xs pb-1" />
+                            {/if}
                             <p class="mt-1">{formatTimestamp(bid.date)}</p>
 
                             <div class="mt-1">
@@ -85,18 +90,18 @@
                                         <div class="w-8 h-8 mx-auto"><Clock /></div>
                                     </div>
                                 {:else if bid.backendResponse.status === 'accepted'}
-                                    <div class="mx-auto tooltip" data-tip="Bid confirmed">✅</div>
+                                    <div class="mx-auto tooltip tooltip-right" data-tip="Bid confirmed">✅</div>
                                 {:else if bid.backendResponse.status === 'rejected'}
-                                    <div class="mx-auto tooltip" data-tip="Bid rejected: {bid.backendResponse.message}">❌</div>
+                                    <div class="mx-auto tooltip tooltip-right" data-tip="Bid rejected: {bid.backendResponse.message}">❌</div>
                                 {:else if bid.backendResponse.status === 'pending'}
-                                    <div class="w-8 h-8 mx-auto tooltip" data-tip={ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }><Clock /></div>
+                                    <div class="w-8 h-8 mx-auto tooltip tooltip-right" data-tip={ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }><Clock /></div>
                                     {#if bid.pubkey === $NostrPublicKey}
                                         <p class="line-clamp-3 mt-1 whitespace-normal">
                                             <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>Skin in the Game required</button>
                                         </p>
                                     {/if}
                                 {:else if bid.backendResponse.status === 'winner'}
-                                    <div class="mx-auto tooltip" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? "Congratulations!" : ""}"><div class="w-8 h-8 mx-auto"><WinnerBadge /></div></div>
+                                    <div class="mx-auto tooltip tooltip-right" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? 'Congratulations!' : 'This is the winning bid'}"><div class="w-8 h-8 mx-auto"><WinnerBadge /></div></div>
                                 {:else}
                                     Unknown response from the marketplace
                                 {/if}
@@ -137,10 +142,20 @@
                 </tr>
             </thead>
             <tbody>
+
             {#each sortedBids as [_, bid]}
                 {#if bid.amount}
                     <tr>
-                        <th class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}"><span class="p-3">{bid.amount} sats</span></th>
+                        <th class="text-center inline-grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
+                            <span class="p-3" class:pb-9={!bidSuscriptionFinished}>
+                                {bid.amount} sats
+                                {#if bidSuscriptionFinished}
+                                    <div class="pb-3">
+                                        <FiatConverter satsAmount={bid.amount} classStyle="text-xs" />
+                                    </div>
+                                {/if}
+                            </span>
+                        </th>
                         <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">{formatTimestamp(bid.date)}</td>
                         <td class="text-center text-xs {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}">
                             {#if !bid.backendResponse}
@@ -159,7 +174,7 @@
                                     </div>
                                 {/if}
                             {:else if bid.backendResponse.status === 'winner'}
-                                <div class="text-xl mx-auto tooltip" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? "Congratulations!" : ""}"><div class="w-8 h-8 mx-auto"><WinnerBadge /></div></div>
+                                <div class="text-xl mx-auto tooltip" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? 'Congratulations!' : 'This is the winning bid'}"><div class="w-8 h-8 mx-auto"><WinnerBadge /></div></div>
                             {:else}
                                 Unknown response from the marketplace
                             {/if}

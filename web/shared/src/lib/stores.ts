@@ -11,6 +11,9 @@ export const token: Writable<string | null> = writable(null);
 
 export const BTC2USD: Writable<number | null> = writable(null);
 
+export const currentFiatCurrency: Writable<string | null> = writable(null);
+export const fiatRates: Writable<Map<string, object>> = writable(new Map());
+
 export const loginModalState: Writable<{
     openRequested: boolean;
     loginSuccessCB: () => void;

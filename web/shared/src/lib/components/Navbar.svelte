@@ -22,6 +22,7 @@
     import Book from "$sharedLib/components/icons/Book.svelte";
     import Chat from "$sharedLib/components/icons/Chat.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
+    import FiatChooser from "$sharedLib/components/FiatChooser.svelte";
     // import Tools from "$sharedLib/components/icons/Tools.svelte";
 
     export let isFrontOffice = true;
@@ -132,6 +133,12 @@
                 {/if}
             </div>
         </div>
+
+        {#if isFrontOffice}
+            <div class="right-0 hidden lg:block">
+                <FiatChooser />
+            </div>
+        {/if}
 
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0">
             <div class="lg:flex items-center justify-start 2xl:space-x-2">

@@ -33,6 +33,7 @@
     let numAcceptedBids: number = 0;
     let bidAmount: number = 0;
     $: higgerAcceptedBid = null;
+    $: bidSuscriptionFinished = false;
 
     let didIBidSuccessfullyOnThisProduct: boolean = false;
     let doIHaveSITGPending: boolean | null = null;
@@ -157,7 +158,10 @@
                         }
                     }
                 },
-                null);
+                () => {
+                    bidSuscriptionFinished = true;
+                }
+            );
         } else {
             setRecommendedBidAmount();
         }
@@ -432,7 +436,7 @@
     {/if}
 
     {#if !(!started && !ended)}
-        <BidList {sortedBids} {userProfileInfoMap} {openSitgBadgeInfo} />
+        <BidList {sortedBids} {userProfileInfoMap} {openSitgBadgeInfo} {bidSuscriptionFinished} />
     {/if}
 {/if}
 
