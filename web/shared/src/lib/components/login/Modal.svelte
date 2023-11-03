@@ -23,7 +23,14 @@
 
 <script lang="ts">
     import NostrLogin from "./Nostr.svelte";
-    import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, loginModalState, token} from "$sharedLib/stores";
+    import {
+        NostrPrivateKey,
+        NostrPublicKey,
+        NostrLoginMethod,
+        loginModalState,
+        token,
+        currentFiatCurrency
+    } from "$sharedLib/stores";
     import {onMount} from "svelte";
 
     let open = false;
@@ -57,6 +64,7 @@
         $NostrPrivateKey =  localStorage.getItem("nostrPrivateKey");
         $token =            localStorage.getItem("token");
         $NostrLoginMethod = localStorage.getItem("nostrLoginMethod");
+        $currentFiatCurrency = localStorage.getItem("currentFiatCurrency") ?? 'USD';
     });
 </script>
 
