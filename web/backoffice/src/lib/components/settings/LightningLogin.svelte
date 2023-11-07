@@ -112,6 +112,8 @@
     }
 
     onMount(async () => {
+        window.scrollTo(0, 0);
+
         if ($user) {
             hasLnauthKey = $user.hasLnauthKey;
             lnauthKeyName = $user.lnauthKeyName;

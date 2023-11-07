@@ -42,6 +42,8 @@
     }
 
     onMount(async () => {
+        window.scrollTo(0, 0);
+
         if ($user) {
             wallet = $user.wallet ? $user.wallet : "";
             walletName = $user.walletName ? $user.walletName : "";

@@ -74,6 +74,8 @@
     }
 
     onMount(async () => {
+        window.scrollTo(0, 0);
+
         if ($user) {
             email = $user.email ? $user.email : "";
         }

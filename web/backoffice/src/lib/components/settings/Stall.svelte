@@ -42,6 +42,8 @@
     }
 
     onMount(async () => {
+        window.scrollTo(0, 0);
+
         if ($user) {
             stallName = $user.stallName || "";
             stallDescription = $user.stallDescription || "";
@@ -91,7 +93,7 @@
     <div class="form-control w-full max-w-xs">
         <label class="label" for="shippingFrom">
             <span class="label-text">Shipping from (optional)</span>
-            <div class="tooltip tooltip-left" data-tip="We use this to provide shipping options to the buyers. Be as vague or as specific as you want / need to be, eg: US / UK / London / Europe / etc. PS: you can ignore this for digital items!">
+            <div class="tooltip tooltip-left" data-tip="Where are your products sent from? We use this to provide shipping options to the buyers. Be as vague or as specific as you want / need to be, eg: US / UK / London / Europe / etc. PS: you can ignore this for digital items!">
                 <InfoIcon />
             </div>
         </label>

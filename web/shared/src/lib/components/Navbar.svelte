@@ -195,28 +195,6 @@
                                 </a>
                             </li>
                         {/if}
-                        <li class="block md:hidden md:h-0">
-                            <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6 mr-1"><Home /></span> Home
-                            </a>
-                        </li>
-                        <li class="block md:hidden md:h-0">
-                            <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><Store /></div> Stall Browser
-                            </a>
-                        </li>
-                        <!--
-                        <li class="block md:hidden md:h-0">
-                            <a href="/skills" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
-                            </a>
-                        </li>
-                        -->
-                        <li class="block md:hidden md:h-0">
-                            <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><Chat /></div> Market Square
-                            </a>
-                        </li>
                         {#if $NostrPublicKey}
                             <li class="menu-title mt-1">
                                 <span class="text-lg">Account</span>
@@ -263,7 +241,33 @@
                                     <span class="w-6 h-6 mr-1"><Exit /></span> Logout
                                 </a>
                             </li>
-
+                        {/if}
+                        <li class="block md:hidden md:h-0 menu-title mt-1">
+                            <span class="text-lg">Community</span>
+                        </li>
+                        <li class="block md:hidden md:h-0">
+                            <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
+                                <span class="w-6 h-6 mr-1"><Home /></span> Home
+                            </a>
+                        </li>
+                        <li class="block md:hidden md:h-0">
+                            <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1"><Store /></div> Stall Browser
+                            </a>
+                        </li>
+                        <!--
+                        <li class="block md:hidden md:h-0">
+                            <a href="/skills" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
+                            </a>
+                        </li>
+                        -->
+                        <li class="block md:hidden md:h-0">
+                            <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1"><Chat /></div> Market Square
+                            </a>
+                        </li>
+                        {#if $NostrPublicKey}
                             <li class="menu-title mt-2 text-base">
                                 <span class="text-lg">Other information</span>
                             </li>

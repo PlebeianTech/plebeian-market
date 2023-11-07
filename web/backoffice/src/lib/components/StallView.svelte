@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import AuctionEditor from "$lib/components/AuctionEditor.svelte";
     import ItemCard from "$lib/components/ItemCard.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
@@ -60,10 +61,14 @@
             }
         }
     }
+
+    onMount(() => window.scrollTo(0, 0));
 </script>
 
 <div class="lg:flex lg:w-2/3 mx-auto my-4">
     <div class="w-full px-4">
+        <h2 class="text-3xl my-8">Stall Manager</h2>
+        <p class="text-center my-4">This is where you list items that you have for sale!</p>
         <div class="flex gap-4 flex-col">
             <ListView
                 bind:this={newListingsList}

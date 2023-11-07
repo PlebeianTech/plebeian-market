@@ -8,7 +8,7 @@
 
 <div class="card bg-base-100 mt-4 p-4">
     <h3 class="card-title">Shipping</h3>
-    <p class="mt-3">Per-order shipping (set at stall level)<br />
+    <p class="mt-3">Per-order shipping (set in the <a class="link" href="/admin/account/settings">stall settings</a>)<br />
         Domestic: <b>${$user?.shippingDomesticUsd}</b><br />
         Worldwide: <b>${$user?.shippingWorldwideUsd}</b>
     </p>
