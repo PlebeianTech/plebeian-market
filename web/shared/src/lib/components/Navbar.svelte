@@ -143,7 +143,7 @@
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0">
             <div class="lg:flex items-center justify-start 2xl:space-x-2">
                 <div class="float-right">
-                    <label class="swap swap-rotate 2xl:mr-3" on:click={toggleTheme} on:keypress={toggleTheme}>
+                    <label tabindex="0" class="swap swap-rotate 2xl:mr-3" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
                         <div class="swap-off w-9 h-9"><Sun /></div>
                         <div class="swap-on w-9 h-9"><Moon /></div>
@@ -177,7 +177,7 @@
                         <ProfilePicture />
                     {:else}
                         <!-- Desktop menu button -->
-                        <label class="btn btn-circle swap swap-rotate hidden md:grid">
+                        <label tabindex="0" class="btn btn-circle swap swap-rotate hidden md:grid">
                             <!-- this hidden checkbox controls the state -->
                             <input type="checkbox" />
                             <!-- hamburger icon -->
