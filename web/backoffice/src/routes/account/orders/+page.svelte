@@ -6,10 +6,10 @@
 
 <h3 class="lg:text-8xl font-bold text-center text-4xl my-20">My received orders</h3>
 
-<div class="lg:w-2/3 mx-auto">
+<div class="w-full mx-auto">
     <ListView
         loader={{endpoint: "users/me/orders", responseField: 'orders', fromJson: orderFromJson}}
-        columns={["UUID", "Date", "Total Sats / Fiat", "Received sats", "Tx", "Status"]}
+        columns={["Date", "Total Sats / Fiat", "Received sats", "Tx", "Status", "UUID"]}
         card={OrderRow}
         editor={null}
         style={ListViewStyle.Table} />

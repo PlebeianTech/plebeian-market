@@ -15,9 +15,6 @@
 
 <tr>
     <td>
-        {order.uuid}
-    </td>
-    <td>
         {#if order.requested_at}
             <DateFormatter date={order.requested_at} style={DateStyle.Short} />
         {/if}
@@ -53,5 +50,8 @@
                 <button class="btn btn-primary" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) }>Shipped</button>
             {/if}
         {/if}
+    </td>
+    <td>
+        <button class="btn ml-2 w-20" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy!</button>
     </td>
 </tr>
