@@ -54,6 +54,9 @@ Our vision of the future involves small communities around the world running the
   * `BASE_URL`
   * `VIRTUAL_HOST`
   * `LETSENCRYPT_HOST`
+* edit `./web/.env.production`
+  * `VITE_BASE_URL`
+  * `VITE_API_BASE_URL`
 * `flask db upgrade`
 * `./scripts/prod.sh`
 
