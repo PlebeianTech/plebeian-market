@@ -43,7 +43,19 @@ Our vision of the future involves small communities around the world running the
 
 ### Install the entire marketplace
 
-TBD
+* install [`nginx-proxy-automation`](https://github.com/evertramos/nginx-proxy-automation)
+* clone repo
+* add `plebeian-market-secrets/secret_key` (random string), `plebeian-market-secrets/db.json` (default username: *pleb* / default password: *plebpass*)
+* edit config.py
+  * `DOMAIN_NAME`
+* edit `.env.prod`
+  * `WWW_BASE_URL`
+* edit `docker-compose.prod.yml`
+  * `BASE_URL`
+  * `VIRTUAL_HOST`
+  * `LETSENCRYPT_HOST`
+* `flask db upgrade`
+* `./scripts/prod.sh`
 
 ## Development
 
