@@ -6,7 +6,7 @@
     import {getBaseUrl} from "$sharedLib/utils";
     import GoldenGai from "$lib/images/golden-gai-tokyo.jpg";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
-    import {NostrGlobalConfig} from "$lib/stores";
+    import {NostrGlobalConfig} from "$sharedLib/stores";
     import {onMount} from "svelte";
 
     let homepage_banner = GoldenGai;

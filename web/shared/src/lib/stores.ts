@@ -28,6 +28,7 @@ export const NostrPool: Writable<SimplePool> = writable(new SimplePool());
 export const NostrPublicKey: Writable<string | null> = writable(null);
 export const NostrPrivateKey: Writable<string | null> = writable(null);
 export const NostrLoginMethod: Writable<string | null> = writable(null);
+export const NostrGlobalConfig: Writable<object> = writable({});
 
 export type ShoppingCartSummary = {
     numProducts: number,

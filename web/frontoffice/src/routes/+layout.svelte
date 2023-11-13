@@ -3,7 +3,7 @@
     import { toasts, ToastContainer } from 'svelte-toasts';
     import "../app.css";
     import { page } from '$app/stores';
-    import { NostrGlobalConfig } from "$lib/stores";
+    import { NostrGlobalConfig } from "$sharedLib/stores";
     import type { Placement} from "$sharedLib/stores";
     import {
         Info,
