@@ -41,9 +41,12 @@
         $loginModalState.openRequested = false
     }
 
+    /*
+    Disabling auto-close login modal when already logged-in for now
     $: if (open && $NostrPublicKey && $NostrLoginMethod) {
         hide();
     }
+    */
 
     export function show(loginSuccessCB: () => void = () => {}, loginBackofficeSuccessCB: () => void = () => {}) {
         open = true;
