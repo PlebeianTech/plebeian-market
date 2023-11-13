@@ -26,8 +26,8 @@
 
         setLoginMethod('extension');
 
-        localStorage.setItem('nostrPublicKey', publicKey);
         NostrPublicKey.set(publicKey);
+        localStorage.setItem('nostrPublicKey', publicKey);
 
         await waitAndLogin();
         closeLoginModal();
@@ -61,11 +61,11 @@
     async function savePrivateNostrKey(privateKey: string) {
         let publicKey = getPublicKey(privateKey);
 
-        localStorage.setItem('nostrPrivateKey', privateKey);
-        localStorage.setItem('nostrPublicKey', publicKey);
-
-        NostrPrivateKey.set(privateKey);
         NostrPublicKey.set(publicKey);
+        NostrPrivateKey.set(privateKey);
+
+        localStorage.setItem('nostrPublicKey', publicKey);
+        localStorage.setItem('nostrPrivateKey', privateKey);
 
         await waitAndLogin();
     }
