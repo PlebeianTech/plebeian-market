@@ -298,8 +298,7 @@ export async function askAPIForVerification(pubkey: string) {
 }
 
 export async function getMerchantKey() {
-    //const apiHost = getApiBaseUrl();
-    const apiHost = 'https://staging.plebeian.market/';
+    const apiHost = getApiBaseUrl();
     const apiUrl = 'api/users/me';
 
     try {
@@ -315,7 +314,6 @@ export async function getMerchantKey() {
 
         const responseJson = await response.json();
 
-        //if (responseJson && responseJson.verified_identities) {
         if (responseJson) {
             return responseJson;
         } else {
