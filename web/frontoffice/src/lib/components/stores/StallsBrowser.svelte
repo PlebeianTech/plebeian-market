@@ -7,14 +7,13 @@
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
     import {refreshStalls} from "$lib/shopping";
-    import { goto } from "$app/navigation";
     import {publishConfiguration} from "$sharedLib/services/nostr";
     import {newNostrConversation} from "$sharedLib/nostr/utils";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
 
-    export let merchantPubkey: string | null;
+    export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
 
     let isSuperAdmin: boolean = true;
@@ -99,20 +98,6 @@
                    class="block pl-9 pr-4 py-2 w-full md:w-96 rounded border border-gray-400 text-sm focus:outline-none" />
         </div>
     </div>
-{/if}
-
-{#if merchantPubkey && sortedStalls.length === 0}
-    {#if merchantPubkey === $NostrPublicKey}
-        <InfoBox classText="mx-auto mt-3">
-            <b>You don't have a market stall</b> yet.<br />
-            If you want to create one to <b>sell</b> or <b>auction</b> your products, go to the <a rel="external" href="/admin" class="underline"><b>Stall manager</b></a>.
-        </InfoBox>
-    {:else}
-        <InfoBox classText="mb-8 md:mb-12">
-            This Nostr user doesn't have a market stall yet. You can <a class="underline" href="/stalls">explore other market stalls</a> or
-            <a class="underline cursor-pointer" on:click={() => newNostrConversation(merchantPubkey)}>contact with the user</a>.
-        </InfoBox>
-    {/if}
 {/if}
 
 {#if !merchantPubkey || (merchantPubkey && sortedStalls.length !== 0)}
