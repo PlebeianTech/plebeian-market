@@ -9,6 +9,7 @@
     import {NostrPublicKey} from "$sharedLib/stores";
     import {nip19} from "nostr-tools";
     import FiatConverter from "$sharedLib/components/FiatConverter.svelte";
+    import {onImgError} from "$lib/shopping";
 
     export let sortedBids;
     export let userProfileInfoMap;
@@ -110,7 +111,11 @@
                         <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
                             <div class="flex w-fit mx-auto mt-1 space-x-3 items-center" on:click={() => {showUserProfilePopup(null, bid.pubkey)}}>
                                 <div class="avatar mask mask-squircle w-12 h-12">
-                                    <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
+                                    <img
+                                            src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder}
+                                            on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}>
+                                            alt="Avatar of the identity that made the bid"
+                                    />
                                 </div>
                                 <div class="flex">
                                     <span>{userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,15) ?? bid.pubkey.substring(0,9) + '...'}</span>
@@ -188,7 +193,10 @@
                                      on:mouseleave={hideUserProfilePopup}
                                 >
                                     <div class="avatar mask mask-squircle w-12 h-12 cursor-pointer">
-                                        <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder} alt="Avatar of the identity that made the bid" />
+                                        <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder}
+                                             on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}>
+                                             alt="Avatar of the identity that made the bid"
+                                        />
                                     </div>
                                     <div class="flex">
                                         {userProfileInfoMap.get(bid.pubkey)?.name?.substring(0,30) ?? bid.pubkey.substring(0,12) + '...'}
