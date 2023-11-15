@@ -176,7 +176,7 @@
         }
 
         if (profilesToGetLocal.length !== 0) {
-            subscribeMetadata(profilesToGetLocal, (pk, m) => { profileImagesMap[pk] = m; });
+            subscribeMetadata(profilesToGetLocal, (pk, m) => { profileImagesMap.set(pk, m); });
         }
     }
 
