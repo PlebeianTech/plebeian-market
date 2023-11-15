@@ -218,9 +218,10 @@
                             }
 
                             if (message.reactions.get(eventReaction) === undefined) {
-                                message.reactions[eventReaction] = new Set();
+                                message.reactions.set(eventReaction, new Set());
                             }
-                            message.reactions[eventReaction].add(eventPubkey);
+
+                            message.reactions.get(eventReaction).add(eventPubkey);
 
                             break;
                         }
