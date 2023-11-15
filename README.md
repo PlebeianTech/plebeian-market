@@ -51,6 +51,7 @@ Our vision of the future involves small communities around the world running the
 * add `plebeian-market-secrets/lndhub.json`
 * add `plebeian-market-secrets/mail.json`
 * add `plebeian-market-secrets/nostr.json`
+* add `plebeian-market-secrets/site-admin.json`
 * edit config.py
   * `DOMAIN_NAME`
 * edit `.env.prod`
