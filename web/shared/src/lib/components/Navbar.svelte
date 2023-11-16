@@ -115,6 +115,9 @@
                     <p class="mr-8">
                         <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
                     </p>
+                    <p class="mr-8">
+                        <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Planet</a>
+                    </p>
                 </div>
             </div>
 
@@ -195,6 +198,11 @@
                                 </a>
                             </li>
                         {/if}
+                        <li class="block md:hidden md:h-0">
+                            <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1"><World /></div> Planet
+                            </a>
+                        </li>
                         {#if $NostrPublicKey}
                             <li class="menu-title mt-1">
                                 <span class="text-lg">Account</span>
