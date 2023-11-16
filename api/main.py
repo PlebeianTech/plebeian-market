@@ -433,7 +433,7 @@ def get_payout_information(seller_id):
         app.logger.error(f"ERROR: The merchant (seller_id={seller_id}) doesn't have a Lightning address to receive his money...")
         return None
 
-    if 'contribution_percent' in merchant_dict:
+    if 'contribution_percent' in merchant_dict and merchant_dict['contribution_percent'] is not None:
         app.logger.info(f"get_payout_information - contribution_percent: {merchant_dict['contribution_percent']}")
         merchant_contribution = merchant_dict['contribution_percent']
     else:
