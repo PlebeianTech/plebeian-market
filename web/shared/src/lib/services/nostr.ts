@@ -257,7 +257,7 @@ export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:
 // Metadata (nip-1)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string, metadata: UserMetadata) => void, eoseCB: () => void) {
+export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string, metadata: UserMetadata) => void, eoseCB: () => void = () => {}) {
     const sub = get(NostrPool).sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
     sub.on('event', e => {
         try {
@@ -435,7 +435,7 @@ export async function nostrAcceptBadge(newProfileBadgeTags, successCB: () => voi
 // Arbitrary custom app data (nip-78)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function publishConfiguration(setup: object, tags, successCB: () => void) {
+export async function publishConfiguration(setup: object, tags, successCB: () => void = () => {}) {
     const event = await createEvent(
         EVENT_KIND_APP_SETUP,
         JSON.stringify(setup),
