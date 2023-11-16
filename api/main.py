@@ -324,7 +324,7 @@ def settle_lightning_payments():
                     app.logger.info(f"  -------- Processing order {order.id}...")
 
                     incoming_payment_received = False
-                    outgoing_payments_sent = False;
+                    outgoing_payments_sent = False
 
                     for invoice in order.lightning_invoices:
                         app.logger.info(f"    ------ Invoice: {invoice.id} - {invoice.invoice}")
@@ -347,7 +347,7 @@ def settle_lightning_payments():
 
                                     ln_payment_logs_util.add_incoming_payment(order.id, invoice.id, order.total)
 
-                                    incoming_payment_received = True;
+                                    incoming_payment_received = True
 
                                     # We don't mark the order as paid yet for the seller, but the buyer already paid,
                                     # so we want him to have the order marked as paid so the QR dissapears from the screen
