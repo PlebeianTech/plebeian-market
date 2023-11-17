@@ -7,7 +7,6 @@ import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
-export const pmMasterPublicKey = import.meta.env.VITE_NOSTR_PM_MASTER_PUBLIC_KEY;
 export const pmStallId = import.meta.env.VITE_NOSTR_PM_STALL_ID;
 export const pmStallPubkey = import.meta.env.VITE_NOSTR_PM_STALL_PUBLIC_KEY;
 
@@ -131,7 +130,7 @@ export function getChannelIdForStall(stallPubkey) {
     // creation, so we need the same channel ID every time
     const event = {
         kind: Kind.ChannelCreation,
-        pubkey: pmMasterPublicKey,
+        pubkey: 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75c4eff1cfb634839bb8',
         created_at: 1672837282,
         content: '{"name": "Plebeian Market Stall ' + stallPubkey + '", "about": "Market Stall Square"}',
         tags: [],
