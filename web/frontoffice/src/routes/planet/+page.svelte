@@ -10,4 +10,4 @@
 
 <Titleh1>Planet</Titleh1>
 
-<ProductCardBrowser {maxProductsLoaded} />
+<ProductCardBrowser {maxProductsLoaded} showOnlyPMProducts={true} />
