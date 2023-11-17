@@ -810,7 +810,11 @@ def get_user_entities(nym, plural):
 
 @api_blueprint.route("/api/relays", methods=['GET'])
 def get_relays():
-    return jsonify({'relays': [{'url': r.url} for r in m.Relay.query.all()]})
+    if app.config['ENV'] in ('test', 'dev'):
+        relay_urls = ["ws://relay:7777"]
+    else:
+        relay_urls = [r.url for r in m.Relay.query.all()]
+    return jsonify({'relays': [{'url': url} for url in relay_urls]})
 
 @api_blueprint.route("/api/keys/<pubkey>/metadata", methods=['GET'])
 def query_metadata(pubkey):

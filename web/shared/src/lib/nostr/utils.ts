@@ -2,7 +2,7 @@ import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nost
 import {goto} from "$app/navigation";
 import {get} from "svelte/store";
 import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, stalls, token, Error} from "$sharedLib/stores";
-import {getApiBaseUrl, isStaging, isProduction} from "$sharedLib/utils";
+import {getApiBaseUrl, isStaging, isDevelopment} from "$sharedLib/utils";
 import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
 
@@ -11,24 +11,27 @@ export const pmMasterPublicKey = import.meta.env.VITE_NOSTR_PM_MASTER_PUBLIC_KEY
 export const pmStallId = import.meta.env.VITE_NOSTR_PM_STALL_ID;
 export const pmStallPubkey = import.meta.env.VITE_NOSTR_PM_STALL_PUBLIC_KEY;
 
-export const relayUrlList =
-(isStaging() ? ["wss://staging.plebeian.market/relay"] : <string[]>[])
-.concat([
-    // Amethyst relays
-    "wss://relay.damus.io",
-    "wss://relay.nostr.bg",
-    "wss://nostr.mom",
-    "wss://nos.lol",
-    "wss://nostr.bitcoiner.social",
-    "wss://nostr-pub.wellorder.net",
-    "wss://nostr.wine",
-    "wss://eden.nostr.land",
-    "wss://relay.orangepill.dev",
-    "wss://puravida.nostr.land",
-    "wss://relay.nostr.com.au",
-    "wss://nostr.inosta.cc",
-    //"wss://relay.taxi"
-]);
+export const relayUrlList = (
+    isDevelopment() ? ["ws://localhost:7777"] :
+    (
+        (isStaging() ? ["wss://staging.plebeian.market/relay"] : <string[]>[])
+        .concat([
+            // Amethyst relays
+            "wss://relay.damus.io",
+            "wss://relay.nostr.bg",
+            "wss://nostr.mom",
+            "wss://nos.lol",
+            "wss://nostr.bitcoiner.social",
+            "wss://nostr-pub.wellorder.net",
+            "wss://nostr.wine",
+            "wss://eden.nostr.land",
+            "wss://relay.orangepill.dev",
+            "wss://puravida.nostr.land",
+            "wss://relay.nostr.com.au",
+            "wss://nostr.inosta.cc",
+        ])
+    )
+);
 
 export function hasExtension() {
     return !!(window as any).nostr;

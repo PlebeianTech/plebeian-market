@@ -55,4 +55,6 @@ services:
       - "6000:6000"
     volumes:
       - "./birdwatcher:/app"
+    networks:
+      - relay_network
     command: python main.py

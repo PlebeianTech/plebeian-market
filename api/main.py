@@ -755,7 +755,7 @@ class MockingBirdwatcher:
         return hash_create(4)
 
 def get_birdwatcher():
-    if app.config['ENV'] in ('staging', 'prod'):
+    if app.config['ENV'] in ('staging', 'prod', 'dev'):
         return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
     else:
         return MockingBirdwatcher()
