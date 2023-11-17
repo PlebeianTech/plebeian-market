@@ -16,6 +16,8 @@
     let viewProductIdOnModal: string | null = null;
     let scrollPosition: number | null = null;
 
+    let merchantIDs = [];
+
     $: backend_present = true;
 
     interface CategoriesAssociativeArray {
@@ -63,8 +65,13 @@
             backend_present = config.backend_present ?? true;
 
             if (showOnlyPMProducts && backend_present) {
-                const merchantIDs = await getMerchantIDs();
-                console.log('  ** merchantIDs', merchantIDs);
+                const merchantIDsFromAPI = await getMerchantIDs();
+
+                merchantIDsFromAPI.forEach(merchantIDFromAPI => {
+                    if (merchantIDFromAPI) {
+                        merchantIDs.push(merchantIDFromAPI);
+                    }
+                });
             }
 
             // admin pubkey specified, so let's wait
@@ -98,7 +105,11 @@
                         return;
                     }
                 }
-console.log(' ----------- newProductInfo pubkey',newProductInfo.event.pubkey);
+
+                if (showOnlyPMProducts && backend_present && !merchantIDs.includes(newProductInfo.event.pubkey)) {
+                    return;
+                }
+
                 filterTags(newProductInfo.event.tags, 't').forEach((category) => {
                     let tag = category[1].trim().toLowerCase();
 
