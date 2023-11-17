@@ -68,16 +68,17 @@
                 const merchantIDsFromAPI = await getMerchantIDs();
 
                 merchantIDsFromAPI.forEach(merchantIDFromAPI => {
-                    if (merchantIDFromAPI) {
-                        merchantIDs.push(merchantIDFromAPI);
+                    if (merchantIDFromAPI && merchantIDFromAPI.public_key) {
+                        merchantIDs.push(merchantIDFromAPI.public_key);
                     }
                 });
-            }
 
-            // admin pubkey specified, so let's wait
-            // to give some time for the homepage setup
-            // to get here from Nostr relays...
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            } else {
+                // admin pubkey specified, so let's wait
+                // to give some time for the GlobalConfiguration
+                // to get here from Nostr relays...
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
         }
 
         getProducts(null, null,
