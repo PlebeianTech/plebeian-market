@@ -338,19 +338,18 @@ export async function getMerchantIDs() {
 
         const response = await fetch(apiHost + apiUrl, {headers});
         if (!response.ok) {
-            console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+            console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the merchant IDs");
             return false;
         }
 
         const responseJson = await response.json();
-console.log('responseJson',responseJson);
         if (responseJson) {
             return responseJson;
         } else {
             return false;
         }
     } catch (error) {
-        console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+        console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the merchant IDs");
         return false;
     }
 }
