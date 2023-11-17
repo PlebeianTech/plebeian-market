@@ -832,9 +832,10 @@ def get_merchant(pubkey):
 @api_blueprint.route("/api/merchants", methods=['GET'])
 def get_merchants():
     sellers = []
-    for seller in m.User.query.all():
-        # NB: a merchant can currently only have one stall, but this will change
-        sellers.append({'public_key': seller.merchant_public_key, 'stalls': [{'name': seller.stall_name, 'description': seller.stall_description}]})
+    for user in m.User.query.all():
+        if user.merchant_public_key:
+            # NB: a merchant can currently only have one stall, but this will change
+            sellers.append({'public_key': user.merchant_public_key, 'stalls': [{'name': user.stall_name, 'description': user.stall_description}]})
     return jsonify(sellers)
 
 @api_blueprint.route("/api/merchants/<pubkey>/messages", methods=['POST'])
