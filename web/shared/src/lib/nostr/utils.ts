@@ -329,9 +329,7 @@ export async function getMerchantKey() {
 }
 
 export async function getMerchantIDs() {
-    //const apiHost = getApiBaseUrl();
-    let apiHost = 'https://staging.plebeian.market/';
-
+    const apiHost = getApiBaseUrl();
     const apiUrl = 'api/merchants';
 
     try {
