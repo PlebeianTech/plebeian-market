@@ -325,6 +325,36 @@ export async function getMerchantKey() {
     }
 }
 
+export async function getMerchantIDs() {
+    //const apiHost = getApiBaseUrl();
+    let apiHost = 'https://staging.plebeian.market/';
+
+    const apiUrl = 'api/merchants';
+
+    try {
+        let headers = {
+            'X-Access-Token': get(token)
+        };
+
+        const response = await fetch(apiHost + apiUrl, {headers});
+        if (!response.ok) {
+            console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+            return false;
+        }
+
+        const responseJson = await response.json();
+console.log('responseJson',responseJson);
+        if (responseJson) {
+            return responseJson;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+        return false;
+    }
+}
+
 export async function sendOrder(
     stallId: string | number,
     orderItems,

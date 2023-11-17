@@ -2,18 +2,21 @@
     import { onMount } from "svelte";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
     import {EVENT_KIND_AUCTION, getProducts} from "$sharedLib/services/nostr";
-    import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
+    import {filterTags, getFirstTagValue, getMerchantIDs} from "$sharedLib/nostr/utils";
     import {refreshStalls, onImgError} from "$lib/shopping";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import ProductModal from "$lib/components/stores/ProductModal.svelte";
 
     export let whiteListedStalls: string | null = null;
+    export let showOnlyPMProducts: boolean = false;
     export let maxProductsLoaded: number = 20;
 
     let productsLoaded: number = 0;
     let viewProductIdOnModal: string | null = null;
     let scrollPosition: number | null = null;
+
+    $: backend_present = true;
 
     interface CategoriesAssociativeArray {
         [key: string]: {
@@ -57,6 +60,13 @@
         let config = await getConfigurationFromFile();
 
         if (config && config.admin_pubkeys.length > 0) {
+            backend_present = config.backend_present ?? true;
+
+            if (showOnlyPMProducts && backend_present) {
+                const merchantIDs = await getMerchantIDs();
+                console.log('  ** merchantIDs', merchantIDs);
+            }
+
             // admin pubkey specified, so let's wait
             // to give some time for the homepage setup
             // to get here from Nostr relays...
@@ -88,7 +98,7 @@
                         return;
                     }
                 }
-
+console.log(' ----------- newProductInfo pubkey',newProductInfo.event.pubkey);
                 filterTags(newProductInfo.event.tags, 't').forEach((category) => {
                     let tag = category[1].trim().toLowerCase();
 
