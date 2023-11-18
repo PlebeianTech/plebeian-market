@@ -228,7 +228,7 @@
                 <tr class="text-center">
                     <th>Name</th>
                     <th>Image</th>
-                    <th class="p-2">Auction details</th>
+                    <th class="p-2">Winning bid</th>
                 </tr>
             </thead>
             <tbody>
@@ -238,15 +238,17 @@
                     <td class="py-1">
                         <p class="pl-3 text-center">{#if product.name}{product.name}{/if}</p>
                     </td>
-                    <td class="py-2">
+                    <td class="py-2 px-4">
                         <div class="card shadow-xl w-20 md:w-20">
                             <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                         </div>
                     </td>
                     <td class="py-1">
-                        <p class="pr-2 text-center">
-                            {winnerBid[0][1].amount} sats
-                        </p>
+                        {#if winnerBid[0][1].amount}
+                            <p class="pr-2 text-center">
+                                {winnerBid[0][1].amount} sats
+                            </p>
+                        {/if}
                     </td>
                 </tr>
 
