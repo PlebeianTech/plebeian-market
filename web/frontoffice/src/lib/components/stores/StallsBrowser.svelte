@@ -16,7 +16,7 @@
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
 
-    let isSuperAdmin: boolean = true;
+    let isSuperAdmin: boolean = false;
 
     let sortedStalls = [];
     let filter = null;
