@@ -3,14 +3,6 @@ import {NostrGlobalConfig, Info} from "$sharedLib/stores";
 import {getDomainName} from "$sharedLib/utils";
 import {publishConfiguration} from "$sharedLib/services/nostr";
 
-- PENSAR SI QUITAR PARAMS Y PONERLO TODO EN LA RAIZ DE LA SECCIÓN
-    ** RAZÓN PARA DEJAR PARAMS = DISTINTOS WIDGETS TIENEN DISTINTOS PARÁMETROS
-
-- DONDE Y COMO GUARDAR LOS IDS DE LAS COSAS ELEGIDAS. EN LA PROPIA SECCIÓN, EN UN .DATA ??
-
-removeStallFromHomePage
-addStallToHomePage
-
 export const pageBuilderWidgetType = {
     products: {
         'title': 'Selected products',
@@ -55,24 +47,24 @@ export function getPages(globalConfig = get(NostrGlobalConfig)) {
     return globalConfig.content[domainName].pages;
 }
 
-export function getPageContent(page, globalConfig = get(NostrGlobalConfig)) {
+export function getPage(pageId, globalConfig = get(NostrGlobalConfig)) {
     const domainName = getDomainName();
 
     if (
         !globalConfig.content ||
         !globalConfig.content.hasOwnProperty(domainName) ||
         !globalConfig.content[domainName].pages ||
-        !globalConfig.content[domainName].pages.hasOwnProperty(page) ||
-        !globalConfig.content[domainName].pages[page].sections
+        !globalConfig.content[domainName].pages.hasOwnProperty(pageId) ||
+        !globalConfig.content[domainName].pages[pageId].sections
     ) {
         return null;
     }
 
-    return globalConfig.content[domainName].pages[page];
+    return globalConfig.content[domainName].pages[pageId];
 }
 
-export function getSection() {
-
+export function getSection(pageId, sectionId) {
+    return getPage(pageId)?.sections[sectionId] ?? null;
 }
 
 function setPageContent(pageId, content, globalConfig = get(NostrGlobalConfig)) {
@@ -87,9 +79,7 @@ function setPageContent(pageId, content, globalConfig = get(NostrGlobalConfig)) 
 }
 
 export function saveSectionSetup(pageId, sectionId, setupParams) {
-    let pageContent = getPageContent(pageId);
-
-    let section = pageContent.sections[sectionId];
+    let section = getSection(pageId, sectionId);
 
     section.title = setupParams.sectionTitle;
 
@@ -98,9 +88,14 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
     }
 
     section.params.sectionType = setupParams.sectionType;
-    section.params.maxProductsShown = setupParams.maxProductsShown;
+
+    if (setupParams.maxProductsShown && setupParams.maxProductsShown != 0) {
+        section.params.maxProductsShown = setupParams.maxProductsShown;
+    }
 
     NostrGlobalConfigFireReactivity();
+
+    saveContentToNostr();
 }
 
 function NostrGlobalConfigFireReactivity() {
@@ -135,10 +130,10 @@ export function initializeContentForGlobalConfig(globalConfig = get(NostrGlobalC
 }
 
 // page_id == 0 is always the homepage
-export function addItem(newSection, pageId = 0) {
-    let pageContent = getPageContent(pageId);
+export function addSectionToPage(newSectionName: string, pageId = 0) {
+    let pageContent = getPage(pageId);
 
-    if (newSection !== '') {
+    if (newSectionName !== '') {
         let sectionIdNewElement = 0;
         let order = 0;
 
@@ -155,7 +150,7 @@ export function addItem(newSection, pageId = 0) {
         order++;
 
         pageContent.sections[sectionIdNewElement] = {
-            title: newSection,
+            title: newSectionName,
             order: order
         };
 
@@ -170,7 +165,7 @@ export function addItem(newSection, pageId = 0) {
 }
 
 export const handleEnd = (pageId, evt) => {
-    let pageContent = getPageContent(pageId);
+    let pageContent = getPage(pageId);
 console.log('INICIO pageContent=', pageContent);
 
     let sectionKeysArray = Object.keys(pageContent.sections);
@@ -207,11 +202,11 @@ console.log('INICIO pageContent=', pageContent);
     saveContentToNostr();
 }
 
-export function removeItem(pageId, index) {
-    let pageContent = getPageContent(pageId);
+export function removeSection(pageId, sectionId) {
+    let pageContent = getPage(pageId);
 
     pageContent.sections = Object.keys(pageContent.sections)
-        .filter(section => {console.log('---section:',section); console.log('---index:',index); console.log('---section == index:',section == index); return section !== index})
+        .filter(section => {return section !== sectionId})
         .reduce((obj, key) => {
             obj[key] = pageContent.sections[key];
             return obj;
@@ -222,8 +217,10 @@ export function removeItem(pageId, index) {
     saveContentToNostr();
 }
 
+// TODO: maybe this is not needed anymore if we always keep the sections ordered
+/*
 function setSectionsOrder(pageId) {
-    let pageContent = getPageContent(pageId);
+    let pageContent = getPage(pageId);
 
     let order = 0;
     pageContent.sections.forEach(section => {
@@ -233,22 +230,91 @@ function setSectionsOrder(pageId) {
 
     setPageContent(pageId, pageContent);
 }
+*/
 
 export function saveContentToNostr() {
-    return;
-
+    /*
     const pages = getPages();
 
     pages.forEach(page => {
         setSectionsOrder(page);
     });
+    */
 
     console.log(' *** saveContentToNostr ----------- NOT REALLY SAVING TO NOSTR ----------- ****');
-    /*
+
+    let globalConfig = get(NostrGlobalConfig);
+    delete globalConfig.homepage_include_stalls;
+
+    console.log('Saving this to Nostr:', globalConfig);
+/*
     publishConfiguration(globalConfig,
         () => {
             console.log('Configuration saved to Nostr relay!!');
         });
-    */
+ */
     Info.set("Configuration saved to Nostr.");
+}
+
+/*****************************************
+            ITEM MANAGEMENT
+******************************************/
+export function addItemToSection(pageId, sectionId, itemId, entityName) {
+    let section = getSection(pageId, sectionId)
+
+    if (!section.values) {
+        section.values = {};
+    }
+
+    if (!section.values[entityName]) {
+        section.values[entityName] = []
+    }
+
+    if (!section.values[entityName].includes(itemId)) {
+        section.values[entityName].push(itemId);
+
+// TODO REACTIVITY
+        section.values[entityName] = section.values[entityName];
+
+        console.log('---- section_AFTER:', section);
+
+        console.log('addItemToSection - Pushing changes to Nostr...');
+
+// TODO REACTIVITY
+        NostrGlobalConfigFireReactivity();
+
+        saveContentToNostr()
+    }
+}
+
+export function removeItemFromSection(pageId, sectionId, itemId, entityName) {
+    let section = getSection(pageId, sectionId)
+
+    section.values[entityName] = section.values[entityName].filter(itemIdIterating => {
+        return itemIdIterating !== itemId;
+    });
+
+    console.log('removeItemFromSection - Pushing changes to Nostr...');
+
+    NostrGlobalConfigFireReactivity();
+
+    // saveContentToNostr()
+}
+
+export function getPlacesWhereItemIsPresent(itemId, entityName) {
+    let places: string[] = [];
+
+    let pages = getPages();
+
+    if (pages) {
+        Object.keys(pages).forEach(pageId => {
+            Object.keys(pages[pageId].sections).forEach(sectionId => {
+                if (pages[pageId].sections[sectionId].values && pages[pageId].sections[sectionId].values[entityName]?.includes(itemId)) {
+                    places[pageId + '-' + sectionId] = pages[pageId].title + ' / ' + pages[pageId].sections[sectionId].title
+                }
+            });
+        });
+    }
+
+    return places;
 }

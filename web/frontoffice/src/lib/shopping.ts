@@ -4,7 +4,7 @@ import {privateMessages, ShoppingCart, stalls, Error, Info} from "$sharedLib/sto
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$sharedLib/services/nostr";
-import {filterTags, getFirstTagValue} from "../../../shared/src/lib/nostr/utils";
+import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
 
 // =============================== Products ====================================
 export function onImgError(image) {
@@ -146,9 +146,11 @@ export function refreshStalls() {
                 if (currentStallsValue === null) {
                     currentStallsValue = {
                         stalls: {},
+                        fetching: true,
                         fetched_at: now
                     }
                 } else {
+                    currentStallsValue.fetching = true;
                     currentStallsValue.fetched_at = now;
                 }
 
@@ -163,6 +165,11 @@ export function refreshStalls() {
                 }
 
                 // Set new value
+                stalls.set(currentStallsValue);
+            },
+            () => {
+                let currentStallsValue = get(stalls);
+                currentStallsValue.fetching = false;
                 stalls.set(currentStallsValue);
             });
 

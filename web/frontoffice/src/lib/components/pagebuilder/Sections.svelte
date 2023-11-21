@@ -1,7 +1,7 @@
 <script lang="ts">
     import {NostrGlobalConfig} from "$sharedLib/stores";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
-    import {getPageContent} from "$lib/pagebuilder";
+    import {getPage} from "$lib/pagebuilder";
 
     export let page;
 
@@ -10,7 +10,7 @@
     let content = null;
     let orderedSections;
 
-    $: { content = getPageContent(page, $NostrGlobalConfig); }
+    $: { content = getPage(page, $NostrGlobalConfig); }
 
     $: if (content && content.sections) {
         orderedSections = Object.entries(content.sections).sort((a, b) => {
@@ -38,5 +38,5 @@
         {/if}
     {/each}
 {:else}
-    <ProductCardBrowser whiteListedStalls={$NostrGlobalConfig.homepage_include_stalls} {maxProductsLoaded} />
+    <ProductCardBrowser {maxProductsLoaded} />
 {/if}

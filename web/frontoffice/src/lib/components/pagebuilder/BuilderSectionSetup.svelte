@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {getPageContent, pageBuilderWidgetType, saveSectionSetup} from "$lib/pagebuilder";
+    import {getPage, pageBuilderWidgetType, saveSectionSetup} from "$lib/pagebuilder";
     import {NostrGlobalConfig} from "$sharedLib/stores";
 
     let pageId;
@@ -12,7 +12,7 @@
     let saved;
     let sectionTitle;
 
-    export function setSection(pageIdLoad, sectionIdLoad) {
+    export function setupSection(pageIdLoad, sectionIdLoad) {
         // Clear
         saved = false;
 
@@ -20,7 +20,7 @@
         pageId = pageIdLoad;
         sectionId = sectionIdLoad;
 
-        page = getPageContent(pageId, $NostrGlobalConfig);
+        page = getPage(pageId, $NostrGlobalConfig);
 
         sectionTitle        = page?.sections[sectionId]?.title ?? '';
         sectionType         = page?.sections[sectionId]?.params?.sectionType ?? null;
@@ -37,7 +37,6 @@
         });
 
         saved = true;
-        console.log('SAVED!!!!!!!!!');
     }
 </script>
 

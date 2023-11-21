@@ -6,12 +6,15 @@
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
     import {refreshStalls} from "$lib/shopping";
-    import {publishConfiguration} from "$sharedLib/services/nostr";
-    import {newNostrConversation} from "$sharedLib/nostr/utils";
     import {getConfigurationFromFile} from "$sharedLib/utils";
-    import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
-    import {getPageContent, getPages} from "$lib/pagebuilder";
+    import {
+        getPage,
+        getPages,
+        addItemToSection,
+        getPlacesWhereItemIsPresent,
+        removeItemFromSection
+    } from "$lib/pagebuilder";
 
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
@@ -24,7 +27,7 @@
     let descriptionLength = 125;
 
     $: {
-        if ($stalls && $stalls.stalls) {
+        if ($stalls && $stalls.stalls && !$stalls.fetching) {
             if (merchantPubkey) {
                 sortedStalls = Object.entries($stalls.stalls)
                     .filter(([, stall]) => {
@@ -40,42 +43,6 @@
                     });
             }
         }
-    }
-
-    function addStallToHomePage(stall_id) {
-        let configChanged = false;
-
-        if (Array.isArray($NostrGlobalConfig.homepage_include_stalls)) {
-            if (!$NostrGlobalConfig.homepage_include_stalls.includes(stall_id)) {
-                $NostrGlobalConfig.homepage_include_stalls.push(stall_id);
-                configChanged = true;
-            }
-        } else {
-            $NostrGlobalConfig.homepage_include_stalls = [stall_id];
-            configChanged = true;
-        }
-
-        console.log('addStallToHomePage - $NostrGlobalConfig. Pushing to relays...', $NostrGlobalConfig);
-
-        if (configChanged) {
-            publishConfiguration($NostrGlobalConfig,
-                () => {
-                    console.log('Configuration saved to Nostr relay!!');
-                });
-        }
-    }
-
-    function removeStallFromHomePage(stall_id) {
-        $NostrGlobalConfig.homepage_include_stalls = $NostrGlobalConfig.homepage_include_stalls.filter(object => {
-            return object !== stall_id;
-        });
-
-        console.log('removeStallFromHomePage - $NostrGlobalConfig. Pushing to relays...', $NostrGlobalConfig);
-
-        publishConfiguration($NostrGlobalConfig,
-            () => {
-                console.log('Configuration saved to Nostr relay!!');
-            });
     }
 
     onMount(async () => {
@@ -158,18 +125,32 @@
                                                             <Plus />
                                                         </span>
                                                     </div>
-                                                    <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-64 rounded border border-gray-400">
+                                                    <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-80 rounded border border-gray-400 z-[100]">
                                                         {#if getPages($NostrGlobalConfig)}
-                                                            {#each Object.entries(getPages($NostrGlobalConfig)) as [page_id, page]}
-                                                                {#each Object.entries(getPageContent(page_id).sections) as [section_id, section]}
+                                                            {#each Object.entries(getPages($NostrGlobalConfig)) as [pageId, page]}
+                                                                {#each Object.entries(getPage(pageId).sections) as [sectionId, section]}
                                                                     {#if section?.params?.sectionType && section?.params?.sectionType.includes('stalls')}
-                                                                        <li><a>{page.title} - {section.title}</a></li>
+                                                                        <li><a on:click={() => {addItemToSection(pageId, sectionId, stallId, 'stalls'); document.activeElement.blur()}}>{page.title} - {section.title}</a></li>
                                                                     {/if}
                                                                 {/each}
                                                             {/each}
                                                         {/if}
                                                     </ul>
                                                 </div>
+                                            </div>
+
+                                            <div>
+                                                {#each Object.entries(getPlacesWhereItemIsPresent(stallId, 'stalls')) as [placeId, placeTitle]}
+                                                    <div class="w-max flex mb-2 opacity-75">
+                                                        <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
+                                                              data-tip="Remove stall from section"
+                                                              on:click|preventDefault={() => removeItemFromSection(placeId.split('-')[0], placeId.split('-')[1], stallId, 'stalls')}
+                                                        >
+                                                            <Minus />
+                                                        </span>
+                                                        <span class="ml-1">{placeTitle}</span>
+                                                    </div>
+                                                {/each}
                                             </div>
                                         </div>
                                     {/if}

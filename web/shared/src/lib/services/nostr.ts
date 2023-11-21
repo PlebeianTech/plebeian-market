@@ -291,7 +291,7 @@ export async function publishMetadata(profile, tags, successCB: () => void) {
 // NostrMarket (nip-15)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function getStalls(merchantPubkey: string | string[] | null, receivedCB: (e) => void) {
+export function getStalls(merchantPubkey: string | string[] | null, receivedCB: (e) => void, eoseCB = () => {}) {
     let filter: Filter = { kinds: [EVENT_KIND_STALL] };
 
     if (merchantPubkey) {
@@ -305,7 +305,9 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
     const sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
     sub.on('event', e => receivedCB(e));
     sub.on('eose', () => {
-        // sub.unsub()
+        if (eoseCB) {
+            eoseCB();
+        }
     })
 }
 

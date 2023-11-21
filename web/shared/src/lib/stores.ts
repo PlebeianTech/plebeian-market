@@ -55,6 +55,7 @@ export const stalls: Writable<{
     fetched_at: number
 } | null> = writable({
     stalls: {},
+    fetching: false,
     fetched_at: 0
 });
 

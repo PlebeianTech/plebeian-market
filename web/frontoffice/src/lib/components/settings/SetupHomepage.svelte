@@ -7,10 +7,10 @@
     import { SortableList } from '@jhubbardsf/svelte-sortablejs'
     import {
         initializeContentForGlobalConfig,
-        addItem,
-        removeItem,
+        addSectionToPage,
+        removeSection,
         handleEnd,
-        getPageContent,
+        getPage,
         pageBuilderWidgetType
     } from "$lib/pagebuilder";
     import BuilderSectionSetup from "$lib/components/pagebuilder/BuilderSectionSetup.svelte";
@@ -22,7 +22,7 @@
 
     const pageId = 0;
 
-    $: { content = getPageContent(pageId, $NostrGlobalConfig); }
+    $: { content = getPage(pageId, $NostrGlobalConfig); }
 
     $: if (content && content.sections) {
         orderedSections = Object.entries(content.sections).sort((a, b) => {
@@ -32,7 +32,7 @@
 
     $: console.log('orderedSections', orderedSections);
 
-    let setSection;
+    let setupSection;
 
     onMount(async () => {
         let config = await getConfigurationFromFile();
@@ -56,7 +56,7 @@
                 <div class="w-6/12 mx-auto">
                     <div class="mt-10 mb-4">
                         <input type="text" bind:value={newSection} placeholder="Title of new section" class="input input-bordered input-success w-full max-w-xs input-sm" />
-                        <button class="btn btn-sm btn-success ml-1" on:click={() => {let newSectionId = addItem(newSection); setSection(pageId, newSectionId); newSection=''}}>Add</button>
+                        <button class="btn btn-sm btn-success ml-1" on:click={() => {let newSectionId = addSectionToPage(newSection); setupSection(pageId, newSectionId); newSection=''}}>Add</button>
                     </div>
 
                     {#if content && content.sections}
@@ -80,10 +80,10 @@
                                     </div>
                                     <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 align-middle">
                                         <div class="tooltip" data-tip="Edit section">
-                                            <button class="btn btn-xs btn-info btn-outline" on:click={() => setSection(pageId, section_id)}><span class="w-5"><Edit /></span></button>
+                                            <button class="btn btn-xs btn-info btn-outline" on:click={() => setupSection(pageId, section_id)}><span class="w-5"><Edit /></span></button>
                                         </div>
                                         <div class="tooltip" data-tip="Remove section">
-                                            <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeItem(pageId, section_id)}><span class="w-5"><Trash /></span></button>
+                                            <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, section_id)}><span class="w-5"><Trash /></span></button>
                                         </div>
                                     </div>
                                 </div>
@@ -116,4 +116,4 @@
     {/if}
 </div>
 
-<BuilderSectionSetup bind:setSection={setSection} />
+<BuilderSectionSetup bind:setupSection={setupSection} />
