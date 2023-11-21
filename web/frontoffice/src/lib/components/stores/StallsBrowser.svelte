@@ -26,8 +26,7 @@
 
     let descriptionLength = 125;
 
-    $: {
-        if ($stalls && $stalls.stalls && !$stalls.fetching) {
+    $: if ($stalls && $stalls.stalls && !$stalls.fetching) {
             if (merchantPubkey) {
                 sortedStalls = Object.entries($stalls.stalls)
                     .filter(([, stall]) => {
@@ -42,7 +41,6 @@
                         return b[1].createdAt - a[1].createdAt;
                     });
             }
-        }
     }
 
     onMount(async () => {
@@ -126,21 +124,19 @@
                                                         </span>
                                                     </div>
                                                     <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-80 rounded border border-gray-400 z-[100]">
-                                                        {#if getPages($NostrGlobalConfig)}
-                                                            {#each Object.entries(getPages($NostrGlobalConfig)) as [pageId, page]}
-                                                                {#each Object.entries(getPage(pageId).sections) as [sectionId, section]}
-                                                                    {#if section?.params?.sectionType && section?.params?.sectionType.includes('stalls')}
-                                                                        <li><a on:click={() => {addItemToSection(pageId, sectionId, stallId, 'stalls'); document.activeElement.blur()}}>{page.title} - {section.title}</a></li>
-                                                                    {/if}
-                                                                {/each}
+                                                        {#each Object.entries(getPages($NostrGlobalConfig)) as [pageId, page]}
+                                                            {#each Object.entries(getPage(pageId).sections) as [sectionId, section]}
+                                                                {#if section?.params?.sectionType && section?.params?.sectionType.includes('stalls')}
+                                                                    <li><a on:click={() => {addItemToSection(pageId, sectionId, stallId, 'stalls'); document.activeElement.blur()}}>{page.title} - {section.title}</a></li>
+                                                                {/if}
                                                             {/each}
-                                                        {/if}
+                                                        {/each}
                                                     </ul>
                                                 </div>
                                             </div>
 
                                             <div>
-                                                {#each Object.entries(getPlacesWhereItemIsPresent(stallId, 'stalls')) as [placeId, placeTitle]}
+                                                {#each Object.entries(getPlacesWhereItemIsPresent(stallId, 'stalls', $NostrGlobalConfig)) as [placeId, placeTitle]}
                                                     <div class="w-max flex mb-2 opacity-75">
                                                         <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
                                                               data-tip="Remove stall from section"

@@ -174,7 +174,11 @@ export function refreshStalls() {
             });
 
     } else {
-        console.log('************ refreshStalls - no need to refresh yet',)
+        console.log('************ refreshStalls - no need to refresh yet');
+
+        let currentStallsValue = get(stalls);
+        currentStallsValue.fetching = false;
+        stalls.set(currentStallsValue);
     }
 }
 
