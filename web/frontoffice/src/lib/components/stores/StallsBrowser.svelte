@@ -11,6 +11,7 @@
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
+    import {getPageContent, getPages} from "$lib/pagebuilder";
 
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
@@ -119,7 +120,7 @@
                                 )
                             )
                         }
-                            <div class="bg-white dark:bg-black rounded-lg shadow-md hover:scale-110 duration-300">
+                            <div class="bg-white dark:bg-black rounded-lg shadow-md {isSuperAdmin ? '' : 'hover:scale-110 duration-300'}">
                                 <div class="p-4 md:p-6">
                                     <a href="/p/{stall.merchantPubkey}/stall/{stall.id}">
                                         <div class="cursor-pointer">
@@ -150,35 +151,25 @@
                                         <div class="mt-3 md:mt-5">
                                             <hr>
                                             <div class="flex mt-2 md:mt-4">
-                                            <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
-                                            {#if !$NostrGlobalConfig.homepage_sections}
-                                                {#if $NostrGlobalConfig.homepage_include_stalls && $NostrGlobalConfig.homepage_include_stalls.includes(stall.id)}
-                                                    <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
-                                                          data-tip="Remove products from the Homepage"
-                                                          on:click|preventDefault={() => removeStallFromHomePage(stall.id)}
-                                                    >
-                                                        <Minus />
-                                                    </span>
-                                                {:else}
-                                                    <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right"
-                                                          data-tip="Add products to the Homepage"
-                                                          on:click|preventDefault={() => addStallToHomePage(stall.id)}
-                                                    >
-                                                        <Plus />
-                                                    </span>
-                                                {/if}
-                                            {:else}
+                                                <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
                                                 <div class="dropdown dropdown-left">
-                                                    <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add products">
-                                                        <button class="btn btn-s btn-circle btn-ghost"><span class="w-6 text-green-500"><Plus /></span></button>
+                                                    <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add stall">
+                                                        <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right">
+                                                            <Plus />
+                                                        </span>
                                                     </div>
-                                                    <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52 rounded border border-gray-400">
-                                                        {#each $NostrGlobalConfig.homepage_sections as section}
-                                                            <li><a>{section.title}</a></li>
-                                                        {/each}
+                                                    <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-64 rounded border border-gray-400">
+                                                        {#if getPages($NostrGlobalConfig)}
+                                                            {#each Object.entries(getPages($NostrGlobalConfig)) as [page_id, page]}
+                                                                {#each Object.entries(getPageContent(page_id).sections) as [section_id, section]}
+                                                                    {#if section?.params?.sectionType && section?.params?.sectionType.includes('stalls')}
+                                                                        <li><a>{page.title} - {section.title}</a></li>
+                                                                    {/if}
+                                                                {/each}
+                                                            {/each}
+                                                        {/if}
                                                     </ul>
                                                 </div>
-                                            {/if}
                                             </div>
                                         </div>
                                     {/if}
