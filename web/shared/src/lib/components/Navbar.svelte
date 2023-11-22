@@ -221,29 +221,26 @@
                             </li>
                         {/if}
                         {#if $NostrPublicKey}
-                            {#if isFrontOffice}
-                                <li>
-                                    <a class="text-base" href="/orders">
-                                        <span class="w-6 h-6 mr-1"><Cash /></span> Orders
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="text-base" href="/settings">
-                                        <span class="w-6 h-6 mr-1"><Settings /></span> Settings
-                                    </a>
-                                </li>
-                            {:else}
-                                <li>
-                                    <a class="text-base" href="/admin/account/orders/">
-                                        <span class="w-6 h-6"><Cash /></span> Orders
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="text-base" href="/admin/account/settings">
-                                        <span class="w-6 h-6"><Settings /></span> Settings
-                                    </a>
-                                </li>
-                            {/if}
+                            <li>
+                                <a class="text-base" href="/orders">
+                                    <span class="w-6 h-6 mr-1"><Cash /></span> My purchases
+                                </a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/admin/account/orders/">
+                                    <span class="w-6 h-6"><Cash /></span> My sales
+                                </a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/settings">
+                                    <span class="w-6 h-6 mr-1"><Settings /></span> Settings
+                                </a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/admin/account/settings">
+                                    <span class="w-6 h-6"><Settings /></span> Stall Manager Settings
+                                </a>
+                            </li>
                             <li>
                                 <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer text-base">
                                     <span class="w-6 h-6 mr-1"><Exit /></span> Logout
