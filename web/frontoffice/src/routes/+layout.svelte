@@ -62,6 +62,7 @@
         refreshStalls();
 
         let receivedAt = 0;
+        let tempSetup = null;
 
         let config = await getConfigurationFromFile();
 
@@ -70,8 +71,11 @@
                 (setup, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;
-                        $NostrGlobalConfig = setup;
+                        tempSetup = setup;
                     }
+                },
+                () => {
+                    $NostrGlobalConfig = tempSetup;
                 })
         }
 
