@@ -251,8 +251,6 @@ export function saveContentToNostr() {
         setSectionsOrder();
      */
 
-    console.log(' *** saveContentToNostr ----------- NOT REALLY SAVING TO NOSTR ----------- ****');
-
     let globalConfig = get(NostrGlobalConfig);
     delete globalConfig.homepage_include_stalls;
 

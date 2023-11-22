@@ -50,13 +50,17 @@
 </script>
 
 <main class="container mx-auto p-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-8 z-[300] mt-2 mb-2">
-        {#if productsLoaded}
+    {#if !productsLoaded}
+        <div class="p-12 flex flex-wrap items-center justify-center">
+            <span class="loading loading-bars w-24"></span>
+        </div>
+    {:else}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-8 z-[300] mt-2 mb-2">
             {#each Object.entries(products) as [productId, product]}
                 {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && (showExpiredAuctions || !showExpiredAuctions && product.ended === false) )}
                     <ProductCard {product} {isSuperAdmin} />
                 {/if}
             {/each}
-        {/if}
-    </div>
+        </div>
+    {/if}
 </main>

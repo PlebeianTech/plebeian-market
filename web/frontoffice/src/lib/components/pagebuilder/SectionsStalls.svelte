@@ -15,12 +15,12 @@
     });
 </script>
 
-<main class="container mx-auto p-4">
+<main class="container mx-auto p-4 pt-0">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-8 z-[300] mt-2 mb-2">
         {#each getItemsFromSection(pageId, sectionId, 'stalls') as stallId}
             {#if $stalls.stalls[stallId]}
                 <div class="bg-white dark:bg-black rounded-lg shadow-md">
-                    <div class="p-4 md:p-6">
+                    <div class="p-4 md:p-8">
                         <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
                             <div class="cursor-pointer">
                                 <div class="float-left h-7 w-7 mr-3"><Store /></div>

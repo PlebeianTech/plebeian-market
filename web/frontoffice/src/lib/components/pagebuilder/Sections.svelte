@@ -33,23 +33,27 @@
 </script>
 
 {#if content && content.sections}
-    {#each orderedSections as [sectionId, section]}
-        {#if section?.params?.sectionType && section?.values}
-            <div class="relative overflow-x-hidden pt-8">
-                <h2 class="text-2xl font-bold text-center">{section.title}</h2>
+    <div class="pt-12">
+        {#each orderedSections as [sectionId, section]}
+            {#if section?.params?.sectionType && section?.values}
+                <div class="relative overflow-x-hidden">
+                    <h2 class="text-2xl font-bold text-center mb-5">{section.title}</h2>
 
-                {#if section?.params?.sectionType === 'stalls'}
-                    <SectionsStalls {pageId} {sectionId} {isSuperAdmin} />
-                {:else if section?.params?.sectionType === 'products'}
-                    <SectionsProducts {pageId} {sectionId} {isSuperAdmin} />
-                {:else if section?.params?.sectionType === 'stall_products'}
-                    ----- Stall Products
-                {/if}
-            </div>
+                    {#if section?.params?.sectionType === 'text'}
+                        ------ Texto
+                    {:else if section?.params?.sectionType === 'stalls'}
+                        <SectionsStalls {pageId} {sectionId} {isSuperAdmin} />
+                    {:else if section?.params?.sectionType === 'products'}
+                        <SectionsProducts {pageId} {sectionId} {isSuperAdmin} />
+                    {:else if section?.params?.sectionType === 'stall_products'}
+                        ----- Stall Products
+                    {/if}
+                </div>
 
-            <div class="divider"></div>
-        {/if}
-    {/each}
+                <div class="divider w-[80%] mx-auto my-10"></div>
+            {/if}
+        {/each}
+    </div>
 {:else}
     <ProductCardBrowser {maxProductsLoaded} />
 {/if}
