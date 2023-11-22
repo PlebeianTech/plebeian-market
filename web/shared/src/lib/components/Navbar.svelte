@@ -233,12 +233,12 @@
                             </li>
                             <li>
                                 <a class="text-base" href="/settings">
-                                    <span class="w-6 h-6 mr-1"><Settings /></span> Settings
+                                    <span class="w-6 h-6 mr-1"><Settings /></span> Buyer Settings
                                 </a>
                             </li>
                             <li>
                                 <a class="text-base" href="/admin/account/settings">
-                                    <span class="w-6 h-6"><Settings /></span> Stall Manager Settings
+                                    <span class="w-6 h-6"><Settings /></span> Seller Settings
                                 </a>
                             </li>
                             <li>
