@@ -32,6 +32,7 @@ from nostr_utils import EventValidationError, validate_event
 from utils import hash_create
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
+LOG_FILENAME = os.environ.get('LOG_FILENAME', "pm.log")
 
 dictConfig({
     'version': 1,
@@ -40,13 +41,24 @@ dictConfig({
             'format': "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
         }
     },
-    'handlers': {'default': {
-        'class': 'logging.StreamHandler',
-        'formatter': 'default',
-    }},
+    'handlers': {
+        'default': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+        'info_rotating_file_handler': {
+            'level': 'INFO',
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILENAME,
+            'mode': 'a',
+            'maxBytes': 1048576,
+            'backupCount': 10,
+        },
+    },
     'root': {
         'level': LOG_LEVEL,
-        'handlers': ['default'],
+        'handlers': ['default', 'info_rotating_file_handler'],
     },
 })
 

@@ -22,6 +22,7 @@ services:
       - S3_FILENAME_PREFIX=STAGING_
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
+      - "/home/www/plebeian-market-state:/state"
     command: gunicorn --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
   web:
     build:
@@ -53,16 +54,19 @@ services:
     env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
+      - "/home/www/plebeian-market-state:/state"
     command: flask finalize-auctions
   settle-btc-payments:
     env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
+      - "/home/www/plebeian-market-state:/state"
     command: flask settle-btc-payments
   settle-lightning-payments:
     env_file: .env.staging
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
+      - "/home/www/plebeian-market-state:/state"
       - "./api:/app"
     command: flask settle-lightning-payments
   birdwatcher:
