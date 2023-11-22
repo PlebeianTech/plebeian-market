@@ -2,12 +2,13 @@
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import Quantity from "./Quantity.svelte";
     import {addToCart} from "$lib/shopping";
-    import {stalls} from "$sharedLib/stores";
+    import {NostrGlobalConfig, stalls} from "$sharedLib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import { goto } from "$app/navigation";
     import {EVENT_KIND_AUCTION} from "$sharedLib/services/nostr";
     import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
     import { Image } from 'svelte-lazy-loader';
+    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
 
     export let product;
     export let onImgError = () => {};
@@ -15,9 +16,11 @@
     export let orderQuantity = 1;
     export let viewProductIdOnModal: string | null = null;
     export let scrollPosition: number | null = null;
+    export let isSuperAdmin = false;
 
     function openProduct() {
-        scrollPosition = document.documentElement.scrollTop; viewProductIdOnModal = product.id;
+        scrollPosition = document.documentElement.scrollTop;
+        viewProductIdOnModal = product.id;
     }
 </script>
 
@@ -88,6 +91,13 @@
                     Add to cart
                 </button>
             </div>
+        {/if}
+
+        {#if isSuperAdmin && $NostrGlobalConfig}
+            <AdminActions
+                itemId={product.id}
+                entityName="products"
+            />
         {/if}
     </div>
 </div>

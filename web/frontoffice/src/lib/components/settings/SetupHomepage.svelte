@@ -67,7 +67,7 @@
                             onEnd={(evt) => {handleEnd(pageId, evt)}}
                         >
                             {#each orderedSections as [section_id, section]}
-                                <div class="grid grid-cols-3 gap-0">
+                                <div class="grid grid-cols-4 gap-0">
                                     <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 cursor-move right-0">
                                         {section.title}
                                     </div>
@@ -76,6 +76,13 @@
                                             {pageBuilderWidgetType[section.params.sectionType].title}
                                         {:else}
                                             -
+                                        {/if}
+                                    </div>
+                                    <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 cursor-move right-0">
+                                        {#if section?.values && section.values[section.params.sectionType]}
+                                            {section.values[section.params.sectionType].length}
+                                        {:else}
+                                            0
                                         {/if}
                                     </div>
                                     <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 align-middle">

@@ -4,20 +4,26 @@ import {getDomainName} from "$sharedLib/utils";
 import {publishConfiguration} from "$sharedLib/services/nostr";
 
 export const pageBuilderWidgetType = {
+    text: {
+        'title': 'Long Text',
+        'description': 'Choose this widget to be able to write a text to explain your customers something.',
+        'items': false,
+        'max_num_available': false
+    },
     products: {
-        'title': 'Selected products',
+        'title': 'Selected Products',
         'description': 'Choose this widget type to be able to select which products you want shown on this section.',
         'items': ['products'],
         'max_num_available': false
     },
     stalls: {
-        'title': 'Selected stalls',
+        'title': 'Selected Stalls',
         'description': 'Choose this widget type to be able to select which stalls you want shown on this section.',
         'items': ['stalls'],
         'max_num_available': false
     },
     stall_products: {
-        'title': 'All products from several stalls',
+        'title': 'All Products from several Stalls',
         'description': 'Choose this widget type to be able to select one or several stalls to have all their products automatically shown in the section.',
         'items': ['stalls'],
         'max_num_available': true
@@ -241,18 +247,22 @@ export function saveContentToNostr() {
     });
     */
 
+    /*
+        setSectionsOrder();
+     */
+
     console.log(' *** saveContentToNostr ----------- NOT REALLY SAVING TO NOSTR ----------- ****');
 
     let globalConfig = get(NostrGlobalConfig);
     delete globalConfig.homepage_include_stalls;
 
     console.log('Saving this to Nostr:', globalConfig);
-/*
+
     publishConfiguration(globalConfig,
         () => {
             console.log('Configuration saved to Nostr relay!!');
         });
- */
+
     Info.set("Configuration saved to Nostr.");
 }
 
@@ -260,45 +270,45 @@ export function saveContentToNostr() {
             ITEM MANAGEMENT
 ******************************************/
 export function addItemToSection(pageId, sectionId, itemId, entityName) {
-    let section = getSection(pageId, sectionId)
+    let section = getSection(pageId, sectionId);
 
     if (!section.values) {
         section.values = {};
     }
 
     if (!section.values[entityName]) {
-        section.values[entityName] = []
+        section.values[entityName] = [];
     }
 
     if (!section.values[entityName].includes(itemId)) {
         section.values[entityName].push(itemId);
 
-// TODO REACTIVITY
-        section.values[entityName] = section.values[entityName];
-
-        console.log('---- section_AFTER:', section);
-
-        console.log('addItemToSection - Pushing changes to Nostr...');
-
-// TODO REACTIVITY
         NostrGlobalConfigFireReactivity();
 
-        saveContentToNostr()
+        saveContentToNostr();
     }
 }
 
 export function removeItemFromSection(pageId, sectionId, itemId, entityName) {
-    let section = getSection(pageId, sectionId)
+    let section = getSection(pageId, sectionId);
 
     section.values[entityName] = section.values[entityName].filter(itemIdIterating => {
         return itemIdIterating !== itemId;
     });
 
-    console.log('removeItemFromSection - Pushing changes to Nostr...');
-
     NostrGlobalConfigFireReactivity();
 
-    // saveContentToNostr()
+    saveContentToNostr();
+}
+
+export function getItemsFromSection(pageId, sectionId, entityName) {
+    let section = getSection(pageId, sectionId);
+
+    if (section && section.values && section.values.hasOwnProperty(entityName)) {
+        return section.values[entityName] ?? [];
+    }
+
+    return [];
 }
 
 export function getPlacesWhereItemIsPresent(itemId, entityName) {

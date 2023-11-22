@@ -3,23 +3,15 @@
     import {NostrPublicKey, NostrGlobalConfig, stalls} from "$sharedLib/stores";
     import {formatTimestampNG} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
-    import Plus from "$sharedLib/components/icons/Plus.svelte";
-    import Minus from "$sharedLib/components/icons/Minus.svelte";
     import {refreshStalls} from "$lib/shopping";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import Store from "$sharedLib/components/icons/Store.svelte";
-    import {
-        getPage,
-        getPages,
-        addItemToSection,
-        getPlacesWhereItemIsPresent,
-        removeItemFromSection
-    } from "$lib/pagebuilder";
+    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
 
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
 
-    let isSuperAdmin: boolean = true;
+    let isSuperAdmin: boolean = false;
 
     let sortedStalls = [];
     let filter = null;
@@ -112,43 +104,11 @@
                                             {/if}
                                         </div>
                                     </a>
-                                    {#if isSuperAdmin}
-                                        <div class="mt-3 md:mt-5">
-                                            <hr>
-                                            <div class="flex mt-2 md:mt-4">
-                                                <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
-                                                <div class="dropdown dropdown-left">
-                                                    <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add stall">
-                                                        <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right">
-                                                            <Plus />
-                                                        </span>
-                                                    </div>
-                                                    <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-80 rounded border border-gray-400 z-[100]">
-                                                        {#each Object.entries(getPages($NostrGlobalConfig)) as [pageId, page]}
-                                                            {#each Object.entries(getPage(pageId).sections) as [sectionId, section]}
-                                                                {#if section?.params?.sectionType && section?.params?.sectionType.includes('stalls')}
-                                                                    <li><a on:click={() => {addItemToSection(pageId, sectionId, stallId, 'stalls'); document.activeElement.blur()}}>{page.title} - {section.title}</a></li>
-                                                                {/if}
-                                                            {/each}
-                                                        {/each}
-                                                    </ul>
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                {#each Object.entries(getPlacesWhereItemIsPresent(stallId, 'stalls', $NostrGlobalConfig)) as [placeId, placeTitle]}
-                                                    <div class="w-max flex mb-2 opacity-75">
-                                                        <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
-                                                              data-tip="Remove stall from section"
-                                                              on:click|preventDefault={() => removeItemFromSection(placeId.split('-')[0], placeId.split('-')[1], stallId, 'stalls')}
-                                                        >
-                                                            <Minus />
-                                                        </span>
-                                                        <span class="ml-1">{placeTitle}</span>
-                                                    </div>
-                                                {/each}
-                                            </div>
-                                        </div>
+                                    {#if isSuperAdmin && $NostrGlobalConfig}
+                                        <AdminActions
+                                            itemId={stallId}
+                                            entityName="stalls"
+                                        />
                                     {/if}
                                 </div>
                             </div>

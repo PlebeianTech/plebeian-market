@@ -311,7 +311,7 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
     })
 }
 
-export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void) {
+export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void, eoseCB = () => {}) {
     let filter: Filter = { kinds: [EVENT_KIND_PRODUCT, EVENT_KIND_AUCTION] };
 
     if (merchantPubkey) {
@@ -340,9 +340,11 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
 
         receivedCB(product);
     });
-    sub.on('eose', () => {
-        // sub.unsub()
-    })
+    if (eoseCB) {
+        sub.on('eose', () => {
+            eoseCB();
+        });
+    }
 }
 
 /**
@@ -448,7 +450,7 @@ export async function publishConfiguration(setup: object, tags, successCB: () =>
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: string, createdAt: number) => void) {
+export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: string, createdAt: number) => void, eoseCB = () => {}) {
     const sub = get(NostrPool).sub(
         relayUrlList,
         [
@@ -460,4 +462,7 @@ export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: st
         ]
     );
     sub.on('event', e => receivedCB(JSON.parse(e.content), e.created_at));
+    if (eoseCB) {
+        sub.on('eose', eoseCB);
+    }
 }

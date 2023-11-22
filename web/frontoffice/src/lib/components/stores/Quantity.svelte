@@ -27,8 +27,8 @@
 <div class="flex items-center mb-2" class:space-x-1={!compact}>
     <button type="button"
             on:click|preventDefault={() => onQtyChange()}
-            class="p-1 text-gray-500 rounded-full hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600"
-            class:w-6={compact} class:w-8={!compact}>
+            class:w-6={compact} class:w-8={!compact}
+            class="p-1 text-gray-500 rounded-full hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600">
         <Minus />
     </button>
     <input bind:value={quantity}
@@ -37,8 +37,8 @@
            class:w-6={compact} class:w-9={!compact}>
     <button type="button"
             on:click|preventDefault={() => onQtyChange(true)}
-            class="p-1 text-gray-500 rounded-full hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600"
-            class:w-6={compact} class:w-8={!compact}>
+            class:w-6={compact} class:w-8={!compact}
+            class="p-1 text-gray-500 rounded-full hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600">
         <Plus />
     </button>
 </div>

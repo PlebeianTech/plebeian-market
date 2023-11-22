@@ -85,7 +85,7 @@
             {:else}
                 {#if pageBuilderWidgetType[sectionType].items}
                     <div class="mt-6">
-                        <p class="mb-2">Configuration saved. Now you can add content to the section from one of this places:</p>
+                        <p class="mb-2">Configuration saved. Now you can add content to the section from any of this places:</p>
 
                         {#if pageBuilderWidgetType[sectionType].items.includes('stalls')}
                             <a class="btn btn-sm btn-primary btn-outline mr-2" target="_blank" href="/stalls">Stall Browser</a>

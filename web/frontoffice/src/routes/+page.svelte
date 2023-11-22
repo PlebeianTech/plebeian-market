@@ -60,4 +60,4 @@
 </div>
 -->
 
-<Sections page={0} />
+<Sections pageId={0} />

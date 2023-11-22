@@ -1,16 +1,22 @@
 <script lang="ts">
-    import {NostrGlobalConfig} from "$sharedLib/stores";
+    import {NostrGlobalConfig, NostrPublicKey} from "$sharedLib/stores";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
     import {getPage} from "$lib/pagebuilder";
+    import SectionsStalls from "$lib/components/pagebuilder/SectionsStalls.svelte";
+    import SectionsProducts from "$lib/components/pagebuilder/SectionsProducts.svelte";
+    import {onMount} from "svelte";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
 
-    export let page;
+    export let pageId;
 
     const maxProductsLoaded = 20;
+
+    let isSuperAdmin: boolean = false;
 
     let content = null;
     let orderedSections;
 
-    $: { content = getPage(page, $NostrGlobalConfig); }
+    $: { content = getPage(pageId, $NostrGlobalConfig); }
 
     $: if (content && content.sections) {
         orderedSections = Object.entries(content.sections).sort((a, b) => {
@@ -18,23 +24,30 @@
         });
     }
 
-    $: console.log('orderedSections', orderedSections);
+    onMount(async () => {
+        let config = await getConfigurationFromFile();
+        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
+            isSuperAdmin = true;
+        }
+    });
 </script>
 
 {#if content && content.sections}
-    {#each orderedSections as [section_id, section]}
-        <!-- {(console.log('Sections.svelte - section', section), '')} -->
+    {#each orderedSections as [sectionId, section]}
+        {#if section?.params?.sectionType && section?.values}
+            <div class="relative overflow-x-hidden pt-8">
+                <h2 class="text-2xl font-bold text-center">{section.title}</h2>
 
-        {#if section?.params?.sectionType}
-            <h1>{section.title}</h1>
+                {#if section?.params?.sectionType === 'stalls'}
+                    <SectionsStalls {pageId} {sectionId} {isSuperAdmin} />
+                {:else if section?.params?.sectionType === 'products'}
+                    <SectionsProducts {pageId} {sectionId} {isSuperAdmin} />
+                {:else if section?.params?.sectionType === 'stall_products'}
+                    ----- Stall Products
+                {/if}
+            </div>
 
-            {#if section?.params?.sectionType === 'stalls'}
-                ----- Stalls
-            {:else if section?.params?.sectionType === 'products'}
-                ----- Products
-            {:else if section?.params?.sectionType === 'stall_products'}
-                ----- Stall Products
-            {/if}
+            <div class="divider"></div>
         {/if}
     {/each}
 {:else}
