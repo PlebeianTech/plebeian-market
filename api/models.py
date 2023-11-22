@@ -1308,6 +1308,8 @@ class Order(db.Model):
 
     @property
     def timeout_minutes(self):
+        ## DO NOT FORGET to edit the FAQ if changing the values for prod!!!
+
         if self.txid:
             # if we already have a TX (without confirmations though),
             # we can give it more time to confirm...

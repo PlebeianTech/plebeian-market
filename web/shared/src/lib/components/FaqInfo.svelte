@@ -76,6 +76,16 @@
                         <p>We do not hold the money at any point. We simply run the auctions or display your listings and help you find the market value. The buyers are put in contact with the sellers and the two complete the payment directly. In the future we may develop an escrow system that does not require a trusted third party, such as a multisig Bitcoin escrow with a security deposit to protect buyer and seller, but we do not intend to ever be the trusted third party or hold the funds at any point during the transaction.</p>
                     </div>
                 </div>
+
+                <div class="collapse collapse-plus bg-base-300 mt-4">
+                    <input type="radio" />
+                    <div class="collapse-title text-xl font-medium">
+                        When do orders expire?
+                    </div>
+                    <div class="collapse-content">
+                        <p>Orders should receive a payment within 24 hours, otherwise they expire! If a matching on-chain transaction is found in the mempool but it is not yet confirmed, the period is increased to 48 hours.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
