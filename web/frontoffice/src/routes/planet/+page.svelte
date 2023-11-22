@@ -8,6 +8,8 @@
     export let maxProductsLoaded: number = 0;   // Unlimited
 </script>
 
-<Titleh1>Planet</Titleh1>
+<Titleh1>Plebeian Planet</Titleh1>
+
+<p class="text-3xl">Products created on {import.meta.env.VITE_SITE_NAME}</p>
 
 <ProductCardBrowser {maxProductsLoaded} showOnlyPMProducts={true} />
