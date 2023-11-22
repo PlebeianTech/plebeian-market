@@ -39,22 +39,14 @@
         {/if}
     </td>
     <td>
-        {#if order.expired_at !== null || order.canceled_at !== null}
-            <div class="btn-circle btn-xs btn-error ml-1">
-                <X />
-            </div>
-            {#if order.expired_at !== null}
-                <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>Not expired</button>
-            {/if}
+        {#if order.expired_at !== null}
+            Expired
+        {:else if order.canceled_at !== null}
+            Canceled
         {:else if order.shipped_at !== null}
-            Shipped!
+            Shipped
         {:else}
-            {#if order.paid_at === null}
-                <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Marked as paid!"); entity = o;}) }>Payment received</button>
-                <button class="btn btn-error mx-2" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) }>Cancel</button>
-            {:else if order.paid_at !== null && order.shipped_at === null}
-                <button class="btn btn-primary" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) }>Shipped</button>
-            {/if}
+            New
         {/if}
     </td>
     <td>
@@ -80,5 +72,18 @@
                 </div>
             </div>
         </dialog>
+    </td>
+    <td>
+        {#if order.paid_at === null && order.canceled_at === null}
+            <button class="btn btn-error mx-2" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) }>Cancel</button>
+        {:else if order.paid_at !== null && order.shipped_at === null}
+            <button class="btn btn-primary" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) }>Shipped</button>
+        {/if}
+        {#if order.shipped_at !== null}
+            <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Marked as not shipped!"); entity = o;}) }>Not shipped</button>
+        {/if}
+        {#if order.expired_at !== null}
+            <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>Not expired</button>
+        {/if}
     </td>
 </tr>

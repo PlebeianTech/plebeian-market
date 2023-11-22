@@ -471,6 +471,9 @@ def put_order(user, uuid):
     if request.json.get('shipped'):
         message = "Your order was shipped!"
         order.shipped_at = datetime.utcnow()
+    elif request.json.get('shipped') == False:
+        message = "Your order was not shipped!"
+        order.shipped_at = None
 
     if request.json.get('canceled'):
         message = "Your order was canceled by the seller!"

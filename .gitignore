@@ -5,3 +5,4 @@ venv
 /.idea
 .svelte-kit/
 node_modules/
+pm.log
