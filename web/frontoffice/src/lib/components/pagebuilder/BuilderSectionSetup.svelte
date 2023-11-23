@@ -54,7 +54,7 @@
 
                 <div class="mt-6">
                     Section title:
-                    <input type="text" placeholder="section title" class="mt-2 input input-bordered input-sm w-full max-w-xs" bind:value={sectionTitle} />
+                    <input type="text" class="mt-2 ml-2 input input-bordered input-sm w-full max-w-xs" bind:value={sectionTitle} />
                 </div>
 
                 {#if !sectionType}

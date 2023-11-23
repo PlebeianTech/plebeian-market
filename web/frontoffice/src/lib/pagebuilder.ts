@@ -3,6 +3,11 @@ import {NostrGlobalConfig, Info} from "$sharedLib/stores";
 import {getDomainName} from "$sharedLib/utils";
 import {publishConfiguration} from "$sharedLib/services/nostr";
 
+/*
+- PENSAR SI QUITAR PARAMS Y PONERLO TODO EN LA RAIZ DE LA SECCIÓN
+    ** RAZÓN PARA DEJAR PARAMS = DISTINTOS WIDGETS TIENEN DISTINTOS PARÁMETROS
+*/
+
 export const pageBuilderWidgetType = {
     text: {
         'title': 'Long Text',
@@ -57,11 +62,11 @@ export function getPage(pageId, globalConfig = get(NostrGlobalConfig)) {
     const domainName = getDomainName();
 
     if (
-        !globalConfig.content ||
-        !globalConfig.content.hasOwnProperty(domainName) ||
-        !globalConfig.content[domainName].pages ||
-        !globalConfig.content[domainName].pages.hasOwnProperty(pageId) ||
-        !globalConfig.content[domainName].pages[pageId].sections
+        !globalConfig?.content ||
+        !globalConfig?.content.hasOwnProperty(domainName) ||
+        !globalConfig?.content[domainName].pages ||
+        !globalConfig?.content[domainName].pages.hasOwnProperty(pageId) ||
+        !globalConfig?.content[domainName].pages[pageId].sections
     ) {
         return null;
     }
@@ -81,6 +86,7 @@ function setPageContent(pageId, content, globalConfig = get(NostrGlobalConfig)) 
     }
 
     globalConfig.content[domainName].pages[pageId] = content;
+
     NostrGlobalConfig.set(globalConfig);
 }
 
@@ -108,63 +114,64 @@ function NostrGlobalConfigFireReactivity() {
     NostrGlobalConfig.set(get(NostrGlobalConfig));
 }
 
-export function initializeContentForGlobalConfig(globalConfig = get(NostrGlobalConfig)) {
-    const domainName = getDomainName();
+// page_id == 0 is always the homepage
+export function addSectionToPage(newSectionName: string, pageId = 0) {
+    if (newSectionName !== '') {
+        // Initializes the 'content' structure the first time the user wants to add a section to homepage
+        if (pageId == 0 && getPage(0) === null) {
+            let globalConfig = get(NostrGlobalConfig);
 
-    if (!globalConfig.content) {
-        globalConfig.content = {
-            [domainName]: {
-                pages: {
-                    0: {
-                        title: 'Homepage',
-                        sections: {
-                            0: {
-                                title: 'Main',
-                                order: 0
+            globalConfig.content = {
+                [getDomainName()]: {
+                    pages: {
+                        0: {
+                            title: 'Homepage',
+                            sections: {
+                                0: {
+                                    title: newSectionName ?? 'Main',
+                                    order: 0
+                                }
                             }
                         }
                     }
                 }
-            }
-        };
-        NostrGlobalConfig.set(globalConfig);
+            };
 
-        console.log('   --- se CREA - globalConfig:', globalConfig);
+            NostrGlobalConfig.set(globalConfig);
 
-        saveContentToNostr();
-    }
-}
+            saveContentToNostr();
 
-// page_id == 0 is always the homepage
-export function addSectionToPage(newSectionName: string, pageId = 0) {
-    let pageContent = getPage(pageId);
+            return 0;
 
-    if (newSectionName !== '') {
-        let sectionIdNewElement = 0;
-        let order = 0;
+        } else {
+            let pageContent = getPage(pageId);
 
-        Object.keys(pageContent.sections).forEach(section_id => {
-            if (section_id > sectionIdNewElement) {
-                sectionIdNewElement = section_id;
-            }
-            if (pageContent.sections[section_id].order > order) {
-                order = pageContent.sections[section_id].order;
-            }
-        });
+            let sectionIdNewElement = 0;
+            let order = 0;
 
-        sectionIdNewElement++;
-        order++;
+            Object.keys(pageContent.sections).forEach(section_id => {
+                if (section_id > sectionIdNewElement) {
+                    sectionIdNewElement = section_id;
+                }
+                if (pageContent.sections[section_id].order > order) {
+                    order = pageContent.sections[section_id].order;
+                }
+            });
 
-        pageContent.sections[sectionIdNewElement] = {
-            title: newSectionName,
-            order: order
-        };
+            sectionIdNewElement++;
+            order++;
 
-        NostrGlobalConfigFireReactivity();
+            pageContent.sections[sectionIdNewElement] = {
+                title: newSectionName,
+                order: order
+            };
 
-        saveContentToNostr();
+            NostrGlobalConfigFireReactivity();
 
-        return sectionIdNewElement;
+            saveContentToNostr();
+
+            return sectionIdNewElement;
+        }
     }
 
     return null;
@@ -239,18 +246,6 @@ function setSectionsOrder(pageId) {
 */
 
 export function saveContentToNostr() {
-    /*
-    const pages = getPages();
-
-    pages.forEach(page => {
-        setSectionsOrder(page);
-    });
-    */
-
-    /*
-        setSectionsOrder();
-     */
-
     let globalConfig = get(NostrGlobalConfig);
     delete globalConfig.homepage_include_stalls;
 

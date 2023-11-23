@@ -43,7 +43,8 @@
                 <h2 class="font-bold">Homepage Sections</h2>
 
                 <div class="my-8">
-                    Add sections to the homepage and set them up to display what you need to show in each section.
+                    <p>With this functionality, you can customize what is shown on the homepage.</p>
+                    <p class="mt-4">Add sections here, and set them up to display what you need to show in each of them.</p>
                 </div>
 
                 <div class="w-6/12 mx-auto">
@@ -97,10 +98,6 @@
                         {#each orderedSections as [section_id, section]}
                             <p>{section.title}</p>
                         {/each}
-                    {:else}
-                        <div class="list-group-item">
-                            Homepage Section
-                        </div>
                     {/if}
                 </div>
             </div>
