@@ -3,7 +3,7 @@
     import { toasts, ToastContainer } from 'svelte-toasts';
     import "../app.css";
     import { page } from '$app/stores';
-    import { NostrGlobalConfig } from "$sharedLib/stores";
+    import {NostrGlobalConfig, NostrPublicKey, isSuperAdmin} from "$sharedLib/stores";
     import type { Placement} from "$sharedLib/stores";
     import {
         Info,
@@ -59,7 +59,7 @@
 	onDestroy(errorUnsubscribe);
 
     onMount(async () => {
-        refreshStalls();
+        $NostrGlobalConfig = {};
 
         let receivedAt = 0;
         let tempSetup = null;
@@ -78,6 +78,12 @@
                     $NostrGlobalConfig = tempSetup;
                 })
         }
+
+        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
+            $isSuperAdmin = true;
+        }
+
+        refreshStalls();
 
         restoreShoppingCartProductsFromLocalStorage();
     });

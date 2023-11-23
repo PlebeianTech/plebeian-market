@@ -30,6 +30,8 @@ export const NostrPrivateKey: Writable<string | null> = writable(null);
 export const NostrLoginMethod: Writable<string | null> = writable(null);
 export const NostrGlobalConfig: Writable<object> = writable({});
 
+export const isSuperAdmin: Writable<boolean> = writable(false);
+
 export type ShoppingCartSummary = {
     numProducts: number,
     totalQuantity: number,

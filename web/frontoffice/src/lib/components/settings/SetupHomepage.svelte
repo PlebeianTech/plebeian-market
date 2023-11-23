@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from 'svelte';
-    import {NostrPublicKey, NostrGlobalConfig} from "$sharedLib/stores";
-    import {getConfigurationFromFile, requestLoginModal} from "$sharedLib/utils";
+    import {NostrPublicKey, NostrGlobalConfig, isSuperAdmin} from "$sharedLib/stores";
+    import {requestLoginModal} from "$sharedLib/utils";
     import Trash from "$sharedLib/components/icons/Trash.svelte";
     import Edit from "$sharedLib/components/icons/Edit.svelte";
     import { SortableList } from '@jhubbardsf/svelte-sortablejs'
@@ -15,7 +15,6 @@
     } from "$lib/pagebuilder";
     import BuilderSectionSetup from "$lib/components/pagebuilder/BuilderSectionSetup.svelte";
 
-    let isSuperAdmin: boolean = false;
     let newSection = '';
     let content = null;
     let orderedSections;
@@ -30,22 +29,16 @@
         });
     }
 
-    $: console.log('orderedSections', orderedSections);
-
     let setupSection;
 
     onMount(async () => {
-        let config = await getConfigurationFromFile();
-        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
-            isSuperAdmin = true;
-            initializeContentForGlobalConfig($NostrGlobalConfig);
-        }
+//            initializeContentForGlobalConfig($NostrGlobalConfig);
     });
 </script>
 
 <div class="w-full items-center justify-center text-center">
     {#if $NostrPublicKey}
-        {#if isSuperAdmin}
+        {#if $isSuperAdmin}
             <div id="simple-list" class="mt-4 border rounded p-6">
                 <h2 class="font-bold">Homepage Sections</h2>
 

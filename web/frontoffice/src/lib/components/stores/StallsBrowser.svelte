@@ -1,17 +1,14 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import {NostrPublicKey, NostrGlobalConfig, stalls} from "$sharedLib/stores";
+    import {NostrGlobalConfig, stalls, isSuperAdmin} from "$sharedLib/stores";
     import {formatTimestampNG} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
     import {refreshStalls} from "$lib/shopping";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
 
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
-
-    let isSuperAdmin: boolean = false;
 
     let sortedStalls = [];
     let filter = null;
@@ -37,11 +34,6 @@
 
     onMount(async () => {
         refreshStalls();
-
-        let config = await getConfigurationFromFile();
-        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
-            isSuperAdmin = true;
-        }
     });
 </script>
 
@@ -77,7 +69,7 @@
                                 )
                             )
                         }
-                            <div class="bg-white dark:bg-black rounded-lg shadow-md {isSuperAdmin ? '' : 'hover:scale-110 duration-300'}">
+                            <div class="bg-white dark:bg-black rounded-lg shadow-md {$isSuperAdmin ? '' : 'hover:scale-110 duration-300'}">
                                 <div class="p-4 md:p-6">
                                     <a href="/p/{stall.merchantPubkey}/stall/{stall.id}">
                                         <div class="cursor-pointer">
@@ -104,7 +96,7 @@
                                             {/if}
                                         </div>
                                     </a>
-                                    {#if isSuperAdmin && $NostrGlobalConfig}
+                                    {#if $isSuperAdmin && $NostrGlobalConfig}
                                         <AdminActions
                                             itemId={stallId}
                                             entityName="stalls"

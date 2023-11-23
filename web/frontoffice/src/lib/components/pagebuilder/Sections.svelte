@@ -1,17 +1,13 @@
 <script lang="ts">
-    import {NostrGlobalConfig, NostrPublicKey} from "$sharedLib/stores";
+    import {NostrGlobalConfig} from "$sharedLib/stores";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
     import {getPage} from "$lib/pagebuilder";
     import SectionsStalls from "$lib/components/pagebuilder/SectionsStalls.svelte";
     import SectionsProducts from "$lib/components/pagebuilder/SectionsProducts.svelte";
-    import {onMount} from "svelte";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
 
     export let pageId;
 
     const maxProductsLoaded = 20;
-
-    let isSuperAdmin: boolean = false;
 
     let content = null;
     let orderedSections;
@@ -23,13 +19,6 @@
             return a[1].order - b[1].order;
         });
     }
-
-    onMount(async () => {
-        let config = await getConfigurationFromFile();
-        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
-            isSuperAdmin = true;
-        }
-    });
 </script>
 
 {#if content && content.sections}
@@ -42,9 +31,9 @@
                     {#if section?.params?.sectionType === 'text'}
                         ------ Texto
                     {:else if section?.params?.sectionType === 'stalls'}
-                        <SectionsStalls {pageId} {sectionId} {isSuperAdmin} />
+                        <SectionsStalls {pageId} {sectionId} />
                     {:else if section?.params?.sectionType === 'products'}
-                        <SectionsProducts {pageId} {sectionId} {isSuperAdmin} />
+                        <SectionsProducts {pageId} {sectionId} />
                     {:else if section?.params?.sectionType === 'stall_products'}
                         ----- Stall Products
                     {/if}

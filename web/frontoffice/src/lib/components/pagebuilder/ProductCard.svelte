@@ -1,12 +1,11 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {NostrGlobalConfig} from "$sharedLib/stores";
+    import {NostrGlobalConfig, isSuperAdmin} from "$sharedLib/stores";
     import { Image } from 'svelte-lazy-loader';
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
 
     export let product;
     export let onImgError = () => {};
-    export let isSuperAdmin = false;
 </script>
 
 <div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-4">
@@ -27,7 +26,7 @@
             </span>
         {/if}
 
-        {#if false && isSuperAdmin && $NostrGlobalConfig}
+        {#if false && $isSuperAdmin && $NostrGlobalConfig}
             <AdminActions
                 itemId={product.id}
                 entityName="products"
