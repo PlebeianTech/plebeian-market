@@ -444,7 +444,7 @@ export async function publishConfiguration(setup: object, tags, successCB: () =>
         EVENT_KIND_APP_SETUP,
         JSON.stringify(setup),
         [
-            ['p', SITE_SPECIFIC_CONFIG_KEY],
+            ['d', SITE_SPECIFIC_CONFIG_KEY],
         ]
     );
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
@@ -457,7 +457,7 @@ export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: st
             {
                 kinds: [EVENT_KIND_APP_SETUP],
                 authors: pubkeys,
-                '#p': [SITE_SPECIFIC_CONFIG_KEY],
+                '#d': [SITE_SPECIFIC_CONFIG_KEY],
             }
         ]
     );
