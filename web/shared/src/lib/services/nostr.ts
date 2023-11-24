@@ -33,7 +33,7 @@ const EVENT_KIND_BADGE_DEFINITION = 30009;
 
 const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nips/blob/master/78.md
 
-const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
+export const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
 
 export async function closePool() {
     await get(NostrPool).close(relayUrlList);
@@ -439,25 +439,25 @@ export async function nostrAcceptBadge(newProfileBadgeTags, successCB: () => voi
 // Arbitrary custom app data (nip-78)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function publishConfiguration(setup: object, tags, successCB: () => void = () => {}) {
+export async function publishConfiguration(setup: object, configKey, successCB: () => void = () => {}) {
     const event = await createEvent(
         EVENT_KIND_APP_SETUP,
         JSON.stringify(setup),
         [
-            ['d', SITE_SPECIFIC_CONFIG_KEY],
+            ['d', configKey],
         ]
     );
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: string, createdAt: number) => void, eoseCB = () => {}) {
+export function subscribeConfiguration(pubkeys: string[], configKey, receivedCB: (setup: string, createdAt: number) => void, eoseCB = () => {}) {
     const sub = get(NostrPool).sub(
         relayUrlList,
         [
             {
                 kinds: [EVENT_KIND_APP_SETUP],
                 authors: pubkeys,
-                '#d': [SITE_SPECIFIC_CONFIG_KEY],
+                '#d': [configKey],
             }
         ]
     );

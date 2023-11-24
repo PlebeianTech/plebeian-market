@@ -1,6 +1,12 @@
 <script lang="ts">
-    import {getPage, pageBuilderWidgetType, saveSectionSetup} from "$lib/pagebuilder";
+    import {getConfigurationKey, getPage, pageBuilderWidgetType, saveSectionSetup} from "$lib/pagebuilder";
     import {NostrGlobalConfig} from "$sharedLib/stores";
+    import { useProsemirrorAdapterProvider } from "@prosemirror-adapter/svelte";
+    import Editor from "$lib/components/pagebuilder/editor/Editor.svelte";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
+    import {subscribeConfiguration} from "$sharedLib/services/nostr";
+
+    useProsemirrorAdapterProvider();
 
     let pageId;
     let sectionId;
@@ -12,7 +18,10 @@
     let saved;
     let sectionTitle;
 
-    export function setupSection(pageIdLoad, sectionIdLoad) {
+    let getMarkdownContent;
+    let initialMarkdownText = '';
+
+    export async function setupSection(pageIdLoad, sectionIdLoad) {
         // Clear
         saved = false;
 
@@ -22,18 +31,45 @@
 
         page = getPage(pageId, $NostrGlobalConfig);
 
-        sectionTitle        = page?.sections[sectionId]?.title ?? '';
-        sectionType         = page?.sections[sectionId]?.params?.sectionType ?? null;
-        maxProductsShown    = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
+        sectionTitle = page?.sections[sectionId]?.title ?? '';
+        sectionType = page?.sections[sectionId]?.params?.sectionType ?? null;
+        maxProductsShown = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
+
+
+        if (sectionType === 'text') {
+            let config = await getConfigurationFromFile();
+
+            if (config && config.admin_pubkeys.length > 0) {
+                let receivedAt = 0;
+
+                const configurationKey = getConfigurationKey(pageId, sectionId, 'sectionText');
+                if (configurationKey) {
+                    subscribeConfiguration(config.admin_pubkeys, configurationKey,
+                        (markdownTextForSection, rcAt) => {
+                            if (rcAt > receivedAt) {
+                                receivedAt = rcAt;
+                                initialMarkdownText = markdownTextForSection;
+                            }
+                        });
+                }
+            }
+        }
 
         window.setup_section.showModal();
     }
 
     function save() {
+        let markDownContent = null;
+
+        if (sectionType === 'text') {
+            markDownContent = getMarkdownContent();
+        }
+
         saveSectionSetup(pageId, sectionId, {
             sectionTitle,
             sectionType,
-            maxProductsShown
+            maxProductsShown,
+            markDownContent
         });
 
         saved = true;
@@ -41,7 +77,7 @@
 </script>
 
 <dialog id="setup_section" class="modal">
-    <div class="modal-box">
+    <div class="modal-box w-11/12 max-w-5xl">
         {#if page}
             {#if !saved}
                 <p class="text-lg">
@@ -81,6 +117,16 @@
                             <input type="text" placeholder="max products shown" class="mt-2 input input-bordered input-sm w-full max-w-xs" bind:value={maxProductsShown} />
                         </div>
                     {/if}
+
+                    {#if pageBuilderWidgetType[sectionType].long_text}
+                        <div style="display: none">
+                            <textarea id="content" bind:value={initialMarkdownText} />
+                        </div>
+
+                        <div class="mt-6">
+                            <Editor bind:getMarkdownContent={getMarkdownContent} />
+                        </div>
+                    {/if}
                 {/if}
             {:else}
                 {#if pageBuilderWidgetType[sectionType].items}
@@ -93,7 +139,7 @@
                         {#if pageBuilderWidgetType[sectionType].items.includes('products')}
                             <a class="btn btn-sm btn-primary btn-outline mr-2" target="_blank" href="/planet">Planet</a>
                             <a class="btn btn-sm btn-primary btn-outline mr-2" target="_blank" href="/">Homepage</a>
-                            <a class="btn btn-sm btn-primary btn-outline mr-2 btn-disabled">Any stall</a>
+                            <a class="btn btn-sm btn-primary btn-outline mr-2 btn-disabled" href={null}>Any stall</a>
                         {/if}
                     </div>
                 {:else}

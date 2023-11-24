@@ -1,7 +1,7 @@
 import {get} from "svelte/store";
 import {NostrGlobalConfig, Info} from "$sharedLib/stores";
 import {getDomainName} from "$sharedLib/utils";
-import {publishConfiguration} from "$sharedLib/services/nostr";
+import {publishConfiguration, SITE_SPECIFIC_CONFIG_KEY} from "$sharedLib/services/nostr";
 
 /*
 - PENSAR SI QUITAR PARAMS Y PONERLO TODO EN LA RAIZ DE LA SECCIÓN
@@ -10,25 +10,26 @@ import {publishConfiguration} from "$sharedLib/services/nostr";
 
 export const pageBuilderWidgetType = {
     text: {
-        'title': 'Long Text',
+        'title': 'Show a long Text',
         'description': 'Choose this widget to be able to write a text to explain your customers something.',
         'items': false,
-        'max_num_available': false
+        'max_num_available': false,
+        'long_text': true
     },
     products: {
-        'title': 'Selected Products',
+        'title': 'Show selected Products',
         'description': 'Choose this widget type to be able to select which products you want shown on this section.',
         'items': ['products'],
         'max_num_available': false
     },
     stalls: {
-        'title': 'Selected Stalls',
+        'title': 'Show selected Stalls',
         'description': 'Choose this widget type to be able to select which stalls you want shown on this section.',
         'items': ['stalls'],
         'max_num_available': false
     },
     stall_products: {
-        'title': 'All Products from several Stalls',
+        'title': 'Show all Products from several stalls',
         'description': 'Choose this widget type to be able to select one or several stalls to have all their products automatically shown in the section.',
         'items': ['stalls'],
         'max_num_available': true
@@ -103,6 +104,16 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
 
     if (setupParams.maxProductsShown && setupParams.maxProductsShown != 0) {
         section.params.maxProductsShown = setupParams.maxProductsShown;
+    }
+
+    if (setupParams.markDownContent) {
+        const configurationKey = getConfigurationKey(pageId, sectionId, 'sectionText');
+        if (configurationKey) {
+            publishConfiguration(setupParams.markDownContent, configurationKey,
+                () => {
+                    console.log('markDownContent saved to Nostr relay!!');
+                });
+        }
     }
 
     NostrGlobalConfigFireReactivity();
@@ -251,7 +262,7 @@ export function saveContentToNostr() {
 
     console.log('Saving this to Nostr:', globalConfig);
 
-    publishConfiguration(globalConfig,
+    publishConfiguration(globalConfig, SITE_SPECIFIC_CONFIG_KEY,
         () => {
             console.log('Configuration saved to Nostr relay!!');
         });
@@ -320,4 +331,14 @@ export function getPlacesWhereItemIsPresent(itemId, entityName) {
     }
 
     return places;
+}
+
+export function getConfigurationKey(pageId, sectionId, key = '') {
+    const domainName = getDomainName();
+
+    if (pageId !== null && sectionId !== null && domainName) {
+        return 'plebeian_market/' + key + '_' + domainName + '_' + pageId + '_' + sectionId;
+    }
+
+    return null;
 }

@@ -15,6 +15,7 @@ module.exports = {
     },
   },
   plugins: [
+      require('@tailwindcss/typography'),
       require("daisyui"),
       function ({ addVariant }) {
         addVariant(

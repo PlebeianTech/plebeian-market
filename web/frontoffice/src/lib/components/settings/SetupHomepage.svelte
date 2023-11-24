@@ -50,7 +50,11 @@
                 <div class="w-6/12 mx-auto">
                     <div class="mt-10 mb-4">
                         <input type="text" bind:value={newSection} placeholder="Title of new section" class="input input-bordered input-success w-full max-w-xs input-sm" />
-                        <button class="btn btn-sm btn-success ml-1" on:click={() => {let newSectionId = addSectionToPage(newSection); setupSection(pageId, newSectionId); newSection=''}}>Add</button>
+                        <button class="btn btn-sm btn-success ml-1"
+                                class:btn-disabled={!newSection}
+                                on:click={() => {let newSectionId = addSectionToPage(newSection); setupSection(pageId, newSectionId); newSection=''}}>
+                            Add
+                        </button>
                     </div>
 
                     {#if content && content.sections}

@@ -9,12 +9,11 @@
         Info,
         Error,
     } from "$sharedLib/stores";
-
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Notifications from "$lib/components/Notifications.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
-    import {closePool, subscribeConfiguration} from "$sharedLib/services/nostr";
+    import {closePool, subscribeConfiguration, SITE_SPECIFIC_CONFIG_KEY} from "$sharedLib/services/nostr";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
@@ -61,22 +60,17 @@
     onMount(async () => {
         $NostrGlobalConfig = {};
 
-        let receivedAt = 0;
-        let tempSetup = null;
-
         let config = await getConfigurationFromFile();
-
         if (config && config.admin_pubkeys.length > 0) {
-            subscribeConfiguration(config.admin_pubkeys,
+            let receivedAt = 0;
+
+            subscribeConfiguration(config.admin_pubkeys, SITE_SPECIFIC_CONFIG_KEY,
                 (setup, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;
-                        tempSetup = setup;
+                        $NostrGlobalConfig = setup;
                     }
-                },
-                () => {
-                    $NostrGlobalConfig = tempSetup;
-                })
+                });
         }
 
         if (config && config.admin_pubkeys.includes($NostrPublicKey)) {

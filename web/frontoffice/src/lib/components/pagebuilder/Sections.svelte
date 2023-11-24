@@ -4,6 +4,7 @@
     import {getPage} from "$lib/pagebuilder";
     import SectionsStalls from "$lib/components/pagebuilder/SectionsStalls.svelte";
     import SectionsProducts from "$lib/components/pagebuilder/SectionsProducts.svelte";
+    import SectionsText from "$lib/components/pagebuilder/SectionsText.svelte";
 
     export let pageId;
 
@@ -24,12 +25,12 @@
 {#if content && content.sections}
     <div class="pt-12">
         {#each orderedSections as [sectionId, section]}
-            {#if section?.params?.sectionType && section?.values}
+            {#if section?.params?.sectionType && (section?.values || section.params.sectionType === 'text')}
                 <div class="relative overflow-x-hidden">
                     <h2 class="text-2xl font-bold text-center mb-5">{section.title}</h2>
 
                     {#if section?.params?.sectionType === 'text'}
-                        ------ Texto
+                        <SectionsText {pageId} {sectionId} />
                     {:else if section?.params?.sectionType === 'stalls'}
                         <SectionsStalls {pageId} {sectionId} />
                     {:else if section?.params?.sectionType === 'products'}
