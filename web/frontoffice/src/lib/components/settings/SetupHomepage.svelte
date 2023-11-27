@@ -51,7 +51,7 @@
                         </button>
                     </div>
 
-                    {#if orderedSections}
+                    {#if orderedSections && orderedSections.length > 0}
                         {#key orderedSections}
                             <SortableList
                                 class="list-group col"
