@@ -1,7 +1,6 @@
 import {get} from "svelte/store";
 import {NostrGlobalConfig, Info} from "$sharedLib/stores";
-import {getDomainName} from "$sharedLib/utils";
-import {publishConfiguration, SITE_SPECIFIC_CONFIG_KEY} from "$sharedLib/services/nostr";
+import {publishConfiguration, getConfigurationKey} from "$sharedLib/services/nostr";
 
 /*
 - PENSAR SI QUITAR PARAMS Y PONERLO TODO EN LA RAIZ DE LA SECCIÓN
@@ -45,34 +44,28 @@ export const pageBuilderWidgetType = {
     */
 };
 
-export function getPages(globalConfig = get(NostrGlobalConfig)) {
-    const domainName = getDomainName();
-
+export function getPages(globalConfig = get(NostrGlobalConfig)): object {
     if (
         !globalConfig.content ||
-        !globalConfig.content.hasOwnProperty(domainName) ||
-        !globalConfig.content[domainName].pages
+        !globalConfig.content.pages
     ) {
-        return null;
+        return {};
     }
 
-    return globalConfig.content[domainName].pages;
+    return globalConfig.content.pages;
 }
 
 export function getPage(pageId, globalConfig = get(NostrGlobalConfig)) {
-    const domainName = getDomainName();
-
     if (
         !globalConfig?.content ||
-        !globalConfig?.content.hasOwnProperty(domainName) ||
-        !globalConfig?.content[domainName].pages ||
-        !globalConfig?.content[domainName].pages.hasOwnProperty(pageId) ||
-        !globalConfig?.content[domainName].pages[pageId].sections
+        !globalConfig?.content.pages ||
+        !globalConfig?.content.pages.hasOwnProperty(pageId) ||
+        !globalConfig?.content.pages[pageId].sections
     ) {
         return null;
     }
 
-    return globalConfig.content[domainName].pages[pageId];
+    return globalConfig.content.pages[pageId];
 }
 
 export function getSection(pageId, sectionId) {
@@ -80,13 +73,11 @@ export function getSection(pageId, sectionId) {
 }
 
 function setPageContent(pageId, content, globalConfig = get(NostrGlobalConfig)) {
-    const domainName = getDomainName();
-
     if (!content) {
         return null;
     }
 
-    globalConfig.content[domainName].pages[pageId] = content;
+    globalConfig.content.pages[pageId] = content;
 
     NostrGlobalConfig.set(globalConfig);
 }
@@ -107,13 +98,10 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
     }
 
     if (setupParams.markDownContent) {
-        const configurationKey = getConfigurationKey(pageId, sectionId, 'sectionText');
-        if (configurationKey) {
-            publishConfiguration(setupParams.markDownContent, configurationKey,
-                () => {
-                    console.log('markDownContent saved to Nostr relay!!');
-                });
-        }
+        publishConfiguration(setupParams.markDownContent, getConfigurationKey('sectionText' + '_' + pageId + '_' + sectionId),
+            () => {
+                console.log('markDownContent saved to Nostr relay!!');
+            });
     }
 
     NostrGlobalConfigFireReactivity();
@@ -125,7 +113,7 @@ function NostrGlobalConfigFireReactivity() {
     NostrGlobalConfig.set(get(NostrGlobalConfig));
 }
 
-// page_id == 0 is always the homepage
+// pageId == 0 is always the homepage
 export function addSectionToPage(newSectionName: string, pageId = 0) {
     if (newSectionName !== '') {
         // Initializes the 'content' structure the first time the user wants to add a section to homepage
@@ -133,20 +121,18 @@ export function addSectionToPage(newSectionName: string, pageId = 0) {
             let globalConfig = get(NostrGlobalConfig);
 
             globalConfig.content = {
-                [getDomainName()]: {
-                    pages: {
-                        0: {
-                            title: 'Homepage',
-                            sections: {
-                                0: {
-                                    title: newSectionName ?? 'Main',
-                                    order: 0
-                                }
+                pages: {
+                    0: {
+                        title: 'Homepage',
+                        sections: {
+                            0: {
+                                title: newSectionName ?? 'Main',
+                                order: 0
                             }
                         }
                     }
                 }
-            };
+             };
 
             NostrGlobalConfig.set(globalConfig);
 
@@ -188,38 +174,32 @@ export function addSectionToPage(newSectionName: string, pageId = 0) {
     return null;
 }
 
-export const handleEnd = (pageId, evt) => {
+export const handleMove = (pageId, evt) => {
     let pageContent = getPage(pageId);
-console.log('INICIO pageContent=', pageContent);
 
-    let sectionKeysArray = Object.keys(pageContent.sections);
-    console.log('sectionKeysArray',sectionKeysArray);
+    let orderedSections = Object.entries(pageContent.sections).sort((a, b) => {
+        return a[1].order - b[1].order;
+    });
 
-    // move
-    const elm = sectionKeysArray.splice(evt.oldIndex, 1)[0];
-    sectionKeysArray.splice(evt.newIndex, 0, elm);
+    let initialArrayOfOrderedSectionIDs: string[] = [];
+    orderedSections.forEach(sectionId => {
+        initialArrayOfOrderedSectionIDs.push(sectionId[0])
+    });
 
-    console.log('sectionKeysArray_222',sectionKeysArray);
-/*
-    pageContent.sections = sectionKeysArray.reduce((obj, key) => {
-        obj[key] = pageContent.sections[key];
-        return obj;
-    }, {});
-*/
+    // move elements in the initial array as the movement made by the user
+    const elm = initialArrayOfOrderedSectionIDs.splice(evt.oldIndex, 1)[0];
+    initialArrayOfOrderedSectionIDs.splice(evt.newIndex, 0, elm);
 
+    let newPageContentSections = {};
     let order = 0;
-    pageContent.sections = sectionKeysArray.reduce((obj, key) => {
-        console.log('key', key);
-        obj[key] = {
-            order: order,
-            title: pageContent.sections[key].title
-        }
-        order++;
-        return obj;
-    }, {});
 
-    setPageContent(pageId, pageContent);
-    console.log('pageContent.sections____22222', pageContent.sections);
+    initialArrayOfOrderedSectionIDs.forEach(sectionId => {
+        newPageContentSections[sectionId] = pageContent.sections[sectionId];
+        newPageContentSections[sectionId].order = order;
+        order++;
+    });
+
+    pageContent.sections = newPageContentSections;
 
     NostrGlobalConfigFireReactivity();
 
@@ -241,28 +221,13 @@ export function removeSection(pageId, sectionId) {
     saveContentToNostr();
 }
 
-// TODO: maybe this is not needed anymore if we always keep the sections ordered
-/*
-function setSectionsOrder(pageId) {
-    let pageContent = getPage(pageId);
-
-    let order = 0;
-    pageContent.sections.forEach(section => {
-        section.order = order;
-        order++;
-    });
-
-    setPageContent(pageId, pageContent);
-}
-*/
-
 export function saveContentToNostr() {
     let globalConfig = get(NostrGlobalConfig);
     delete globalConfig.homepage_include_stalls;
 
     console.log('Saving this to Nostr:', globalConfig);
 
-    publishConfiguration(globalConfig, SITE_SPECIFIC_CONFIG_KEY,
+    publishConfiguration(globalConfig, getConfigurationKey('site_specific_config'),
         () => {
             console.log('Configuration saved to Nostr relay!!');
         });
@@ -331,14 +296,4 @@ export function getPlacesWhereItemIsPresent(itemId, entityName) {
     }
 
     return places;
-}
-
-export function getConfigurationKey(pageId, sectionId, key = '') {
-    const domainName = getDomainName();
-
-    if (pageId !== null && sectionId !== null && domainName) {
-        return 'plebeian_market/' + key + '_' + domainName + '_' + pageId + '_' + sectionId;
-    }
-
-    return null;
 }

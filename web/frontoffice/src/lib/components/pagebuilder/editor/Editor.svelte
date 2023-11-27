@@ -1,7 +1,6 @@
 <script lang="ts">
     import {
         useNodeViewFactory,
-//        usePluginViewFactory,
         useWidgetViewFactory
     } from "@prosemirror-adapter/svelte";
     import {Plugin} from 'prosemirror-state'
@@ -14,7 +13,6 @@
     import {defaultMarkdownSerializer} from "prosemirror-markdown";
 
     const nodeViewFactory = useNodeViewFactory()
-    //  const pluginViewFactory = usePluginViewFactory()
     const widgetViewFactory = useWidgetViewFactory()
 
     const getHashWidget = widgetViewFactory({
@@ -64,16 +62,14 @@
     })
 </script>
 
-<div class="editor bg-base-300 text-accent" use:editor/>
+<div class="editor bg-base-200 dark:bg-base-300" use:editor/>
 
 <style>
     .editor {
+        position: relative;
         background-clip: padding-box;
         border-radius: 4px;
         border: 2px solid rgba(0, 0, 0, 0.2);
-        /*padding: 5px 0; */
-        margin-bottom: 23px;
-        position: relative;
     }
 
     :global(.ProseMirror p:first-child),

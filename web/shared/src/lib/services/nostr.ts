@@ -9,7 +9,7 @@ import {get} from "svelte/store";
 import { UserResume } from "$sharedLib/types/user";
 import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
 import {NostrPool, NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
-import {loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
+import {getDomainName, loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
 export type UserMetadata = {
     name?: string;
@@ -32,8 +32,6 @@ const EVENT_KIND_PROFILE_BADGES = 30008;
 const EVENT_KIND_BADGE_DEFINITION = 30009;
 
 const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nips/blob/master/78.md
-
-export const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
 
 export async function closePool() {
     await get(NostrPool).close(relayUrlList);
@@ -465,4 +463,14 @@ export function subscribeConfiguration(pubkeys: string[], configKey, receivedCB:
     if (eoseCB) {
         sub.on('eose', eoseCB);
     }
+}
+
+export function getConfigurationKey(key:string, version = 'v1') {
+    const domainName = getDomainName();
+
+    if (domainName && version && key) {
+        return 'plebeian_market/' + domainName+ '/' + version + '/' + key;
+    }
+
+    return null;
 }

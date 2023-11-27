@@ -1,15 +1,13 @@
 <script lang="ts">
-    import {onMount} from 'svelte';
     import {NostrPublicKey, NostrGlobalConfig, isSuperAdmin} from "$sharedLib/stores";
     import {requestLoginModal} from "$sharedLib/utils";
     import Trash from "$sharedLib/components/icons/Trash.svelte";
     import Edit from "$sharedLib/components/icons/Edit.svelte";
     import { SortableList } from '@jhubbardsf/svelte-sortablejs'
     import {
-        initializeContentForGlobalConfig,
         addSectionToPage,
         removeSection,
-        handleEnd,
+        handleMove,
         getPage,
         pageBuilderWidgetType
     } from "$lib/pagebuilder";
@@ -17,7 +15,7 @@
 
     let newSection = '';
     let content = null;
-    let orderedSections;
+    let orderedSections = null;
 
     const pageId = 0;
 
@@ -30,10 +28,6 @@
     }
 
     let setupSection;
-
-    onMount(async () => {
-//            initializeContentForGlobalConfig($NostrGlobalConfig);
-    });
 </script>
 
 <div class="w-full items-center justify-center text-center">
@@ -57,51 +51,49 @@
                         </button>
                     </div>
 
-                    {#if content && content.sections}
-                        <SortableList
-                            class="list-group col"
-                            animation={150}
-                            ghostClass="bg-info"
-                            onEnd={(evt) => {handleEnd(pageId, evt)}}
-                        >
-                            {#each orderedSections as [section_id, section]}
-                                <div class="grid grid-cols-4 gap-0">
-                                    <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 cursor-move right-0">
-                                        {section.title}
-                                    </div>
-                                    <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 cursor-move right-0">
-                                        {#if section?.params?.sectionType}
-                                            {pageBuilderWidgetType[section.params.sectionType].title}
-                                        {:else}
-                                            -
-                                        {/if}
-                                    </div>
-                                    <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 cursor-move right-0">
-                                        {#if section?.values && section.values[section.params.sectionType]}
-                                            {section.values[section.params.sectionType].length}
-                                        {:else}
-                                            0
-                                        {/if}
-                                    </div>
-                                    <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 align-middle">
-                                        <div class="tooltip" data-tip="Edit section">
-                                            <button class="btn btn-xs btn-info btn-outline" on:click={() => setupSection(pageId, section_id)}><span class="w-5"><Edit /></span></button>
+                    {#if orderedSections}
+                        {#key orderedSections}
+                            <SortableList
+                                class="list-group col"
+                                animation={150}
+                                ghostClass="bg-info"
+                                onEnd={(evt) => {handleMove(pageId, evt)}}
+                            >
+                                {#each orderedSections as [section_id, section]}
+                                    <div class="grid grid-cols-4 gap-0 align-middle">
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
+                                            {section.title}
                                         </div>
-                                        <div class="tooltip" data-tip="Remove section">
-                                            <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, section_id)}><span class="w-5"><Trash /></span></button>
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
+                                            {#if section?.params?.sectionType}
+                                                {pageBuilderWidgetType[section.params.sectionType].title}
+                                            {:else}
+                                                -
+                                            {/if}
+                                        </div>
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
+                                            {#if section?.values && section.values[section.params.sectionType]}
+                                                {section.values[section.params.sectionType].length} {pageBuilderWidgetType[section.params.sectionType].items[0] ?? ''}
+                                            {:else}
+                                                0
+                                            {/if}
+                                        </div>
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500">
+                                            <div class="tooltip" data-tip="Edit section">
+                                                <button class="btn btn-xs btn-info btn-outline" on:click={() => setupSection(pageId, section_id)}><span class="w-5"><Edit /></span></button>
+                                            </div>
+                                            <div class="tooltip" data-tip="Remove section">
+                                                <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, section_id)}><span class="w-5"><Trash /></span></button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            {/each}
-                        </SortableList>
+                                {/each}
+                            </SortableList>
+                        {/key}
 
-                        <div class="text-slate-600 dark:text-slate-300 pt-2 text-xs">
+                        <div class="pt-2 text-xs">
                             You can reorder this sections by dragging them up and down
                         </div>
-
-                        {#each orderedSections as [section_id, section]}
-                            <p>{section.title}</p>
-                        {/each}
                     {/if}
                 </div>
             </div>
