@@ -13,7 +13,7 @@
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Notifications from "$lib/components/Notifications.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
-    import {closePool, subscribeConfiguration, SITE_SPECIFIC_CONFIG_KEY} from "$sharedLib/services/nostr";
+    import {closePool, getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
@@ -64,7 +64,7 @@
         if (config && config.admin_pubkeys.length > 0) {
             let receivedAt = 0;
 
-            subscribeConfiguration(config.admin_pubkeys, SITE_SPECIFIC_CONFIG_KEY,
+            subscribeConfiguration(config.admin_pubkeys, getConfigurationKey('site_specific_config'),
                 (setup, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;
