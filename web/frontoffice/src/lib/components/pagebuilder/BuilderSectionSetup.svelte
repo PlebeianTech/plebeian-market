@@ -123,7 +123,9 @@
                         </div>
 
                         <div class="mt-8">
-                            <Editor bind:getMarkdownContent={getMarkdownContent} />
+                            {#key initialMarkdownText}
+                                <Editor bind:getMarkdownContent={getMarkdownContent} />
+                            {/key}
                         </div>
                     {/if}
                 {/if}
