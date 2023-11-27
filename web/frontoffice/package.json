@@ -12,7 +12,7 @@
     "npm-run-all": "4.x",
     "postcss": "^8.4.31",
     "svelte": "^3.59.2",
-    "svelte-check": "^3.6.1",
+    "svelte-check": "^3.6.2",
     "svelte-meta-tags": "^2.8.0",
     "svelte-toasts": "1.x",
     "svelte-typewriter": "^3.1.6",
