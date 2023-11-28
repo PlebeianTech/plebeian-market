@@ -59,8 +59,13 @@
                                 ghostClass="bg-info"
                                 onEnd={(evt) => {handleMove(pageId, evt)}}
                             >
-                                {#each orderedSections as [section_id, section]}
-                                    <div class="grid grid-cols-4 gap-0 align-middle">
+                                <div class="grid grid-cols-4 gap-0 align-middle">
+                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0 font-bold">Section Title</div>
+                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0 font-bold">Section Type</div>
+                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0 font-bold"># elements</div>
+                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 font-bold">Actions</div>
+
+                                    {#each orderedSections as [section_id, section]}
                                         <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
                                             {section.title}
                                         </div>
@@ -86,8 +91,8 @@
                                                 <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, section_id)}><span class="w-5"><Trash /></span></button>
                                             </div>
                                         </div>
-                                    </div>
-                                {/each}
+                                    {/each}
+                                </div>
                             </SortableList>
                         {/key}
 
