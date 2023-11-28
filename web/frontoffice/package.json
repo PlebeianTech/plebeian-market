@@ -46,6 +46,7 @@
     "prosemirror-view": "^1.32.4",
     "svelte-lazy-loader": "^1.0.0",
     "svelte-markdown": "^0.2.3",
-    "svelte-qr": "^1.0.0"
+    "svelte-qr": "^1.0.0",
+    "tw-elements": "^1.0.0"
   }
 }
