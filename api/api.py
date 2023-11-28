@@ -12,7 +12,6 @@ import jwt
 import lnurl
 import pyqrcode
 import secrets
-from slugify import slugify
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 import time
@@ -531,7 +530,7 @@ def post_entity(user, cls, singular, has_item, campaign_key):
         db.session.add(item)
         db.session.commit()
         for cat in request.json.get('categories', []):
-            category_tag = slugify(cat)
+            category_tag = m.Category.tag_from_str(cat)
             category = m.Category.query.filter_by(tag=category_tag).first()
             if category is None:
                 category = m.Category(tag=category_tag)
@@ -647,7 +646,7 @@ def get_put_delete_entity(key, cls, singular, has_item):
             existing_cats = entity.item.category_tags
             seen_category_tags = set()
             for cat in request.json.get('categories', []):
-                category_tag = slugify(cat)
+                category_tag = m.Category.tag_from_str(cat)
                 seen_category_tags.add(category_tag)
                 if category_tag not in existing_cats:
                     category = m.Category.query.filter_by(tag=category_tag).first()

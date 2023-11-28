@@ -773,9 +773,15 @@ class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
 class Category(db.Model):
     __tablename__ = 'categories'
 
+    MAX_TAG_LENGTH = 210
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    tag = db.Column(db.String(210), nullable=False, index=True)
+    tag = db.Column(db.String(MAX_TAG_LENGTH), nullable=False, index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    @classmethod
+    def tag_from_str(cls, s):
+        return ' '.join([w for w in s.lower().split(' ') if w])[:cls.MAX_TAG_LENGTH]
 
 class Item(db.Model):
     __tablename__ = 'items'
