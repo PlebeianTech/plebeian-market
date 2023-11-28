@@ -681,6 +681,34 @@ class StateMixin:
         else:
             return self.state == state
 
+class NostrProductMixin:
+    def to_nostr_product(self, extra_media=None):
+        if extra_media is None:
+            extra_media = []
+        return {
+            'id': str(self.uuid),
+            'stall_id': self.item.seller.stall_id,
+            'name': self.item.title,
+            'description': self.item.description,
+            'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
+            'shipping': [
+                {
+                    'id': hashlib.sha256(self.item.seller.shipping_from.encode('utf-8')).hexdigest() if self.item.seller.shipping_from else "",
+                    'cost': self.item.extra_shipping_domestic_usd,
+                },
+                {
+                    'id': 'WORLD',
+                    'cost': self.item.extra_shipping_worldwide_usd,
+                },
+            ]
+        }
+
+    def to_nostr_tags(self):
+        tags = [['d', str(self.uuid)]]
+        for cat_tag in self.item.category_tags:
+            tags.append(['t', cat_tag])
+        return tags
+
 class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'campaigns'
 
@@ -842,7 +870,7 @@ class ItemCategory(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey(Category.id), nullable=False)
 
-class Auction(GeneratedKeyMixin, StateMixin, db.Model):
+class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
     __tablename__ = 'auctions'
 
     REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd']
@@ -935,35 +963,12 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     def nostr_event_kind(self):
         return 30020
 
-    def to_nostr(self, extra_media=None):
-        if extra_media is None:
-            extra_media = []
-        return {
-            'id': str(self.uuid),
-            'stall_id': self.item.seller.stall_id,
-            'name': self.item.title,
-            'description': self.item.description,
-            'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
-            'starting_bid': self.starting_bid,
-            'start_date': int(self.start_date.timestamp()) if self.start_date else None,
-            'duration': self.duration_hours * 60 * 60,
-            'shipping': [
-                {
-                    'id': hashlib.sha256(self.item.seller.shipping_from.encode('utf-8')).hexdigest() if self.item.seller.shipping_from else "",
-                    'cost': self.item.extra_shipping_domestic_usd,
-                },
-                {
-                    'id': 'WORLD',
-                    'cost': self.item.extra_shipping_worldwide_usd,
-                },
-            ]
-        }
-
-    def to_nostr_tags(self):
-        tags = [['d', str(self.uuid)]]
-        for cat_tag in self.item.category_tags:
-            tags.append(['t', cat_tag])
-        return tags
+    def to_nostr_product(self, extra_media=None):
+        nostr_product = super().to_nostr_product(extra_media)
+        nostr_product['starting_bid'] = self.starting_bid
+        nostr_product['start_date'] = int(self.start_date.timestamp()) if self.start_date else None
+        nostr_product['duration'] = self.duration_hours * 60 * 60
+        return nostr_product
 
     def to_dict(self, for_user=None):
         if not self.started:
@@ -1072,7 +1077,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
-class Listing(GeneratedKeyMixin, StateMixin, db.Model):
+class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
     __tablename__ = 'listings'
 
     REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd']
@@ -1125,35 +1130,12 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
     def nostr_event_kind(self):
         return 30018
 
-    def to_nostr(self, extra_media=None):
-        if extra_media is None:
-            extra_media = []
-        return {
-            'id': str(self.uuid),
-            'stall_id': self.item.seller.stall_id,
-            'name': self.item.title,
-            'description': self.item.description,
-            'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
-            'currency': 'USD',
-            'price': self.price_usd,
-            'quantity': self.available_quantity,
-            'shipping': [
-                {
-                    'id': hashlib.sha256(self.item.seller.shipping_from.encode('utf-8')).hexdigest() if self.item.seller.shipping_from else "",
-                    'cost': self.item.extra_shipping_domestic_usd,
-                },
-                {
-                    'id': 'WORLD',
-                    'cost': self.item.extra_shipping_worldwide_usd,
-                },
-            ]
-        }
-
-    def to_nostr_tags(self):
-        tags = [['d', str(self.uuid)]]
-        for cat_tag in self.item.category_tags:
-            tags.append(['t', cat_tag])
-        return tags
+    def to_nostr_product(self, extra_media=None):
+        nostr_product = super().to_nostr_product(extra_media)
+        nostr_product['currency'] = 'USD'
+        nostr_product['price'] = self.price_usd
+        nostr_product['quantity'] = self.available_quantity
+        return nostr_product
 
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
