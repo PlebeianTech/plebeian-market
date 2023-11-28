@@ -210,6 +210,8 @@ def settle_btc_payments():
                             if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                 json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
                                 continue
+                            if not birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!"):
+                                continue
                             db.session.commit()
                             break
                     elif not order.txid:
@@ -222,6 +224,8 @@ def settle_btc_payments():
                                 order.paid_at = datetime.utcnow()
                                 if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                     json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
+                                    continue
+                                if not birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!"):
                                     continue
                             else:
                                 message = f"Found transaction. Waiting for confirmation. TxID: {order.txid}"
@@ -410,12 +414,13 @@ def settle_lightning_payments():
                                                 ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
 
                     if incoming_payment_received and outgoing_payments_sent:
-                        app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
+                        app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS ORDER AS PAID *********")
 
                         if order.has_skin_in_the_game_badge():
                             award_badge_skin_in_the_game(order)
 
                         order.paid_at = datetime.utcnow()
+                        birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!")
                         db.session.commit()
                     else:
                         check_expire_order(order)
