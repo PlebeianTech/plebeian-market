@@ -1,10 +1,8 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
-    import { user } from "$lib/stores";
     import type { IEntity } from "$lib/types/base";
-    import { Category } from "$lib/types/item";
     import type { Listing } from "$lib/types/listing";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import CategoryEditor from "$lib/components/CategoryEditor.svelte";
     import ExtraShippingEditor from "$lib/components/ExtraShippingEditor.svelte";
     import MediaEditor from "$lib/components/MediaEditor.svelte";
 
@@ -12,20 +10,6 @@
     $: listing = <Listing>entity;
     export let onSave = () => {};
     export let onCancel = () => {};
-
-    function setTitle(user) {
-        if (user && user.nym && listing && listing.category === Category.Time) {
-            listing.title = `1 hour one-to-one video call with ${user.nym} AMA`;
-        }
-    }
-
-    onDestroy(user.subscribe(setTitle));
-
-    onMount(async () => {
-        if (listing.key === null || listing.key === "") {
-            setTitle($user);
-        }
-    });
 </script>
 
 <div class="w-full flex justify-center items-center">
@@ -44,7 +28,7 @@
                     <label class="label" for="description">
                         <span class="label-text">Description</span>
                     </label>
-                    <textarea bind:value={listing.description} rows="6" class="textarea textarea-bordered h-48" placeholder={listing.descriptionPlaceholder}></textarea>
+                    <textarea bind:value={listing.description} rows="6" class="textarea textarea-bordered h-48"></textarea>
                 </div>
                 <div class="flex mt-3">
                     <div class="form-control w-1/2 max-w-xs mr-1">
@@ -64,6 +48,7 @@
                         <input bind:value={listing.available_quantity} type="number" name="available-quantity" class="input input-bordered w-full max-w-xs" />
                     </div>
                 </div>
+                <CategoryEditor item={listing} />
                 <ExtraShippingEditor item={listing} />
                 <MediaEditor item={listing} />
             </form>

@@ -653,7 +653,7 @@ class Birdwatcher:
     def publish_product(self, entity, extra_media=None):
         product_json = entity.to_nostr(extra_media)
         try:
-            event = Event(kind=entity.nostr_event_kind, content=json.dumps(product_json), tags=[['d', product_json['id']]])
+            event = Event(kind=entity.nostr_event_kind, content=json.dumps(product_json), tags=entity.to_nostr_tags())
             entity.item.seller.parse_merchant_private_key().sign_event(event)
             if self.post_event(event):
                 return event.id

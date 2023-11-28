@@ -12,6 +12,7 @@ import jwt
 import lnurl
 import pyqrcode
 import secrets
+from slugify import slugify
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 import time
@@ -341,7 +342,7 @@ def migrate_user(user):
     old_user = m.User.query.filter_by(lnauth_key=user.new_lnauth_key).first()
     for old_item in old_user.items:
         item = m.Item(seller=user,
-                      title=old_item.title, description=old_item.description, category=old_item.category,
+                      title=old_item.title, description=old_item.description,
                       extra_shipping_domestic_usd=old_item.extra_shipping_domestic_usd, extra_shipping_worldwide_usd=old_item.extra_shipping_worldwide_usd,
                       is_hidden=old_item.is_hidden)
         db.session.add(item)
@@ -529,6 +530,16 @@ def post_entity(user, cls, singular, has_item, campaign_key):
         item = m.Item(seller=user, **validated_item)
         db.session.add(item)
         db.session.commit()
+        for cat in request.json.get('categories', []):
+            category_tag = slugify(cat)
+            category = m.Category.query.filter_by(tag=category_tag).first()
+            if category is None:
+                category = m.Category(tag=category_tag)
+                db.session.add(category)
+                db.session.commit()
+            item_category = m.ItemCategory(item_id=item.id, category_id=category.id)
+            db.session.add(item_category)
+            db.session.commit()
 
     entity = cls(**validated_entity)
     entity.generate_key()
@@ -632,6 +643,26 @@ def get_put_delete_entity(key, cls, singular, has_item):
                 setattr(entity.item, k, v)
             for k, v in validated.items():
                 setattr(entity, k, v)
+
+            existing_cats = entity.item.category_tags
+            seen_category_tags = set()
+            for cat in request.json.get('categories', []):
+                category_tag = slugify(cat)
+                seen_category_tags.add(category_tag)
+                if category_tag not in existing_cats:
+                    category = m.Category.query.filter_by(tag=category_tag).first()
+                    if category is None:
+                        category = m.Category(tag=category_tag)
+                        db.session.add(category)
+                        db.session.commit()
+                    item_category = m.ItemCategory(item_id=entity.item.id, category_id=category.id)
+                    db.session.add(item_category)
+                    db.session.commit()
+            for cat_tag in existing_cats:
+                if cat_tag not in seen_category_tags:
+                    category = m.Category.query.filter_by(tag=cat_tag).first()
+                    item_category = m.ItemCategory.query.filter_by(item_id=entity.item.id, category_id=category.id).first()
+                    db.session.delete(item_category)
 
             if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)) and entity.started:
                 user.ensure_merchant_key()

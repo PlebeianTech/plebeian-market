@@ -3,6 +3,7 @@
     import type { IEntity } from "$lib/types/base";
     import type { Auction } from "$lib/types/auction";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
+    import CategoryEditor from "$lib/components/CategoryEditor.svelte";
     import ExtraShippingEditor from "$lib/components/ExtraShippingEditor.svelte";
     import MediaEditor from "$lib/components/MediaEditor.svelte";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
@@ -57,7 +58,7 @@
                     <label class="label" for="description">
                         <span class="label-text">Description</span>
                     </label>
-                    <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48" placeholder={auction.descriptionPlaceholder}></textarea>
+                    <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48"></textarea>
                 </div>
                 <div class="flex mt-3 gap-3">
                     <div class="form-control w-1/3 max-w-xs mr-1">
@@ -118,6 +119,7 @@
                         </div>
                     </div>
                 {/if} <!-- /duration -->
+                <CategoryEditor item={auction} />
                 <ExtraShippingEditor item={auction} />
                 <MediaEditor item={auction} />
             </form>

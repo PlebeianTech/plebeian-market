@@ -10,7 +10,7 @@ export interface Bid {
 }
 
 export class Auction implements IEntity, Item {
-    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd', 'starting_bid', 'reserve_bid', 'duration_hours', 'skin_in_the_game_required'];
+    static SAVED_FIELDS = ['title', 'description', 'categories', 'shipping_from', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd', 'starting_bid', 'reserve_bid', 'duration_hours', 'skin_in_the_game_required'];
 
     endpoint = "auctions";
     loader = {endpoint: this.endpoint, responseField: 'auction', fromJson};
@@ -19,8 +19,7 @@ export class Auction implements IEntity, Item {
     key: string = "";
     title: string = "";
     description: string = "";
-    descriptionPlaceholder: string = "";
-    category: string | null = null;
+    categories: string[] = [];
     starting_bid: number = 0;
     reserve_bid: number = 0;
     reserve_bid_reached: boolean = false;

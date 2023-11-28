@@ -770,8 +770,12 @@ class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
             validated['wallet_index'] = 0
         return validated
 
-class Category(Enum):
-    Time = 'TIME'
+class Category(db.Model):
+    __tablename__ = 'categories'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    tag = db.Column(db.String(210), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 class Item(db.Model):
     __tablename__ = 'items'
@@ -782,7 +786,6 @@ class Item(db.Model):
 
     title = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
-    category = db.Column(db.String(21), nullable=True)
 
     extra_shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     extra_shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
@@ -794,10 +797,14 @@ class Item(db.Model):
     auctions = db.relationship('Auction', backref='item')
     listings = db.relationship('Listing', backref='item')
 
+    @property
+    def category_tags(self):
+        return [c.tag for c in Category.query.join(ItemCategory).filter_by(item_id=self.id).all()]
+
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description', 'category']:
+        for k in ['title', 'description']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -820,6 +827,14 @@ class Item(db.Model):
             except (ValueError, TypeError):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
+
+class ItemCategory(db.Model):
+    __tablename__ = 'item_categories'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey(Category.id), nullable=False)
 
 class Auction(GeneratedKeyMixin, StateMixin, db.Model):
     __tablename__ = 'auctions'
@@ -938,6 +953,12 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             ]
         }
 
+    def to_nostr_tags(self):
+        tags = [['d', str(self.uuid)]]
+        for cat_tag in self.item.category_tags:
+            tags.append(['t', cat_tag])
+        return tags
+
     def to_dict(self, for_user=None):
         if not self.started:
             ends_in_seconds = None
@@ -952,7 +973,7 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
-            'category': self.item.category,
+            'categories': self.item.category_tags,
             'duration_hours': self.duration_hours,
             'skin_in_the_game_required': self.skin_in_the_game_required,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
@@ -971,12 +992,8 @@ class Auction(GeneratedKeyMixin, StateMixin, db.Model):
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.item.seller_id if for_user else False,
+            'media': [media.to_dict() for media in self.item.media],
         }
-
-        if self.item.category == Category.Time.value:
-            auction['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.profile_image_url}]
-        else:
-            auction['media'] = [media.to_dict() for media in self.item.media]
 
         if for_user == self.owner_id:
             auction['reserve_bid'] = self.reserve_bid
@@ -1126,6 +1143,12 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             ]
         }
 
+    def to_nostr_tags(self):
+        tags = [['d', str(self.uuid)]]
+        for cat_tag in self.item.category_tags:
+            tags.append(['t', cat_tag])
+        return tags
+
     def to_dict(self, for_user=None):
         assert isinstance(for_user, int | None)
 
@@ -1136,7 +1159,7 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
-            'category': self.item.category,
+            'categories': self.item.category_tags,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
             'ended': self.ended,
@@ -1148,11 +1171,8 @@ class Listing(GeneratedKeyMixin, StateMixin, db.Model):
             'campaign_key': self.campaign.key if self.campaign else None,
             'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.item.seller_id,
+            'media': [media.to_dict() for media in self.item.media],
         }
-        if self.item.category == Category.Time.value:
-            listing['media'] = [{'index': 0, 'hash': 'TODO', 'url': self.item.seller.profile_image_url}]
-        else:
-            listing['media'] = [media.to_dict() for media in self.item.media]
 
         return listing
 
