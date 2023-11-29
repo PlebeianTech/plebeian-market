@@ -5,6 +5,7 @@
     import SectionsStalls from "$lib/components/pagebuilder/SectionsStalls.svelte";
     import SectionsProducts from "$lib/components/pagebuilder/SectionsProducts.svelte";
     import SectionsText from "$lib/components/pagebuilder/SectionsText.svelte";
+    import SectionsProductsSlider from "$lib/components/pagebuilder/SectionsProductsSlider.svelte";
 
     export let pageId;
 
@@ -22,12 +23,12 @@
     }
 </script>
 
-{#if content && content.sections}
+{#if content && Object.keys(content.sections).length > 0}
     <div class="pt-12">
         {#each orderedSections as [sectionId, section]}
             {#if section?.params?.sectionType && (section?.values || section.params.sectionType === 'text')}
                 <div class="relative overflow-x-hidden">
-                    <h2 class="text-2xl font-bold text-center mb-5">{section.title}</h2>
+                    <h2 class="text-2xl font-bold text-center mb-2 md:mb-5">{section.title}</h2>
 
                     {#if section?.params?.sectionType === 'text'}
                         <SectionsText {pageId} {sectionId} />
@@ -35,12 +36,14 @@
                         <SectionsStalls {pageId} {sectionId} />
                     {:else if section?.params?.sectionType === 'products'}
                         <SectionsProducts {pageId} {sectionId} />
+                    {:else if section?.params?.sectionType === 'products_with_slider'}
+                        <SectionsProductsSlider {pageId} {sectionId} />
                     {:else if section?.params?.sectionType === 'stall_products'}
                         ----- Stall Products
                     {/if}
                 </div>
 
-                <div class="divider w-[80%] mx-auto my-10"></div>
+                <div class="divider w-[80%] mx-auto my-8 md:my-10"></div>
             {/if}
         {/each}
     </div>

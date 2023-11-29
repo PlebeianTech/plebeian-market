@@ -17,19 +17,25 @@ export const pageBuilderWidgetType = {
     },
     products: {
         'title': 'Show selected Products',
-        'description': 'Choose this widget type to be able to select which products you want shown on this section.',
+        'description': 'Choose this widget to be able to select which products you want shown on this section.',
+        'items': ['products'],
+        'max_num_available': false
+    },
+    products_with_slider: {
+        'title': 'Show selected Products in a Slider with text',
+        'description': 'Choose this widget to be able to select which products you want shown on a big slider with a description.',
         'items': ['products'],
         'max_num_available': false
     },
     stalls: {
         'title': 'Show selected Stalls',
-        'description': 'Choose this widget type to be able to select which stalls you want shown on this section.',
+        'description': 'Choose this widget to be able to select which stalls you want shown on this section.',
         'items': ['stalls'],
         'max_num_available': false
     },
     stall_products: {
         'title': 'Show all Products from several stalls',
-        'description': 'Choose this widget type to be able to select one or several stalls to have all their products automatically shown in the section.',
+        'description': 'Choose this widget to be able to select one or several stalls to have all their products automatically shown in the section.',
         'items': ['stalls'],
         'max_num_available': true
     },
@@ -225,7 +231,7 @@ export function saveContentToNostr() {
     let globalConfig = get(NostrGlobalConfig);
     delete globalConfig.homepage_include_stalls;
 
-    console.log('Saving this to Nostr:', globalConfig);
+    //console.log('Saving this to Nostr:', globalConfig);
 
     publishConfiguration(globalConfig, getConfigurationKey('site_specific_config'),
         () => {

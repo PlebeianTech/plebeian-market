@@ -26,7 +26,7 @@
     });
 </script>
 
-<main class="container mx-auto py-4 px-32 pt-0">
+<main class="mx-auto px-8 md:container">
     {#if !markdownText}
         <div class="p-12 flex flex-wrap items-center justify-center">
             <span class="loading loading-bars w-24"></span>

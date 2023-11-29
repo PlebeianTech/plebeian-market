@@ -56,7 +56,7 @@
     {:else}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-8 z-[300] mt-2 mb-2">
             {#each Object.entries(products) as [productId, product]}
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && (showExpiredAuctions || !showExpiredAuctions && product.ended === false) )}
+                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
                     <ProductCard {product} />
                 {/if}
             {/each}
