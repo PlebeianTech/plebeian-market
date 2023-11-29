@@ -87,8 +87,8 @@ class WalletMixin:
                 app.logger.warning("Skipping address with existing txs.")
                 continue
 
-            if Sale.query.filter_by(address=address).first():
-                app.logger.warning("Skipping address with existing sale.")
+            if Order.query.filter_by(on_chain_address=address).first():
+                app.logger.warning("Skipping address with existing order.")
                 continue
 
             return address
@@ -535,8 +535,6 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
 
     bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.amount)')
 
-    sales = db.relationship('Sale', backref='auction', order_by="Sale.requested_at")
-
     def get_top_bid(self, below=None):
         return max((bid for bid in self.bids if bid.settled_at and (below is None or bid.amount < below)), default=None, key=lambda bid: bid.amount)
 
@@ -716,8 +714,6 @@ class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
     twitter_id = db.Column(db.String(32), nullable=True)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    sales = db.relationship('Sale', backref='listing', order_by="Sale.requested_at")
 
     def sort_key(self):
         return self.start_date
@@ -987,29 +983,18 @@ class SaleState(Enum):
 class Sale(db.Model):
     """
         Sales are old-style (pre-NIP-15) orders, used to purchase items directly from our API.
+        We keep this model around so we don't lose the underlying table, but otherwise it should be not used anymore.
     """
 
     __tablename__ = 'sales'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
-    item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=True)
-    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=True)
-    listing_id = db.Column(db.Integer, db.ForeignKey(Listing.id), nullable=True)
+    item_id = db.Column(db.Integer, nullable=True)
+    auction_id = db.Column(db.Integer, nullable=True)
+    listing_id = db.Column(db.Integer, nullable=True)
 
     desired_badge = db.Column(db.Integer, nullable=True)
-
-    @property
-    def is_auction_sale(self):
-        return self.auction_id is not None
-
-    @property
-    def is_listing_sale(self):
-        return self.listing_id is not None
-
-    @property
-    def is_badge_sale(self):
-        return self.desired_badge is not None
 
     # this is used when donating money to a campaign without buying anything (for the purpose of getting a campaign badge)
     campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
@@ -1039,88 +1024,6 @@ class Sale(db.Model):
     contribution_amount = db.Column(db.Integer, nullable=False)
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # this is NULL initially, and gets set after the contribution has been received
-
-    @property
-    def timeout_minutes(self):
-        if self.txid:
-            # if we already have a TX (without confirmations though),
-            # we can give it more time to confirm...
-
-            match app.config['ENV']:
-                case 'dev':
-                    return 10
-                case 'staging':
-                    return 60 # need more time to confirm - they are real TXes in staging!
-                case _:
-                    return 48 * 60
-
-        if app.config['ENV'] in ['dev', 'staging']:
-            return 10 # 10 mins should be enough to send a 0-conf
-        else: # prod
-            if self.is_listing_sale or self.is_badge_sale:
-                return 30
-            else: # auction - you might not be around when you win it!
-                return 24 * 60 # one day for a 0-conf to appear in the mempool
-
-    def to_dict(self):
-        sale = {
-            'item_title': self.item.title if self.item else None,
-            'desired_badge': self.desired_badge,
-            'state': SaleState(self.state).name,
-            'price_usd': self.price_usd,
-            'price': self.price,
-            'quantity': self.quantity,
-            'amount': self.amount,
-            'shipping_domestic': self.shipping_domestic,
-            'shipping_worldwide': self.shipping_worldwide,
-            'seller_nym': self.item.seller.nym if self.item else None,
-            'seller_display_name': self.item.seller.display_name if self.item else None,
-            'seller_email': self.item.seller.email if self.item else None,
-            'seller_email_verified': self.item.seller.email_verified if self.item else False,
-            'seller_telegram_username': self.item.seller.telegram_username if self.item else None,
-            'seller_telegram_username_verified': self.item.seller.telegram_username_verified if self.item else False,
-            'seller_twitter_username': self.item.seller.twitter_username if self.item else None,
-            'seller_twitter_username_verified': self.item.seller.twitter_username_verified if self.item else False,
-            'seller_nostr_public_key': self.item.seller.nostr_public_key if self.item else None,
-            'buyer_nym': self.buyer.nym,
-            'buyer_display_name': self.buyer.display_name,
-            'buyer_email': self.buyer.email,
-            'buyer_email_verified': self.buyer.email_verified,
-            'buyer_telegram_username': self.buyer.telegram_username,
-            'buyer_telegram_username_verified': self.buyer.telegram_username_verified,
-            'buyer_twitter_username': self.buyer.twitter_username,
-            'buyer_twitter_username_verified': self.buyer.twitter_username_verified,
-            'buyer_nostr_public_key': self.buyer.nostr_public_key,
-            'contribution_amount': self.contribution_amount,
-            'contribution_payment_request': self.contribution_payment_request,
-            'contribution_settled_at': (self.contribution_settled_at.isoformat() + "Z" if self.contribution_settled_at else None),
-            'address': self.address,
-            'requested_at': (self.requested_at.isoformat() + "Z"),
-            'settled_at': (self.settled_at.isoformat() + "Z" if self.settled_at else None),
-            'txid': self.txid,
-            'tx_value': self.tx_value,
-            'expired_at': (self.expired_at.isoformat() + "Z" if self.expired_at else None),
-        }
-
-        if self.auction:
-            sale['item_url'] = f"/auctions/{self.auction.key}"
-        elif self.listing:
-            sale['item_url'] = f"/listings/{self.listing.key}"
-        else:
-            # probably a badge sale
-            sale['item_url'] = None
-
-        if self.state == SaleState.REQUESTED.value:
-            contribution_payment_qr = BytesIO()
-            pyqrcode.create(self.contribution_payment_request).svg(contribution_payment_qr, omithw=True, scale=4)
-            sale['contribution_payment_qr'] = contribution_payment_qr.getvalue().decode('utf-8')
-        elif self.state == SaleState.CONTRIBUTION_SETTLED.value:
-            for which, shipping in [("", 0), ("_domestic", 1 / app.config['SATS_IN_BTC'] * self.shipping_domestic), ("_worldwide", 1 / app.config['SATS_IN_BTC'] * self.shipping_worldwide)]:
-                qr = BytesIO()
-                pyqrcode.create(f"bitcoin:{self.address}?amount={1 / app.config['SATS_IN_BTC'] * self.amount + shipping :.9f}").svg(qr, omithw=True, scale=4)
-                sale[f'qr{which}'] = qr.getvalue().decode('utf-8')
-
-        return sale
 
 class LightningInvoice(db.Model):
     __tablename__ = 'lightning_invoices'

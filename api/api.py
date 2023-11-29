@@ -647,9 +647,6 @@ def get_put_delete_entity(key, cls, singular):
 
             return jsonify({'nostr_event_id': entity.nostr_event_id})
         elif request.method == 'DELETE':
-            if isinstance(entity, m.Auction | m.Listing):
-                for sale in entity.sales:
-                    sale.auction = sale.listing = None
             if isinstance(entity, m.Listing):
                 for order_item in m.OrderItem.query.filter_by(listing_id=entity.id):
                     order_item.listing_id = None
