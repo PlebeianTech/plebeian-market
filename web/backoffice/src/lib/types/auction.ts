@@ -40,7 +40,6 @@ export class Auction implements IEntity, Item {
     media: Media[] = [];
     added_media: AddedMedia[] = [];
     is_mine: boolean = true;
-    following: boolean = false;
     has_winner?: boolean = false;
     winner? : IAccount;
 

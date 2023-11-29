@@ -535,8 +535,6 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
 
     bids = db.relationship('Bid', backref='auction', foreign_keys='Bid.auction_id', order_by='desc(Bid.amount)')
 
-    user_auctions = db.relationship('UserAuction', cascade="all,delete", backref='auction')
-
     sales = db.relationship('Sale', backref='auction', order_by="Sale.requested_at")
 
     def get_top_bid(self, below=None):
@@ -1123,14 +1121,6 @@ class Sale(db.Model):
                 sale[f'qr{which}'] = qr.getvalue().decode('utf-8')
 
         return sale
-
-class UserAuction(db.Model):
-    __tablename__ = 'user_auctions'
-
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False, primary_key=True)
-    auction_id = db.Column(db.Integer, db.ForeignKey(Auction.id), nullable=False, primary_key=True)
-
-    following = db.Column(db.Boolean, nullable=False)
 
 class LightningInvoice(db.Model):
     __tablename__ = 'lightning_invoices'
