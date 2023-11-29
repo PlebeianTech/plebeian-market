@@ -22,8 +22,6 @@ export class Listing implements IEntity, Item {
     ended: boolean = false;
     media: Media[] = [];
     added_media: AddedMedia[] = [];
-    campaign_key: string | null = null;
-    campaign_name: string | null = null;
     is_mine: boolean = true;
 
     public validate() {

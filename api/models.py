@@ -238,7 +238,6 @@ class User(WalletMixin, db.Model):
 
     contribution_percent = db.Column(db.Float, nullable=True)
 
-    campaigns = db.relationship('Campaign', backref='owner', order_by="desc(Campaign.created_at)")
     items = db.relationship('Item', backref='seller', order_by="desc(Item.created_at)", lazy='dynamic')
     bids = db.relationship('Bid', backref='buyer')
 
@@ -295,9 +294,8 @@ class User(WalletMixin, db.Model):
 
         for item in self.items.all():
             d['has_items'] = True
+            d['has_own_items'] = True
             for entity in chain(item.auctions, item.listings):
-                if not entity.campaign_id:
-                    d['has_own_items'] = True
                 if entity.state in ('active', 'past'):
                     d[f'has_{entity.state}_{entity.__tablename__}'] = True
             if d['has_own_items'] and d['has_active_auctions'] and d['has_past_auctions'] and d['has_active_listings'] and d['has_past_listings']:
@@ -388,93 +386,21 @@ class NostrProductMixin:
         return tags
 
 class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
+    """
+    Campaigns used to exist in the old (pre-Nostr) version of Plebeian Market.
+    We didn't port them to Nostr, but keeping the model definition here so we don't lose the table from the DB!
+    """
     __tablename__ = 'campaigns'
 
-    REQUIRED_FIELDS = ['wallet', 'name', 'description']
-
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    @property
-    def nostr_event_id(self):
-        return None
-
     owner_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-
     key = db.Column(db.String(24), unique=True, nullable=False, index=True)
-
-    def get_new_key(self, _, tries):
-        match tries:
-            case 0:
-                return slugify(self.name)
-            case tries if tries <= 5:
-                return f"{slugify(self.name)}-{tries}"
-            case _:
-                return f"{slugify(self.name)}-{hash_create(1)}"
-
     banner_url = db.Column(db.String(256), nullable=True)
     name = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
-
     wallet = db.Column(db.String(128), nullable=False)
     wallet_index = db.Column(db.Integer, nullable=False, default=0)
-
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    auctions = db.relationship('Auction', backref='campaign')
-    listings = db.relationship('Listing', backref='campaign')
-
-    def sort_key(self):
-        return self.created_at
-
-    @classmethod
-    def query_all_active(cls):
-        return cls.query
-
-    def to_dict(self, for_user=None):
-        campaign = {
-            'key': self.key,
-            'banner_url': self.banner_url,
-            'name': self.name,
-            'description': self.description,
-            'wallet': self.wallet,
-            'wallet_index': self.wallet_index,
-            'created_at': self.created_at.isoformat() + "Z",
-            'is_mine': for_user == self.owner_id,
-            'owner_nym': self.owner.nym,
-            'owner_display_name': self.owner.display_name,
-            'owner_email': self.owner.email,
-            'owner_email_verified': self.owner.email_verified,
-            'owner_telegram_username': self.owner.telegram_username,
-            'owner_telegram_username_verified': self.owner.telegram_username_verified,
-            'owner_twitter_username': self.owner.twitter_username,
-            'owner_twitter_username_verified': self.owner.twitter_username_verified,
-        }
-
-        return campaign
-
-    @classmethod
-    def validate_dict(cls, d, for_method=None):
-        validated = {}
-        for k in ['name', 'description']:
-            if k not in d:
-                continue
-            length = len(d[k])
-            max_length = getattr(Campaign, k).property.columns[0].type.length
-            if length > max_length:
-                raise ValidationError(f"Please keep the {k} below {max_length} characters. You are currently at {length}.")
-            validated[k] = d[k]
-        if for_method == 'POST' and 'wallet' in d: # xpub can only be set once, on POST
-            try:
-                k = parse_xpub(d['wallet'])
-            except UnknownKeyTypeError as e:
-                raise ValidationError("Invalid XPUB.")
-            try:
-                _ = k.subkey(0).subkey(0).address()
-            except AttributeError:
-                raise ValidationError("Invalid XPUB.")
-            validated['wallet'] = d['wallet']
-            validated['wallet_index'] = 0
-        return validated
 
 class Category(db.Model):
     __tablename__ = 'categories'
@@ -678,8 +604,6 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
             'has_winner': self.has_winner,
             'bids': [bid.to_dict() for bid in self.bids if bid.settled_at],
             'created_at': self.created_at.isoformat() + "Z",
-            'campaign_key': self.campaign.key if self.campaign else None,
-            'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.item.seller_id if for_user else False,
             'media': [media.to_dict() for media in self.item.media],
         }
@@ -834,8 +758,6 @@ class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
             'extra_shipping_domestic_usd': self.item.extra_shipping_domestic_usd,
             'extra_shipping_worldwide_usd': self.item.extra_shipping_worldwide_usd,
             'created_at': self.created_at.isoformat() + "Z",
-            'campaign_key': self.campaign.key if self.campaign else None,
-            'campaign_name': self.campaign.name if self.campaign else None,
             'is_mine': for_user == self.item.seller_id,
             'media': [media.to_dict() for media in self.item.media],
         }
@@ -1146,8 +1068,6 @@ class Sale(db.Model):
         sale = {
             'item_title': self.item.title if self.item else None,
             'desired_badge': self.desired_badge,
-            'campaign_key': self.campaign.key if self.campaign else None,
-            'campaign_name': self.campaign.name if self.campaign else None,
             'state': SaleState(self.state).name,
             'price_usd': self.price_usd,
             'price': self.price,

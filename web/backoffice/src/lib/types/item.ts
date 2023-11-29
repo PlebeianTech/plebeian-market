@@ -32,7 +32,5 @@ export interface Item {
     extra_shipping_worldwide_usd: number;
     media: Media[];
     added_media: AddedMedia[];
-    campaign_key: string | null;
-    campaign_name: string | null;
     is_mine: boolean;
 }
