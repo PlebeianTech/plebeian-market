@@ -70,21 +70,14 @@
         <div class="absolute inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
             {#each Object.entries(products) as [_, product], i}
                 {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
-                    {#if i === 0}
-                        <button
-                                data-te-target="#carouselDarkVariant"
-                                data-te-slide-to="{i}"
-                                data-te-carousel-active
-                                class="mx-[3px] box-content h-[3px] w-[30px] flex-initial cursor-pointer border-0 border-y-[10px] border-solid border-transparent bg-black bg-clip-padding p-0 -indent-[999px] opacity-50 transition-opacity duration-[600ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] motion-reduce:transition-none"
-                                aria-current="true"
-                                aria-label="Slide 1"></button>
-                    {:else}
-                        <button
-                                data-te-target="#carouselDarkVariant"
-                                class="mx-[3px] box-content h-[3px] w-[30px] flex-initial cursor-pointer border-0 border-y-[10px] border-solid border-transparent bg-black bg-clip-padding p-0 -indent-[999px] opacity-50 transition-opacity duration-[600ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] motion-reduce:transition-none"
-                                data-te-slide-to="{i}"
-                                aria-label="Slide {i+1}"></button>
-                    {/if}
+                    <button data-te-target="#carouselDarkVariant"
+                            data-te-slide-to="{i}"
+                            data-te-carousel-active={i === 0 ? true : null}
+                            class="mx-[3px] box-content h-[3px] w-[30px] flex-initial cursor-pointer border-0 border-y-[10px]
+                                border-solid border-transparent bg-black bg-clip-padding p-0 -indent-[999px] opacity-50
+                                transition-opacity duration-[600ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] motion-reduce:transition-none"
+                            aria-current="true"
+                            aria-label="Slide 1"></button>
                 {/if}
             {/each}
         </div>
