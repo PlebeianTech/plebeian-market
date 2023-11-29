@@ -427,8 +427,6 @@ class Item(db.Model):
 
     media = db.relationship('Media', backref='item', foreign_keys='Media.item_id', order_by="Media.index")
 
-    is_hidden = db.Column(db.Boolean, nullable=False, default=False)
-
     auctions = db.relationship('Auction', backref='item')
     listings = db.relationship('Listing', backref='item')
 
@@ -452,13 +450,6 @@ class Item(db.Model):
                 continue
             try:
                 validated[k] = float(d[k])
-            except (ValueError, TypeError):
-                raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
-        for k in ['is_hidden']:
-            if k not in d:
-                continue
-            try:
-                validated[k] = bool(int(d[k]))
             except (ValueError, TypeError):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
@@ -540,10 +531,6 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
 
     def sort_key(self):
         return self.start_date
-
-    def featured_sort_key(self):
-        # show new auctions at the top
-        return -self.start_date.timestamp()
 
     def get_not_editable_reason(self):
         if len(self.bids) > 0:
@@ -714,10 +701,6 @@ class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
 
     def sort_key(self):
         return self.start_date
-
-    def featured_sort_key(self):
-        # reverse sort - newer listings show at the top
-        return -self.start_date.timestamp()
 
     @property
     def nostr_event_kind(self):

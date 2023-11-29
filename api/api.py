@@ -342,8 +342,7 @@ def migrate_user(user):
     for old_item in old_user.items:
         item = m.Item(seller=user,
                       title=old_item.title, description=old_item.description,
-                      extra_shipping_domestic_usd=old_item.extra_shipping_domestic_usd, extra_shipping_worldwide_usd=old_item.extra_shipping_worldwide_usd,
-                      is_hidden=old_item.is_hidden)
+                      extra_shipping_domestic_usd=old_item.extra_shipping_domestic_usd, extra_shipping_worldwide_usd=old_item.extra_shipping_worldwide_usd)
         db.session.add(item)
         db.session.commit()
         for old_media in old_item.media:
@@ -535,29 +534,18 @@ def post_entity(user, cls, singular):
     return jsonify({'key': entity.key, singular: entity.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/auctions/active',
-    defaults={'cls': m.Auction, 'plural': 'auctions', 'featured': False},
+    defaults={'cls': m.Auction, 'plural': 'auctions'},
     methods=['GET'])
 @api_blueprint.route('/api/listings/active',
-    defaults={'cls': m.Listing, 'plural': 'listings', 'featured': False},
+    defaults={'cls': m.Listing, 'plural': 'listings'},
     methods=['GET'])
-@api_blueprint.route('/api/auctions/featured',
-    defaults={'cls': m.Auction, 'plural': 'auctions', 'featured': True},
-    methods=['GET'])
-@api_blueprint.route('/api/listings/featured',
-    defaults={'cls': m.Listing, 'plural': 'listings', 'featured': True},
-    methods=['GET'])
-def get_entities(cls, plural, featured):
+def get_entities(cls, plural):
     """
     Active auctions are all auctions currently running.
     Active listings are all listings that have been published and are still available for sale.
-    Featured auctions/listings are subsets of the active auctions/listings:
-        currently they simply exclude items that the moderators have marked as hidden,
-        but we will eventually have a better algorithm to pick "featured" items.
     """
     entities = cls.query_all_active()
-    if featured:
-        entities = entities.filter((cls.item_id == m.Item.id) & ~m.Item.is_hidden)
-    sorted_entities = sorted(entities.all(), key=(cls.featured_sort_key if featured else cls.sort_key))
+    sorted_entities = sorted(entities.all(), key=cls.sort_key)
     return jsonify({plural: [e.to_dict() for e in sorted_entities]})
 
 @api_blueprint.route('/api/auctions/inactive',
