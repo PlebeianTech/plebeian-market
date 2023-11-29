@@ -4,13 +4,10 @@ from datetime import datetime, timedelta
 import dateutil.parser
 from enum import Enum
 import hashlib
-from io import BytesIO
 from itertools import chain
 import jwt
 import math
 from nostr.key import PrivateKey
-import pyqrcode
-from slugify import slugify
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.sql.functions import func
 import uuid
