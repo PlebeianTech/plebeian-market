@@ -465,7 +465,7 @@ def put_order(user, uuid):
 
     if request.json.get('paid'):
         message = "The seller accepted your payment!"
-        order.paid_at = datetime.utcnow()
+        order.set_paid()
 
     if request.json.get('shipped'):
         message = "Your order was shipped!"

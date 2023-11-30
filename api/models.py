@@ -13,7 +13,7 @@ from sqlalchemy.sql.functions import func
 import uuid
 
 from extensions import db
-from main import app
+from main import app, get_birdwatcher
 from utils import hash_create, store_image, parse_xpub, UnknownKeyTypeError
 
 class ValidationError(Exception):
@@ -422,6 +422,8 @@ class Item(db.Model):
     title = db.Column(db.String(210), nullable=False)
     description = db.Column(db.String(21000), nullable=False)
 
+    digital_item_message = db.Column(db.String(2100), nullable=True)
+
     extra_shipping_domestic_usd = db.Column(db.Float(), nullable=False, default=0)
     extra_shipping_worldwide_usd = db.Column(db.Float(), nullable=False, default=0)
 
@@ -437,7 +439,7 @@ class Item(db.Model):
     @classmethod
     def validate_dict(cls, d):
         validated = {}
-        for k in ['title', 'description']:
+        for k in ['title', 'description', 'digital_item_message']:
             if k not in d:
                 continue
             length = len(d[k])
@@ -723,6 +725,7 @@ class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
             'key': self.key,
             'title': self.item.title,
             'description': self.item.description,
+            'digital_item_message': self.item.digital_item_message,
             'categories': self.item.category_tags,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
@@ -887,6 +890,13 @@ class Order(db.Model):
     seller = db.relationship('User')
     lightning_invoices = db.relationship('LightningInvoice', back_populates="order",  order_by="desc(LightningInvoice.created_at)")
     lightning_payment_logs = db.relationship('LightningPaymentLog', back_populates="order", order_by="desc(LightningPaymentLog.created_at)")
+
+    def set_paid(self):
+        birdwatcher = get_birdwatcher()
+        self.paid_at = datetime.utcnow()
+        for order_item in self.order_items:
+            if order_item.item.digital_item_message:
+                birdwatcher.send_dm(self.seller.parse_merchant_private_key(), self.buyer_public_key, order_item.item.digital_item_message)
 
     @property
     def timeout_minutes(self):

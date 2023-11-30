@@ -206,7 +206,7 @@ def settle_btc_payments():
                                 order.txid = tx['txid']
                             app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {order.id=}.")
                             order.tx_confirmed = True
-                            order.paid_at = datetime.utcnow()
+                            order.set_paid()
                             if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                 json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
                                 continue
@@ -221,7 +221,7 @@ def settle_btc_payments():
                             order.tx_value = tx['value']
                             if tx['confirmed']:
                                 order.tx_confirmed = True
-                                order.paid_at = datetime.utcnow()
+                                order.set_paid()
                                 if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                     json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
                                     continue
@@ -419,7 +419,8 @@ def settle_lightning_payments():
                         if order.has_skin_in_the_game_badge():
                             award_badge_skin_in_the_game(order)
 
-                        order.paid_at = datetime.utcnow()
+                        order.set_paid()
+
                         birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!")
                         db.session.commit()
                     else:
