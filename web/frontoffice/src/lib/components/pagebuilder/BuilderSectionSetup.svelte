@@ -54,23 +54,26 @@
             }
         }
 
-        if (sectionType === 'products_with_slider' && product) {
-            let config = await getConfigurationFromFile();
+        if (sectionType === 'products_with_slider') {
+            if (product) {
+                let config = await getConfigurationFromFile();
+                if (config && config.admin_pubkeys.length > 0) {
+                    lastProductPassed = product;
 
-            if (config && config.admin_pubkeys.length > 0) {
-                lastProductPassed = product;
+                    let receivedAt = 0;
 
-                let receivedAt = 0;
+                    initialMarkdownText = (product.name ?? '') + ('\n\n' + product.description ?? '');
 
-                initialMarkdownText = (product.name ?? '') + ('\n\n' + product.description ?? '');
-
-                subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + product.id)],
-                    (markdownTextForSection, rcAt) => {
-                        if (rcAt > receivedAt) {
-                            receivedAt = rcAt;
-                            initialMarkdownText = markdownTextForSection;
-                        }
-                    });
+                    subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + product.id)],
+                        (markdownTextForSection, rcAt) => {
+                            if (rcAt > receivedAt) {
+                                receivedAt = rcAt;
+                                initialMarkdownText = markdownTextForSection;
+                            }
+                        });
+                }
+            } else {
+                lastProductPassed = null;
             }
         }
 
@@ -140,7 +143,7 @@
                         </div>
                     {/if}
 
-                    {#if pageBuilderWidgetType[sectionType].markdownText}
+                    {#if pageBuilderWidgetType[sectionType].markdownText && lastProductPassed}
                         <div style="display: none">
                             <textarea id="content" bind:value={initialMarkdownText} />
                         </div>

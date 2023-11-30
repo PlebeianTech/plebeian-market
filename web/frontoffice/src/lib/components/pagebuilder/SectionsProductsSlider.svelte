@@ -22,6 +22,8 @@
     let products: {[productId: string]: {}} = {};
     let productsLoaded = false;
 
+    let maxHeightProductSlider = "32rem";
+
     onMount(async () => {
         let productIDs = getItemsFromSection(pageId, sectionId, 'products');
 
@@ -118,22 +120,22 @@
         </div>
 
         <!-- Carousel items -->
-        <div class="relative w-full overflow-hidden after:clear-both after:block after:content-[''] max-h-[32rem]">
-            {#each Object.entries(products) as [productId, product], i}
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
-                    <div class="relative float-left -mr-[100%] w-full !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
+        <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden">
+            {#each Object.entries(products) as [_, product], i}
+                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false)}
+                    <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden block bg-base-200 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
                          class:hidden={i > 0}
                          data-te-carousel-fade
                          data-te-carousel-item
                          data-te-carousel-active={i === 0 ? true : null}>
 
-                        <div class="block md:flex bg-base-200 rounded-xl h-full max-h-full">
-                            <div class="w-full md:w-6/12 h-full max-h-full">
-                                <img class="block p-4 md:p-5 md:pr-4 " alt="{product.name ?? 'Product #' + i}"
+                        <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden block md:flex">
+                            <div class="w-full md:w-6/12 max-h-[{maxHeightProductSlider}] overflow-hidden">
+                                <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
                                      src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
                             </div>
 
-                            <div class="w-full md:w-6/12 p-4 md:p-16 md:pl-12 md:text-lg">
+                            <div class="w-full md:w-6/12 max-h-[{maxHeightProductSlider}] overflow-hidden p-4 md:p-16 md:pl-12 md:text-lg">
                                 {#if product.markdownText}
                                     <div class="z-[300] prose lg:prose-xl">
                                         <SvelteMarkdown source={product.markdownText} />
@@ -147,9 +149,9 @@
                                     {/if}
                                 {/if}
 
-                                <a class="btn btn-outline btn-info mt-6" href="/product/{product.id}">View product</a>
+                                <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
                                 {#if $isSuperAdmin}
-                                    <button class="btn btn-outline btn-info mt-6" on:click={() => setupSection(pageId, sectionId, product)}>Edit text</button>
+                                    <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product)}>Edit text</button>
                                 {/if}
                             </div>
                         </div>
