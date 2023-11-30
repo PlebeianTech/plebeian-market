@@ -13,7 +13,7 @@ from sqlalchemy.sql.functions import func
 import uuid
 
 from extensions import db
-from main import app, get_birdwatcher
+from main import app
 from utils import hash_create, store_image, parse_xpub, UnknownKeyTypeError
 
 class ValidationError(Exception):
@@ -892,6 +892,7 @@ class Order(db.Model):
     lightning_payment_logs = db.relationship('LightningPaymentLog', back_populates="order", order_by="desc(LightningPaymentLog.created_at)")
 
     def set_paid(self):
+        from main import get_birdwatcher
         birdwatcher = get_birdwatcher()
         self.paid_at = datetime.utcnow()
         for order_item in self.order_items:
