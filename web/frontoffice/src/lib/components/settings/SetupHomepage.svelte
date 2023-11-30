@@ -65,7 +65,7 @@
                                     <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0 font-bold"># elements</div>
                                     <div class="w-full p-3 border border-slate-400 dark:border-slate-500 font-bold">Actions</div>
 
-                                    {#each orderedSections as [section_id, section]}
+                                    {#each orderedSections as [sectionId, section]}
                                         <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
                                             {section.title}
                                         </div>
@@ -85,10 +85,10 @@
                                         </div>
                                         <div class="w-full p-3 border border-slate-400 dark:border-slate-500">
                                             <div class="tooltip" data-tip="Edit section">
-                                                <button class="btn btn-xs btn-info btn-outline" on:click={() => setupSection(pageId, section_id)}><span class="w-5"><Edit /></span></button>
+                                                <button class="btn btn-xs btn-info btn-outline" on:click={() => setupSection(pageId, sectionId)}><span class="w-5"><Edit /></span></button>
                                             </div>
                                             <div class="tooltip" data-tip="Remove section">
-                                                <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, section_id)}><span class="w-5"><Trash /></span></button>
+                                                <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, sectionId)}><span class="w-5"><Trash /></span></button>
                                             </div>
                                         </div>
                                     {/each}

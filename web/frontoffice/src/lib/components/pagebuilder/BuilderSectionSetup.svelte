@@ -20,8 +20,9 @@
 
     let getMarkdownContent;
     let initialMarkdownText = '';
+    let lastProductPassed = null;
 
-    export async function setupSection(pageIdLoad, sectionIdLoad) {
+    export async function setupSection(pageIdLoad, sectionIdLoad, product = null) {
         // Clear
         saved = false;
 
@@ -35,14 +36,35 @@
         sectionType = page?.sections[sectionId]?.params?.sectionType ?? null;
         maxProductsShown = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
 
-
         if (sectionType === 'text') {
             let config = await getConfigurationFromFile();
 
             if (config && config.admin_pubkeys.length > 0) {
                 let receivedAt = 0;
 
-                subscribeConfiguration(config.admin_pubkeys, getConfigurationKey('sectionText' + '_' + pageId + '_' + sectionId),
+                initialMarkdownText = '';
+
+                subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
+                    (markdownTextForSection, rcAt) => {
+                        if (rcAt > receivedAt) {
+                            receivedAt = rcAt;
+                            initialMarkdownText = markdownTextForSection;
+                        }
+                    });
+            }
+        }
+
+        if (sectionType === 'products_with_slider' && product) {
+            let config = await getConfigurationFromFile();
+
+            if (config && config.admin_pubkeys.length > 0) {
+                lastProductPassed = product;
+
+                let receivedAt = 0;
+
+                initialMarkdownText = (product.name ?? '') + ('\n\n' + product.description ?? '');
+
+                subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + product.id)],
                     (markdownTextForSection, rcAt) => {
                         if (rcAt > receivedAt) {
                             receivedAt = rcAt;
@@ -58,7 +80,7 @@
     function save() {
         let markDownContent = null;
 
-        if (sectionType === 'text') {
+        if (sectionType === 'text' || sectionType === 'products_with_slider') {
             markDownContent = getMarkdownContent();
         }
 
@@ -66,7 +88,8 @@
             sectionTitle,
             sectionType,
             maxProductsShown,
-            markDownContent
+            markDownContent,
+            lastProductPassed
         });
 
         saved = true;
@@ -96,7 +119,7 @@
 
                 <div>
                     Section type:
-                    <select bind:value={sectionType} class="ml-2 select select-sm select-bordered zzzzz-w-full zzzzz-max-w-xs">
+                    <select bind:value={sectionType} class="ml-2 select select-sm select-bordered">
                         <option></option>
 
                         {#each Object.entries(pageBuilderWidgetType) as [widget_id, widget]}
@@ -117,7 +140,7 @@
                         </div>
                     {/if}
 
-                    {#if pageBuilderWidgetType[sectionType].long_text}
+                    {#if pageBuilderWidgetType[sectionType].markdownText}
                         <div style="display: none">
                             <textarea id="content" bind:value={initialMarkdownText} />
                         </div>
@@ -127,6 +150,9 @@
                                 <Editor bind:getMarkdownContent={getMarkdownContent} />
                             {/key}
                         </div>
+                        {#if sectionType === 'products_with_slider'}
+                            <span class="mt-8 text-sm">Note: you're not editing the product description. This text will be used only when displaying this product in this section.</span>
+                        {/if}
                     {/if}
                 {/if}
 
@@ -158,7 +184,7 @@
         <div class="modal-action">
             <form method="dialog">
                 {#if page && !saved}
-                    <button class="btn btn-success" class:btn-disabled={!sectionType || !sectionTitle} on:click|preventDefault={save}>Save</button>
+                    <button class="btn btn-success mr-3" class:btn-disabled={!sectionType || !sectionTitle} on:click|preventDefault={save}>Save</button>
                 {/if}
                 <button class="btn">Close</button>
             </form>

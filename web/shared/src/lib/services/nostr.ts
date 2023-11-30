@@ -448,24 +448,24 @@ export async function publishConfiguration(setup: object, configKey, successCB: 
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export function subscribeConfiguration(pubkeys: string[], configKey, receivedCB: (setup: string, createdAt: number) => void, eoseCB = () => {}) {
+export function subscribeConfiguration(pubkeys: string[], configKeys: string[], receivedCB: (setup: string, createdAt: number) => void, eoseCB = () => {}) {
     const sub = get(NostrPool).sub(
         relayUrlList,
         [
             {
                 kinds: [EVENT_KIND_APP_SETUP],
                 authors: pubkeys,
-                '#d': [configKey],
+                '#d': configKeys
             }
         ]
     );
-    sub.on('event', e => receivedCB(JSON.parse(e.content), e.created_at));
+    sub.on('event', e => receivedCB(JSON.parse(e.content), e.created_at, e));
     if (eoseCB) {
         sub.on('eose', eoseCB);
     }
 }
 
-export function getConfigurationKey(key:string, version = 'v1') {
+export function getConfigurationKey(key:string, version = 'v1'): string | null {
     const domainName = getDomainName();
 
     if (domainName && version && key) {

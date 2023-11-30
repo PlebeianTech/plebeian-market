@@ -11,11 +11,10 @@
 
     onMount(async () => {
         let config = await getConfigurationFromFile();
-
         if (config && config.admin_pubkeys.length > 0) {
             let receivedAt = 0;
 
-            subscribeConfiguration(config.admin_pubkeys, getConfigurationKey('sectionText' + '_' + pageId + '_' + sectionId),
+            subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
                 (markdownTextForSection, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;
@@ -32,7 +31,7 @@
             <span class="loading loading-bars w-24"></span>
         </div>
     {:else}
-        <div class="z-[300] prose aadark:prose-invert lg:prose-xl">
+        <div class="z-[300] prose lg:prose-xl">
             <SvelteMarkdown source={markdownText} />
         </div>
     {/if}

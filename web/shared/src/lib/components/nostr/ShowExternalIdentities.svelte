@@ -99,7 +99,7 @@
 {/each}
 
 {#if !compact && (!backend_present || !verificationCanBeDone)}
-    <div class="flex mt-6 mb-4 w-11/12 lg:w-8/12 zzzw-max zzzzmax-w-fit" class:text-lg={!compact} class:text-xs={compact}>
+    <div class="flex mt-6 mb-4 w-11/12 lg:w-8/12" class:text-lg={!compact} class:text-xs={compact}>
         <p class="text-ellipsis overflow-hidden mx-auto">
             {#if !compact}
                 You can check that this identities match the external ones by clicking on each link and searching for {encodeNpub(nostrPublicKey)}

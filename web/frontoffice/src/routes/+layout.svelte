@@ -64,7 +64,7 @@
         if (config && config.admin_pubkeys.length > 0) {
             let receivedAt = 0;
 
-            subscribeConfiguration(config.admin_pubkeys, getConfigurationKey('site_specific_config'),
+            subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('site_specific_config')],
                 (setup, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;

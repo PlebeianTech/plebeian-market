@@ -1,13 +1,23 @@
-<script lang="ts">
+<script lang="ts" xmlns="http://www.w3.org/1999/html">
     import {onMount} from "svelte";
     import { browser } from '$app/environment'
     import {getItemsFromSection} from "$lib/pagebuilder";
-    import {getProducts, EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT} from "$sharedLib/services/nostr";
-    import {getFirstTagValue} from "$sharedLib/nostr/utils";
+    import {
+        getProducts,
+        EVENT_KIND_AUCTION,
+        EVENT_KIND_PRODUCT,
+        subscribeConfiguration, getConfigurationKey
+    } from "$sharedLib/services/nostr";
+    import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
+    import Edit from "$sharedLib/components/icons/Edit.svelte";
+    import {isSuperAdmin} from "$sharedLib/stores";
+    import {getConfigurationFromFile} from "$sharedLib/utils";
+    import SvelteMarkdown from "svelte-markdown";
 
     export let pageId;
     export let sectionId;
+    export let setupSection;
 
     let products: {[productId: string]: {}} = {};
     let productsLoaded = false;
@@ -34,21 +44,46 @@
                 }
 
                 let productId = newProductInfo.id;
-
-                if (productId in products) {
-                    if (products[productId].event.created_at < newProductInfo.event.created_at) {
-                        products[productId] = newProductInfo;
-                    }
-                } else {
+                if (!(productId in products) || (productId in products && products[productId].event.created_at < newProductInfo.event.created_at)) {
                     products[productId] = newProductInfo;
                 }
             },
             async () => {
+                // EOSE: all products loaded
                 if (browser) {
                     const {Carousel, initTE} = await import('tw-elements');
                     //await new Promise(resolve => setTimeout(resolve, 2000));
                     initTE({Carousel});
                     productsLoaded = true;
+                }
+
+                let config = await getConfigurationFromFile();
+                if (config && config.admin_pubkeys.length > 0) {
+                    let markdownTextForProductsConfigurationKeys = [];
+
+                    Object.keys(products).forEach(productId => {
+                        markdownTextForProductsConfigurationKeys.push(getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + productId));
+                    });
+
+                    subscribeConfiguration(config.admin_pubkeys, markdownTextForProductsConfigurationKeys,
+                        (markdownTextForProduct, rcAt, e) => {
+                            let productConfigKeyForThisEvent = filterTags(e.tags, 'd').join()
+                            let productIdForThisConfigurantionEvent = productConfigKeyForThisEvent.split('_').at(-1);
+
+                            if (
+                                productIdForThisConfigurantionEvent &&
+                                (
+                                    !products[productIdForThisConfigurantionEvent].markdownReceivedAt ||
+                                    (
+                                        products[productIdForThisConfigurantionEvent].markdownReceivedAt &&
+                                        rcAt > products[productIdForThisConfigurantionEvent].markdownReceivedAt
+                                    )
+                                )
+                            ) {
+                                products[productIdForThisConfigurantionEvent].markdownReceivedAt = rcAt;
+                                products[productIdForThisConfigurantionEvent].markdownText = markdownTextForProduct;
+                            }
+                        });
                 }
             });
     });
@@ -92,28 +127,30 @@
                          data-te-carousel-item
                          data-te-carousel-active={i === 0 ? true : null}>
 
-                        <div class="block md:flex bg-base-300 rounded-xl h-full max-h-full">
+                        <div class="block md:flex bg-base-200 rounded-xl h-full max-h-full">
                             <div class="w-full md:w-6/12 h-full max-h-full">
                                 <img class="block p-4 md:p-5 md:pr-4 " alt="{product.name ?? 'Product #' + i}"
                                      src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
                             </div>
 
-                            <div class="w-full md:w-6/12 p-4 md:p-20 md:pl-12 md:text-lg">
-                                {#if product.name}
-                                    <h2 class="md:text-3xl mb-8">
-                                        <a class="cursor-pointer hover:underline" href="/product/{product.id}">{product.name}</a>
-                                    </h2>
-                                {/if}
-                                {#if product.description}
-                                    <p class="md:text-xl">
-                                        <a class="cursor-pointer hover:underline" href="/product/{product.id}">{product.description}</a>
-                                    </p>
+                            <div class="w-full md:w-6/12 p-4 md:p-16 md:pl-12 md:text-lg">
+                                {#if product.markdownText}
+                                    <div class="z-[300] prose lg:prose-xl">
+                                        <SvelteMarkdown source={product.markdownText} />
+                                    </div>
+                                {:else}
+                                    {#if product.name}
+                                        <h2 class="md:text-3xl mb-8">{product.name}</h2>
+                                    {/if}
+                                    {#if product.description}
+                                        <p class="md:text-xl">{product.description}</p>
+                                    {/if}
                                 {/if}
 
-                                <button class="btn btn-outline btn-info mt-6">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                                    View product
-                                </button>
+                                <a class="btn btn-outline btn-info mt-6" href="/product/{product.id}">View product</a>
+                                {#if $isSuperAdmin}
+                                    <button class="btn btn-outline btn-info mt-6" on:click={() => setupSection(pageId, sectionId, product)}>Edit text</button>
+                                {/if}
                             </div>
                         </div>
                     </div>

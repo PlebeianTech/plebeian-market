@@ -33,12 +33,7 @@
                 }
 
                 let productId = newProductInfo.id;
-
-                if (productId in products) {
-                    if (products[productId].event.created_at < newProductInfo.event.created_at) {
-                        products[productId] = newProductInfo;
-                    }
-                } else {
+                if (!(productId in products) || (productId in products && products[productId].event.created_at < newProductInfo.event.created_at)) {
                     products[productId] = newProductInfo;
                 }
             },

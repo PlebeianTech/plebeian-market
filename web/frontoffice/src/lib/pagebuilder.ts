@@ -2,47 +2,45 @@ import {get} from "svelte/store";
 import {NostrGlobalConfig, Info} from "$sharedLib/stores";
 import {publishConfiguration, getConfigurationKey} from "$sharedLib/services/nostr";
 
-/*
-- PENSAR SI QUITAR PARAMS Y PONERLO TODO EN LA RAIZ DE LA SECCIÓN
-    ** RAZÓN PARA DEJAR PARAMS = DISTINTOS WIDGETS TIENEN DISTINTOS PARÁMETROS
-*/
-
 export const pageBuilderWidgetType = {
     text: {
         'title': 'Show a long Text',
-        'description': 'Choose this widget to be able to write a text to explain your customers something.',
+        'description': 'This widget allows you to write a text to explain something to your customers (about me, about this site, ...).',
         'items': false,
         'max_num_available': false,
-        'long_text': true
+        'markdownText': true
     },
     products: {
         'title': 'Show selected Products',
-        'description': 'Choose this widget to be able to select which products you want shown on this section.',
+        'description': 'This widget allows you to be able to select which products you want shown on this section.',
         'items': ['products'],
         'max_num_available': false
     },
     products_with_slider: {
         'title': 'Show selected Products in a Slider with text',
-        'description': 'Choose this widget to be able to select which products you want shown on a big slider with a description.',
+        'description': "This widget allows you to select which products you want shown on a big slider with a description. The slider will show the product's title and description by default, but you can change that to other text of your choice.",
         'items': ['products'],
-        'max_num_available': false
+        'max_num_available': false,
+        'markdownText': true
     },
     stalls: {
         'title': 'Show selected Stalls',
-        'description': 'Choose this widget to be able to select which stalls you want shown on this section.',
+        'description': 'This widget allows you to be able to select which stalls you want shown on this section.',
         'items': ['stalls'],
         'max_num_available': false
     },
+    /*
     stall_products: {
         'title': 'Show all Products from several stalls',
-        'description': 'Choose this widget to be able to select one or several stalls to have all their products automatically shown in the section.',
+        'description': 'This widget allows you to select one or several stalls to have all their products automatically shown in the section.',
         'items': ['stalls'],
         'max_num_available': true
     },
+    */
     /*
     banner: {
         'title': 'Banner',
-        'description': 'Choose this widget type to show an image occupying the whole width of the screen.',
+        'description': 'This widget allows you to show an image occupying the whole width of the screen.',
         'items': [],
         'max_num_available': false,
         'image_selector': true
@@ -104,7 +102,15 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
     }
 
     if (setupParams.markDownContent) {
-        publishConfiguration(setupParams.markDownContent, getConfigurationKey('sectionText' + '_' + pageId + '_' + sectionId),
+        let configurationKey;
+
+        if (setupParams.sectionType === 'text') {
+            configurationKey = 'sectionText_' + pageId + '_' + sectionId;
+        } else if (setupParams.sectionType === 'products_with_slider') {
+            configurationKey = 'section_products_with_slider_' + pageId + '_' + sectionId + '_' + setupParams.lastProductPassed.id
+        }
+
+        publishConfiguration(setupParams.markDownContent, getConfigurationKey(configurationKey),
             () => {
                 console.log('markDownContent saved to Nostr relay!!');
             });
