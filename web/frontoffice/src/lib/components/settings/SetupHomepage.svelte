@@ -1,154 +1,125 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import {NostrGlobalConfig} from "$lib/stores";
-    import {NostrPublicKey} from "$sharedLib/stores";
-    import {getConfigurationFromFile, requestLoginModal} from "$sharedLib/utils";
-    import Plus from "$sharedLib/components/icons/Plus.svelte";
-    import Minus from "$sharedLib/components/icons/Minus.svelte";
-    // import Trash from "$sharedLib/components/icons/Trash.svelte";
-    // import Edit from "$sharedLib/components/icons/Edit.svelte";
-    // import { SortableList } from '@jhubbardsf/svelte-sortablejs'
+    import {NostrPublicKey, NostrGlobalConfig, isSuperAdmin} from "$sharedLib/stores";
+    import {requestLoginModal} from "$sharedLib/utils";
+    import Trash from "$sharedLib/components/icons/Trash.svelte";
+    import Edit from "$sharedLib/components/icons/Edit.svelte";
+    import { SortableList } from '@jhubbardsf/svelte-sortablejs'
+    import {
+        addSectionToPage,
+        removeSection,
+        handleMove,
+        getPage,
+        pageBuilderWidgetType
+    } from "$lib/pagebuilder";
+    import BuilderSectionSetup from "$lib/components/pagebuilder/BuilderSectionSetup.svelte";
 
-    let isSuperAdmin: boolean = false;
-
-    let sections = [{id: 1, title: 'Section 1'}, {id: 2, title: 'Section 2'}, {id: 3, title: 'Section 3'}];
     let newSection = '';
+    let content = null;
+    let orderedSections = null;
 
-    function saveSectionsToNostr() {
-        let order = 0;
+    const pageId = 0;
 
-        sections.forEach(section => {
-            section.order = order;
-            order++;
-        })
+    $: { content = getPage(pageId, $NostrGlobalConfig); }
 
-        // console.log('data after:', sections);
-
-        $NostrGlobalConfig.homepage_sections = sections;
+    $: if (content && content.sections) {
+        orderedSections = Object.entries(content.sections).sort((a, b) => {
+            return a[1].order - b[1].order;
+        });
     }
 
-    function addItem() {
-        if (newSection !== '') {
-            let sectionIdNewElement = 0;
-
-            sections.forEach(section => {
-                if (section.id > sectionIdNewElement) {
-                    sectionIdNewElement = section.id;
-                }
-            })
-
-            sectionIdNewElement++;
-
-            sections = [...sections, {id: sectionIdNewElement, title: newSection}];
-            newSection = '';
-
-            saveSectionsToNostr();
-        }
-    }
-
-    const move = (arr, from, to) => {
-        const input = [...arr];
-        let numberOfDeletedElm = 1;
-
-        const elm = input.splice(from, numberOfDeletedElm)[0];
-        numberOfDeletedElm = 0;
-        input.splice(to, numberOfDeletedElm, elm);
-        sections = [...input];
-    };
-
-    const handleEnd = (evt) => {
-        move(sections, evt.oldIndex, evt.newIndex);
-
-        saveSectionsToNostr();
-    };
-
-    function removeItem(index) {
-        sections = sections.filter((section, _) => section.id !== index);
-
-        saveSectionsToNostr();
-    }
-
-    onMount(async () => {
-        let config = await getConfigurationFromFile();
-        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
-            isSuperAdmin = true;
-        }
-
-        // TODO REMOVE
-        // saveSectionsToNostr();
-    });
+    let setupSection;
 </script>
 
 <div class="w-full items-center justify-center text-center">
     {#if $NostrPublicKey}
-        {#if isSuperAdmin}
-            <p>To add stalls to the homepage default view, go to the <a class="btn btn-sm btn-primary btn-outline" href="/stalls">Stall Browser</a>
-                and add them or remove them using the <span class="inline-block text-green-500 align-middle"><Plus /></span> and
-                <span class="inline-block text-rose-500 align-middle"><Minus /></span> icons at the right.
-            </p>
-<!--
-            <p class="mt-8">
-                If you want to create more complex layouts, you can add different sections below, and you'll be able to add different products or stalls to each section.
-            </p>
-
-            <div class="divider my-8"></div>
-
+        {#if $isSuperAdmin}
             <div id="simple-list" class="mt-4 border rounded p-6">
                 <h2 class="font-bold">Homepage Sections</h2>
 
-                <div class="my-10">
-                    Add sections to the homepage, and then you'll be able to add products or stalls to those sections.
+                <div class="my-8">
+                    <p>With this functionality, you can customize what is shown on the homepage.</p>
+                    <p class="mt-4">Add sections here, and set them up to display what you need to show in each of them.</p>
                 </div>
 
                 <div class="w-6/12 mx-auto">
                     <div class="mt-10 mb-4">
                         <input type="text" bind:value={newSection} placeholder="Title of new section" class="input input-bordered input-success w-full max-w-xs input-sm" />
-                        <button class="btn btn-sm btn-success ml-1" on:click={addItem}>Add</button>
+                        <button class="btn btn-sm btn-success ml-1"
+                                class:btn-disabled={!newSection}
+                                on:click={() => {let newSectionId = addSectionToPage(newSection); setupSection(pageId, newSectionId); newSection=''}}>
+                            Add
+                        </button>
                     </div>
 
-                    {#if sections.length > 0}
-                        <SortableList
-                            class="list-group col"
-                            animation={150}
-                            ghostClass="bg-info"
-                            onEnd={handleEnd}
-                        >
-                            {#each sections as section (section.id)}
-                                <div class="grid grid-cols-2 gap-0">
-                                    <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 cursor-move right-0">
-                                        {section.title}
-                                    </div>
-                                    <div class="w-full p-3 text-slate-500 dark:text-slate-400 border border-slate-400 dark:border-slate-500 align-middle">
-                                        <div class="tooltip" data-tip="Edit section">
-                                            <button class="btn btn-xs btn-info btn-outline" on:click={() => console.log('Edit index=',section.id)}><span class="w-5"><Edit /></span></button>
-                                        </div>
-                                        <div class="tooltip" data-tip="Remove section">
-                                            <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeItem(section.id)}><span class="w-5"><Trash /></span></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            {/each}
-                        </SortableList>
+                    {#if orderedSections && orderedSections.length > 0}
+                        {#key orderedSections}
+                            <div class="grid grid-cols-4 gap-0 align-middle">
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 right-0 font-bold">Section Title</div>
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 right-0 font-bold">Section Type</div>
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 right-0 font-bold"># elements</div>
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 font-bold">Actions</div>
+                            </div>
 
-                        <div class="text-slate-500 dark:text-slate-400 pt-2 text-xs">
-                            You can reorder your sections by dragging them up and down
-                        </div>
+                            <SortableList
+                                class="list-group col"
+                                animation={150}
+                                ghostClass="bg-info"
+                                onEnd={(evt) => {handleMove(pageId, evt)}}
+                            >
+                                {#each orderedSections as [sectionId, section]}
+                                    <div class="grid grid-cols-4 gap-0 align-middle">
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
+                                            {section.title}
+                                        </div>
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
+                                            {#if section?.params?.sectionType}
+                                                {pageBuilderWidgetType[section.params.sectionType].title}
+                                            {:else}
+                                                -
+                                            {/if}
+                                        </div>
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
+                                            {#if section?.values && section.values[section.params.sectionType]}
+                                                {section.values[section.params.sectionType].length} {pageBuilderWidgetType[section.params.sectionType].items[0] ?? ''}
+                                            {:else}
+                                                {#if section.params.sectionType === 'text'}
+                                                    -
+                                                {:else if section.params.sectionType === 'products_with_slider'}
+                                                    {section.values['products'].length} {pageBuilderWidgetType[section.params.sectionType].items[0] ?? ''}
+                                                {:else}
+                                                    0
+                                                {/if}
+                                            {/if}
+                                        </div>
+                                        <div class="w-full p-3 border border-slate-400 dark:border-slate-500">
+                                            <div class="tooltip" data-tip="Edit section">
+                                                <button class="btn btn-xs btn-info btn-outline" on:click={() => setupSection(pageId, sectionId)}><span class="w-5"><Edit /></span></button>
+                                            </div>
+                                            <div class="tooltip" data-tip="Remove section">
+                                                <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, sectionId)}><span class="w-5"><Trash /></span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/each}
+                            </SortableList>
+                        {/key}
 
-                    {:else}
-                        <div class="list-group-item">
-                            Homepage Section
+                        <div class="pt-2 text-xs">
+                            You can reorder this sections by dragging them up and down
                         </div>
                     {/if}
                 </div>
             </div>
--->
+
         {:else}
             <p>You need to be the owner of this website to be able to customize its default appearance.</p>
             <p class="mt-6">To claim ownership, you need to <b>edit the file <code>config.json</code></b> and put there your <b>Nostr public key</b>: {$NostrPublicKey} </p>
-            <p class="mt-6">You'll then be able to come to this page and learn how to customize your installation of Plebeian Market.</p>
+            <p class="mt-6">You'll then be able to come to this page and customize your installation of Plebeian Market.</p>
         {/if}
     {:else}
         <p>You need to be the owner of this website and login using your Nostr account:</p>
         <button class="btn btn-info mt-4" on:click={() => requestLoginModal()} on:keypress={() => requestLoginModal()}>Login</button>
     {/if}
 </div>
+
+<BuilderSectionSetup bind:setupSection={setupSection} />

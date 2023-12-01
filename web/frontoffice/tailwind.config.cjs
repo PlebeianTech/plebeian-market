@@ -2,7 +2,8 @@ module.exports = {
   content: [
     "./src/lib/components/**/*.svelte",
     "./src/routes/**/*.svelte",
-    "./../shared/src/lib/components/**/*.svelte"
+    "./../shared/src/lib/components/**/*.svelte",
+    "./node_modules/tw-elements/dist/js/**/*.js",
   ],
   theme: {
     extend: {
@@ -15,6 +16,8 @@ module.exports = {
     },
   },
   plugins: [
+      require("tw-elements/dist/plugin.cjs"),
+      require("@tailwindcss/typography"),
       require("daisyui"),
       function ({ addVariant }) {
         addVariant(

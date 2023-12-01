@@ -11,5 +11,3 @@ interface CategoriesInfo {
 }
 
 export const productCategories: Writable<CategoriesInfo[] | null> = writable(null);
-
-export const NostrGlobalConfig: Writable<object> = writable({});

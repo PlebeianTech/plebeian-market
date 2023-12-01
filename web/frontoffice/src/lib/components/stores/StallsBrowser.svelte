@@ -1,17 +1,11 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import {NostrGlobalConfig} from "$lib/stores";
-    import {NostrPublicKey, stalls} from "$sharedLib/stores";
+    import {NostrGlobalConfig, stalls, isSuperAdmin} from "$sharedLib/stores";
     import {formatTimestampNG} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
-    import Plus from "$sharedLib/components/icons/Plus.svelte";
-    import Minus from "$sharedLib/components/icons/Minus.svelte";
     import {refreshStalls} from "$lib/shopping";
-    import {publishConfiguration} from "$sharedLib/services/nostr";
-    import {newNostrConversation} from "$sharedLib/nostr/utils";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
-    import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
     import Store from "$sharedLib/components/icons/Store.svelte";
+    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
 
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
@@ -23,8 +17,7 @@
 
     let descriptionLength = 125;
 
-    $: {
-        if ($stalls && $stalls.stalls) {
+    $: if ($stalls && $stalls.stalls && !$stalls.fetching) {
             if (merchantPubkey) {
                 sortedStalls = Object.entries($stalls.stalls)
                     .filter(([, stall]) => {
@@ -39,52 +32,10 @@
                         return b[1].createdAt - a[1].createdAt;
                     });
             }
-        }
-    }
-
-    function addStallToHomePage(stall_id) {
-        let configChanged = false;
-
-        if (Array.isArray($NostrGlobalConfig.homepage_include_stalls)) {
-            if (!$NostrGlobalConfig.homepage_include_stalls.includes(stall_id)) {
-                $NostrGlobalConfig.homepage_include_stalls.push(stall_id);
-                configChanged = true;
-            }
-        } else {
-            $NostrGlobalConfig.homepage_include_stalls = [stall_id];
-            configChanged = true;
-        }
-
-        console.log('addStallToHomePage - $NostrGlobalConfig. Pushing to relays...', $NostrGlobalConfig);
-
-        if (configChanged) {
-            publishConfiguration($NostrGlobalConfig,
-                () => {
-                    console.log('Configuration saved to Nostr relay!!');
-                });
-        }
-    }
-
-    function removeStallFromHomePage(stall_id) {
-        $NostrGlobalConfig.homepage_include_stalls = $NostrGlobalConfig.homepage_include_stalls.filter(object => {
-            return object !== stall_id;
-        });
-
-        console.log('removeStallFromHomePage - $NostrGlobalConfig. Pushing to relays...', $NostrGlobalConfig);
-
-        publishConfiguration($NostrGlobalConfig,
-            () => {
-                console.log('Configuration saved to Nostr relay!!');
-            });
     }
 
     onMount(async () => {
         refreshStalls();
-
-        let config = await getConfigurationFromFile();
-        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
-            isSuperAdmin = true;
-        }
     });
 </script>
 
@@ -120,7 +71,7 @@
                                 )
                             )
                         }
-                            <div class="bg-white dark:bg-black rounded-lg shadow-md hover:scale-110 duration-300">
+                            <div class="bg-white dark:bg-black rounded-lg shadow-md {$isSuperAdmin ? '' : 'hover:scale-110 duration-300'}">
                                 <div class="p-4 md:p-6">
                                     <a href="/p/{stall.merchantPubkey}/stall/{stall.id}">
                                         <div class="cursor-pointer">
@@ -147,41 +98,11 @@
                                             {/if}
                                         </div>
                                     </a>
-                                    {#if isSuperAdmin}
-                                        <div class="mt-3 md:mt-5">
-                                            <hr>
-                                            <div class="flex mt-2 md:mt-4">
-                                            <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
-                                            {#if !$NostrGlobalConfig.homepage_sections}
-                                                {#if $NostrGlobalConfig.homepage_include_stalls && $NostrGlobalConfig.homepage_include_stalls.includes(stall.id)}
-                                                    <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
-                                                          data-tip="Remove products from the Homepage"
-                                                          on:click|preventDefault={() => removeStallFromHomePage(stall.id)}
-                                                    >
-                                                        <Minus />
-                                                    </span>
-                                                {:else}
-                                                    <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right"
-                                                          data-tip="Add products to the Homepage"
-                                                          on:click|preventDefault={() => addStallToHomePage(stall.id)}
-                                                    >
-                                                        <Plus />
-                                                    </span>
-                                                {/if}
-                                            {:else}
-                                                <div class="dropdown dropdown-left">
-                                                    <div tabindex="0" class="tooltip tooltip-primary tooltip-top" data-tip="Add products">
-                                                        <button class="btn btn-s btn-circle btn-ghost"><span class="w-6 text-green-500"><Plus /></span></button>
-                                                    </div>
-                                                    <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-52 rounded border border-gray-400">
-                                                        {#each $NostrGlobalConfig.homepage_sections as section}
-                                                            <li><a>{section.title}</a></li>
-                                                        {/each}
-                                                    </ul>
-                                                </div>
-                                            {/if}
-                                            </div>
-                                        </div>
+                                    {#if $isSuperAdmin && $NostrGlobalConfig}
+                                        <AdminActions
+                                            itemId={stallId}
+                                            entityName="stalls"
+                                        />
                                     {/if}
                                 </div>
                             </div>

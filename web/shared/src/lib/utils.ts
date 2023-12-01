@@ -3,6 +3,7 @@ import {NostrPublicKey, NostrLoginMethod, loginModalState, Info} from "$sharedLi
 import {get} from "svelte/store";
 import {privateMessages, ShoppingCart, token} from "$sharedLib/stores";
 import {browser} from "$app/environment";
+import {page} from "$app/stores";
 
 export const SATS_IN_BTC = 100000000;
 
@@ -99,6 +100,11 @@ export function setLoginMethod(method: string): void {
 
 export function loggedIn(): boolean {
     return get(NostrLoginMethod) !== null;
+}
+
+export function getDomainName() {
+    const urlParts = get(page).url.href.split("/");
+    return urlParts[2] ?? null;
 }
 
 export function sats2usd(sats: number, btc2usd: number | null): number | null {

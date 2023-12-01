@@ -28,6 +28,9 @@ export const NostrPool: Writable<SimplePool> = writable(new SimplePool());
 export const NostrPublicKey: Writable<string | null> = writable(null);
 export const NostrPrivateKey: Writable<string | null> = writable(null);
 export const NostrLoginMethod: Writable<string | null> = writable(null);
+export const NostrGlobalConfig: Writable<object> = writable({});
+
+export const isSuperAdmin: Writable<boolean> = writable(false);
 
 export type ShoppingCartSummary = {
     numProducts: number,
@@ -54,6 +57,7 @@ export const stalls: Writable<{
     fetched_at: number
 } | null> = writable({
     stalls: {},
+    fetching: false,
     fetched_at: 0
 });
 

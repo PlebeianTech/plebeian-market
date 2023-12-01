@@ -2,16 +2,17 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
-    "@sveltejs/kit": "^1.27.5",
+    "@sveltejs/kit": "^1.27.6",
+    "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.16",
     "daisyui": "^3.9.4",
-    "eslint": "^8.53.0",
+    "eslint": "^8.54.0",
     "eslint-plugin-svelte3": "4.x",
     "nostr-tools": "^1.13.1",
     "npm-run-all": "4.x",
     "postcss": "^8.4.31",
     "svelte": "^3.59.2",
-    "svelte-check": "^3.6.0",
+    "svelte-check": "^3.6.2",
     "svelte-meta-tags": "^2.8.0",
     "svelte-toasts": "1.x",
     "svelte-typewriter": "^3.1.6",
@@ -33,11 +34,19 @@
   },
   "dependencies": {
     "@jhubbardsf/svelte-sortablejs": "^1.1.0",
+    "@prosemirror-adapter/svelte": "^0.2.5",
     "@sveltejs/adapter-static": "^2.0.3",
     "bech32": "^2.0.0",
     "buffer": "^6.0.3",
     "light-bolt11-decoder": "^3.0.0",
+    "prosemirror-example-setup": "^1.2.2",
+    "prosemirror-keymap": "^1.2.2",
+    "prosemirror-markdown": "^1.11.2",
+    "prosemirror-schema-basic": "^1.2.2",
+    "prosemirror-view": "^1.32.4",
     "svelte-lazy-loader": "^1.0.0",
-    "svelte-qr": "^1.0.0"
+    "svelte-markdown": "^0.2.3",
+    "svelte-qr": "^1.0.0",
+    "tw-elements": "^1.0.0"
   }
 }

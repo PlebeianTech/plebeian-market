@@ -3,18 +3,17 @@
     import { toasts, ToastContainer } from 'svelte-toasts';
     import "../app.css";
     import { page } from '$app/stores';
-    import { NostrGlobalConfig } from "$lib/stores";
+    import {NostrGlobalConfig, NostrPublicKey, isSuperAdmin} from "$sharedLib/stores";
     import type { Placement} from "$sharedLib/stores";
     import {
         Info,
         Error,
     } from "$sharedLib/stores";
-
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Notifications from "$lib/components/Notifications.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
-    import {closePool, subscribeConfiguration} from "$sharedLib/services/nostr";
+    import {closePool, getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
@@ -59,21 +58,26 @@
 	onDestroy(errorUnsubscribe);
 
     onMount(async () => {
-        refreshStalls();
-
-        let receivedAt = 0;
+        $NostrGlobalConfig = {};
 
         let config = await getConfigurationFromFile();
-
         if (config && config.admin_pubkeys.length > 0) {
-            subscribeConfiguration(config.admin_pubkeys,
+            let receivedAt = 0;
+
+            subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('site_specific_config')],
                 (setup, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;
                         $NostrGlobalConfig = setup;
                     }
-                })
+                });
         }
+
+        if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
+            $isSuperAdmin = true;
+        }
+
+        refreshStalls();
 
         restoreShoppingCartProductsFromLocalStorage();
     });

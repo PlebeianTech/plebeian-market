@@ -9,7 +9,7 @@ import {get} from "svelte/store";
 import { UserResume } from "$sharedLib/types/user";
 import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
 import {NostrPool, NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
-import {loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
+import {getDomainName, loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
 export type UserMetadata = {
     name?: string;
@@ -32,8 +32,6 @@ const EVENT_KIND_PROFILE_BADGES = 30008;
 const EVENT_KIND_BADGE_DEFINITION = 30009;
 
 const EVENT_KIND_APP_SETUP = 30078;     // https://github.com/nostr-protocol/nips/blob/master/78.md
-
-const SITE_SPECIFIC_CONFIG_KEY = 'plebeian_market/site_specific_config/v1';
 
 export async function closePool() {
     await get(NostrPool).close(relayUrlList);
@@ -257,7 +255,7 @@ export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:
 // Metadata (nip-1)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string, metadata: UserMetadata) => void, eoseCB: () => void) {
+export function subscribeMetadata(pubkeys: string[], receivedCB: (pubkey: string, metadata: UserMetadata) => void, eoseCB: () => void = () => {}) {
     const sub = get(NostrPool).sub(relayUrlList, [{ kinds: [Kind.Metadata], authors: pubkeys }]);
     sub.on('event', e => {
         try {
@@ -291,7 +289,7 @@ export async function publishMetadata(profile, tags, successCB: () => void) {
 // NostrMarket (nip-15)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function getStalls(merchantPubkey: string | string[] | null, receivedCB: (e) => void) {
+export function getStalls(merchantPubkey: string | string[] | null, receivedCB: (e) => void, eoseCB = () => {}) {
     let filter: Filter = { kinds: [EVENT_KIND_STALL] };
 
     if (merchantPubkey) {
@@ -305,11 +303,13 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
     const sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
     sub.on('event', e => receivedCB(e));
     sub.on('eose', () => {
-        // sub.unsub()
+        if (eoseCB) {
+            eoseCB();
+        }
     })
 }
 
-export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void) {
+export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void, eoseCB = () => {}) {
     let filter: Filter = { kinds: [EVENT_KIND_PRODUCT, EVENT_KIND_AUCTION] };
 
     if (merchantPubkey) {
@@ -338,9 +338,11 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
 
         receivedCB(product);
     });
-    sub.on('eose', () => {
-        // sub.unsub()
-    })
+    if (eoseCB) {
+        sub.on('eose', () => {
+            eoseCB();
+        });
+    }
 }
 
 /**
@@ -435,27 +437,40 @@ export async function nostrAcceptBadge(newProfileBadgeTags, successCB: () => voi
 // Arbitrary custom app data (nip-78)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function publishConfiguration(setup: object, tags, successCB: () => void) {
+export async function publishConfiguration(setup: object, configKey, successCB: () => void = () => {}) {
     const event = await createEvent(
         EVENT_KIND_APP_SETUP,
         JSON.stringify(setup),
         [
-            ['p', SITE_SPECIFIC_CONFIG_KEY],
+            ['d', configKey],
         ]
     );
     get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
-export function subscribeConfiguration(pubkeys: string[], receivedCB: (setup: string, createdAt: number) => void) {
+export function subscribeConfiguration(pubkeys: string[], configKeys: string[], receivedCB: (setup: string, createdAt: number) => void, eoseCB = () => {}) {
     const sub = get(NostrPool).sub(
         relayUrlList,
         [
             {
                 kinds: [EVENT_KIND_APP_SETUP],
                 authors: pubkeys,
-                '#p': [SITE_SPECIFIC_CONFIG_KEY],
+                '#d': configKeys
             }
         ]
     );
-    sub.on('event', e => receivedCB(JSON.parse(e.content), e.created_at));
+    sub.on('event', e => receivedCB(JSON.parse(e.content), e.created_at, e));
+    if (eoseCB) {
+        sub.on('eose', eoseCB);
+    }
+}
+
+export function getConfigurationKey(key:string, version = 'v1'): string | null {
+    const domainName = getDomainName();
+
+    if (domainName && version && key) {
+        return 'plebeian_market/' + domainName+ '/' + version + '/' + key;
+    }
+
+    return null;
 }
