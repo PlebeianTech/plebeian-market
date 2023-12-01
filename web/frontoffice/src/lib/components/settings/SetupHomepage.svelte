@@ -53,19 +53,21 @@
 
                     {#if orderedSections && orderedSections.length > 0}
                         {#key orderedSections}
+                            <div class="grid grid-cols-4 gap-0 align-middle">
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 right-0 font-bold">Section Title</div>
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 right-0 font-bold">Section Type</div>
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 right-0 font-bold"># elements</div>
+                                <div class="w-full p-3 border border-slate-400 dark:border-slate-500 font-bold">Actions</div>
+                            </div>
+
                             <SortableList
                                 class="list-group col"
                                 animation={150}
                                 ghostClass="bg-info"
                                 onEnd={(evt) => {handleMove(pageId, evt)}}
                             >
-                                <div class="grid grid-cols-4 gap-0 align-middle">
-                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0 font-bold">Section Title</div>
-                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0 font-bold">Section Type</div>
-                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0 font-bold"># elements</div>
-                                    <div class="w-full p-3 border border-slate-400 dark:border-slate-500 font-bold">Actions</div>
-
-                                    {#each orderedSections as [sectionId, section]}
+                                {#each orderedSections as [sectionId, section]}
+                                    <div class="grid grid-cols-4 gap-0 align-middle">
                                         <div class="w-full p-3 border border-slate-400 dark:border-slate-500 cursor-move right-0">
                                             {section.title}
                                         </div>
@@ -80,7 +82,13 @@
                                             {#if section?.values && section.values[section.params.sectionType]}
                                                 {section.values[section.params.sectionType].length} {pageBuilderWidgetType[section.params.sectionType].items[0] ?? ''}
                                             {:else}
-                                                0
+                                                {#if section.params.sectionType === 'text'}
+                                                    -
+                                                {:else if section.params.sectionType === 'products_with_slider'}
+                                                    {section.values['products'].length} {pageBuilderWidgetType[section.params.sectionType].items[0] ?? ''}
+                                                {:else}
+                                                    0
+                                                {/if}
                                             {/if}
                                         </div>
                                         <div class="w-full p-3 border border-slate-400 dark:border-slate-500">
@@ -91,8 +99,8 @@
                                                 <button class="btn btn-xs btn-error btn-outline ml-1" on:click={() => removeSection(pageId, sectionId)}><span class="w-5"><Trash /></span></button>
                                             </div>
                                         </div>
-                                    {/each}
-                                </div>
+                                    </div>
+                                {/each}
                             </SortableList>
                         {/key}
 

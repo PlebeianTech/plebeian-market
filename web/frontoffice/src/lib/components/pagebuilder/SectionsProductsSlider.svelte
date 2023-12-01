@@ -103,22 +103,6 @@
          data-te-carousel-init
          data-te-ride="carousel">
 
-        <!-- Carousel indicators -->
-        <div class="absolute inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
-            {#each Object.entries(products) as [_, product], i}
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
-                    <button data-te-target="#carouselDarkVariant"
-                            data-te-slide-to="{i}"
-                            data-te-carousel-active={i === 0 ? true : null}
-                            class="mx-[3px] box-content h-[3px] w-[30px] flex-initial cursor-pointer border-0 border-y-[10px]
-                                border-solid border-transparent bg-black bg-clip-padding p-0 -indent-[999px] opacity-50
-                                transition-opacity duration-[600ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] motion-reduce:transition-none"
-                            aria-current="true"
-                            aria-label="Slide 1"></button>
-                {/if}
-            {/each}
-        </div>
-
         <!-- Carousel items -->
         <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden">
             {#each Object.entries(products) as [_, product], i}
@@ -128,7 +112,6 @@
                          data-te-carousel-fade
                          data-te-carousel-item
                          data-te-carousel-active={i === 0 ? true : null}>
-
                         <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden block md:flex">
                             <div class="w-full md:w-6/12 max-h-[{maxHeightProductSlider}] overflow-hidden">
                                 <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
@@ -179,6 +162,19 @@
                   style="transform: scale(1);"
                   data-te-target="#carouselDarkVariant"
                   data-te-slide="next">&#x279c;</span>
+        </div>
+
+        <div class="absolute inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
+            {#each Object.entries(products) as [_, product], i}
+                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
+                    <button data-te-target="#carouselDarkVariant"
+                            data-te-slide-to="{i}"
+                            data-te-carousel-active={i === 0 ? true : null}
+                            class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
+                        <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
+                    </button>
+                {/if}
+            {/each}
         </div>
     </div>
 </main>

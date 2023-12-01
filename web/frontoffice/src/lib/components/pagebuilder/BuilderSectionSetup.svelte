@@ -143,7 +143,7 @@
                         </div>
                     {/if}
 
-                    {#if pageBuilderWidgetType[sectionType].markdownText && lastProductPassed}
+                    {#if sectionType === 'text' || (sectionType === 'products_with_slider' && lastProductPassed)}
                         <div style="display: none">
                             <textarea id="content" bind:value={initialMarkdownText} />
                         </div>
