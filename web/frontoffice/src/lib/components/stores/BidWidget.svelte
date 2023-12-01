@@ -333,7 +333,7 @@
     }
 
     function acceptBadge() {
-        const badgeInfo = badgeDefinitions.get('30009:' + pmStallPubkey + ':pm-sitg-staging');
+        const badgeInfo = badgeDefinitions.get('30009:' + pmStallPubkey + ':pm-sitg');
 
         if (badgeInfo.accepted) {
             Error.set('Badge already accepted!');
@@ -357,6 +357,7 @@
                 closeSitgBadgeInfo();
             });
         } else {
+            closeSitgBadgeInfo();
             Error.set("Error while accepting the badge. You can try to do this from your Me page.");
         }
     }

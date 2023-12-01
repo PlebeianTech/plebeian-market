@@ -32,8 +32,6 @@
     // External identities
     $: externalIdentities = [];
 
-    let otherBadgesOpened = false;
-
     export function onImgError(image) {
         image.onerror = "";
         image.src = badgeImageFallback;
@@ -160,54 +158,43 @@
     </div>
 
     {#if other_badges}
-        <div class="collapse bg-base-200 w-full md:w-2/5">
-            <input type="checkbox" bind:checked={otherBadgesOpened} />
-            <div class="collapse-title">
-                <p class="text-xl font-bold">
-                    <input type="checkbox" class="toggle toggle-info mr-4 left-0 text-left float-left" bind:checked={otherBadgesOpened} />
-                    See other badges
-                    <!-- <input type="checkbox" class="toggle toggle-info right-0 text-right float-right" bind:checked={otherBadgesOpened} /> -->
-                </p>
+        <p class="mb-1 font-bold text-xl">Other Nostr badges</p>
 
-            </div>
-            <div class="collapse-content">
-                <!-- Accepted -->
-                {#each badgesAccepted as badgeId}
-                    {#if badgeDefinitions.get(badgeId) && !badgeDefinitions.get(badgeId).pm_issued}
-                        <div class="tooltip tooltip-accent"
-                             data-tip="{badgeDefinitions.get(badgeId).name}"
-                             on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
-                            <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
-                                {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
-                                    <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                {:else}
-                                    <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                {/if}
-                            </figure>
-                        </div>
-                    {/if}
-                {/each}
-
-                <!-- Awarded -->
-                {#if data.pubkey === $NostrPublicKey}
-                    {#each badgesAwarded as badgeId}
-                        {#if !badgesAccepted.includes(badgeId) && !badgeDefinitions.get(badgeId).pm_issued && badgeDefinitions.get(badgeId)}
-                            <div class="tooltip tooltip-accent"
-                                 data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}"
-                                 on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
-                                <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-40 hover:opacity-80">
-                                    {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
-                                        <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                    {:else}
-                                        <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
-                                    {/if}
-                                </figure>
-                            </div>
+        <!-- Accepted -->
+        {#each badgesAccepted as badgeId}
+            {#if badgeDefinitions.get(badgeId) && !badgeDefinitions.get(badgeId).pm_issued}
+                <div class="tooltip tooltip-accent"
+                     data-tip="{badgeDefinitions.get(badgeId).name}"
+                     on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                    <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer">
+                        {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                            <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                        {:else}
+                            <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
                         {/if}
-                    {/each}
+                    </figure>
+                </div>
+            {/if}
+        {/each}
+
+        <!-- Awarded -->
+        {#if data.pubkey === $NostrPublicKey}
+            {#each badgesAwarded as badgeId}
+                {#if !badgesAccepted.includes(badgeId) && !badgeDefinitions.get(badgeId).pm_issued && badgeDefinitions.get(badgeId)}
+                    <div class="tooltip tooltip-accent"
+                         data-tip="Unaccepted badge: {badgeDefinitions.get(badgeId).name}"
+                         on:click={() => { if (document.getElementById('badgeModalImg')) { document.getElementById('badgeModalImg').style.visibility="hidden"; }; currentBadge = badgeId; window.badge_modal.showModal()}}>
+                        <figure class="h-14 w-14 mr-2 md:mr-4 avatar mask mask-squircle cursor-pointer opacity-40 hover:opacity-80">
+                            {#if badgeDefinitions.get(badgeId).thumb && (/\.(gif|jpg|jpeg|png|webp)$/i).test(badgeDefinitions.get(badgeId).thumb)}
+                                <img src={badgeDefinitions.get(badgeId).thumb} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                            {:else}
+                                <img src={badgeDefinitions.get(badgeId).image ?? badgeImageFallback} on:error={(event) => onImgError(event.srcElement)} alt="" />
+                            {/if}
+                        </figure>
+                    </div>
                 {/if}
-            </div>
-        </div>
+            {/each}
+        {/if}
     {/if}
 </div>
 

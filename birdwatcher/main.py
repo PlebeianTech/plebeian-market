@@ -26,6 +26,7 @@ ENV = os.environ.get('ENV')
 
 API_BASE_URL = os.environ.get('API_BASE_URL')
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+LOG_FILENAME = os.environ.get('LOG_FILENAME', "pm.log")
 PROCESSED_EVENT_IDS_FILENAME = os.environ.get('PROCESSED_EVENT_IDS_FILENAME')
 VERIFIED_EXTERNAL_IDENTITIES_FILENAME = os.environ.get('VERIFIED_EXTERNAL_IDENTITIES_FILENAME')
 GECKODRIVER_BINARY = os.environ.get('GECKODRIVER_BINARY')
@@ -36,8 +37,22 @@ RECOVERABLE_API_ERROR_STATI = [500]
 dictConfig({
     'version': 1,
     'formatters': {'default': {'format': "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"}},
-    'handlers': {'default': {'class': 'logging.StreamHandler', 'formatter': 'default'}},
-    'root': {'level': LOG_LEVEL, 'handlers': ['default']},
+    'handlers': {
+        'default': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'
+        },
+        'info_rotating_file_handler': {
+            'level': 'INFO',
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILENAME,
+            'mode': 'a',
+            'maxBytes': 1048576,
+            'backupCount': 10,
+        },
+    },
+    'root': {'level': LOG_LEVEL, 'handlers': ['default', 'info_rotating_file_handler']},
 })
 
 def pk2npub(pk):

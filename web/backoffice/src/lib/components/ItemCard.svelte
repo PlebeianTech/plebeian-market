@@ -14,7 +14,6 @@
     import Trash from "$sharedLib/components/icons/Trash2.svelte";
 
     export let isEditable = false;
-    export let showCampaign = false;
 
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
@@ -82,9 +81,6 @@
             <h2 class="card-title mb-2 lg:text-3xl text-2xl font-bold" class:hover:link={item.started}>
                 <a href={url}>{item.title}</a>
             </h2>
-            {#if showCampaign && item.campaign_name !== null}
-                <div class="badge badge-primary"><a href="/campaigns/{item.campaign_key}"><nobr>{item.campaign_name} campaign</nobr></a></div>
-            {/if}
             {#if item instanceof Auction}
                 <div class="badge badge-secondary">auction</div>
             {:else if item instanceof Listing}
@@ -101,6 +97,11 @@
                     <div class="badge badge-primary">sold out</div>
                 {/if}
             {/if}
+            <div class="flex flex-row gap-2">
+                {#each item.categories as category}
+                    <div class="badge badge-primary">{category}</div>
+                {/each}
+            </div>
             <p class="text-xs">
                 {#if item instanceof Auction}
                     {#if item.has_winner && item.winner}

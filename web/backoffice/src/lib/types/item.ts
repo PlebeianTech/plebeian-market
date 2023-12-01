@@ -14,11 +14,6 @@ export interface AddedMedia extends Media {
     file: any;
 }
 
-export enum Category {
-    Time = 'TIME',
-}
-
-export const TIME_ITEM_DESCRIPTION_PLACEHOLDER = "Please describe what the winner can expect. Can they ask anything or are there topics to avoid? Are $DOGE price predictions not your thing? What's your format? Jitsi, Keet, Zoom?";
 
 export interface Item {
     endpoint: string;
@@ -27,8 +22,7 @@ export interface Item {
     key: string;
     title: string;
     description: string;
-    descriptionPlaceholder: string;
-    category: string | null;
+    categories: string[];
     start_date: Date | null;
     started: boolean;
     end_date?: Date | null;
@@ -38,7 +32,5 @@ export interface Item {
     extra_shipping_worldwide_usd: number;
     media: Media[];
     added_media: AddedMedia[];
-    campaign_key: string | null;
-    campaign_name: string | null;
     is_mine: boolean;
 }

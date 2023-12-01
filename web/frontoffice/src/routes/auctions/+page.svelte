@@ -54,15 +54,18 @@
                                         subscribeAuction([newProductInfo.event.id],
                                             (auctionEvent) => {
                                                 if (auctionEvent.kind === EVENT_KIND_AUCTION_BID) {
-                                                    // Bid previous information
-                                                    let bidInfo = bids[auctionEvent.id] ?? {};
 
-                                                    bids[auctionEvent.id] = Object.assign(bidInfo, {
-                                                        amount: Number(auctionEvent.content),
-                                                        date: auctionEvent.created_at,
-                                                        pubkey: auctionEvent.pubkey,
-                                                        backendResponse: null
-                                                    });
+                                                    if (bids[auctionEvent.id] === undefined) {
+                                                        bids[auctionEvent.id] = {};
+                                                    }
+
+                                                    bids[auctionEvent.id].amount = Number(auctionEvent.content);
+                                                    bids[auctionEvent.id].date = auctionEvent.created_at;
+                                                    bids[auctionEvent.id].pubkey = auctionEvent.pubkey;
+
+                                                    if (!bids[auctionEvent.id].backendResponse) {
+                                                        bids[auctionEvent.id].backendResponse = null;
+                                                    }
 
                                                 } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
                                                     if (auctionEvent.pubkey !== newProductInfo.event.pubkey) {
@@ -79,7 +82,12 @@
                                                             for (let i = 0; i < eTags.length; i++) {
                                                                 let tagValue = eTags[i][1];
                                                                 if (newProductInfo.event.id !== tagValue) {
-                                                                    // Bid previous information
+                                                                    if (bids[tagValue] === undefined) {
+                                                                        bids[tagValue] = {
+                                                                            backendResponse: null
+                                                                        };
+                                                                    }
+
                                                                     let bidInfo = bids[tagValue];
 
                                                                     const pTags = filterTags(auctionEvent.tags, 'p');
@@ -220,7 +228,7 @@
                 <tr class="text-center">
                     <th>Name</th>
                     <th>Image</th>
-                    <th class="p-2">Auction details</th>
+                    <th class="p-2">Winning bid</th>
                 </tr>
             </thead>
             <tbody>
@@ -230,15 +238,17 @@
                     <td class="py-1">
                         <p class="pl-3 text-center">{#if product.name}{product.name}{/if}</p>
                     </td>
-                    <td class="py-2">
+                    <td class="py-2 px-4">
                         <div class="card shadow-xl w-20 md:w-20">
                             <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
                         </div>
                     </td>
                     <td class="py-1">
-                        <p class="pr-2 text-center">
-                            {winnerBid[0][1].amount} sats
-                        </p>
+                        {#if winnerBid[0][1].amount}
+                            <p class="pr-2 text-center">
+                                {winnerBid[0][1].amount} sats
+                            </p>
+                        {/if}
                     </td>
                 </tr>
 

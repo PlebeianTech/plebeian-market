@@ -1,8 +1,8 @@
 import type { IEntity } from "$lib/types/base";
-import { Category, type Item, type AddedMedia, type Media, TIME_ITEM_DESCRIPTION_PLACEHOLDER } from "$lib/types/item";
+import type { Item, AddedMedia, Media } from "$lib/types/item";
 
 export class Listing implements IEntity, Item {
-    static SAVED_FIELDS = ['title', 'description', 'category', 'shipping_from', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd', 'price_usd', 'available_quantity'];
+    static SAVED_FIELDS = ['title', 'description', 'digital_item_message', 'categories', 'shipping_from', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd', 'price_usd', 'available_quantity'];
 
     endpoint = "listings";
     loader = {endpoint: this.endpoint, responseField: 'listing', fromJson};
@@ -11,8 +11,8 @@ export class Listing implements IEntity, Item {
     key: string = "";
     title: string = "";
     description: string = "";
-    descriptionPlaceholder: string = "";
-    category: string | null = null;
+    digital_item_message: string = "";
+    categories: string[] = [];
     shipping_from: string = "";
     extra_shipping_domestic_usd: number = 0;
     extra_shipping_worldwide_usd: number = 0;
@@ -23,8 +23,6 @@ export class Listing implements IEntity, Item {
     ended: boolean = false;
     media: Media[] = [];
     added_media: AddedMedia[] = [];
-    campaign_key: string | null = null;
-    campaign_name: string | null = null;
     is_mine: boolean = true;
 
     public validate() {
@@ -42,14 +40,6 @@ export class Listing implements IEntity, Item {
             }
         }
         return JSON.stringify(json);
-    }
-}
-
-export class TimeListing extends Listing {
-    constructor() {
-        super();
-        this.category = Category.Time;
-        this.descriptionPlaceholder = TIME_ITEM_DESCRIPTION_PLACEHOLDER;
     }
 }
 

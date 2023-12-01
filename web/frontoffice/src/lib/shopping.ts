@@ -6,10 +6,9 @@ import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$sharedLib/services/nostr";
 import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
 
-// =============================== Products ====================================
-export function onImgError(image) {
+export function onImgError(image, imageFallback = productImageFallback) {
     image.onerror = "";
-    image.src = productImageFallback;
+    image.src = imageFallback;
 }
 
 // =============================== Shopping Cart ===============================

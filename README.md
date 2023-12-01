@@ -45,7 +45,13 @@ Our vision of the future involves small communities around the world running the
 
 * install [`nginx-proxy-automation`](https://github.com/evertramos/nginx-proxy-automation)
 * clone repo
-* add `plebeian-market-secrets/secret_key` (random string), `plebeian-market-secrets/db.json` (default username: *pleb* / default password: *plebpass*)
+* add `plebeian-market-secrets/secret_key` (random string)
+* add `plebeian-market-secrets/db.json` (default username: *pleb* / default password: *plebpass*)
+* add `plebeian-market-secrets/admin.macaroon` and `plebeian-market-secrets/tls.cert` (for connecting to LND)
+* add `plebeian-market-secrets/lndhub.json`
+* add `plebeian-market-secrets/mail.json`
+* add `plebeian-market-secrets/nostr.json`
+* add `plebeian-market-secrets/site-admin.json`
 * edit config.py
   * `DOMAIN_NAME`
 * edit `.env.prod`

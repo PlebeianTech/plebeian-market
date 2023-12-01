@@ -176,7 +176,7 @@
         }
 
         if (profilesToGetLocal.length !== 0) {
-            subscribeMetadata(profilesToGetLocal, (pk, m) => { profileImagesMap[pk] = m; });
+            subscribeMetadata(profilesToGetLocal, (pk, m) => { profileImagesMap.set(pk, m); });
         }
     }
 
@@ -218,9 +218,10 @@
                             }
 
                             if (message.reactions.get(eventReaction) === undefined) {
-                                message.reactions[eventReaction] = new Set();
+                                message.reactions.set(eventReaction, new Set());
                             }
-                            message.reactions[eventReaction].add(eventPubkey);
+
+                            message.reactions.get(eventReaction).add(eventPubkey);
 
                             break;
                         }

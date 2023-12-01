@@ -1,5 +1,13 @@
 import type { IEntity } from "$lib/types/base";
 
+interface Buyer {
+    public_key: string,
+    name: string,
+    address: string,
+    message: string,
+    contact: string,
+}
+
 export class Order implements IEntity {
     key: string = "";
     endpoint = "orders";
@@ -14,6 +22,7 @@ export class Order implements IEntity {
     canceled_at: Date | null = null;
     txid: string | null = null;
     tx_value?: number = undefined;
+    buyer: Buyer | null = null;
     is_mine = true;
 
     public validate() {

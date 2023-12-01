@@ -341,9 +341,8 @@ def migrate_user(user):
     old_user = m.User.query.filter_by(lnauth_key=user.new_lnauth_key).first()
     for old_item in old_user.items:
         item = m.Item(seller=user,
-                      title=old_item.title, description=old_item.description, category=old_item.category,
-                      extra_shipping_domestic_usd=old_item.extra_shipping_domestic_usd, extra_shipping_worldwide_usd=old_item.extra_shipping_worldwide_usd,
-                      is_hidden=old_item.is_hidden)
+                      title=old_item.title, description=old_item.description,
+                      extra_shipping_domestic_usd=old_item.extra_shipping_domestic_usd, extra_shipping_worldwide_usd=old_item.extra_shipping_worldwide_usd)
         db.session.add(item)
         db.session.commit()
         for old_media in old_item.media:
@@ -466,11 +465,14 @@ def put_order(user, uuid):
 
     if request.json.get('paid'):
         message = "The seller accepted your payment!"
-        order.paid_at = datetime.utcnow()
+        order.set_paid()
 
     if request.json.get('shipped'):
         message = "Your order was shipped!"
         order.shipped_at = datetime.utcnow()
+    elif request.json.get('shipped') == False:
+        message = "Your order was not shipped!"
+        order.shipped_at = None
 
     if request.json.get('canceled'):
         message = "Your order was canceled by the seller!"
@@ -489,88 +491,61 @@ def put_order(user, uuid):
     return jsonify({'order': order.to_dict()})
 
 @api_blueprint.route("/api/users/me/auctions",
-    defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True, 'campaign_key': None},
+    defaults={'cls': m.Auction, 'singular': 'auction'},
     methods=['POST'])
 @api_blueprint.route("/api/users/me/listings",
-    defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True, 'campaign_key': None},
-    methods=['POST'])
-@api_blueprint.route("/api/users/me/campaigns",
-    defaults={'cls': m.Campaign, 'singular': 'campaign', 'has_item': False, 'campaign_key': None},
-    methods=['POST'])
-@api_blueprint.route("/api/campaigns/<campaign_key>/auctions",
-    defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True},
-    methods=['POST'])
-@api_blueprint.route("/api/campaigns/<campaign_key>/listings",
-    defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True},
+    defaults={'cls': m.Listing, 'singular': 'listing'},
     methods=['POST'])
 @user_required
-def post_entity(user, cls, singular, has_item, campaign_key):
-    campaign = None
-    if campaign_key:
-        campaign = m.Campaign.query.filter_by(key=campaign_key).first()
-        if not campaign:
-            return jsonify({'message': "Not found."}), 404
-
+def post_entity(user, cls, singular):
     for k in cls.REQUIRED_FIELDS:
         if k not in request.json:
             return jsonify({'message': f"Missing key: {k}."}), 400
 
     try:
-        validated_item = m.Item.validate_dict(request.json) if has_item else {}
+        validated_item = m.Item.validate_dict(request.json)
         validated_entity = cls.validate_dict(request.json)
     except m.ValidationError as e:
         return jsonify({'message': e.message}), 400
 
-    item = None
-    if has_item:
-        item = m.Item(seller=user, **validated_item)
-        db.session.add(item)
+    item = m.Item(seller=user, **validated_item)
+    db.session.add(item)
+    db.session.commit()
+    for cat in request.json.get('categories', []):
+        category_tag = m.Category.tag_from_str(cat)
+        category = m.Category.query.filter_by(tag=category_tag).first()
+        if category is None:
+            category = m.Category(tag=category_tag)
+            db.session.add(category)
+            db.session.commit()
+        item_category = m.ItemCategory(item_id=item.id, category_id=category.id)
+        db.session.add(item_category)
         db.session.commit()
 
     entity = cls(**validated_entity)
     entity.generate_key()
-    if campaign:
-        entity.campaign = campaign
+
     if item:
         entity.item = item
-    if isinstance(entity, m.Campaign):
-        entity.owner = user
+
     db.session.add(entity)
     db.session.commit()
 
     return jsonify({'key': entity.key, singular: entity.to_dict(for_user=user.id)})
 
 @api_blueprint.route('/api/auctions/active',
-    defaults={'cls': m.Auction, 'plural': 'auctions', 'featured': False},
+    defaults={'cls': m.Auction, 'plural': 'auctions'},
     methods=['GET'])
 @api_blueprint.route('/api/listings/active',
-    defaults={'cls': m.Listing, 'plural': 'listings', 'featured': False},
+    defaults={'cls': m.Listing, 'plural': 'listings'},
     methods=['GET'])
-@api_blueprint.route('/api/campaigns/active',
-    defaults={'cls': m.Campaign, 'plural': 'campaigns', 'featured': False},
-    methods=['GET'])
-@api_blueprint.route('/api/auctions/featured',
-    defaults={'cls': m.Auction, 'plural': 'auctions', 'featured': True},
-    methods=['GET'])
-@api_blueprint.route('/api/listings/featured',
-    defaults={'cls': m.Listing, 'plural': 'listings', 'featured': True},
-    methods=['GET'])
-def get_entities(cls, plural, featured):
+def get_entities(cls, plural):
     """
     Active auctions are all auctions currently running.
     Active listings are all listings that have been published and are still available for sale.
-    Active campaigns are currently all campaigns. We don't have a way to mark a campaign as "ended", but that should eventually be added.
-    Featured auctions/listings are subsets of the active auctions/listings:
-        currently they simply exclude items that the moderators have marked as hidden,
-        but we will eventually have a better algorithm to pick "featured" items.
-    There are no "featured campaigns" because users can't (yet) add their own campaigns, so we only have our own.
-        Also, since Campaign is not related to Items, it would not be able to take advantage of is_hidden.
-        But an is_hiddden flad *could* be added to Campaign if needed.
     """
     entities = cls.query_all_active()
-    if featured:
-        entities = entities.filter((cls.item_id == m.Item.id) & ~m.Item.is_hidden)
-    sorted_entities = sorted(entities.all(), key=(cls.featured_sort_key if featured else cls.sort_key))
+    sorted_entities = sorted(entities.all(), key=cls.sort_key)
     return jsonify({plural: [e.to_dict() for e in sorted_entities]})
 
 @api_blueprint.route('/api/auctions/inactive',
@@ -589,12 +564,12 @@ def get_inactive_entities(cls, plural):
     return jsonify({plural: [e.to_dict() for e in sorted_entities]})
 
 @api_blueprint.route('/api/auctions/<key>',
-    defaults={'cls': m.Auction, 'singular': 'auction', 'has_item': True},
+    defaults={'cls': m.Auction, 'singular': 'auction'},
     methods=['GET', 'PUT', 'DELETE'])
 @api_blueprint.route('/api/listings/<key>',
-    defaults={'cls': m.Listing, 'singular': 'listing', 'has_item': True},
+    defaults={'cls': m.Listing, 'singular': 'listing'},
     methods=['GET', 'PUT', 'DELETE'])
-def get_put_delete_entity(key, cls, singular, has_item):
+def get_put_delete_entity(key, cls, singular):
     user = get_user_from_token(get_token_from_request())
     entity = cls.query.filter_by(key=key).first()
     if not entity:
@@ -620,7 +595,7 @@ def get_put_delete_entity(key, cls, singular, has_item):
                         media.index = media_item['index']
 
             try:
-                validated_item = m.Item.validate_dict(request.json) if has_item else {}
+                validated_item = m.Item.validate_dict(request.json)
                 validated = cls.validate_dict(request.json)
             except m.ValidationError as e:
                 return jsonify({'message': e.message}), 400
@@ -629,6 +604,26 @@ def get_put_delete_entity(key, cls, singular, has_item):
                 setattr(entity.item, k, v)
             for k, v in validated.items():
                 setattr(entity, k, v)
+
+            existing_cats = entity.item.category_tags
+            seen_category_tags = set()
+            for cat in request.json.get('categories', []):
+                category_tag = m.Category.tag_from_str(cat)
+                seen_category_tags.add(category_tag)
+                if category_tag not in existing_cats:
+                    category = m.Category.query.filter_by(tag=category_tag).first()
+                    if category is None:
+                        category = m.Category(tag=category_tag)
+                        db.session.add(category)
+                        db.session.commit()
+                    item_category = m.ItemCategory(item_id=entity.item.id, category_id=category.id)
+                    db.session.add(item_category)
+                    db.session.commit()
+            for cat_tag in existing_cats:
+                if cat_tag not in seen_category_tags:
+                    category = m.Category.query.filter_by(tag=cat_tag).first()
+                    item_category = m.ItemCategory.query.filter_by(item_id=entity.item.id, category_id=category.id).first()
+                    db.session.delete(item_category)
 
             if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)) and entity.started:
                 user.ensure_merchant_key()
@@ -640,9 +635,6 @@ def get_put_delete_entity(key, cls, singular, has_item):
 
             return jsonify({'nostr_event_id': entity.nostr_event_id})
         elif request.method == 'DELETE':
-            if isinstance(entity, m.Auction | m.Listing):
-                for sale in entity.sales:
-                    sale.auction = sale.listing = None
             if isinstance(entity, m.Listing):
                 for order_item in m.OrderItem.query.filter_by(listing_id=entity.id):
                     order_item.listing_id = None
@@ -810,7 +802,11 @@ def get_user_entities(nym, plural):
 
 @api_blueprint.route("/api/relays", methods=['GET'])
 def get_relays():
-    return jsonify({'relays': [{'url': r.url} for r in m.Relay.query.all()]})
+    if app.config['ENV'] in ('test', 'dev'):
+        relay_urls = ["ws://relay:7777"]
+    else:
+        relay_urls = [r.url for r in m.Relay.query.all()]
+    return jsonify({'relays': [{'url': url} for url in relay_urls]})
 
 @api_blueprint.route("/api/keys/<pubkey>/metadata", methods=['GET'])
 def query_metadata(pubkey):
@@ -824,6 +820,15 @@ def get_merchant(pubkey):
 
     # NB: a merchant can currently only have one stall, but this will change
     return jsonify({'stalls': [{'name': seller.stall_name, 'description': seller.stall_description}]})
+
+@api_blueprint.route("/api/merchants", methods=['GET'])
+def get_merchants():
+    sellers = []
+    for user in m.User.query.all():
+        if user.merchant_public_key:
+            # NB: a merchant can currently only have one stall, but this will change
+            sellers.append({'public_key': user.merchant_public_key, 'stalls': [{'name': user.stall_name, 'description': user.stall_description}]})
+    return jsonify(sellers)
 
 @api_blueprint.route("/api/merchants/<pubkey>/messages", methods=['POST'])
 def post_merchant_message(pubkey):

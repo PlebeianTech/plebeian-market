@@ -20,6 +20,5 @@ pyjwt
 pyqrcode
 python-dateutil
 python-magic
-python-slugify
 requests
 secp256k1

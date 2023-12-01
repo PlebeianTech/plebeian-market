@@ -115,6 +115,9 @@
                     <p class="mr-8">
                         <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
                     </p>
+                    <p class="mr-8">
+                        <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
+                    </p>
                 </div>
             </div>
 
@@ -195,6 +198,11 @@
                                 </a>
                             </li>
                         {/if}
+                        <li class="block md:hidden md:h-0">
+                            <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
+                                <div class="w-6 h-6 mr-1"><World /></div> Plebeian Planet
+                            </a>
+                        </li>
                         {#if $NostrPublicKey}
                             <li class="menu-title mt-1">
                                 <span class="text-lg">Account</span>
@@ -213,29 +221,26 @@
                             </li>
                         {/if}
                         {#if $NostrPublicKey}
-                            {#if isFrontOffice}
-                                <li>
-                                    <a class="text-base" href="/orders">
-                                        <span class="w-6 h-6 mr-1"><Cash /></span> Orders
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="text-base" href="/settings">
-                                        <span class="w-6 h-6 mr-1"><Settings /></span> Settings
-                                    </a>
-                                </li>
-                            {:else}
-                                <li>
-                                    <a class="text-base" href="/admin/account/orders/">
-                                        <span class="w-6 h-6"><Cash /></span> Orders
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="text-base" href="/admin/account/settings">
-                                        <span class="w-6 h-6"><Settings /></span> Settings
-                                    </a>
-                                </li>
-                            {/if}
+                            <li>
+                                <a class="text-base" href="/orders">
+                                    <span class="w-6 h-6 mr-1"><Cash /></span> My purchases
+                                </a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/admin/account/orders/">
+                                    <span class="w-6 h-6"><Cash /></span> My sales
+                                </a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/settings">
+                                    <span class="w-6 h-6 mr-1"><Settings /></span> Buyer Settings
+                                </a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/admin/account/settings">
+                                    <span class="w-6 h-6"><Settings /></span> Seller Settings
+                                </a>
+                            </li>
                             <li>
                                 <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer text-base">
                                     <span class="w-6 h-6 mr-1"><Exit /></span> Logout

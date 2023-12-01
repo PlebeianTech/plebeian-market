@@ -2,33 +2,35 @@ import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nost
 import {goto} from "$app/navigation";
 import {get} from "svelte/store";
 import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, stalls, token, Error} from "$sharedLib/stores";
-import {getApiBaseUrl, isStaging, isProduction} from "$sharedLib/utils";
+import {getApiBaseUrl, isStaging, isDevelopment} from "$sharedLib/utils";
 import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
 
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
-export const pmMasterPublicKey = import.meta.env.VITE_NOSTR_PM_MASTER_PUBLIC_KEY;
 export const pmStallId = import.meta.env.VITE_NOSTR_PM_STALL_ID;
 export const pmStallPubkey = import.meta.env.VITE_NOSTR_PM_STALL_PUBLIC_KEY;
 
-export const relayUrlList =
-(isStaging() ? ["wss://staging.plebeian.market/relay"] : <string[]>[])
-.concat([
-    // Amethyst relays
-    "wss://relay.damus.io",
-    "wss://relay.nostr.bg",
-    "wss://nostr.mom",
-    "wss://nos.lol",
-    "wss://nostr.bitcoiner.social",
-    "wss://nostr-pub.wellorder.net",
-    "wss://nostr.wine",
-    "wss://eden.nostr.land",
-    "wss://relay.orangepill.dev",
-    "wss://puravida.nostr.land",
-    "wss://relay.nostr.com.au",
-    "wss://nostr.inosta.cc",
-    //"wss://relay.taxi"
-]);
+export const relayUrlList = (
+    isDevelopment() ? ["ws://localhost:7777"] :
+    (
+        (isStaging() ? ["wss://staging.plebeian.market/relay"] : <string[]>[])
+        .concat([
+            // Amethyst relays
+            "wss://relay.damus.io",
+            "wss://relay.nostr.bg",
+            "wss://nostr.mom",
+            "wss://nos.lol",
+            "wss://nostr.bitcoiner.social",
+            "wss://nostr-pub.wellorder.net",
+            "wss://nostr.wine",
+            "wss://eden.nostr.land",
+            "wss://relay.orangepill.dev",
+            "wss://puravida.nostr.land",
+            "wss://relay.nostr.com.au",
+            "wss://nostr.inosta.cc",
+        ])
+    )
+);
 
 export function hasExtension() {
     return !!(window as any).nostr;
@@ -128,7 +130,7 @@ export function getChannelIdForStall(stallPubkey) {
     // creation, so we need the same channel ID every time
     const event = {
         kind: Kind.ChannelCreation,
-        pubkey: pmMasterPublicKey,
+        pubkey: 'df476caf4888bf5d99c6a710ea6ae943d3e693d29cdc75c4eff1cfb634839bb8',
         created_at: 1672837282,
         content: '{"name": "Plebeian Market Stall ' + stallPubkey + '", "about": "Market Stall Square"}',
         tags: [],
@@ -321,6 +323,33 @@ export async function getMerchantKey() {
         }
     } catch (error) {
         console.debug("getMerchantKey - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the private keys");
+        return false;
+    }
+}
+
+export async function getMerchantIDs() {
+    const apiHost = getApiBaseUrl();
+    const apiUrl = 'api/merchants';
+
+    try {
+        let headers = {
+            'X-Access-Token': get(token)
+        };
+
+        const response = await fetch(apiHost + apiUrl, {headers});
+        if (!response.ok) {
+            console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the merchant IDs");
+            return false;
+        }
+
+        const responseJson = await response.json();
+        if (responseJson) {
+            return responseJson;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.debug("getMerchantIDs - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the merchant IDs");
         return false;
     }
 }

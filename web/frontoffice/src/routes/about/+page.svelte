@@ -44,7 +44,7 @@
 
 <h2 class="text-center my-12 lg:text-8xl font-bold text-4xl">Team</h2>
 
-<div class="lg:columns-3 py-2 pt-1 h-auto container grid lg:grid-cols-3 gap-4 ">
+<div class="grid gap-4 py-2 pt-1 h-auto container lg:columns-3 lg:grid-cols-3 mx-auto">
     <a target="_blank" rel="noreferrer" href="/p/npub1a3um269aaf3u5cy37kuykrrrnsg2pyv7za06pxjduv25lq5sdujs2qmdj6">
         <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
             <div class="avatar mask mask-circle h-40 w-40">

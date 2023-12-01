@@ -32,6 +32,7 @@ from nostr_utils import EventValidationError, validate_event
 from utils import hash_create
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
+LOG_FILENAME = os.environ.get('LOG_FILENAME', "pm.log")
 
 dictConfig({
     'version': 1,
@@ -40,13 +41,24 @@ dictConfig({
             'format': "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
         }
     },
-    'handlers': {'default': {
-        'class': 'logging.StreamHandler',
-        'formatter': 'default',
-    }},
+    'handlers': {
+        'default': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+        'info_rotating_file_handler': {
+            'level': 'INFO',
+            'formatter': 'default',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILENAME,
+            'mode': 'a',
+            'maxBytes': 1048576,
+            'backupCount': 10,
+        },
+    },
     'root': {
         'level': LOG_LEVEL,
-        'handlers': ['default'],
+        'handlers': ['default', 'info_rotating_file_handler'],
     },
 })
 
@@ -194,9 +206,11 @@ def settle_btc_payments():
                                 order.txid = tx['txid']
                             app.logger.info(f"Confirmed transaction txid={tx['txid']} matching {order.id=}.")
                             order.tx_confirmed = True
-                            order.paid_at = datetime.utcnow()
+                            order.set_paid()
                             if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                 json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
+                                continue
+                            if not birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!"):
                                 continue
                             db.session.commit()
                             break
@@ -207,9 +221,11 @@ def settle_btc_payments():
                             order.tx_value = tx['value']
                             if tx['confirmed']:
                                 order.tx_confirmed = True
-                                order.paid_at = datetime.utcnow()
+                                order.set_paid()
                                 if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                     json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
+                                    continue
+                                if not birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!"):
                                     continue
                             else:
                                 message = f"Found transaction. Waiting for confirmation. TxID: {order.txid}"
@@ -324,7 +340,7 @@ def settle_lightning_payments():
                     app.logger.info(f"  -------- Processing order {order.id}...")
 
                     incoming_payment_received = False
-                    outgoing_payments_sent = False;
+                    outgoing_payments_sent = False
 
                     for invoice in order.lightning_invoices:
                         app.logger.info(f"    ------ Invoice: {invoice.id} - {invoice.invoice}")
@@ -347,7 +363,7 @@ def settle_lightning_payments():
 
                                     ln_payment_logs_util.add_incoming_payment(order.id, invoice.id, order.total)
 
-                                    incoming_payment_received = True;
+                                    incoming_payment_received = True
 
                                     # We don't mark the order as paid yet for the seller, but the buyer already paid,
                                     # so we want him to have the order marked as paid so the QR dissapears from the screen
@@ -386,11 +402,11 @@ def settle_lightning_payments():
                                         else:
                                             app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
                                             
-                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment from order #{order.uuid}'):
                                                 time.sleep(5)
                                                 lndhub_client.get_login_token()
 
-                                                if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, 'Payment from order #{order.uuid}'):
+                                                if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment from order #{order.uuid}'):
                                                     outgoing_payments_sent = False
                                                     app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
 
@@ -398,12 +414,14 @@ def settle_lightning_payments():
                                                 ln_payment_logs_util.add_outgoing_payment(order.id, invoice.id, payout_ln_address, payout_amount)
 
                     if incoming_payment_received and outgoing_payments_sent:
-                        app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS PAYMENT AS PAID *********")
+                        app.logger.info(f"      ---- EVERYTHING DONE, SO MARKING THIS ORDER AS PAID *********")
 
                         if order.has_skin_in_the_game_badge():
                             award_badge_skin_in_the_game(order)
 
-                        order.paid_at = datetime.utcnow()
+                        order.set_paid()
+
+                        birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!")
                         db.session.commit()
                     else:
                         check_expire_order(order)
@@ -433,7 +451,7 @@ def get_payout_information(seller_id):
         app.logger.error(f"ERROR: The merchant (seller_id={seller_id}) doesn't have a Lightning address to receive his money...")
         return None
 
-    if 'contribution_percent' in merchant_dict:
+    if 'contribution_percent' in merchant_dict and merchant_dict['contribution_percent'] is not None:
         app.logger.info(f"get_payout_information - contribution_percent: {merchant_dict['contribution_percent']}")
         merchant_contribution = merchant_dict['contribution_percent']
     else:
@@ -639,9 +657,9 @@ class Birdwatcher:
             app.logger.exception(f"Error deleting stall for merchant {merchant.merchant_public_key} via birdwatcher!")
 
     def publish_product(self, entity, extra_media=None):
-        product_json = entity.to_nostr(extra_media)
+        product_json = entity.to_nostr_product(extra_media)
         try:
-            event = Event(kind=entity.nostr_event_kind, content=json.dumps(product_json), tags=[['d', product_json['id']]])
+            event = Event(kind=entity.nostr_event_kind, content=json.dumps(product_json), tags=entity.to_nostr_tags())
             entity.item.seller.parse_merchant_private_key().sign_event(event)
             if self.post_event(event):
                 return event.id
@@ -734,7 +752,7 @@ class MockingBirdwatcher:
         return hash_create(4)
 
     def publish_product(self, entity, extra_media=None):
-        product_json = entity.to_nostr(extra_media)
+        product_json = entity.to_nostr_product(extra_media)
         app.logger.info(f"publish_product name={product_json['name']}")
         return hash_create(4)
 
@@ -755,7 +773,7 @@ class MockingBirdwatcher:
         return hash_create(4)
 
 def get_birdwatcher():
-    if app.config['ENV'] in ('staging', 'prod'):
+    if app.config['ENV'] in ('staging', 'prod', 'dev'):
         return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
     else:
         return MockingBirdwatcher()

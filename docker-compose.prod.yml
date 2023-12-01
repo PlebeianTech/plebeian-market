@@ -3,8 +3,6 @@ version: '3.6'
 services:
   web:
     build:
-      context: ./
-      dockerfile: web/backoffice/Dockerfile
       args:
         - BUILD_MODE=-production
   api:
@@ -23,6 +21,8 @@ services:
   finalize-auctions:
     env_file: .env.prod
   settle-btc-payments:
+    env_file: .env.prod
+  settle-lightning-payments:
     env_file: .env.prod
   birdwatcher:
     env_file: .env.prod

@@ -1,5 +1,5 @@
-import requests, json
-from extensions import db
+from datetime import datetime, timedelta
+import requests
 from flask import current_app as app
 
 auth_header = ''
@@ -160,18 +160,18 @@ class LndHubClient:
 class MockLndHubClient:
     def __init__(self):
         return None
-    
+
     def get_login_token(self):
         return None
-    
+
     def create_invoice(self, order_id, sats):
-        return None
-    
+        return {'payment_request': "MOCK_PAYMENT_REQUEST", 'payment_hash': "MOCK_PAYMENT_HASH", 'expires_at': datetime.utcnow() + timedelta(minutes=10)}
+
     def get_incoming_invoices(self):
         return None
-    
+
     def pay_to_ln_address(self, ln_address, amount, comment):
         return None
-    
+
     def get_ln_invoice_from_ln_address(self, ln_address, amount, comment):
         return None
