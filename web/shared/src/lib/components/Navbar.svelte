@@ -228,7 +228,7 @@
                             </li>
                             <li>
                                 <a class="text-base" href="/admin/account/orders/">
-                                    <span class="w-6 h-6"><Cash /></span> My sales
+                                    <span class="w-6 h-6 mr-1"><Cash /></span> My sales
                                 </a>
                             </li>
                             <li>
@@ -238,7 +238,7 @@
                             </li>
                             <li>
                                 <a class="text-base" href="/admin/account/settings">
-                                    <span class="w-6 h-6"><Settings /></span> Seller Settings
+                                    <span class="w-6 h-6 mr-1"><Settings /></span> Seller Settings
                                 </a>
                             </li>
                             <li>
