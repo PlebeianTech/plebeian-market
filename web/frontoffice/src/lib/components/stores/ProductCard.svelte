@@ -9,6 +9,7 @@
     import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
     import { Image } from 'svelte-lazy-loader';
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import SvelteMarkdown from "svelte-markdown";
 
     export let product;
     export let onImgError = () => {};
@@ -42,9 +43,9 @@
         {/if}
 
         {#if product.name}
-        <span class="card-title atext-sm md:text-lg">
-            <a class="cursor-pointer hover:underline" href="/product/{product.id}" on:click|preventDefault={openProduct}>{product.name}</a>
-        </span>
+            <span class="card-title atext-sm md:text-lg">
+                <a class="cursor-pointer hover:underline" href="/product/{product.id}" on:click|preventDefault={openProduct}>{product.name}</a>
+            </span>
         {/if}
 
         {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}
@@ -59,8 +60,8 @@
         {/if}
 
         {#if product.description}
-            <div class="md:hidden mt-1 md:mt-4">{product.description.substring(0,110)}{#if product.description.length > 110}...{/if}</div>
-            <div class="hidden md:block mt-1 md:mt-4">{product.description.substring(0,350)}{#if product.description.length > 350}...{/if}</div>
+            <div class="md:hidden mt-1 md:mt-4 prose"><SvelteMarkdown source={product.description.substring(0,110)}/>{#if product.description.length > 110}...{/if}</div>
+            <div class="hidden md:block mt-1 md:mt-4 prose"><SvelteMarkdown source={product.description.substring(0,300)}/>{#if product.description.length > 300}...{/if}</div>
         {/if}
 
         {#if product.tags}

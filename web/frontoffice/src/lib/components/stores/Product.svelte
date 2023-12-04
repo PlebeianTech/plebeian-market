@@ -9,8 +9,8 @@
     import Quantity from "$lib/components/stores/Quantity.svelte";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {addToCart} from "$lib/shopping";
-    import {filterTags} from "$sharedLib/nostr/utils";
     import BidWidget from "$lib/components/stores/BidWidget.svelte";
+    import SvelteMarkdown from "svelte-markdown";
 
     export let product_id = null;
     export let in_popup = false;
@@ -98,7 +98,11 @@
             <div class="divider md:divider-horizontal my-2 md:my-4"></div>
 
             <div class="w-full h-fit md:p-8 md:pt-0 place-items-center place-content-center text-center text-2xl">
-                <div class="mb-8 text-xl">{#if product.description}{product.description}{/if}</div>
+                {#if product.description}
+                    <div class="mb-8 prose lg:prose-xl mx-auto">
+                        <SvelteMarkdown source={product.description} />
+                    </div>
+                {/if}
 
                 {#if product.event.kind === EVENT_KIND_AUCTION}
                     <div class="mb-8">

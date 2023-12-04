@@ -9,17 +9,20 @@
     import {NostrGlobalConfig} from "$sharedLib/stores";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
+    import InfoIcon from "$sharedLib/components/icons/Info.svelte";
 
     export let itemId;
     export let entityName;
 </script>
 
 {#if Object.keys($NostrGlobalConfig).length > 0}
-<div class="mt-3 md:mt-5 items-start text-left">
     <hr>
 
-    <div class="flex mt-2 md:mt-4">
+    <div class="flex mt-2 md:mt-4 items-start text-left text-black dark:text-white">
         <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
+        <div class="tooltip tooltip-top mr-1 md:mr-2" data-tip="This is shown because you're an admin. Your visitors will not see this section.">
+            <InfoIcon />
+        </div>
         <div class="dropdown dropdown-bottom">
             <div tabindex="0" class="tooltip tooltip-primary tooltip-top flex" data-tip="Add this to section">
                 <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right text-left left">
@@ -38,18 +41,17 @@
         </div>
     </div>
 
-    <div class="flex mt-2 md:mt-3">
+    <div class="flex mt-2 md:mt-3 items-start text-left text-black dark:text-white">
         {#each Object.entries(getPlacesWhereItemIsPresent(itemId, entityName, $NostrGlobalConfig)) as [placeId, placeTitle]}
-            <div class="w-max flex mb-2 opacity-75">
+            <div class="w-max flow mb-2 opacity-75">
                 <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
                       data-tip="Remove this from section"
                       on:click|preventDefault={() => removeItemFromSection(placeId.split('-')[0], placeId.split('-')[1], itemId, entityName)}
                 >
                     <Minus />
                 </span>
-                <span class="ml-1">{placeTitle}</span>
+                <span class="ml-1 align-top">{placeTitle}</span>
             </div>
         {/each}
     </div>
-</div>
 {/if}

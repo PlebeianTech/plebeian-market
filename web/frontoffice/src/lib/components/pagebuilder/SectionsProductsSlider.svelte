@@ -10,7 +10,6 @@
     } from "$sharedLib/services/nostr";
     import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import Edit from "$sharedLib/components/icons/Edit.svelte";
     import {isSuperAdmin} from "$sharedLib/stores";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import SvelteMarkdown from "svelte-markdown";
@@ -21,8 +20,6 @@
 
     let products: {[productId: string]: {}} = {};
     let productsLoaded = false;
-
-    let maxHeightProductSlider = "32rem";
 
     onMount(async () => {
         let productIDs = getItemsFromSection(pageId, sectionId, 'products');
@@ -99,38 +96,38 @@
     {/if}
 
     <div id="carouselDarkVariant"
-         class="relative" class:hidden={!productsLoaded}
+         class="w-full" class:hidden={!productsLoaded}
          data-te-carousel-init
          data-te-ride="carousel">
 
         <!-- Carousel items -->
-        <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden">
+        <div class="w-full h-[36rem] overflow-hidden">
             {#each Object.entries(products) as [_, product], i}
                 {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false)}
-                    <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden block bg-base-200 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
+                    <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
                          class:hidden={i > 0}
                          data-te-carousel-fade
                          data-te-carousel-item
                          data-te-carousel-active={i === 0 ? true : null}>
-                        <div class="w-full max-h-[{maxHeightProductSlider}] overflow-hidden block md:flex">
-                            <div class="w-full md:w-6/12 max-h-[{maxHeightProductSlider}] overflow-hidden">
+                        <div class="relative h-full w-auto md:flex overflow-hidden">
+                            <div class="h-full w-full md:w-6/12 overflow-hidden">
                                 <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
                                      src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
                             </div>
 
-                            <div class="w-full md:w-6/12 max-h-[{maxHeightProductSlider}] overflow-hidden p-4 md:p-16 md:pl-12 md:text-lg">
-                                {#if product.markdownText}
-                                    <div class="z-[300] prose lg:prose-xl">
+                            <div class="w-full md:w-6/12 overflow-hidden p-4 md:p-16 md:pl-12 md:text-lg">
+                                <div class="z-[300] prose lg:prose-xl">
+                                    {#if product.markdownText}
                                         <SvelteMarkdown source={product.markdownText} />
-                                    </div>
-                                {:else}
-                                    {#if product.name}
-                                        <h2 class="md:text-3xl mb-8">{product.name}</h2>
+                                    {:else}
+                                        {#if product.name}
+                                            <h2 class="md:text-3xl mb-8 prose lg:prose-xl">{product.name}</h2>
+                                        {/if}
+                                        {#if product.description}
+                                            <SvelteMarkdown source={product.description} />
+                                        {/if}
                                     {/if}
-                                    {#if product.description}
-                                        <p class="md:text-xl">{product.description}</p>
-                                    {/if}
-                                {/if}
+                                </div>
 
                                 <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
                                 {#if $isSuperAdmin}
@@ -143,38 +140,41 @@
             {/each}
         </div>
 
-        <!-- Carousel controls - prev item-->
-        <div class="absolute bottom-0 left-0 top-0 z-[1] flex w-[3%] items-center justify-center">
-            <span class="absolute -mr-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
-                        border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
-                        hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
-                        text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
-                  data-te-target="#carouselDarkVariant"
-                  data-te-slide="prev"><span style="transform: scale(-1);">&#x279c;</span></span>
-        </div>
+        {#if Object.entries(products).length > 1}
+            <!-- Carousel controls - prev item-->
+            <div class="absolute bottom-0 left-0 top-0 z-[1] flex w-[3%] items-center justify-center">
+                <span class="absolute -mr-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
+                            border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
+                            hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
+                            text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
+                      data-te-target="#carouselDarkVariant"
+                      data-te-slide="prev"><span style="transform: scale(-1);">&#x279c;</span></span>
+            </div>
+            <!-- Carousel controls - next item-->
+            <div class="absolute bottom-0 right-0 top-0 z-[1] flex w-[3%] items-center justify-center">
+                <span class="absolute -ml-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
+                            border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
+                            hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
+                            text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
+                      style="transform: scale(1);"
+                      data-te-target="#carouselDarkVariant"
+                      data-te-slide="next">&#x279c;</span>
+            </div>
+        {/if}
 
-        <!-- Carousel controls - next item-->
-        <div class="absolute bottom-0 right-0 top-0 z-[1] flex w-[3%] items-center justify-center">
-            <span class="absolute -ml-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
-                        border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
-                        hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
-                        text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
-                  style="transform: scale(1);"
-                  data-te-target="#carouselDarkVariant"
-                  data-te-slide="next">&#x279c;</span>
-        </div>
-
-        <div class="absolute inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
-            {#each Object.entries(products) as [_, product], i}
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
-                    <button data-te-target="#carouselDarkVariant"
-                            data-te-slide-to="{i}"
-                            data-te-carousel-active={i === 0 ? true : null}
-                            class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
-                        <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
-                    </button>
-                {/if}
-            {/each}
-        </div>
+        {#if Object.entries(products).length > 1}
+            <div class="inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
+                {#each Object.entries(products) as [_, product], i}
+                    {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
+                        <button data-te-target="#carouselDarkVariant"
+                                data-te-slide-to="{i}"
+                                data-te-carousel-active={i === 0 ? true : null}
+                                class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
+                            <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
+                        </button>
+                    {/if}
+                {/each}
+            </div>
+        {/if}
     </div>
 </main>

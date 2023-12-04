@@ -4,27 +4,27 @@ import {publishConfiguration, getConfigurationKey} from "$sharedLib/services/nos
 
 export const pageBuilderWidgetType = {
     text: {
-        'title': 'Show a long Text',
+        'title': 'Text Block',
         'description': 'This widget allows you to write a text to explain something to your customers (about me, about this site, ...).',
         'items': false,
         'max_num_available': false,
         'markdownText': true
     },
     products: {
-        'title': 'Show selected Products',
+        'title': 'Selected Products',
         'description': 'This widget allows you to be able to select which products you want shown on this section.',
         'items': ['products'],
         'max_num_available': false
     },
     products_with_slider: {
-        'title': 'Show selected Products in a Slider with text',
+        'title': 'Selected Products in a Slider with text',
         'description': "This widget allows you to select which products you want shown on a big slider with a description. The slider will show the product's title and description by default, but you can change that to other text of your choice.",
         'items': ['products'],
         'max_num_available': false,
         'markdownText': true
     },
     stalls: {
-        'title': 'Show selected Stalls',
+        'title': 'Selected Stalls',
         'description': 'This widget allows you to be able to select which stalls you want shown on this section.',
         'items': ['stalls'],
         'max_num_available': false

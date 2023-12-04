@@ -97,10 +97,12 @@
                                         </div>
                                     </a>
                                     {#if $isSuperAdmin && $NostrGlobalConfig}
-                                        <AdminActions
-                                            itemId={stallId}
-                                            entityName="stalls"
-                                        />
+                                        <div class="pt-4">
+                                            <AdminActions
+                                                itemId={stallId}
+                                                entityName="stalls"
+                                            />
+                                        </div>
                                     {/if}
                                 </div>
                             </div>
