@@ -10,7 +10,6 @@
     } from "$sharedLib/services/nostr";
     import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import Edit from "$sharedLib/components/icons/Edit.svelte";
     import {isSuperAdmin} from "$sharedLib/stores";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import SvelteMarkdown from "svelte-markdown";
@@ -117,18 +116,18 @@
                             </div>
 
                             <div class="w-full md:w-6/12 overflow-hidden p-4 md:p-16 md:pl-12 md:text-lg">
-                                {#if product.markdownText}
-                                    <div class="z-[300] prose lg:prose-xl">
+                                <div class="z-[300] prose lg:prose-xl">
+                                    {#if product.markdownText}
                                         <SvelteMarkdown source={product.markdownText} />
-                                    </div>
-                                {:else}
-                                    {#if product.name}
-                                        <h2 class="md:text-3xl mb-8">{product.name}</h2>
+                                    {:else}
+                                        {#if product.name}
+                                            <h2 class="md:text-3xl mb-8 prose lg:prose-xl">{product.name}</h2>
+                                        {/if}
+                                        {#if product.description}
+                                            <SvelteMarkdown source={product.description} />
+                                        {/if}
                                     {/if}
-                                    {#if product.description}
-                                        <p class="md:text-xl">{product.description}</p>
-                                    {/if}
-                                {/if}
+                                </div>
 
                                 <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
                                 {#if $isSuperAdmin}
@@ -166,7 +165,7 @@
         {#if Object.entries(products).length > 1}
             <div class="inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
                 {#each Object.entries(products) as [_, product], i}
-                    {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === true )}
+                    {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
                         <button data-te-target="#carouselDarkVariant"
                                 data-te-slide-to="{i}"
                                 data-te-carousel-active={i === 0 ? true : null}
