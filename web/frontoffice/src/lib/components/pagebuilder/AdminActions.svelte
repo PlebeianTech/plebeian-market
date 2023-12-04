@@ -9,6 +9,7 @@
     import {NostrGlobalConfig} from "$sharedLib/stores";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";
+    import InfoIcon from "$sharedLib/components/icons/Info.svelte";
 
     export let itemId;
     export let entityName;
@@ -19,6 +20,9 @@
 
     <div class="flex mt-2 md:mt-4 items-start text-left text-black dark:text-white">
         <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
+        <div class="tooltip tooltip-top mr-1 md:mr-2" data-tip="This is shown because you're an admin. Your visitors will not see this section.">
+            <InfoIcon />
+        </div>
         <div class="dropdown dropdown-bottom">
             <div tabindex="0" class="tooltip tooltip-primary tooltip-top flex" data-tip="Add this to section">
                 <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right text-left left">
