@@ -13,12 +13,13 @@
 
     export let itemId;
     export let entityName;
+    export let classOverride = "text-black dark:text-white";
 </script>
 
 {#if Object.keys($NostrGlobalConfig).length > 0}
     <hr>
 
-    <div class="flex mt-2 md:mt-4 items-start text-left text-black dark:text-white">
+    <div class="flex mt-2 md:mt-4 items-start text-left {classOverride}">
         <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
         <div class="tooltip tooltip-top mr-1 md:mr-2" data-tip="This is shown because you're an admin. Your visitors will not see this section.">
             <InfoIcon />
@@ -41,9 +42,9 @@
         </div>
     </div>
 
-    <div class="flex mt-2 md:mt-3 items-start text-left text-black dark:text-white">
+    <div class="aaaflex mt-2 md:mt-3 items-start text-left {classOverride}">
         {#each Object.entries(getPlacesWhereItemIsPresent(itemId, entityName, $NostrGlobalConfig)) as [placeId, placeTitle]}
-            <div class="w-max flow mb-2 opacity-75">
+            <div class="w-max flow mb-1 opacity-75">
                 <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
                       data-tip="Remove this from section"
                       on:click|preventDefault={() => removeItemFromSection(placeId.split('-')[0], placeId.split('-')[1], itemId, entityName)}

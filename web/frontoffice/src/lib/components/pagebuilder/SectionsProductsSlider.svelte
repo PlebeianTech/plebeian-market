@@ -103,40 +103,38 @@
         <!-- Carousel items -->
         <div class="w-full h-[36rem] overflow-hidden">
             {#each Object.entries(products) as [_, product], i}
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false)}
-                    <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
-                         class:hidden={i > 0}
-                         data-te-carousel-fade
-                         data-te-carousel-item
-                         data-te-carousel-active={i === 0 ? true : null}>
-                        <div class="relative h-full w-auto md:flex overflow-hidden">
-                            <div class="h-full w-full md:w-6/12 overflow-hidden">
-                                <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
-                                     src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
-                            </div>
+                <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
+                     class:hidden={i > 0}
+                     data-te-carousel-fade
+                     data-te-carousel-item
+                     data-te-carousel-active={i === 0 ? true : null}>
+                    <div class="relative h-full w-auto md:flex overflow-hidden">
+                        <div class="h-full w-full md:w-6/12 overflow-hidden">
+                            <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
+                                 src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
+                        </div>
 
-                            <div class="w-full md:w-6/12 overflow-hidden p-4 md:p-16 md:pl-12 md:text-lg">
-                                <div class="z-[300] prose lg:prose-xl">
-                                    {#if product.markdownText}
-                                        <SvelteMarkdown source={product.markdownText} />
-                                    {:else}
-                                        {#if product.name}
-                                            <h2 class="md:text-3xl mb-8 prose lg:prose-xl">{product.name}</h2>
-                                        {/if}
-                                        {#if product.description}
-                                            <SvelteMarkdown source={product.description} />
-                                        {/if}
+                        <div class="w-full md:w-6/12 overflow-hidden p-4 md:p-16 md:pl-12 md:text-lg">
+                            <div class="z-[300] prose lg:prose-xl">
+                                {#if product.markdownText}
+                                    <SvelteMarkdown source={product.markdownText} />
+                                {:else}
+                                    {#if product.name}
+                                        <h2 class="md:text-3xl mb-8 prose lg:prose-xl">{product.name}</h2>
                                     {/if}
-                                </div>
-
-                                <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
-                                {#if $isSuperAdmin}
-                                    <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product)}>Edit text</button>
+                                    {#if product.description}
+                                        <SvelteMarkdown source={product.description} />
+                                    {/if}
                                 {/if}
                             </div>
+
+                            <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
+                            {#if $isSuperAdmin}
+                                <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product)}>Edit text</button>
+                            {/if}
                         </div>
                     </div>
-                {/if}
+                </div>
             {/each}
         </div>
 
@@ -162,19 +160,15 @@
             </div>
         {/if}
 
-        {#if Object.entries(products).length > 1}
             <div class="inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
                 {#each Object.entries(products) as [_, product], i}
-                    {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
-                        <button data-te-target="#carouselDarkVariant"
-                                data-te-slide-to="{i}"
-                                data-te-carousel-active={i === 0 ? true : null}
-                                class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
-                            <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
-                        </button>
-                    {/if}
-                {/each}
+                    <button data-te-target="#carouselDarkVariant"
+                            data-te-slide-to="{i}"
+                            data-te-carousel-active={i === 0 ? true : null}
+                            class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
+                        <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
+                    </button>
+             {/each}
             </div>
-        {/if}
     </div>
 </main>

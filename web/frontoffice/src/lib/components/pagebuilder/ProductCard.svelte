@@ -34,6 +34,7 @@
                             <AdminActions
                                 itemId={product.id}
                                 entityName="products"
+                                classOverride="text-white"
                             />
                         </div>
                     </a>
