@@ -43,7 +43,7 @@
     });
 </script>
 
-<main class="container mx-auto p-4">
+<main class="p-4 md:container mx-auto">
     {#if !productsLoaded}
         <div class="p-12 flex flex-wrap items-center justify-center">
             <span class="loading loading-bars w-24"></span>
