@@ -141,37 +141,41 @@
             {/each}
         </div>
 
-        <!-- Carousel controls - prev item-->
-        <div class="absolute bottom-0 left-0 top-0 z-[1] flex w-[3%] items-center justify-center">
-            <span class="absolute -mr-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
-                        border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
-                        hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
-                        text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
-                  data-te-target="#carouselDarkVariant"
-                  data-te-slide="prev"><span style="transform: scale(-1);">&#x279c;</span></span>
-        </div>
-        <!-- Carousel controls - next item-->
-        <div class="absolute bottom-0 right-0 top-0 z-[1] flex w-[3%] items-center justify-center">
-            <span class="absolute -ml-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
-                        border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
-                        hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
-                        text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
-                  style="transform: scale(1);"
-                  data-te-target="#carouselDarkVariant"
-                  data-te-slide="next">&#x279c;</span>
-        </div>
+        {#if Object.entries(products).length > 1}
+            <!-- Carousel controls - prev item-->
+            <div class="absolute bottom-0 left-0 top-0 z-[1] flex w-[3%] items-center justify-center">
+                <span class="absolute -mr-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
+                            border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
+                            hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
+                            text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
+                      data-te-target="#carouselDarkVariant"
+                      data-te-slide="prev"><span style="transform: scale(-1);">&#x279c;</span></span>
+            </div>
+            <!-- Carousel controls - next item-->
+            <div class="absolute bottom-0 right-0 top-0 z-[1] flex w-[3%] items-center justify-center">
+                <span class="absolute -ml-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
+                            border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
+                            hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
+                            text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
+                      style="transform: scale(1);"
+                      data-te-target="#carouselDarkVariant"
+                      data-te-slide="next">&#x279c;</span>
+            </div>
+        {/if}
 
-        <div class="inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
-            {#each Object.entries(products) as [_, product], i}
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false )}
-                    <button data-te-target="#carouselDarkVariant"
-                            data-te-slide-to="{i}"
-                            data-te-carousel-active={i === 0 ? true : null}
-                            class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
-                        <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
-                    </button>
-                {/if}
-            {/each}
-        </div>
+        {#if Object.entries(products).length > 1}
+            <div class="inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
+                {#each Object.entries(products) as [_, product], i}
+                    {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === true )}
+                        <button data-te-target="#carouselDarkVariant"
+                                data-te-slide-to="{i}"
+                                data-te-carousel-active={i === 0 ? true : null}
+                                class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
+                            <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
+                        </button>
+                    {/if}
+                {/each}
+            </div>
+        {/if}
     </div>
 </main>
