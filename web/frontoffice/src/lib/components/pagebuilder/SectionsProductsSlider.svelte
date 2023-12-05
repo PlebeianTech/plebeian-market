@@ -13,10 +13,13 @@
     import {isSuperAdmin} from "$sharedLib/stores";
     import {getConfigurationFromFile} from "$sharedLib/utils";
     import SvelteMarkdown from "svelte-markdown";
+    import Countdown from "$sharedLib/components/Countdown.svelte";
 
     export let pageId;
     export let sectionId;
     export let setupSection;
+
+    let now = Math.floor(Date.now() / 1000);
 
     let products: {[productId: string]: {}} = {};
     let productsLoaded = false;
@@ -35,15 +38,16 @@
                     }
                 }
 
-                // Calculate if ended
-                if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
-                    let now = Math.floor(Date.now() / 1000);
-                    let endsAt = newProductInfo.start_date + newProductInfo.duration;
-                    newProductInfo.ended = now > endsAt;
-                }
-
                 let productId = newProductInfo.id;
                 if (!(productId in products) || (productId in products && products[productId].event.created_at < newProductInfo.event.created_at)) {
+                    // Calculate if ended
+                    if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
+                        now = Math.floor(Date.now() / 1000);
+                        let endsAt = newProductInfo.start_date + newProductInfo.duration;
+                        newProductInfo.endsAt = endsAt;
+                        newProductInfo.ended = now > endsAt;
+                    }
+
                     products[productId] = newProductInfo;
                 }
             },
@@ -127,6 +131,18 @@
                                     {/if}
                                 {/if}
                             </div>
+
+                            {#if product.event.kind === EVENT_KIND_AUCTION}
+                                {#if !product.ended}
+                                    <div class="pt-4 pb-2">
+                                        <Countdown totalSeconds={product.endsAt - now} bind:ended={product.ended} />
+                                    </div>
+                                {:else}
+                                    <div class="flex">
+                                        <p class="py-5 text-xl font-bold mx-auto">Auction Ended</p>
+                                    </div>
+                                {/if}
+                            {/if}
 
                             <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
                             {#if $isSuperAdmin}
