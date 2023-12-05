@@ -130,7 +130,7 @@
 
                             <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
                             {#if $isSuperAdmin}
-                                <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product)}>Edit text</button>
+                                <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product, true)}>Edit text</button>
                             {/if}
                         </div>
                     </div>

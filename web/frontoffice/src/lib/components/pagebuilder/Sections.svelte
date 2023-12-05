@@ -35,7 +35,7 @@
                     <h2 class="text-2xl font-bold text-center mb-2 md:mb-5">
                         {section.title}
                         {#if $isSuperAdmin}
-                            <button class="btn btn-square ml-2" on:click={() => setupSection(pageId, sectionId)}>
+                            <button class="btn btn-square ml-2" on:click={() => setupSection(pageId, sectionId, null, true)}>
                                 <span class="w-6 h-6"><Edit /></span>
                             </button>
                         {/if}

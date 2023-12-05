@@ -15,18 +15,26 @@
 
     let sectionType;
     let maxProductsShown;
-    let saved;
     let sectionTitle;
 
     let getMarkdownContent;
     let initialMarkdownText = '';
     let lastProductPassed = null;
 
-    export async function setupSection(pageIdLoad, sectionIdLoad, product = null) {
+    let closeWhenSaved = false;
+
+    $: saved = false;
+
+    $: if (saved && closeWhenSaved) {
+        window.setup_section.close();
+    }
+    export async function setupSection(pageIdLoad, sectionIdLoad, product = null, closeModalWhenSaved = false) {
         // Clear
         saved = false;
 
         // Set
+        closeWhenSaved = closeModalWhenSaved;
+
         pageId = pageIdLoad;
         sectionId = sectionIdLoad;
 
@@ -38,7 +46,6 @@
 
         if (sectionType === 'text') {
             let config = await getConfigurationFromFile();
-
             if (config && config.admin_pubkeys.length > 0) {
                 let receivedAt = 0;
 
@@ -83,7 +90,7 @@
     function save() {
         let markDownContent = null;
 
-        if (sectionType === 'text' || sectionType === 'products_with_slider') {
+        if (sectionType === 'text' || (sectionType === 'products_with_slider' && lastProductPassed)) {
             markDownContent = getMarkdownContent();
         }
 
@@ -110,31 +117,34 @@
                         Editing section {sectionId} from page {pageId}
                     {/if}
                 </p>
+                {#if sectionType !== 'products_with_slider' || (sectionType === 'products_with_slider' && !lastProductPassed)}
+                    <div class="mt-8 mb-8">
+                        Section title:
+                        <input type="text" class="ml-2 input input-bordered input-sm w-full max-w-xs" bind:value={sectionTitle} />
+                    </div>
 
-                <div class="mt-8 mb-8">
-                    Section title:
-                    <input type="text" class="ml-2 input input-bordered input-sm w-full max-w-xs" bind:value={sectionTitle} />
-                </div>
+                    {#if !sectionType}
+                        <p class="mb-4">Choose a widget type to configure the section.</p>
+                    {/if}
 
-                {#if !sectionType}
-                    <p class="mb-4">Choose a widget type to configure the section.</p>
+                    <div>
+                        Section type:
+                        <select bind:value={sectionType} class="ml-2 select select-sm select-bordered">
+                            <option></option>
+
+                            {#each Object.entries(pageBuilderWidgetType) as [widget_id, widget]}
+                                <option value={widget_id}>{widget.title}</option>
+                            {/each}
+                        </select>
+                    </div>
                 {/if}
 
-                <div>
-                    Section type:
-                    <select bind:value={sectionType} class="ml-2 select select-sm select-bordered">
-                        <option></option>
-
-                        {#each Object.entries(pageBuilderWidgetType) as [widget_id, widget]}
-                            <option value={widget_id}>{widget.title}</option>
-                        {/each}
-                    </select>
-                </div>
-
                 {#if sectionType}
-                    <div class="mt-2 text-sm">
-                        <p>{pageBuilderWidgetType[sectionType].description}</p>
-                    </div>
+                    {#if sectionType !== 'products_with_slider' || (sectionType === 'products_with_slider' && !lastProductPassed)}
+                        <div class="mt-2 text-sm">
+                            <p>{pageBuilderWidgetType[sectionType].description}</p>
+                        </div>
+                    {/if}
 
                     {#if pageBuilderWidgetType[sectionType].max_num_available}
                         <div class="mt-8">
