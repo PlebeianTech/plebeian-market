@@ -28,9 +28,16 @@
     }
 
     let setupSection;
+
+    $: {
+        console.log('SetupHomepage(js) - $NostrPublicKey: ', $NostrPublicKey);
+        console.log('SetupHomepage(js) - $isSuperAdmin: ', $isSuperAdmin);
+    }
 </script>
 
 <div class="w-full items-center justify-center text-center">
+    {(console.log('SetupHomepage(html) - $NostrPublicKey', $NostrPublicKey), '')}
+    {(console.log('SetupHomepage(html) - $isSuperAdmin', $isSuperAdmin), '')}
     {#if $NostrPublicKey}
         {#if $isSuperAdmin}
             <div id="simple-list" class="mt-4 border rounded p-6">

@@ -61,6 +61,8 @@
         $NostrGlobalConfig = {};
 
         let config = await getConfigurationFromFile();
+        console.log('layout - config', config);
+
         if (config && config.admin_pubkeys.length > 0) {
             let receivedAt = 0;
 
@@ -72,8 +74,10 @@
                     }
                 });
         }
+        console.log('layout - $NostrPublicKey', $NostrPublicKey);
 
         if (config && config.admin_pubkeys.includes($NostrPublicKey)) {
+            console.log('layout - $isSuperAdmin = true');
             $isSuperAdmin = true;
         }
 
