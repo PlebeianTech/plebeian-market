@@ -95,7 +95,7 @@
         </div>
     {/if}
 
-    <div id="carouselDarkVariant"
+    <div id="slider_{pageId}_{sectionId}"
          class="w-full" class:hidden={!productsLoaded}
          data-te-carousel-init
          data-te-ride="carousel">
@@ -145,7 +145,7 @@
                             border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
                             hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
                             text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
-                      data-te-target="#carouselDarkVariant"
+                      data-te-target="#slider_{pageId}_{sectionId}"
                       data-te-slide="prev"><span style="transform: scale(-1);">&#x279c;</span></span>
             </div>
             <!-- Carousel controls - next item-->
@@ -155,20 +155,20 @@
                             hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
                             text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
                       style="transform: scale(1);"
-                      data-te-target="#carouselDarkVariant"
+                      data-te-target="#slider_{pageId}_{sectionId}"
                       data-te-slide="next">&#x279c;</span>
             </div>
-        {/if}
 
             <div class="inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
                 {#each Object.entries(products) as [_, product], i}
-                    <button data-te-target="#carouselDarkVariant"
+                    <button data-te-target="#slider_{pageId}_{sectionId}"
                             data-te-slide-to="{i}"
                             data-te-carousel-active={i === 0 ? true : null}
-                            class="px-6 md:px-12 opacity-50 hover:opacity-100 faaocus:opacity-100">
+                            class="px-6 md:px-12 opacity-50 hover:opacity-100">
                         <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
                     </button>
-             {/each}
+                {/each}
             </div>
+        {/if}
     </div>
 </main>

@@ -91,7 +91,7 @@
                                             {:else}
                                                 {#if section?.params?.sectionType === 'text'}
                                                     -
-                                                {:else if section?.params?.sectionType === 'products_with_slider'}
+                                                {:else if section?.params?.sectionType === 'products_with_slider' && section?.values}
                                                     {section.values['products'].length} {pageBuilderWidgetType[section.params.sectionType].items[0] ?? ''}
                                                 {:else}
                                                     0
