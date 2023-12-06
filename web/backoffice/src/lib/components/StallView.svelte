@@ -69,6 +69,9 @@
     <div class="w-full px-4">
         <h2 class="text-3xl my-8">Stall Manager</h2>
         <p class="text-center my-4">This is where you list items that you have for sale!</p>
+        {#if $user && $user.merchantPublicKey && $user.stallId}
+            <p class="text-center my-4">This is the <a class="link" href="{import.meta.env.VITE_BASE_URL}p/{$user.merchantPublicKey}/stall/{$user.stallId}">public link</a> of your stall. You can share this.</p>
+        {/if}
         <div class="flex gap-4 flex-col">
             <ListView
                 bind:this={newListingsList}

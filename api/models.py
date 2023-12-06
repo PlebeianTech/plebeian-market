@@ -287,6 +287,8 @@ class User(WalletMixin, db.Model):
             'has_past_auctions': False,
             'has_active_listings': False,
             'has_past_listings': False,
+            'merchant_public_key': self.merchant_public_key,
+            'stall_id': self.stall_id,
         }
 
         for item in self.items.all():

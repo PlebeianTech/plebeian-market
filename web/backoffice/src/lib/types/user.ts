@@ -44,6 +44,8 @@ export class User implements IAccount {
     hasPastAuctions: boolean = false;
     hasActiveListings: boolean = false;
     hasPastListings: boolean = false;
+    merchantPublicKey: string | null = null;
+    stallId: string | null = null;
 }
 
 export function fromJson(json: any): User {
@@ -77,6 +79,8 @@ export function fromJson(json: any): User {
     u.wallet = <string | null>json.wallet;
     u.walletName = <string | null>json.wallet_name;
     u.lightningAddress = <string | null>json.lightning_address;
+    u.merchantPublicKey = <string | null>json.merchant_public_key;
+    u.stallId = <string | null>json.stall_id;
 
     return u;
 }
