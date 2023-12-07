@@ -42,10 +42,10 @@ class LndHubClient:
 
         return {"Authorization": "Bearer " + access_token}
 
-    def create_invoice(self, order_id, sats):
+    def create_invoice(self, order_uuid, sats):
         payload = {
-            'amount':sats,
-            'description':'Payment for Order #' + str(order_id)
+            'amount': sats,
+            'description': f"Payment for Order #{order_uuid}"
         }
         app.logger.debug(f"create_invoice - Creating invoice for order: {payload}")
 
@@ -56,7 +56,7 @@ class LndHubClient:
         )
 
         if (response_invoice.status_code == 200):
-            app.logger.info(f"create_invoice - The request to create a new LN invoice was a success!")
+            app.logger.info(f"create_invoice - The request to create a new LN invoice was a great success!")
             return response_invoice.json()
 
         elif (response_invoice.status_code == 401):
@@ -164,7 +164,7 @@ class MockLndHubClient:
     def get_login_token(self):
         return None
 
-    def create_invoice(self, order_id, sats):
+    def create_invoice(self, _order_uuid, _sats):
         return {'payment_request': "MOCK_PAYMENT_REQUEST", 'payment_hash': "MOCK_PAYMENT_HASH", 'expires_at': datetime.utcnow() + timedelta(minutes=10)}
 
     def get_incoming_invoices(self):

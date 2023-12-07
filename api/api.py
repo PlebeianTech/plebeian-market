@@ -1028,13 +1028,13 @@ def post_merchant_message(pubkey):
 
     if order.lightning_address:
         lndhub_client = get_lndhub_client()
-        invoice_information = lndhub_client.create_invoice(order.id, order.total)
+        invoice_information = lndhub_client.create_invoice(order.uuid, order.total)
 
         if not invoice_information:
             app.logger.info(f"Error while trying to create_invoice. Retrying...")
             time.sleep(5)
             lndhub_client.get_login_token()
-            invoice_information = lndhub_client.create_invoice(order.id, order.total)
+            invoice_information = lndhub_client.create_invoice(order.uuid, order.total)
 
         if invoice_information and invoice_information['payment_request']:
             lightning_invoice = m.LightningInvoice(
