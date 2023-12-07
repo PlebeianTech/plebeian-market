@@ -73,8 +73,10 @@
         </dialog>
     </td>
     <td>
-        {#if order.paid_at === null && order.canceled_at === null}
+        {#if order.canceled_at === null}
             <button class="btn btn-error mx-2" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) }>Cancel</button>
+        {/if}
+        {#if order.paid_at === null && order.canceled_at === null}
             <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Paid!"); entity = o;}) }>Payment received</button>
         {:else if order.paid_at !== null && order.shipped_at === null}
             <button class="btn btn-primary" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) }>Shipped</button>
