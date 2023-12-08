@@ -13,20 +13,19 @@
     let ended = now > endsAt;
 </script>
 
-<div class="relative grid h-[40rem] w-full max-w-[28rem] flex-col items-end justify-center overflow-hidden rounded-xl bg-white bg-clip-border text-center text-gray-700">
+<div class="relative grid h-[40rem] max-h-48 md:max-h-[32rem] w-full max-w-[28rem] flex-col items-end justify-center overflow-hidden rounded-md md:rounded-xl bg-white bg-clip-border text-center text-gray-700">
     <a class="cursor-pointer hover:underline" href="/product/{product.id}">
         <div class="absolute inset-0 m-0 h-full w-full overflow-hidden rounded-none bg-transparent bg-cover bg-clip-border bg-center text-gray-700 shadow-none"
              style="background-image: url('{product.images ? product.images[0] : product.image ?? productImageFallback}');">
-            <div class="absolute bottom-0 left-0 right-0 h-30 bg-black bg-opacity-30 backdrop-blur text-white p-4 rounded-b-lg">
-
-                    <h1 class="text-2xl font-semibold">{product.name}</h1>
-                    {#if product.event.kind === EVENT_KIND_AUCTION}
-                        <div class="p-5">
-                            <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
-                        </div>
-                    {:else}
-                        <p class="mt-2 text-lg">{#if product.price}{product.price.toString().trim()} {#if product.currency}{product.currency.trim()}{/if}{/if}</p>
-                    {/if}
+            <div class="absolute p-2 pt-1 md:p-4 bottom-0 left-0 right-0 h-30 bg-black bg-opacity-30 backdrop-blur text-white rounded-b-lg">
+                <h1 class="text-md md:text-2xl leading-4">{product.name}</h1>
+                {#if product.event.kind === EVENT_KIND_AUCTION}
+                    <div class="p-5">
+                        <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
+                    </div>
+                {:else}
+                    <p class="mt-1 md:mt-2 text-xs md:text-lg">{#if product.price}{product.price.toString().trim()} {#if product.currency}{product.currency.trim()}{/if}{/if}</p>
+                {/if}
 
                 {#if $isSuperAdmin && $NostrGlobalConfig}
                     <a href={null} on:click|preventDefault>
