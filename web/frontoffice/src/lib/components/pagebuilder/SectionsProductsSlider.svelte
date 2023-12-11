@@ -113,12 +113,12 @@
                      data-te-carousel-item
                      data-te-carousel-active={i === 0 ? true : null}>
                     <div class="relative h-full w-auto md:flex overflow-hidden">
-                        <div class="w-full md:w-6/12 overflow-hidden">
+                        <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
                             <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
                                  src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
                         </div>
 
-                        <div class="w-full md:w-6/12 overflow-hidden p-4 md:p-16 md:pt-4 md:pl-12 md:text-lg">
+                        <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
                             <div class="z-[300] prose lg:prose-xl prose-p:my-2 md:prose-p:my-3">
                                 {#if product.markdownText}
                                     <SvelteMarkdown source={product.markdownText} />
@@ -175,7 +175,7 @@
                       data-te-slide="next">&#x279c;</span>
             </div>
 
-            <div class="inset-x-0 mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
+            <div class="inset-x-0 mt-3 md:mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
                 {#each Object.entries(products) as [_, product], i}
                     <button data-te-target="#slider_{pageId}_{sectionId}"
                             data-te-slide-to="{i}"
