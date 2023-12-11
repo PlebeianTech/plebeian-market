@@ -118,13 +118,13 @@
                                  src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
                         </div>
 
-                        <div class="w-full md:w-6/12 overflow-hidden p-4 md:p-16 md:pl-12 md:text-lg">
-                            <div class="z-[300] prose lg:prose-xl">
+                        <div class="w-full md:w-6/12 overflow-hidden p-4 md:p-16 md:pt-4 md:pl-12 md:text-lg">
+                            <div class="z-[300] prose lg:prose-xl prose-p:my-2 md:prose-p:my-3">
                                 {#if product.markdownText}
                                     <SvelteMarkdown source={product.markdownText} />
                                 {:else}
                                     {#if product.name}
-                                        <h2 class="md:text-3xl mb-8 prose lg:prose-xl">{product.name}</h2>
+                                        <h2 class="md:text-3xl mb-1 md:mb-2">{product.name}</h2>
                                     {/if}
                                     {#if product.description}
                                         <SvelteMarkdown source={product.description} />
@@ -135,7 +135,7 @@
                             {#if product.event.kind === EVENT_KIND_AUCTION}
                                 {#if product.ended}
                                     <div class="flex">
-                                        <p class="py-5 text-xl font-bold mx-auto">Auction Ended</p>
+                                        <p class="pt-5 text-xl font-bold mx-auto">Auction Ended</p>
                                     </div>
                                 {:else}
                                     <div class="pt-4 pb-2">
