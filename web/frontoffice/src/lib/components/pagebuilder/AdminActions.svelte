@@ -17,16 +17,16 @@
 </script>
 
 {#if Object.keys($NostrGlobalConfig).length > 0}
-    <hr>
+    <hr class="mt-1 md:mt-0">
 
-    <div class="flex mt-2 md:mt-4 items-start text-left {classOverride}">
+    <div class="flex mt-1 md:mt-4 items-start text-left text-sm md:text-md {classOverride}">
         <p class="opacity-75 mr-1 md:mr-2">Admin actions:</p>
-        <div class="tooltip tooltip-top mr-1 md:mr-2" data-tip="This is shown because you're an admin. Your visitors will not see this section.">
+        <div class="tooltip tooltip-top mr-1 md:mr-2 hidden md:block" data-tip="This is shown because you're an admin. Your visitors will not see this section.">
             <InfoIcon />
         </div>
         <div class="dropdown dropdown-bottom">
             <div tabindex="0" class="tooltip tooltip-primary tooltip-top flex" data-tip="Add this to section">
-                <span class="w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right text-left left">
+                <span class="w-5 md:w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right text-left left">
                     <Plus />
                 </span>
             </div>
@@ -42,16 +42,16 @@
         </div>
     </div>
 
-    <div class="aaaflex mt-2 md:mt-3 items-start text-left {classOverride}">
+    <div class="aaaflex mt-1 md:mt-3 items-start text-left text-sm md:text-md {classOverride}">
         {#each Object.entries(getPlacesWhereItemIsPresent(itemId, entityName, $NostrGlobalConfig)) as [placeId, placeTitle]}
-            <div class="w-max flow mb-1 opacity-75">
-                <span class="w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
+            <div class="w-max flow mb-0 opacity-75">
+                <span class="w-5 md:w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
                       data-tip="Remove this from section"
                       on:click|preventDefault={() => removeItemFromSection(placeId.split('-')[0], placeId.split('-')[1], itemId, entityName)}
                 >
                     <Minus />
                 </span>
-                <span class="ml-1 align-top">{placeTitle}</span>
+                <span class="md:ml-1 align-top">{placeTitle}</span>
             </div>
         {/each}
     </div>

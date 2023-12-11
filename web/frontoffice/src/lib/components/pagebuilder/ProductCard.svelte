@@ -17,7 +17,7 @@
     <a class="cursor-pointer hover:underline" href="/product/{product.id}">
         <div class="absolute inset-0 m-0 h-full w-full overflow-hidden rounded-none bg-transparent bg-cover bg-clip-border bg-center text-gray-700 shadow-none"
              style="background-image: url('{product.images ? product.images[0] : product.image ?? productImageFallback}');">
-            <div class="absolute p-2 pt-1 md:p-4 bottom-0 left-0 right-0 h-30 bg-black bg-opacity-30 backdrop-blur text-white rounded-b-lg">
+            <div class="absolute p-2 pt-1 md:p-4 bottom-0 left-0 right-0 h-30 bg-black bg-opacity-30 backdrop-blur text-white rounded-b-lg" class:pb-0={$isSuperAdmin}>
                 <h1 class="text-md md:text-2xl leading-4">{product.name}</h1>
                 {#if product.event.kind === EVENT_KIND_AUCTION}
                     <div class="p-5">
@@ -29,7 +29,7 @@
 
                 {#if $isSuperAdmin && $NostrGlobalConfig}
                     <a href={null} on:click|preventDefault>
-                        <div class="p-4 pb-0 cursor-default">
+                        <div class="p-0 md:p-4 md:pb-0 cursor-default">
                             <AdminActions
                                 itemId={product.id}
                                 entityName="products"

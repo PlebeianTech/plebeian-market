@@ -113,7 +113,7 @@
                      data-te-carousel-item
                      data-te-carousel-active={i === 0 ? true : null}>
                     <div class="relative h-full w-auto md:flex overflow-hidden">
-                        <div class="h-full w-full md:w-6/12 overflow-hidden">
+                        <div class="w-full md:w-6/12 overflow-hidden">
                             <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
                                  src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
                         </div>
@@ -133,13 +133,13 @@
                             </div>
 
                             {#if product.event.kind === EVENT_KIND_AUCTION}
-                                {#if !product.ended}
-                                    <div class="pt-4 pb-2">
-                                        <Countdown totalSeconds={product.endsAt - now} bind:ended={product.ended} />
-                                    </div>
-                                {:else}
+                                {#if product.ended}
                                     <div class="flex">
                                         <p class="py-5 text-xl font-bold mx-auto">Auction Ended</p>
+                                    </div>
+                                {:else}
+                                    <div class="pt-4 pb-2">
+                                        <Countdown totalSeconds={product.endsAt - now} bind:ended={product.ended} />
                                     </div>
                                 {/if}
                             {/if}
