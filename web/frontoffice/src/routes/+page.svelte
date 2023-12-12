@@ -1,22 +1,8 @@
 <script lang="ts">
-    import Typewriter from "$lib/components/Typewriter.svelte";
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
     import {getBaseUrl} from "$sharedLib/utils";
-    import GoldenGai from "$lib/images/golden-gai-tokyo.jpg";
-    import {onMount} from "svelte";
     import Sections from "$lib/components/pagebuilder/Sections.svelte";
-
-    let homepage_banner = GoldenGai;
-
-    onMount(async () => {
-        let config = await getConfigurationFromFile();
-
-        if (config && config.homepage_banner_image && config.homepage_banner_image.length > 0) {
-            homepage_banner = config.homepage_banner_image;
-        }
-    });
 </script>
 
 <svelte:head>
@@ -47,17 +33,5 @@
             imageAlt: "Plebeian Market logo",
         }}
 />
-
-<!--
-<div class="bg-no-repeat bg-center bg-cover" style="background-image: url('{homepage_banner}')">
-  <div class="bg-gradient-to-r from-zinc-900 to-zinc-900/40">
-    <div class="grid lg:w-2/3 mx-auto py-12">
-      <div class="grid lg:place-items-start place-items-center py-8 px-8">
-          <Typewriter />
-      </div>
-    </div>
-  </div>
-</div>
--->
 
 <Sections pageId={0} />
