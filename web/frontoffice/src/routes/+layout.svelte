@@ -27,10 +27,10 @@
                     $NostrGlobalConfig = setup;
                 }
             });
-    }
 
-    if ($fileConfiguration.admin_pubkeys.includes($NostrPublicKey)) {
-        isSuperAdmin.set(true);
+        if ($fileConfiguration.admin_pubkeys.includes($NostrPublicKey)) {
+            isSuperAdmin.set(true);
+        }
     }
 
     const infoUnsubscribe = Info.subscribe(value => {

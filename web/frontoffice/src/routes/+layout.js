@@ -1,5 +1,6 @@
 import {getConfigurationFromFile} from "$sharedLib/utils";
 import {fileConfiguration} from "$sharedLib/stores";
+import { browser } from "$app/environment";
 
 export const prerender = true;
 
@@ -13,5 +14,7 @@ async function loadConfig() {
     fileConfiguration.set(config);
 }
 
-loadConfig()
-    .catch(error => console.log('Error while trying to load config from file:', error));
+if (browser) {
+    loadConfig()
+        .catch(error => console.log('Error while trying to load config from file:', error));
+}
