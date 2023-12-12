@@ -341,6 +341,18 @@ export function putPublish(tokenValue, endpoint, key, successCB: () => void, err
     );
 }
 
+export function putStart(tokenValue, endpoint, key, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI(`/${endpoint}/${key}/start`, 'PUT', tokenValue, null, null,
+        response => {
+            if (response.status === 200) {
+                successCB();
+            } else {
+                errorHandler.handle(response);
+            }
+        }
+    );
+}
+
 export function deleteEntity(tokenValue, entity: IEntityBase, successCB: () => void, errorHandler = new ErrorHandler()) {
     fetchAPI(`/${entity.endpoint}/${entity.key}`, 'DELETE', tokenValue, null, null,
         response => {

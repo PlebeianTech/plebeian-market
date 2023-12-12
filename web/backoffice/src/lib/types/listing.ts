@@ -9,6 +9,7 @@ export class Listing implements IEntity, Item {
 
     uuid: string = "";
     key: string = "";
+    nostr_event_id: string | null = null;
     title: string = "";
     description: string = "";
     digital_item_message: string = "";

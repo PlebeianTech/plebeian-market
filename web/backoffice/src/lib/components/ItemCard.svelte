@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { ErrorHandler, deleteEntity, putPublish } from "$lib/services/api";
+    import { ErrorHandler, deleteEntity, putPublish, putStart } from "$lib/services/api";
     import { user } from "$lib/stores";
     import { token, Info } from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
@@ -17,6 +17,8 @@
 
     export let entity: IEntity;
     $: item = <Item>(<unknown>entity);
+    $: auction = entity instanceof Auction ? <Auction>(<unknown>entity) : null;
+    $: listing = entity instanceof Listing ? <Listing>(<unknown>entity) : null;
     $: hasWallet = ($user && ($user.wallet !== null || $user.lightningAddress !== null));
 
     $: url = item.started ? `/product/${item.uuid}` : null;
@@ -35,11 +37,22 @@
                 inRequest = false;
                 if (item instanceof Auction) {
                     user.update(u => { if (u) { u.hasActiveAuctions = true; } return u; });
-                    Info.set("Your auction is now active...");
+                    Info.set("Your auction has been published!");
                 } else if (item instanceof Listing) {
                     user.update(u => { if (u) { u.hasActiveListings = true; } return u; });
-                    Info.set("Your listing is now active...");
+                    Info.set("Your listing has been published!");
                 }
+                onEntityChanged();
+            },
+            new ErrorHandler(true, () => inRequest = false));
+    }
+    function start() {
+        inRequest = true;
+        putStart($token, item.endpoint, item.key,
+            () => {
+                inRequest = false;
+                user.update(u => { if (u) { u.hasActiveAuctions = true; } return u; });
+                Info.set("Your auction is now running!");
                 onEntityChanged();
             },
             new ErrorHandler(true, () => inRequest = false));
@@ -153,7 +166,10 @@
             <div class="max-h-52 overflow-hidden">
                 {item.description}
             </div>
-            {#if !item.started}
+            {#if auction && auction.start_date === null}
+                <button class="btn btn-secondary" class:btn-disabled={inRequest} on:click|preventDefault={start}>{#if auction.nostr_event_id === null}Start and publish{:else}Start{/if}</button>
+            {/if}
+            {#if auction && auction.nostr_event_id === null || listing && listing.nostr_event_id === null}
                 {#if !hasWallet}
                     <ErrorBox>
                         <span>Please <a href="/admin/account/settings#page=WALLET&onsave=mystall" class="link">configure your wallet</a> before you continue!</span>

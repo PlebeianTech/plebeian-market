@@ -128,7 +128,7 @@
                     <button class="btn mt-1" on:click|preventDefault={onCancel}>Cancel</button>
                 </div>
                 <div class="w-1/2 flex justify-center items-center">
-                    <div class="tooltip tooltip-top" data-tip="Don't worry, this will not start the auction. You start it later by hitting Publish!">
+                    <div class="tooltip tooltip-top" data-tip="Don't worry, this will not start the auction yet!">
                         {#if !auction.validate()}
                             <button class="btn mt-1" disabled>Save</button>
                         {:else}

@@ -17,6 +17,7 @@ export class Auction implements IEntity, Item {
 
     uuid: string = "";
     key: string = "";
+    nostr_event_id: string | null = null;
     title: string = "";
     description: string = "";
     categories: string[] = [];

@@ -735,13 +735,16 @@ def delete_media(key, cls, content_hash):
     return jsonify({})
 
 @api_blueprint.route('/api/auctions/<key>/publish',
-    defaults={'cls': m.Auction},
+    defaults={'cls': m.Auction, 'start': False},
     methods=['PUT'])
 @api_blueprint.route('/api/listings/<key>/publish',
-    defaults={'cls': m.Listing},
+    defaults={'cls': m.Listing, 'start': False},
+    methods=['PUT'])
+@api_blueprint.route('/api/auctions/<key>/start',
+    defaults={'cls': m.Auction, 'start': True},
     methods=['PUT'])
 @user_required
-def put_publish(user, key, cls):
+def put_publish(user, key, cls, start):
     entity = cls.query.filter_by(key=key).first()
     if not entity:
         return jsonify({'message': "Not found."}), 404
@@ -758,9 +761,8 @@ def put_publish(user, key, cls):
     if not user.wallet and not user.lightning_address:
         return jsonify({'message': "Wallet not configured."}), 400
 
-    entity.start_date = datetime.utcnow()
-
-    if isinstance(entity, m.Auction):
+    if start:
+        entity.start_date = datetime.utcnow()
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
 
     user.ensure_merchant_key()
