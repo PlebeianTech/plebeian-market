@@ -8,7 +8,7 @@
     import Search from "$sharedLib/components/icons/Search.svelte";
     import {fileConfiguration} from "$sharedLib/stores";
 
-    export let maxProductsLoaded: number = 2; // 42   // Unlimited
+    export let maxProductsLoaded: number = 56;
 
     let filter = null;
     let showOnlyProductsFromThisCommunity = false;

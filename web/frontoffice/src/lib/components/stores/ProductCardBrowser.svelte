@@ -65,7 +65,11 @@
     $: if (productsLoaded) {
         numProductsLoaded = 0;
 
-        filteredProducts = Object.fromEntries(Object.entries(products).filter(([productId, product]) => {
+        filteredProducts = Object.fromEntries(Object.entries(products)
+            .sort((a, b) => {
+                return b[1].event.created_at - a[1].event.created_at;
+            })
+            .filter(([productId, product]) => {
             // Limit loaded products (0 means unlimited)
             if (maxProductsLoaded > 0 && numProductsLoaded >= maxProductsLoaded) {
                 return false;
