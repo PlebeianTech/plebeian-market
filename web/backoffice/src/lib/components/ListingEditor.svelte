@@ -54,6 +54,9 @@
                     <div class="form-control w-1/2 max-w-xs ml-1">
                         <label class="label" for="available-quantity">
                             <span class="label-text">Available quantity</span>
+                            <div class="tooltip tooltip-left" data-tip="TIP: you can set this to 0 if you want to prevent people from placing orders!">
+                                <InfoIcon />
+                            </div>
                         </label>
                         <input bind:value={listing.available_quantity} type="number" name="available-quantity" class="input input-bordered w-full max-w-xs" />
                     </div>
