@@ -2,7 +2,7 @@
     import {onMount} from "svelte";
     import SvelteMarkdown from 'svelte-markdown'
     import {subscribeConfiguration, getConfigurationKey} from "$sharedLib/services/nostr";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
+    import {fileConfiguration} from "$sharedLib/stores";
 
     export let pageId;
     export let sectionId;
@@ -10,11 +10,10 @@
     let markdownText: string | null = null;
 
     onMount(async () => {
-        let config = await getConfigurationFromFile();
-        if (config && config.admin_pubkeys.length > 0) {
+        if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
             let receivedAt = 0;
 
-            subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
+            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
                 (markdownTextForSection, rcAt) => {
                     if (rcAt > receivedAt) {
                         receivedAt = rcAt;

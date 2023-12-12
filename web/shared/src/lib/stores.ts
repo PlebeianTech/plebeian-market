@@ -31,6 +31,10 @@ export const NostrLoginMethod: Writable<string | null> = writable(null);
 export const NostrGlobalConfig: Writable<object> = writable({});
 
 export const isSuperAdmin: Writable<boolean> = writable(false);
+export const fileConfiguration: Writable<{
+    backend_present: boolean,
+    admin_pubkeys: string[]
+}> = writable({});
 
 export type ShoppingCartSummary = {
     numProducts: number,
