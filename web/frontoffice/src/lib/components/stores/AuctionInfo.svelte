@@ -71,7 +71,7 @@
 
         {:else} <!-- not ended -->
             {#if started}
-                <div class="pb-5">
+                <div class="p-5">
                     <p class="mb-2">Auction ends in</p>
                     <div class="hidden lg:block">
                         <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
@@ -81,9 +81,9 @@
                     </div>
                 </div>
 
+                <!--
                 <div class="flex flex-wrap min-h-[6rem] min-w-[18rem] max-w-4xl gap-2 p-6 items-center justify-center overflow-x-hidden">
                     <div class="form-control">
-                        <!--
                         <label class="label">
                             <span class="label-text">
                                 {#if product.starting_bid && numBids === 0}
@@ -101,9 +101,9 @@
                         <button class="btn btn-success mt-4" on:click|preventDefault={makeNewBid}>
                             Bid
                         </button>
-                        -->
                     </div>
                 </div>
+                -->
 
                 <!-- <BidList {sortedBids} {userProfileInfoMap} {openSitgBadgeInfo} /> -->
 
