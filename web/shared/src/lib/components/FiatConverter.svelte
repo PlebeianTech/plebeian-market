@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {getFiatCurrencyInfo, getFiatRate} from "$sharedLib/currencies";
+    import {getFiatCurrencyInfo} from "$sharedLib/currencies";
     import {currentFiatCurrency, fiatRates} from "$sharedLib/stores";
 
     export let satsAmount: number | null = null;
@@ -16,7 +16,8 @@
     }
 
     function calculateFiatAmount(fiatRate) {
-        convertedAmount = satsAmount / fiatRate;
+        convertedAmount = satsAmount * fiatRate / 100000000;
+
         if (!isNaN(convertedAmount)) {
             if (convertedAmount > 1) {
                 convertedAmount = convertedAmount.toFixed(2);
