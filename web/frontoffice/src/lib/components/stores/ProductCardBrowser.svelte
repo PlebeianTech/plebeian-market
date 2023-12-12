@@ -1,25 +1,43 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import ProductCard from "$lib/components/stores/ProductCard.svelte";
-    import {EVENT_KIND_AUCTION, getProducts} from "$sharedLib/services/nostr";
+    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$sharedLib/services/nostr";
     import {filterTags, getFirstTagValue, getMerchantIDs} from "$sharedLib/nostr/utils";
     import {refreshStalls, onImgError} from "$lib/shopping";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
     import Settings from "$sharedLib/components/icons/Settings.svelte";
     import ProductModal from "$lib/components/stores/ProductModal.svelte";
+    import {fileConfiguration} from "$sharedLib/stores";
+    import { browser } from '$app/environment'
 
-    export let whiteListedStalls: string | null = null;
-    export let showOnlyPMProducts: boolean = false;
+    export let showOnlyProductsFromThisCommunity: boolean = false;
     export let maxProductsLoaded: number = 20;
+    export let filter = null;
+    export let showFixedPriceProducts = true;
+    export let showAuctions = true;
 
-    let productsLoaded: number = 0;
+    let productsLoaded = false;
+
+    let numProductsLoaded: number = 0;
     let viewProductIdOnModal: string | null = null;
     let scrollPosition: number | null = null;
 
     let merchantIDs = [];
 
-    $: backend_present = true;
+    if ($fileConfiguration.backend_present) {
+        getMerchantIDs()
+            .then(merchantIDsFromAPI => {
+                console.log('merchantIDsFromAPI', merchantIDsFromAPI);
 
+                merchantIDsFromAPI.forEach(merchantIDFromAPI => {
+                    if (merchantIDFromAPI && merchantIDFromAPI.public_key) {
+                        merchantIDs.push(merchantIDFromAPI.public_key);
+                    }
+                });
+            })
+            .catch(error => console.log('Error loading merchant IDs from the community:', error));
+    }
+
+    /*
     interface CategoriesAssociativeArray {
         [key: string]: {
         amount: number,
@@ -36,13 +54,51 @@
     $: selectedCategories = Object.keys( Object.fromEntries( Object.entries(categories).filter(([category_id, category]) => {
         return category.selected;
     }) ) );
+    */
 
     interface ProductsAssociativeArray {
         [key: string]: {}
     }
-    let products: ProductsAssociativeArray[] = [];   // : {[productId: string]: {}} = {};
+    let products: ProductsAssociativeArray[] = [];
+    let filteredProducts = [];
 
-    $: filteredProducts = Object.fromEntries( Object.entries(products).filter(([productId, product]) => {
+    $: if (productsLoaded) {
+        numProductsLoaded = 0;
+
+        filteredProducts = Object.fromEntries(Object.entries(products).filter(([productId, product]) => {
+            // Limit loaded products (0 means unlimited)
+            if (maxProductsLoaded > 0 && numProductsLoaded >= maxProductsLoaded) {
+                return false;
+            }
+
+            // "Product of this community" filter
+            if (showOnlyProductsFromThisCommunity && !merchantIDs.includes(product.event.pubkey)) {
+                return false;
+            }
+
+            // Text filter
+            if (filter &&
+                !(
+                    productId === filter ||
+                    product.name?.toLowerCase().includes(filter.toLowerCase()) ||
+                    product.description?.toLowerCase().includes(filter.toLowerCase())
+                )
+            ) {
+                return false;
+            }
+
+            // Product type filter
+            if (!showAuctions && product.event.kind === EVENT_KIND_AUCTION) {
+                return false;
+            }
+            if (!showFixedPriceProducts && product.event.kind === EVENT_KIND_PRODUCT) {
+                return false;
+            }
+
+            numProductsLoaded++;
+            return true;
+
+            /*
         if (categories['All'].selected) {
             return true;
         } else {
@@ -54,32 +110,12 @@
                 }
             }
         }
-    }));
+        */
+        }));
+    }
 
     onMount(async () => {
         refreshStalls();
-
-        let config = await getConfigurationFromFile();
-
-        if (config && config.admin_pubkeys.length > 0) {
-            backend_present = config.backend_present ?? true;
-
-            if (showOnlyPMProducts && backend_present) {
-                const merchantIDsFromAPI = await getMerchantIDs();
-
-                merchantIDsFromAPI.forEach(merchantIDFromAPI => {
-                    if (merchantIDFromAPI && merchantIDFromAPI.public_key) {
-                        merchantIDs.push(merchantIDFromAPI.public_key);
-                    }
-                });
-
-            } else {
-                // admin pubkey specified, so let's wait
-                // to give some time for the GlobalConfiguration
-                // to get here from Nostr relays...
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
 
         getProducts(null, null,
             (newProductInfo) => {
@@ -92,8 +128,7 @@
                     let now = Math.floor(Date.now() / 1000);
                     let endsAt = newProductInfo.start_date + newProductInfo.duration;
 
-                    if (now > endsAt) {
-                        // Auction already ended
+                    if (now > endsAt) {     // Auction already ended
                         return;
                     }
                 }
@@ -107,10 +142,7 @@
                     }
                 }
 
-                if (showOnlyPMProducts && backend_present && !merchantIDs.includes(newProductInfo.event.pubkey)) {
-                    return;
-                }
-
+                /*
                 filterTags(newProductInfo.event.tags, 't').forEach((category) => {
                     let tag = category[1].trim().toLowerCase();
 
@@ -128,6 +160,7 @@
 
                     categories = categories;
                 });
+                */
 
                 let productId = newProductInfo.id;
 
@@ -136,36 +169,18 @@
                         products[productId] = newProductInfo;
                     }
                 } else {
-                    // If whiteListedStalls is provided, don't limit the number of loaded products
-                    // If there is no whiteListedStalls, load just maxProductsLoaded products, unless
-                    // maxProductsLoaded is 0 (unlimited)
-
-                    if (
-                        whiteListedStalls
-                        ||
-                        (
-                            whiteListedStalls === null
-                            &&
-                            (
-                                (
-                                    maxProductsLoaded === 0
-                                )
-                                ||
-                                (
-                                    maxProductsLoaded > 0
-                                    &&
-                                    productsLoaded < maxProductsLoaded
-                                )
-                            )
-                        )
-                    ) {
-                        products[productId] = newProductInfo;
-                        productsLoaded++;
-                    }
+                    products[productId] = newProductInfo;
+                }
+            },
+            () => {
+                // EOSE: all products loaded
+                if (browser) {
+                    productsLoaded = true;
                 }
             });
     });
 
+    /*
     function toggleCategory(category) {
         if (category === 'All' && categories['All'].selected) {
             for (const cat in categories) {
@@ -179,6 +194,7 @@
             }
         }
     }
+    */
 </script>
 
 <!--
@@ -207,12 +223,17 @@
 </div>
 -->
 
-<div class="p-2 py-2 pt-8 h-auto container grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto" >
-    {#each Object.entries(filteredProducts) as [productId, product]}
-        {#if (!whiteListedStalls || whiteListedStalls && whiteListedStalls.length === 0) || (whiteListedStalls && whiteListedStalls.length > 0 && whiteListedStalls.includes(product.stall_id))}
+
+{#if !productsLoaded}
+    <div class="flex mx-auto w-fit p-28 items-center justify-center">
+        <span class="loading loading-bars w-32"></span>
+    </div>
+{:else}
+    <div class="p-2 py-2 pt-8 h-auto container grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto" >
+        {#each Object.entries(filteredProducts) as [_, product]}
             <ProductCard {product} {onImgError} isOnStall={false} bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
-        {/if}
-    {/each}
-</div>
+        {/each}
+    </div>
+{/if}
 
 <ProductModal bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />

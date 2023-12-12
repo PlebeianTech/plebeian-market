@@ -208,6 +208,13 @@
                                 <div class="w-6 h-6 mr-1"><World /></div> Plebeian Planet
                             </a>
                         </li>
+                        {#if $isSuperAdmin}
+                            <li class="block md:hidden md:h-0">
+                                <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
+                                    <div class="w-6 h-6 mr-1"><World /></div> Nostr Universe
+                                </a>
+                            </li>
+                        {/if}
                         {#if $NostrPublicKey}
                             <li class="menu-title mt-1">
                                 <span class="text-lg">Account</span>
