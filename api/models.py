@@ -684,6 +684,7 @@ class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
 
     campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
 
+    # TODO: we should probably retire this column since it doesn't make much sense for fixed price items
     start_date = db.Column(db.DateTime, nullable=True)
 
     @property

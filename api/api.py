@@ -625,7 +625,7 @@ def get_put_delete_entity(key, cls, singular):
                     item_category = m.ItemCategory.query.filter_by(item_id=entity.item.id, category_id=category.id).first()
                     db.session.delete(item_category)
 
-            if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)) and entity.started:
+            if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)):
                 user.ensure_merchant_key()
                 entity.nostr_event_id = get_birdwatcher().publish_product(entity)
                 if not entity.nostr_event_id:
