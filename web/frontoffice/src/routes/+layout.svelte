@@ -27,10 +27,6 @@
                     $NostrGlobalConfig = setup;
                 }
             });
-
-        if ($fileConfiguration.admin_pubkeys.includes($NostrPublicKey)) {
-            isSuperAdmin.set(true);
-        }
     }
 
     const infoUnsubscribe = Info.subscribe(value => {
@@ -71,6 +67,10 @@
     });
 
     onMount(() => {
+        if ($fileConfiguration.admin_pubkeys.includes($NostrPublicKey)) {
+            $isSuperAdmin = true;
+        }
+
         refreshStalls();
         restoreShoppingCartProductsFromLocalStorage();
     });
