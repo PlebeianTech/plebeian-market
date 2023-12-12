@@ -10,8 +10,7 @@
     } from "$sharedLib/services/nostr";
     import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {isSuperAdmin} from "$sharedLib/stores";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
+    import {fileConfiguration, isSuperAdmin} from "$sharedLib/stores";
     import SvelteMarkdown from "svelte-markdown";
     import Countdown from "$sharedLib/components/Countdown.svelte";
 
@@ -60,15 +59,14 @@
                     productsLoaded = true;
                 }
 
-                let config = await getConfigurationFromFile();
-                if (config && config.admin_pubkeys.length > 0) {
+                if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
                     let markdownTextForProductsConfigurationKeys = [];
 
                     Object.keys(products).forEach(productId => {
                         markdownTextForProductsConfigurationKeys.push(getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + productId));
                     });
 
-                    subscribeConfiguration(config.admin_pubkeys, markdownTextForProductsConfigurationKeys,
+                    subscribeConfiguration($fileConfiguration.admin_pubkeys, markdownTextForProductsConfigurationKeys,
                         (markdownTextForProduct, rcAt, e) => {
                             let productConfigKeyForThisEvent = filterTags(e.tags, 'd').join()
                             let productIdForThisConfigurantionEvent = productConfigKeyForThisEvent.split('_').at(-1);

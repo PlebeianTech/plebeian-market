@@ -1,9 +1,8 @@
 <script lang="ts">
     import {getPage, pageBuilderWidgetType, saveSectionSetup} from "$lib/pagebuilder";
-    import {NostrGlobalConfig} from "$sharedLib/stores";
+    import {fileConfiguration, NostrGlobalConfig} from "$sharedLib/stores";
     import { useProsemirrorAdapterProvider } from "@prosemirror-adapter/svelte";
     import Editor from "$lib/components/pagebuilder/editor/Editor.svelte";
-    import {getConfigurationFromFile} from "$sharedLib/utils";
     import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
 
     useProsemirrorAdapterProvider();
@@ -45,13 +44,12 @@
         maxProductsShown = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
 
         if (sectionType === 'text') {
-            let config = await getConfigurationFromFile();
-            if (config && config.admin_pubkeys.length > 0) {
+            if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
                 let receivedAt = 0;
 
                 initialMarkdownText = '';
 
-                subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
+                subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
                     (markdownTextForSection, rcAt) => {
                         if (rcAt > receivedAt) {
                             receivedAt = rcAt;
@@ -63,15 +61,14 @@
 
         if (sectionType === 'products_with_slider') {
             if (product) {
-                let config = await getConfigurationFromFile();
-                if (config && config.admin_pubkeys.length > 0) {
+                if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
                     lastProductPassed = product;
 
                     let receivedAt = 0;
 
                     initialMarkdownText = (product.name ?? '') + ('\n\n' + product.description ?? '');
 
-                    subscribeConfiguration(config.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + product.id)],
+                    subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + product.id)],
                         (markdownTextForSection, rcAt) => {
                             if (rcAt > receivedAt) {
                                 receivedAt = rcAt;

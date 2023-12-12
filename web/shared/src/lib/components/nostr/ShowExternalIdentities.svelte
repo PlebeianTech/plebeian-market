@@ -1,7 +1,5 @@
 <script lang="ts">
     import {askAPIForVerification, encodeNpub, getExternalIdentityUrl} from "$sharedLib/nostr/utils.js";
-    import {onMount} from "svelte";
-    import {getConfigurationFromFile} from "$sharedLib/utils.js";
     import Clock from "$sharedLib/components/icons/Clock.svelte";
     import VerificationMark from "$sharedLib/components/icons/VerificationMark.svelte";
     import X from "$sharedLib/components/icons/X.svelte";
@@ -9,7 +7,7 @@
     import Github from "$sharedLib/components/icons/Github.svelte";
     import Twitter from "$sharedLib/components/icons/Twitter.svelte";
     import Copy from "$sharedLib/components/icons/Copy.svelte";
-    import {Info} from "$sharedLib/stores.js";
+    import {fileConfiguration, Info} from "$sharedLib/stores.js";
 
     export let profileFinishedLoading = false;
     export let externalIdentities;
@@ -20,15 +18,14 @@
     $: externalIdentitiesVerification = {};
 
     const identityTypesSupported = ['twitter', 'github', 'telegram'];
-    $: backend_present = true;
     $: verificationCanBeDone = true;
 
-    $: if (backend_present && profileFinishedLoading) {
+    $: if ($fileConfiguration.backend_present && profileFinishedLoading) {
         verifyIdentities();
     }
 
     async function verifyIdentities() {
-        if (backend_present) {
+        if ($fileConfiguration.backend_present) {
             if (externalIdentities.length === 0) {
                 return;
             }
@@ -59,13 +56,6 @@
             verificationCanBeDone = false;
         }
     }
-
-    onMount(async () => {
-        let config = await getConfigurationFromFile();
-        if (config) {
-            backend_present = config.backend_present ?? true;
-        }
-    });
 </script>
 
 {#each externalIdentities as identity}
@@ -85,7 +75,7 @@
 
             <div class="ml-2">{identity.split(':')[1]}</div>
 
-            {#if backend_present && externalIdentitiesVerification[identity.split(':')[0]]}
+            {#if $fileConfiguration.backend_present && externalIdentitiesVerification[identity.split(':')[0]]}
                 {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
                     <div class="w-5 h-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
                 {:else if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'verified-ok' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
@@ -98,7 +88,7 @@
     </div>
 {/each}
 
-{#if !compact && (!backend_present || !verificationCanBeDone)}
+{#if !compact && (!$fileConfiguration.backend_present || !verificationCanBeDone)}
     <div class="flex mt-6 mb-4 w-11/12 lg:w-8/12" class:text-lg={!compact} class:text-xs={compact}>
         <p class="text-ellipsis overflow-hidden mx-auto">
             {#if !compact}
