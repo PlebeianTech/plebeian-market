@@ -13,18 +13,19 @@
 
     const maxProductsLoaded = 20;
 
+    let setupSection;
     let content = null;
     let orderedSections;
 
-    $: { content = getPage(pageId, $NostrGlobalConfig); }
+    $: if (Object.keys($NostrGlobalConfig).length > 0) {
+        content = getPage(pageId, $NostrGlobalConfig);
 
-    $: if (content && content.sections) {
-        orderedSections = Object.entries(content.sections).sort((a, b) => {
-            return a[1].order - b[1].order;
-        });
+        if (content?.sections) {
+            orderedSections = Object.entries(content.sections).sort((a, b) => {
+                return a[1].order - b[1].order;
+            });
+        }
     }
-
-    let setupSection;
 </script>
 
 {#if content && Object.keys(content.sections).length > 0}

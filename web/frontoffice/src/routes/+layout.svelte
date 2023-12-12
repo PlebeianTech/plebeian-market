@@ -16,8 +16,24 @@
     import {closePool, getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
+    import { browser } from "$app/environment";
 
-	const infoUnsubscribe = Info.subscribe(value => {
+    if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+        let receivedAt = 0;
+        subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('site_specific_config')],
+            (setup, rcAt) => {
+                if (rcAt > receivedAt) {
+                    receivedAt = rcAt;
+                    $NostrGlobalConfig = setup;
+                }
+            });
+    }
+
+    if ($fileConfiguration.admin_pubkeys.includes($NostrPublicKey)) {
+        isSuperAdmin.set(true);
+    }
+
+    const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
             let description: string;
             let duration: number;
@@ -40,9 +56,9 @@
             });
             Info.set(null);
         }
-	});
+    });
 
-	const errorUnsubscribe = Error.subscribe(value => {
+    const errorUnsubscribe = Error.subscribe(value => {
         if (value) {
             toasts.add({
                 description: value,
@@ -52,27 +68,9 @@
             });
             Error.set(null);
         }
-	});
+    });
 
     onMount(() => {
-        if ($fileConfiguration.admin_pubkeys.includes($NostrPublicKey)) {
-            isSuperAdmin.set(true);
-        }
-
-        $NostrGlobalConfig =  {};
-
-        if ($fileConfiguration?.admin_pubkeys?.length > 0) {
-            let receivedAt = 0;
-
-            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('site_specific_config')],
-                (setup, rcAt) => {
-                    if (rcAt > receivedAt) {
-                        receivedAt = rcAt;
-                        $NostrGlobalConfig = setup;
-                    }
-                });
-        }
-
         refreshStalls();
         restoreShoppingCartProductsFromLocalStorage();
     });
@@ -80,7 +78,10 @@
     onDestroy(async () => {
         errorUnsubscribe();
         infoUnsubscribe();
-        await closePool();
+        if (browser) {
+            await closePool();
+        }
+
     });
 </script>
 

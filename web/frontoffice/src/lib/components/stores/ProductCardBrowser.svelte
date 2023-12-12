@@ -23,7 +23,7 @@
 
     let merchantIDs = [];
 
-    if ($fileConfiguration.backend_present) {
+    if (browser && $fileConfiguration.backend_present) {
         getMerchantIDs()
             .then(merchantIDsFromAPI => {
                 console.log('merchantIDsFromAPI', merchantIDsFromAPI);
