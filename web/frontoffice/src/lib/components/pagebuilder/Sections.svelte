@@ -8,6 +8,7 @@
     import SectionsProductsSlider from "$lib/components/pagebuilder/SectionsProductsSlider.svelte";
     import Edit from "$sharedLib/components/icons/Edit.svelte";
     import BuilderSectionSetup from "$lib/components/pagebuilder/BuilderSectionSetup.svelte";
+    import {onMount} from "svelte";
 
     export let pageId;
 
@@ -16,6 +17,7 @@
     let setupSection;
     let content = null;
     let orderedSections;
+    let viewPageAnyways = false;
 
     $: if (Object.keys($NostrGlobalConfig).length > 0) {
         content = getPage(pageId, $NostrGlobalConfig);
@@ -26,44 +28,55 @@
             });
         }
     }
+
+    onMount(async () => {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        viewPageAnyways = true;
+    });
 </script>
 
-{#if content && Object.keys(content.sections).length > 0}
-    <div class="pt-12">
-        {#each orderedSections as [sectionId, section]}
-            {#if section?.params?.sectionType && (section?.values || section.params.sectionType === 'text')}
-                <div class="relative overflow-x-hidden">
-                    <h2 class="text-2xl font-bold text-center mb-2 md:mb-5">
-                        {section.title}
-                        {#if $isSuperAdmin}
-                            <button class="btn btn-square ml-2" on:click={() => setupSection(pageId, sectionId, null, true)}>
-                                <span class="w-6 h-6"><Edit /></span>
-                            </button>
+{#if Object.keys($NostrGlobalConfig).length > 0 || viewPageAnyways}
+    {#if content && Object.keys(content.sections).length > 0}
+        <div class="pt-12">
+            {#each orderedSections as [sectionId, section]}
+                {#if section?.params?.sectionType && (section?.values || section.params.sectionType === 'text')}
+                    <div class="relative overflow-x-hidden">
+                        <h2 class="text-2xl font-bold text-center mb-2 md:mb-5">
+                            {section.title}
+                            {#if $isSuperAdmin}
+                                <button class="btn btn-square ml-2" on:click={() => setupSection(pageId, sectionId, null, true)}>
+                                    <span class="w-6 h-6"><Edit /></span>
+                                </button>
+                            {/if}
+                        </h2>
+
+                        {#if section?.params?.sectionType === 'text'}
+                            <SectionsText {pageId} {sectionId} />
+                        {:else if section?.params?.sectionType === 'stalls'}
+                            <SectionsStalls {pageId} {sectionId} />
+                        {:else if section?.params?.sectionType === 'products'}
+                            <SectionsProducts {pageId} {sectionId} />
+                        {:else if section?.params?.sectionType === 'products_with_slider'}
+                            <SectionsProductsSlider {pageId} {sectionId} {setupSection} />
+                        {:else if section?.params?.sectionType === 'stall_products'}
+                            ----- Stall Products
                         {/if}
-                    </h2>
+                    </div>
 
-                    {#if section?.params?.sectionType === 'text'}
-                        <SectionsText {pageId} {sectionId} />
-                    {:else if section?.params?.sectionType === 'stalls'}
-                        <SectionsStalls {pageId} {sectionId} />
-                    {:else if section?.params?.sectionType === 'products'}
-                        <SectionsProducts {pageId} {sectionId} />
-                    {:else if section?.params?.sectionType === 'products_with_slider'}
-                        <SectionsProductsSlider {pageId} {sectionId} {setupSection} />
-                    {:else if section?.params?.sectionType === 'stall_products'}
-                        ----- Stall Products
-                    {/if}
-                </div>
+                    <div class="divider w-[80%] mx-auto my-8 md:my-10"></div>
+                {/if}
+            {/each}
+        </div>
 
-                <div class="divider w-[80%] mx-auto my-8 md:my-10"></div>
-            {/if}
-        {/each}
-    </div>
+        {#if $isSuperAdmin}
+            <BuilderSectionSetup bind:setupSection={setupSection} />
+        {/if}
 
-    {#if $isSuperAdmin}
-        <BuilderSectionSetup bind:setupSection={setupSection} />
+    {:else}
+        <ProductCardBrowser {maxProductsLoaded} />
     {/if}
-
 {:else}
-    <ProductCardBrowser {maxProductsLoaded} />
+    <div class="p-12 flex flex-wrap items-center justify-center">
+        <span class="loading loading-bars w-24"></span>
+    </div>
 {/if}
