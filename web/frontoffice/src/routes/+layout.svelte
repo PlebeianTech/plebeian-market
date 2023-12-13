@@ -5,10 +5,7 @@
     import { page } from '$app/stores';
     import {NostrPublicKey, isSuperAdmin, fileConfiguration, NostrGlobalConfig} from "$sharedLib/stores";
     import type { Placement} from "$sharedLib/stores";
-    import {
-        Info,
-        Error,
-    } from "$sharedLib/stores";
+    import {Info, Error} from "$sharedLib/stores";
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Notifications from "$lib/components/Notifications.svelte";
@@ -18,7 +15,7 @@
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
     import { browser } from "$app/environment";
 
-    if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+    $: if ($fileConfiguration?.admin_pubkeys?.length > 0) {
         let receivedAt = 0;
         subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('site_specific_config')],
             (setup, rcAt) => {
@@ -27,6 +24,10 @@
                     $NostrGlobalConfig = setup;
                 }
             });
+    }
+
+    $: if ($NostrPublicKey && $fileConfiguration?.admin_pubkeys?.includes($NostrPublicKey)) {
+        $isSuperAdmin = true;
     }
 
     const infoUnsubscribe = Info.subscribe(value => {
@@ -67,10 +68,6 @@
     });
 
     onMount(() => {
-        if ($fileConfiguration.admin_pubkeys.includes($NostrPublicKey)) {
-            $isSuperAdmin = true;
-        }
-
         refreshStalls();
         restoreShoppingCartProductsFromLocalStorage();
     });
