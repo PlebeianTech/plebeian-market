@@ -24,7 +24,7 @@
     }
 </script>
 
-<div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-16 md:4">
+<div class="card w-full md:w-96 bg-base-200 dark:bg-base-300 shadow-xl mx-auto mb-6 md:mb-16 md:4">
     <figure>
         <a class="cursor-pointer" href="/product/{product.id}" on:click|preventDefault={openProduct}>
             {#key `${product.id}-${product.images ? product.images[0] : product.image ?? productImageFallback}`}
