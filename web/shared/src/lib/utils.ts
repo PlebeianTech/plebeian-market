@@ -1,7 +1,6 @@
 import {goto} from "$app/navigation";
-import {NostrPublicKey, NostrLoginMethod, loginModalState, Info} from "$sharedLib/stores";
+import {NostrPublicKey, NostrLoginMethod, loginModalState, Info, isSuperAdmin, privateMessages, ShoppingCart, token} from "$sharedLib/stores";
 import {get} from "svelte/store";
-import {privateMessages, ShoppingCart, token} from "$sharedLib/stores";
 import {browser} from "$app/environment";
 import {page} from "$app/stores";
 
@@ -65,6 +64,7 @@ export function logout(gotoUrl?: string) {
     Info.set("You're Logged out");
 
     NostrPublicKey.set(null);
+    isSuperAdmin.set(false);
 
     privateMessages.set({
         human: [],
