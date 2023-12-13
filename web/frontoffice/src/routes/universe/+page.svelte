@@ -27,8 +27,8 @@
         <span class="h-full absolute inset-y-0 left-0 flex items-center pl-2">
             <Search />
         </span>
-        <input bind:value={filter} placeholder="Search product title, description or enter a product id"
-               class="block pl-9 pr-4 py-2 w-full md:w-96 rounded border border-gray-400 text-sm focus:outline-none" />
+        <input bind:value={filter} placeholder="Search product title, description, tag, or product id"
+               class="block pl-9 pr-4 py-2 w-full md:w-[28rem] rounded border border-gray-400 text-sm focus:outline-none" />
     </div>
 </div>
 

@@ -85,7 +85,8 @@
                 !(
                     productId === filter ||
                     product.name?.toLowerCase().includes(filter.toLowerCase()) ||
-                    product.description?.toLowerCase().includes(filter.toLowerCase())
+                    product.description?.toLowerCase().includes(filter.toLowerCase()) ||
+                    product.tags?.join(' ').toLowerCase().includes(filter.toLowerCase())
                 )
             ) {
                 return false;
@@ -146,10 +147,18 @@
                     }
                 }
 
-                /*
                 filterTags(newProductInfo.event.tags, 't').forEach((category) => {
                     let tag = category[1].trim().toLowerCase();
 
+                    if (!newProductInfo.tags) {
+                        newProductInfo.tags = [];
+                    }
+
+                    if (!(tag in newProductInfo.tags)) {
+                        newProductInfo.tags.push(tag);
+                    }
+
+                    /*
                     // Add to global categories
                     if (tag in categories) {
                         categories[tag].amount++;
@@ -163,8 +172,8 @@
                     categories['All'].amount++;
 
                     categories = categories;
+                    */
                 });
-                */
 
                 let productId = newProductInfo.id;
 
