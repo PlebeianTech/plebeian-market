@@ -15,4 +15,4 @@
     <p class="mb-6 text-sm mx-auto">Products created on {import.meta.env.VITE_SITE_NAME}</p>
 </div>
 
-<ProductCardBrowser {maxProductsLoaded} showOnlyPMProducts={true} />
+<ProductCardBrowser {maxProductsLoaded} showOnlyProductsFromThisCommunity={true} />
