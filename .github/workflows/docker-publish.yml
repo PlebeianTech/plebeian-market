@@ -6,8 +6,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -42,10 +40,32 @@ jobs:
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
-        id: meta
+        id: meta-db
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/plebeiantech/plebeian-market-db
+
+      # Build and push Docker image with Buildx
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        id: build-and-push-db
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: ./
+          file: ./services/postgres/Dockerfile
+          push: true
+          tags: ${{ steps.meta-db.outputs.tags }}
+          labels: ${{ steps.meta-db.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta-api
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+        with:
+          images: ${{ env.REGISTRY }}/plebeiantech/plebeian-market-api
 
       # Build and push Docker image with Buildx
       # https://github.com/docker/build-push-action
@@ -56,7 +76,7 @@ jobs:
           context: ./
           file: ./api/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
