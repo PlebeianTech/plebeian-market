@@ -21,7 +21,7 @@
         {#each getItemsFromSection(pageId, sectionId, 'stalls') as stallId}
             {#if $stalls.stalls[stallId]}
                 <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
-                    <div class="bg-white dark:bg-black rounded-lg shadow-md">
+                    <div class="h-full bg-white dark:bg-black rounded-lg shadow-md">
                         <div class="p-4 md:p-8" class:md:pb-2={$isSuperAdmin}>
                             <div class="cursor-pointer">
                                 <div class="float-left h-7 w-7 mr-3"><Store /></div>

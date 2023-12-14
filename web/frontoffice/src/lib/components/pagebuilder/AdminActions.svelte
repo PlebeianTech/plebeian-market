@@ -14,6 +14,7 @@
     export let itemId;
     export let entityName;
     export let classOverride = "text-black dark:text-white";
+    export let showAddActions = true;
 </script>
 
 {#if Object.keys($NostrGlobalConfig).length > 0}
@@ -24,22 +25,24 @@
         <div class="tooltip tooltip-top mr-1 md:mr-2 hidden md:block" data-tip="This is shown because you're an admin. Your visitors will not see this section.">
             <InfoIcon />
         </div>
-        <div class="dropdown dropdown-bottom">
-            <div tabindex="0" class="tooltip tooltip-primary tooltip-top flex" data-tip="Add this to section">
-                <span class="w-5 md:w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right text-left left">
-                    <Plus />
-                </span>
-            </div>
-            <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-80 rounded border border-gray-400 z-[100]">
-                {#each Object.entries(getPages($NostrGlobalConfig)) as [pageId, page]}
-                    {#each Object.entries(getPage(pageId).sections) as [sectionId, section]}
-                        {#if section?.params?.sectionType && section?.params?.sectionType.includes(entityName)}
-                            <li><a on:click={() => {addItemToSection(pageId, sectionId, itemId, entityName); document.activeElement.blur()}}>{page.title} - {section.title}</a></li>
-                        {/if}
+        {#if showAddActions}
+            <div class="dropdown dropdown-bottom">
+                <div tabindex="0" class="tooltip tooltip-primary tooltip-top flex" data-tip="Add this to section">
+                    <span class="w-5 md:w-6 text-green-500 cursor-pointer tooltip tooltip-primary tooltip-right text-left left">
+                        <Plus />
+                    </span>
+                </div>
+                <ul tabindex="0" class="dropdown-content menu shadow bg-base-300 rounded-box w-80 rounded border border-gray-400 z-[100]">
+                    {#each Object.entries(getPages($NostrGlobalConfig)) as [pageId, page]}
+                        {#each Object.entries(getPage(pageId).sections) as [sectionId, section]}
+                            {#if section?.params?.sectionType && section?.params?.sectionType.includes(entityName)}
+                                <li><a on:click={() => {addItemToSection(pageId, sectionId, itemId, entityName); document.activeElement.blur()}}>{page.title} - {section.title}</a></li>
+                            {/if}
+                        {/each}
                     {/each}
-                {/each}
-            </ul>
-        </div>
+                </ul>
+            </div>
+        {/if}
     </div>
 
     <div class="aaaflex mt-1 md:mt-3 items-start text-left text-sm md:text-md {classOverride}">

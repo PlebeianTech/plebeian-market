@@ -34,6 +34,7 @@
                                 itemId={product.id}
                                 entityName="products"
                                 classOverride="text-white"
+                                showAddActions={false}
                             />
                         </div>
                     </a>
