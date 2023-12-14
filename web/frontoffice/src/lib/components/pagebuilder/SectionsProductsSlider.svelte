@@ -13,6 +13,7 @@
     import {fileConfiguration, isSuperAdmin} from "$sharedLib/stores";
     import SvelteMarkdown from "svelte-markdown";
     import Countdown from "$sharedLib/components/Countdown.svelte";
+    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
 
     export let pageId;
     export let sectionId;
@@ -145,6 +146,14 @@
                             <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
                             {#if $isSuperAdmin}
                                 <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product, true)}>Edit text</button>
+
+                                <div class="p-0 md:p-4 md:pb-0">
+                                    <AdminActions
+                                            itemId={product.id}
+                                            entityName="products"
+                                            classOverride="text-white"
+                                    />
+                                </div>
                             {/if}
                         </div>
                     </div>
