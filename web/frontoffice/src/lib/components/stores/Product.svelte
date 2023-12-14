@@ -4,13 +4,14 @@
     import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$sharedLib/services/nostr";
     import {onImgError, refreshStalls} from "$lib/shopping";
     import {afterNavigate, goto} from "$app/navigation";
-    import {stalls} from "$sharedLib/stores";
+    import {isSuperAdmin, stalls} from "$sharedLib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import Quantity from "$lib/components/stores/Quantity.svelte";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {addToCart} from "$lib/shopping";
     import BidWidget from "$lib/components/stores/BidWidget.svelte";
     import SvelteMarkdown from "svelte-markdown";
+    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
 
     export let product_id = null;
     export let in_popup = false;
@@ -151,6 +152,15 @@
                     {:else}
                         <button class="btn btn-warning btn-lg no-animation">Out of stock</button>
                     {/if}
+                {/if}
+
+                {#if $isSuperAdmin}
+                    <div class="p-8 md:p-12 md:pb-0">
+                        <AdminActions
+                            itemId={product.id}
+                            entityName="products"
+                        />
+                    </div>
                 {/if}
             </div>
         </div>

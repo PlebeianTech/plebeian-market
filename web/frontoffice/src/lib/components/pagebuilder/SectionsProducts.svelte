@@ -4,6 +4,8 @@
     import {getProducts, EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT} from "$sharedLib/services/nostr";
     import {getFirstTagValue} from "$sharedLib/nostr/utils";
     import ProductCard from "$lib/components/pagebuilder/ProductCard.svelte";
+    import ProductCardCTA from "$lib/components/pagebuilder/ProductCardCTA.svelte";
+    import {fileConfiguration} from "$sharedLib/stores";
 
     export let pageId;
     export let sectionId;
@@ -55,6 +57,10 @@
                     <ProductCard {product} />
                 {/if}
             {/each}
+
+            {#if $fileConfiguration.backend_present}
+                <ProductCardCTA />
+            {/if}
         </div>
     {/if}
 </main>
