@@ -155,7 +155,7 @@
                 {/if}
 
                 {#if $isSuperAdmin}
-                    <div class="p-0 md:p-12 md:pb-0">
+                    <div class="p-8 md:p-12 md:pb-0">
                         <AdminActions
                             itemId={product.id}
                             entityName="products"

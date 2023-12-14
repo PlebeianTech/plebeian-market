@@ -14,6 +14,7 @@
     import SvelteMarkdown from "svelte-markdown";
     import Countdown from "$sharedLib/components/Countdown.svelte";
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import Plus from "$sharedLib/components/icons/Plus.svelte";
 
     export let pageId;
     export let sectionId;
@@ -113,8 +114,10 @@
                      data-te-carousel-active={i === 0 ? true : null}>
                     <div class="relative h-full w-auto md:flex overflow-hidden">
                         <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
-                            <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
-                                 src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
+                            <a href="/product/{product.id}">
+                                <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
+                                     src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
+                            </a>
                         </div>
 
                         <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
@@ -158,6 +161,32 @@
                     </div>
                 </div>
             {/each}
+
+            <!-- CTA Slider -->
+            {#if Object.entries(products).length > 1 && $fileConfiguration.backend_present}
+                <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
+                     data-te-carousel-fade
+                     data-te-carousel-item>
+                    <div class="relative h-full w-auto md:flex qaaaoverflow-hidden">
+                        <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
+                            <a class="flex" href="/admin">
+                                <span class="w-7/12 max-h-20 mt-6 md:mt-12 mx-auto text-green-500 tooltip">
+                                    <Plus />
+                                </span>
+                            </a>
+                        </div>
+
+                        <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
+                            <div class="z-[300] prose lg:prose-xl prose-p:my-2 md:prose-p:my-3">
+                                <h2 class="md:text-3xl mb-1 md:mb-2">Sell or auction your product here!</h2>
+                                <SvelteMarkdown source="Create your stall and start selling or auctioning your products in 5 minutes!" />
+                            </div>
+
+                            <a class="btn btn-outline btn-accent mt-6" href="/admin">Sell your products</a>
+                        </div>
+                    </div>
+                </div>
+            {/if}
         </div>
 
         {#if Object.entries(products).length > 1}
@@ -181,15 +210,24 @@
                       data-te-slide="next">&#x279c;</span>
             </div>
 
-            <div class="inset-x-0 mt-3 md:mt-6 z-[2] mx-[15%] mb-4 flex list-none justify-center p-0" data-te-carousel-indicators>
+            <div class="inset-x-0 p-0 mt-3 mx-[5%] md:mx-[15%] md:mt-6 mb-4 z-[2] flex list-none justify-center" data-te-carousel-indicators>
                 {#each Object.entries(products) as [_, product], i}
                     <button data-te-target="#slider_{pageId}_{sectionId}"
                             data-te-slide-to="{i}"
                             data-te-carousel-active={i === 0 ? true : null}
-                            class="px-6 md:px-12 opacity-50 hover:opacity-100">
-                        <img class="w-full" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="" style="max-height: 60px;">
+                            class="px-2 md:px-12 opacity-50 hover:opacity-100">
+                        <img class="w-full max-h-16" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="">
                     </button>
                 {/each}
+
+                <!-- CTA Slider -->
+                {#if Object.entries(products).length > 1 && $fileConfiguration.backend_present}
+                    <button data-te-target="#slider_{pageId}_{sectionId}"
+                            data-te-slide-to="{Object.entries(products).length}"
+                            class="pl-2 w-16 opacity-50 hover:opacity-100 text-green-500 tooltip">
+                        <Plus />
+                    </button>
+                {/if}
             </div>
         {/if}
     </div>
