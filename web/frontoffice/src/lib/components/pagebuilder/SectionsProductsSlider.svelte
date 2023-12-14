@@ -149,9 +149,8 @@
 
                                 <div class="p-0 md:p-4 md:pb-0">
                                     <AdminActions
-                                            itemId={product.id}
-                                            entityName="products"
-                                            classOverride="text-white"
+                                        itemId={product.id}
+                                        entityName="products"
                                     />
                                 </div>
                             {/if}

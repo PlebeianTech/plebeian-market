@@ -159,7 +159,6 @@
                         <AdminActions
                             itemId={product.id}
                             entityName="products"
-                            classOverride="aaatext-white"
                         />
                     </div>
                 {/if}
