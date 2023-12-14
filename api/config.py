@@ -33,8 +33,9 @@ if bool(int(os.environ.get("SQLALCHEMY_DISABLE_POOLING", 0))):
     from sqlalchemy.pool import NullPool
     SQLALCHEMY_ENGINE_OPTIONS = {'poolclass': NullPool}
 
-APP = os.environ.get('APP')
 ENV = os.environ.get('ENV')
+
+AUTO_CONFIGURE_SITE = bool(int(os.environ.get('AUTO_CONFIGURE_SITE', 0)))
 
 API_BASE_URL = os.environ.get('API_BASE_URL')
 API_BASE_URL_EXTERNAL = os.environ.get('API_BASE_URL_EXTERNAL') # used to mock S3 in dev mode and have the browser (which is not running in the docker container) hit the mock directly

@@ -3,6 +3,8 @@ version: '3.6'
 services:
   api:
     env_file: .env.test
+    environment:
+      - AUTO_CONFIGURE_SITE=1
   finalize-auctions:
     env_file: .env.test
   settle-btc-payments:

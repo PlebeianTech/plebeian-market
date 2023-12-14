@@ -17,8 +17,6 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
-    environment:
-      - APP=api
     image: plebeianmarket-api
     depends_on: [db]
     restart: on-failure

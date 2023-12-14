@@ -1038,7 +1038,7 @@ if __name__ == '__main__': # dev / test
             data = f.read()
             return send_file(io.BytesIO(data), mimetype=magic.from_buffer(data, mime=True))
 
-    if app.config['APP'] == 'api' and app.config['ENV'] == 'test':
+    if app.config['AUTO_CONFIGURE_SITE']:
         with app.app_context():
             app.logger.info("Configuring the site!")
             configure_site()
