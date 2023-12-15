@@ -1,11 +1,18 @@
 import {getValue} from "btc2fiat";
 import {get} from "svelte/store";
-import {fiatRates} from "$sharedLib/stores";
+import {fiatRates, userChosenCurrency} from "$sharedLib/stores";
+import {SATS_IN_BTC} from "$sharedLib/utils";
 
 export const currencyRateCacheTimeMilliseconds = 1000 * 60 * 10; // 10 minutes
 
 // https://en.wikipedia.org/wiki/Currency
-export const supportedFiatCurrencies = [
+export const supportedCurrencies = [
+    {
+        symbol: 'SAT',
+        name: 'Bitcoin (Satoshis)',
+        prefix: '',
+        suffix: ' sats'
+    },
     {
         symbol: 'USD',
         name: 'US Dollar',
@@ -58,12 +65,14 @@ export const supportedFiatCurrencies = [
      */
 ];
 
-export function getFiatCurrencyInfo(currentFiatCurrency: string) {
-    return supportedFiatCurrencies.find((x) => x.symbol === currentFiatCurrency);
+export function getCurrencyInfo(currency: string) {
+    return supportedCurrencies.find((x) => x.symbol === currency);
 }
 
 export async function getFiatRate(fiatSymbol: string) {
-    if (!fiatSymbol) {
+    fiatSymbol = getStandardCurrencyCode(fiatSymbol);
+
+    if (!fiatSymbol || fiatSymbol === 'SAT') {
         return;
     }
 
@@ -87,4 +96,64 @@ export async function getFiatRate(fiatSymbol: string) {
         // Fire Svelte reactivity
         fiatRates.set(get(fiatRates));
     }
+}
+
+export function getStandardCurrencyCode(currencyCode: string) {
+    if (['sat', 'SAT', 'sats', 'SATS'].includes(currencyCode)) {
+        return 'SAT';
+    }
+
+    return currencyCode;
+}
+
+export async function convertCurrencies(amount: number, sourceCurrency: string) {
+    let satsIntermediateAmount = null;
+    let convertedAmount = null;
+
+    sourceCurrency = getStandardCurrencyCode(sourceCurrency);
+
+    if (sourceCurrency === get(userChosenCurrency)) {
+        return amount;
+    }
+
+    // Step 1: convert source currency to sats
+    if (sourceCurrency === 'SAT') {
+        satsIntermediateAmount = amount;
+    } else {
+        await getFiatRate(sourceCurrency);
+
+        const sourceCurrencyFiatRate = get(fiatRates).get(sourceCurrency).rate;
+
+        satsIntermediateAmount = amount * SATS_IN_BTC / sourceCurrencyFiatRate;
+    }
+
+    // Step 2: convert sats to destination currency
+    if (get(userChosenCurrency) === 'SAT') {
+        convertedAmount = satsIntermediateAmount;
+    } else {
+        await getFiatRate(get(userChosenCurrency));
+        const destinationCurrencyFiatRate = get(fiatRates).get(get(userChosenCurrency)).rate;
+
+        convertedAmount = satsIntermediateAmount * destinationCurrencyFiatRate / SATS_IN_BTC;
+    }
+
+    if (get(userChosenCurrency) === 'SAT') {
+        return convertedAmount.toFixed(0);
+    }
+
+    return removeDecimals(convertedAmount);
+}
+
+function removeDecimals(amount):number {
+    if (!isNaN(amount)) {
+        if (amount > 1) {
+            amount = amount.toFixed(2);
+        } else if (amount > 99) {
+            amount = amount.toFixed(0);
+        } else {
+            amount = amount.toFixed(4);
+        }
+    }
+
+    return amount;
 }
