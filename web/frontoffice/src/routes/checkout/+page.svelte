@@ -9,6 +9,7 @@
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";
     import {sendOrder} from "$sharedLib/nostr/utils";
+    import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     let name = null;
     let address = null;
@@ -115,8 +116,17 @@
                             </div>
                         </td>
                         <td class="py-1">
-                            <p class="pr-2">
-                                {product.price} x {product.orderQuantity} = {(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}
+                            <p class="pr-2 flex">
+                                <CurrencyConverter
+                                    amount={product.price}
+                                    sourceCurrency={product.currency}
+                                    classStyle="mr-3"
+                                /> x {product.orderQuantity} = <CurrencyConverter
+                                    amount={(product.orderQuantity ?? 0) * product.price}
+                                    sourceCurrency={product.currency}
+                                    classStyle="ml-3"
+                                    originalClassStyle="ml-2 text-xs"
+                                />
                             </p>
                         </td>
                     </tr>

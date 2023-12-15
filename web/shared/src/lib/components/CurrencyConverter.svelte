@@ -35,10 +35,12 @@
         <p>{amount} {sourceCurrency}</p>
     {:else}
         {#if convertedSuccessfully}
-            <p class="{classStyle}">{destinationCurrencyInfo.prefix}{convertedAmount}{destinationCurrencyInfo.suffix}</p>
-            {#if getStandardCurrencyCode(sourceCurrency) !== getStandardCurrencyCode($userChosenCurrency)}
-                <p class="{originalClassStyle}">({amount} {sourceCurrency})</p>
-            {/if}
+            <div>
+                <p class="{classStyle}">{destinationCurrencyInfo.prefix}{convertedAmount}{destinationCurrencyInfo.suffix}</p>
+                {#if getStandardCurrencyCode(sourceCurrency) !== getStandardCurrencyCode($userChosenCurrency)}
+                    <p class="{originalClassStyle}">({amount} {sourceCurrency})</p>
+                {/if}
+            </div>
         {:else}
             <p>
                 {amount} {sourceCurrency}

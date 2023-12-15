@@ -1,5 +1,6 @@
 <script lang="ts">
     import {stalls} from "$sharedLib/stores";
+    import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     export let stallId;
     export let i;
@@ -45,7 +46,10 @@
                                     ({shippingOption.countries.join(', ')}) -
                                 {/if}
                             {/if}
-                            {shippingOption.cost} {$stalls.stalls[stallId].currency}
+                            <CurrencyConverter
+                                amount={shippingOption.cost}
+                                sourceCurrency={$stalls.stalls[stallId].currency}
+                            />
                         </option>
                     {/each}
                 </select>
