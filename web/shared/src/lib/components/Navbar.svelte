@@ -170,7 +170,7 @@
                     {#if isFrontOffice}
                         <div class="dropdown dropdown-end xl:mr-3">
                             <label tabindex="0" class="btn btn-ghost btn-circle">
-                                <div class="w-8 h-8 text-black-800 dark:text-gray-200 focus:outline-none indicator" >
+                                <div class="w-8 h-8 focus:outline-none indicator" >
                                     <ShoppingCartIcon />
                                     {#if $ShoppingCart.summary.totalQuantity}
                                         <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
