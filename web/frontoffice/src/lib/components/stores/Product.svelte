@@ -12,6 +12,7 @@
     import BidWidget from "$lib/components/stores/BidWidget.svelte";
     import SvelteMarkdown from "svelte-markdown";
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     export let product_id = null;
     export let in_popup = false;
@@ -137,7 +138,16 @@
                                 Stock: {product.quantity}
                             {/if}
                         </div>
-                        <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
+                        <div>
+                            {#if product.price && product.currency}
+                                <CurrencyConverter
+                                    amount={product.price}
+                                    sourceCurrency={product.currency}
+                                />
+                            {:else}
+                                {#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}
+                            {/if}
+                        </div>
                     </div>
 
                     {#if product.quantity === null || product.quantity > 0}

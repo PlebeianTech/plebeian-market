@@ -8,8 +8,8 @@
     import UserInfoPopup from "$sharedLib/components/nostr/UserInfoPopup.svelte";
     import {NostrPublicKey} from "$sharedLib/stores";
     import {nip19} from "nostr-tools";
-    import FiatConverter from "$sharedLib/components/FiatConverter.svelte";
     import {onImgError} from "$lib/shopping";
+    import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     export let sortedBids;
     export let userProfileInfoMap;
@@ -79,9 +79,12 @@
                 {#if bid.amount}
                     <tr class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
                         <th class="text-center grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
-                            {bid.amount} sats
                             {#if bidSuscriptionFinished}
-                                <FiatConverter satsAmount={bid.amount} classStyle="text-xs pb-1" />
+                                <CurrencyConverter
+                                        amount={bid.amount}
+                                        sourceCurrency="sats"
+                                        classStyle="text-xs pb-1"
+                                />
                             {/if}
                             <p class="mt-1">{formatTimestamp(bid.date)}</p>
 
@@ -153,10 +156,12 @@
                     <tr>
                         <th class="text-center inline-grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             <span class="p-3" class:pb-9={!bidSuscriptionFinished}>
-                                {bid.amount} sats
                                 {#if bidSuscriptionFinished}
-                                    <div class="pb-3">
-                                        <FiatConverter satsAmount={bid.amount} classStyle="text-xs" />
+                                    <div class="pt-1">
+                                        <CurrencyConverter
+                                            amount={bid.amount}
+                                            sourceCurrency="sats"
+                                        />
                                     </div>
                                 {/if}
                             </span>

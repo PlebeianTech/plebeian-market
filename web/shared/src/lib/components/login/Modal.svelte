@@ -29,7 +29,7 @@
         NostrLoginMethod,
         loginModalState,
         token,
-        currentFiatCurrency
+        userChosenCurrency
     } from "$sharedLib/stores";
     import {onMount} from "svelte";
 
@@ -67,7 +67,7 @@
         $NostrPrivateKey =  localStorage.getItem("nostrPrivateKey");
         $token =            localStorage.getItem("token");
         $NostrLoginMethod = localStorage.getItem("nostrLoginMethod");
-        $currentFiatCurrency = localStorage.getItem("currentFiatCurrency") ?? 'USD';
+        $userChosenCurrency = localStorage.getItem("userChosenCurrency") ?? 'USD';
     });
 </script>
 

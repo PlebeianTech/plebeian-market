@@ -1,8 +1,10 @@
 <script lang="ts">
     import {stalls} from "$sharedLib/stores";
+    import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     export let stallId;
     export let i;
+    export let onchangeCallback = () => {};
 </script>
 <tr>
     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2">
@@ -28,7 +30,7 @@
                 {/if}
 
                 Shipping:
-                <select bind:value={$stalls.stalls[stallId].shippingOption}
+                <select bind:value={$stalls.stalls[stallId].shippingOption} on:change={onchangeCallback}
                         class="select select-sm text-xs md:text-sm max-w-lg md:ml-1 { ($stalls.stalls[stallId].shipping.length > 1 && $stalls.stalls[stallId].shippingOption === '0') ? 'select-error border-2' : 'select-bordered' }">
 
                     {#if $stalls.stalls[stallId].shipping.length > 1}
@@ -45,7 +47,10 @@
                                     ({shippingOption.countries.join(', ')}) -
                                 {/if}
                             {/if}
-                            {shippingOption.cost} {$stalls.stalls[stallId].currency}
+                            <CurrencyConverter
+                                amount={shippingOption.cost}
+                                sourceCurrency={$stalls.stalls[stallId].currency}
+                            />
                         </option>
                     {/each}
                 </select>

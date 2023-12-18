@@ -4,6 +4,7 @@
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
     import {EVENT_KIND_AUCTION} from "$sharedLib/services/nostr";
     import Countdown from "$sharedLib/components/Countdown.svelte";
+    import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     export let product;
     export let onImgError = () => {};
@@ -24,7 +25,14 @@
                         <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
                     </div>
                 {:else}
-                    <p class="mt-1 md:mt-2 text-xs md:text-lg">{#if product.price}{product.price.toString().trim()} {#if product.currency}{product.currency.trim()}{/if}{/if}</p>
+                    {#if product.price && product.currency}
+                        <CurrencyConverter
+                            amount={product.price}
+                            sourceCurrency={product.currency}
+                        />
+                    {:else}
+                        <p class="mt-1 md:mt-2 text-xs md:text-lg">{#if product.price}{product.price.toString().trim()} {#if product.currency}{product.currency.trim()}{/if}{/if}</p>
+                    {/if}
                 {/if}
 
                 {#if $isSuperAdmin && $NostrGlobalConfig}
