@@ -143,6 +143,7 @@
                                 <CurrencyConverter
                                     amount={product.price}
                                     sourceCurrency={product.currency}
+                                    fiatClassStyle="text-sm"
                                 />
                             {:else}
                                 {#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}

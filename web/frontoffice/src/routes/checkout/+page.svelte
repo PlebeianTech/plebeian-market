@@ -29,6 +29,9 @@
     $: total = 0;
     $: shippingCosts = 0;
     $: superTotal = 0;
+    $: totalSats = 0;
+    $: shippingCostsSats = 0;
+    $: superTotalSats = 0;
 
     export async function buyNow() {
         console.log('---- buyNow start ----');
@@ -101,6 +104,10 @@
         shippingCosts = 0;
         superTotal = 0;
 
+        totalSats = 0;
+        shippingCostsSats = 0;
+        superTotalSats = 0;
+
         for (const [stallId, products] of [...$ShoppingCart.products]) {
             // Shipping cost
             if ($stalls?.stalls[stallId]) {
@@ -108,7 +115,8 @@
                     if ($stalls?.stalls[stallId].shippingOption === shippingOption.id) {
                         const convertedShippingCost = await convertCurrencies(shippingOption.cost, $stalls.stalls[stallId].currency);
                         if (convertedShippingCost) {
-                            shippingCosts += convertedShippingCost;
+                            shippingCosts += convertedShippingCost.amount;
+                            shippingCostsSats += convertedShippingCost.sats;
                         }
                     }
                 }
@@ -119,12 +127,14 @@
             for (const [productId, product] of [...products]) {
                 const convertedProductTotal = await convertCurrencies(product.orderQuantity * product.price, product.currency);
                 if (convertedProductTotal) {
-                    total += convertedProductTotal;
+                    total += convertedProductTotal.amount;
+                    totalSats += convertedProductTotal.sats;
                 }
             }
         }
 
         superTotal = total + shippingCosts;
+        superTotalSats = totalSats + shippingCostsSats;
     }
 
     $: if ($ShoppingCart.products && $userChosenCurrency) {
@@ -169,12 +179,12 @@
                                     <CurrencyConverter
                                         amount={product.price}
                                         sourceCurrency={product.currency}
-                                        classStyle="mr-3"
+                                        satsClassStyle="mr-3"
                                     /> x {product.orderQuantity} = <CurrencyConverter
                                         amount={(product.orderQuantity ?? 0) * product.price}
                                         sourceCurrency={product.currency}
-                                        classStyle="ml-3"
-                                        originalClassStyle="ml-2 text-xs"
+                                        satsClassStyle="ml-3"
+                                        fiatClassStyle="ml-2 text-xs"
                                     />
                                 </p>
                             </td>
@@ -184,20 +194,35 @@
 
                 <tr>
                     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
-                        <span class="mx-2 md:mx-3">Subtotal:</span>
-                        <span class="mx-2 md:mx-3 float-right">{destinationCurrencyInfo.prefix}{removeDecimals(total)}{destinationCurrencyInfo.suffix}</span>
+                        <span class="mx-1 md:mx-2">Subtotal:</span>
+                        <div class="float-right">
+                            <span>{removeDecimals(totalSats, "SAT")} sats</span>
+                            {#if $userChosenCurrency !== 'SAT'}
+                                <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(total)}{destinationCurrencyInfo.suffix})</p>
+                            {/if}
+                        </div>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
-                        <span class="mx-2 md:mx-3">Shipping:</span>
-                        <span class="mx-2 md:mx-3 float-right">{destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix}</span>
+                        <span class="mx-1 md:mx-2">Shipping:</span>
+                        <div class="float-right">
+                            <span>{removeDecimals(shippingCostsSats, "SAT")} sats</span>
+                            {#if $userChosenCurrency !== 'SAT'}
+                                <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
+                            {/if}
+                        </div>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold md:text-lg">
-                        <span class="mx-2 md:mx-3">Total:</span>
-                        <span class="mx-2 md:mx-3 float-right">{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix}</span>
+                        <span class="mx-1 md:mx-2">Total:</span>
+                        <div class="float-right">
+                            <span>~{removeDecimals(superTotalSats, "SAT")} sats</span>
+                            {#if $userChosenCurrency !== 'SAT'}
+                                <p class="text-xs text-center">(~{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix})</p>
+                            {/if}
+                        </div>
                     </td>
                 </tr>
             </tbody>

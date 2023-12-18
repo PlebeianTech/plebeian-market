@@ -1,24 +1,30 @@
 <script lang="ts">
     import {convertCurrencies, getCurrencyInfo, getStandardCurrencyCode} from "$sharedLib/currencies";
     import {userChosenCurrency} from "$sharedLib/stores";
+    import Satoshi from "$sharedLib/components/icons/Satoshi.svelte";
 
     export let amount: number;
     export let sourceCurrency: string;
-    export let classStyle = "";
-    export let originalClassStyle = "text-xs";
+    export let satsClassStyle = "";
+    export let fiatClassStyle = "text-xs";
+    export let showOnlySats = false;
+    export let parenthesisOnFiat = true;
 
     let convertedSuccessfully = false;
 
     $: destinationCurrencyInfo = null;
     $: convertedAmount = null;
+    $: satsAmount = null;
 
     async function convert() {
         convertedSuccessfully = false;
 
         destinationCurrencyInfo = getCurrencyInfo($userChosenCurrency);
 
-        convertedAmount = await convertCurrencies(amount, sourceCurrency);
-        if (convertedAmount) {
+        const convertedAmountObject = await convertCurrencies(amount, sourceCurrency);
+        if (convertedAmountObject) {
+            convertedAmount = convertedAmountObject.amount;
+            satsAmount = convertedAmountObject.sats;
             convertedSuccessfully = true;
         }
     }
@@ -36,9 +42,9 @@
     {:else}
         {#if convertedSuccessfully}
             <div>
-                <p class="{classStyle}">{destinationCurrencyInfo.prefix}{convertedAmount}{destinationCurrencyInfo.suffix}</p>
-                {#if getStandardCurrencyCode(sourceCurrency) !== getStandardCurrencyCode($userChosenCurrency)}
-                    <p class="{originalClassStyle}">({amount} {sourceCurrency})</p>
+                <p class="{satsClassStyle} aamr-1">{satsAmount} sats</p>
+                {#if !showOnlySats && getStandardCurrencyCode($userChosenCurrency) !== 'SAT'}
+                    <p class="{fiatClassStyle}">{#if parenthesisOnFiat}({/if}{destinationCurrencyInfo.prefix}{convertedAmount}{destinationCurrencyInfo.suffix}{#if parenthesisOnFiat}){/if}</p>
                 {/if}
             </div>
         {:else}

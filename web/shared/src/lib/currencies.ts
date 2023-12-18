@@ -107,14 +107,10 @@ export function getStandardCurrencyCode(currencyCode: string) {
 }
 
 export async function convertCurrencies(amount: number, sourceCurrency: string) {
-    let satsIntermediateAmount = null;
-    let convertedAmount = null;
+    let satsIntermediateAmount;
+    let convertedAmount;
 
     sourceCurrency = getStandardCurrencyCode(sourceCurrency);
-
-    if (sourceCurrency === get(userChosenCurrency)) {
-        return amount;
-    }
 
     // Step 1: convert source currency to sats
     if (sourceCurrency === 'SAT') {
@@ -127,6 +123,16 @@ export async function convertCurrencies(amount: number, sourceCurrency: string) 
         satsIntermediateAmount = amount * SATS_IN_BTC / sourceCurrencyFiatRate;
     }
 
+    if (sourceCurrency === get(userChosenCurrency)) {
+        return {
+            sourceAmount: amount,
+            sourceCurrency: sourceCurrency,
+            amount: amount,
+            currency: get(userChosenCurrency),
+            sats: Number(removeDecimals(satsIntermediateAmount, 'SAT'))
+        };
+    }
+
     // Step 2: convert sats to destination currency
     if (get(userChosenCurrency) === 'SAT') {
         convertedAmount = satsIntermediateAmount;
@@ -137,7 +143,13 @@ export async function convertCurrencies(amount: number, sourceCurrency: string) 
         convertedAmount = satsIntermediateAmount * destinationCurrencyFiatRate / SATS_IN_BTC;
     }
 
-    return Number(removeDecimals(convertedAmount, get(userChosenCurrency)));
+    return {
+        sourceAmount: amount,
+        sourceCurrency: sourceCurrency,
+        amount: Number(removeDecimals(convertedAmount)),
+        currency: get(userChosenCurrency),
+        sats: Number(removeDecimals(satsIntermediateAmount, 'SAT'))
+    };
 }
 
 export function removeDecimals(amount, currency: string = get(userChosenCurrency)):number {

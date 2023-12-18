@@ -81,9 +81,9 @@
                         <th class="text-center grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             {#if bidSuscriptionFinished}
                                 <CurrencyConverter
-                                        amount={bid.amount}
-                                        sourceCurrency="sats"
-                                        classStyle="text-xs pb-1"
+                                    amount={bid.amount}
+                                    sourceCurrency="sats"
+                                    satsClassStyle="text-xs pb-1"
                                 />
                             {/if}
                             <p class="mt-1">{formatTimestamp(bid.date)}</p>
