@@ -3,7 +3,7 @@
     import {userChosenCurrency} from "$sharedLib/stores";
     import {onMount} from "svelte";
 
-    export let classStyle = "select-bordered select-info max-w-xs border rounded py-2 px-3";
+    export let classStyle = "px-2 select select-bordered w-full max-w-xs";
 
     $: if ($userChosenCurrency) {
         getFiatRate($userChosenCurrency);

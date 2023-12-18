@@ -1,6 +1,13 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
-    import {NostrPublicKey, ShoppingCart, stalls, Error, Info} from "$sharedLib/stores";
+    import {
+        NostrPublicKey,
+        ShoppingCart,
+        stalls,
+        Error,
+        Info,
+        userChosenCurrency
+    } from "$sharedLib/stores";
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import {afterNavigate, goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
@@ -10,6 +17,7 @@
     import ShippingOptions from "$lib/components/stores/ShippingOptions.svelte";
     import {sendOrder} from "$sharedLib/nostr/utils";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
+    import {convertCurrencies, getCurrencyInfo, removeDecimals} from "$sharedLib/currencies";
 
     let name = null;
     let address = null;
@@ -17,6 +25,10 @@
 
     let phone = null;
     let email = null;
+
+    $: total = 0;
+    $: shippingCosts = 0;
+    $: superTotal = 0;
 
     export async function buyNow() {
         console.log('---- buyNow start ----');
@@ -83,6 +95,43 @@
     afterNavigate(async () => {
         await waitAndShowLoginIfNotLoggedAlready();
     });
+
+    async function calculateTotals() {
+        total = 0;
+        shippingCosts = 0;
+        superTotal = 0;
+
+        for (const [stallId, products] of [...$ShoppingCart.products]) {
+            // Shipping cost
+            if ($stalls?.stalls[stallId]) {
+                for (const shippingOption of $stalls?.stalls[stallId].shipping) {
+                    if ($stalls?.stalls[stallId].shippingOption === shippingOption.id) {
+                        const convertedShippingCost = await convertCurrencies(shippingOption.cost, $stalls.stalls[stallId].currency);
+                        if (convertedShippingCost) {
+                            shippingCosts += convertedShippingCost;
+                        }
+                    }
+                }
+            }
+
+
+            // Product price
+            for (const [productId, product] of [...products]) {
+                const convertedProductTotal = await convertCurrencies(product.orderQuantity * product.price, product.currency);
+                if (convertedProductTotal) {
+                    total += convertedProductTotal;
+                }
+            }
+        }
+
+        superTotal = total + shippingCosts;
+    }
+
+    $: if ($ShoppingCart.products && $userChosenCurrency) {
+        calculateTotals();
+    }
+
+    $: destinationCurrencyInfo = getCurrencyInfo($userChosenCurrency);
 </script>
 
 <svelte:head>
@@ -102,47 +151,66 @@
                 </tr>
             </thead>
             <tbody>
-            {#each [...$ShoppingCart.products] as [stallId, products], i}
-                <ShippingOptions {stallId} {i} />
+                {#each [...$ShoppingCart.products] as [stallId, products], i}
+                    <ShippingOptions {stallId} {i} onchangeCallback={calculateTotals} />
 
-                {#each [...products] as [productId, product]}
-                    <tr class="border-b border-gray-600 hover text-sm md:text-base">
-                        <td class="py-1">
-                            <p class="pl-3">{#if product.name}{product.name}{/if}</p>
-                        </td>
-                        <td class="py-1">
-                            <div class="card shadow-xl w-20 md:w-20">
-                                <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
-                            </div>
-                        </td>
-                        <td class="py-1">
-                            <p class="pr-2 flex">
-                                <CurrencyConverter
-                                    amount={product.price}
-                                    sourceCurrency={product.currency}
-                                    classStyle="mr-3"
-                                /> x {product.orderQuantity} = <CurrencyConverter
-                                    amount={(product.orderQuantity ?? 0) * product.price}
-                                    sourceCurrency={product.currency}
-                                    classStyle="ml-3"
-                                    originalClassStyle="ml-2 text-xs"
-                                />
-                            </p>
-                        </td>
-                    </tr>
+                    {#each [...products] as [productId, product]}
+                        <tr class="border-b border-gray-600 hover text-sm md:text-base">
+                            <td class="py-1">
+                                <p class="pl-3">{#if product.name}{product.name}{/if}</p>
+                            </td>
+                            <td class="py-1">
+                                <div class="card shadow-xl w-20 md:w-20">
+                                    <figure><img class="rounded-xl" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" on:error={(event) => onImgError(event.srcElement)} /></figure>
+                                </div>
+                            </td>
+                            <td class="py-1">
+                                <p class="pr-2 flex">
+                                    <CurrencyConverter
+                                        amount={product.price}
+                                        sourceCurrency={product.currency}
+                                        classStyle="mr-3"
+                                    /> x {product.orderQuantity} = <CurrencyConverter
+                                        amount={(product.orderQuantity ?? 0) * product.price}
+                                        sourceCurrency={product.currency}
+                                        classStyle="ml-3"
+                                        originalClassStyle="ml-2 text-xs"
+                                    />
+                                </p>
+                            </td>
+                        </tr>
+                    {/each}
                 {/each}
-            {/each}
+
+                <tr>
+                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
+                        <span class="mx-2 md:mx-3">Subtotal:</span>
+                        <span class="mx-2 md:mx-3 float-right">{destinationCurrencyInfo.prefix}{removeDecimals(total)}{destinationCurrencyInfo.suffix}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
+                        <span class="mx-2 md:mx-3">Shipping:</span>
+                        <span class="mx-2 md:mx-3 float-right">{destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold md:text-lg">
+                        <span class="mx-2 md:mx-3">Total:</span>
+                        <span class="mx-2 md:mx-3 float-right">{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix}</span>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
 
     <ShippingContactInformation
-            bind:name={name}
-            bind:address={address}
-            bind:message={message}
-            bind:email={email}
-            bind:phone={phone}
-            {buyNow}
+        bind:name={name}
+        bind:address={address}
+        bind:message={message}
+        bind:email={email}
+        bind:phone={phone}
+        {buyNow}
     />
 
 {:else}

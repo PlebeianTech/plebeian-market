@@ -4,6 +4,7 @@
 
     export let stallId;
     export let i;
+    export let onchangeCallback = () => {};
 </script>
 <tr>
     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2">
@@ -29,7 +30,7 @@
                 {/if}
 
                 Shipping:
-                <select bind:value={$stalls.stalls[stallId].shippingOption}
+                <select bind:value={$stalls.stalls[stallId].shippingOption} on:change={onchangeCallback}
                         class="select select-sm text-xs md:text-sm max-w-lg md:ml-1 { ($stalls.stalls[stallId].shipping.length > 1 && $stalls.stalls[stallId].shippingOption === '0') ? 'select-error border-2' : 'select-bordered' }">
 
                     {#if $stalls.stalls[stallId].shipping.length > 1}

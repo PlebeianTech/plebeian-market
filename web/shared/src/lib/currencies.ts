@@ -137,14 +137,14 @@ export async function convertCurrencies(amount: number, sourceCurrency: string) 
         convertedAmount = satsIntermediateAmount * destinationCurrencyFiatRate / SATS_IN_BTC;
     }
 
-    if (get(userChosenCurrency) === 'SAT') {
-        return convertedAmount.toFixed(0);
-    }
-
-    return removeDecimals(convertedAmount);
+    return Number(removeDecimals(convertedAmount, get(userChosenCurrency)));
 }
 
-function removeDecimals(amount):number {
+export function removeDecimals(amount, currency: string = get(userChosenCurrency)):number {
+    if (currency && currency === 'SAT') {
+        return amount.toFixed(0);
+    }
+
     if (!isNaN(amount)) {
         if (amount > 1) {
             amount = amount.toFixed(2);
