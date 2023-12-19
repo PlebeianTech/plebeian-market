@@ -196,7 +196,7 @@
                     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
                         <span class="mx-1 md:mx-2">Subtotal:</span>
                         <div class="float-right">
-                            <span>{removeDecimals(totalSats, "SAT")} sats</span>
+                            <span>{removeDecimals(totalSats, "SAT")} sat</span>
                             {#if $userChosenCurrency !== 'SAT'}
                                 <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(total)}{destinationCurrencyInfo.suffix})</p>
                             {/if}
@@ -207,7 +207,7 @@
                     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
                         <span class="mx-1 md:mx-2">Shipping:</span>
                         <div class="float-right">
-                            <span>{removeDecimals(shippingCostsSats, "SAT")} sats</span>
+                            <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
                             {#if $userChosenCurrency !== 'SAT'}
                                 <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
                             {/if}
@@ -218,7 +218,7 @@
                     <td colspan="3" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold md:text-lg">
                         <span class="mx-1 md:mx-2">Total:</span>
                         <div class="float-right">
-                            <span>~{removeDecimals(superTotalSats, "SAT")} sats</span>
+                            <span>~{removeDecimals(superTotalSats, "SAT")} sat</span>
                             {#if $userChosenCurrency !== 'SAT'}
                                 <p class="text-xs text-center">(~{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix})</p>
                             {/if}

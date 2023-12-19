@@ -11,7 +11,7 @@ export const supportedCurrencies = [
         symbol: 'SAT',
         name: 'Bitcoin (Satoshis)',
         prefix: '',
-        suffix: ' sats'
+        suffix: ' sat'
     },
     {
         symbol: 'USD',

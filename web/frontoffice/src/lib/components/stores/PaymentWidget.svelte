@@ -143,7 +143,7 @@
 
                 <ul class="list-disc list-outside text-xs md:text-sm">
                     {#if paymentInfo.amount}
-                        <li class="mb-3">You must send <b>{paymentInfo.amount} sats</b> to the seller</li>
+                        <li class="mb-3">You must send <b>{paymentInfo.amount} sat</b> to the seller</li>
                     {/if}
                     <li class="mb-3 md:hidden">You can <b>tap the QR code</b> to open your Lightning wallet.</li>
                     <li class="mb-3">Mark the payment as <b>paid</b> using the green button when you're done.</li>

@@ -236,7 +236,7 @@
                                             </div>
                                         {:else}
                                             {#if getAmountToPay(order)}
-                                                <p class="mb-2">{getAmountToPay(order)} sats</p>
+                                                <p class="mb-2">{getAmountToPay(order)} sat</p>
                                             {/if}
 
                                             <button class="btn btn-outline gap-2 mb-4 md:mb-2 h-16 md:h-12" on:click|preventDefault={() => {orderToBePaid = order; paymentModalVisible = true;}}>
