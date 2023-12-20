@@ -65,6 +65,12 @@ export const stalls: Writable<{
     fetched_at: 0
 });
 
+export const products: Writable<{
+    products: object,
+    fetching: boolean,
+    fetched_at: number
+} | null> = writable(null);
+
 // Human messages are indexed by publicKey
 // Automatic messages (orders) are indexed by orderId
 export const privateMessages: Writable<{

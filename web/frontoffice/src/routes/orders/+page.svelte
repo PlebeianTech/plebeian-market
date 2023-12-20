@@ -1,6 +1,5 @@
 <script lang="ts">
-    import {products} from "$lib/stores";
-    import {NostrPublicKey, stalls, privateMessages, Info} from "$sharedLib/stores";
+    import {NostrPublicKey, stalls, products, privateMessages, Info} from "$sharedLib/stores";
     import {formatTimestamp, newNostrConversation, pmStallId} from "$sharedLib/nostr/utils";
     import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
