@@ -310,11 +310,11 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
 
     const sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
     sub.on('event', e => receivedCB(e));
-    sub.on('eose', () => {
-        if (eoseCB) {
+    if (eoseCB) {
+        sub.on('eose', () => {
             eoseCB();
-        }
-    })
+        })
+    }
 }
 
 export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void, eoseCB = () => {}) {

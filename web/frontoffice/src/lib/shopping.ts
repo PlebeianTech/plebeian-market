@@ -119,8 +119,21 @@ export function refreshStalls() {
 
     let currentStallsValue = get(stalls);
 
-    if (currentStallsValue === null || now - currentStallsValue.fetched_at > 60000) {  // 60 seconds
+    if (currentStallsValue === null || (currentStallsValue && currentStallsValue.fetching !== true && now - currentStallsValue.fetched_at > 60000)) {  // 60 seconds
         console.log('************ refreshStalls - refreshing...',)
+
+        if (currentStallsValue === null) {
+            currentStallsValue = {
+                stalls: {},
+                fetching: true,
+                fetched_at: now
+            }
+        } else {
+            currentStallsValue.fetching = true;
+            currentStallsValue.fetched_at = now;
+        }
+
+        stalls.set(currentStallsValue);
 
         getStalls(null,
             (stallEvent) => {
@@ -136,20 +149,6 @@ export function refreshStalls() {
                     } else {
                         return;
                     }
-                }
-
-                // Get current value
-                let currentStallsValue = get(stalls);
-
-                if (currentStallsValue === null) {
-                    currentStallsValue = {
-                        stalls: {},
-                        fetching: true,
-                        fetched_at: now
-                    }
-                } else {
-                    currentStallsValue.fetching = true;
-                    currentStallsValue.fetched_at = now;
                 }
 
                 let stallId = content.id;
