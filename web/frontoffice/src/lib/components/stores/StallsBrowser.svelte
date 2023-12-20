@@ -1,17 +1,20 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import {NostrGlobalConfig, stalls, isSuperAdmin} from "$sharedLib/stores";
+    import {NostrGlobalConfig, stalls, products, isSuperAdmin} from "$sharedLib/stores";
     import {formatTimestampNG} from "$sharedLib/nostr/utils.js";
     import Search from "$sharedLib/components/icons/Search.svelte"
-    import {refreshStalls} from "$lib/shopping";
+    import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import {EVENT_KIND_PRODUCT, UserMetadata} from "$sharedLib/services/nostr";
 
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
 
     let sortedStalls = [];
     let filter = null;
+
+    let productsInEachStall = new Map<string, number>();
 
     let descriptionLength = 125;
 
@@ -32,8 +35,29 @@
             }
     }
 
+    $: if ($products && $products.products) {
+        if (!$products.fetching) {
+            productsInEachStall = new Map<string, number>();
+
+            Object.entries($products.products).forEach(product => {
+                if (product[1].event.kind === EVENT_KIND_PRODUCT && product[1].quantity > 0) {
+                    let stall_id = product[1].stall_id;
+
+                    let productsInThisStall = productsInEachStall.get(stall_id);
+
+                    if (productsInThisStall) {
+                        productsInEachStall.set(stall_id, ++productsInThisStall);
+                    } else {
+                        productsInEachStall.set(stall_id, 1);
+                    }
+                }
+            });
+        }
+    }
+
     onMount(async () => {
         refreshStalls();
+        refreshProducts();
     });
 </script>
 
@@ -56,16 +80,19 @@
 
     <div class="relative overflow-x-hidden shadow-md rounded border border-gray-400">
         <div class="bg-gray-100 dark:bg-gray-800 font-sans">
-            <main class="container mx-auto p-4">
+            <main class="container mx-auto p-1 md:p-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 lg:gap-8 z-[300] mt-2 mb-2">
                     {#each sortedStalls as [stallId, stall]}
                         {#if
-                            filter === null ||
+                            productsInEachStall.get(stallId) &&
                             (
-                                filter !== null && (
-                                    stall.name?.toLowerCase().includes(filter.toLowerCase()) ||
-                                    stall.description?.toLowerCase().includes(filter.toLowerCase()) ||
-                                    stall.id?.toLowerCase() === filter.toLowerCase()
+                                filter === null ||
+                                (
+                                    filter !== null && (
+                                        stall.name?.toLowerCase().includes(filter.toLowerCase()) ||
+                                        stall.description?.toLowerCase().includes(filter.toLowerCase()) ||
+                                        stall.id?.toLowerCase() === filter.toLowerCase()
+                                    )
                                 )
                             )
                         }
@@ -91,9 +118,13 @@
                                                     </ul>
                                                 </div>
                                             {/if}
-                                            {#if stall.createdAt}
-                                                <div class="mt-3 text-xs opacity-70">Available since {formatTimestampNG(stall.createdAt)}</div>
-                                            {/if}
+
+                                                <div class="mt-3 text-xs opacity-70">
+                                                    {productsInEachStall.get(stallId)} products
+                                                    {#if stall.createdAt}
+                                                        - Available since {formatTimestampNG(stall.createdAt)}
+                                                    {/if}
+                                                </div>
                                         </div>
                                     </a>
                                     {#if $isSuperAdmin && $NostrGlobalConfig}

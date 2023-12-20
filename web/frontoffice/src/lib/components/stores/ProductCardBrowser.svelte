@@ -138,43 +138,6 @@
                     }
                 }
 
-                if (!newProductInfo.id) {
-                    let productId = getFirstTagValue(newProductInfo.event.tags, 'd');
-                    if (productId !== null) {
-                        newProductInfo.id = productId;
-                    } else {
-                        return;
-                    }
-                }
-
-                filterTags(newProductInfo.event.tags, 't').forEach((category) => {
-                    let tag = category[1].trim().toLowerCase();
-
-                    if (!newProductInfo.tags) {
-                        newProductInfo.tags = [];
-                    }
-
-                    if (!(tag in newProductInfo.tags)) {
-                        newProductInfo.tags.push(tag);
-                    }
-
-                    /*
-                    // Add to global categories
-                    if (tag in categories) {
-                        categories[tag].amount++;
-                    } else {
-                        categories[tag] = {
-                            amount: 1,
-                            selected: false
-                        };
-                    }
-
-                    categories['All'].amount++;
-
-                    categories = categories;
-                    */
-                });
-
                 let productId = newProductInfo.id;
 
                 if (productId in products) {

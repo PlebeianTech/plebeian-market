@@ -58,12 +58,19 @@ export const ShoppingCart: Writable<{
 
 export const stalls: Writable<{
     stalls: object,
+    fetching: boolean,
     fetched_at: number
 } | null> = writable({
     stalls: {},
     fetching: false,
     fetched_at: 0
 });
+
+export const products: Writable<{
+    products: object,
+    fetching: boolean,
+    fetched_at: number
+} | null> = writable(null);
 
 // Human messages are indexed by publicKey
 // Automatic messages (orders) are indexed by orderId

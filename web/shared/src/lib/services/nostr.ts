@@ -7,7 +7,15 @@ import {
 } from 'nostr-tools';
 import {get} from "svelte/store";
 import { UserResume } from "$sharedLib/types/user";
-import {hasExtension, relayUrlList, getBestRelay, filterTags, findMarkerInTags, createEvent} from "$sharedLib/nostr/utils";
+import {
+    hasExtension,
+    relayUrlList,
+    getBestRelay,
+    filterTags,
+    findMarkerInTags,
+    createEvent,
+    getFirstTagValue
+} from "$sharedLib/nostr/utils";
 import {NostrPool, NostrPrivateKey, NostrLoginMethod} from "$sharedLib/stores";
 import {getDomainName, loggedIn, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
 
@@ -302,11 +310,11 @@ export function getStalls(merchantPubkey: string | string[] | null, receivedCB: 
 
     const sub: Sub = get(NostrPool).sub(relayUrlList, [filter]);
     sub.on('event', e => receivedCB(e));
-    sub.on('eose', () => {
-        if (eoseCB) {
+    if (eoseCB) {
+        sub.on('eose', () => {
             eoseCB();
-        }
-    })
+        })
+    }
 }
 
 export function getProducts(merchantPubkey: string | null, productIds: string[] | null, receivedCB: (e) => void, eoseCB = () => {}) {
@@ -324,6 +332,15 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
     sub.on('event', productEvent => {
         let product = JSON.parse(productEvent.content);
         product.event = productEvent;
+
+        if (!product.id) {
+            const productId = getFirstTagValue(product.event.tags, 'd');
+            if (productId !== null) {
+                product.id = productId;
+            } else {
+                return;
+            }
+        }
 
         filterTags(productEvent.tags, 't').forEach((category) => {
             let tag = category[1].trim().toLowerCase();

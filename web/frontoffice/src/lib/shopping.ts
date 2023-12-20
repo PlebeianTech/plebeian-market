@@ -1,6 +1,5 @@
 import type {ShoppingCartItem} from "./types/stall";
-import {products} from "./stores";
-import {privateMessages, ShoppingCart, stalls, Error, Info} from "$sharedLib/stores";
+import {privateMessages, ShoppingCart, stalls, products, Error, Info} from "$sharedLib/stores";
 import { get } from 'svelte/store';
 import productImageFallback from "$lib/images/product_image_fallback.svg";
 import {getProducts, getStalls} from "$sharedLib/services/nostr";
@@ -120,8 +119,21 @@ export function refreshStalls() {
 
     let currentStallsValue = get(stalls);
 
-    if (currentStallsValue === null || now - currentStallsValue.fetched_at > 60000) {  // 60 seconds
+    if (currentStallsValue === null || (currentStallsValue && currentStallsValue.fetching !== true && now - currentStallsValue.fetched_at > 60000)) {  // 60 seconds
         console.log('************ refreshStalls - refreshing...',)
+
+        if (currentStallsValue === null) {
+            currentStallsValue = {
+                stalls: {},
+                fetching: true,
+                fetched_at: now
+            }
+        } else {
+            currentStallsValue.fetching = true;
+            currentStallsValue.fetched_at = now;
+        }
+
+        stalls.set(currentStallsValue);
 
         getStalls(null,
             (stallEvent) => {
@@ -137,20 +149,6 @@ export function refreshStalls() {
                     } else {
                         return;
                     }
-                }
-
-                // Get current value
-                let currentStallsValue = get(stalls);
-
-                if (currentStallsValue === null) {
-                    currentStallsValue = {
-                        stalls: {},
-                        fetching: true,
-                        fetched_at: now
-                    }
-                } else {
-                    currentStallsValue.fetching = true;
-                    currentStallsValue.fetched_at = now;
                 }
 
                 let stallId = content.id;
@@ -202,64 +200,43 @@ export function refreshProducts() {
 
     let currentProductsValue = get(products);
 
-    if (currentProductsValue === null || now - currentProductsValue.fetched_at > 60000) {  // 60 seconds
+    if (currentProductsValue === null || (currentProductsValue && currentProductsValue.fetching !== true && now - currentProductsValue.fetched_at > 60000)) {  // 60 seconds
         console.log('************ refreshProducts - refreshing...',)
 
+        if (currentProductsValue === null) {
+            currentProductsValue = {
+                products: {},
+                fetching: true,
+                fetched_at: now
+            }
+        } else {
+            currentProductsValue.fetched_at = now;
+            currentProductsValue.fetching = true;
+        }
+
+        products.set(currentProductsValue);
+
+
         getProducts(null, null,
-            (productEvent) => {
-                let content = JSON.parse(productEvent.content);
-
-                if (!content.id) {
-                    let productId = getFirstTagValue(productEvent.tags, 'd');
-                    if (productId === null) {
-                        return;
-                    }
-
-                    content.id = productId;
-                }
-
-                content.createdAt = productEvent.created_at;
-                content.merchantPubkey = productEvent.pubkey;
-
-                let categoryTags = filterTags(productEvent.tags, 't');
-                if (categoryTags.length > 0) {
-                    categoryTags.forEach((category) => {
-                        let tag = category[1].trim().toLowerCase();
-
-                        // vitamin the product with tags
-                        if (content.tags) {
-                            content.tags.push(tag);
-                        } else {
-                            content.tags = [tag];
-                        }
-                    });
-                }
-
-
-                // Get current value
-                let currentProductsValue = get(products);
-
-                if (currentProductsValue === null) {
-                    currentProductsValue = {
-                        products: {},
-                        fetched_at: now
-                    }
-                } else {
-                    currentProductsValue.fetched_at = now;
-                }
-
-                let productId = content.id;
-
+            (product) => {
+                let productId = product.id;
                 if (productId in currentProductsValue.products) {
-                    if (currentProductsValue.products[productId].createdAt < productEvent.created_at) {
-                        currentProductsValue.products[productId] = content;
+                    if (currentProductsValue.products[productId].event.created_at < product.event.created_at) {
+                        currentProductsValue.products[productId] = product;
                     }
                 } else {
-                    currentProductsValue.products[productId] = content;
+                    currentProductsValue.products[productId] = product;
                 }
 
                 // Set new value
                 products.set(currentProductsValue);
+            },
+            () => {
+                let currentProducts = get(products);
+                if (currentProducts) {
+                    currentProducts.fetching = false;
+                    products.set(currentProducts);
+                }
             });
 
     } else {
