@@ -30,15 +30,6 @@
 
         getProducts(null, productIDs,
             (newProductInfo) => {
-                if (!newProductInfo.id) {
-                    let productId = getFirstTagValue(newProductInfo.event.tags, 'd');
-                    if (productId !== null) {
-                        newProductInfo.id = productId;
-                    } else {
-                        return;
-                    }
-                }
-
                 let productId = newProductInfo.id;
                 if (!(productId in products) || (productId in products && products[productId].event.created_at < newProductInfo.event.created_at)) {
                     // Calculate if ended

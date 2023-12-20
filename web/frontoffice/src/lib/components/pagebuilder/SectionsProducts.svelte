@@ -18,15 +18,6 @@
 
         getProducts(null, productIDs,
             (newProductInfo) => {
-                if (!newProductInfo.id) {
-                    let productId = getFirstTagValue(newProductInfo.event.tags, 'd');
-                    if (productId !== null) {
-                        newProductInfo.id = productId;
-                    } else {
-                        return;
-                    }
-                }
-
                 // Calculate if ended
                 if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
                     let now = Math.floor(Date.now() / 1000);
