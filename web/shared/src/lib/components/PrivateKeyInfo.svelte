@@ -2,6 +2,7 @@
     import {NostrLoginMethod, NostrPrivateKey, Info} from "$sharedLib/stores";
     import {logout} from "$sharedLib/utils";
     import InfoBox from "$sharedLib/components/notifications/InfoBox.svelte";
+    import {nip19} from "nostr-tools";
 
     export let showActionButtons = true;
 
@@ -45,6 +46,7 @@
 <p class="md:text-xl">Your Nostr private key:</p>
 
 <pre class="mt-5 truncate block text-sm md:text-xl bg-base-300 text-center">{$NostrPrivateKey}</pre>
+<pre class="mt-2 truncate block text-xs md:text-base text-center">({nip19.nsecEncode($NostrPrivateKey)})</pre>
 <div class="w-full flex items-center justify-center">
     <button class="btn btn-xs btn-success mt-3 mb-1" on:click={() => copy($NostrPrivateKey)}>Copy Private key</button>
 </div>

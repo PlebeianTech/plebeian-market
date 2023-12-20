@@ -2,7 +2,7 @@
     import { createEventDispatcher, onMount } from 'svelte';
     import {NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
     import { hasExtension, tryLoginToBackend } from '$sharedLib/nostr/utils';
-    import {generatePrivateKey, getPublicKey} from "nostr-tools";
+    import {generatePrivateKey, getPublicKey, nip19} from "nostr-tools";
     import { browser } from "$app/environment";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import {setLoginMethod} from "$sharedLib/utils";
@@ -59,6 +59,13 @@
     }
 
     async function savePrivateNostrKey(privateKey: string) {
+        if (privateKey.toLowerCase().startsWith('nsec')) {
+            let { type, data } = nip19.decode(privateKey.toLowerCase());
+            if (type === 'nsec' && data) {
+                privateKey = data;
+            }
+        }
+
         let publicKey = getPublicKey(privateKey);
 
         NostrPublicKey.set(publicKey);
@@ -73,6 +80,8 @@
     async function waitAndLogin() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         dispatch('login', {});
+
+        closeLoginModal();
 
         // After login, try to log in to backend
         tryLoginToBackend(() => { dispatch('backoffice-login') });
