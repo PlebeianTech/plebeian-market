@@ -2,6 +2,7 @@
     import {NostrLoginMethod, NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
     import {loggedIn, logout, requestLoginModal} from "$sharedLib/utils";
     import PrivateKeyInfo from "$sharedLib/components/PrivateKeyInfo.svelte";
+    import {nip19} from "nostr-tools";
 </script>
 
 {#if loggedIn()}
@@ -16,8 +17,15 @@
             This is the public key we're getting from the browser extension:
         </p>
         <p class="mt-4 mb-4">
-            {$NostrPublicKey}
+            Hex form:<br />{$NostrPublicKey}
         </p>
+        <p class="mt-4 mb-4">
+            Npub:<br />{nip19.npubEncode($NostrPublicKey)}
+        </p>
+
+        {(console.log('$NostrPublicKey', $NostrPublicKey), '')}
+        {(console.log('nip19.npubEncode($NostrPublicKey)', nip19.npubEncode($NostrPublicKey)), '')}
+        {(console.log('$NostrLoginMethod', $NostrLoginMethod), '')}
 
         <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
 
