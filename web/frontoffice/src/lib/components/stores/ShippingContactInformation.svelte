@@ -13,13 +13,15 @@
     export let email = '';
     export let phone = '';
 
-    export let buyNow = () => {};
+    export let buyNow = null;
 </script>
 
-<div class="flex flex-col md:flex-row w-full md:px-12">
-    <div class="grid flex-grow card w-full lg:w-2/4 p-8 gap-3 bg-base-300 rounded-box place-items-center">
+<div class="flex flex-col md:flex-row w-full md:px-12 mt-12">
+    <div class="grid flex-grow card w-full lg:w-2/4 p-4 md:p-8 gap-3 bg-base-300 rounded-box place-items-center">
         <h2 class="card-title">Shipping information</h2>
-        <p>If you're purchasing a physical product, include all the info required so the merchant can send you the products.</p>
+        <p>If you're purchasing a physical product, include all the info required so the merchant can send you the products.
+            This information will be sent to the seller privately using Nostr messages from your account, so we don't
+            even know what you put here. It's P2P between the seller and you.</p>
 
         <div class="form-control w-full max-w-xs mt-6">
             <label class="label">
@@ -48,7 +50,7 @@
 
     <div class="divider lg:divider-horizontal"></div>
 
-    <div class="grid flex-grow card w-full lg:w-2/4 p-8 gap-3 bg-base-300 rounded-box place-items-center">
+    <div class="grid flex-grow card w-full lg:w-2/4 p-4 md:p-8 gap-3 bg-base-300 rounded-box place-items-center">
         <h2 class="card-title">Contact information</h2>
         <p>Nostr private messages is the default contact method, but you could also provide email or phone contact information if you prefer that way.</p>
 
@@ -84,8 +86,10 @@
     </div>
 </div>
 
-<div class="flex flex-col md:flex-row w-full md:px-12 mb-12">
-    <div class="card-actions justify-center mt-10 md:mt-14 mx-auto">
-        <a class="btn btn-success" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow}>{isAuction ? 'Send details' : 'Buy now'}</a>
+{#if buyNow}
+    <div class="flex flex-col md:flex-row w-full md:px-12 mb-12">
+        <div class="card-actions justify-center mt-10 md:mt-14 mx-auto">
+            <a class="btn btn-success" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow}>{isAuction ? 'Send details' : 'Buy now'}</a>
+        </div>
     </div>
-</div>
+{/if}
