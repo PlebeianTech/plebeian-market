@@ -41,7 +41,7 @@ API_BASE_URL = os.environ.get('API_BASE_URL')
 API_BASE_URL_EXTERNAL = os.environ.get('API_BASE_URL_EXTERNAL') # used to mock S3 in dev mode and have the browser (which is not running in the docker container) hit the mock directly
 BIRDWATCHER_BASE_URL = os.environ.get('BIRDWATCHER_BASE_URL')
 WWW_BASE_URL = os.environ.get('WWW_BASE_URL')
-DOMAIN_NAME = "plebeian.market"
+DOMAIN_NAME = os.environ.get('DOMAIN_NAME')
 SITE_NAME = "Plebeian Market"
 
 LNAUTH_EXPIRE_MINUTES = 120

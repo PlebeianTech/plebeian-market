@@ -47,19 +47,14 @@ Our vision of the future involves small communities around the world running the
 * clone repo
 * add `plebeian-market-secrets/secret_key` (random string)
 * add `plebeian-market-secrets/db.json` (default username: *pleb* / default password: *plebpass*)
-* add `plebeian-market-secrets/admin.macaroon` and `plebeian-market-secrets/tls.cert` (for connecting to LND)
 * add `plebeian-market-secrets/lndhub.json`
 * add `plebeian-market-secrets/mail.json`
 * add `plebeian-market-secrets/nostr.json`
 * add `plebeian-market-secrets/site-admin.json`
-* edit config.py
-  * `DOMAIN_NAME`
 * edit `.env.prod`
-  * `WWW_BASE_URL`
+  * `API_BASE_URL`, `WWW_BASE_URL`, `DOMAIN_NAME`
 * edit `docker-compose.prod.yml`
-  * `BASE_URL`
-  * `VIRTUAL_HOST`
-  * `LETSENCRYPT_HOST`
+  * `VIRTUAL_HOST`, `LETSENCRYPT_HOST`
 * edit `./web/.env.production`
   * `VITE_BASE_URL`
   * `VITE_API_BASE_URL`
