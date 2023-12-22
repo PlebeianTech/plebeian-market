@@ -13,9 +13,8 @@ class LndHubClient:
 
         if not login_token:
             app.logger.error(f"__init__ - Couldn't get the login_token ({self.lndhub_url})...")
-            return False
-
-        self.auth_header = login_token
+        else:
+            self.auth_header = login_token
 
     def get_login_token(self):
         app.logger.info(f"get_login_token - Trying login to LndHub API ({self.lndhub_url})...")
@@ -34,7 +33,7 @@ class LndHubClient:
         app.logger.debug(f"get_login_token - json_res = ({json_res})...")
 
         if 'error' in json_res:
-            app.logger.error(f"get_login_token - error while trying to get the login_token from the LndHub {json_res['message']}")
+            app.logger.error(f"get_login_token - error while trying to get the login_token from the LndHub: {json_res['error']}")
             return False
 
         access_token = json_res['access_token']
