@@ -38,8 +38,6 @@
                         <option disabled selected value="0">Choose a shipping option:</option>
                     {/if}
 
-{(console.log('$stalls.stalls[stallId].shipping', $stalls.stalls[stallId].shipping), '')}
-
                     {#each $stalls.stalls[stallId].shipping as shippingOption}
                         <option value="{shippingOption.id}">
                             {#if shippingOption.name}

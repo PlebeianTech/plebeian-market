@@ -23,10 +23,6 @@
             Npub:<br />{nip19.npubEncode($NostrPublicKey)}
         </p>
 
-        {(console.log('$NostrPublicKey', $NostrPublicKey), '')}
-        {(console.log('nip19.npubEncode($NostrPublicKey)', nip19.npubEncode($NostrPublicKey)), '')}
-        {(console.log('$NostrLoginMethod', $NostrLoginMethod), '')}
-
         <button class="btn btn-info mt-4" on:click={() => logout()} on:keypress={() => logout()}>Logout</button>
 
     {:else if $NostrPrivateKey}
