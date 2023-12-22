@@ -6,13 +6,23 @@
 
 ## About
 
-**Plebeian Market** is the self-sovereign marketplace of the internet, powered by Bitcoin and the Lightning Network for payments and by Nostr for communications.
+**Plebeian Market** is the self-sovereign marketplace of the Internet, powered by Bitcoin and the Lightning Network for payments and by Nostr for resilience.
 
 What you see here is the initial implementation of a larger vision of fully decentralized e-commerce.
 
 While we are also running *[plebeian.market](https://plebeian.market/)* - a Plebeian Market instance - others can, and are encouraged to, run their own instances. Whether on your own hardware using Umbrel or Start9 or on a VPS, running a Plebeian Market instance is what makes your community self-sovereign and in control of its data.
 
-Our vision of the future involves small communities around the world running their own market places. At the same time, these market places communicate with each other, which is why we like to call Plebeian Market *the mycelium of free commerce*.
+Our vision of the future involves small communities around the world running their own market places, which is why we like to call Plebeian Market *the mycelium of free commerce*.
+
+## Architecture
+
+To achieve resilience, the marketplace has two independent components: the **back office** and the **front office**.
+
+Merchants use the **back office** to create listings, which are forwarded to known Nostr relays. The **back office** does therefore not need to be accessible from the Internet - it can be hosted on an Umbrel or Start9 running in one's closet. This ensures that the merchants are always in control of their data!
+
+Buyers use the **front office** to make purchases. This is a *client-side* web app, that doesn't talk to the **back office** (remember, the back office might not be accessible on the Internet!), and only talks to Nostr relays. This app can therefore be hosted on something as simple as GitHub pages - or it can even be sent around using email! A merchant could indeed, in theory, email a `.html` page to its customers, which, when opened, connects to Nostr relays, displays the merchant's stall, takes orders from the buyers, and forwards the orders back to the Nostr relays.
+
+The **back office** then connects to the known Nostr relays, fetches the orders that the buyers have placed and replies back with invoices that the buyers needs to pay.
 
 ## Install
 
@@ -39,7 +49,6 @@ Our vision of the future involves small communities around the world running the
   ```
 
 * Copy the content of the `web/frontoffice/build` directory to your web server using your app of choice.
-
 
 ### Install the entire marketplace
 
