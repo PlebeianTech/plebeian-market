@@ -383,10 +383,10 @@ export async function getAuction(key) {
             serverLoadedItem: auction.auction
         }
     }
-    throw error(
-        response.status,
-        "Could not fetch auction on the server"
-    );
+    error(
+            response.status,
+            "Could not fetch auction on the server"
+        );
 }
 
 export async function getListing(key) {
@@ -398,10 +398,10 @@ export async function getListing(key) {
             serverLoadedItem: listing.listing
         }
     }
-    throw error(
-        response.status,
-        "Could not fetch listing on the server"
-    );
+    error(
+            response.status,
+            "Could not fetch listing on the server"
+        );
 }
 
 export async function getUser(nym) {
@@ -413,10 +413,10 @@ export async function getUser(nym) {
             serverLoadedUser: user.user
         }
     }
-    throw error(
-        response.status,
-        "Could not fetch user on the server"
-    );
+    error(
+            response.status,
+            "Could not fetch user on the server"
+        );
 }
 
 export function putOrder(tokenValue, uuid: string, status: {paid?: boolean, shipped?: boolean, canceled?: boolean, expired?: boolean}, successCB: (order: Order) => void, errorHandler = new ErrorHandler()) {

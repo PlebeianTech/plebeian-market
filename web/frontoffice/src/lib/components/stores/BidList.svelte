@@ -231,7 +231,7 @@
     </div>
 </dialog>
 
-<div id="user-information-popup" transition:fade class:absolute={modalPubkey} class:opacity-0={!modalPubkey} class:opacity-100={modalPubkey} class="w-96 m-4 transition-opacity ease-in-out delay-75 duration-200 card card-compact z-[200] bg-base-200 border-2 border-neutral-content/50 shadow shadow-neutral-content/50 ">
+<div id="user-information-popup" transition:fade|global class:absolute={modalPubkey} class:opacity-0={!modalPubkey} class:opacity-100={modalPubkey} class="w-96 m-4 transition-opacity ease-in-out delay-75 duration-200 card card-compact z-[200] bg-base-200 border-2 border-neutral-content/50 shadow shadow-neutral-content/50 ">
     <div class="card-body">
         {#if !mobile}
             <UserInfoPopup bind:userPubkey={modalPubkey} />
