@@ -49,15 +49,15 @@
     });
 </script>
 
-<div class="btn-group btn-group-vertical lg:btn-group-horizontal justify-end">
-    <button class="btn gap-2" on:click={() => newNostrConversation(merchantPubkey)}>
+<div class="join join-vertical lg:join-horizontal justify-end">
+    <button class="btn join-item gap-2" on:click={() => newNostrConversation(merchantPubkey)}>
         <span class="w-8 h-8">
             <EmailIcon />
         </span>
         Contact the merchant
     </button>
     <div class="divider divider-horizontal hidden md:block"></div>
-    <button class="btn hidden md:block tooltip" data-tip="{showExpiredAuctions ? 'Hide expired auctions' : 'Show expired auctions'}" class:btn-active={showExpiredAuctions} on:click={() => showExpiredAuctions = !showExpiredAuctions}>
+    <button class="btn join-item hidden md:block tooltip" data-tip="{showExpiredAuctions ? 'Hide expired auctions' : 'Show expired auctions'}" class:btn-active={showExpiredAuctions} on:click={() => showExpiredAuctions = !showExpiredAuctions}>
         {#if showExpiredAuctions}
             <Eye />
         {:else}
@@ -65,10 +65,10 @@
         {/if}
     </button>
     <div class="divider divider-horizontal hidden md:block"></div>
-    <button class="btn hidden md:block" class:btn-active={listView} on:click={() => listView = true}>
+    <button class="btn join-item hidden md:block" class:btn-active={listView} on:click={() => listView = true}>
         <ViewList />
     </button>
-    <button class="btn hidden md:block" class:btn-active={!listView} on:click={() => listView = false}>
+    <button class="btn join-item hidden md:block" class:btn-active={!listView} on:click={() => listView = false}>
         <ViewCards />
     </button>
 </div>

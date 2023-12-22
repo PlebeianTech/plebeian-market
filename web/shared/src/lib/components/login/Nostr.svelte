@@ -127,9 +127,9 @@
     {/if}
 
     <div>
-        <div class="tabs">
-            <a class="tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=0}>Existing Nostr user</a>
-            <a class="tab tab-lifted tab-sm md:tab-lg flex-1 p-4 pb-8 lg:pb-6 lg:py-2 {activeTab===1 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=1}>New user / Anon</a>
+        <div class="tabs tabs-lifted aaatabs-sm md:tabs-lg">
+            <a class="tab {activeTab===0 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=0}>Existing Nostr user</a>
+            <a class="tab {activeTab===1 ? 'bg-base-300 text-base-content' : ''}" on:click={() => activeTab=1}>New user / Anon</a>
         </div>
 
         <div class="grid w-full flex-grow gap-3 p-4 py-6 lg:p-14 lg:py-8 bg-base-300 rounded-xl rounded-tl-none rounded-tr-none md:shadow-xl items-center justify-center">
@@ -157,16 +157,15 @@
                 </div>
 
             {:else if activeTab===1}
-                <div class="w-full flex pt-16">
+                <div class="w-full flex pt-3 md:pt-6">
                     <div class="form-control w-full max-w-full">
                         <p class="mb-4">
                             This is the way to start using Plebeian Market if you don't have a Nostr extension or you want to have an anonymous identity.
                             <button class="btn btn-outline btn-xs btn-info" on:click={() => {window.modal_generate_key.showModal()}}>More info</button>
                         </p>
 
-
                         {#if $NostrPrivateKey}
-                            <div class="form-control w-full max-w-full mt-8">
+                            <div class="form-control w-full max-w-full mt-6">
                                 <p class="mb-4">This is the key we previously generated for you. You can use it or generate a new one.</p>
                                 <p class="mb-4"><b>If you generate a new one, you'll better make sure you save this one to a secure place before, or you'll lose your ability to communicate with sellers and keep the Orders history.</b></p>
                                 <input bind:value={$NostrPrivateKey} type="text" class="input md:input-lg input-bordered" />
@@ -175,7 +174,7 @@
                     </div>
                 </div>
 
-                <div class="w-full flex items-center justify-center mt-8 mb-12">
+                <div class="w-full flex items-center justify-center mt-8 mb-1">
                     {#if $NostrPrivateKey}
                         <button class="btn btn-success btn-xs md:btn-md mr-8" on:click={useSameKeyToLogin}>Use this key</button>
                     {/if}
