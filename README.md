@@ -26,6 +26,15 @@ The **back office** then connects to the known Nostr relays, fetches the orders 
 
 ## Install
 
+### Linode (or any other VPS provider)
+
+1. Create a new Linode, in the region you want. The cheapest one (Nanode, 5$, shared CPU) should be enough. Select Debian 12 as an OS.
+1. Once the machine is created, copy the IP address, go to your DNS settings, and create an `A` record, pointing from your desired host name to the IP of the machine.
+1. Open a terminal.
+1. Wait a couple of minutes for the DNS to propagate. It shouldn't take long. You can run `ping <domain name>` in the terminal you opened and see that the results include the correct IP address.
+1. Log in to your machine using `ssh root@<domain name>`.
+1. Run `sh -c "$(curl -sSL https://raw.githubusercontent.com/PlebeianTech/plebeian-market/master/install.sh)"`
+
 ### Install just the front office (from git master)
 
 * Clone the repository
@@ -56,19 +65,14 @@ The **back office** then connects to the known Nostr relays, fetches the orders 
 * clone repo
 * add `plebeian-market-secrets/secret_key` (random string)
 * add `plebeian-market-secrets/db.json` (default username: *pleb* / default password: *plebpass*)
-* add `plebeian-market-secrets/admin.macaroon` and `plebeian-market-secrets/tls.cert` (for connecting to LND)
 * add `plebeian-market-secrets/lndhub.json`
 * add `plebeian-market-secrets/mail.json`
 * add `plebeian-market-secrets/nostr.json`
 * add `plebeian-market-secrets/site-admin.json`
-* edit config.py
-  * `DOMAIN_NAME`
 * edit `.env.prod`
-  * `WWW_BASE_URL`
+  * `API_BASE_URL`, `WWW_BASE_URL`, `DOMAIN_NAME`
 * edit `docker-compose.prod.yml`
-  * `BASE_URL`
-  * `VIRTUAL_HOST`
-  * `LETSENCRYPT_HOST`
+  * `VIRTUAL_HOST`, `LETSENCRYPT_HOST`
 * edit `./web/.env.production`
   * `VITE_BASE_URL`
   * `VITE_API_BASE_URL`
