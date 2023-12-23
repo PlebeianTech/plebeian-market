@@ -964,6 +964,7 @@ def post_merchant_message(pubkey):
 
             order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
             db.session.add(order_item)
+            db.session.commit()
 
             if shipping_id == 'WORLD':
                 shipping_usd += listing.item.extra_shipping_worldwide_usd * quantity
@@ -976,6 +977,8 @@ def post_merchant_message(pubkey):
 
         order.total_usd += order.shipping_usd
         order.total = usd2sats(order.total_usd, btc2usd)
+
+        db.session.commit()
 
         app.logger.info(f"New order for merchant {pubkey}: {order.uuid=} {len(order_listings)} items, {order.total_usd=}, {order.total=}!")
     else: # order exists, so we can edit it here

@@ -13,8 +13,9 @@ class LndHubClient:
 
         if not login_token:
             app.logger.error(f"__init__ - Couldn't get the login_token ({self.lndhub_url})...")
-        else:
-            self.auth_header = login_token
+            return false
+
+        self.auth_header = login_token
 
     def get_login_token(self):
         app.logger.info(f"get_login_token - Trying login to LndHub API ({self.lndhub_url})...")
