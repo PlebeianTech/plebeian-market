@@ -366,7 +366,7 @@ def settle_lightning_payments():
                                     incoming_payment_received = True
 
                                     # We don't mark the order as paid yet for the seller, but the buyer already paid,
-                                    # so we want him to have the order marked as paid so the QR dissapears from the screen
+                                    # so we want him to have the order marked as paid so the QR disappears from the screen
                                     if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                         json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed"})):
                                         app.logger.info(f"        -  ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
@@ -402,11 +402,11 @@ def settle_lightning_payments():
                                         else:
                                             app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
                                             
-                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment from order #{order.uuid}'):
+                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment received - Order #{order.uuid}'):
                                                 time.sleep(5)
                                                 lndhub_client.get_login_token()
 
-                                                if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment from order #{order.uuid}'):
+                                                if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment received - Order #{order.uuid}'):
                                                     outgoing_payments_sent = False
                                                     app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
 

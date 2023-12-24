@@ -24,7 +24,7 @@
             <DateFormatter date={order.requested_at} style={DateStyle.Short} />
         {/if}
     </td>
-    <td>
+    <td class="text-center">
         {order.total} / ${order.total_usd}
     </td>
     <td>
@@ -37,7 +37,7 @@
             <a class="link" href={tx_url} target="_blank">{order.txid}</a>
         {/if}
     </td>
-    <td>
+    <td class="text-center">
         {#if order.expired_at !== null}
             Expired
         {:else if order.canceled_at !== null}
@@ -48,25 +48,25 @@
             New
         {/if}
     </td>
-    <td>
-        { order.buyer?.name }
+    <td class="text-center">
+        { order.buyer?.name ?? '-' }
     </td>
     <td>
         <button class="btn" on:click={buyerModal.showModal()}>Details</button>
         <dialog bind:this={buyerModal} class="modal">
             <div class="modal-box w-11/12 max-w-5xl">
-                <p class="py-4"><strong>Name</strong>: { order.buyer?.name }</p>
-                <p class="py-4"><strong>Address</strong>: { order.buyer?.address }</p>
+                <p class="py-4"><strong>Name</strong>: { order.buyer?.name ?? '-' }</p>
+                <p class="py-4"><strong>Address</strong>: { order.buyer?.address ?? '-' }</p>
                 {#if order.buyer?.contact}
                     {#each Object.entries(order.buyer?.contact) as [k, v]}
                         <p class="py-4"><strong>{k}</strong>: {v}</p>
                     {/each}
                 {/if}
-                <p class="py-4"><strong>Message from buyer</strong>: { order.buyer?.message }</p>
-                <a class="btn btn-primary ml-2 w-20" href="/messages?newMessagePubKey={order.buyer?.public_key}">Chat!</a>
+                <p class="py-4"><strong>Message from buyer</strong>: { order.buyer?.message ?? '-' }</p>
+                <a class="btn btn-primary mt-2 w-20" href="/messages?newMessagePubKey={order.buyer?.public_key}">Chat with the buyer</a>
                 <div class="modal-action">
                     <form method="dialog">
-                        <button class="btn">close</button>
+                        <button class="btn">Close</button>
                     </form>
                 </div>
             </div>
