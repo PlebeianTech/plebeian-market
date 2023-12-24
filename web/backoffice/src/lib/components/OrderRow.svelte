@@ -63,7 +63,7 @@
                     {/each}
                 {/if}
                 <p class="py-4"><strong>Message from buyer</strong>: { order.buyer?.message ?? '-' }</p>
-                <a class="btn btn-primary mt-2 w-20" href="/messages?newMessagePubKey={order.buyer?.public_key}">Chat with the buyer</a>
+                <a class="btn btn-primary mt-6" href="/messages?newMessagePubKey={order.buyer?.public_key}">Chat with the buyer</a>
                 <div class="modal-action">
                     <form method="dialog">
                         <button class="btn">Close</button>
