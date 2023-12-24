@@ -937,6 +937,7 @@ class Order(db.Model):
                 'contact': self.buyer_contact,
             },
             'on_chain_address': self.on_chain_address,
+            'lightning_address': self.lightning_address,
             'txid': self.txid,
             'tx_value': self.tx_value,
             'requested_at': (self.requested_at.isoformat() + "Z"),
@@ -946,6 +947,8 @@ class Order(db.Model):
             'canceled_at': (self.canceled_at.isoformat() + "Z" if self.canceled_at else None),
             'total_usd': self.total_usd,
             'total': self.total,
+            'lightning_payment': [lightning_invoice.to_dict() for lightning_invoice in self.lightning_invoices],
+            'lightning_payment_logs': [lightning_payment_log.to_dict() for lightning_payment_log in self.lightning_payment_logs],
         }
 
 class OrderItem(db.Model):
@@ -1014,7 +1017,6 @@ class Sale(db.Model):
     shipping_domestic = db.Column(db.Integer, nullable=False)
     shipping_worldwide = db.Column(db.Integer, nullable=False)
 
-    # the Lightning invoice for the contribution
     contribution_amount = db.Column(db.Integer, nullable=False)
     contribution_payment_request = db.Column(db.String(512), nullable=True, unique=True, index=True)
     contribution_settled_at = db.Column(db.DateTime, nullable=True) # this is NULL initially, and gets set after the contribution has been received
@@ -1032,6 +1034,14 @@ class LightningInvoice(db.Model):
 
     order = db.relationship('Order', back_populates="lightning_invoices")
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'invoice': self.invoice,
+            'payment_hash': self.payment_hash,
+            'price': self.price
+        }
+
 class LightningPaymentLogType(Enum):
     RECEIVED = 0
     SENT = 1
@@ -1047,6 +1057,15 @@ class LightningPaymentLog(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     order = db.relationship('Order', back_populates="lightning_payment_logs")
+
+    def to_dict(self):
+        return {
+            'lightning_invoice_id': self.lightning_invoice_id,
+            'type': self.type,
+            'paid_to': self.paid_to,
+            'amount': self.amount,
+            'created_at': self.created_at
+        }
 
     @classmethod
     def check_incoming_payment(cls, order_id, lightning_invoice_id, amount):

@@ -91,7 +91,7 @@
             Order Received
         {/if}
     </td>
-    <td class="pb-4">
+    <td class="pb-4 text-center">
         {#if order.expired_at === null && order.canceled_at === null}
             {#if order.paid_at === null}
                 <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Order marked as paid!"); entity = o;}) } href={null}>Mark Payment as received</a>
