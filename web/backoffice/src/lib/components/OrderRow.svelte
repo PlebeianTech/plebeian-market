@@ -39,9 +39,7 @@
     </td>
     <td class="text-center">
         { order.buyer?.name ?? '-' }
-    </td>
-    <td>
-        <button class="btn" on:click={buyerModal.showModal()}>Details</button>
+        <button class="btn btn-xs" on:click={buyerModal.showModal()}>Details</button>
         <dialog bind:this={buyerModal} class="modal">
             <div class="modal-box w-11/12 max-w-5xl">
                 <p class="py-4"><strong>Name</strong>: { order.buyer?.name ?? '-' }</p>
@@ -62,35 +60,41 @@
         </dialog>
     </td>
     <td class="text-center">
-        {#if order.expired_at !== null}
+        {#if order.paid_at !== null}
+            Payment Received
+        {:else if order.expired_at !== null}
             Expired
         {:else if order.canceled_at !== null}
             Canceled
         {:else if order.shipped_at !== null}
             Shipped
         {:else}
-            New
+            Order Received
         {/if}
     </td>
     <td>
-        {#if order.paid_at === null && order.canceled_at === null}
-            <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Paid!"); entity = o;}) }>Payment received</a>
-        {/if}
+        {#if order.expired_at !== null}}
+            {#if order.paid_at === null && order.canceled_at === null}
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Paid!"); entity = o;}) }>Payment received</a>
+            {/if}
 
-        {#if order.paid_at !== null && order.shipped_at === null}
-            <a class="link link-success block" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) } href={null}>Mark Order as Shipped</a>
-        {/if}
+            {#if order.paid_at !== null && order.shipped_at === null}
+                <a class="link link-success block" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) } href={null}>Mark Order as Shipped</a>
+            {/if}
 
-        {#if order.shipped_at !== null}
-            Order Shipped: <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
-        {/if}
+            {#if order.shipped_at !== null}
+                Order Shipped: <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
+            {/if}
 
-        {#if order.expired_at !== null}
-            <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>Recover Order (mark as Not Expired)</a>
-        {/if}
-
-        {#if order.canceled_at === null}
-            <a class="link link-error block" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) } href={null}>Cancel Order</a>
+            {#if order.canceled_at === null}
+                <a class="link link-error block" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) } href={null}>Cancel Order</a>
+            {/if}
+        {:else}
+            {#if order.expired_at !== null}
+                <p>
+                    Recover Order <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>(mark as Not Expired)</a>
+                </p>
+            {/if}
         {/if}
     </td>
 </tr>
