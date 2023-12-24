@@ -13,7 +13,11 @@
 
     let buyerModal;
 
-    let fiatAmountPrettify = 0
+    let fiatAmountPrettify: string = "";
+
+    let paymentType: string = "";
+    let lnPaymentAt = null;
+    let lnPaymentAmount: number = 0;
 
     $: if (order && order.total_usd && !isNaN(order.total_usd)) {
         if (order.total_usd > 1) {
@@ -24,41 +28,69 @@
             fiatAmountPrettify = order.total_usd.toFixed(5);
         }
     }
+
+    $: if (order.lightning_payment_logs || order.txid) {
+        if (order.lightning_payment_logs) {
+            console.log('  -- order.lightning_payment_logs', order.lightning_payment_logs);
+
+            order.lightning_payment_logs.forEach(payment_log => {
+                console.log('     **** payment_log:', payment_log);
+                if (payment_log.type === 1) {
+                    lnPaymentAt = payment_log.created_at;
+                    lnPaymentAmount = payment_log.amount;
+                    paymentType = "BTC_LN";
+                }
+            });
+        } else if (order.txid) {
+            paymentType = "BTC_ONCHAIN";
+        }
+    }
 </script>
 
 {(console.log(' ----- order', order), '')}
 
 <tr>
-    <td class="pb-4 text-center">
+    <td class="pb-5 text-center">
         <div class="tooltip tooltip-info tooltip-right block" data-tip="{order.uuid}">
             <p>{order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}</p>
         </div>
         <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid); Info.set("Order ID copied to the clipboard"); }}>Copy</button>
     </td>
-    <td class="pb-4 text-center">
+    <td class="pb-5 text-center">
         {#if order.requested_at}
             <DateFormatter date={order.requested_at} style={DateStyle.Short} />
         {/if}
     </td>
-    <td class="pb-4 text-center">
+    <td class="pb-5 text-center">
         <p>
             {order.total} sat
         </p>
-        <p>
-            ${fiatAmountPrettify}
-        </p>
-    </td>
-    <td class="pb-4">
-        {#if order.tx_value}
-            {order.tx_value}
+        {#if order.total}
+            <p class="text-sm">
+                ${fiatAmountPrettify}
+            </p>
         {/if}
     </td>
-    <td class="pb-4">
-        {#if order.txid}
-            <a class="link" href={tx_url} target="_blank">{order.txid}</a>
+    <td class="pb-5 text-center text-sm">
+        {#if paymentType === "BTC_ONCHAIN"}
+            <p>Onchain Payment</p>
+            <p>
+                {#if order.tx_value}
+                    {order.tx_value}
+                {/if}
+            </p>
+            <p>
+                {#if order.txid}
+                    <a class="link" href={tx_url} target="_blank">{order.txid}</a>
+                {/if}
+            </p>
+        {:else if paymentType === "BTC_LN"}
+            <p>Lightning Payment</p>
+            <p>{lnPaymentAmount} sat to {order.lightning_address}</p>
+            <p>{lnPaymentAt}</p>
         {/if}
     </td>
-    <td class="pb-4 text-center">
+    <td class="pb-5 text-center">
         <p>{ order.buyer?.name ?? '-' }</p>
         <button class="btn btn-xs" on:click={buyerModal.showModal()}>Details</button>
         <dialog bind:this={buyerModal} class="modal">
@@ -80,23 +112,25 @@
             </div>
         </dialog>
     </td>
-    <td class="pb-4 text-center">
+    <td class="pb-5 text-center">
         {#if order.shipped_at !== null}
             Shipped
         {:else if order.paid_at !== null}
-            Payment Received
+            <p>Payment</p>
+            <p>Received</p>
         {:else if order.canceled_at !== null}
             Canceled
         {:else if order.expired_at !== null}
             Expired
         {:else}
-            Order Received
+            <p>Order</p>
+            <p>Received</p>
         {/if}
     </td>
-    <td class="pb-4">
+    <td class="pb-5 text-center">
         {#if order.expired_at === null && order.canceled_at === null}
             {#if order.paid_at === null}
-                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Order marked as paid!"); entity = o;}) }>Mark Payment as received</a>
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Order marked as paid!"); entity = o;}) } href={null}>Mark Payment as received</a>
             {/if}
 
             {#if order.paid_at !== null && order.shipped_at === null}
@@ -104,7 +138,7 @@
             {/if}
 
             {#if order.shipped_at !== null}
-                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Order Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Order Marked as not shipped!"); entity = o;}) } href={null}>Mark as Not Shipped</a>
             {/if}
 
             {#if order.paid_at === null && order.shipped_at === null}
