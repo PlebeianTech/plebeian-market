@@ -69,7 +69,7 @@
             ${fiatAmountPrettify}
         </p>
     </td>
-    <td class="pb-5">
+    <td class="pb-5 text-center text-sm">
         {#if paymentType === "BTC_ONCHAIN"}
             <p>Onchain Payment</p>
             <p>
