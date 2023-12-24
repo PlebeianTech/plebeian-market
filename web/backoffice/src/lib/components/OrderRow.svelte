@@ -64,14 +64,14 @@
         </dialog>
     </td>
     <td class="pb-4 text-center">
-        {#if order.paid_at !== null}
+        {#if order.shipped_at !== null}
+            Shipped
+        {:else if order.paid_at !== null}
             Payment Received
         {:else if order.expired_at !== null}
             Expired
         {:else if order.canceled_at !== null}
             Canceled
-        {:else if order.shipped_at !== null}
-            Shipped
         {:else}
             Order Received
         {/if}
