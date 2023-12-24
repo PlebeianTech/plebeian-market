@@ -21,7 +21,7 @@
         <div class="tooltip tooltip-info tooltip-right block" data-tip="{order.uuid}">
             <p>{order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}</p>
         </div>
-        <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy</button>
+        <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid); Info.set("Order ID copied to the clipboard"); }}>Copy</button>
     </td>
     <td class="pb-4 text-center">
         {#if order.requested_at}
@@ -94,7 +94,7 @@
                 Order Shipped. <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
             {/if}
 
-            {#if order.canceled_at === null}
+            {#if order.canceled_at === null && order.paid_at === null && order.shipped_at === null}
                 <a class="link link-error block" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) } href={null}>Cancel Order</a>
             {/if}
         {:else}
