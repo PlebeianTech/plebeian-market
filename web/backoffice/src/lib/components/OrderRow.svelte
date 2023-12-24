@@ -94,9 +94,11 @@
                 <a class="link link-error block" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) } href={null}>Cancel Order</a>
             {/if}
         {:else}
+            <!--
             <p>
                 Recover Order <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>(mark as Not Expired)</a>
             </p>
+            -->
         {/if}
     </td>
 </tr>
