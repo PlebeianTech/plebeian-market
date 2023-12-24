@@ -116,7 +116,8 @@
         {#if order.shipped_at !== null}
             Shipped
         {:else if order.paid_at !== null}
-            Payment Received
+            <p>Payment</p>
+            <p>Received</p>
         {:else if order.canceled_at !== null}
             Canceled
         {:else if order.expired_at !== null}
