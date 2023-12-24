@@ -14,6 +14,8 @@
     let buyerModal;
 </script>
 
+{(console.log(' ----- order', order), '')}
+
 <tr>
     <td>
         {order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}
