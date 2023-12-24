@@ -17,7 +17,7 @@
 <tr>
     <td>
         {order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}
-        <button class="btn ml-2 w-20" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy!</button>
+        <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy</button>
     </td>
     <td>
         {#if order.requested_at}
