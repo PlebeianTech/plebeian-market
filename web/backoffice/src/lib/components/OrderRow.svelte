@@ -17,8 +17,8 @@
 {(console.log(' ----- order', order), '')}
 
 <tr>
-    <td class="pb-4">
-        <div class="tooltip tooltip-open tooltip-info" data-tip="{order.uuid}">
+    <td class="pb-4 text-center">
+        <div class="tooltip tooltip-info tooltip-right block" data-tip="{order.uuid}">
             <p>{order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}</p>
         </div>
         <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy</button>
