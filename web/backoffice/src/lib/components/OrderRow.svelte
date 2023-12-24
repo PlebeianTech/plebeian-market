@@ -65,9 +65,11 @@
         <p>
             {order.total} sat
         </p>
-        <p>
-            ${fiatAmountPrettify}
-        </p>
+        {#if order.total}
+            <p class="text-sm">
+                ${fiatAmountPrettify}
+            </p>
+        {/if}
     </td>
     <td class="pb-5 text-center text-sm">
         {#if paymentType === "BTC_ONCHAIN"}
