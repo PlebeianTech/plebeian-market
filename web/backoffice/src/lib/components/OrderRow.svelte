@@ -104,7 +104,7 @@
             {/if}
 
             {#if order.shipped_at !== null}
-                Order Shipped. <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Order Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Order Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
             {/if}
 
             {#if order.paid_at === null && order.shipped_at === null}
