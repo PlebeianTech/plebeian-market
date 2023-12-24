@@ -17,29 +17,31 @@
 {(console.log(' ----- order', order), '')}
 
 <tr>
-    <td>
-        {order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}
+    <td class="pb-4">
+        <div class="tooltip tooltip-open tooltip-info" data-tip="{order.uuid}">
+            <p>{order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}</p>
+        </div>
         <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy</button>
     </td>
-    <td class="text-center">
+    <td class="pb-4 text-center">
         {#if order.requested_at}
             <DateFormatter date={order.requested_at} style={DateStyle.Short} />
         {/if}
     </td>
-    <td class="text-center">
+    <td class="pb-4 text-center">
         {order.total} / ${order.total_usd}
     </td>
-    <td>
+    <td class="pb-4">
         {#if order.tx_value}
             {order.tx_value}
         {/if}
     </td>
-    <td>
+    <td class="pb-4">
         {#if order.txid}
             <a class="link" href={tx_url} target="_blank">{order.txid}</a>
         {/if}
     </td>
-    <td class="text-center">
+    <td class="pb-4 text-center">
         <p>{ order.buyer?.name ?? '-' }</p>
         <button class="btn btn-xs" on:click={buyerModal.showModal()}>Details</button>
         <dialog bind:this={buyerModal} class="modal">
@@ -61,7 +63,7 @@
             </div>
         </dialog>
     </td>
-    <td class="text-center">
+    <td class="pb-4 text-center">
         {#if order.paid_at !== null}
             Payment Received
         {:else if order.expired_at !== null}
@@ -74,8 +76,12 @@
             Order Received
         {/if}
     </td>
-    <td>
+    <td class="pb-4">
         {#if order.expired_at !== null}
+            {#if order.canceled_at !== null}
+
+            {/if}
+
             {#if order.paid_at === null && order.canceled_at === null}
                 <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Paid!"); entity = o;}) }>Mark Payment as received</a>
             {/if}
