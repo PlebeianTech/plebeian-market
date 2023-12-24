@@ -12,6 +12,18 @@
     $: tx_url = order.txid ? `https://mempool.space/tx/${order.txid}` : null;
 
     let buyerModal;
+
+    let fiatAmountPrettify = 0
+
+    if (!isNaN(order.total_usd)) {
+        if (order.total_usd > 1) {
+            fiatAmountPrettify = order.total_usd.toFixed(2);
+        } else if (order.total_usd > 99) {
+            fiatAmountPrettify = order.total_usd.toFixed(0);
+        } else {
+            fiatAmountPrettify = order.total_usd.toFixed(5);
+        }
+    }
 </script>
 
 {(console.log(' ----- order', order), '')}
@@ -29,7 +41,12 @@
         {/if}
     </td>
     <td class="pb-4 text-center">
-        {order.total} / ${order.total_usd}
+        <p>
+            {order.total} sat
+        </p>
+        <p>
+            ${fiatAmountPrettify}
+        </p>
     </td>
     <td class="pb-4">
         {#if order.tx_value}
@@ -68,10 +85,10 @@
             Shipped
         {:else if order.paid_at !== null}
             Payment Received
-        {:else if order.expired_at !== null}
-            Expired
         {:else if order.canceled_at !== null}
             Canceled
+        {:else if order.expired_at !== null}
+            Expired
         {:else}
             Order Received
         {/if}
