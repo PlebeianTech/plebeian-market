@@ -52,8 +52,6 @@
         {#if order.tx_value}
             {order.tx_value}
         {/if}
-    </td>
-    <td class="pb-4">
         {#if order.txid}
             <a class="link" href={tx_url} target="_blank">{order.txid}</a>
         {/if}
@@ -96,7 +94,7 @@
     <td class="pb-4">
         {#if order.expired_at === null && order.canceled_at === null}
             {#if order.paid_at === null}
-                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Order marked as paid!"); entity = o;}) }>Mark Payment as received</a>
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Order marked as paid!"); entity = o;}) } href={null}>Mark Payment as received</a>
             {/if}
 
             {#if order.paid_at !== null && order.shipped_at === null}
@@ -104,7 +102,7 @@
             {/if}
 
             {#if order.shipped_at !== null}
-                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Order Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Order Marked as not shipped!"); entity = o;}) } href={null}>Mark as Not Shipped</a>
             {/if}
 
             {#if order.paid_at === null && order.shipped_at === null}
