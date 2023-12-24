@@ -123,7 +123,8 @@
         {:else if order.expired_at !== null}
             Expired
         {:else}
-            Order Received
+            <p>Order</p>
+            <p>Received</p>
         {/if}
     </td>
     <td class="pb-5 text-center">
