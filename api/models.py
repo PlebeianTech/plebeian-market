@@ -947,7 +947,6 @@ class Order(db.Model):
             'canceled_at': (self.canceled_at.isoformat() + "Z" if self.canceled_at else None),
             'total_usd': self.total_usd,
             'total': self.total,
-            'lightning_payment': [lightning_invoice.to_dict() for lightning_invoice in self.lightning_invoices],
             'lightning_payment_logs': [lightning_payment_log.to_dict() for lightning_payment_log in self.lightning_payment_logs],
         }
 
