@@ -19,7 +19,7 @@
         {order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}
         <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy</button>
     </td>
-    <td>
+    <td class="text-center">
         {#if order.requested_at}
             <DateFormatter date={order.requested_at} style={DateStyle.Short} />
         {/if}
