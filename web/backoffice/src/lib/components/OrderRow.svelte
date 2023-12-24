@@ -71,14 +71,21 @@
     </td>
     <td class="pb-5">
         {#if paymentType === "BTC_ONCHAIN"}
-            {#if order.tx_value}
-                {order.tx_value}
-            {/if}
-            {#if order.txid}
-                <a class="link" href={tx_url} target="_blank">{order.txid}</a>
-            {/if}
+            <p>Onchain Payment</p>
+            <p>
+                {#if order.tx_value}
+                    {order.tx_value}
+                {/if}
+            </p>
+            <p>
+                {#if order.txid}
+                    <a class="link" href={tx_url} target="_blank">{order.txid}</a>
+                {/if}
+            </p>
         {:else if paymentType === "BTC_LN"}
-            {lnPaymentAmount} sat to {order.lightning_address} at {lnPaymentAt}
+            <p>Lightning Payment</p>
+            <p>{lnPaymentAmount} sat to {order.lightning_address}</p>
+            <p>{lnPaymentAt}</p>
         {/if}
     </td>
     <td class="pb-5 text-center">
