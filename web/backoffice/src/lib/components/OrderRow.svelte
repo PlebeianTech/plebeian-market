@@ -12,80 +12,110 @@
     $: tx_url = order.txid ? `https://mempool.space/tx/${order.txid}` : null;
 
     let buyerModal;
+
+    let fiatAmountPrettify = 0
+
+    $: if (order && order.total_usd && !isNaN(order.total_usd)) {
+        if (order.total_usd > 1) {
+            fiatAmountPrettify = order.total_usd.toFixed(2);
+        } else if (order.total_usd > 99) {
+            fiatAmountPrettify = order.total_usd.toFixed(0);
+        } else {
+            fiatAmountPrettify = order.total_usd.toFixed(5);
+        }
+    }
 </script>
 
+{(console.log(' ----- order', order), '')}
+
 <tr>
-    <td>
-        {order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}
-        <button class="btn ml-2 w-20" on:click={() => { navigator.clipboard.writeText(order.uuid) }}>Copy!</button>
+    <td class="pb-4 text-center">
+        <div class="tooltip tooltip-info tooltip-right block" data-tip="{order.uuid}">
+            <p>{order.uuid.substring(0, order.uuid.indexOf("-")) + "-..."}</p>
+        </div>
+        <button class="btn btn-xs" on:click={() => { navigator.clipboard.writeText(order.uuid); Info.set("Order ID copied to the clipboard"); }}>Copy</button>
     </td>
-    <td>
+    <td class="pb-4 text-center">
         {#if order.requested_at}
             <DateFormatter date={order.requested_at} style={DateStyle.Short} />
         {/if}
     </td>
-    <td>
-        {order.total} / ${order.total_usd}
+    <td class="pb-4 text-center">
+        <p>
+            {order.total} sat
+        </p>
+        <p>
+            ${fiatAmountPrettify}
+        </p>
     </td>
-    <td>
+    <td class="pb-4">
         {#if order.tx_value}
             {order.tx_value}
         {/if}
     </td>
-    <td>
+    <td class="pb-4">
         {#if order.txid}
             <a class="link" href={tx_url} target="_blank">{order.txid}</a>
         {/if}
     </td>
-    <td>
-        {#if order.expired_at !== null}
-            Expired
-        {:else if order.canceled_at !== null}
-            Canceled
-        {:else if order.shipped_at !== null}
-            Shipped
-        {:else}
-            New
-        {/if}
-    </td>
-    <td>
-        { order.buyer?.name }
-    </td>
-    <td>
-        <button class="btn" on:click={buyerModal.showModal()}>Details</button>
+    <td class="pb-4 text-center">
+        <p>{ order.buyer?.name ?? '-' }</p>
+        <button class="btn btn-xs" on:click={buyerModal.showModal()}>Details</button>
         <dialog bind:this={buyerModal} class="modal">
             <div class="modal-box w-11/12 max-w-5xl">
-                <p class="py-4"><strong>Name</strong>: { order.buyer?.name }</p>
-                <p class="py-4"><strong>Address</strong>: { order.buyer?.address }</p>
+                <p class="py-4"><strong>Name</strong>: { order.buyer?.name ?? '-' }</p>
+                <p class="py-4"><strong>Address</strong>: { order.buyer?.address ?? '-' }</p>
                 {#if order.buyer?.contact}
                     {#each Object.entries(order.buyer?.contact) as [k, v]}
                         <p class="py-4"><strong>{k}</strong>: {v}</p>
                     {/each}
                 {/if}
-                <p class="py-4"><strong>Message from buyer</strong>: { order.buyer?.message }</p>
-                <a class="btn btn-primary ml-2 w-20" href="/messages?newMessagePubKey={order.buyer?.public_key}">Chat!</a>
+                <p class="py-4"><strong>Message from buyer</strong>: { order.buyer?.message ?? '-' }</p>
+                <a class="btn btn-primary mt-6" href="/messages?newMessagePubKey={order.buyer?.public_key}">Chat with the buyer</a>
                 <div class="modal-action">
                     <form method="dialog">
-                        <button class="btn">close</button>
+                        <button class="btn">Close</button>
                     </form>
                 </div>
             </div>
         </dialog>
     </td>
-    <td>
-        {#if order.canceled_at === null}
-            <button class="btn btn-error mx-2" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) }>Cancel</button>
-        {/if}
-        {#if order.paid_at === null && order.canceled_at === null}
-            <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Paid!"); entity = o;}) }>Payment received</button>
-        {:else if order.paid_at !== null && order.shipped_at === null}
-            <button class="btn btn-primary" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Marked as shipped!"); entity = o;}) }>Shipped</button>
-        {/if}
+    <td class="pb-4 text-center">
         {#if order.shipped_at !== null}
-            <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Marked as not shipped!"); entity = o;}) }>Not shipped</button>
+            Shipped
+        {:else if order.paid_at !== null}
+            Payment Received
+        {:else if order.canceled_at !== null}
+            Canceled
+        {:else if order.expired_at !== null}
+            Expired
+        {:else}
+            Order Received
         {/if}
-        {#if order.expired_at !== null}
-            <button class="btn btn-primary mx-2" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>Not expired</button>
+    </td>
+    <td class="pb-4">
+        {#if order.expired_at === null && order.canceled_at === null}
+            {#if order.paid_at === null}
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {paid: true}, (o) => {Info.set("Order marked as paid!"); entity = o;}) }>Mark Payment as received</a>
+            {/if}
+
+            {#if order.paid_at !== null && order.shipped_at === null}
+                <a class="link link-success block" on:click={() => putOrder($token, order.uuid, {shipped: true}, (o) => {Info.set("Order marked as shipped!"); entity = o;}) } href={null}>Mark order as shipped</a>
+            {/if}
+
+            {#if order.shipped_at !== null}
+                <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {shipped: false}, (o) => {Info.set("Order Marked as not shipped!"); entity = o;}) }>Mark Order as Not Shipped</a>
+            {/if}
+
+            {#if order.paid_at === null && order.shipped_at === null}
+                <a class="link link-error block" on:click={() => putOrder($token, order.uuid, {canceled: true}, (o) => {Info.set("Canceled!"); entity = o;}) } href={null}>Cancel Order</a>
+            {/if}
+        {:else}
+            <!--
+            <p>
+                Recover Order <a class="link link-primary block" on:click={() => putOrder($token, order.uuid, {expired: false}, (o) => {Info.set("Marked as not expired!"); entity = o;}) }>(mark as Not Expired)</a>
+            </p>
+            -->
         {/if}
     </td>
 </tr>
