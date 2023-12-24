@@ -31,7 +31,6 @@
 
     $: if (order.lightning_payment_logs || order.txid) {
         if (order.lightning_payment_logs) {
-            console.log('  -- lightning_payment', lightning_payment);
             console.log('  -- order.lightning_payment_logs', order.lightning_payment_logs);
 
             order.lightning_payment_logs.forEach(payment_log => {
