@@ -15,7 +15,7 @@
 
     let fiatAmountPrettify = 0
 
-    if (!isNaN(order.total_usd)) {
+    $: if (order && order.total_usd && !isNaN(order.total_usd)) {
         if (order.total_usd > 1) {
             fiatAmountPrettify = order.total_usd.toFixed(2);
         } else if (order.total_usd > 99) {
