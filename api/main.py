@@ -402,11 +402,11 @@ def settle_lightning_payments():
                                         else:
                                             app.logger.info(f"        -- Paying for order id={order.id}, ln_address={payout_ln_address}, amount={payout_amount}...")
                                             
-                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment received - Order #{order.uuid}'):
+                                            if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment received for order {order.uuid}'):
                                                 time.sleep(5)
                                                 lndhub_client.get_login_token()
 
-                                                if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment received - Order #{order.uuid}'):
+                                                if not lndhub_client.pay_to_ln_address(payout_ln_address, payout_amount, f'Payment received for order {order.uuid}'):
                                                     outgoing_payments_sent = False
                                                     app.logger.error(f"        - ERROR: Couldn't made some outgoing payment!!! payout_ln_address={payout_ln_address}, payout_amount={payout_amount}  !!!!!")
 

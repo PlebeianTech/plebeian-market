@@ -86,7 +86,7 @@
 </script>
 
 <nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50" data-sveltekit-preload-data="hover">
-    <div class="2xl:w-11/12 3xl:w-10/12 p-2 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
+    <div class="3xl:w-11/12 p-2 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
             <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="flex items-center mr-2 indicator">
                 <div class="flex items-center space-x-2">
@@ -143,13 +143,13 @@
         </div>
 
         {#if isFrontOffice}
-            <div class="right-0 hidden lg:block">
+            <div class="right-0 mr-3 3xl:mr-5 hidden lg:block">
                 <FiatChooser />
             </div>
         {/if}
 
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0">
-            <div class="lg:flex items-center justify-start 2xl:space-x-2">
+            <div class="lg:flex items-center justify-start 3xl:space-x-2">
                 <div class="float-right">
                     {#if isFrontOffice}
                         <div class="right-0 lg:hidden">
@@ -157,20 +157,20 @@
                         </div>
                     {/if}
 
-                    <label tabindex="0" class="swap swap-rotate 2xl:mr-3" on:click={toggleTheme} on:keypress={toggleTheme}>
+                    <label tabindex="0" class="swap swap-rotate mr-2 3xl:mr-3" on:click={toggleTheme} on:keypress={toggleTheme}>
                         <input type="checkbox" bind:checked={prefersDark} />
-                        <div class="swap-off w-9 h-9"><Sun /></div>
-                        <div class="swap-on w-9 h-9"><Moon /></div>
+                        <div class="swap-off size-8 3xl:size-9"><Sun /></div>
+                        <div class="swap-on size-8 3xl:size-9"><Moon /></div>
                     </label>
 
-                    <div class="btn btn-ghost btn-circle 2xl:mr-2">
+                    <div class="btn btn-ghost btn-circle mr-1 3xl:mr-3">
                         <PrivateMessages />
                     </div>
 
                     {#if isFrontOffice}
-                        <div class="dropdown dropdown-end xl:mr-3">
+                        <div class="dropdown dropdown-end mr-1 3xl:mr-3">
                             <label tabindex="0" class="btn btn-ghost btn-circle">
-                                <div class="w-8 h-8 focus:outline-none indicator" >
+                                <div class="size-7 3xl:size-8 focus:outline-none indicator" >
                                     <ShoppingCartIcon />
                                     {#if $ShoppingCart.summary.totalQuantity}
                                         <span class="badge badge-sm badge-info indicator-item">{$ShoppingCart.summary.totalQuantity}</span>
