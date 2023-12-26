@@ -10,6 +10,7 @@
     import { Image } from 'svelte-lazy-loader';
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
     import SvelteMarkdown from "svelte-markdown";
+    import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     export let product;
     export let onImgError = () => {};
@@ -83,7 +84,16 @@
                         Stock: {product.quantity}
                     {/if}
                 </div>
-                <div>{#if product.price}{product.price} {#if product.currency} {product.currency}{/if}{/if}</div>
+                <div>
+                    {#if product.price && product.currency}
+                        <CurrencyConverter
+                            amount={product.price}
+                            sourceCurrency={product.currency}
+                        />
+                    {:else}
+                        {#if product.price}{product.price.toString().trim()} {#if product.currency}{product.currency.trim()}{/if}{/if}
+                    {/if}
+                </div>
             </div>
             <div class="mt-2 md:mt-3 justify-end {product.quantity === 0 ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
                 <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
