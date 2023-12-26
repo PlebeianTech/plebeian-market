@@ -62,8 +62,6 @@
     }
 
     export async function buyNow() {
-        console.log('---- buyNow start ----');
-
         if (!await waitAndShowLoginIfNotLoggedAlready()) {
             return;
         }
@@ -148,7 +146,7 @@
         superTotalSats = totalSats + shippingCostsSats;
     }
 
-    $: if ($ShoppingCart.products && $userChosenCurrency) {
+    $: if (!compact && $ShoppingCart.products && $userChosenCurrency && $stalls && !$stalls.fetching) {
         calculateTotals();
     }
 
