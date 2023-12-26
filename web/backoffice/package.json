@@ -7,7 +7,7 @@
     "@sveltejs/vite-plugin-svelte": "^3.0.0",
     "autoprefixer": "^10.4.16",
     "btc2fiat": "*",
-    "daisyui": "^4.4.23",
+    "daisyui": "^4.4.24",
     "eslint": "^8.56.0",
     "eslint-plugin-svelte": "^2.35.1",
     "nostr-tools": "^1.13.1",
@@ -33,7 +33,7 @@
     "lint": "eslint --ignore-path .gitignore ."
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
     "light-bolt11-decoder": "^3.0.0"
   }
 }
