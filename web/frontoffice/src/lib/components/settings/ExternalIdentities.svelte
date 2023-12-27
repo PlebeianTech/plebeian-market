@@ -225,7 +225,7 @@
     });
 </script>
 
-{#if loggedIn()}
+{#if $NostrPublicKey}
     <h1>Adding a new external identity</h1>
 
     <div class="mt-4">

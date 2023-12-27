@@ -1,11 +1,11 @@
 <script lang="ts">
     import {NostrLoginMethod, NostrPrivateKey, NostrPublicKey} from "$sharedLib/stores";
-    import {loggedIn, logout, requestLoginModal} from "$sharedLib/utils";
+    import {logout, requestLoginModal} from "$sharedLib/utils";
     import PrivateKeyInfo from "$sharedLib/components/PrivateKeyInfo.svelte";
     import {nip19} from "nostr-tools";
 </script>
 
-{#if loggedIn()}
+{#if $NostrPublicKey}
     {#if $NostrLoginMethod === 'extension'}
         <p>
             You're using your <b>Nostr browser extension</b>.
