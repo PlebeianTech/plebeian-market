@@ -118,7 +118,7 @@
         superTotalSats = 0;
 
         for (const [stallId, products] of [...$ShoppingCart.products]) {
-            // Shipping cost
+            // Stall shipping cost
             if ($stalls?.stalls[stallId]) {
                 for (const shippingOption of $stalls?.stalls[stallId].shipping) {
                     if ($stalls?.stalls[stallId].shippingOption === shippingOption.id) {
@@ -131,6 +131,7 @@
                 }
             }
 
+            // Product shipping cost
 
             // Product price
             for (const [productId, product] of [...products]) {
@@ -146,8 +147,35 @@
         superTotalSats = totalSats + shippingCostsSats;
     }
 
+    async function calculateShippingOptions() {
+        for (const [stallId, products] of [...$ShoppingCart.products]) {
+            console.log('*** stallId:', stallId);
+
+            if ($stalls.stalls[stallId]) {
+                $stalls.stalls[stallId].allShippingOptions = [];
+
+                // Stall shipping options
+                for (const stallShippingOption of $stalls?.stalls[stallId].shipping) {
+                    console.log('      * PUSH stallShippingOption', stallShippingOption);
+                    $stalls.stalls[stallId].allShippingOptions.push(stallShippingOption);
+                }
+
+                // Product shipping options
+                for (const [productId, product] of [...products]) {
+                    product.shipping.forEach((productShippingOption) => {
+                        console.log('      * PUSH productShippingOption', productShippingOption);
+                        $stalls.stalls[stallId].allShippingOptions.push(productShippingOption);
+                    });
+                }
+            }
+
+            console.log('**************** $stalls.stalls[stallId].allShippingOptions', $stalls.stalls[stallId].allShippingOptions);
+        }
+    }
+
     $: if (!compact && $ShoppingCart.products && $userChosenCurrency && $stalls && !$stalls.fetching) {
         calculateTotals();
+        calculateShippingOptions();
     }
 
     $: destinationCurrencyInfo = getCurrencyInfo($userChosenCurrency);
