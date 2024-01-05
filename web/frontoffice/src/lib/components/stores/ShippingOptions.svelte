@@ -21,9 +21,9 @@
         {#if !$stalls?.stalls[stallId] || !$stalls.stalls[stallId].allShippingOptions}
             <p class="md:mx-3 mt-1">Loading shipping options...</p>
         {:else if !($stalls.stalls[stallId].allShippingOptions.length === 1 && $stalls.stalls[stallId].allShippingOptions[0].cost === 0)}
-            <p class="md:mx-3 mt-1">
+            <div class="md:mx-3 mt-1 w-fit">
                 {#if $stalls.stalls[stallId].allShippingOptions.length > 1 && $stalls.stalls[stallId].shippingOption === '0'}
-                    <div class="size-10 p-2 -mt-4 -mb-1 animate-bounce text-red-600 bg-white dark:bg-slate-800 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full flex aaaitems-center aajustify-center aaamx-auto">
+                    <div class="flex mx-auto size-10 p-2 -mt-4 -mb-1 animate-bounce text-red-600 bg-white dark:bg-slate-800 ring-1 ring-slate-900/5 dark:ring-slate-200/20 shadow-lg rounded-full">
                         <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
                             <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                         </svg>
@@ -61,7 +61,7 @@
                         </option>
                     {/each}
                 </select>
-            </p>
+            </div>
         {/if}
     </td>
 </tr>
