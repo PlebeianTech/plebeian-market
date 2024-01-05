@@ -65,8 +65,12 @@ export const supportedCurrencies = [
      */
 ];
 
-export function getCurrencyInfo(currency: string) {
-    return supportedCurrencies.find((x) => x.symbol === currency);
+export function getCurrencyInfo(currency: string | null) {
+    if (currency) {
+        return supportedCurrencies.find((x) => x.symbol === currency);
+    }
+
+    return null;
 }
 
 export async function getFiatRate(fiatSymbol: string) {

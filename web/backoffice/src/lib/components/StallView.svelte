@@ -10,6 +10,7 @@
     import type { IEntity } from "$lib/types/base";
     import { Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
+    import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 
     let newAuctionsList, activeAuctionsList, pastAuctionsList: ListView;
     let newListingsList, activeListingsList, pastListingsList: ListView;
@@ -65,9 +66,10 @@
     onMount(() => window.scrollTo(0, 0));
 </script>
 
+<Titleh1>Stall Manager</Titleh1>
+
 <div class="lg:flex lg:w-2/3 mx-auto my-4">
     <div class="w-full px-4">
-        <h2 class="text-3xl my-8">Stall Manager</h2>
         <p class="text-center my-4">This is where you list items that you have for sale!</p>
         {#if $user && $user.merchantPublicKey && $user.stallId}
             <p class="text-center my-4">This is the <a class="link" href="{import.meta.env.VITE_BASE_URL}p/{$user.merchantPublicKey}/stall/{$user.stallId}">public link</a> of your stall. You can share this.</p>
