@@ -353,11 +353,21 @@
                     {#each [...products] as [_, product]}
                         <tr class="text-xs text-center">
                             <th class="text-left text-xs pl-1 pr-0">{#if product.name}<a href="/product/{product.id}">{product.name}</a>{/if}</th>
-                            <td class="px-0">{#if product.price}{product.price} {#if product.currency}{product.currency}{/if}{/if}</td>
+                            <td class="px-0">
+                                <CurrencyConverter
+                                    amount={product.price}
+                                    sourceCurrency={product.currency}
+                                />
+                            </td>
                             <td class="px-1">
                                 <Quantity bind:quantity={product.orderQuantity} maxStock={product.quantity} {compact} />
                             </td>
-                            <td class="px-0">{(product.orderQuantity ?? 0) * product.price} {#if product.currency}{product.currency}{/if}</td>
+                            <td class="px-0">
+                                <CurrencyConverter
+                                    amount={(product.orderQuantity ?? 0) * product.price}
+                                    sourceCurrency={product.currency}
+                                />
+                            </td>
                             <td class="pl-1 pr-1" on:click={() => deleteFromCart(stallId, product.id)}>
                                 <div class="w-5 h-5"><Trash /></div>
                             </td>
