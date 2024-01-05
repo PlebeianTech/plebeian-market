@@ -11,14 +11,14 @@
     <td colspan="{colspan}" class="bg-gray-300 dark:bg-gray-700 p-2">
         <p class="mx-2 md:mx-3 text-xs md:text-base">
             Order #{i+1} -
-            {#if $stalls.stalls[stallId] && $stalls.stalls[stallId].name}
+            {#if $stalls?.stalls[stallId] && $stalls.stalls[stallId].name}
                 <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
                     {$stalls.stalls[stallId].name}
                 </a>
             {/if}
         </p>
 
-        {#if !$stalls.stalls[stallId] || !$stalls.stalls[stallId].allShippingOptions}
+        {#if !$stalls?.stalls[stallId] || !$stalls.stalls[stallId].allShippingOptions}
             <p class="mx-2 md:mx-3 mt-1">Loading shipping options...</p>
         {:else if !($stalls.stalls[stallId].allShippingOptions.length === 1 && $stalls.stalls[stallId].allShippingOptions[0].cost === 0)}
             <p class="mx-2 md:mx-3 mt-1">

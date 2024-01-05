@@ -108,14 +108,18 @@
         await goto('/orders');
     }
 
-    async function calculateTotals() {
-        total = 0;
-        shippingCosts = 0;
-        superTotal = 0;
+    async function calculateShippingAndTotals() {
+        // Work with local variables first, then save to external variables
+        // This reduces flickering because external (reactive) variables
+        // are not updated so often, and prevents miscalculations if the
+        // function is called twice for any reason (it happens)
+        let totalTemp = 0;
+        let shippingCostsTemp = 0;
+        let superTotalTemp = 0;
 
-        totalSats = 0;
-        shippingCostsSats = 0;
-        superTotalSats = 0;
+        let totalSatsTemp = 0;
+        let shippingCostsSatsTemp = 0;
+        let superTotalSatsTemp = 0;
 
         for (const [stallId, products] of [...$ShoppingCart.products]) {
             // Stall shipping cost
@@ -124,58 +128,88 @@
                     if ($stalls?.stalls[stallId].shippingOption === shippingOption.id) {
                         const convertedShippingCost = await convertCurrencies(shippingOption.cost, $stalls.stalls[stallId].currency);
                         if (convertedShippingCost) {
-                            shippingCosts += convertedShippingCost.amount;
-                            shippingCostsSats += convertedShippingCost.sats;
+                            shippingCostsTemp += convertedShippingCost.amount;
+                            shippingCostsSatsTemp += convertedShippingCost.sats;
                         }
                     }
                 }
             }
 
             // Product shipping cost
+            for (const [productId, product] of [...products]) {
+                for (const productShippingOption of product.shipping) {
+                    if (!productShippingOption.cost) {
+                        continue;
+                    }
+
+                    if (productShippingOption.id && $stalls?.stalls[stallId].shippingOption === productShippingOption.id && productShippingOption.cost) {
+                        const convertedShippingCost = await convertCurrencies(productShippingOption.cost, $stalls.stalls[stallId].currency);
+                        if (convertedShippingCost) {
+                            shippingCostsTemp += convertedShippingCost.amount;
+                            shippingCostsSatsTemp += convertedShippingCost.sats;
+                        }
+                    }
+                }
+            }
 
             // Product price
             for (const [productId, product] of [...products]) {
                 const convertedProductTotal = await convertCurrencies(product.orderQuantity * product.price, product.currency);
                 if (convertedProductTotal) {
-                    total += convertedProductTotal.amount;
-                    totalSats += convertedProductTotal.sats;
+                    totalTemp += convertedProductTotal.amount;
+                    totalSatsTemp += convertedProductTotal.sats;
                 }
             }
         }
 
-        superTotal = total + shippingCosts;
-        superTotalSats = totalSats + shippingCostsSats;
+        superTotalTemp = totalTemp + shippingCostsTemp;
+        superTotalSatsTemp = totalSatsTemp + shippingCostsSatsTemp;
+
+        // Copy to external vars
+        total = totalTemp;
+        shippingCosts = shippingCostsTemp;
+        superTotal = superTotalTemp;
+
+        totalSats = totalSatsTemp;
+        shippingCostsSats = shippingCostsSatsTemp;
+        superTotalSats = superTotalSatsTemp;
     }
 
     async function calculateShippingOptions() {
         for (const [stallId, products] of [...$ShoppingCart.products]) {
-            console.log('*** stallId:', stallId);
-
             if ($stalls.stalls[stallId]) {
                 $stalls.stalls[stallId].allShippingOptions = [];
 
                 // Stall shipping options
                 for (const stallShippingOption of $stalls?.stalls[stallId].shipping) {
-                    console.log('      * PUSH stallShippingOption', stallShippingOption);
                     $stalls.stalls[stallId].allShippingOptions.push(stallShippingOption);
                 }
 
                 // Product shipping options
                 for (const [productId, product] of [...products]) {
                     product.shipping.forEach((productShippingOption) => {
-                        console.log('      * PUSH productShippingOption', productShippingOption);
-                        $stalls.stalls[stallId].allShippingOptions.push(productShippingOption);
+                        if (productShippingOption.id) {
+                            let idAlreadyExists = false;
+
+                            $stalls.stalls[stallId].allShippingOptions.forEach((shippingOption) => {
+                                if (shippingOption.id === productShippingOption.id) {
+                                    idAlreadyExists = true;
+                                }
+                            });
+
+                            if (!idAlreadyExists) {
+                                $stalls.stalls[stallId].allShippingOptions.push(productShippingOption);
+                            }
+                        }
                     });
                 }
             }
-
-            console.log('**************** $stalls.stalls[stallId].allShippingOptions', $stalls.stalls[stallId].allShippingOptions);
         }
     }
 
     $: if (!compact && $ShoppingCart.products && $userChosenCurrency && $stalls && !$stalls.fetching) {
-        calculateTotals();
         calculateShippingOptions();
+        calculateShippingAndTotals();
     }
 
     $: destinationCurrencyInfo = getCurrencyInfo($userChosenCurrency);
@@ -209,7 +243,7 @@
             {#each [...$ShoppingCart.products] as [stallId, products], i}
                 {#if $stalls.stalls[stallId]}
                     {#if !compact}
-                        <ShippingOptions {stallId} {i} colspan={compact ? '6' : '7'} onchangeCallback={calculateTotals} />
+                        <ShippingOptions {stallId} {i} colspan={compact ? '6' : '7'} onchangeCallback={calculateShippingAndTotals} />
                     {/if}
 
                     {#each [...products] as [_, product]}
@@ -268,9 +302,13 @@
                     <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
                         <span class="mx-1 md:mx-2">Shipping:</span>
                         <div class="float-right">
-                            <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
-                            {#if $userChosenCurrency !== 'SAT' && shippingCostsSats > 0}
-                                <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
+                            {#if shippingCostsSats}
+                                <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
+                                {#if $userChosenCurrency !== 'SAT' && shippingCostsSats > 0}
+                                    <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
+                                {/if}
+                            {:else}
+                                <span class="loading loading-bars w-6"></span>
                             {/if}
                         </div>
                     </td>
@@ -279,9 +317,13 @@
                     <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold md:text-lg">
                         <span class="mx-1 md:mx-2">Total:</span>
                         <div class="float-right">
-                            <span>~{removeDecimals(superTotalSats, "SAT")} sat</span>
-                            {#if $userChosenCurrency !== 'SAT'}
-                                <p class="text-xs text-center">(~{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix})</p>
+                            {#if superTotalSats}
+                                <span>~{removeDecimals(superTotalSats, "SAT")} sat</span>
+                                {#if $userChosenCurrency !== 'SAT'}
+                                    <p class="text-xs text-center">(~{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix})</p>
+                                {/if}
+                            {:else}
+                                <span class="loading loading-bars w-6"></span>
                             {/if}
                         </div>
                     </td>
@@ -305,7 +347,7 @@
             {#each [...$ShoppingCart.products] as [stallId, products], i}
                 {#if $stalls.stalls[stallId]}
                     {#if !compact}
-                        <ShippingOptions {stallId} {i} colspan={compact ? '6' : '7'} onchangeCallback={calculateTotals} />
+                        <ShippingOptions {stallId} {i} colspan={compact ? '6' : '7'} onchangeCallback={calculateShippingAndTotals} />
                     {/if}
 
                     {#each [...products] as [_, product]}
@@ -344,9 +386,13 @@
                     <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
                         <span class="mx-1 md:mx-2">Shipping:</span>
                         <div class="float-right">
-                            <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
-                            {#if $userChosenCurrency !== 'SAT'}
-                                <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
+                            {#if shippingCostsSats}
+                                <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
+                                {#if $userChosenCurrency !== 'SAT' && shippingCostsSats > 0}
+                                    <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
+                                {/if}
+                            {:else}
+                                <span class="loading loading-bars w-6"></span>
                             {/if}
                         </div>
                     </td>
@@ -355,9 +401,13 @@
                     <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold md:text-lg">
                         <span class="mx-1 md:mx-2">Total:</span>
                         <div class="float-right">
-                            <span>~{removeDecimals(superTotalSats, "SAT")} sat</span>
-                            {#if $userChosenCurrency !== 'SAT'}
-                                <p class="text-xs text-center">(~{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix})</p>
+                            {#if superTotalSats}
+                                <span>~{removeDecimals(superTotalSats, "SAT")} sat</span>
+                                {#if $userChosenCurrency !== 'SAT'}
+                                    <p class="text-xs text-center">(~{destinationCurrencyInfo.prefix}{removeDecimals(superTotal)}{destinationCurrencyInfo.suffix})</p>
+                                {/if}
+                            {:else}
+                                <span class="loading loading-bars w-6"></span>
                             {/if}
                         </div>
                     </td>
@@ -397,7 +447,7 @@
             <a class="btn btn-info mr-1" href="/planet">Continue shopping</a>
             {#if $ShoppingCart.summary.numProducts && $stalls && $stalls.stalls}
                 {#if !showCheckout}
-                    <a class="btn btn-success" on:click={() => {calculateTotals(); showCheckout = true}} href={null}>Checkout</a>
+                    <a class="btn btn-success" on:click={() => {calculateShippingAndTotals(); showCheckout = true}} href={null}>Checkout</a>
                 {:else}
                     <a class="btn btn-success" class:btn-disabled={!$NostrPublicKey} on:click|preventDefault={buyNow} href={null}>Buy now</a>
                 {/if}
