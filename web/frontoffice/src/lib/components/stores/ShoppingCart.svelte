@@ -287,9 +287,9 @@
             {#if !compact}
                 {#if shippingCostsSats}
                     <tr>
-                        <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
-                            <span class="mx-1 md:mx-2">Subtotal:</span>
-                            <div class="float-right">
+                        <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 md:text-base">
+                            <span class="md:mx-2">Subtotal:</span>
+                            <div class="float-right md:mx-2">
                                 <span>{removeDecimals(totalSats, "SAT")} sat</span>
                                 {#if $userChosenCurrency !== 'SAT'}
                                     <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(total)}{destinationCurrencyInfo.suffix})</p>
@@ -299,9 +299,9 @@
                     </tr>
                 {/if}
                 <tr>
-                    <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
-                        <span class="mx-1 md:mx-2">Shipping:</span>
-                        <div class="float-right">
+                    <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 md:text-base">
+                        <span class="md:mx-2">Shipping:</span>
+                        <div class="float-right md:mx-2">
                             {#if shippingCostsSats}
                                 <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
                                 {#if $userChosenCurrency !== 'SAT' && shippingCostsSats > 0}
@@ -315,8 +315,8 @@
                 </tr>
                 <tr>
                     <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold md:text-lg">
-                        <span class="mx-1 md:mx-2">Total:</span>
-                        <div class="float-right">
+                        <span class="md:mx-2">Total:</span>
+                        <div class="float-right md:mx-2">
                             {#if superTotalSats}
                                 <span>~{removeDecimals(superTotalSats, "SAT")} sat</span>
                                 {#if $userChosenCurrency !== 'SAT'}
@@ -371,8 +371,8 @@
             {#if !compact}
                 {#if shippingCostsSats}
                     <tr>
-                        <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
-                            <span class="mx-1 md:mx-2">Subtotal:</span>
+                        <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs">
+                            <span class="mx-1">Subtotal:</span>
                             <div class="float-right">
                                 <span>{removeDecimals(totalSats, "SAT")} sat</span>
                                 {#if $userChosenCurrency !== 'SAT'}
@@ -383,8 +383,8 @@
                     </tr>
                 {/if}
                 <tr>
-                    <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs md:text-base">
-                        <span class="mx-1 md:mx-2">Shipping:</span>
+                    <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs">
+                        <span class="mx-1">Shipping:</span>
                         <div class="float-right">
                             {#if shippingCostsSats}
                                 <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
@@ -398,8 +398,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold md:text-lg">
-                        <span class="mx-1 md:mx-2">Total:</span>
+                    <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 font-bold">
+                        <span class="mx-1">Total:</span>
                         <div class="float-right">
                             {#if superTotalSats}
                                 <span>~{removeDecimals(superTotalSats, "SAT")} sat</span>
