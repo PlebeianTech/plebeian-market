@@ -92,7 +92,7 @@
     <div class="flex mt-6 mb-4 w-11/12 lg:w-8/12" class:text-lg={!compact} class:text-xs={compact}>
         <p class="text-ellipsis overflow-hidden mx-auto">
             {#if !compact}
-                You can check that this identities match the external ones by clicking on each link and searching for {encodeNpub(nostrPublicKey)}
+                You can check that this identity match the external ones by clicking on each link and searching for {encodeNpub(nostrPublicKey)}
             {:else}
                 Check that this identities match the external ones by clicking on each link and searching for the npub of the user.
             {/if}
