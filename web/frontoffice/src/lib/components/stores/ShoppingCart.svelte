@@ -142,7 +142,7 @@
                         continue;
                     }
 
-                    if (productShippingOption.id && $stalls?.stalls[stallId].shippingOption === productShippingOption.id && productShippingOption.cost) {
+                    if (productShippingOption.id && $stalls?.stalls[stallId] && $stalls?.stalls[stallId].shippingOption === productShippingOption.id && productShippingOption.cost) {
                         const convertedShippingCost = await convertCurrencies(productShippingOption.cost, $stalls.stalls[stallId].currency);
                         if (convertedShippingCost) {
                             shippingCostsTemp += convertedShippingCost.amount;
