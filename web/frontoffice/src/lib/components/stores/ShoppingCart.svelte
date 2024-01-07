@@ -302,7 +302,7 @@
                     <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 md:text-base">
                         <span class="md:mx-2">Shipping:</span>
                         <div class="float-right md:mx-2">
-                            {#if shippingCostsSats}
+                            {#if superTotalSats}
                                 <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
                                 {#if $userChosenCurrency !== 'SAT' && shippingCostsSats > 0}
                                     <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
@@ -396,7 +396,7 @@
                     <td colspan="{compact ? 6 : 7}" class="bg-gray-300 dark:bg-gray-700 p-2 text-xs">
                         <span class="mx-1">Shipping:</span>
                         <div class="float-right">
-                            {#if shippingCostsSats}
+                            {#if superTotalSats}
                                 <span>{removeDecimals(shippingCostsSats, "SAT")} sat</span>
                                 {#if $userChosenCurrency !== 'SAT' && shippingCostsSats > 0}
                                     <p class="text-xs text-center">({destinationCurrencyInfo.prefix}{removeDecimals(shippingCosts)}{destinationCurrencyInfo.suffix})</p>
