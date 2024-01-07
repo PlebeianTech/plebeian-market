@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {loggedIn, requestLoginModal} from "$sharedLib/utils";
+    import {requestLoginModal} from "$sharedLib/utils";
     import { onMount } from 'svelte';
     import {publishMetadata, subscribeMetadata} from "$sharedLib/services/nostr";
     import {encodeNpub, filterTags} from "$sharedLib/nostr/utils";
@@ -163,7 +163,7 @@
         if (!changesMade) {
             Info.set('No changes made, so there is nothing to save')
         }
-        if (!profile.finishedLoading) {
+        if (!profileFinishedLoading) {
             Info.set('There was a problem loading your profile, so no changes are allowed. Reload the page and try again.')
             return;
         }
@@ -171,10 +171,14 @@
         // Filtering out 'i' tags to start clean
         let iFilteredProfileTags = [];
 
-        if (profile && profile.tags) {
-            iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
-                return tag[0] !== 'i';
-            });
+        if (!profile) {
+            profile = {};
+        } else {
+            if (profile.tags) {
+                iFilteredProfileTags = profile.tags.filter(function(tag, index, arr){
+                    return tag[0] !== 'i';
+                });
+            }
         }
 
         // Adding current i tags to the profile
@@ -185,10 +189,6 @@
                 identity.split(':')[2]
             ]);
         });
-
-        if (!profile) {
-            profile = {};
-        }
 
         await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
     }
@@ -213,9 +213,7 @@
                     }
                 },
                 async () => {
-                    if (profile) {
-                        profile.finishedLoading = true;
-                    }
+                    profileFinishedLoading = true;
                 });
         }
     }
