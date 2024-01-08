@@ -5,4 +5,6 @@
     export let data;
 </script>
 
-<Product product_id={data.product_id} />
+{#key data.product_id}
+    <Product product_id={data.product_id} />
+{/key}

@@ -34,10 +34,6 @@
         }
     }
 
-    afterNavigate(() => {
-        loadProduct();
-    });
-
     onMount(async () => {
         loadProduct();
         refreshStalls();

@@ -36,7 +36,9 @@
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" on:click|preventDefault={close}>✕</button>
         {#key `${viewProductIdOnModal}`}
             {#if viewProductIdOnModal}
-                <Product product_id={viewProductIdOnModal} in_popup={true} />
+                {#key viewProductIdOnModal}
+                    <Product product_id={viewProductIdOnModal} in_popup={true} />
+                {/key}
             {/if}
         {/key}
         <div class="modal-action">
