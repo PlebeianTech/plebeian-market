@@ -137,16 +137,18 @@
 
             // Product shipping cost
             for (const [productId, product] of [...products]) {
-                for (const productShippingOption of product.shipping) {
-                    if (!productShippingOption.cost) {
-                        continue;
-                    }
+                if (product.shipping) {
+                    for (const productShippingOption of product.shipping) {
+                        if (!productShippingOption.cost) {
+                            continue;
+                        }
 
-                    if (productShippingOption.id && $stalls?.stalls[stallId] && $stalls?.stalls[stallId].shippingOption === productShippingOption.id && productShippingOption.cost) {
-                        const convertedShippingCost = await convertCurrencies(productShippingOption.cost, $stalls.stalls[stallId].currency);
-                        if (convertedShippingCost) {
-                            shippingCostsTemp += convertedShippingCost.amount;
-                            shippingCostsSatsTemp += convertedShippingCost.sats;
+                        if (productShippingOption.id && $stalls?.stalls[stallId] && $stalls?.stalls[stallId].shippingOption === productShippingOption.id && productShippingOption.cost) {
+                            const convertedShippingCost = await convertCurrencies(productShippingOption.cost, $stalls.stalls[stallId].currency);
+                            if (convertedShippingCost) {
+                                shippingCostsTemp += convertedShippingCost.amount;
+                                shippingCostsSatsTemp += convertedShippingCost.sats;
+                            }
                         }
                     }
                 }
@@ -187,7 +189,7 @@
 
                 // Product shipping options
                 for (const [productId, product] of [...products]) {
-                    product.shipping.forEach((productShippingOption) => {
+                    product.shipping?.forEach((productShippingOption) => {
                         if (productShippingOption.id) {
                             let idAlreadyExists = false;
 
