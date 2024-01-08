@@ -120,7 +120,7 @@
                     </div>
                 {/if}
 
-                {#if $stalls !== null && $stalls.stalls[product.stall_id]}
+                {#if $stalls?.stalls[product.stall_id]}
                     <div class="md:max-w-[70%] alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer text-lg" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.event.pubkey+'/stall/'+product.stall_id)}>
                         <div class="float-left h-6 w-6 mr-1 align-middle stroke-current flex-shrink-0">
                             <Store />
@@ -151,17 +151,21 @@
                         </div>
                     </div>
 
-                    {#if product.quantity === null || product.quantity > 0}
-                        <div class="block mb-6 text-xl">
-                            <div class="flex justify-center">
-                                <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
-                            </div>
-                            <button class="btn btn-primary mt-2" class:btn-disabled={product.quantity === 0} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
-                                Add to cart
-                            </button>
-                        </div>
+                    {#if !$stalls?.stalls[product.stall_id]}
+                        <button class="mt-2 btn btn-error cursor-default tooltip" data-tip="We cannot find the stall in which this product was created, so you cannot buy it">Stall unavailable</button>
                     {:else}
-                        <button class="btn btn-warning btn-lg no-animation">Out of stock</button>
+                        {#if product.quantity === null || product.quantity > 0}
+                            <div class="block mb-6 text-xl">
+                                <div class="flex justify-center">
+                                    <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
+                                </div>
+                                <button class="btn btn-primary mt-2" class:btn-disabled={product.quantity === 0} on:click|preventDefault={(event) => addToCart(product, orderQuantity)}>
+                                    Add to cart
+                                </button>
+                            </div>
+                        {:else}
+                            <button class="btn btn-warning btn-lg no-animation">Out of stock</button>
+                        {/if}
                     {/if}
                 {/if}
 
