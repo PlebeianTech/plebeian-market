@@ -450,12 +450,12 @@
         </p>
 
         <div class="flex mt-5 text-left"><span class="size-8 mr-2 text-[20px]">❌</span> rejected because social IDs verification is required <a class="ml-2 btn btn-xs btn-outline btn-info" href="/settings">Go</a></div>
-        <div class="flex mt-1 text-left"><span class="size-8 mr-2 text-[20px] -mt-1"><Clock /></span> Skin In The Game badge needs to be bought</div>
+        <div class="flex mt-1 text-left"><span class="size-8 mr-3 text-[20px] -mt-1 -ml-1"><Clock /></span> Skin In The Game badge needs to be bought</div>
         <div class="flex mt-3 text-left"><span class="size-8 mr-2 text-[20px]">✅</span> bid confirmed</div>
-        <div class="flex mt-1 text-left"><span class="size-8 mr-2 text-[20px] -mt-1"><WinnerBadge /></span> winner of the auction</div>
+        <div class="flex mt-1 text-left"><span class="size-8 mr-3 text-[20px] -mt-1 -ml-1"><WinnerBadge /></span> winner of the auction</div>
 
         <div class="mt-4">
-            <button type="submit" class="btn btn-sm btn-outline btn-info">Verify external IDs</button>
+            <a type="submit" class="btn btn-sm btn-outline btn-info"  href="/settings">Verify external IDs</a>
         </div>
     </div>
 
