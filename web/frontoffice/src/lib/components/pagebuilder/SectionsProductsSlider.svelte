@@ -46,9 +46,17 @@
             async () => {
                 // EOSE: all products loaded
                 if (browser) {
-                    const {Carousel, initTE} = await import('tw-elements');
-                    //await new Promise(resolve => setTimeout(resolve, 2000));
-                    initTE({Carousel});
+                    const {Carousel} = await import('tw-elements');
+
+                    // First: destroy
+                    const myCarouselEl = document.getElementById('slider_'+pageId+'_'+sectionId);
+                    let myCarousel = new Carousel(myCarouselEl);
+                    myCarousel.dispose();
+
+                    // Second: create
+                    myCarousel = new Carousel(myCarouselEl);
+                    myCarousel.cycle();
+
                     productsLoaded = true;
                 }
 
@@ -155,7 +163,7 @@
 
             <!-- CTA Slider -->
             {#if Object.entries(products).length > 1 && $fileConfiguration.backend_present}
-                <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
+                <div class="hidden h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
                      data-te-carousel-fade
                      data-te-carousel-item>
                     <div class="relative h-full w-auto md:flex qaaaoverflow-hidden">
