@@ -59,7 +59,7 @@
 </script>
 
 {#each externalIdentities as identity}
-    <div class="flex mt-5" class:mt-5={!compact} class:mt-3={compact}>
+    <div class="flex" class:mt-5={!compact} class:mt-3={compact}>
         {#if deleteIdentity}
             <div class="size-5 mr-4 tooltip tooltip-error" data-tip="Delete this identity from your Nostr Profile" on:click={() => {deleteIdentity(identity)}}><X /></div>
         {/if}

@@ -16,6 +16,8 @@
     import PaymentWidget from "$lib/components/stores/PaymentWidget.svelte";
     import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import UserProfileInformation from "$sharedLib/components/nostr/UserProfileInformation.svelte";
+    import Clock from "$sharedLib/components/icons/Clock.svelte";
+    import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
 
     export let product;
 
@@ -389,7 +391,7 @@
                 {/if}
             </div>
 
-            <div class="p-3 pb-3">
+            <div class="p-3">
                 {#if numBids === 0}
                     This auction doesn't have any bid yet. Be the first to bid!
                 {:else if numAcceptedBids === 0}
@@ -430,9 +432,7 @@
                         <span class="text-base">sats</span>
                     </label>
 
-                    <button class="btn btn-success mt-4" on:click|preventDefault={makeNewBid}>
-                        Bid
-                    </button>
+                    <button class="btn btn-success mt-4" on:click|preventDefault={makeNewBid}>Bid</button>
                 </div>
             </div>
         {:else}
@@ -440,6 +440,24 @@
             <div class="divider"></div>
         {/if}
     {/if}
+
+    <!-- Auction instructions -->
+    <div class="mt-4 p-3 md:p-5 md:pb-6 text-sm md:text-base w-10/12 md:w-2/3 mx-auto border rounded-xl border-black/20">
+        <p class="mt-2">INSTRUCTIONS</p>
+        <div class="divider"></div>
+        <p>
+            To take part in an auction, you must have verified you Nostr account with 2 other social ID's (X, Telegram, Github) and on some auctions, the seller may wish for you to have bought the Skin In The Game badge.
+        </p>
+
+        <div class="flex mt-5 text-left"><span class="size-8 mr-2 text-[20px]">❌</span> rejected because social IDs verification is required <a class="ml-2 btn btn-xs btn-outline btn-info" href="/settings">Go</a></div>
+        <div class="flex mt-1 text-left"><span class="size-8 mr-2 text-[20px] -mt-1"><Clock /></span> Skin In The Game badge needs to be bought</div>
+        <div class="flex mt-3 text-left"><span class="size-8 mr-2 text-[20px]">✅</span> bid confirmed</div>
+        <div class="flex mt-1 text-left"><span class="size-8 mr-2 text-[20px] -mt-1"><WinnerBadge /></span> winner of the auction</div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-sm btn-outline btn-info">Verify external IDs</button>
+        </div>
+    </div>
 
     {#if !(!started && !ended)}
         <BidList {sortedBids} {userProfileInfoMap} {openSitgBadgeInfo} {bidSuscriptionFinished} />
