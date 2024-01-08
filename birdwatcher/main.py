@@ -78,18 +78,22 @@ class Relay:
 
         self.subscribed_auction_event_ids = set()
         self.subscribed_merchant_pubkeys = set()
+
+        self.bid_subscription_id = None
+        self.dm_subscription_id = None
+
         self.auction_owners = {} # event ID to pubkey
 
         self.active_queries: dict[str, asyncio.Event] = {}
         self.query_results: dict[str, list[dict]] = {}
 
-    async def check_ours(self, event, cb):
+    async def check_ours(self, event, subscribe_cb):
         async def do_get(session, url):
             async with session.get(url) as response:
                 if response.status == 404:
                     logging.debug(f"Not our merchant {event['pubkey']}...")
                 elif response.status == 200:
-                    await cb(**event)
+                    await subscribe_cb(**event)
         async with aiohttp.ClientSession() as session:
             await asyncio.create_task(do_get(session, f"{API_BASE_URL}/api/merchants/{event['pubkey']}"))
 
@@ -155,21 +159,27 @@ class Relay:
 
     async def subscribe_dm(self, pubkey, **_):
         if pubkey not in self.subscribed_merchant_pubkeys:
+            if self.dm_subscription_id is not None:
+                logging.info(f"({self.url}) Closing subscription for DMs of {len(self.subscribed_merchant_pubkeys)} merchants: {self.dm_subscription_id}...")
+                await self.ws.send(json.dumps(['CLOSE', self.dm_subscription_id]))
             self.subscribed_merchant_pubkeys.add(pubkey)
-            logging.info(f"({self.url}) Subscribing to DMs for merchant #p={pubkey}...")
-            subscription_id = os.urandom(10).hex()
-            await self.ws.send(json.dumps(['REQ', subscription_id, {"#p": [pubkey], 'kinds': [EventKind.DM]}]))
-            return subscription_id
+            self.dm_subscription_id = os.urandom(10).hex()
+            logging.info(f"({self.url}) Subscribing to DMs of {len(self.subscribed_merchant_pubkeys)} merchants: {self.dm_subscription_id}...")
+            await self.ws.send(json.dumps(['REQ', self.dm_subscription_id, {"#p": list(self.subscribed_merchant_pubkeys), 'kinds': [EventKind.DM]}]))
+            return self.dm_subscription_id
 
     async def subscribe_bids(self, pubkey, id, **_):
         if id not in self.subscribed_auction_event_ids:
+            if self.bid_subscription_id is not None:
+                logging.info(f"({self.url}) Closing subscription for bids of {len(self.subscribed_auction_event_ids)} auctions: {self.bid_subscription_id}...")
+                await self.ws.send(json.dumps(['CLOSE', self.bid_subscription_id]))
             self.subscribed_auction_event_ids.add(id)
             assert id not in self.auction_owners
             self.auction_owners[id] = pubkey
-            logging.info(f"({self.url}) Subscribing to bids for auction #e={id} of merchant {pubkey}...")
-            subscription_id = os.urandom(10).hex()
-            await self.ws.send(json.dumps(['REQ', subscription_id, {"#e": [id], 'kinds': [EventKind.BID]}]))
-            return subscription_id
+            self.bid_subscription_id = os.urandom(10).hex()
+            logging.info(f"({self.url}) Subscribing to bids of {len(self.subscribed_auction_event_ids)} auctions: {self.bid_subscription_id}...")
+            await self.ws.send(json.dumps(['REQ', self.bid_subscription_id, {"#e": list(self.subscribed_auction_event_ids), 'kinds': [EventKind.BID]}]))
+            return self.bid_subscription_id
 
     async def send_event(self, event):
         if self.ws is not None:
