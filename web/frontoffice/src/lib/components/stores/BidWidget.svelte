@@ -5,7 +5,6 @@
     import {
         EVENT_KIND_AUCTION_BID,
         EVENT_KIND_AUCTION_BID_STATUS,
-        getBadgeDefinitions,
         getProducts,
         nostrAcceptBadge,
         sendMessage,
@@ -256,7 +255,13 @@
             if (numBids === 0) {
                 bidAmount = 100;
             } else {
-                let maxBid = sortedBids[0][1].amount;
+                let maxBid = 0;
+
+                sortedBids.forEach(([_, bidInfo]) => {
+                    if (maxBid === 0 && !['rejected', 'pending'].includes(bidInfo.backendResponse?.status)) {
+                        maxBid = bidInfo.amount;
+                    }
+                });
 
                 let head = String(maxBid).slice(0, 2);
                 const rest = String(maxBid).slice(2);
