@@ -152,7 +152,8 @@
                     </div>
 
                     {#if !$stalls?.stalls[product.stall_id]}
-                        <button class="mt-2 btn btn-error cursor-default tooltip" data-tip="We cannot find the stall in which this product was created, so you cannot buy it">Stall unavailable</button>
+                        <button class="md:mt-2 btn btn-error cursor-default">Stall unavailable</button>
+                        <p class="mt-3 md:mt-6 text-base">We cannot find the stall in which this product was created, so you cannot buy it.</p>
                     {:else}
                         {#if product.quantity === null || product.quantity > 0}
                             <div class="block mb-6 text-xl">
