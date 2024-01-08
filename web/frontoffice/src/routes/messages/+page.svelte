@@ -235,7 +235,7 @@
 
                             <div on:click={send} on:keypress={onKeyPress}
                                  class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-black dark:text-white">
-                                <div class="w-7 h-7"><SendMessage /></div>
+                                <div class="size-7"><SendMessage /></div>
                             </div>
                         </div>
                     </div>
@@ -302,7 +302,7 @@
 
                 {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
                     <div class="avatar indicator">
-                        <div class="w-12 h-12 mr-3 rounded-full">
+                        <div class="size-12 mr-3 rounded-full">
                             <img src="{profilePicturePlaceHolder}" />
                         </div>
                     </div>
@@ -317,7 +317,7 @@
                     {#each sortedConversations as [conversationPublicKey, conversation]}
                         {#if selectedConversationPubkey === conversationPublicKey}
                             <div class="avatar indicator align-bottom">
-                                <div class="w-12 h-12 mr-3 rounded-full">
+                                <div class="size-12 mr-3 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
@@ -359,7 +359,7 @@
 
                     <div on:click={send} on:keypress={onKeyPress}
                          class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-                        <div class="w-6 h-6"><SendMessage /></div>
+                        <div class="size-6"><SendMessage /></div>
                     </div>
                 </div>
             </div>

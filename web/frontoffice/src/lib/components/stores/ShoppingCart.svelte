@@ -276,7 +276,7 @@
                             </td>
 
                             <th class="cursor-pointer mr-4" on:click={() => deleteFromCart(stallId, product.id)}>
-                                <div class="w-5 h-5 tooltip tooltip-error" data-tip="{ compact ? 'Remove product' : 'Remove product from shopping cart'}"><Trash /></div>
+                                <div class="size-5 tooltip tooltip-error" data-tip="{ compact ? 'Remove product' : 'Remove product from shopping cart'}"><Trash /></div>
                             </th>
                         </tr>
                     {/each}
@@ -371,7 +371,7 @@
                                 />
                             </td>
                             <td class="pl-1 pr-1" on:click={() => deleteFromCart(stallId, product.id)}>
-                                <div class="w-5 h-5"><Trash /></div>
+                                <div class="size-5"><Trash /></div>
                             </td>
                         </tr>
                     {/each}

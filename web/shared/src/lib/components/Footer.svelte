@@ -22,7 +22,7 @@
         </div>
         <div class="grid space-y-1 mt-6 md:mt-0 justify-center">
             <div>
-                <a class="btn btn-ghost align-middle w-16 h-16" target="_blank" rel="noreferrer" href="https://snort.social/p/npub1market6g3zl4mxwx5ugw56hfg0f7dy7jnnw8t380788mvdyrnwuqgep7hd">
+                <a class="btn btn-ghost align-middle size-16" target="_blank" rel="noreferrer" href="https://snort.social/p/npub1market6g3zl4mxwx5ugw56hfg0f7dy7jnnw8t380788mvdyrnwuqgep7hd">
                     <Nostr />
                 </a>
                 <a class="btn btn-ghost align-middle" target="_blank" rel="noreferrer" href="https://plebeianmarket.substack.com/">

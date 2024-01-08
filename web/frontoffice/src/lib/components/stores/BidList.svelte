@@ -91,21 +91,21 @@
                             <div class="mt-1">
                                 {#if !bid.backendResponse}
                                     <div class="mx-auto tooltip" data-tip="Waiting response from marketplace">
-                                        <div class="w-8 h-8 mx-auto"><Clock /></div>
+                                        <div class="size-8 mx-auto"><Clock /></div>
                                     </div>
                                 {:else if bid.backendResponse.status === 'accepted'}
                                     <div class="mx-auto tooltip tooltip-right" data-tip="Bid confirmed">✅</div>
                                 {:else if bid.backendResponse.status === 'rejected'}
                                     <div class="mx-auto tooltip tooltip-right" data-tip="Bid rejected: {bid.backendResponse.message}">❌</div>
                                 {:else if bid.backendResponse.status === 'pending'}
-                                    <div class="w-8 h-8 mx-auto tooltip tooltip-right" data-tip={ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }><Clock /></div>
+                                    <div class="size-8 mx-auto tooltip tooltip-right" data-tip={ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }><Clock /></div>
                                     {#if bid.pubkey === $NostrPublicKey}
                                         <p class="line-clamp-3 mt-1 whitespace-normal">
                                             <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>Skin in the Game required</button>
                                         </p>
                                     {/if}
                                 {:else if bid.backendResponse.status === 'winner'}
-                                    <div class="mx-auto tooltip tooltip-right" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? 'Congratulations!' : 'This is the winning bid'}"><div class="w-8 h-8 mx-auto"><WinnerBadge /></div></div>
+                                    <div class="mx-auto tooltip tooltip-right" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? 'Congratulations!' : 'This is the winning bid'}"><div class="size-8 mx-auto"><WinnerBadge /></div></div>
                                 {:else}
                                     Unknown response from the marketplace
                                 {/if}
@@ -113,7 +113,7 @@
                         </th>
                         <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
                             <div class="flex w-fit mx-auto mt-1 space-x-3 items-center" on:click={() => {showUserProfilePopup(null, bid.pubkey)}}>
-                                <div class="avatar mask mask-squircle w-12 h-12">
+                                <div class="avatar mask mask-squircle size-12">
                                     <img
                                             src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder}
                                             on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}>
@@ -170,21 +170,21 @@
                         <td class="text-center text-xs {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}">
                             {#if !bid.backendResponse}
                                 <div class="mx-auto tooltip" data-tip="Waiting response from marketplace">
-                                    <div class="w-8 h-8 mx-auto"><Clock /></div>
+                                    <div class="size-8 mx-auto"><Clock /></div>
                                 </div>
                             {:else if bid.backendResponse.status === 'accepted'}
                                 <div class="text-xl mx-auto tooltip" data-tip="Bid confirmed">✅</div>
                             {:else if bid.backendResponse.status === 'rejected'}
                                 <div class="text-xl mx-auto tooltip" data-tip="Bid rejected: {bid.backendResponse.message}">❌</div>
                             {:else if bid.backendResponse.status === 'pending'}
-                                <div class="w-8 h-8 mx-auto text-xl tooltip" data-tip="{ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }"><Clock /></div>
+                                <div class="size-8 mx-auto text-xl tooltip" data-tip="{ bid.backendResponse.badge_stall_id ? "Bid pending: Skin in the Game required" : "Bid pending: " + bid.backendResponse.message }"><Clock /></div>
                                 {#if bid.pubkey === $NostrPublicKey}
                                     <div>
                                         <button class="btn btn-sm btn-success" on:click|preventDefault={() => openSitgBadgeInfo(bid.backendResponse.badge_stall_id, bid.backendResponse.badge_product_id, true)}>Skin in the Game required</button>
                                     </div>
                                 {/if}
                             {:else if bid.backendResponse.status === 'winner'}
-                                <div class="text-xl mx-auto tooltip" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? 'Congratulations!' : 'This is the winning bid'}"><div class="w-8 h-8 mx-auto"><WinnerBadge /></div></div>
+                                <div class="text-xl mx-auto tooltip" data-tip="{bid.backendResponse.winnerPubkey === $NostrPublicKey ? 'Congratulations!' : 'This is the winning bid'}"><div class="size-8 mx-auto"><WinnerBadge /></div></div>
                             {:else}
                                 Unknown response from the marketplace
                             {/if}
@@ -197,7 +197,7 @@
                                      on:mouseenter={(e) => {hoverTimer=window.setTimeout(function(){showUserProfilePopup(e, bid.pubkey)},250)}}
                                      on:mouseleave={hideUserProfilePopup}
                                 >
-                                    <div class="avatar mask mask-squircle w-12 h-12 cursor-pointer">
+                                    <div class="avatar mask mask-squircle size-12 cursor-pointer">
                                         <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder}
                                              on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}>
                                              alt="Avatar of the identity that made the bid"

@@ -59,7 +59,7 @@
 
     <!-- Avatar -->
     <div class="avatar">
-        <div class="w-36 h-36 lg:w-32 lg:h-32 lg:mt-1 mx-auto rounded-full">
+        <div class="size-36 lg:w-32 lg:h-32 lg:mt-1 mx-auto rounded-full">
             <img class="mx-auto" src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgErrorProfilePicture(event.srcElement)} />
         </div>
     </div>

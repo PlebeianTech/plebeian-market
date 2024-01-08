@@ -229,7 +229,7 @@
                                     {#if order.payment_options}
                                         {#if paidPaymentsStorage.includes(orderId) }
                                             <div class="flex flex-col justify-center items-center">
-                                                <span class="w-10 h-10 mb-1"><Clock /></span>
+                                                <span class="size-10 mb-1"><Clock /></span>
                                                 <p class="hidden md:block">Market as paid.<br>Waiting for payment confirmation from the seller...</p>
                                                 <p class="md:hidden">Waiting confirmation from seller...</p>
                                             </div>
@@ -277,7 +277,7 @@
 
                                     {#if order.paid || order.message.includes('TxID:')}
                                         <button class="btn btn-outline btn-primary hover:btn-success h-16 md:h-12 gap-2 mt-4 mb-4 md:mb-2" on:click={() => newNostrConversation(order.pubkey)}>
-                                            <span class="w-8 h-8">
+                                            <span class="size-8">
                                                 <EmailIcon />
                                             </span>
                                             Contact the merchant

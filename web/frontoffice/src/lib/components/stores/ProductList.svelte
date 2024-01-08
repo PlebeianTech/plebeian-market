@@ -51,7 +51,7 @@
 
 <div class="join join-vertical lg:join-horizontal justify-end">
     <button class="btn join-item gap-2" on:click={() => newNostrConversation(merchantPubkey)}>
-        <span class="w-8 h-8">
+        <span class="size-8">
             <EmailIcon />
         </span>
         Contact the merchant

@@ -129,7 +129,7 @@
             <!-- Mobile menu button -->
             <div on:click={toggleMobileMenu} on:keydown={toggleMobileMenu} class="lg:hidden flex justify-end p-2 -mr-3">
                 <button type="button" class="text-black-800 dark:text-gray-200 focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
@@ -195,9 +195,9 @@
                             <!-- this hidden checkbox controls the state -->
                             <input type="checkbox" />
                             <!-- hamburger icon -->
-                            <svg class="swap-off fill-current w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z"/></svg>
+                            <svg class="swap-off fill-current size-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z"/></svg>
                             <!-- close icon -->
-                            <svg class="swap-on fill-current w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49"/></svg>
+                            <svg class="swap-on fill-current size-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49"/></svg>
                         </label>
                     {/if}
 
@@ -205,19 +205,19 @@
                         {#if !$NostrPublicKey}
                             <li class="text-primary">
                                 <a href={null} class="modal-button cursor-pointer text-base" on:click={() => {requestLoginModal(); hideMobileMenu()}} on:keypress={() => {requestLoginModal(); hideMobileMenu()}}>
-                                    <span class="w-6 h-6 mr-1 stroke-primary"><Key /></span> <b>Login</b>
+                                    <span class="size-6 mr-1 stroke-primary"><Key /></span> <b>Login</b>
                                 </a>
                             </li>
                         {/if}
                         <li class="block md:hidden md:h-0">
                             <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><World /></div> Plebeian Planet
+                                <div class="size-6 mr-1"><World /></div> Plebeian Planet
                             </a>
                         </li>
                         {#if $isSuperAdmin}
                             <li class="block md:hidden md:h-0">
                                 <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                    <div class="w-6 h-6 mr-1"><World /></div> Nostr Universe
+                                    <div class="size-6 mr-1"><World /></div> Nostr Universe
                                 </a>
                             </li>
                         {/if}
@@ -227,41 +227,41 @@
                             </li>
                             <li>
                                 <a class="text-base" rel="{isFrontOffice ? '' : 'external'}" href="/p/{$NostrPublicKey}">
-                                    <div class="w-6 h-6 mr-1"><User /></div> Me
+                                    <div class="size-6 mr-1"><User /></div> Me
                                 </a>
                             </li>
                         {/if}
                         {#if !isFrontOffice || (isFrontOffice && $fileConfiguration.backend_present)}
                             <li>
                                 <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin">
-                                    <div class="w-6 h-6 mr-1"><Store /></div> Stall Manager
+                                    <div class="size-6 mr-1"><Store /></div> Stall Manager
                                 </a>
                             </li>
                         {/if}
                         {#if $NostrPublicKey}
                             <li>
                                 <a class="text-base" href="/orders">
-                                    <span class="w-6 h-6 mr-1"><Cash /></span> My purchases
+                                    <span class="size-6 mr-1"><Cash /></span> My purchases
                                 </a>
                             </li>
                             <li>
                                 <a class="text-base" href="/admin/account/orders/">
-                                    <span class="w-6 h-6 mr-1"><Cash /></span> My sales
+                                    <span class="size-6 mr-1"><Cash /></span> My sales
                                 </a>
                             </li>
                             <li>
                                 <a class="text-base" href="/settings">
-                                    <span class="w-6 h-6 mr-1"><Settings /></span> Buyer Settings
+                                    <span class="size-6 mr-1"><Settings /></span> Buyer Settings
                                 </a>
                             </li>
                             <li>
                                 <a class="text-base" href="/admin/account/settings">
-                                    <span class="w-6 h-6 mr-1"><Settings /></span> Seller Settings
+                                    <span class="size-6 mr-1"><Settings /></span> Seller Settings
                                 </a>
                             </li>
                             <li>
                                 <a href={null} on:click={() => {logout(); hideMobileMenu()}} class="modal-button cursor-pointer text-base">
-                                    <span class="w-6 h-6 mr-1"><Exit /></span> Logout
+                                    <span class="size-6 mr-1"><Exit /></span> Logout
                                 </a>
                             </li>
                         {/if}
@@ -270,24 +270,24 @@
                         </li>
                         <li class="block md:hidden md:h-0">
                             <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6 mr-1"><Home /></span> Home
+                                <span class="size-6 mr-1"><Home /></span> Home
                             </a>
                         </li>
                         <li class="block md:hidden md:h-0">
                             <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><Store /></div> Stall Browser
+                                <div class="size-6 mr-1"><Store /></div> Stall Browser
                             </a>
                         </li>
                         <!--
                         <li class="block md:hidden md:h-0">
                             <a href="/skills" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><Tools /></div> Skills Market
+                                <div class="size-6 mr-1"><Tools /></div> Skills Market
                             </a>
                         </li>
                         -->
                         <li class="block md:hidden md:h-0">
                             <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <div class="w-6 h-6 mr-1"><Chat /></div> Market Square
+                                <div class="size-6 mr-1"><Chat /></div> Market Square
                             </a>
                         </li>
                         {#if $NostrPublicKey}
@@ -298,17 +298,17 @@
 
                         <li>
                             <a href="/faq" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <span class="w-6 h-6 mr-1"><Book /></span> FAQ
+                                <span class="size-6 mr-1"><Book /></span> FAQ
                             </a>
                         </li>
                         <li>
                             <a href="/contact" rel="{isFrontOffice ? '' : 'external'}" class="text-base">
-                                <div class="w-6 h-6 mr-1"><Chat /></div> Contact
+                                <div class="size-6 mr-1"><Chat /></div> Contact
                             </a>
                         </li>
                         <li>
                             <a href="/about" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-1">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
                                 </svg>
                                 About
@@ -317,7 +317,7 @@
                         {#if !isProduction()}
                             <li class="block md:hidden md:h-0 text-primary">
                                 <span class="text-base">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 mr-1">
                                         <path fill-rule="evenodd" d="M11.097 1.515a.75.75 0 01.589.882L10.666 7.5h4.47l1.079-5.397a.75.75 0 111.47.294L16.665 7.5h3.585a.75.75 0 010 1.5h-3.885l-1.2 6h3.585a.75.75 0 010 1.5h-3.885l-1.08 5.397a.75.75 0 11-1.47-.294l1.02-5.103h-4.47l-1.08 5.397a.75.75 0 01-1.47-.294l1.02-5.103H3.75a.75.75 0 110-1.5h3.885l1.2-6H5.25a.75.75 0 010-1.5h3.885l1.08-5.397a.75.75 0 01.882-.588zM10.365 9l-1.2 6h4.47l1.2-6h-4.47z" clip-rule="evenodd" />
                                     </svg>
                                     <b>{getEnvironmentInfo()}</b>

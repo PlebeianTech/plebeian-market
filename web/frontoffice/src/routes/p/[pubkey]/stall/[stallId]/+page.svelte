@@ -79,7 +79,7 @@
 <div class="modal">
     <div class="modal-box relative">
         <label for="stallsByThisMerchant" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-        <div class="w-8 h-8">
+        <div class="size-8">
             <Store />
         </div>
         <h3 class="text-lg font-bold">Stores by the same merchant:</h3>

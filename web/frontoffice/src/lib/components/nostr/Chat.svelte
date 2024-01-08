@@ -380,7 +380,7 @@
 
         <div on:click={send} on:keypress={onKeyPress}
              class="p-4 flex justify-center hover:scale-110 duration-300 transition-all cursor-pointer text-white">
-            <div class="w-6 h-6"><SendMessage /></div>
+            <div class="size-6"><SendMessage /></div>
         </div>
     </div>
 </div>

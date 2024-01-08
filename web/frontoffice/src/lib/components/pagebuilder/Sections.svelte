@@ -45,7 +45,7 @@
                             {section.title}
                             {#if $isSuperAdmin}
                                 <button class="btn btn-square ml-2" on:click={() => setupSection(pageId, sectionId, null, true)}>
-                                    <span class="w-6 h-6"><Edit /></span>
+                                    <span class="size-6"><Edit /></span>
                                 </button>
                             {/if}
                         </h2>

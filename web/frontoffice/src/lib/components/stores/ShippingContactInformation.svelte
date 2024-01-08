@@ -59,7 +59,7 @@
             <div class="form-control w-full max-w-xs">
                 <label class="input-group input-group-lg">
                         <span>
-                            <div class="w-9 h-9"><Nostr /></div>
+                            <div class="size-9"><Nostr /></div>
                         </span>
                     <input value={encodeNpub($NostrPublicKey)} type="text" class="input input-bordered w-full max-w-lg font-xs text-xs" disabled />
                 </label>
@@ -69,7 +69,7 @@
         <div class="form-control w-full max-w-xs">
             <label class="input-group input-group-lg">
                     <span>
-                        <div class="w-9 h-9"><Email /></div>
+                        <div class="size-9"><Email /></div>
                     </span>
                 <input bind:value={email} type="text" class="input input-bordered input-warning w-full max-w-lg" />
             </label>
@@ -77,7 +77,7 @@
         <div class="form-control w-full max-w-xs">
             <label class="input-group input-group-lg">
                     <span>
-                        <div class="w-9 h-9"><Phone /></div>
+                        <div class="size-9"><Phone /></div>
                     </span>
                 <input bind:value={phone} type="text" class="input input-bordered input-warning w-full max-w-lg" />
             </label>

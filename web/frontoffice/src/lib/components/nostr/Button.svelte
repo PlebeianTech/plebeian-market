@@ -44,7 +44,7 @@
 <div class="dropdown">
     <label tabindex="0" class="btn btn-secondary align-middle mb-2">
         <svg xmlns="http://www.w3.org/2000/svg"
-             class="w-7 h-7 -ml-1 mr-2" viewBox="0 0 472.000000 528.000000"
+             class="size-7 -ml-1 mr-2" viewBox="0 0 472.000000 528.000000"
              preserveAspectRatio="xMidYMid meet">
             <g transform="translate(0.000000,528.000000) scale(0.100000,-0.100000)"
                fill="#cfd4d4" stroke="none">

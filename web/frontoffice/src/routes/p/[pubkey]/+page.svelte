@@ -56,13 +56,13 @@
     <div class="lg:flex w-full pb-4 md:pb-8">
         <!-- Desktop -->
         <div class="avatar hidden lg:block mr-8">
-            <div class="w-36 h-36 mx-auto rounded-full">
+            <div class="size-36 mx-auto rounded-full">
                 <img class="mx-auto" src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
             </div>
         </div>
         <!-- Mobile -->
         <div class="avatar container block lg:hidden -mt-4 mb-4">
-            <div class="w-36 h-36 mx-auto rounded-full">
+            <div class="size-36 mx-auto rounded-full">
                 <img class="mx-auto" src="{profile.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
             </div>
         </div>
