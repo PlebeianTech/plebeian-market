@@ -97,6 +97,15 @@ class Relay:
         async with aiohttp.ClientSession() as session:
             await asyncio.create_task(do_get(session, f"{API_BASE_URL}/api/merchants/{event['pubkey']}"))
 
+    async def get_our_merchants(self, subscribe_cb):
+        async def do_get(session, url):
+            async with session.get(url) as response:
+                merchants_response = await response.json()
+                merchant_pks = [m['public_key'] for m in merchants_response]
+                await subscribe_cb(merchant_pks)
+        async with aiohttp.ClientSession() as session:
+            await asyncio.create_task(do_get(session, f"{API_BASE_URL}/api/merchants"))
+
     async def post_dm(self, merchant_pubkey, dm_event):
         async def do_post(session, url, json):
             async with session.post(url, json=json) as response:
@@ -167,6 +176,16 @@ class Relay:
             logging.info(f"({self.url}) Subscribing to DMs of {len(self.subscribed_merchant_pubkeys)} merchants: {self.dm_subscription_id}...")
             await self.ws.send(json.dumps(['REQ', self.dm_subscription_id, {"#p": list(self.subscribed_merchant_pubkeys), 'kinds': [EventKind.DM]}]))
             return self.dm_subscription_id
+
+    async def subscribe_dm_all(self, pubkeys):
+        if self.dm_subscription_id is not None:
+            logging.info(f"({self.url}) Closing subscription for DMs of {len(self.subscribed_merchant_pubkeys)} merchants: {self.dm_subscription_id}...")
+            await self.ws.send(json.dumps(['CLOSE', self.dm_subscription_id]))
+        self.subscribed_merchant_pubkeys |= set(pubkeys)
+        self.dm_subscription_id = os.urandom(10).hex()
+        logging.info(f"({self.url}) Subscribing to DMs of {len(self.subscribed_merchant_pubkeys)} merchants: {self.dm_subscription_id}...")
+        await self.ws.send(json.dumps(['REQ', self.dm_subscription_id, {"#p": list(self.subscribed_merchant_pubkeys), 'kinds': [EventKind.DM]}]))
+        return self.dm_subscription_id
 
     async def subscribe_bids(self, pubkey, id, **_):
         if id not in self.subscribed_auction_event_ids:
@@ -239,6 +258,8 @@ class Relay:
                     await self.subscribe_dm(self.args.merchant)
                     if self.args.auction:
                         await self.subscribe_bids(self.args.merchant, self.args.auction)
+                else:
+                    await self.get_our_merchants(self.subscribe_dm_all)
                 if self.args.discover:
                     await self.subscribe_auction()
                     await self.subscribe_stall()
