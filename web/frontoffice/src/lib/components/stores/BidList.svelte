@@ -76,7 +76,7 @@
             </thead>
             <tbody>
             {#each sortedBids as [_, bid]}
-                {#if bid.amount}
+                {#if bid.amount && (bid.backendResponse.status !== 'rejected' || (bid.backendResponse.status === 'rejected' && bid.pubkey === $NostrPublicKey))}
                     <tr class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
                         <th class="text-center grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             {#if bidSuscriptionFinished}
