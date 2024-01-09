@@ -115,9 +115,9 @@
                             <div class="flex w-fit mx-auto mt-1 space-x-3 items-center" on:click={() => {showUserProfilePopup(null, bid.pubkey)}}>
                                 <div class="avatar mask mask-squircle size-12">
                                     <img
-                                            src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder}
-                                            on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}>
-                                            alt="Avatar of the identity that made the bid"
+                                        src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder}
+                                        on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}
+                                        alt="Avatar of the identity that made the bid"
                                     />
                                 </div>
                                 <div class="flex">
@@ -199,7 +199,7 @@
                                 >
                                     <div class="avatar mask mask-squircle size-12 cursor-pointer">
                                         <img src={userProfileInfoMap.get(bid.pubkey)?.picture ?? profilePicturePlaceHolder}
-                                             on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}>
+                                             on:error={(event) => onImgError(event.srcElement, profilePicturePlaceHolder)}
                                              alt="Avatar of the identity that made the bid"
                                         />
                                     </div>
