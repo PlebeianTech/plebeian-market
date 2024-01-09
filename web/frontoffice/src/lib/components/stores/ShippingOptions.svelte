@@ -1,16 +1,67 @@
 <script lang="ts">
-    import {stalls} from "$sharedLib/stores";
+    import {ShoppingCart, stalls} from "$sharedLib/stores";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
+    import {onMount} from "svelte";
 
     export let stallId;
     export let i: number;
     export let colspan = "3";
+    export let inAuctionView = false;
     export let onchangeCallback = () => {};
+
+    async function calculateShippingOptions() {
+        // Stall shipping options
+        if ($stalls.stalls[stallId]) {
+            $stalls.stalls[stallId].allShippingOptions = [];
+
+            for (const stallShippingOption of $stalls?.stalls[stallId].shipping) {
+                $stalls.stalls[stallId].allShippingOptions.push(stallShippingOption);
+            }
+        }
+
+        // Product shipping options
+        if (!inAuctionView) {
+            if ($stalls.stalls[stallId]) {
+                for (const [stall_id, products] of [...$ShoppingCart.products]) {
+                    if ($stalls.stalls[stall_id] && stall_id == stallId) {
+                        for (const [productId, product] of [...products]) {
+                            product.shipping?.forEach((productShippingOption) => {
+                                if (productShippingOption.id) {
+                                    let idAlreadyExists = false;
+
+                                    $stalls.stalls[stallId].allShippingOptions.forEach((shippingOption) => {
+                                        if (shippingOption.id === productShippingOption.id) {
+                                            idAlreadyExists = true;
+                                        }
+                                    });
+
+                                    if (!idAlreadyExists) {
+                                        $stalls.stalls[stallId].allShippingOptions.push(productShippingOption);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        } else {
+
+        }
+    }
+
+    $: if ($ShoppingCart.products) {
+        calculateShippingOptions();
+    }
+    onMount(async () => {
+        calculateShippingOptions();
+    });
 </script>
 <tr>
     <td colspan="{colspan}" class="bg-gray-300 dark:bg-gray-700 p-2">
         <p class="md:mx-3 text-xs md:text-base">
-            Order #{i+1} -
+            {#if i}
+                Order #{i+1} -
+            {/if}
             {#if $stalls?.stalls[stallId] && $stalls.stalls[stallId].name}
                 <a href="/p/{$stalls.stalls[stallId].merchantPubkey}/stall/{$stalls.stalls[stallId].id}">
                     {$stalls.stalls[stallId].name}

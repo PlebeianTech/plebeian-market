@@ -232,7 +232,7 @@
                 </tr>
             </thead>
             <tbody>
-                <ShippingOptions {stallId} />
+                <ShippingOptions {stallId} i={null} inAuctionView={true} />
 
                 <tr class="border-b border-gray-600 hover text-sm md:text-base text-center">
                     <td class="py-1">

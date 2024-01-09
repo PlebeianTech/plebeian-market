@@ -177,40 +177,7 @@
         superTotalSats = superTotalSatsTemp;
     }
 
-    async function calculateShippingOptions() {
-        for (const [stallId, products] of [...$ShoppingCart.products]) {
-            if ($stalls.stalls[stallId]) {
-                $stalls.stalls[stallId].allShippingOptions = [];
-
-                // Stall shipping options
-                for (const stallShippingOption of $stalls?.stalls[stallId].shipping) {
-                    $stalls.stalls[stallId].allShippingOptions.push(stallShippingOption);
-                }
-
-                // Product shipping options
-                for (const [productId, product] of [...products]) {
-                    product.shipping?.forEach((productShippingOption) => {
-                        if (productShippingOption.id) {
-                            let idAlreadyExists = false;
-
-                            $stalls.stalls[stallId].allShippingOptions.forEach((shippingOption) => {
-                                if (shippingOption.id === productShippingOption.id) {
-                                    idAlreadyExists = true;
-                                }
-                            });
-
-                            if (!idAlreadyExists) {
-                                $stalls.stalls[stallId].allShippingOptions.push(productShippingOption);
-                            }
-                        }
-                    });
-                }
-            }
-        }
-    }
-
     $: if (!compact && $ShoppingCart.products && $userChosenCurrency && $stalls && !$stalls.fetching) {
-        calculateShippingOptions();
         calculateShippingAndTotals();
     }
 
