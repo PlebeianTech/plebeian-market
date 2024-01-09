@@ -1,6 +1,6 @@
 <script lang="ts">
     import {NostrPublicKey, stalls, products, privateMessages, Info} from "$sharedLib/stores";
-    import {formatTimestamp, newNostrConversation, pmStallId} from "$sharedLib/nostr/utils";
+    import {formatTimestamp, newNostrConversation} from "$sharedLib/nostr/utils";
     import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import Bitcoin from "$sharedLib/components/icons/Bitcoin.svelte";
@@ -30,19 +30,12 @@
 
     $: {
         sortedOrders = Object.entries($privateMessages.automatic)
-            .filter(([, order]) => {
-                return order.stall_id !== pmStallId;
-            })
             .sort((a, b) => {
                 return b[1].created_at - a[1].created_at;
             });
 
         ordersToBePaidNow = Object.fromEntries( Object.entries($privateMessages.automatic).filter(([, order]) => {
             if (order.type === 1) {
-                if (order.stall_id === pmStallId) {
-                    return false;
-                }
-
                 if (order.payment_options) {
                     for (const payment_option of order.payment_options) {
                         if (payment_option.type === 'ln') {
