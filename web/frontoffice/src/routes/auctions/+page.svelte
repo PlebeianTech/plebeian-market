@@ -181,15 +181,13 @@
                 async (relay) => {
                     console.log('-------- Order accepted by relay:', relay);
 
-                    Info.set('Information sent to the seller.');
-
                     await new Promise(resolve => setTimeout(resolve, 2000));
 
                     await goto('/orders');
                 }
             );
 
-            Info.set('Information for the auction have been sent.');
+            Info.set('Information sent to the seller.');
 
             console.log('---- buyNow end ----');
 
