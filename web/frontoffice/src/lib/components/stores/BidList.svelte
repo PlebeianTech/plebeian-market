@@ -65,7 +65,7 @@
 </script>
 
 {#if sortedBids && sortedBids.length > 0}
-    <div class="mt-8 mb-6">
+    <div class="mt-8 mb-6 md:w-10/12 mx-auto">
         <!-- Mobile -->
         <table class="md:hidden w-full table table-fixed table-sm sm:table-md md:table-lg text-center">
             <thead>
@@ -111,7 +111,7 @@
                                 {/if}
                             </div>
                         </th>
-                        <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}r">
+                        <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             <div class="flex w-fit mx-auto mt-1 space-x-3 items-center" on:click={() => {showUserProfilePopup(null, bid.pubkey)}}>
                                 <div class="avatar mask mask-squircle size-12">
                                     <img
