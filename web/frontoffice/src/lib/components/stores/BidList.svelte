@@ -137,7 +137,7 @@
         </table>
 
         <!-- Desktop -->
-        <table class="hidden md:block table table-lg table-fixed w-max text-center">
+        <table class="hidden md:block table table-lg table-fixed w-max text-center mx-auto">
             <thead>
                 <tr class="text-sm">
                     <th>Bid</th>
