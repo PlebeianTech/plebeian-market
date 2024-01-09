@@ -223,7 +223,7 @@
                 {#if Object.entries(products).length > 1 && $fileConfiguration.backend_present}
                     <button data-te-target="#slider_{pageId}_{sectionId}"
                             data-te-slide-to="{Object.entries(products).length}"
-                            class="pl-2 w-16 opacity-50 hover:opacity-100 text-green-500 tooltip">
+                            class="mx-1 md:mx-8 w-16 opacity-50 hover:opacity-100 text-green-500 tooltip">
                         <Plus />
                     </button>
                 {/if}
