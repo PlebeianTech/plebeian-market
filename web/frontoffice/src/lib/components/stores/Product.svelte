@@ -51,9 +51,8 @@
         <Titleh1>{product.name}</Titleh1>
     {/if}
 
-    <div class="grid justify-center items-center mb-10 {in_popup ? 'lg:mx-10' : 'md:mb-20 lg:mx-20'} ">
+    <div class="justify-center items-center mb-10 {in_popup ? 'lg:mx-10' : 'md:mb-20 lg:mx-20'}">
         <div class="flex flex-col w-full md:flex-row">
-
             <!-- Left (images) -->
             <div class="md:flex w-full md:max-w-[50%]">
                 <!-- Desktop image chooser -->

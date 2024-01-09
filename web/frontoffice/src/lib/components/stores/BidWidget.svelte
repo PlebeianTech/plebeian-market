@@ -442,7 +442,7 @@
     {/if}
 
     <!-- Auction instructions -->
-    <div class="mt-4 p-3 md:p-5 md:pb-6 text-sm md:text-base w-10/12 md:w-2/3 mx-auto border rounded-xl border-black/20 dark:border-white/20">
+    <div class="mt-4 p-3 md:p-5 md:pb-6 text-sm md:text-base md:w-2/3 mx-auto border rounded-xl border-black/20 dark:border-white/20">
         <p class="mt-2">INSTRUCTIONS</p>
         <div class="divider"></div>
         <p>
