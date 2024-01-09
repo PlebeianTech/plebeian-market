@@ -140,6 +140,13 @@
             return;
         }
 
+        // If there is no shippingOption chosen by the user and there is only
+        // one shipping option, it's because we didn't even show the list to
+        // the user, so let's auto-choose the only shipping option available
+        if (!$stalls.stalls[stallId].shippingOption && $stalls.stalls[stallId].shipping.length === 1) {
+            $stalls.stalls[stallId].shippingOption = $stalls.stalls[stallId].shipping[0].id;
+        }
+
         let order = {
             id: auctionToOrder[0][0],
             stall_id: stallId,
@@ -174,7 +181,9 @@
                 async (relay) => {
                     console.log('-------- Order accepted by relay:', relay);
 
-                    await new Promise(resolve => setTimeout(resolve, 3500));
+                    Info.set('Information sent to the seller.');
+
+                    await new Promise(resolve => setTimeout(resolve, 2000));
 
                     await goto('/orders');
                 }
