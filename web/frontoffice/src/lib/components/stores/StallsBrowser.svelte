@@ -6,7 +6,7 @@
     import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
-    import {EVENT_KIND_PRODUCT} from "$sharedLib/services/nostr";
+    import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT} from "$sharedLib/services/nostr";
 
     export let merchantPubkey: string | null = null;
     export let showStallFilter: boolean = true;
@@ -35,24 +35,34 @@
             }
     }
 
-    $: if ($products && $products.products) {
-        if (!$products.fetching) {
-            productsInEachStall = new Map<string, number>();
+    $: if ($products && $products.products && !$products.fetching) {
+        productsInEachStall = new Map<string, number>();
 
-            Object.entries($products.products).forEach(product => {
-                if (product[1].event.kind === EVENT_KIND_PRODUCT && product[1].quantity > 0) {
-                    let stall_id = product[1].stall_id;
+        Object.entries($products.products).forEach(product => {
+            let auctionEnded = true;
 
-                    let productsInThisStall = productsInEachStall.get(stall_id);
+            if (product[1].event.kind === EVENT_KIND_AUCTION) {
+                let now = Math.floor(Date.now() / 1000);
+                let endsAt = product[1].start_date + product[1].duration;  // We don't have totalTimeExtension here
+                auctionEnded = now > endsAt;
+            }
 
-                    if (productsInThisStall) {
-                        productsInEachStall.set(stall_id, ++productsInThisStall);
-                    } else {
-                        productsInEachStall.set(stall_id, 1);
-                    }
+            if (
+                (product[1].event.kind === EVENT_KIND_PRODUCT && product[1].quantity > 0)
+                ||
+                (product[1].event.kind === EVENT_KIND_AUCTION && !auctionEnded)
+                ) {
+                let stall_id = product[1].stall_id;
+
+                let productsInThisStall = productsInEachStall.get(stall_id);
+
+                if (productsInThisStall) {
+                    productsInEachStall.set(stall_id, ++productsInThisStall);
+                } else {
+                    productsInEachStall.set(stall_id, 1);
                 }
-            });
-        }
+            }
+        });
     }
 
     onMount(async () => {
