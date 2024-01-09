@@ -6,7 +6,7 @@
     import WinnerBadge from "$sharedLib/components/icons/WinnerBadge.svelte";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
     import UserInfoPopup from "$sharedLib/components/nostr/UserInfoPopup.svelte";
-    import {NostrPublicKey} from "$sharedLib/stores";
+    import {isSuperAdmin, NostrPublicKey} from "$sharedLib/stores";
     import {nip19} from "nostr-tools";
     import {onImgError} from "$lib/shopping";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
@@ -152,9 +152,9 @@
             <tbody>
 
             {#each sortedBids as [_, bid]}
-                {#if bid.amount && (bid.backendResponse?.status !== 'rejected' || (bid.backendResponse?.status === 'rejected' && bid.pubkey === $NostrPublicKey))}
-                    <tr>
-                        <th class="text-center inline-grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
+                {#if bid.amount && ($isSuperAdmin || (bid.backendResponse?.status !== 'rejected' || (bid.backendResponse?.status === 'rejected' && bid.pubkey === $NostrPublicKey)))}
+                    <tr class:opacity-25={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
+                        <th class="text-center inline-grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
                             <span class="p-3" class:pb-9={!bidSuscriptionFinished}>
                                 {#if bidSuscriptionFinished}
                                     <div class="pt-1">
@@ -166,8 +166,8 @@
                                 {/if}
                             </span>
                         </th>
-                        <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">{formatTimestamp(bid.date)}</td>
-                        <td class="text-center text-xs {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}">
+                        <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>{formatTimestamp(bid.date)}</td>
+                        <td class="text-center text-xs {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
                             {#if !bid.backendResponse}
                                 <div class="mx-auto tooltip" data-tip="Waiting response from marketplace">
                                     <div class="size-8 mx-auto"><Clock /></div>
@@ -189,7 +189,7 @@
                                 Unknown response from the marketplace
                             {/if}
                         </td>
-                        <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
+                        <th class="{bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
                             <a href="/p/{nip19.npubEncode(bid.pubkey)}"
                                target="_blank"
                                class="underline">
