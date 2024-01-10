@@ -4,7 +4,7 @@
     import {getLastOrderContactInformation, onImgError, refreshStalls} from "$lib/shopping";
     import {afterNavigate, goto} from "$app/navigation";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
+    import {waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import {onDestroy, onMount} from "svelte";
     import ShippingContactInformation from "$lib/components/stores/ShippingContactInformation.svelte";
     import {filterTags} from "$sharedLib/nostr/utils";
