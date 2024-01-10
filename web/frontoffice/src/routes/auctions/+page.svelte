@@ -239,7 +239,7 @@
                 </tr>
             </thead>
             <tbody>
-                <ShippingOptions {stallId} i={null} inAuctionView={true} />
+                <ShippingOptions {stallId} i={null} inAuctionView={true} auctionProduct={product} />
 
                 <tr class="border-b border-gray-600 hover text-sm md:text-base text-center">
                     <td class="py-1">
@@ -264,13 +264,13 @@
     </div>
 
     <ShippingContactInformation
-            bind:name={name}
-            bind:address={address}
-            bind:message={message}
-            bind:email={email}
-            bind:phone={phone}
-            {buyNow}
-            isAuction={true}
+        bind:name={name}
+        bind:address={address}
+        bind:message={message}
+        bind:email={email}
+        bind:phone={phone}
+        {buyNow}
+        isAuction={true}
     />
 
 {:else}

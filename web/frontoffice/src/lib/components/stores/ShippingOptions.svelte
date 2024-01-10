@@ -7,6 +7,7 @@
     export let i: number;
     export let colspan = "3";
     export let inAuctionView = false;
+    export let auctionProduct = null;
     export let onchangeCallback = () => {};
 
     async function calculateShippingOptions() {
@@ -19,7 +20,7 @@
             }
         }
 
-        // Product shipping options
+        // Product shipping options: Fixed price / shopping cart products
         if (!inAuctionView) {
             if ($stalls.stalls[stallId]) {
                 for (const [stall_id, products] of [...$ShoppingCart.products]) {
@@ -44,8 +45,24 @@
                     }
                 }
             }
-        } else {
 
+        // Product shipping options: auctions
+        } else {
+            auctionProduct.shipping?.forEach((productShippingOption) => {
+                if (productShippingOption.id) {
+                    let idAlreadyExists = false;
+
+                    $stalls.stalls[stallId].allShippingOptions.forEach((shippingOption) => {
+                        if (shippingOption.id === productShippingOption.id) {
+                            idAlreadyExists = true;
+                        }
+                    });
+
+                    if (!idAlreadyExists) {
+                        $stalls.stalls[stallId].allShippingOptions.push(productShippingOption);
+                    }
+                }
+            });
         }
     }
 
