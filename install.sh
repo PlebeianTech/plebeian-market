@@ -33,21 +33,12 @@ read DOMAIN_NAME
 echo -n "Enter your email: "
 read EMAIL
 
-cd
-echo "Installing Nginx proxy automation..."
-git clone --recurse-submodules https://github.com/evertramos/nginx-proxy-automation.git proxy
-cd proxy/bin && ./fresh-start.sh --yes --skip-docker-image-check -e $EMAIL
-./test.sh $DOMAIN_NAME
+cd && mkdir -p plebeian-market-certificates
+docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --register-account -m $EMAIL
+docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --issue -d $DOMAIN_NAME --standalone
+docker run --rm -it -v "$(pwd)/out":/acme.sh -v "$(pwd)/plebeian-market-certificates":/cert --net=host neilpang/acme.sh --install-cert -d $DOMAIN_NAME --key-file /cert/key.pem --fullchain-file /cert/cert.pem
 
-CONTINUE=n
-while [ $CONTINUE != y ]
-do
-    echo "Continue? [y/n]"
-    read CONTINUE
-done
-
-cd
-mkdir plebeian-market-secrets
+cd && mkdir -p plebeian-market-secrets
 tr -dc A-Za-z0-9 </dev/urandom | head -c 64 > plebeian-market-secrets/secret_key
 echo "{\"USERNAME\": \"pleb\", \"PASSWORD\": \"plebpass\"}" > plebeian-market-secrets/db.json
 echo "{\"LNDHUB_URL\": \"https://ln.getalby.com\", \"LNDHUB_USER\": \"TODO\", \"LNDHUB_PASSWORD\": \"TODO\"}" > plebeian-market-secrets/lndhub.json
@@ -70,9 +61,62 @@ echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env.api
 echo "WWW_BASE_URL=https://$DOMAIN_NAME" >> .env.api
 echo "API_BASE_URL=https://$DOMAIN_NAME" >> .env.api
 
-cat << EOF > .env.nginx
-VIRTUAL_HOST=$DOMAIN_NAME
-LETSENCRYPT_HOST=$DOMAIN_NAME
+cd && mkdir -p plebeian-market-nginx
+cat << EOF > plebeian-market-nginx/app.conf
+upstream plebeianmarketapi {
+    server api:8080;
+}
+
+upstream plebeianmarketweb {
+    server web:3000;
+}
+
+upstream plebeianmarketrelay {
+    server relay:7777;
+}
+server {
+    listen 80;
+    server_name $DOMAIN_NAME;
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+server {
+    listen 443 ssl;
+    client_max_body_size 10M;
+    server_name $DOMAIN_NAME;
+    ssl_certificate /cert/cert.pem;
+    ssl_certificate_key /cert/key.pem;
+    location /admin {
+        proxy_pass http://plebeianmarketweb;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header Host \$host;
+        proxy_redirect off;
+    }
+    location /api {
+        add_header Access-Control-Allow-Origin *;
+        proxy_pass http://plebeianmarketapi;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header Host \$host;
+        proxy_redirect off;
+    }
+    location /relay {
+        add_header Access-Control-Allow-Origin *;
+        proxy_pass http://plebeianmarketrelay;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header Host \$host;
+        proxy_read_timeout 86400;
+        proxy_redirect off;
+    }
+    location / {
+        add_header Access-Control-Allow-Origin *;
+        root /buyer-app;
+        index index.html;
+        try_files \$uri \$uri/ /index.html;
+    }
+}
 EOF
 
 cat << EOF > .env.web
@@ -96,7 +140,7 @@ services:
   relay:
     image: ghcr.io/plebeiantech/plebeian-market-relay
     networks:
-      - proxy
+      - web_network
     ports:
       - "7777:7777"
     volumes:
@@ -108,7 +152,7 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
-      - proxy
+      - web_network
     volumes:
       - "/home/www/plebeian-market-secrets:/secrets"
       - "/home/www/plebeian-market-state:/state"
@@ -126,33 +170,34 @@ services:
     command: python main.py
   web:
     image: ghcr.io/plebeiantech/plebeian-market-web
+    networks:
+      - web_network
     depends_on:
       - api
-    networks:
-      - proxy
     env_file: .env.web
     volumes:
       - "buyer-app-static-content:/buyer-app"
   nginx:
-    image: ghcr.io/plebeiantech/plebeian-market-nginx
-    env_file: .env.nginx
+    image: nginx:1.25-alpine-slim
+    networks:
+      - web_network
+    ports:
+      - "80:80"
+      - "443:443"
     depends_on:
       - api
       - web
-    networks:
-      - proxy
     volumes:
+      - "./plebeian-market-nginx:/etc/nginx/conf.d"
+      - "./plebeian-market-certificates:/cert"
       - "buyer-app-static-content:/buyer-app"
 
 networks:
   db_network:
     driver: bridge
-  relay_network:
-    driver: bridge
-  proxy:
+  web_network:
     driver: bridge
 
 volumes:
   buyer-app-static-content:
 EOF
-
