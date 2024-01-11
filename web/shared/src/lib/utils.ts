@@ -3,7 +3,7 @@ import {NostrPublicKey, NostrLoginMethod, loginModalState, Info, isSuperAdmin, p
 import {get} from "svelte/store";
 import {browser} from "$app/environment";
 import {page} from "$app/stores";
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 
 export const SATS_IN_BTC = 100000000;
 
