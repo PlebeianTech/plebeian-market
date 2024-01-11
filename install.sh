@@ -28,9 +28,11 @@ echo -n "Enter your email: "
 read EMAIL
 
 cd && mkdir -p plebeian-market-certificates
-docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --register-account -m $EMAIL
-docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --issue -d $DOMAIN_NAME --standalone
-docker run --rm -it -v "$(pwd)/out":/acme.sh -v "$(pwd)/plebeian-market-certificates":/cert --net=host neilpang/acme.sh --install-cert -d $DOMAIN_NAME --key-file /cert/key.pem --fullchain-file /cert/cert.pem
+if [ ! -f /cert/cert.pem ]; then # TODO: probably better to name the certificate after the domain
+  docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --register-account -m $EMAIL
+  docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --issue -d $DOMAIN_NAME --standalone
+  docker run --rm -it -v "$(pwd)/out":/acme.sh -v "$(pwd)/plebeian-market-certificates":/cert --net=host neilpang/acme.sh --install-cert -d $DOMAIN_NAME --key-file /cert/key.pem --fullchain-file /cert/cert.pem
+fi
 
 cd && mkdir -p plebeian-market-secrets
 tr -dc A-Za-z0-9 </dev/urandom | head -c 64 > plebeian-market-secrets/secret_key
