@@ -626,8 +626,11 @@ def get_put_delete_entity(key, cls, singular):
                     db.session.delete(item_category)
 
             if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)):
+                birdwatcher = get_birdwatcher()
                 user.ensure_merchant_key()
-                entity.nostr_event_id = get_birdwatcher().publish_product(entity)
+                if not user.ensure_stall_published(birdwatcher):
+                    return jsonify({'message': "Error publishing stall to Nostr!"}), 500
+                entity.nostr_event_id = birdwatcher.publish_product(entity)
                 if not entity.nostr_event_id:
                     return jsonify({'message': "Error publishing product to Nostr!"}), 500
 
