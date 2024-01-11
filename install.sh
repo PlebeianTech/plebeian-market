@@ -1,11 +1,5 @@
 #!/bin/sh
 
-# on a fresh machine:
-# adduser www
-# usermod -aG sudo www
-# sudo su - www
-# then, run this script!
-
 docker -v
 if [ $? -ne 0 ]; then
     echo "Docker not installed. Installing..."
@@ -201,3 +195,5 @@ networks:
 volumes:
   buyer-app-static-content:
 EOF
+
+docker compose up -d
