@@ -194,6 +194,11 @@ class User(WalletMixin, db.Model):
         if self.merchant_public_key is None:
             self.merchant_public_key = PrivateKey(bytes.fromhex(self.merchant_private_key)).public_key.hex()
 
+    def ensure_stall_published(self, birdwatcher):
+        if self.stall_nostr_event_id is None:
+            self.stall_nostr_event_id = birdwatcher.publish_stall(self)
+        return self.stall_nostr_event_id is not None
+
     email = db.Column(db.String(64), unique=True, nullable=True, index=True)
     email_verified = db.Column(db.Boolean, nullable=False, default=False)
     email_verification_phrase = db.Column(db.String(32), nullable=True)
