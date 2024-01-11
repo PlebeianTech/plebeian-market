@@ -44,7 +44,7 @@
         {/if}
 
         {#if product.name}
-            <span class="card-title atext-sm md:text-lg">
+            <span class="card-title md:text-lg">
                 <a class="cursor-pointer hover:underline" href="/product/{product.id}" on:click|preventDefault={openProduct}>{product.name}</a>
             </span>
         {/if}

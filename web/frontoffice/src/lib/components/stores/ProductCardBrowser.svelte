@@ -62,7 +62,7 @@
     let products: ProductsAssociativeArray[] = [];
     let filteredProducts = [];
 
-    $: if (productsLoaded) {
+    $: if (products) {
         numProductsLoaded = 0;
 
         filteredProducts = Object.fromEntries(Object.entries(products)
@@ -70,53 +70,53 @@
                 return b[1].event.created_at - a[1].event.created_at;
             })
             .filter(([productId, product]) => {
-            // Limit loaded products (0 means unlimited)
-            if (maxProductsLoaded > 0 && numProductsLoaded >= maxProductsLoaded) {
-                return false;
-            }
-
-            // "Product of this community" filter
-            if (showOnlyProductsFromThisCommunity && !merchantIDs.includes(product.event.pubkey)) {
-                return false;
-            }
-
-            // Text filter
-            if (filter &&
-                !(
-                    productId === filter ||
-                    product.name?.toLowerCase().includes(filter.toLowerCase()) ||
-                    product.description?.toLowerCase().includes(filter.toLowerCase()) ||
-                    product.tags?.join(' ').toLowerCase().includes(filter.toLowerCase())
-                )
-            ) {
-                return false;
-            }
-
-            // Product type filter
-            if (!showAuctions && product.event.kind === EVENT_KIND_AUCTION) {
-                return false;
-            }
-            if (!showFixedPriceProducts && product.event.kind === EVENT_KIND_PRODUCT) {
-                return false;
-            }
-
-            numProductsLoaded++;
-            return true;
-
-            /*
-        if (categories['All'].selected) {
-            return true;
-        } else {
-            for (let i = 0; i < selectedCategories.length; i++) {
-                let categorySelected = selectedCategories[i];
-
-                if (product.tags && product.tags.includes(categorySelected)) {
-                    return true;
+                // Limit loaded products (0 means unlimited)
+                if (maxProductsLoaded > 0 && numProductsLoaded >= maxProductsLoaded) {
+                    return false;
                 }
-            }
-        }
-        */
-        }));
+
+                // "Product of this community" filter
+                if (showOnlyProductsFromThisCommunity && !merchantIDs.includes(product.event.pubkey)) {
+                    return false;
+                }
+
+                // Text filter
+                if (filter &&
+                    !(
+                        productId === filter ||
+                        product.name?.toLowerCase().includes(filter.toLowerCase()) ||
+                        product.description?.toLowerCase().includes(filter.toLowerCase()) ||
+                        product.tags?.join(' ').toLowerCase().includes(filter.toLowerCase())
+                    )
+                ) {
+                    return false;
+                }
+
+                // Product type filter
+                if (!showAuctions && product.event.kind === EVENT_KIND_AUCTION) {
+                    return false;
+                }
+                if (!showFixedPriceProducts && product.event.kind === EVENT_KIND_PRODUCT) {
+                    return false;
+                }
+
+                numProductsLoaded++;
+                return true;
+
+                /*
+                if (categories['All'].selected) {
+                    return true;
+                } else {
+                    for (let i = 0; i < selectedCategories.length; i++) {
+                        let categorySelected = selectedCategories[i];
+
+                        if (product.tags && product.tags.includes(categorySelected)) {
+                            return true;
+                        }
+                    }
+                }
+                */
+            }));
     }
 
     onMount(async () => {
@@ -130,10 +130,7 @@
 
                 // Calculate if auction is already ended
                 if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
-                    let now = Math.floor(Date.now() / 1000);
-                    let endsAt = newProductInfo.start_date + newProductInfo.duration;
-
-                    if (now > endsAt) {     // Auction already ended
+                    if (Math.floor(Date.now() / 1000) > (newProductInfo.start_date + newProductInfo.duration)) {     // Auction already ended
                         return;
                     }
                 }
@@ -199,17 +196,19 @@
 </div>
 -->
 
-
-{#if !productsLoaded}
-    <div class="flex mx-auto w-fit p-28 items-center justify-center">
-        <span class="loading loading-bars w-32"></span>
-    </div>
-{:else}
-    <div class="p-0 md:p-2 py-2 pt-4 md:pt-8 h-auto grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto" >
-        {#each Object.entries(filteredProducts) as [_, product]}
-            <ProductCard {product} {onImgError} isOnStall={false} bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
-        {/each}
-    </div>
-{/if}
+<div class="p-0 md:p-2 py-2 pt-4 md:pt-8 h-auto grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto" >
+    {#each Object.entries(filteredProducts) as [_, product]}
+        <ProductCard {product} {onImgError} isOnStall={false} bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
+    {/each}
+</div>
 
 <ProductModal bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
+
+{#if !productsLoaded}
+    <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-35 z-50">
+        <div class="grid mx-auto w-fit p-28 items-center justify-center bg-white bg-opacity-80 rounded-2xl">
+            <span class="mx-auto loading loading-bars w-48"></span>
+            <p class="mx-auto mt-8 text-3xl">Loading products from the Nostrverse...</p>
+        </div>
+    </div>
+{/if}

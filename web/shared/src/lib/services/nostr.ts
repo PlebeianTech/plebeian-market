@@ -342,14 +342,12 @@ export function getProducts(merchantPubkey: string | null, productIds: string[] 
             }
         }
 
+        // vitamin the product with categories
         filterTags(productEvent.tags, 't').forEach((category) => {
-            let tag = category[1].trim().toLowerCase();
-
-            // vitamin the product with categories
             if (product.tags) {
-                product.tags.push(tag);
+                product.tags.push(category[1].trim().toLowerCase());
             } else {
-                product.tags = [tag];
+                product.tags = [category[1].trim().toLowerCase()];
             }
         });
 
