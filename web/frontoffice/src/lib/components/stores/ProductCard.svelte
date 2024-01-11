@@ -9,8 +9,8 @@
     import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
     import { Image } from 'svelte-lazy-loader';
     import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
-    import SvelteMarkdown from "svelte-markdown";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
+    import {getHtmlFromMarkdownBasic} from "$sharedLib/utils";
 
     export let product;
     export let onImgError = () => {};
@@ -61,8 +61,8 @@
         {/if}
 
         {#if product.description}
-            <div class="md:hidden mt-1 md:mt-4 prose"><SvelteMarkdown source={product.description.substring(0,110)}/>{#if product.description.length > 110}...{/if}</div>
-            <div class="hidden md:block mt-1 md:mt-4 prose"><SvelteMarkdown source={product.description.substring(0,300)}/>{#if product.description.length > 300}...{/if}</div>
+            <div class="md:hidden mt-1 md:mt-4 prose">{@html getHtmlFromMarkdownBasic(product.description.substring(0,110))}{#if product.description.length > 110}...{/if}</div>
+            <div class="hidden md:block mt-1 md:mt-4 prose">{@html getHtmlFromMarkdownBasic(product.description.substring(0,300))}{#if product.description.length > 300}...{/if}</div>
         {/if}
 
         {#if product.tags}

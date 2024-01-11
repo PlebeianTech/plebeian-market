@@ -3,6 +3,7 @@ import {NostrPublicKey, NostrLoginMethod, loginModalState, Info, isSuperAdmin, p
 import {get} from "svelte/store";
 import {browser} from "$app/environment";
 import {page} from "$app/stores";
+import DOMPurify from "isomorphic-dompurify";
 
 export const SATS_IN_BTC = 100000000;
 
@@ -145,4 +146,16 @@ export async function getConfigurationFromFile() {
         console.debug('ERROR', e);
         return false;
     }
+}
+
+export function getHtmlFromMarkdownBasic(markdown: string) {
+    return DOMPurify.sanitize(markdown)
+        //.replace(/^### (.*$)/gim, '<h3>$1</h3>') // h3 tag
+        //.replace(/^## (.*$)/gim, '<h2>$1</h2>') // h2 tag
+        //.replace(/^# (.*$)/gim, '<h11>$1</h11>') // h1 tag
+        .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
+        .replace(/\*(.*)\*/gim, '<i>$1</i>')
+        .replace(/^([^\n]+)\n/gim, '<p class="my-0">$1</p>')
+        .replace(/\n\n([^\n]+)\n/gim, '<p class="my-0 mt-1">$1</p>')
+        .replace(/\n([^\n]+)\n/gim, '<p class="my-0">$1</p>');
 }
