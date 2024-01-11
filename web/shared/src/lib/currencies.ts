@@ -84,17 +84,29 @@ export async function getFiatRate(fiatSymbol: string) {
 
     let fiatRate = fiatRatesCache.get(fiatSymbol);
 
-    if (!fiatRate || (fiatRate && fiatRate.fetched_at < (Date.now() - currencyRateCacheTimeMilliseconds))) {
+    if (!fiatRate || (fiatRate && !fiatRate.loading && (!fiatRate.fetched_at || fiatRate.fetched_at < (Date.now() - currencyRateCacheTimeMilliseconds)))) {
+        // Set loading flag to true
+        if (!fiatRate) {
+            fiatRate = {
+                loading: true
+            };
+            fiatRatesCache.set(fiatSymbol, fiatRate);
+        } else {
+            fiatRate.loading = true;
+        }
+
         const rate: number = await getValue('kraken', fiatSymbol);
 
         if (!fiatRate) {
             fiatRatesCache.set(fiatSymbol, {
                 rate: rate,
-                fetched_at: Date.now()
+                fetched_at: Date.now(),
+                loading: false,
             });
         } else {
             fiatRate.rate = rate;
             fiatRate.fetched_at = Date.now();
+            fiatRate.loading = false;
         }
 
         // Fire Svelte reactivity
