@@ -37,17 +37,9 @@
             {/key}
         </a>
     </figure>
-    <div class="card-body items-center text-center p-3 pt-2 pb-2 md:p-5 md:pt-3">
-        {#if product.event.kind === EVENT_KIND_AUCTION}
-            <div class="badge badge-info gap-2">auction</div>
-        {:else}
-            {#if !reducedCard}
-                <div class="badge badge-success gap-2 mb-2">fixed price</div>
-            {/if}
-        {/if}
-
+    <div class="card-body items-center text-center p-3 py-2 md:p-5 md:pt-3 gap-0">
         {#if product.name}
-            <span class="card-title md:text-lg">
+            <span class="text-xs md:text-lg mb-2">
                 <a class="cursor-pointer hover:underline" href="/product/{product.id}" on:click|preventDefault={openProduct}>{product.name}</a>
             </span>
         {/if}
@@ -68,7 +60,7 @@
             <div class="hidden md:block mt-1 md:mt-4 prose">{@html getHtmlFromMarkdownBasic(product.description.substring(0,300))}{#if product.description.length > 300}...{/if}</div>
         {/if}
 
-        {#if product.tags}
+        {#if !reducedCard && product.tags}
             <div class="card-actions justify-center mt-2 md:mt-4">
                 {#each product.tags as tag}
                     <div class="badge badge-outline">{tag}</div>
@@ -77,9 +69,10 @@
         {/if}
 
         {#if product.event.kind === EVENT_KIND_AUCTION}
+            <div class="badge badge-info gap-2">auction</div>
             <AuctionInfo {product} {reducedCard} />
         {:else}
-            <div class="mt-1 md:mt-3" class:columns-2={!reducedCard}>
+            <div class="mt-0" class:columns-2={!reducedCard}>
                 {#if !reducedCard}
                     <div>
                         {#if product.quantity === null}

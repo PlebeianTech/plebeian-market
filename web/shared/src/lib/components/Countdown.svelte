@@ -21,10 +21,6 @@
 
     $: lastMinute = (days === 0) && (hours === 0) && (minutes === 0);
 
-    export function isLastMinute() {
-        return lastMinute;
-    }
-
     function refresh() {
         if (totalSeconds === null) {
             return;
