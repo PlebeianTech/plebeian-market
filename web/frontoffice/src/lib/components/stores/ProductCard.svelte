@@ -18,6 +18,7 @@
     export let orderQuantity = 1;
     export let viewProductIdOnModal: string | null = null;
     export let scrollPosition: number | null = null;
+    export let reducedCard: boolean = true;
 
     function openProduct() {
         scrollPosition = document.documentElement.scrollTop;
@@ -36,11 +37,13 @@
             {/key}
         </a>
     </figure>
-    <div class="card-body items-center text-center p-3 md:p-8">
+    <div class="card-body items-center text-center p-3 pt-2 pb-2 md:p-5 md:pt-3">
         {#if product.event.kind === EVENT_KIND_AUCTION}
             <div class="badge badge-info gap-2">auction</div>
         {:else}
-            <div class="badge badge-success gap-2 mb-2">fixed price</div>
+            {#if !reducedCard}
+                <div class="badge badge-success gap-2 mb-2">fixed price</div>
+            {/if}
         {/if}
 
         {#if product.name}
@@ -60,7 +63,7 @@
             </div>
         {/if}
 
-        {#if product.description}
+        {#if !reducedCard && product.description}
             <div class="md:hidden mt-1 md:mt-4 prose">{@html getHtmlFromMarkdownBasic(product.description.substring(0,110))}{#if product.description.length > 110}...{/if}</div>
             <div class="hidden md:block mt-1 md:mt-4 prose">{@html getHtmlFromMarkdownBasic(product.description.substring(0,300))}{#if product.description.length > 300}...{/if}</div>
         {/if}
@@ -74,16 +77,18 @@
         {/if}
 
         {#if product.event.kind === EVENT_KIND_AUCTION}
-            <AuctionInfo {product} />
+            <AuctionInfo {product} {reducedCard} />
         {:else}
-            <div class="columns-2 mt-2 md:mt-4">
-                <div>
-                    {#if product.quantity === null}
-                        Stock: Unlimited
-                    {:else}
-                        Stock: {product.quantity}
-                    {/if}
-                </div>
+            <div class="mt-1 md:mt-3" class:columns-2={!reducedCard}>
+                {#if !reducedCard}
+                    <div>
+                        {#if product.quantity === null}
+                            Stock: Unlimited
+                        {:else}
+                            Stock: {product.quantity}
+                        {/if}
+                    </div>
+                {/if}
                 <div>
                     {#if product.price && product.currency}
                         <CurrencyConverter
@@ -95,12 +100,14 @@
                     {/if}
                 </div>
             </div>
-            <div class="mt-2 md:mt-3 justify-end {product.quantity === 0 ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
-                <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
-                <button class="btn btn-primary mt-1 md:mt-3" class:btn-disabled={product.quantity === 0} on:click|preventDefault={() => addToCart(product, orderQuantity)}>
-                    Add to cart
-                </button>
-            </div>
+            {#if !reducedCard}
+                <div class="mt-2 md:mt-3 justify-end {product.quantity === 0 ? 'tooltip tooltip-warning' : ''}" data-tip="Out of stock">
+                    <Quantity bind:quantity={orderQuantity} maxStock={product.quantity} />
+                    <button class="btn btn-primary mt-1 md:mt-3" class:btn-disabled={product.quantity === 0} on:click|preventDefault={() => addToCart(product, orderQuantity)}>
+                        Add to cart
+                    </button>
+                </div>
+            {/if}
         {/if}
 
         {#if $isSuperAdmin && $NostrGlobalConfig}

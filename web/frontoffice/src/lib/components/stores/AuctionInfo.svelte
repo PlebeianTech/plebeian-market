@@ -7,6 +7,8 @@
 
     export let product;
 
+    export let reducedCard: boolean = false;
+
     let now: number = 0;
     let endsAt: number = 0;
     let ended: boolean = false;
@@ -112,15 +114,17 @@
                 <div class="divider"></div>
             {/if}
 
-            <div class="mt-1 justify-end">
-                <button class="btn btn-primary mt-4" on:click|preventDefault={() => goto('/product/' + product.id)}>
-                    {#if started && !ended}
-                        Bid
-                    {:else}
-                        View
-                    {/if}
-                </button>
-            </div>
+            {#if !reducedCard}
+                <div class="mt-1 justify-end">
+                    <button class="btn btn-primary mt-4" on:click|preventDefault={() => goto('/product/' + product.id)}>
+                        {#if started && !ended}
+                            Bid
+                        {:else}
+                            View
+                        {/if}
+                    </button>
+                </div>
+            {/if}
         {/if}
     </div>
 {/if}
