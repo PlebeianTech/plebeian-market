@@ -85,7 +85,7 @@
 <div class="h-screen pt-12 lg:pt-20 pb-20 { $page.url.pathname === '/messages' ? '' : 'mt-2' }">
     <Navbar />
 
-    <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/messages' ? 'h-full' : '' } { $page.url.pathname === '/' ? 'w-screen' : 'w-11/12 md:w-10/12' }">
+    <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/messages' ? 'h-full' : '' } { $page.url.pathname === '/' ? 'w-screen' : 'w-11/12 lg:w-10/12' }">
         <Notifications />
 
         <slot />
