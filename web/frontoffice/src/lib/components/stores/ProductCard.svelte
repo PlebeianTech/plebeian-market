@@ -44,7 +44,7 @@
             </span>
         {/if}
 
-        {#if !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}
+        {#if !reducedCard && !isOnStall && $stalls !== null && $stalls.stalls[product.stall_id]}
             <div class="mt-1 md:mt-3 p-3 md:p-4 alert bg-purple-500/30 hover:bg-purple-500/60 tooltip tooltip-left tooltip-primary cursor-pointer" data-tip="Visit stall" on:click|preventDefault={() => goto('/p/'+product.event.pubkey+'/stall/'+product.stall_id)}>
                 <span class="text-sm">
                     <div class="float-left mr-2 align-middle stroke-current flex-shrink-0 h-6 w-6">
