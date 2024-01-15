@@ -1,6 +1,6 @@
 <script lang="ts">
     import {convertCurrencies, getCurrencyInfo, getStandardCurrencyCode} from "$sharedLib/currencies";
-    import {userChosenCurrency} from "$sharedLib/stores";
+    import {fiatRates, userChosenCurrency} from "$sharedLib/stores";
 
     export let amount: number;
     export let sourceCurrency: string;
@@ -28,7 +28,7 @@
         }
     }
 
-    $: if (amount && sourceCurrency && $userChosenCurrency) {
+    $: if (amount && $userChosenCurrency && $fiatRates.get(sourceCurrency)) {
         convert();
     }
 </script>
