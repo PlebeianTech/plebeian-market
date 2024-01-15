@@ -28,7 +28,10 @@
         }
     }
 
-    $: if (amount && $userChosenCurrency && $fiatRates.get(sourceCurrency)) {
+    $: if (amount && $userChosenCurrency) {
+        convert();
+    }
+    $: if ($fiatRates.get(sourceCurrency) || $fiatRates.get($userChosenCurrency)) {
         convert();
     }
 </script>
