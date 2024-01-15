@@ -1121,32 +1121,34 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
 
-    buyer_metadata = birdwatcher.query_metadata(request.json['pubkey'])
-    if len(buyer_metadata['verified_identities']) < app.config['BID_REQUIRED_VERIFIED_IDENTITIES_COUNT']:
-        message = f"User needs at least {app.config['BID_REQUIRED_VERIFIED_IDENTITIES_COUNT']} verified external identities in order to bid!"
-        app.logger.info(f"{message} pubkey={request.json['pubkey']} verified_identities={buyer_metadata['verified_identities']}")
-        birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
-        return jsonify({'message': message}), 400
-
     is_settled = True
-    if auction.skin_in_the_game_required and amount > auction.reserve_bid:
-        has_skin_in_the_game = False
-        # TODO: optimize query - join tables
-        for order in m.Order.query.filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).all():
-            if order.has_skin_in_the_game_badge():
-                has_skin_in_the_game = True
-                break
-        if not has_skin_in_the_game:
-            site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
-            site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
-            if not site_admin:
-                return jsonify({'message': "Site not configured!"}), 500
-            badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
-            if not badge_listing:
-                return jsonify({'message': "Site not configured!"}), 500
-            message = f"User needs Skin in the Game in order to bid."
-            birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=site_admin.stall_id, badge_product_id=str(badge_listing.uuid))
-            is_settled = False
+    if amount > auction.reserve_bid:
+        if auction.verified_identities_required > 0:
+            buyer_metadata = birdwatcher.query_metadata(request.json['pubkey'])
+            if len(buyer_metadata['verified_identities']) < auction.verified_identities_required:
+                app.logger.info(f"{message} pubkey={request.json['pubkey']} verified_identities={buyer_metadata['verified_identities']}")
+                message = f"User needs at least {auction.verified_identities_required} verified external identities in order to bid!"
+                birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
+                is_settled = False
+
+        if auction.skin_in_the_game_required:
+            has_skin_in_the_game = False
+            # TODO: optimize query - join tables
+            for order in m.Order.query.filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).all():
+                if order.has_skin_in_the_game_badge():
+                    has_skin_in_the_game = True
+                    break
+            if not has_skin_in_the_game:
+                site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
+                site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
+                if not site_admin:
+                    return jsonify({'message': "Site not configured!"}), 500
+                badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
+                if not badge_listing:
+                    return jsonify({'message': "Site not configured!"}), 500
+                message = f"User needs Skin in the Game in order to bid."
+                birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=site_admin.stall_id, badge_product_id=str(badge_listing.uuid))
+                is_settled = False
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)
     if is_settled:

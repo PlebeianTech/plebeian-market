@@ -520,6 +520,7 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
     reserve_bid = db.Column(db.Integer, nullable=False)
 
     skin_in_the_game_required = db.Column(db.Boolean, nullable=False, default=False)
+    verified_identities_required = db.Column(db.Integer, nullable=False, default=0)
 
     twitter_id = db.Column(db.String(32), nullable=True)
 
@@ -580,6 +581,7 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
             'categories': self.item.category_tags,
             'duration_hours': self.duration_hours,
             'skin_in_the_game_required': self.skin_in_the_game_required,
+            'verified_identities_required': self.verified_identities_required,
             'start_date': self.start_date.isoformat() + "Z" if self.start_date else None,
             'started': self.started,
             'end_date': self.end_date.isoformat() + "Z" if self.end_date else None,
@@ -643,7 +645,7 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
             except ValueError:
                 raise ValidationError(f"Invalid {k.replace('_', ' ')}.")
             validated[k] = date
-        for k in ['starting_bid', 'reserve_bid']:
+        for k in ['starting_bid', 'reserve_bid', 'verified_identities_required']:
             if k not in d:
                 continue
             try:
