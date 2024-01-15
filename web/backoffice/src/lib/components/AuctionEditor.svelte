@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import type { IEntity } from "$lib/types/base";
-    import type { Auction } from "$lib/types/auction";
+    import { Auction } from "$lib/types/auction";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import CategoryEditor from "$lib/components/CategoryEditor.svelte";
     import ExtraShippingEditor from "$lib/components/ExtraShippingEditor.svelte";
@@ -17,6 +17,8 @@
     let durationMultiplier = "1";
     $: durationOptions = [2 * 24];
     $: durationLabels = ["48 hours"];
+
+    let verified_identities_required_checked;
 
     function twelveHours() {
         auction.duration_hours = 12;
@@ -39,6 +41,7 @@
 
     onMount(async () => {
         customDuration();
+        verified_identities_required_checked = auction === undefined || auction.verified_identities_required !== 0;
     });
 </script>
 
@@ -61,7 +64,7 @@
                     <textarea bind:value={auction.description} rows="6" class="textarea textarea-bordered h-48"></textarea>
                 </div>
                 <div class="flex mt-3 gap-3">
-                    <div class="form-control w-1/3 max-w-xs mr-1">
+                    <div class="form-control w-full md:w-1/3 max-w-xs mr-1">
                         <label class="label" for="starting-bid">
                             <span class="label-text">Starting bid (optional)</span>
                         </label>
@@ -71,8 +74,10 @@
                             <span class="label-text-alt">sats</span>
                         </label>
                     </div>
+                </div>
+                <div class="flex mt-3 gap-3 flex-col md:flex-row">
                     <div class="form-control max-w-xs ml-1">
-                        <label class="label gap-2" for="reserve-bid">
+                        <label class="label gap-2" for="skin-in-the-game-required">
                             <span class="label-text">Skin in the Game required</span>
                             <div class="tooltip tooltip-left" data-tip="Get extra protection by requiring bidders to purchase Skin in the Game for bids above the reserve price">
                                 <InfoIcon />
@@ -80,7 +85,16 @@
                         </label>
                         <input bind:checked={auction.skin_in_the_game_required} type="checkbox" class="mt-1 ml-12 toggle toggle-lg toggle-accent" />
                     </div>
-                    <div class="form-control w-1/3 max-w-xs ml-1">
+                    <div class="form-control max-w-xs ml-1">
+                        <label class="label gap-2" for="verified-identities-required">
+                            <span class="label-text">Verified identities required</span>
+                            <div class="tooltip tooltip-left" data-tip="Get extra protection by requiring bidders to verify at least 2 external identities for bids above the reserve price">
+                                <InfoIcon />
+                            </div>
+                        </label>
+                        <input bind:checked={verified_identities_required_checked} on:change={() => { auction.verified_identities_required = verified_identities_required_checked ? Auction.VERIFIED_IDENTITIES_REQUIRED_DEFAULT : 0}} type="checkbox" class="mt-1 ml-12 toggle toggle-lg toggle-accent" />
+                    </div>
+                    <div class="form-control w-full md:w-1/3 max-w-xs ml-1">
                         <label class="label" for="reserve-bid">
                             <span class="label-text">Reserve bid (optional)</span>
                         </label>
