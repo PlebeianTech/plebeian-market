@@ -21,10 +21,12 @@ fi
 
 sudo apt-get -y install git
 
-echo -n "Enter your domain name: "
+echo "------------------------"
+
+echo -n "Enter your domain name (the DNS must be already configured at this point!): "
 read DOMAIN_NAME
 
-echo -n "Enter your email: "
+echo -n "Enter an email address (this will be used to obtain SSL certificates on your behalf): "
 read EMAIL
 
 cd && mkdir -p plebeian-market-certificates
@@ -202,4 +204,12 @@ volumes:
   buyer-app-static-content:
 EOF
 
+echo "------------------------"
+echo "Installed successfully. Now starting the app!"
+echo "------------------------"
+
 docker compose up -d
+
+echo "------------------------"
+echo "All is well! Try going to https://$DOMAIN_NAME using your browser!"
+echo "------------------------"
