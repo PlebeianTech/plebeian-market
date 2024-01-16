@@ -30,6 +30,7 @@ services:
       dockerfile: web/Dockerfile
       args:
         - BUILD_MODE=-staging
+    restart: always
     depends_on:
       - api
     networks:
@@ -40,6 +41,7 @@ services:
     build:
       context: ./
       dockerfile: ./services/nginx/Dockerfile
+    restart: always
     environment:
       - VIRTUAL_HOST=staging.plebeian.market
       - LETSENCRYPT_HOST=staging.plebeian.market

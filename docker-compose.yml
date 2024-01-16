@@ -5,12 +5,14 @@ services:
     build:
       context: ./
       dockerfile: ./services/postgres/Dockerfile
+    restart: always
     networks:
       - db_network
   relay:
     build:
       context: ./
       dockerfile: ./services/strfry/Dockerfile
+    restart: always
     networks:
       - relay_network
   api:
@@ -19,7 +21,7 @@ services:
       dockerfile: ./api/Dockerfile
     image: plebeianmarket-api
     depends_on: [db]
-    restart: on-failure
+    restart: always
     stop_grace_period: 1m
     networks:
       - db_network
@@ -30,7 +32,7 @@ services:
       dockerfile: ./api/Dockerfile
     image: plebeianmarket-finalize-auctions
     depends_on: [db]
-    restart: on-failure
+    restart: always
     stop_grace_period: 1m
     networks:
       - db_network
@@ -40,7 +42,7 @@ services:
       dockerfile: ./api/Dockerfile
     image: plebeianmarket-btc-payments
     depends_on: [db]
-    restart: on-failure
+    restart: always
     stop_grace_period: 1m
     networks:
       - db_network
@@ -50,7 +52,7 @@ services:
       dockerfile: ./ln_payments_processor/Dockerfile
     image: plebeianmarket-lightning-payments
     depends_on: [db]
-    restart: on-failure
+    restart: always
     stop_grace_period: 30s
     networks:
       - db_network
@@ -59,7 +61,7 @@ services:
       context: ./
       dockerfile: ./birdwatcher/Dockerfile
     image: plebeianmarket-birdwatcher
-    restart: on-failure
+    restart: always
     stop_grace_period: 15s
     networks:
       - db_network

@@ -129,12 +129,14 @@ version: '3.6'
 services:
   db:
     image: ghcr.io/plebeiantech/plebeian-market-db
+    restart: always
     networks:
       - db_network
     volumes:
       - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
   relay:
     image: ghcr.io/plebeiantech/plebeian-market-relay
+    restart: always
     networks:
       - web_network
     ports:
@@ -144,7 +146,7 @@ services:
   api:
     image: ghcr.io/plebeiantech/plebeian-market-api
     depends_on: [db]
-    restart: on-failure
+    restart: always
     stop_grace_period: 1m
     networks:
       - db_network
@@ -156,7 +158,7 @@ services:
     command: gunicorn --preload --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
   birdwatcher:
     image: ghcr.io/plebeiantech/plebeian-market-birdwatcher
-    restart: on-failure
+    restart: always
     stop_grace_period: 15s
     networks:
       - db_network
@@ -166,6 +168,7 @@ services:
     command: python main.py
   web:
     image: ghcr.io/plebeiantech/plebeian-market-web
+    restart: always
     networks:
       - web_network
     depends_on:
@@ -175,6 +178,7 @@ services:
       - "buyer-app-static-content:/buyer-app"
   nginx:
     image: nginx:1.25-alpine-slim
+    restart: always
     networks:
       - web_network
     ports:
