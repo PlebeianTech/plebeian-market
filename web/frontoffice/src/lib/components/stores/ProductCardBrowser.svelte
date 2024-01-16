@@ -196,7 +196,7 @@
 </div>
 -->
 
-<div class="p-0 md:p-2 py-2 pt-4 md:pt-8 h-auto grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-24 align-center mx-auto" >
+<div class="p-0 md:p-2 py-2 pt-4 md:pt-8 h-auto grid grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 lg:gap-12 2xl:gap-16 3xl:gap-20 align-center mx-auto" >
     {#each Object.entries(filteredProducts) as [_, product]}
         <ProductCard {product} {onImgError} isOnStall={false} bind:viewProductIdOnModal={viewProductIdOnModal} bind:scrollPosition={scrollPosition} />
     {/each}

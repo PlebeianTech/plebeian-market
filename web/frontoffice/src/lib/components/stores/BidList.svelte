@@ -14,7 +14,6 @@
     export let sortedBids;
     export let userProfileInfoMap;
     export let openSitgBadgeInfo;
-    export let bidSuscriptionFinished = false;
 
     let modalPubkey = null;
     let hoverTimer = null;
@@ -79,13 +78,11 @@
                 {#if bid.amount && (bid.backendResponse?.status !== 'rejected' || (bid.backendResponse?.status === 'rejected' && bid.pubkey === $NostrPublicKey))}
                     <tr class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
                         <th class="text-center grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
-                            {#if bidSuscriptionFinished}
-                                <CurrencyConverter
-                                    amount={bid.amount}
-                                    sourceCurrency="sats"
-                                    satsClassStyle="text-xs pb-1"
-                                />
-                            {/if}
+                            <CurrencyConverter
+                                amount={bid.amount}
+                                sourceCurrency="sats"
+                                satsClassStyle="text-xs pb-1"
+                            />
                             <p class="mt-1">{formatTimestamp(bid.date)}</p>
 
                             <div class="mt-1">
@@ -154,17 +151,11 @@
             {#each sortedBids as [_, bid]}
                 {#if bid.amount && ($isSuperAdmin || (bid.backendResponse?.status !== 'rejected' || (bid.backendResponse?.status === 'rejected' && bid.pubkey === $NostrPublicKey)))}
                     <tr class:opacity-25={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
-                        <th class="text-center inline-grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
-                            <span class="p-3" class:pb-9={!bidSuscriptionFinished}>
-                                {#if bidSuscriptionFinished}
-                                    <div class="pt-1">
-                                        <CurrencyConverter
-                                            amount={bid.amount}
-                                            sourceCurrency="sats"
-                                        />
-                                    </div>
-                                {/if}
-                            </span>
+                        <th class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
+                            <CurrencyConverter
+                                amount={bid.amount}
+                                sourceCurrency="sats"
+                            />
                         </th>
                         <td class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>{formatTimestamp(bid.date)}</td>
                         <td class="text-center text-xs {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor : ''}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
