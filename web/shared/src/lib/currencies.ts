@@ -111,6 +111,12 @@ export async function getFiatRate(fiatSymbol: string) {
 
         // Fire Svelte reactivity
         fiatRates.set(get(fiatRates));
+    } else {
+        // Some code expects the rate to be available after running
+        // getFiatRate, so let's wait here until it's not "loading"
+        while (fiatRate.loading) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
     }
 }
 

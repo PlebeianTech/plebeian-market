@@ -45,7 +45,7 @@
         {#if convertedSuccessfully}
             <div>
                 <p class="{satsClassStyle}">{satsAmount} sat</p>
-                {#if !showOnlySats && getStandardCurrencyCode($userChosenCurrency) !== 'SAT'}
+                {#if !showOnlySats && getStandardCurrencyCode($userChosenCurrency) !== 'SAT' && !isNaN(convertedAmount)}
                     <p class="{fiatClassStyle}">{#if parenthesisOnFiat}({/if}{destinationCurrencyInfo.prefix}{convertedAmount}{destinationCurrencyInfo.suffix}{#if parenthesisOnFiat}){/if}</p>
                 {/if}
             </div>
