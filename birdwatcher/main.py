@@ -358,8 +358,9 @@ async def verify_external_identity(pk, external_identity, proof):
             return pk, external_identity, False
 
     try:
+        logging.info(f"Getting {url}...")
         response_url, response_text = await getter(url)
-        logging.debug(f"Got {response_url}: {len(response_text)} bytes!")
+        logging.info(f"Got {url} as {response_url}: {len(response_text)} bytes!")
     except:
         logging.exception("Error verifying external identity.")
         return pk, external_identity, False
