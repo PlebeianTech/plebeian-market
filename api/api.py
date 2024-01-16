@@ -761,7 +761,7 @@ def put_publish(user, key, cls, start):
     if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized."}), 401
 
-    if not user.wallet and not user.lightning_address:
+    if not user.wallet or not user.lightning_address:
         return jsonify({'message': "Wallet not configured."}), 400
 
     if start:

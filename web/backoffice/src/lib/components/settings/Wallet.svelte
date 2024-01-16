@@ -5,7 +5,6 @@
     import { user } from "$lib/stores";
     import { Info, token } from "$sharedLib/stores";
     import InfoIcon from "$sharedLib/components/icons/Info.svelte";
-    import QuestionIcon from "$sharedLib/components/icons/Question.svelte";
     import InfoBox from "$lib/components/notifications/InfoBox.svelte";
 
     export let onSave: () => void = () => {};
@@ -15,8 +14,9 @@
     let lightningAddress: string | null = null;
 
     $: isValidLightningAddress = lightningAddress !== null && lightningAddress !== "";
+    $: isValidWallet = wallet !== null && wallet !== "";
 
-    $: saveActive = !saving && $user && isValidLightningAddress && (lightningAddress !== $user.lightningAddress || wallet !== $user.wallet || walletName !== $user.walletName);
+    $: saveActive = !saving && $user && isValidLightningAddress && isValidWallet && (lightningAddress !== $user.lightningAddress || wallet !== $user.wallet || walletName !== $user.walletName);
 
     let saving = false;
     function save() {
@@ -90,7 +90,7 @@
 <div class="w-full flex items-center justify-center">
     <div class="max-w-lg">
         <div class="alert shadow-lg">
-            A non-custodial Bitcoin wallet that can provide you with an XPUB is optional, but highly recommended! We use the XPUB to generate addresses for larger payments but also for buyers that simply don't have a Lightning wallet.
+            We use the XPUB to generate addresses for larger payments but also for buyers that simply don't have a Lightning wallet.
         </div>
     </div>
 </div>
@@ -98,7 +98,7 @@
 <div class="w-full flex items-center justify-center mt-8">
     <div class="form-control w-full max-w-lg">
         <label class="label" for="wallet">
-            <span class="label-text">XPUB / ZPUB <a href="/faq?question=xpub" target="_blank" class="lg:tooltip" data-tip="Click to read: How do I get the XPUB/YPUB/ZPUB from my wallet?">?</a> (optional)</span>
+            <span class="label-text">XPUB / ZPUB <a href="/faq?question=xpub" target="_blank" class="lg:tooltip" data-tip="Click to read: How do I get the XPUB/YPUB/ZPUB from my wallet?">?</a></span>
             <div class="lg:tooltip" data-tip="Non-custodial wallets such as Blue Wallet offer you an XPUB and are a great way to get started with accepting Bitcoin payments.">
                 <InfoIcon />
             </div>
