@@ -13,7 +13,7 @@
     export let ended: boolean;
     export let totalSeconds: number | null = null;
 
-    let secondsRemanining: number | null = null;
+    let secondsRemanining: number | null = totalSeconds;
 
     let timeWhenTotalSecondsWasReceived = Date.now();
 
@@ -31,11 +31,14 @@
         if (secondsRemanining > 0) {
             days = Math.floor(secondsRemanining / 86400);
             secondsRemanining -= days * 86400;
+
             hours = Math.floor(secondsRemanining / 3600) % 24;
             secondsRemanining -= hours * 3600;
+
             minutes = Math.floor(secondsRemanining / 60) % 60;
             secondsRemanining -= minutes * 60;
-            seconds = secondsRemanining % 60;
+
+            seconds = Math.floor(secondsRemanining % 60);
         } else {
             days = hours = minutes = seconds = 0;
             ended = true;
@@ -45,7 +48,6 @@
     let interval: ReturnType<typeof setInterval> | undefined;
 
     onMount(async () => {
-        secondsRemanining = totalSeconds;
         refresh();
         interval = setInterval(refresh, 1000);
     });
