@@ -138,7 +138,7 @@ services:
     networks:
       - db_network
     volumes:
-      - "/home/www/plebeian-market-dbdata:/var/lib/postgresql/data"
+      - "./plebeian-market-dbdata:/var/lib/postgresql/data"
   relay:
     image: ghcr.io/plebeiantech/plebeian-market-relay
     restart: always
@@ -147,7 +147,7 @@ services:
     ports:
       - "7777:7777"
     volumes:
-      - "/home/www/plebeian-market-relaydata:/app/strfry-db"
+      - "./plebeian-market-relaydata:/app/strfry-db"
   api:
     image: ghcr.io/plebeiantech/plebeian-market-api
     depends_on: [db]
@@ -157,8 +157,8 @@ services:
       - db_network
       - web_network
     volumes:
-      - "/home/www/plebeian-market-secrets:/secrets"
-      - "/home/www/plebeian-market-state:/state"
+      - "./plebeian-market-secrets:/secrets"
+      - "./plebeian-market-state:/state"
     env_file: .env.api
     command: gunicorn --preload --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
   birdwatcher:
@@ -168,8 +168,8 @@ services:
     networks:
       - db_network
     volumes:
-      - "/home/www/plebeian-market-secrets:/secrets"
-      - "/home/www/plebeian-market-state:/state"
+      - "./plebeian-market-secrets:/secrets"
+      - "./plebeian-market-state:/state"
     command: python main.py
   web:
     image: ghcr.io/plebeiantech/plebeian-market-web
