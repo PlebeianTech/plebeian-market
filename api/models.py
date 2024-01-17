@@ -811,8 +811,8 @@ class Media(db.Model):
             'url': self.url,
         }
 
-    def store(self, s3, filename, original_filename, data):
-        self.url, self.content_hash = store_image(s3, filename, False, original_filename, data)
+    def store(self, file_storage, filename, original_filename, data):
+        self.url, self.content_hash = store_image(file_storage, filename, False, original_filename, data)
         return self.url is not None
 
 class Bid(db.Model):
