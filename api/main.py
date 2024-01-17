@@ -831,6 +831,8 @@ class LocalFileStorage:
     def upload(self, data, filename):
         filename_with_prefix = self.get_filename_prefix() + filename
         app.logger.info(f"Uploading media: {filename_with_prefix}...")
+        if not os.path.exists("/state/media"):
+            os.makedirs("/state/media")
         with open(f"/state/media/{filename_with_prefix}", "wb") as f:
             f.write(data)
 
