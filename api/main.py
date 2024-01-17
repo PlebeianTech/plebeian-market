@@ -821,13 +821,28 @@ class S3:
     def upload(self, data, filename):
         self.s3.Bucket(app.config['S3_BUCKET']).upload_fileobj(io.BytesIO(data), self.get_filename_prefix() + filename)
 
+class LocalFileStorage:
+    def get_url_prefix(self):
+        return f"{app.config['WWW_BASE_URL']}/media/"
+
+    def get_filename_prefix(self):
+        return ""
+
+    def upload(self, data, filename):
+        filename_with_prefix = self.get_filename_prefix() + filename
+        app.logger.info(f"Uploading media: {filename_with_prefix}...")
+        with open(f"/state/media/{filename_with_prefix}", "wb") as f:
+            f.write(data)
+
 def get_s3():
     if app.config['MOCK_S3']:
         return MockS3()
-    else:
+    elif app.config['USE_S3']:
         with open(app.config['S3_SECRETS']) as f:
             s3_secrets = json.load(f)
         return S3(app.config['S3_ENDPOINT_URL'], s3_secrets['KEY_ID'], s3_secrets['APPLICATION_KEY'])
+    else:
+        return LocalFileStorage()
 
 class Mail:
     def send(self, to, subject, body, html):

@@ -66,11 +66,13 @@ CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.s
 MOCK_NOSTR = bool(int(os.environ.get("MOCK_NOSTR", 0)))
 
 MOCK_S3 = bool(int(os.environ.get('MOCK_S3', 0)))
-S3_SECRETS = "/secrets/s3.json"
-S3_ENDPOINT_URL = "https://s3.us-west-004.backblazeb2.com"
-S3_BUCKET = 'plebeian-market'
-S3_FILENAME_PREFIX = os.environ.get('S3_FILENAME_PREFIX', "")
-S3_URL_PREFIX = f"https://f004.backblazeb2.com/file/{S3_BUCKET}/"
+USE_S3 = bool(int(os.environ.get('USE_S3', 0)))
+if USE_S3:
+    S3_SECRETS = "/secrets/s3.json"
+    S3_ENDPOINT_URL = "https://s3.us-west-004.backblazeb2.com"
+    S3_BUCKET = 'plebeian-market'
+    S3_FILENAME_PREFIX = os.environ.get('S3_FILENAME_PREFIX', "")
+    S3_URL_PREFIX = f"https://f004.backblazeb2.com/file/{S3_BUCKET}/"
 
 SATS_IN_BTC = 100000000
 
