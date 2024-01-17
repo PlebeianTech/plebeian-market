@@ -794,7 +794,7 @@ def get_site_admin_config():
             'lightning_address': "ibz@stacker.news",
         }
 
-class MockS3:
+class MockFileStorage:
     def get_url_prefix(self):
         return app.config['API_BASE_URL_EXTERNAL'] + "/mock-s3-files/"
 
@@ -808,7 +808,7 @@ class MockS3:
             # basically store the content under /tmp to be used by the /mock-s3-files/ route later
             f.write(data)
 
-class S3:
+class S3FileStorage:
     def __init__(self, endpoint_url, key_id, application_key):
         self.s3 = boto3.resource(service_name='s3', endpoint_url=endpoint_url, aws_access_key_id=key_id, aws_secret_access_key=application_key, config=Config(signature_version='s3v4'))
 
@@ -821,13 +821,30 @@ class S3:
     def upload(self, data, filename):
         self.s3.Bucket(app.config['S3_BUCKET']).upload_fileobj(io.BytesIO(data), self.get_filename_prefix() + filename)
 
-def get_s3():
+class LocalFileStorage:
+    def get_url_prefix(self):
+        return f"{app.config['WWW_BASE_URL']}/media/"
+
+    def get_filename_prefix(self):
+        return ""
+
+    def upload(self, data, filename):
+        filename_with_prefix = self.get_filename_prefix() + filename
+        app.logger.info(f"Uploading media: {filename_with_prefix}...")
+        if not os.path.exists("/state/media"):
+            os.makedirs("/state/media")
+        with open(f"/state/media/{filename_with_prefix}", "wb") as f:
+            f.write(data)
+
+def get_file_storage():
     if app.config['MOCK_S3']:
-        return MockS3()
-    else:
+        return MockFileStorage()
+    elif app.config['USE_S3']:
         with open(app.config['S3_SECRETS']) as f:
             s3_secrets = json.load(f)
-        return S3(app.config['S3_ENDPOINT_URL'], s3_secrets['KEY_ID'], s3_secrets['APPLICATION_KEY'])
+        return S3FileStorage(app.config['S3_ENDPOINT_URL'], s3_secrets['KEY_ID'], s3_secrets['APPLICATION_KEY'])
+    else:
+        return LocalFileStorage()
 
 class Mail:
     def send(self, to, subject, body, html):

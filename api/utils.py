@@ -20,7 +20,7 @@ def pick_ext(choices):
     else:
         return ""
 
-def store_image(s3, filename, append_hash, original_filename, data):
+def store_image(file_storage, filename, append_hash, original_filename, data):
     if data is None:
         url = original_filename
         response = requests.get(url)
@@ -35,9 +35,9 @@ def store_image(s3, filename, append_hash, original_filename, data):
     ext = pick_ext([guess_ext(data), original_filename.rsplit('.', 1)[-1]])
     filename = f"{filename}_{content_hash}{ext}" if append_hash else f"{filename}{ext}"
 
-    s3.upload(data, filename)
+    file_storage.upload(data, filename)
 
-    return s3.get_url_prefix() + s3.get_filename_prefix() + filename, content_hash
+    return file_storage.get_url_prefix() + file_storage.get_filename_prefix() + filename, content_hash
 
 def usd2sats(amount: float, btc2usd: float) -> int:
     from main import app

@@ -18,7 +18,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_lndhub_client, get_s3, get_site_admin_config
+from main import app, get_birdwatcher, get_lndhub_client, get_file_storage, get_site_admin_config
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -682,7 +682,7 @@ def post_media(key, cls, singular):
 
     for f in request.files.values():
         media = m.Media(item_id=entity.item_id, index=index)
-        if not media.store(get_s3(), f"{singular}_{entity.key}_media_{index}", f.filename, f.read()):
+        if not media.store(get_file_storage(), f"{singular}_{entity.key}_media_{index}", f.filename, f.read()):
             return jsonify({'message': "Error saving picture!"}), 400
         db.session.add(media)
         index += 1
