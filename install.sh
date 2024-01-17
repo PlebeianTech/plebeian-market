@@ -44,6 +44,8 @@ echo "{\"server\": \"\", \"username\": \"\", \"password\": \"\", \"default_sende
 echo "{\"NSEC\": \"\"}" > plebeian-market-secrets/nostr.json
 echo "{\"NSEC\": \"\", \"XPUB\": \"\", \"LIGHTNING_ADDRESS\": \"\"}" > plebeian-market-secrets/site-admin.json
 
+cd && mkdir -p plebeian-market-state/media
+
 cat << EOF > .env.api
 ENV=prod
 FLASK_APP=main
@@ -107,6 +109,9 @@ server {
         proxy_set_header Host \$host;
         proxy_read_timeout 86400;
         proxy_redirect off;
+    }
+    location /media {
+        alias /media/;
     }
     location / {
         add_header Access-Control-Allow-Origin *;
@@ -192,6 +197,7 @@ services:
     volumes:
       - "./plebeian-market-nginx:/etc/nginx/conf.d"
       - "./plebeian-market-certificates:/cert"
+      - "./plebeian-market-state/media:/media"
       - "buyer-app-static-content:/buyer-app"
 
 networks:
