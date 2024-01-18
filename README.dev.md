@@ -38,9 +38,6 @@
   * `API_BASE_URL`, `WWW_BASE_URL`, `DOMAIN_NAME`
 * edit `docker-compose.prod.yml`
   * `VIRTUAL_HOST`, `LETSENCRYPT_HOST`
-* edit `./web/.env.production`
-  * `VITE_BASE_URL`
-  * `VITE_API_BASE_URL`
 * `flask db upgrade`
 * `./scripts/prod.sh`
 
