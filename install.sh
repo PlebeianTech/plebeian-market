@@ -152,7 +152,7 @@ services:
       - "./plebeian-market-secrets:/secrets"
       - "./plebeian-market-state:/state"
     env_file: .env
-    command: gunicorn --preload --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
+    command: bash -c "flask db upgrade && gunicorn --preload --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080"
   birdwatcher:
     image: ghcr.io/plebeiantech/plebeian-market-birdwatcher
     restart: always
