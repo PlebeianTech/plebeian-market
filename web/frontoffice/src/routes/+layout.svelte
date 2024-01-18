@@ -15,15 +15,29 @@
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
     import { browser } from "$app/environment";
 
-    $: if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+    function subscribeGlobalConf() {
         let receivedAt = 0;
+
+        const serializedGlobalConfig = localStorage.getItem("NostrGlobalConfig");
+        if (serializedGlobalConfig) {
+            $NostrGlobalConfig = JSON.parse(serializedGlobalConfig);
+            receivedAt = parseInt(localStorage.getItem("NostrGlobalConfigReceivedAt") ?? '0');
+        }
+
         subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('site_specific_config')],
             (setup, rcAt) => {
                 if (rcAt > receivedAt) {
                     receivedAt = rcAt;
+
                     $NostrGlobalConfig = setup;
+                    localStorage.setItem('NostrGlobalConfig', JSON.stringify(setup));
+                    localStorage.setItem('NostrGlobalConfigReceivedAt', receivedAt.toString());
                 }
             });
+    }
+
+    $: if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+        subscribeGlobalConf();
     }
 
     $: if ($NostrPublicKey && $fileConfiguration?.admin_pubkeys?.includes($NostrPublicKey)) {
