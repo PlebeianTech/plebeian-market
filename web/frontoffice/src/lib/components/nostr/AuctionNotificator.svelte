@@ -31,7 +31,7 @@
             </h3>
 
             <p>
-                Now you need to <b><span class="text-secondary">provide contact and shipping information</span></b> to the merchant.
+                Now you need to <span class="font-bold">provide contact and shipping information</span> to the merchant.
             </p>
             <button class="btn btn-success mt-4" on:click={() => goto('/auctions')}>
                 Send information
