@@ -36,7 +36,7 @@
 </script>
 
 {#if Object.keys($NostrGlobalConfig).length > 0 || viewPageAnyways}
-    {#if content && Object.keys(content.sections).length > 0}
+    {#if content?.sections && Object.keys(content.sections).length > 0}
         <div class="pt-12">
             {#each orderedSections as [sectionId, section]}
                 {#if section?.params?.sectionType && (section?.values || section.params.sectionType === 'text')}
@@ -73,10 +73,16 @@
         {/if}
 
     {:else}
-        <ProductCardBrowser {maxProductsLoaded} />
+        {#if pageId === 0}
+            <ProductCardBrowser {maxProductsLoaded} />
+        {:else}
+            <div class="p-12 flex flex-wrap items-center justify-center">
+                <p class="mt-8 text-3xl">No content defined for this page yet.</p>
+            </div>
+        {/if}
     {/if}
 {:else}
     <div class="p-12 flex flex-wrap items-center justify-center">
-        <span class="loading loading-bars w-24"></span>
+        <span class="loading loading-bars w-64"></span>
     </div>
 {/if}
