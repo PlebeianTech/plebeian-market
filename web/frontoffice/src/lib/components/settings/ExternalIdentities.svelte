@@ -224,7 +224,8 @@
 </script>
 
 {#if $NostrPublicKey}
-    <h1>Adding a new external identity</h1>
+    <h1>Get Verified</h1>
+    <h2>External identities</h2>
 
     <div class="mt-4">
         <div class="flex space-x-2 mt-4">

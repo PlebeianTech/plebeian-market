@@ -8,8 +8,8 @@
 
     const pages = [
         {key: 'NOSTR_PAGE', title: 'Nostr'},
-        {key: 'EXTERNAL_IDENTITIES', title: 'External identities'},
-        {key: 'SETUP_HOMEPAGE', title: 'Setup homepage'},
+        {key: 'GET_VERIFIED', title: 'Get Verified'},
+        {key: 'CMS', title: 'CMS'},
     ];
 
     let currentPage = 'NOSTR_PAGE';
@@ -48,9 +48,9 @@
     <div class="lg:col-span-3 w-full items-center justify-center">
         {#if currentPage === 'NOSTR_PAGE'}
             <Nostr />
-        {:else if currentPage === 'EXTERNAL_IDENTITIES'}
+        {:else if currentPage === 'GET_VERIFIED'}
             <ExternalIdentities />
-        {:else if currentPage === 'SETUP_HOMEPAGE'}
+        {:else if currentPage === 'CMS'}
             <SetupHomepage />
         {/if}
     </div>
