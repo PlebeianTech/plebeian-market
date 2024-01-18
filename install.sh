@@ -44,7 +44,7 @@ echo "{\"NSEC\": \"\", \"XPUB\": \"\", \"LIGHTNING_ADDRESS\": \"\"}" > plebeian-
 
 cd && mkdir -p plebeian-market-state/media
 
-cat << EOF > .env.api
+cat << EOF > .env
 ENV=prod
 FLASK_APP=main
 LOG_LEVEL=INFO
@@ -55,9 +55,9 @@ PROCESSED_EVENT_IDS_FILENAME=/state/processed_event_ids.txt
 VERIFIED_EXTERNAL_IDENTITIES_FILENAME=/state/verified_external_identities.txt
 GECKODRIVER_BINARY=/app/geckodriver
 EOF
-echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env.api
-echo "WWW_BASE_URL=https://$DOMAIN_NAME" >> .env.api
-echo "API_BASE_URL=https://$DOMAIN_NAME" >> .env.api
+echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
+echo "WWW_BASE_URL=https://$DOMAIN_NAME" >> .env
+echo "API_BASE_URL=https://$DOMAIN_NAME" >> .env
 
 cd && mkdir -p plebeian-market-nginx
 cat << EOF > plebeian-market-nginx/app.conf
@@ -120,14 +120,6 @@ server {
 }
 EOF
 
-cat << EOF > .env.web
-VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID="TODO"
-VITE_NOSTR_PM_STALL_ID="TODO"
-VITE_NOSTR_PM_STALL_PUBLIC_KEY="TODO"
-EOF
-echo "VITE_BASE_URL=https://$DOMAIN_NAME/" >> .env.web
-echo "VITE_API_BASE_URL=https://$DOMAIN_NAME/" >> .env.web
-
 cat << EOF > docker-compose.yml
 version: '3.6'
 
@@ -159,7 +151,7 @@ services:
     volumes:
       - "./plebeian-market-secrets:/secrets"
       - "./plebeian-market-state:/state"
-    env_file: .env.api
+    env_file: .env
     command: gunicorn --preload --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080
   birdwatcher:
     image: ghcr.io/plebeiantech/plebeian-market-birdwatcher
@@ -178,7 +170,7 @@ services:
       - web_network
     depends_on:
       - api
-    env_file: .env.web
+    env_file: .env
     volumes:
       - "buyer-app-static-content:/buyer-app"
   nginx:

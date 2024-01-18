@@ -5,6 +5,7 @@ services:
     build:
       args:
         - BUILD_MODE=-production
+    env_file: .env.prod
   api:
     healthcheck:
       test: ["CMD", "curl", "-f", "https://plebeian.market/api/healthcheck"]

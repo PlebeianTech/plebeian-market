@@ -30,6 +30,7 @@ services:
       dockerfile: web/Dockerfile
       args:
         - BUILD_MODE=-staging
+    env_file: .env.staging
     restart: always
     depends_on:
       - api
