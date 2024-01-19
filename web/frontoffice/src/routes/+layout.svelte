@@ -81,9 +81,16 @@
         }
     });
 
+    let favicon = null;
+
     onMount(() => {
         refreshStalls();
         restoreShoppingCartProductsFromLocalStorage();
+
+        let content = $NostrGlobalConfig.content
+        if (content && content.favicon) {
+            favicon = content.favicon;
+        }
     });
 
     onDestroy(async () => {
@@ -95,6 +102,10 @@
 
     });
 </script>
+
+<svelte:head>
+    <link rel="icon" type="image/svg" href={favicon ?? '/images/icons/favicon.ico'} />
+</svelte:head>
 
 <div class="h-screen pt-12 lg:pt-20 pb-20 { $page.url.pathname === '/messages' ? '' : 'mt-2' }">
     <Navbar />

@@ -8,7 +8,7 @@
         ShoppingCart,
         BTC2USD,
         isSuperAdmin,
-        fileConfiguration
+        fileConfiguration, NostrGlobalConfig
     } from "$sharedLib/stores";
     import { getValue } from 'btc2fiat';
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
@@ -68,6 +68,22 @@
         BTC2USD.set(await getValue());
     }
 
+    let logoURL = '/images/logo.png';
+    let siteTitle = 'Plebeian Market';
+    $: {
+        if ($NostrGlobalConfig?.content?.logo) {
+            logoURL = $NostrGlobalConfig.content.logo;
+        } else {
+            logoURL = '/images/logo.png';
+        }
+
+        if ($NostrGlobalConfig?.content?.title) {
+            siteTitle = $NostrGlobalConfig.content.title;
+        } else {
+            siteTitle = 'Plebeian Market';
+        }
+    }
+
     onMount(async () => {
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             prefersDark = true;
@@ -90,12 +106,12 @@
         <div class="flex items-center justify-between">
             <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="flex items-center mr-2 indicator">
                 <div class="flex items-center space-x-2">
-                    <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
+                    <img src={logoURL} class="mr-3 h-14 rounded" alt="Plebeian Technology" />
                     {#if !isProduction()}
                         <span class="indicator-item badge badge-error">{getEnvironmentInfo().substring(0,3)}</span>
                     {/if}
                     <h1 class="w-52 2xl:w-64 3xl:w-72 text-base lg:text-lg 2xl:text-xl font-bold hover:text-blue-400 duration-300">
-                        Plebeian Market
+                        {siteTitle}
                     </h1>
 
                 </div>
