@@ -32,7 +32,6 @@
 * add `plebeian-market-secrets/db.json` (default username: *pleb* / default password: *plebpass*)
 * add `plebeian-market-secrets/lndhub.json`
 * add `plebeian-market-secrets/mail.json`
-* add `plebeian-market-secrets/nostr.json`
 * add `plebeian-market-secrets/site-admin.json`
 * edit `.env.prod`
   * `API_BASE_URL`, `WWW_BASE_URL`, `DOMAIN_NAME`

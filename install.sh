@@ -27,6 +27,10 @@ read DOMAIN_NAME
 echo -n "Enter an email address (this will be used to obtain SSL certificates on your behalf): "
 read EMAIL
 
+echo "------------------------"
+echo "Obtaining SSL certificates. This may take a while..."
+echo "------------------------"
+
 cd && mkdir -p plebeian-market-certificates
 if [ ! -f plebeian-market-certificates/cert.pem ]; then # TODO: probably better to name the certificate after the domain
   docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --register-account -m $EMAIL
@@ -34,13 +38,29 @@ if [ ! -f plebeian-market-certificates/cert.pem ]; then # TODO: probably better 
   docker run --rm -it -v "$(pwd)/out":/acme.sh -v "$(pwd)/plebeian-market-certificates":/cert --net=host neilpang/acme.sh --install-cert -d $DOMAIN_NAME --key-file /cert/key.pem --fullchain-file /cert/cert.pem
 fi
 
+# TODO: configure SITE_NAME
+
+echo "------------------------"
+echo "The \"site admin\" is the Plebeian Market user that owns this instance. This user needs:"
+echo "1. An NSEC"
+echo "2. An XPUB"
+echo "3. A Lightning Address"
+echo "The NSEC can be used to log in as that user. The XPUB and Lightning Address will be used to receive money for badge sales."
+echo "------------------------"
+
+echo -n "Enter the site admin NSEC: "
+read SITE_ADMIN_NSEC
+echo -n "Enter the site admin XPUB: "
+read SITE_ADMIN_XPUB
+echo -n "Enter the site admin Lightning Address: "
+read SITE_ADMIN_LIGHTNING_ADDRESS
+
 cd && mkdir -p plebeian-market-secrets
 tr -dc A-Za-z0-9 </dev/urandom | head -c 64 > plebeian-market-secrets/secret_key
 echo "{\"USERNAME\": \"pleb\", \"PASSWORD\": \"plebpass\"}" > plebeian-market-secrets/db.json
 echo "{\"LNDHUB_URL\": \"https://ln.getalby.com\", \"LNDHUB_USER\": \"TODO\", \"LNDHUB_PASSWORD\": \"TODO\"}" > plebeian-market-secrets/lndhub.json
 echo "{\"server\": \"\", \"username\": \"\", \"password\": \"\", \"default_sender\": \"hello@plebeian.market\"}" > plebeian-market-secrets/mail.json
-echo "{\"NSEC\": \"\"}" > plebeian-market-secrets/nostr.json
-echo "{\"NSEC\": \"\", \"XPUB\": \"\", \"LIGHTNING_ADDRESS\": \"\"}" > plebeian-market-secrets/site-admin.json
+echo "{\"NSEC\": \"$SITE_ADMIN_NSEC\", \"XPUB\": \"$SITE_ADMIN_XPUB\", \"LIGHTNING_ADDRESS\": \"$SITE_ADMIN_LIGHTNING_ADDRESS\"}" > plebeian-market-secrets/site-admin.json
 
 cd && mkdir -p plebeian-market-state/media
 
