@@ -222,7 +222,7 @@
                             </li>
                         {/if}
                         {#if $NostrPublicKey}
-                            <li class="menu-title mt-1">
+                            <li class="menu-title pb-0">
                                 <span class="text-lg">Account</span>
                             </li>
                             <li>
@@ -265,7 +265,7 @@
                                 </a>
                             </li>
                         {/if}
-                        <li class="block md:hidden md:h-0 menu-title mt-1">
+                        <li class="block md:hidden md:h-0 menu-title pb-0">
                             <span class="text-lg">Community</span>
                         </li>
                         <li class="block md:hidden md:h-0">
@@ -291,7 +291,7 @@
                             </a>
                         </li>
                         {#if $NostrPublicKey}
-                            <li class="menu-title mt-2 text-base">
+                            <li class="menu-title text-base pb-0">
                                 <span class="text-lg">Other information</span>
                             </li>
                         {/if}
