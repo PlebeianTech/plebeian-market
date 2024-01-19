@@ -26,11 +26,23 @@ The **back office** then connects to the known Nostr relays, fetches the orders 
 
 ## Install
 
-### Linode (or any other VPS provider)
+### On a bare VPS
+
+Requirements:
+
+Before you start, make sure you have:
+
+1. An account with a VPS provider, such as Linode or Digital Ocean
+1. A domain name you want to use for your new site
+1. A Nostr keypair (NPUB/NSEC)
+1. An **XPUB** - you can get one from a wallet such as Blue Wallet
+1. A **Lightning Address** - you can get one from a wallet such as Wallet of Satoshi or Alby
+
+Instructions:
 
 1. Create a new Linode, in the region you want. The cheapest one (Nanode, 5$, shared CPU) should be enough. Select Debian 12 as an OS. **Set a strong root password and write it down!**
 1. Once the machine is created, copy the IP address, go to your DNS settings, and create an `A` record, pointing from your desired host name to the IP of the machine.
 1. Open a terminal.
 1. Wait a couple of minutes for the DNS to propagate. It shouldn't take long. You can run `ping -c 3 <domain name>` in the terminal you opened and see that the results include the correct IP address.
 1. Log in to your machine using `ssh root@<domain name>`. Respond with `yes` to any questions about trusting the host and use the root password from step 1!
-1. Run `sh -c "$(curl -sSL https://raw.githubusercontent.com/PlebeianTech/plebeian-market/master/install.sh)"`
+1. Run `sh -c "$(curl -sSL https://raw.githubusercontent.com/PlebeianTech/plebeian-market/master/install.sh)"` and follow the instructions
