@@ -210,8 +210,6 @@ def settle_btc_payments():
                             if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                 json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
                                 continue
-                            if not birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!"):
-                                continue
                             db.session.commit()
                             break
                     elif not order.txid:
@@ -224,8 +222,6 @@ def settle_btc_payments():
                                 order.set_paid()
                                 if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
                                     json.dumps({'id': order.uuid, 'type': 2, 'paid': True, 'shipped': False, 'message': f"Payment confirmed. TxID: {order.txid}"})):
-                                    continue
-                                if not birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!"):
                                     continue
                             else:
                                 message = f"Found transaction. Waiting for confirmation. TxID: {order.txid}"
@@ -421,7 +417,6 @@ def settle_lightning_payments():
 
                         order.set_paid()
 
-                        birdwatcher.send_dm(birdwatcher.site_admin_private_key, order.seller.nostr_public_key, f"Payment confirmed for order ID: {order.uuid}!")
                         db.session.commit()
                     else:
                         check_expire_order(order)
