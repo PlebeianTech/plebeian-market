@@ -986,8 +986,8 @@ def configure_site():
         sha.update(image_data)
         image_hash = sha.hexdigest()
 
-    badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def_skin_in_the_game['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
-    if badge_listing is None:
+    skin_in_the_game_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == badge_def_skin_in_the_game['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
+    if skin_in_the_game_listing is None:
         item_title = badge_def_skin_in_the_game['name']
         if app.config['ENV'] == 'staging':
             item_title += " (staging)"
@@ -999,18 +999,18 @@ def configure_site():
         db.session.add(badge_media)
         db.session.commit()
 
-        badge_listing = m.Listing(item=badge_item, key=badge_def_skin_in_the_game['badge_id'], available_quantity=None, price_usd=badge_def_skin_in_the_game['price_usd'], start_date=datetime.utcnow())
-        db.session.add(badge_listing)
+        skin_in_the_game_listing = m.Listing(item=badge_item, key=badge_def_skin_in_the_game['badge_id'], available_quantity=None, price_usd=badge_def_skin_in_the_game['price_usd'], start_date=datetime.utcnow())
+        db.session.add(skin_in_the_game_listing)
         db.session.commit() # this generates the UUID!
     else:
         app.logger.info("Found badge listing!")
 
-    if badge_listing.nostr_event_id is None:
-        badge_listing.nostr_event_id = birdwatcher.publish_product(badge_listing)
-        if badge_listing.nostr_event_id is None:
+    if skin_in_the_game_listing.nostr_event_id is None:
+        skin_in_the_game_listing.nostr_event_id = birdwatcher.publish_product(skin_in_the_game_listing)
+        if skin_in_the_game_listing.nostr_event_id is None:
             app.logger.error("Error publishing badge listing to Nostr!")
             return
-        app.logger.info(f"Published badge listing to Nostr! event_id={badge_listing.nostr_event_id}")
+        app.logger.info(f"Published badge listing to Nostr! event_id={skin_in_the_game_listing.nostr_event_id}")
     else:
         app.logger.info("Found Nostr badge listing!")
 
@@ -1024,6 +1024,9 @@ def configure_site():
             if badge.nostr_event_id is None:
                 app.logger.error("Failed to publish badge definition!")
                 return
+            if badge.badge_id == badge_def_skin_in_the_game['badge_id']:
+                badge.stall_id = site_admin.stall_id
+                badge.listing_uuid = str(skin_in_the_game_listing.uuid)
             db.session.add(badge)
             db.session.commit()
             app.logger.info(f"Published badge definition to Nostr: {badge_def['name']}! event_id={badge.nostr_event_id}")
