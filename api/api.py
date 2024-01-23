@@ -813,6 +813,10 @@ def get_relays():
         relay_urls = [r.url for r in m.Relay.query.all()]
     return jsonify({'relays': [{'url': url} for url in relay_urls]})
 
+@api_blueprint.route("/api/badges", methods=['GET'])
+def get_badges():
+    return [b.to_dict() for b in m.Badge.query.all()]
+
 @api_blueprint.route("/api/keys/<pubkey>/metadata", methods=['GET'])
 def query_metadata(pubkey):
     return jsonify(get_birdwatcher().query_metadata(pubkey))

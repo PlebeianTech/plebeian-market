@@ -328,6 +328,19 @@ class Badge(db.Model):
     image_hash = db.Column(db.String(64), nullable=False)
     nostr_event_id = db.Column(db.String(64), nullable=False, unique=True, index=True)
 
+    # for badges that can be purchased, like the Skin in the Game
+    stall_id = db.Column(db.String(64), nullable=True)
+    listing_uuid = db.Column(db.String(36), nullable=True)
+
+    def to_dict(self):
+        return {
+            'badge_id': self.badge_id,
+            'name': self.name,
+            'description': self.description,
+            'stall_id': self.stall_id,
+            'listing_uuid': self.listing_uuid,
+        }
+
 class Relay(db.Model):
     __tablename__ = 'relays'
 
