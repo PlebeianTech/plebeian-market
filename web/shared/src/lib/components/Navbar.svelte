@@ -30,6 +30,8 @@
     import Chat from "$sharedLib/components/icons/Chat.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
     import FiatChooser from "$sharedLib/components/FiatChooser.svelte";
+    import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
+    import {getPages, pagesAndTitles} from "$lib/pagebuilder";
     // import Tools from "$sharedLib/components/icons/Tools.svelte";
 
     export let isFrontOffice = true;
@@ -39,6 +41,8 @@
     let prefersDark = false;
 
     let showMobileMenu = false;
+
+    let allPagesNavbarList = [];
 
     function toggleMobileMenu() {
         showMobileMenu = !showMobileMenu;
@@ -84,11 +88,27 @@
         }
     }
 
+    let virtualPages;
+
     onMount(async () => {
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             prefersDark = true;
         } else {
             prefersDark = false;
+        }
+
+        virtualPages = getPages();
+
+        if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
+            let allPagesListReceivedAt = 0;
+
+            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('header_config')],
+                (navbarConfigFromNostr, rcAt) => {
+                    if (rcAt > allPagesListReceivedAt) {
+                        allPagesListReceivedAt = rcAt;
+                        allPagesNavbarList = navbarConfigFromNostr;
+                    }
+                });
         }
 
         if (!isFrontOffice) {
@@ -120,24 +140,41 @@
             <!-- LINKS -->
             <div class="lg:flex items-right w-full">
                 <div class="hidden lg:flex">
-                    <p class="ml-24 mr-8">
-                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
-                    </p>
-                    <!--
-                    <p class="mr-8">
-                        <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
-                    </p>
-                    -->
-                    <p class="mr-8">
-                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
-                    </p>
-                    <p class="mr-8">
-                        <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
-                    </p>
-                    {#if $isSuperAdmin}
-                        <p class="mr-8">
-                            <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
+                    {#if allPagesNavbarList.length === 0}
+                        <p class="ml-24 mr-8">
+                            <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
                         </p>
+                        <!--
+                        <p class="mr-8">
+                            <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
+                        </p>
+                        -->
+                        <p class="mr-8">
+                            <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
+                        </p>
+                        <p class="mr-8">
+                            <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
+                        </p>
+                        {#if $isSuperAdmin}
+                            <p class="mr-8">
+                                <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
+                            </p>
+                        {/if}
+                    {:else}
+                        <p class="ml-24"></p>
+                        {#each allPagesNavbarList as page}
+                            {#if page.enabled}
+                                <p class="mr-8">
+                                    {#if page.p_id.startsWith('virt-') && virtualPages}
+                                        <!-- Virtual page -->
+                                        <a href="/{virtualPages[page.p_id.substring(5)]?.slug ?? ''}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{virtualPages[page.p_id.substring(5)]?.title ?? ''}</a>
+                                    {:else}
+                                        <!-- Real page -->
+                                        <a href="/{page.p_id}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{pagesAndTitles[page.p_id]?.title ?? '------'}</a>
+                                    {/if}
+                                </p>
+                            {/if}
+                        {/each}
                     {/if}
                 </div>
             </div>

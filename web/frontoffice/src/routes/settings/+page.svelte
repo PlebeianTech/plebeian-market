@@ -5,11 +5,13 @@
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import SetupHomepage from "$lib/components/settings/SetupHomepage.svelte";
     import ExternalIdentities from "$lib/components/settings/ExternalIdentities.svelte";
+    import NavbarSetup from "$lib/components/settings/NavbarSetup.svelte";
 
     const pages = [
         {key: 'NOSTR_PAGE', title: 'Nostr'},
         {key: 'GET_VERIFIED', title: 'Get Verified'},
         {key: 'CMS', title: 'CMS'},
+        {key: 'NAVBAR', title: 'Navbar Config'},
     ];
 
     let currentPage = 'NOSTR_PAGE';
@@ -52,6 +54,8 @@
             <ExternalIdentities />
         {:else if currentPage === 'CMS'}
             <SetupHomepage />
+        {:else if currentPage === 'NAVBAR'}
+            <NavbarSetup />
         {/if}
     </div>
 </div>
