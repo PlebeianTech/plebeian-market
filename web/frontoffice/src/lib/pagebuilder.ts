@@ -333,6 +333,27 @@ export function removeSection(pageId, sectionId) {
     saveContentToNostr();
 }
 
+export function removePage(pageId) {
+    if (pageId == 0) {
+        Error.set('Homepage cannot be deleted');
+        return;
+    }
+
+    let pages = getPages();
+
+    delete pages[pageId];
+
+    NostrGlobalConfigFireReactivity();
+
+    saveContentToNostr();
+}
+
+/*****************************************
+            SAVE and REACTIVITY
+ ******************************************/
+function NostrGlobalConfigFireReactivity() {
+    NostrGlobalConfig.set(get(NostrGlobalConfig));
+}
 export function saveContentToNostr() {
     let globalConfig = get(NostrGlobalConfig);
     delete globalConfig.homepage_include_stalls;
