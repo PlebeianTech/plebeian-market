@@ -817,7 +817,7 @@ def query_metadata(pubkey):
 
     metadata = birdwatcher.query_metadata(pubkey)
 
-    badge = m.Badge.query.filter_by(badge_id=app.config['SKIN_IN_THE_GAME_BADGE_ID'])
+    badge = m.Badge.query.filter_by(badge_id=app.config['SKIN_IN_THE_GAME_BADGE_ID']).first()
     awards = birdwatcher.query_badge_award(badge.owner_public_key, pubkey)
     awards['has_skin_in_the_game'] = badge.badge_id in awards['awarded_badges']
 
@@ -1140,7 +1140,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
                 is_settled = False
 
         if auction.skin_in_the_game_required:
-            badge = m.Badge.query.filter_by(badge_id=app.config['SKIN_IN_THE_GAME_BADGE_ID'])
+            badge = m.Badge.query.filter_by(badge_id=app.config['SKIN_IN_THE_GAME_BADGE_ID']).first()
             buyer_awards = birdwatcher.query_badge_award(badge.owner_public_key, request.json['pubkey'])
             if badge.badge_id not in buyer_awards['awarded_badges']:
                 message = f"User needs Skin in the Game in order to bid."
