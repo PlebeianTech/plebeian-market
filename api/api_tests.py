@@ -790,7 +790,7 @@ class TestApi(unittest.TestCase):
         self.assertIsNone(response['auction']['has_winner'])
 
         # try to buy the badge
-        code, response = self.get(f"/api/listings/{app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']}")
+        code, response = self.get(f"/api/listings/{app.config['SKIN_IN_THE_GAME_BADGE_ID']}")
         self.assertEqual(code, 200)
         site_admin_merchant_public_key = response['listing']['merchant_public_key']
         badge_uuid = response['listing']['uuid']

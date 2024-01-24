@@ -255,7 +255,7 @@ def get_lndhub_client():
 
 def award_badge_skin_in_the_game(order):
     birdwatcher = get_birdwatcher()
-    if not birdwatcher.publish_badge_award(app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id'], order.buyer_public_key):
+    if not birdwatcher.publish_badge_award(app.config['SKIN_IN_THE_GAME_BADGE_ID'], order.buyer_public_key):
         app.logger.error("Failed to publish Skin in the Game badge award!")
     else:
         app.logger.info(f"Awarded Skin in the Game badge for {order.buyer_public_key}!")
@@ -555,35 +555,45 @@ class Birdwatcher:
             # NB: in test mode we just use a random private key!
             self.site_admin_private_key = PrivateKey()
         else:
-            with open(app.config['SITE_ADMIN_SECRETS']) as f:
-                site_admin_secrets = json.load(f)
-                self.site_admin_private_key = PrivateKey.from_nsec(site_admin_secrets['NSEC'])
+            if os.path.exists(app.config['SITE_ADMIN_SECRETS']):
+                with open(app.config['SITE_ADMIN_SECRETS']) as f:
+                    self.site_admin_private_key = PrivateKey.from_nsec(json.load(f)['NSEC'])
+            else:
+                # NB: a site can function without a SITE_ADMIN_SECRETS file, but it will be unable to publish or award badges!
+                self.site_admin_private_key = None
+                app.logger.warning(f"Birdwatcher functioning without a site_admin_private_key!")
+
+    def validate_query_response_events(self, events):
+        # NB: The birdwatcher is "dumb" - it simply returns the events it got from relays without validating signatures,
+        # which we therefore need to validate here!
+        # We could, in theory, also move this verification to the birdwatcher for this particular case (*we* querying *him*),
+        # and that would indeed simplify the logic,
+        # but we still need to perform the validation in the API whenever the birdwatcher himself POSTs events, such as DMs received,
+        # otherwise anyone could pretend to be the birdwatcher and simply POST fake events!
+        # So for that reason I decided to just do all signature validation in the backend and keep birdwatcher "dumb"!
+        validated_events = []
+        for event in events:
+            try:
+                validate_event(event)
+                validated_events.append(event)
+            except EventValidationError as e:
+                app.logger.warning(f"Skipping invalid event received from birdwatcher: {e.message}!")
+        return validated_events
 
     def query_metadata(self, public_key):
         response = requests.post(f"{self.base_url}/query", json={'metadata': True, 'author': public_key})
         if response.status_code == 200:
+            validated_response = {'verified_identities': []}
+
             response_json = response.json()
-            # NB: The birdwatcher is "dumb" - it simply returns the events it got from relays without validating signatures,
-            # which we therefore need to validate here!
-            # We could, in theory, also move this verification to the birdwatcher for this particular case (*we* querying *him*),
-            # and that would indeed simplify the logic,
-            # but we still need to perform the validation in the API whenever the birdwatcher himself POSTs events, such as DMs received,
-            # otherwise anyone could pretend to be the birdwatcher and simply POST fake events!
-            # So for that reason I decided to just do all signature validation in the backend and keep birdwatcher "dumb"!
-            validated_response = {'events': [], 'verified_identities': []}
-            for event in response_json['events']:
-                try:
-                    validate_event(event)
-                    validated_response['events'].append(event)
-                except EventValidationError as e:
-                    app.logger.warning(f"Skipping invalid event received from birdwatcher: {e.message}!")
+            validated_events = self.validate_query_response_events(response_json['events'])
 
-            # in the case of "metadata" events we only need to keep the last one!
-            if len(validated_response['events']) > 1:
-                validated_response['events'] = [max(validated_response['events'], key=lambda e: e.get('created_at', 0))]
+            # in the case of "metadata" events we only need to look at the last one!
+            if len(validated_events) > 1:
+                validated_events = [max(validated_events, key=lambda e: e.get('created_at', 0))]
 
-            if len(validated_response['events']) > 0:
-                for tag in validated_response['events'][0]['tags']:
+            if len(validated_events) > 0:
+                for tag in validated_events[0]['tags']:
                     if tag[0] == 'i':
                         external_identity = tag[1]
                         if external_identity in response_json['verified_identities'] and external_identity not in validated_response['verified_identities']:
@@ -592,6 +602,32 @@ class Birdwatcher:
             return validated_response
         else:
             app.logger.error(f"Error querying birdwatcher for {public_key} metadata: {response.status_code}: {response.text}!")
+            return None
+
+    def query_badge_award(self, badge_owner_public_key, public_key):
+        response = requests.post(f"{self.base_url}/query", json={'badge_award': True, 'author': badge_owner_public_key, 'awardee': public_key})
+        if response.status_code == 200:
+            validated_response = {'awarded_badges': []}
+
+            response_json = response.json()
+            validated_events = self.validate_query_response_events(response_json['events'])
+
+            for event in validated_events:
+                # NB: each event can award one badge to multiple awardees!
+                badge_id = None
+                awardee_public_keys = set()
+                for tag in event['tags']:
+                    award_prefix = f"30009:{badge_owner_public_key}:"
+                    if tag[0] == 'a' and tag[1].startswith(award_prefix):
+                        badge_id = tag[1][len(award_prefix):]
+                    elif tag[0] == 'p':
+                        awardee_public_keys.add(tag[1])
+                if badge_id and public_key in awardee_public_keys and badge_id not in validated_response['awarded_badges']:
+                    validated_response['awarded_badges'].append(badge_id)
+
+            return validated_response
+        else:
+            app.logger.error(f"Error querying birdwatcher for {public_key} badge award: {response.status_code}: {response.text}!")
             return None
 
     def add_relay(self, relay_url):
@@ -694,6 +730,8 @@ class Birdwatcher:
             app.logger.exception(f"Error publishing bid status for bid {bid_event_id} via birdwatcher!")
 
     def publish_badge_definition(self, badge_id, name, description, image_url):
+        if self.site_admin_private_key is None:
+            raise ValueError("Cannot publish badges from a site without a SITE_ADMIN_SECRETS file!")
         try:
             if app.config['ENV'] == 'staging':
                 badge_id_tag = badge_id + "-staging"
@@ -709,6 +747,8 @@ class Birdwatcher:
             app.logger.exception(f"Error publishing badge definition via birdwatcher!")
 
     def publish_badge_award(self, badge_id, pubkey):
+        if self.site_admin_private_key is None:
+            raise ValueError("Cannot award badges from a site without a SITE_ADMIN_SECRETS file!")
         try:
             if app.config['ENV'] == 'staging':
                 badge_id_tag = badge_id + "-staging"
@@ -723,7 +763,10 @@ class Birdwatcher:
 
 class MockingBirdwatcher:
     def query_metadata(self, _public_key):
-        return {'events': {}, 'verified_identities': []}
+        return {'verified_identities': []}
+
+    def query_badge_award(self, _badge_owner_public_key, _public_key):
+        return {'awarded_badges': []}
 
     def add_relay(self, relay_url):
         app.logger.info(f"add_relay url={relay_url}")
@@ -772,22 +815,6 @@ def get_birdwatcher():
         return Birdwatcher(app.config['BIRDWATCHER_BASE_URL'])
     else:
         return MockingBirdwatcher()
-
-def get_site_admin_config():
-    if app.config['ENV'] in ('staging', 'prod'):
-        with open(app.config['SITE_ADMIN_SECRETS']) as f:
-            site_admin = json.load(f)
-            return {
-                'nostr_private_key': PrivateKey.from_nsec(site_admin['NSEC']),
-                'wallet_xpub': site_admin['XPUB'],
-                'lightning_address': site_admin['LIGHTNING_ADDRESS'],
-            }
-    else:
-        return {
-            'nostr_private_key': PrivateKey(bytes.fromhex("6441b05cc2b810d9d974d9c1308caa555d2beab7994ed10d9e37e945e6477714")),
-            'wallet_xpub': "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz",
-            'lightning_address': "ibz@stacker.news",
-        }
 
 class MockFileStorage:
     def get_url_prefix(self):
@@ -946,15 +973,29 @@ def configure_site_cmd():
     configure_site()
 
 def configure_site():
+    if app.config['ENV'] in ('staging', 'prod'):
+        with open(app.config['SITE_ADMIN_SECRETS']) as f:
+            site_admin_secrets = json.load(f)
+            SITE_ADMIN_CONFIG = {
+                'nostr_private_key': PrivateKey.from_nsec(site_admin_secrets['NSEC']),
+                'wallet_xpub': site_admin_secrets['XPUB'],
+                'lightning_address': site_admin_secrets['LIGHTNING_ADDRESS'],
+            }
+    else: # test
+        SITE_ADMIN_CONFIG = {
+            'nostr_private_key': PrivateKey(bytes.fromhex("6441b05cc2b810d9d974d9c1308caa555d2beab7994ed10d9e37e945e6477714")),
+            'wallet_xpub': "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz",
+            'lightning_address': "ibz@stacker.news",
+        }
+
     badge_def_skin_in_the_game = app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']
     badge_def_og = app.config['BADGE_DEFINITION_OG']
-    site_admin_config = get_site_admin_config()
     birdwatcher = get_birdwatcher()
-    site_admin = m.User.query.filter_by(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex()).first()
+    site_admin = m.User.query.filter_by(nostr_public_key=SITE_ADMIN_CONFIG['nostr_private_key'].public_key.hex()).first()
     if site_admin is None:
-        site_admin = m.User(nostr_public_key=site_admin_config['nostr_private_key'].public_key.hex(),
-                            wallet=site_admin_config['wallet_xpub'],
-                            lightning_address=site_admin_config['lightning_address'],
+        site_admin = m.User(nostr_public_key=SITE_ADMIN_CONFIG['nostr_private_key'].public_key.hex(),
+                            wallet=SITE_ADMIN_CONFIG['wallet_xpub'],
+                            lightning_address=SITE_ADMIN_CONFIG['lightning_address'],
                             stall_name=app.config['SITE_NAME'])
         site_admin.ensure_merchant_key()
         db.session.add(site_admin)
