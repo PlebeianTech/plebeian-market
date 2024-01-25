@@ -44,7 +44,7 @@ cd && mkdir -p plebeian-market-secrets
 tr -dc A-Za-z0-9 </dev/urandom | head -c 64 > plebeian-market-secrets/secret_key
 echo "{\"USERNAME\": \"pleb\", \"PASSWORD\": \"plebpass\"}" > plebeian-market-secrets/db.json
 echo "{\"LNDHUB_URL\": \"https://ln.getalby.com\", \"LNDHUB_USER\": \"TODO\", \"LNDHUB_PASSWORD\": \"TODO\"}" > plebeian-market-secrets/lndhub.json
-echo "{\"server\": \"\", \"username\": \"\", \"password\": \"\", \"default_sender\": \"hello@plebeian.market\"}" > plebeian-market-secrets/mail.json
+echo "{\"server\": \"TODO\", \"username\": \"TODO\", \"password\": \"TODO\", \"default_sender\": \"hello@$DOMAIN_NAME\"}" > plebeian-market-secrets/mail.json
 
 cd && mkdir -p plebeian-market-state/media
 
@@ -58,6 +58,7 @@ LOG_FILENAME=/state/pm.log
 PROCESSED_EVENT_IDS_FILENAME=/state/processed_event_ids.txt
 VERIFIED_EXTERNAL_IDENTITIES_FILENAME=/state/verified_external_identities.txt
 GECKODRIVER_BINARY=/app/geckodriver
+USER_EMAIL_VERIFICATION=0
 EOF
 echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
 echo "WWW_BASE_URL=https://$DOMAIN_NAME" >> .env

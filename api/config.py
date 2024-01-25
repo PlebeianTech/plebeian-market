@@ -46,6 +46,8 @@ SITE_NAME = "Plebeian Market"
 LNAUTH_EXPIRE_MINUTES = 120
 JWT_EXPIRE_DAYS = 420
 
+USER_EMAIL_VERIFICATION = bool(int(os.environ.get('USER_EMAIL_VERIFICATION', 1)))
+
 MOCK_MAIL = bool(int(os.environ.get('MOCK_MAIL', 0)))
 if not MOCK_MAIL:
     with open("/secrets/mail.json") as f:

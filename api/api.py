@@ -164,9 +164,13 @@ def put_me(user: m.User):
             if m.User.query.filter_by(email=clean_email).one_or_none():
                 return jsonify({'message': "Somebody already registered this email address!"}), 400
             user.email = clean_email
-            user.email_verified = False
-            user.generate_verification_phrase('email')
-            user.send_email_verification()
+
+            if app.config['USER_EMAIL_VERIFICATION']:
+                user.email_verified = False
+                user.generate_verification_phrase('email')
+                user.send_email_verification()
+            else:
+                user.email_verified = True
 
     if 'telegram_username' in request.json:
         clean_username = (request.json['telegram_username'] or "").lower().strip()
