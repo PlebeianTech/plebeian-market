@@ -8,11 +8,11 @@
     import NavbarSetup from "$lib/components/settings/NavbarSetup.svelte";
 
     const pages = [
-        {key: 'NOSTR_PAGE', title: 'Nostr'},
-        {key: 'GET_VERIFIED', title: 'Get Verified'}
+        {key: 'CMS', title: 'CMS'},
+        {key: 'NAVBAR', title: 'Navbar Config'},
     ];
 
-    let currentPage = 'NOSTR_PAGE';
+    let currentPage = 'CMS';
 
     let params = {};
 
@@ -46,10 +46,10 @@
         </ul>
     </div>
     <div class="lg:col-span-3 w-full items-center justify-center">
-        {#if currentPage === 'NOSTR_PAGE'}
-            <Nostr />
-        {:else if currentPage === 'GET_VERIFIED'}
-            <ExternalIdentities />
+        {#if currentPage === 'CMS'}
+            <SetupHomepage />
+        {:else if currentPage === 'NAVBAR'}
+            <NavbarSetup />
         {/if}
     </div>
 </div>

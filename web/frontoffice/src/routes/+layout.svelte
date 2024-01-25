@@ -15,15 +15,29 @@
     import {refreshStalls, restoreShoppingCartProductsFromLocalStorage} from "$lib/shopping";
     import { browser } from "$app/environment";
 
-    $: if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+    function subscribeGlobalConf() {
         let receivedAt = 0;
+
+        const serializedGlobalConfig = localStorage.getItem("NostrGlobalConfig");
+        if (serializedGlobalConfig) {
+            $NostrGlobalConfig = JSON.parse(serializedGlobalConfig);
+            receivedAt = parseInt(localStorage.getItem("NostrGlobalConfigReceivedAt") ?? '0');
+        }
+
         subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('site_specific_config')],
             (setup, rcAt) => {
                 if (rcAt > receivedAt) {
                     receivedAt = rcAt;
+
                     $NostrGlobalConfig = setup;
+                    localStorage.setItem('NostrGlobalConfig', JSON.stringify(setup));
+                    localStorage.setItem('NostrGlobalConfigReceivedAt', receivedAt.toString());
                 }
             });
+    }
+
+    $: if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+        subscribeGlobalConf();
     }
 
     $: if ($NostrPublicKey && $fileConfiguration?.admin_pubkeys?.includes($NostrPublicKey)) {
@@ -67,9 +81,16 @@
         }
     });
 
+    let favicon = null;
+
     onMount(() => {
         refreshStalls();
         restoreShoppingCartProductsFromLocalStorage();
+
+        let content = $NostrGlobalConfig.content
+        if (content && content.favicon) {
+            favicon = content.favicon;
+        }
     });
 
     onDestroy(async () => {
@@ -81,6 +102,10 @@
 
     });
 </script>
+
+<svelte:head>
+    <link rel="icon" type="image/svg" href={favicon ?? '/images/icons/favicon.ico'} />
+</svelte:head>
 
 <div class="h-screen pt-12 lg:pt-20 pb-20 { $page.url.pathname === '/messages' ? '' : 'mt-2' }">
     <Navbar />

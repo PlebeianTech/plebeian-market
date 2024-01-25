@@ -1,6 +1,7 @@
 import {get} from "svelte/store";
 import {NostrGlobalConfig, Info} from "$sharedLib/stores";
 import {publishConfiguration, getConfigurationKey} from "$sharedLib/services/nostr";
+import {Error} from "$sharedLib/stores";
 
 export const pageBuilderWidgetType = {
     text: {
@@ -48,81 +49,115 @@ export const pageBuilderWidgetType = {
     */
 };
 
+export const pagesAndTitles = {
+    about: {
+        title: 'About'
+    },
+    marketsquare: {
+        title: 'Market Square'
+    },
+    planet: {
+        title: 'Planet Plebeian'
+    },
+    stalls: {
+        title: 'Stall Explorer'
+    },
+    universe: {
+        title: 'Nostr Universe'
+    },
+    cart: {
+        title: 'Shopping Cart'
+    },
+    contact: {
+        title: 'Contact'
+    },
+    donations: {
+        title: 'Donations'
+    },
+    faq: {
+        title: 'FAQ'
+    },
+    messages: {
+        title: 'Messages'
+    },
+    orders: {
+        title: 'Orders'
+    },
+    settings: {
+        title: 'Settings'
+    },
+    skills: {
+        title: 'Skills'
+    },
+    auctions: {
+        title: 'Pending Auctions'
+    }
+};
+
+export const pagesEnabledByDefault = ['stalls', 'marketsquare', 'planet', 'universe'];
+
+/*****************************************
+                   GET
+ ******************************************/
 export function getPages(globalConfig = get(NostrGlobalConfig)): object {
-    if (
-        !globalConfig.content ||
-        !globalConfig.content.pages
-    ) {
-        return {};
+    if (globalConfig?.content?.pages) {
+        return globalConfig.content.pages;
     }
 
-    return globalConfig.content.pages;
+    return {};
 }
 
 export function getPage(pageId, globalConfig = get(NostrGlobalConfig)) {
-    if (
-        !globalConfig?.content ||
-        !globalConfig?.content.pages ||
-        !globalConfig?.content.pages.hasOwnProperty(pageId) ||
-        !globalConfig?.content.pages[pageId].sections
-    ) {
-        return null;
+    if (globalConfig?.content?.pages?.hasOwnProperty(pageId)) {
+        return globalConfig.content.pages[pageId];
     }
 
-    return globalConfig.content.pages[pageId];
+    return null;
 }
 
 export function getSection(pageId, sectionId) {
     return getPage(pageId)?.sections[sectionId] ?? null;
 }
 
-function setPageContent(pageId, content, globalConfig = get(NostrGlobalConfig)) {
-    if (!content) {
-        return null;
+export function getPageIdForSlug(slug: string) {
+    if (slug === '/') return 0;
+
+    for (const [pageId, page] of Object.entries(getPages())) {
+        if (slug === page.slug) {
+            return pageId;
+        }
     }
 
-    globalConfig.content.pages[pageId] = content;
-
-    NostrGlobalConfig.set(globalConfig);
+    return false;
 }
 
-export function saveSectionSetup(pageId, sectionId, setupParams) {
-    let section = getSection(pageId, sectionId);
+/*****************************************
+                   ADD
+ ******************************************/
+export function addPage(newPageName: string) {
+    if (newPageName !== '') {
+        let pages = getPages();
 
-    section.title = setupParams.sectionTitle;
+        let maxPageId = 0;
 
-    if (section.params === undefined) {
-        section.params = {};
-    }
-
-    section.params.sectionType = setupParams.sectionType;
-
-    if (setupParams.maxProductsShown && setupParams.maxProductsShown != 0) {
-        section.params.maxProductsShown = setupParams.maxProductsShown;
-    }
-
-    if (setupParams.markDownContent) {
-        let configurationKey;
-
-        if (setupParams.sectionType === 'text') {
-            configurationKey = 'sectionText_' + pageId + '_' + sectionId;
-        } else if (setupParams.sectionType === 'products_with_slider') {
-            configurationKey = 'section_products_with_slider_' + pageId + '_' + sectionId + '_' + setupParams.lastProductPassed.id
+        for (const [pageId] of Object.entries(getPages())) {
+            if (pageId > maxPageId) {
+                maxPageId = pageId;
+            }
         }
 
-        publishConfiguration(setupParams.markDownContent, getConfigurationKey(configurationKey),
-            () => {
-                console.log('markDownContent saved to Nostr relay!!');
-            });
+        maxPageId++;
+
+        pages[maxPageId] = {
+            title: newPageName
+        };
+
+        NostrGlobalConfigFireReactivity();
+
+        saveContentToNostr();
+
+        return maxPageId;
     }
-
-    NostrGlobalConfigFireReactivity();
-
-    saveContentToNostr();
-}
-
-function NostrGlobalConfigFireReactivity() {
-    NostrGlobalConfig.set(get(NostrGlobalConfig));
 }
 
 // pageId == 0 is always the homepage
@@ -136,6 +171,7 @@ export function addSectionToPage(newSectionName: string, pageId = 0) {
                 pages: {
                     0: {
                         title: 'Homepage',
+                        slug: '/',
                         sections: {
                             0: {
                                 title: newSectionName ?? 'Main',
@@ -144,7 +180,7 @@ export function addSectionToPage(newSectionName: string, pageId = 0) {
                         }
                     }
                 }
-             };
+            };
 
             NostrGlobalConfig.set(globalConfig);
 
@@ -158,17 +194,21 @@ export function addSectionToPage(newSectionName: string, pageId = 0) {
             let sectionIdNewElement = 0;
             let order = 0;
 
-            Object.keys(pageContent.sections).forEach(section_id => {
-                if (section_id > sectionIdNewElement) {
-                    sectionIdNewElement = section_id;
-                }
-                if (pageContent.sections[section_id].order > order) {
-                    order = pageContent.sections[section_id].order;
-                }
-            });
+            if (pageContent.sections) {
+                Object.keys(pageContent.sections).forEach(section_id => {
+                    if (section_id > sectionIdNewElement) {
+                        sectionIdNewElement = section_id;
+                    }
+                    if (pageContent.sections[section_id].order > order) {
+                        order = pageContent.sections[section_id].order;
+                    }
+                });
 
-            sectionIdNewElement++;
-            order++;
+                sectionIdNewElement++;
+                order++;
+            } else {
+                pageContent.sections = {};
+            }
 
             pageContent.sections[sectionIdNewElement] = {
                 title: newSectionName,
@@ -184,6 +224,20 @@ export function addSectionToPage(newSectionName: string, pageId = 0) {
     }
 
     return null;
+}
+
+
+/*****************************************
+                   SET
+ ******************************************/
+function setPageContent(pageId, content, globalConfig = get(NostrGlobalConfig)) {
+    if (!content) {
+        return null;
+    }
+
+    globalConfig.content.pages[pageId] = content;
+
+    NostrGlobalConfig.set(globalConfig);
 }
 
 export const handleMove = (pageId, evt) => {
@@ -218,6 +272,52 @@ export const handleMove = (pageId, evt) => {
     saveContentToNostr();
 }
 
+export function setLogo(logoURL: string) {
+    let globalConfig = get(NostrGlobalConfig)
+    globalConfig.content.logo = logoURL;
+    NostrGlobalConfig.set(globalConfig);
+    saveContentToNostr();
+}
+export function setFavicon(faviconURL: string) {
+    let globalConfig = get(NostrGlobalConfig)
+    globalConfig.content.favicon = faviconURL;
+    NostrGlobalConfig.set(globalConfig);
+    saveContentToNostr();
+}
+export function setWebsiteTitle(title: string) {
+    let globalConfig = get(NostrGlobalConfig)
+    globalConfig.content.title = title;
+    NostrGlobalConfig.set(globalConfig);
+    saveContentToNostr();
+}
+
+export function savePageParams(pageId, newPageTitle: string, newPageSlug: string) {
+    if (!newPageTitle || !newPageSlug) {
+        Error.set('A page needs to have a title and a slug.');
+    }
+
+    if (newPageSlug.startsWith('/')) {
+        newPageSlug = newPageSlug.substring(1);
+    }
+
+    const appRoutes = getAppRoutes();
+    if (appRoutes.includes(newPageSlug)) {
+        Error.set('You cannot use a slug from the list of reserved pages: ' + appRoutes.join(', '));
+        return;
+    }
+
+    const page = getPage(pageId);
+    page.title = newPageTitle;
+    page.slug = newPageSlug;
+
+    NostrGlobalConfigFireReactivity();
+
+    saveContentToNostr();
+}
+
+/*****************************************
+                  REMOVE
+ ******************************************/
 export function removeSection(pageId, sectionId) {
     let pageContent = getPage(pageId);
 
@@ -233,11 +333,30 @@ export function removeSection(pageId, sectionId) {
     saveContentToNostr();
 }
 
+export function removePage(pageId) {
+    if (pageId == 0) {
+        Error.set('Homepage cannot be deleted');
+        return;
+    }
+
+    let pages = getPages();
+
+    delete pages[pageId];
+
+    NostrGlobalConfigFireReactivity();
+
+    saveContentToNostr();
+}
+
+/*****************************************
+            SAVE and REACTIVITY
+ ******************************************/
+function NostrGlobalConfigFireReactivity() {
+    NostrGlobalConfig.set(get(NostrGlobalConfig));
+}
 export function saveContentToNostr() {
     let globalConfig = get(NostrGlobalConfig);
     delete globalConfig.homepage_include_stalls;
-
-    //console.log('Saving this to Nostr:', globalConfig);
 
     publishConfiguration(globalConfig, getConfigurationKey('site_specific_config'),
         () => {
@@ -245,6 +364,41 @@ export function saveContentToNostr() {
         });
 
     Info.set("Configuration saved to Nostr.");
+}
+
+export function saveSectionSetup(pageId, sectionId, setupParams) {
+    let section = getSection(pageId, sectionId);
+
+    section.title = setupParams.sectionTitle;
+
+    if (section.params === undefined) {
+        section.params = {};
+    }
+
+    section.params.sectionType = setupParams.sectionType;
+
+    if (setupParams.maxProductsShown && setupParams.maxProductsShown != 0) {
+        section.params.maxProductsShown = setupParams.maxProductsShown;
+    }
+
+    if (setupParams.lexicalContent) {
+        let configurationKey;
+
+        if (setupParams.sectionType === 'text') {
+            configurationKey = 'sectionText_' + pageId + '_' + sectionId;
+        } else if (setupParams.sectionType === 'products_with_slider') {
+            configurationKey = 'section_products_with_slider_' + pageId + '_' + sectionId + '_' + setupParams.lastProductPassed.id
+        }
+
+        publishConfiguration(setupParams.lexicalContent, getConfigurationKey(configurationKey),
+            () => {
+                console.log('lexicalContent saved to Nostr relay!!');
+            });
+    }
+
+    NostrGlobalConfigFireReactivity();
+
+    saveContentToNostr();
 }
 
 /*****************************************
@@ -308,4 +462,30 @@ export function getPlacesWhereItemIsPresent(itemId, entityName) {
     }
 
     return places;
+}
+
+export function getAppRoutes() {
+    const modules = import.meta.glob('../../**/routes/**');
+
+    const directory = '../routes'
+        .replace(/(.*?)\/src\/routes\//, '/')
+        .replace(/(.*?)\/immutable\/pages\//, '/')
+        .replace(/(.*?)\/var\/task\//, '/') // Vercel
+        .replace(/\/([^/])*.svelte.*/, '/');
+
+    const pageRegex = /\/\+page\.svelte$/;
+
+    return Object.keys(modules)
+        // Convert relative path to absolute path
+        .map((path) => path.replace('../routes/', ''))
+        .map((path) => path.replace(/^(.\/)/, directory))
+        // Filter paths with dynamic parameters (e.g. /blog/[slug].svelte)
+        .filter((path) => !/\[.*\]/.test(path))
+        // Filter paths that end with `/+page.svelte`
+        .filter((path) => pageRegex.test(path))
+        // Remove the trailing `/+page.svelte` string
+        .map((path) => path.replace(pageRegex, ''))
+        // Set empty path string to '/' ('./index.svelte' is converted to '')
+        .map((path) => path || '/')
+        .sort();
 }

@@ -8,7 +8,7 @@
         ShoppingCart,
         BTC2USD,
         isSuperAdmin,
-        fileConfiguration
+        fileConfiguration, NostrGlobalConfig
     } from "$sharedLib/stores";
     import { getValue } from 'btc2fiat';
     import {isProduction, getEnvironmentInfo, logout, requestLoginModal} from "$sharedLib/utils";
@@ -30,6 +30,8 @@
     import Chat from "$sharedLib/components/icons/Chat.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
     import FiatChooser from "$sharedLib/components/FiatChooser.svelte";
+    import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
+    import {getPages, pagesAndTitles} from "$lib/pagebuilder";
     // import Tools from "$sharedLib/components/icons/Tools.svelte";
 
     export let isFrontOffice = true;
@@ -39,6 +41,8 @@
     let prefersDark = false;
 
     let showMobileMenu = false;
+
+    let allPagesNavbarList = [];
 
     function toggleMobileMenu() {
         showMobileMenu = !showMobileMenu;
@@ -68,11 +72,43 @@
         BTC2USD.set(await getValue());
     }
 
+    let logoURL = '/images/logo.png';
+    let siteTitle = 'Plebeian Market';
+    $: {
+        if ($NostrGlobalConfig?.content?.logo) {
+            logoURL = $NostrGlobalConfig.content.logo;
+        } else {
+            logoURL = '/images/logo.png';
+        }
+
+        if ($NostrGlobalConfig?.content?.title) {
+            siteTitle = $NostrGlobalConfig.content.title;
+        } else {
+            siteTitle = 'Plebeian Market';
+        }
+    }
+
+    let virtualPages;
+
     onMount(async () => {
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             prefersDark = true;
         } else {
             prefersDark = false;
+        }
+
+        virtualPages = getPages();
+
+        if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
+            let allPagesListReceivedAt = 0;
+
+            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('header_config')],
+                (navbarConfigFromNostr, rcAt) => {
+                    if (rcAt > allPagesListReceivedAt) {
+                        allPagesListReceivedAt = rcAt;
+                        allPagesNavbarList = navbarConfigFromNostr;
+                    }
+                });
         }
 
         if (!isFrontOffice) {
@@ -90,12 +126,12 @@
         <div class="flex items-center justify-between">
             <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="flex items-center mr-2 indicator">
                 <div class="flex items-center space-x-2">
-                    <img src={"/images/logo.png"} class="mr-3 h-9 rounded" alt="Plebeian Technology" />
+                    <img src={logoURL} class="mr-3 h-14 rounded" alt="Plebeian Technology" />
                     {#if !isProduction()}
                         <span class="indicator-item badge badge-error">{getEnvironmentInfo().substring(0,3)}</span>
                     {/if}
                     <h1 class="w-52 2xl:w-64 3xl:w-72 text-base lg:text-lg 2xl:text-xl font-bold hover:text-blue-400 duration-300">
-                        Plebeian Market
+                        {siteTitle}
                     </h1>
 
                 </div>
@@ -104,24 +140,41 @@
             <!-- LINKS -->
             <div class="lg:flex items-right w-full">
                 <div class="hidden lg:flex">
-                    <p class="ml-24 mr-8">
-                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
-                    </p>
-                    <!--
-                    <p class="mr-8">
-                        <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
-                    </p>
-                    -->
-                    <p class="mr-8">
-                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
-                    </p>
-                    <p class="mr-8">
-                        <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
-                    </p>
-                    {#if $isSuperAdmin}
-                        <p class="mr-8">
-                            <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
+                    {#if allPagesNavbarList.length === 0}
+                        <p class="ml-24 mr-8">
+                            <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
                         </p>
+                        <!--
+                        <p class="mr-8">
+                            <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
+                        </p>
+                        -->
+                        <p class="mr-8">
+                            <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
+                        </p>
+                        <p class="mr-8">
+                            <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
+                        </p>
+                        {#if $isSuperAdmin}
+                            <p class="mr-8">
+                                <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
+                            </p>
+                        {/if}
+                    {:else}
+                        <p class="ml-24"></p>
+                        {#each allPagesNavbarList as page}
+                            {#if page.enabled}
+                                <p class="mr-8">
+                                    {#if page.p_id.startsWith('virt-') && virtualPages}
+                                        <!-- Virtual page -->
+                                        <a href="/{virtualPages[page.p_id.substring(5)]?.slug ?? ''}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{virtualPages[page.p_id.substring(5)]?.title ?? ''}</a>
+                                    {:else}
+                                        <!-- Real page -->
+                                        <a href="/{page.p_id}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{pagesAndTitles[page.p_id]?.title ?? '------'}</a>
+                                    {/if}
+                                </p>
+                            {/if}
+                        {/each}
                     {/if}
                 </div>
             </div>
@@ -222,7 +275,7 @@
                             </li>
                         {/if}
                         {#if $NostrPublicKey}
-                            <li class="menu-title mt-1">
+                            <li class="menu-title pb-0">
                                 <span class="text-lg">Account</span>
                             </li>
                             <li>
@@ -249,6 +302,13 @@
                                     <span class="size-6 mr-1"><Cash /></span> My sales
                                 </a>
                             </li>
+                            {#if $isSuperAdmin}
+                                <li>
+                                    <a class="text-base" href="/cms">
+                                        <span class="size-6 mr-1"><Settings /></span> CMS
+                                    </a>
+                                </li>
+                            {/if}
                             <li>
                                 <a class="text-base" href="/settings">
                                     <span class="size-6 mr-1"><Settings /></span> Buyer Settings
@@ -265,7 +325,7 @@
                                 </a>
                             </li>
                         {/if}
-                        <li class="block md:hidden md:h-0 menu-title mt-1">
+                        <li class="block md:hidden md:h-0 menu-title pb-0">
                             <span class="text-lg">Community</span>
                         </li>
                         <li class="block md:hidden md:h-0">
@@ -291,7 +351,7 @@
                             </a>
                         </li>
                         {#if $NostrPublicKey}
-                            <li class="menu-title mt-2 text-base">
+                            <li class="menu-title text-base pb-0">
                                 <span class="text-lg">Other information</span>
                             </li>
                         {/if}

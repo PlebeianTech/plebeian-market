@@ -7,7 +7,7 @@ const config = {
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
-			fallback: 'index.html',
+			fallback: '404.html',
 			precompress: false,
 			strict: true
 		}),
@@ -19,7 +19,8 @@ const config = {
 				'*',
 				'/p/[pubkey]',
 				'/p/[pubkey]/stall/[stallId]',
-				'/product/[product_id]'
+				'/product/[product_id]',
+				'/[...slug]'
 			]
 		},
 		paths: {
