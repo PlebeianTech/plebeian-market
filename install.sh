@@ -166,6 +166,7 @@ services:
     volumes:
       - "./plebeian-market-secrets:/secrets"
       - "./plebeian-market-state:/state"
+    env_file: .env
     command: python main.py
   web:
     image: ghcr.io/plebeiantech/plebeian-market-web
