@@ -109,6 +109,22 @@ BADGE_DEFINITION_SKIN_IN_THE_GAME = {
     'price_usd': 0.2 if ENV == 'staging' else 21,
 }
 
+# NB: keep in sync with `relayUrlList` under `web/shared/src/lib/nostr/utils.ts`
+DEFAULT_RELAYS = ["wss://staging.plebeian.market/relay"] if ENV == 'staging' else [
+    "wss://relay.damus.io",
+    "wss://relay.nostr.bg",
+    "wss://nostr.mom",
+    "wss://nos.lol",
+    "wss://nostr.bitcoiner.social",
+    "wss://nostr-pub.wellorder.net",
+    "wss://nostr.wine",
+    "wss://eden.nostr.land",
+    "wss://relay.orangepill.dev",
+    "wss://puravida.nostr.land",
+    "wss://relay.nostr.com.au",
+    "wss://nostr.inosta.cc",
+]
+
 LNDHUB_URL = os.environ.get('LNDHUB_URL')
 LNDHUB_USER = os.environ.get('LNDHUB_USER')
 LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD')

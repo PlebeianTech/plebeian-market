@@ -967,6 +967,16 @@ def award_badge_tester(pubkey):
     if not birdwatcher.publish_badge_award(badge_def['badge_id'], pubkey):
         click.echo("Failed to publish badge award!")
 
+@app.cli.command("configure-default-relays")
+@with_appcontext
+def configure_default_relays():
+    if m.Relay.query.first():
+        app.logger.warning("Relays already configured. Nothing more to do.")
+        return
+    for relay_url in app.config['DEFAULT_RELAYS']:
+        db.session.add(m.Relay(url=relay_url))
+    db.session.commit()
+
 @app.cli.command("configure-site")
 @with_appcontext
 def configure_site_cmd():

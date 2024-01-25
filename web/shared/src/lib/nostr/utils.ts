@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
 export const pmStallPubkey = import.meta.env.VITE_NOSTR_PM_STALL_PUBLIC_KEY;
 
+// NB: keep in sync with `api/config.py`
 export const relayUrlList = (
     isDevelopment() ? ["ws://localhost:7777"] :
     (
