@@ -125,6 +125,19 @@ DEFAULT_RELAYS = ["wss://staging.plebeian.market/relay"] if ENV == 'staging' els
     "wss://nostr.inosta.cc",
 ]
 
+# for sites that do not sell their own badges, they can use this badge - which is essentially the plebeian.market badge!
+# TODO: remove this and use the /badges API endpoint of the plebeian.market instance to obtain the information! 
+DEFAULT_BADGE_SKIN_IN_THE_GAME = {
+    'badge_id': 'pm-sitg',
+    'owner_public_key': "76cc29acb8008c68b105cf655d34de0b1f7bc0215eaae6bbc83173d6d3f7b987",
+    'name': "Plebeian Market Skin in the Game",
+    'description': "Made a monetary contribution to Plebeian Market",
+    'image_hash': "4c87ec576a57a9eafa2d35fc3535a45683dc9aa2ae02af8b85e1b2d8addcf1c2",
+    'nostr_event_id': "4a8891b6e8b65fe93d749600a2488df1a7c0c7e43a4b6fc46c4a145b03518506",
+    'stall_id': "39863a931522a83e4ba2872c8a0d2d2366a662b344f4a31ca1027d6c8c492cc1",
+    'listing_uuid': "04cafe6e-d1f0-4cce-9d0d-7af1a0f71953",
+}
+
 LNDHUB_URL = os.environ.get('LNDHUB_URL')
 LNDHUB_USER = os.environ.get('LNDHUB_USER')
 LNDHUB_PASSWORD = os.environ.get('LNDHUB_PASSWORD')

@@ -429,3 +429,24 @@ export function putOrder(tokenValue, uuid: string, status: {paid?: boolean, ship
             }
         });
 }
+
+export async function getBadges() {
+    const response = await fetch(`${getApiBaseUrl()}api/badges`);
+    if (response.ok) {
+        return await response.json();
+    }
+}
+
+export function putConfigureDefaultBadges(successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/badges/configure-default", 'PUT', null,
+        JSON.stringify({}), "application/json",
+        response => {
+            if (response.status === 200) {
+                response.json().then(_ => {
+                    successCB();
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}

@@ -811,6 +811,17 @@ def get_relays():
 def get_badges():
     return [b.to_dict() for b in m.Badge.query.all()]
 
+@api_blueprint.route("/api/badges/configure-default", methods=['PUT'])
+def configure_default_badges():
+    # NB: this endpoint is a gross oversimplification, just good enough for testing new instance installation workflow!
+    # it should be extended such that it can import badges from any PM instance by calling /api/badges of *that* instance!
+    # also - we should remove the DEFAULT_BADGE_SKIN_IN_THE_GAME from config and *actually* call plebeian.market/api/badges!
+    default_badge_skin_in_the_game = app.config['DEFAULT_BADGE_SKIN_IN_THE_GAME']
+    if not m.Badge.query.filter_by(badge_id=default_badge_skin_in_the_game['badge_id']).first():
+        db.session.add(m.Badge(**default_badge_skin_in_the_game))
+        db.session.commit()
+    return jsonify({})
+
 @api_blueprint.route("/api/keys/<pubkey>/metadata", methods=['GET'])
 def query_metadata(pubkey):
     birdwatcher = get_birdwatcher()
