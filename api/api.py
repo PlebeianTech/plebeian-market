@@ -18,7 +18,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_lndhub_client, get_file_storage, get_site_admin_config
+from main import app, get_birdwatcher, get_lndhub_client, get_file_storage
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -752,12 +752,6 @@ def put_publish(user, key, cls, start):
     if not entity:
         return jsonify({'message': "Not found."}), 404
 
-    if app.config['ENV'] in ('staging', 'prod'):
-        site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
-        site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
-        if not site_admin:
-            return jsonify({'message': "Site not configured!"}), 500
-
     if entity.item.seller_id != user.id:
         return jsonify({'message': "Unauthorized."}), 401
 
@@ -819,7 +813,17 @@ def get_badges():
 
 @api_blueprint.route("/api/keys/<pubkey>/metadata", methods=['GET'])
 def query_metadata(pubkey):
-    return jsonify(get_birdwatcher().query_metadata(pubkey))
+    birdwatcher = get_birdwatcher()
+
+    metadata = birdwatcher.query_metadata(pubkey)
+
+    badge = m.Badge.query.filter_by(badge_id=app.config['SKIN_IN_THE_GAME_BADGE_ID']).first()
+    awards = birdwatcher.query_badge_award(badge.owner_public_key, pubkey)
+    awards['has_skin_in_the_game'] = badge.badge_id in awards['awarded_badges']
+
+    metadata.update(awards)
+
+    return jsonify(metadata)
 
 @api_blueprint.route("/api/merchants/<pubkey>", methods=['GET'])
 def get_merchant(pubkey):
@@ -1136,22 +1140,11 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
                 is_settled = False
 
         if auction.skin_in_the_game_required:
-            has_skin_in_the_game = False
-            # TODO: optimize query - join tables
-            for order in m.Order.query.filter(m.Order.buyer_public_key == request.json['pubkey'], m.Order.paid_at != None).all():
-                if order.has_skin_in_the_game_badge():
-                    has_skin_in_the_game = True
-                    break
-            if not has_skin_in_the_game:
-                site_admin_nostr_public_key = get_site_admin_config()['nostr_private_key'].public_key.hex()
-                site_admin = m.User.query.filter_by(nostr_public_key=site_admin_nostr_public_key).first()
-                if not site_admin:
-                    return jsonify({'message': "Site not configured!"}), 500
-                badge_listing = m.Listing.query.join(m.Item).filter((m.Listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']) & (m.Item.seller_id == site_admin.id)).first()
-                if not badge_listing:
-                    return jsonify({'message': "Site not configured!"}), 500
+            badge = m.Badge.query.filter_by(badge_id=app.config['SKIN_IN_THE_GAME_BADGE_ID']).first()
+            buyer_awards = birdwatcher.query_badge_award(badge.owner_public_key, request.json['pubkey'])
+            if badge.badge_id not in buyer_awards['awarded_badges']:
                 message = f"User needs Skin in the Game in order to bid."
-                birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=site_admin.stall_id, badge_product_id=str(badge_listing.uuid))
+                birdwatcher.publish_bid_status(auction, request.json['id'], 'pending', message, badge_stall_id=badge.stall_id, badge_product_id=badge.listing_uuid)
                 is_settled = False
 
     bid = m.Bid(nostr_event_id=request.json['id'], auction=auction, buyer_nostr_public_key=request.json['pubkey'], amount=amount)

@@ -61,6 +61,7 @@ def pk2npub(pk):
 class EventKind(IntEnum):
     METADATA = 0
     DM = 4
+    BADGE_AWARD = 8
     STALL = 30017
     AUCTION = 30020
     BID = 1021
@@ -405,6 +406,8 @@ async def main(relays: list[Relay]):
         filters = None
         if query_json.get('metadata') and query_json.get('author'):
             filters = {'kinds': [EventKind.METADATA], 'authors': [query_json['author']]}
+        if query_json.get('badge_award') and query_json.get('author') and query_json.get('awardee'):
+            filters = {'kinds': [EventKind.BADGE_AWARD], 'authors': [query_json['author']], '#p': [query_json['awardee']]}
         if filters is None:
             raise web.HTTPBadRequest()
 

@@ -323,10 +323,12 @@ class Badge(db.Model):
     __tablename__ = 'badges'
 
     badge_id = db.Column(db.String(32), nullable=False, primary_key=True)
+    owner_public_key = db.Column(db.String(64), nullable=False)
+
     name = db.Column(db.String(64), nullable=False)
     description = db.Column(db.String(64), nullable=False)
     image_hash = db.Column(db.String(64), nullable=False)
-    nostr_event_id = db.Column(db.String(64), nullable=False, unique=True, index=True)
+    nostr_event_id = db.Column(db.String(64), nullable=True, unique=True, index=True)
 
     # for badges that can be purchased, like the Skin in the Game
     stall_id = db.Column(db.String(64), nullable=True)
@@ -942,7 +944,7 @@ class Order(db.Model):
 
     def has_skin_in_the_game_badge(self):
         for order_item in self.order_items:
-            if order_item.listing_id is not None and order_item.listing.key == app.config['BADGE_DEFINITION_SKIN_IN_THE_GAME']['badge_id']:
+            if order_item.listing_id is not None and order_item.listing.key == app.config['SKIN_IN_THE_GAME_BADGE_ID']:
                 return True
 
     def to_dict(self):

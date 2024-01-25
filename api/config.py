@@ -76,8 +76,17 @@ if USE_S3:
 
 SATS_IN_BTC = 100000000
 
+SKIN_IN_THE_GAME_BADGE_ID = 'pm-sitg'
+
+# The "site admin" is the owner of the stall that sells badges (such as Skin in the Game) and receives money for these badges.
+# It can be missing, in which case the site can "inherit" badges from another Plebeian Market instance.
 SITE_ADMIN_SECRETS = "/secrets/site-admin.json"
 
+# BADGE_DEFINITION_XXX are templates for badges that this site wishes to define - *if* it has its own badges!
+# These templates are translated into actual badges (models.Badge) by running `flask configure-site` and published as Nostr badges.
+# Sites that wish to inherit badges from other instances rather than sell their own should ignore these badge definitions
+# and *not* run "configure-site", in which case they will be presented with an extra configuration page (NewSite.svelte) before the first log in
+# and badges will be imported rather than generated from these templates!
 BADGE_DEFINITION_TESTER = {
     'badge_id': "pm-tester",
     'name': f"{SITE_NAME} Chief tester",
@@ -93,7 +102,7 @@ BADGE_DEFINITION_OG = {
 }
 
 BADGE_DEFINITION_SKIN_IN_THE_GAME = {
-    'badge_id': "pm-sitg",
+    'badge_id': SKIN_IN_THE_GAME_BADGE_ID,
     'name': f"{SITE_NAME} Skin in the Game",
     'description': f"Made a monetary contribution to {SITE_NAME}",
     'image_url': f"{WWW_BASE_URL}/badges/skin-in-the-game.png",
