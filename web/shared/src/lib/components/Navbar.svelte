@@ -302,6 +302,13 @@
                                     <span class="size-6 mr-1"><Cash /></span> My sales
                                 </a>
                             </li>
+                            {#if $isSuperAdmin}
+                                <li>
+                                    <a class="text-base" href="/cms">
+                                        <span class="size-6 mr-1"><Settings /></span> CMS
+                                    </a>
+                                </li>
+                            {/if}
                             <li>
                                 <a class="text-base" href="/settings">
                                     <span class="size-6 mr-1"><Settings /></span> Buyer Settings
