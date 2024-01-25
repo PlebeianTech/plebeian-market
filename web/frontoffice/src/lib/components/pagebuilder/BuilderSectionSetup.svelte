@@ -1,11 +1,9 @@
 <script lang="ts">
     import {getPage, pageBuilderWidgetType, saveSectionSetup} from "$lib/pagebuilder";
     import {fileConfiguration, NostrGlobalConfig} from "$sharedLib/stores";
-    import { useProsemirrorAdapterProvider } from "@prosemirror-adapter/svelte";
-    import Editor from "$lib/components/pagebuilder/editor/Editor.svelte";
     import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
-
-    useProsemirrorAdapterProvider();
+    import RichTextComposer from "$lib/components/pagebuilder/lexical-editor/RichTextComposer.svelte";
+    import {browser} from "$app/environment";
 
     let pageId;
     let sectionId;
@@ -16,8 +14,8 @@
     let maxProductsShown;
     let sectionTitle;
 
-    let getMarkdownContent;
-    let initialMarkdownText = '';
+    let getLexicalContent;
+    let initialMinifiedLexicalContent = '';
     let lastProductPassed = null;
 
     let closeWhenSaved = false;
@@ -47,13 +45,13 @@
             if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
                 let receivedAt = 0;
 
-                initialMarkdownText = '';
+                initialMinifiedLexicalContent = '';
 
                 subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
-                    (markdownTextForSection, rcAt) => {
+                    (initialMinifiedLexicalContentFromNostr, rcAt) => {
                         if (rcAt > receivedAt) {
                             receivedAt = rcAt;
-                            initialMarkdownText = markdownTextForSection;
+                            initialMinifiedLexicalContent = initialMinifiedLexicalContentFromNostr;
                         }
                     });
             }
@@ -66,13 +64,13 @@
 
                     let receivedAt = 0;
 
-                    initialMarkdownText = (product.name ?? '') + ('\n\n' + product.description ?? '');
+                    initialMinifiedLexicalContent = (product.name ?? '') + ('\n\n' + product.description ?? '');
 
                     subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + product.id)],
-                        (markdownTextForSection, rcAt) => {
+                        (initialMinifiedLexicalContentFromNostr, rcAt) => {
                             if (rcAt > receivedAt) {
                                 receivedAt = rcAt;
-                                initialMarkdownText = markdownTextForSection;
+                                initialMinifiedLexicalContent = initialMinifiedLexicalContentFromNostr;
                             }
                         });
                 }
@@ -85,17 +83,17 @@
     }
 
     function save() {
-        let markDownContent = null;
+        let lexicalContent = null;
 
         if (sectionType === 'text' || (sectionType === 'products_with_slider' && lastProductPassed)) {
-            markDownContent = getMarkdownContent();
+            lexicalContent = getLexicalContent();
         }
 
         saveSectionSetup(pageId, sectionId, {
             sectionTitle,
             sectionType,
             maxProductsShown,
-            markDownContent,
+            lexicalContent,
             lastProductPassed
         });
 
@@ -150,14 +148,10 @@
                         </div>
                     {/if}
 
-                    {#if sectionType === 'text' || (sectionType === 'products_with_slider' && lastProductPassed)}
-                        <div style="display: none">
-                            <textarea id="content" bind:value={initialMarkdownText} />
-                        </div>
-
+                    {#if browser && initialMinifiedLexicalContent && sectionType === 'text' || (sectionType === 'products_with_slider' && lastProductPassed)}
                         <div class="mt-8">
-                            {#key initialMarkdownText}
-                                <Editor bind:getMarkdownContent={getMarkdownContent} />
+                            {#key initialMinifiedLexicalContent}
+                                <RichTextComposer {initialMinifiedLexicalContent} bind:getLexicalContent={getLexicalContent} />
                             {/key}
                         </div>
                         {#if sectionType === 'products_with_slider'}

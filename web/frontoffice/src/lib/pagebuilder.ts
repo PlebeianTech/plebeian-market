@@ -381,7 +381,7 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
         section.params.maxProductsShown = setupParams.maxProductsShown;
     }
 
-    if (setupParams.markDownContent) {
+    if (setupParams.lexicalContent) {
         let configurationKey;
 
         if (setupParams.sectionType === 'text') {
@@ -390,9 +390,9 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
             configurationKey = 'section_products_with_slider_' + pageId + '_' + sectionId + '_' + setupParams.lastProductPassed.id
         }
 
-        publishConfiguration(setupParams.markDownContent, getConfigurationKey(configurationKey),
+        publishConfiguration(setupParams.lexicalContent, getConfigurationKey(configurationKey),
             () => {
-                console.log('markDownContent saved to Nostr relay!!');
+                console.log('lexicalContent saved to Nostr relay!!');
             });
     }
 
