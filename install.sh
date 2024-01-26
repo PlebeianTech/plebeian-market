@@ -178,7 +178,7 @@ services:
       - api
     env_file: .env
     volumes:
-      - "buyer-app-static-content:/buyer-app"
+      - "./plebeian-market-frontoffice:/buyer-app"
   nginx:
     image: nginx:1.25-alpine-slim
     restart: always
@@ -194,16 +194,13 @@ services:
       - "./plebeian-market-nginx:/etc/nginx/conf.d"
       - "./plebeian-market-certificates:/cert"
       - "./plebeian-market-state/media:/media"
-      - "buyer-app-static-content:/buyer-app"
+      - "./plebeian-market-frontoffice:/buyer-app"
 
 networks:
   db_network:
     driver: bridge
   web_network:
     driver: bridge
-
-volumes:
-  buyer-app-static-content:
 EOF
 
 echo "------------------------"
