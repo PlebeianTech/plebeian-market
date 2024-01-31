@@ -2,7 +2,7 @@
     import { page } from "$app/stores";
     import { MetaTags } from "svelte-meta-tags";
     import {getBaseUrl} from "$sharedLib/utils";
-    import Sections from "$lib/components/pagebuilder/Sections.svelte";
+    import Sections from "$sharedLib/components/pagebuilder/Sections.svelte";
 </script>
 
 <svelte:head>

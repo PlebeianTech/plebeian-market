@@ -8,9 +8,8 @@
     import {EVENT_KIND_AUCTION} from "$sharedLib/services/nostr";
     import AuctionInfo from "$lib/components/stores/AuctionInfo.svelte";
     import { Image } from 'svelte-lazy-loader';
-    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
-    import {getHtmlFromMarkdownBasic} from "$sharedLib/utils";
 
     export let product;
     export let onImgError = () => {};

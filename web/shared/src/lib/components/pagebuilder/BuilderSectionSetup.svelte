@@ -1,9 +1,9 @@
 <script lang="ts">
-    import {getPage, pageBuilderWidgetType, saveSectionSetup} from "$lib/pagebuilder";
+    import {browser} from "$app/environment";
     import {fileConfiguration, NostrGlobalConfig} from "$sharedLib/stores";
     import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
-    import RichTextComposer from "$lib/components/pagebuilder/lexical-editor/RichTextComposer.svelte";
-    import {browser} from "$app/environment";
+    import {getPage, pageBuilderWidgetType, saveSectionSetup} from "$sharedLib/pagebuilder";
+    import RichTextComposer from "$sharedLib/components/pagebuilder/lexical-editor/RichTextComposer.svelte";
 
     let pageId;
     let sectionId;

@@ -31,7 +31,7 @@
     import Key from "$sharedLib/components/icons/Key.svelte";
     import FiatChooser from "$sharedLib/components/FiatChooser.svelte";
     import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
-    import {getPages, pagesAndTitles} from "$lib/pagebuilder";
+    import {getPages, pagesAndTitles} from "$sharedLib/pagebuilder";
     // import Tools from "$sharedLib/components/icons/Tools.svelte";
 
     export let isFrontOffice = true;

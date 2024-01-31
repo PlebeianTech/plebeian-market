@@ -1,10 +1,10 @@
 <script lang="ts">
     import {onMount} from "svelte";
     import {refreshStalls} from "$lib/shopping";
-    import {getItemsFromSection} from "$lib/pagebuilder";
     import {fileConfiguration, isSuperAdmin, NostrGlobalConfig, stalls} from "$sharedLib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
-    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import {getItemsFromSection} from "$sharedLib/pagebuilder";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
 
     export let pageId;
     export let sectionId;

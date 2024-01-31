@@ -5,7 +5,7 @@
         getPages,
         getPlacesWhereItemIsPresent,
         removeItemFromSection
-    } from "$lib/pagebuilder";
+    } from "$sharedLib/pagebuilder";
     import {NostrGlobalConfig} from "$sharedLib/stores";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import Minus from "$sharedLib/components/icons/Minus.svelte";

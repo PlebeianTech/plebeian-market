@@ -1,14 +1,14 @@
 <script lang="ts">
+    import {onMount} from "svelte";
     import {isSuperAdmin, NostrGlobalConfig} from "$sharedLib/stores";
     import ProductCardBrowser from "$lib/components/stores/ProductCardBrowser.svelte";
-    import {getPage} from "$lib/pagebuilder";
-    import SectionsStalls from "$lib/components/pagebuilder/SectionsStalls.svelte";
-    import SectionsProducts from "$lib/components/pagebuilder/SectionsProducts.svelte";
-    import SectionsText from "$lib/components/pagebuilder/SectionsText.svelte";
-    import SectionsProductsSlider from "$lib/components/pagebuilder/SectionsProductsSlider.svelte";
+    import {getPage} from "$sharedLib/pagebuilder";
+    import SectionsStalls from "$sharedLib/components/pagebuilder/SectionsStalls.svelte";
+    import SectionsProducts from "$sharedLib/components/pagebuilder/SectionsProducts.svelte";
+    import SectionsText from "$sharedLib/components/pagebuilder/SectionsText.svelte";
+    import SectionsProductsSlider from "$sharedLib/components/pagebuilder/SectionsProductsSlider.svelte";
+    import BuilderSectionSetup from "$sharedLib/components/pagebuilder/BuilderSectionSetup.svelte";
     import Edit from "$sharedLib/components/icons/Edit.svelte";
-    import BuilderSectionSetup from "$lib/components/pagebuilder/BuilderSectionSetup.svelte";
-    import {onMount} from "svelte";
 
     export let pageId;
 

@@ -2,7 +2,7 @@
     import {onMount} from "svelte";
     import {subscribeConfiguration, getConfigurationKey} from "$sharedLib/services/nostr";
     import {fileConfiguration} from "$sharedLib/stores";
-    import RichTextComposer from "$lib/components/pagebuilder/lexical-editor/RichTextComposer.svelte";
+    import RichTextComposer from "$sharedLib/components/pagebuilder/lexical-editor/RichTextComposer.svelte";
 
     export let pageId;
     export let sectionId;
