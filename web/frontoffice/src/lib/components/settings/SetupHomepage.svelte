@@ -17,8 +17,8 @@
         setFavicon,
         setWebsiteTitle,
         savePageParams, addPage
-    } from "$lib/pagebuilder";
-    import BuilderSectionSetup from "$lib/components/pagebuilder/BuilderSectionSetup.svelte";
+    } from "$sharedLib/pagebuilder";
+    import BuilderSectionSetup from "$sharedLib/components/pagebuilder/BuilderSectionSetup.svelte";
     import {onMount} from "svelte";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
 

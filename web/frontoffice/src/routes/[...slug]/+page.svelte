@@ -1,9 +1,9 @@
 <script>
-    import Sections from "$lib/components/pagebuilder/Sections.svelte";
-    import {getPage, getPageIdForSlug} from "$lib/pagebuilder";
+    import {onMount} from "svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {NostrGlobalConfig} from "$sharedLib/stores";
-    import {onMount} from "svelte";
+    import Sections from "$sharedLib/components/pagebuilder/Sections.svelte";
+    import {getPage, getPageIdForSlug} from "$sharedLib/pagebuilder";
 
     /** @type {import('./$types').PageData} */
     export let data;

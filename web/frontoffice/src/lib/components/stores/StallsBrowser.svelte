@@ -5,7 +5,7 @@
     import Search from "$sharedLib/components/icons/Search.svelte"
     import {refreshProducts, refreshStalls} from "$lib/shopping";
     import Store from "$sharedLib/components/icons/Store.svelte";
-    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT} from "$sharedLib/services/nostr";
 
     export let merchantPubkey: string | null = null;

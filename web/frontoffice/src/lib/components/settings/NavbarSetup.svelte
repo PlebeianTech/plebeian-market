@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onMount} from "svelte";
-    import {getAppRoutes, getPages, pagesEnabledByDefault, pagesAndTitles} from "$lib/pagebuilder";
+    import {getAppRoutes, getPages, pagesEnabledByDefault, pagesAndTitles} from "$sharedLib/pagebuilder";
     import {flip} from "svelte/animate";
     import {dndzone} from "svelte-dnd-action";
     import {fileConfiguration, Info} from "$sharedLib/stores";

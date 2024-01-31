@@ -1,8 +1,7 @@
 <script lang="ts">
     import type {SvelteComponent} from 'svelte';
     import {setContext, onMount} from 'svelte';
-    import type {LexicalEditor} from '@bowline/svelte-lexical';
-    import '$lib/components/pagebuilder/lexical-editor/lexical.css';
+    import '$sharedLib/components/pagebuilder/lexical-editor/lexical.css';
     import {minify, unminify, toArrayPack, fromArrayPack} from 'lexical-minifier';
     import {
         Composer,
@@ -37,10 +36,11 @@
         CaptionEditorHistoryPlugin,
         CAN_USE_DOM,
     } from '@bowline/svelte-lexical';
-    import PlaygroundEditorTheme from '$lib/components/pagebuilder/lexical-editor/themes/PlaygroundEditorTheme';
-    import ToolbarPlayground from '$lib/components/pagebuilder/lexical-editor/ToolbarPlayground.svelte';
-    import {createSettingsStore} from '$lib/components/pagebuilder/lexical-editor/settings/setttingsStore';
-    import {createEmptyRichText} from '$lib/components/pagebuilder/lexical-editor/createEmptyRichText';
+    import type {LexicalEditor} from '@bowline/svelte-lexical';
+    import PlaygroundEditorTheme from '$sharedLib/components/pagebuilder/lexical-editor/themes/PlaygroundEditorTheme';
+    import ToolbarPlayground from '$sharedLib/components/pagebuilder/lexical-editor/ToolbarPlayground.svelte';
+    import {createSettingsStore} from '$sharedLib/components/pagebuilder/lexical-editor/settings/setttingsStore';
+    import {createEmptyRichText} from '$sharedLib/components/pagebuilder/lexical-editor/createEmptyRichText';
 
     const settings = createSettingsStore();
     setContext('settings', settings);

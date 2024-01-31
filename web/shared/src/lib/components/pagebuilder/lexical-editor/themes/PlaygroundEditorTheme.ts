@@ -8,7 +8,7 @@
 
 import type {EditorThemeClasses} from '@bowline/svelte-lexical';
 
-import '$lib/components/pagebuilder/lexical-editor/themes/PlaygroundEditorTheme.css';
+import '$sharedLib/components/pagebuilder/lexical-editor/themes/PlaygroundEditorTheme.css';
 
 const theme: EditorThemeClasses = {
   blockCursor: 'PlaygroundEditorTheme__blockCursor',

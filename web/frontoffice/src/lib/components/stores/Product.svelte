@@ -10,8 +10,7 @@
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {addToCart} from "$lib/shopping";
     import BidWidget from "$lib/components/stores/BidWidget.svelte";
-    import SvelteMarkdown from "svelte-markdown";
-    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
 
     export let product_id = null;

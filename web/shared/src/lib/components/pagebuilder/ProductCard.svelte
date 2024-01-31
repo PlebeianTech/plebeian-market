@@ -1,7 +1,7 @@
 <script lang="ts">
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {NostrGlobalConfig, isSuperAdmin} from "$sharedLib/stores";
-    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import {EVENT_KIND_AUCTION} from "$sharedLib/services/nostr";
     import Countdown from "$sharedLib/components/Countdown.svelte";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";

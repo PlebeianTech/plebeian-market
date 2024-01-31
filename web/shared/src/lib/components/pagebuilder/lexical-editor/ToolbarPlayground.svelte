@@ -26,7 +26,7 @@
     InsertHRDropDownItem,
     InsertImageDropDownItem,
   } from '@bowline/svelte-lexical';
-  import InsertImageDialog from '$lib/components/pagebuilder/lexical-editor/InsertImageDialog.svelte';
+  import InsertImageDialog from '$sharedLib/components/pagebuilder/lexical-editor/InsertImageDialog.svelte';
 
   let imageDialog: InsertImageDialog;
 </script>

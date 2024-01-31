@@ -1,7 +1,6 @@
 <script lang="ts" xmlns="http://www.w3.org/1999/html">
     import {onMount} from "svelte";
     import { browser } from '$app/environment'
-    import {getItemsFromSection} from "$lib/pagebuilder";
     import {
         getProducts,
         EVENT_KIND_AUCTION,
@@ -11,9 +10,9 @@
     import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {fileConfiguration, isSuperAdmin} from "$sharedLib/stores";
-    import SvelteMarkdown from "svelte-markdown";
     import Countdown from "$sharedLib/components/Countdown.svelte";
-    import AdminActions from "$lib/components/pagebuilder/AdminActions.svelte";
+    import {getItemsFromSection} from "$sharedLib/pagebuilder";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
 
     export let pageId;

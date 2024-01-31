@@ -2,23 +2,23 @@
   "name": "plebeianmarket-web",
   "version": "0.0.1",
   "devDependencies": {
-    "@sveltejs/adapter-node": "^2.0.0",
-    "@sveltejs/kit": "^2.0.0",
-    "@sveltejs/vite-plugin-svelte": "^3.0.0",
-    "autoprefixer": "^10.4.16",
+    "@sveltejs/adapter-node": "^2.1.2",
+    "@sveltejs/kit": "^2.5.0",
+    "@sveltejs/vite-plugin-svelte": "^3.0.2",
+    "autoprefixer": "^10.4.17",
     "btc2fiat": "*",
-    "daisyui": "^4.4.24",
+    "daisyui": "^4.6.1",
     "eslint": "^8.56.0",
     "eslint-plugin-svelte": "^2.35.1",
     "nostr-tools": "^1.13.1",
     "npm-run-all": "4.x",
-    "postcss": "^8.4.31",
-    "svelte": "^4.0.0",
-    "svelte-check": "^3.6.2",
+    "postcss": "^8.4.33",
+    "svelte": "^4.2.9",
+    "svelte-check": "^3.6.3",
     "svelte-toasts": "1.x",
-    "tailwindcss": "^3.4.0",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.0.0",
-    "vite": "^5.0.10"
+    "vite": "^5.0.12"
   },
   "type": "module",
   "scripts": {
@@ -33,7 +33,7 @@
     "lint": "eslint --ignore-path .gitignore ."
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
     "light-bolt11-decoder": "^3.0.0"
   }
 }
