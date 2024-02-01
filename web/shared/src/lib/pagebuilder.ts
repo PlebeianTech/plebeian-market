@@ -502,7 +502,7 @@ export function getHtmlFromRichText(richText: string) {
         //.replace(/^# (.*$)/gim, '<h11>$1</h11>') // h1 tag
         .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
         .replace(/\*(.*)\*/gim, '<i>$1</i>')
-        .replace(/^([^\n]+)\n/gim, '<p class="my-0 aa">$1</p>')
+        .replace(/^([^\n]+)\n/gim, '<p class="my-0">$1</p>')
         .replace(/\n\n([^\n]+)\n/gim, '<p class="my-0 mt-1">$1</p>')
         .replace(/\n([^\n]+)\n/gim, '<p class="my-0">$1</p>');
 }
