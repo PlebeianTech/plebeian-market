@@ -1,15 +1,15 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { page } from "$app/stores";
-    import Nostr from "$lib/components/settings/Nostr.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import SetupHomepage from "$lib/components/settings/SetupHomepage.svelte";
-    import ExternalIdentities from "$lib/components/settings/ExternalIdentities.svelte";
+    import PageEditor from "$lib/components/settings/PageEditor.svelte";
     import NavbarSetup from "$lib/components/settings/NavbarSetup.svelte";
+    import SiteConfig from "$lib/components/settings/SiteConfig.svelte";
 
     const pages = [
-        {key: 'CMS', title: 'CMS'},
-        {key: 'NAVBAR', title: 'Navbar Config'},
+        {key: 'CMS', title: 'Page Editor'},
+        {key: 'NAVBAR', title: 'Navigation Bar'},
+        {key: 'SITECONF', title: 'Site config'},
     ];
 
     let currentPage = 'CMS';
@@ -32,10 +32,10 @@
 </script>
 
 <svelte:head>
-    <title>Settings</title>
+    <title>CMS</title>
 </svelte:head>
 
-<Titleh1>Settings</Titleh1>
+<Titleh1>CMS</Titleh1>
 
 <div class="lg:grid lg:grid-cols-4 2xl:w-11/12 3xl:w-9/12 w-full p-0 md:p-4 pb-8 mx-auto">
     <div class="md:grow-0 pb-10">
@@ -47,9 +47,11 @@
     </div>
     <div class="lg:col-span-3 w-full items-center justify-center">
         {#if currentPage === 'CMS'}
-            <SetupHomepage />
+            <PageEditor />
         {:else if currentPage === 'NAVBAR'}
             <NavbarSetup />
+        {:else if currentPage === 'SITECONF'}
+            <SiteConfig />
         {/if}
     </div>
 </div>
