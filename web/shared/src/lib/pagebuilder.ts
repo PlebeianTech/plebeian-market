@@ -2,6 +2,7 @@ import {get} from "svelte/store";
 import {NostrGlobalConfig, Info} from "$sharedLib/stores";
 import {publishConfiguration, getConfigurationKey} from "$sharedLib/services/nostr";
 import {Error} from "$sharedLib/stores";
+import DOMPurify from "dompurify";
 
 export const pageBuilderWidgetType = {
     text: {
@@ -9,7 +10,7 @@ export const pageBuilderWidgetType = {
         'description': 'This widget allows you to write a text to explain something to your customers (about me, about this site, ...).',
         'items': false,
         'max_num_available': false,
-        'markdownText': true
+        'richText': true
     },
     products: {
         'title': 'Selected Products',
@@ -22,7 +23,7 @@ export const pageBuilderWidgetType = {
         'description': "This widget allows you to select which products you want shown on a big slider with a description. The slider will show the product's title and description by default, but you can change that to other text of your choice.",
         'items': ['products'],
         'max_num_available': false,
-        'markdownText': true
+        'richText': true
     },
     stalls: {
         'title': 'Selected Stalls',
@@ -488,4 +489,20 @@ export function getAppRoutes() {
         // Set empty path string to '/' ('./index.svelte' is converted to '')
         .map((path) => path || '/')
         .sort();
+}
+
+/*
+Parses some known tags from rich texts
+(like \n\n) and prints the equivalent HTML
+*/
+export function getHtmlFromRichText(richText: string) {
+    return DOMPurify.sanitize(richText)
+        //.replace(/^### (.*$)/gim, '<h3>$1</h3>') // h3 tag
+        //.replace(/^## (.*$)/gim, '<h2>$1</h2>') // h2 tag
+        //.replace(/^# (.*$)/gim, '<h11>$1</h11>') // h1 tag
+        .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
+        .replace(/\*(.*)\*/gim, '<i>$1</i>')
+        .replace(/^([^\n]+)\n/gim, '<p class="my-0 aa">$1</p>')
+        .replace(/\n\n([^\n]+)\n/gim, '<p class="my-0 mt-1">$1</p>')
+        .replace(/\n([^\n]+)\n/gim, '<p class="my-0">$1</p>');
 }

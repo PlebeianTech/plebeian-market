@@ -11,9 +11,10 @@
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {fileConfiguration, isSuperAdmin} from "$sharedLib/stores";
     import Countdown from "$sharedLib/components/Countdown.svelte";
-    import {getItemsFromSection} from "$sharedLib/pagebuilder";
-    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
+    import {getItemsFromSection, getHtmlFromRichText} from "$sharedLib/pagebuilder";
+    import RichTextComposer from "$sharedLib/components/pagebuilder/lexical-editor/RichTextComposer.svelte";
 
     export let pageId;
     export let sectionId;
@@ -60,29 +61,29 @@
                 }
 
                 if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
-                    let markdownTextForProductsConfigurationKeys = [];
+                    let richTextForProductsConfigurationKeys = [];
 
                     Object.keys(products).forEach(productId => {
-                        markdownTextForProductsConfigurationKeys.push(getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + productId));
+                        richTextForProductsConfigurationKeys.push(getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + productId));
                     });
 
-                    subscribeConfiguration($fileConfiguration.admin_pubkeys, markdownTextForProductsConfigurationKeys,
-                        (markdownTextForProduct, rcAt, e) => {
+                    subscribeConfiguration($fileConfiguration.admin_pubkeys, richTextForProductsConfigurationKeys,
+                        (richTextForProduct, rcAt, e) => {
                             let productConfigKeyForThisEvent = filterTags(e.tags, 'd').join()
                             let productIdForThisConfigurantionEvent = productConfigKeyForThisEvent.split('_').at(-1);
 
                             if (
                                 productIdForThisConfigurantionEvent &&
                                 (
-                                    !products[productIdForThisConfigurantionEvent].markdownReceivedAt ||
+                                    !products[productIdForThisConfigurantionEvent].richTextReceivedAt ||
                                     (
-                                        products[productIdForThisConfigurantionEvent].markdownReceivedAt &&
-                                        rcAt > products[productIdForThisConfigurantionEvent].markdownReceivedAt
+                                        products[productIdForThisConfigurantionEvent].richTextReceivedAt &&
+                                        rcAt > products[productIdForThisConfigurantionEvent].richTextReceivedAt
                                     )
                                 )
                             ) {
-                                products[productIdForThisConfigurantionEvent].markdownReceivedAt = rcAt;
-                                products[productIdForThisConfigurantionEvent].markdownText = markdownTextForProduct;
+                                products[productIdForThisConfigurantionEvent].richTextReceivedAt = rcAt;
+                                products[productIdForThisConfigurantionEvent].richText = richTextForProduct;
                             }
                         });
                 }
@@ -119,15 +120,15 @@
                         </div>
 
                         <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
-                            <div class="z-[300] prose lg:prose-xl prose-p:my-2 md:prose-p:my-3">
-                                {#if product.markdownText}
-                                    <SvelteMarkdown source={product.markdownText} />
+                            <div class="z-[300] prose aalg:prose-xl prose-p:my-2 md:prose-p:my-0">
+                                {#if product.richText}
+                                    <RichTextComposer initialMinifiedLexicalContent={product.richText} editable={false} />
                                 {:else}
                                     {#if product.name}
                                         <h2 class="md:text-3xl mb-1 md:mb-2">{product.name}</h2>
                                     {/if}
                                     {#if product.description}
-                                        <SvelteMarkdown source={product.description} />
+                                        {@html getHtmlFromRichText(product.description)}
                                     {/if}
                                 {/if}
                             </div>
@@ -177,7 +178,7 @@
                         <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
                             <div class="z-[300] prose lg:prose-xl prose-p:my-2 md:prose-p:my-3">
                                 <h2 class="md:text-3xl mb-1 md:mb-2">Sell or auction your product here!</h2>
-                                <SvelteMarkdown source="Create your stall and start selling or auctioning your products in 5 minutes!" />
+                                <p>Create your stall and start selling or auctioning your products in 5 minutes!</p>
                             </div>
 
                             <a class="btn btn-outline btn-accent mt-6" href="/admin">Sell your products</a>
