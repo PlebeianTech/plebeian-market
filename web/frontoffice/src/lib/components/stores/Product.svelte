@@ -12,6 +12,7 @@
     import BidWidget from "$lib/components/stores/BidWidget.svelte";
     import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
+    import {getHtmlFromRichText} from "$sharedLib/pagebuilder";
 
     export let product_id = null;
     export let in_popup = false;
@@ -96,7 +97,7 @@
             <div class="w-full h-fit md:p-8 md:pt-0 place-items-center place-content-center text-center text-2xl">
                 {#if product.description}
                     <div class="mb-8 prose lg:prose-xl mx-auto">
-                        <SvelteMarkdown source={product.description} />
+                        {getHtmlFromRichText(product.description)}
                     </div>
                 {/if}
 

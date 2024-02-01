@@ -10,6 +10,7 @@
     import { Image } from 'svelte-lazy-loader';
     import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import CurrencyConverter from "$sharedLib/components/CurrencyConverter.svelte";
+    import {getHtmlFromRichText} from "$sharedLib/pagebuilder";
 
     export let product;
     export let onImgError = () => {};
@@ -55,8 +56,8 @@
         {/if}
 
         {#if !reducedCard && product.description}
-            <div class="md:hidden mt-1 md:mt-4 prose">{@html getHtmlFromMarkdownBasic(product.description.substring(0,110))}{#if product.description.length > 110}...{/if}</div>
-            <div class="hidden md:block mt-1 md:mt-4 prose">{@html getHtmlFromMarkdownBasic(product.description.substring(0,300))}{#if product.description.length > 300}...{/if}</div>
+            <div class="md:hidden mt-1 md:mt-4 prose">{@html getHtmlFromRichText(product.description.substring(0,110))}{#if product.description.length > 110}...{/if}</div>
+            <div class="hidden md:block mt-1 md:mt-4 prose">{@html getHtmlFromRichText(product.description.substring(0,300))}{#if product.description.length > 300}...{/if}</div>
         {/if}
 
         {#if !reducedCard && product.tags}
