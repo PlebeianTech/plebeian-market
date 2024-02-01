@@ -104,7 +104,16 @@
 </script>
 
 <svelte:head>
-    <link rel="icon" type="image/svg" href={favicon ?? '/images/icons/favicon.ico'} />
+    {#if favicon}
+        <link rel="icon" type="image/svg" href={favicon} />
+    {:else}
+        <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/favicon-16x16.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png">
+        <link rel="manifest" href="/images/icons/site.webmanifest">
+        <link rel="mask-icon" href="/images/icons/safari-pinned-tab.svg" color="#5bbad5">
+        <meta name="msapplication-TileColor" content="#da532c">
+    {/if}
 </svelte:head>
 
 <div class="h-screen pt-12 lg:pt-20 pb-20 { $page.url.pathname === '/messages' ? '' : 'mt-2' }">

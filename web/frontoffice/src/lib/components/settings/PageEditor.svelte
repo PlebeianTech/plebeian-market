@@ -76,44 +76,6 @@
     {#if $NostrPublicKey}
         {#if $isSuperAdmin}
             {#if !selectedPageId}
-                <h2 class="font-bold">Logo</h2>
-                <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base mb-8">
-                    <p>We recommend logos with an aspect-ratio of aprox 3:1.</p>
-                    <div class="my-1">
-                        <input type="text" bind:value={logoURL} placeholder="URL of logo" class="input input-bordered input-success w-full max-w-xs input-sm" />
-                        <button class="btn btn-sm btn-success ml-1"
-                                class:btn-disabled={!logoURL}
-                                on:click={() => {setLogo(logoURL)}}>
-                            Save
-                        </button>
-                    </div>
-                </div>
-
-                <h2 class="font-bold">Favicon</h2>
-                <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base mb-8">
-                    <div class="my-1">
-                        <input type="text" bind:value={faviconURL} placeholder="URL of favicon" class="input input-bordered input-success w-full max-w-xs input-sm" />
-                        <button class="btn btn-sm btn-success ml-1"
-                                class:btn-disabled={!faviconURL}
-                                on:click={() => {setFavicon(faviconURL)}}>
-                            Save
-                        </button>
-                    </div>
-                </div>
-
-                <h2 class="font-bold">Website Title</h2>
-                <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base mb-20">
-                    <div class="my-1">
-                        <input type="text" bind:value={websiteTitle} placeholder="Title" class="input input-bordered input-success w-full max-w-xs input-sm" />
-                        <button class="btn btn-sm btn-success ml-1"
-                                class:btn-disabled={!websiteTitle}
-                                on:click={() => {setWebsiteTitle(websiteTitle)}}>
-                            Save
-                        </button>
-                    </div>
-                </div>
-
-
                 <div class="mt-10 mb-4">
                     <input type="text" bind:value={newPageTitle} placeholder="Title of the new page" class="input input-bordered input-success w-full max-w-xs input-sm" />
                     <button class="btn btn-sm btn-success ml-1" class:btn-disabled={!newPageTitle}

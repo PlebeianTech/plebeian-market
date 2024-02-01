@@ -3,9 +3,7 @@
     import { page } from "$app/stores";
     import Nostr from "$lib/components/settings/Nostr.svelte";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
-    import SetupHomepage from "$lib/components/settings/SetupHomepage.svelte";
     import ExternalIdentities from "$lib/components/settings/ExternalIdentities.svelte";
-    import NavbarSetup from "$lib/components/settings/NavbarSetup.svelte";
 
     const pages = [
         {key: 'NOSTR_PAGE', title: 'Nostr'},
