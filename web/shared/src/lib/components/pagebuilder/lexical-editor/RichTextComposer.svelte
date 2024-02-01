@@ -50,13 +50,17 @@
 
     $: {
         if (composer && initialMinifiedLexicalContent) {
-            let jsonParsed = JSON.parse(initialMinifiedLexicalContent);
-            let arrayUnpacked = fromArrayPack(jsonParsed);
-            let unminified = unminify(arrayUnpacked) ?? [];
+            try {
+                let jsonParsed = JSON.parse(initialMinifiedLexicalContent);
+                let arrayUnpacked = fromArrayPack(jsonParsed);
+                let unminified = unminify(arrayUnpacked) ?? [];
 
-            const editor = composer.getEditor() as LexicalEditor
-            const editorState = editor.parseEditorState({ root: unminified });
-            editor.setEditorState(editorState);
+                const editor = composer.getEditor() as LexicalEditor
+                const editorState = editor.parseEditorState({ root: unminified });
+                editor.setEditorState(editorState);
+            } catch (error) {
+                console.debug('Could parse or unpack Lexical JSON:', error);
+            }
         }
     }
 
