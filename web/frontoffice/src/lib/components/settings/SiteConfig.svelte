@@ -30,11 +30,9 @@
         {#if $isSuperAdmin}
             <h2 class="font-bold">Logo</h2>
             <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base mb-8">
-                <p>We recommend logos with an aspect-ratio of aprox 3:1.</p>
                 <div class="my-1">
                     <input type="text" bind:value={logoURL} placeholder="URL of logo" class="input input-bordered input-success w-full max-w-xs input-sm" />
                     <button class="btn btn-sm btn-success ml-1"
-                            class:btn-disabled={!logoURL}
                             on:click={() => {setLogo(logoURL)}}>
                         Save
                     </button>
@@ -46,7 +44,6 @@
                 <div class="my-1">
                     <input type="text" bind:value={faviconURL} placeholder="URL of favicon" class="input input-bordered input-success w-full max-w-xs input-sm" />
                     <button class="btn btn-sm btn-success ml-1"
-                            class:btn-disabled={!faviconURL}
                             on:click={() => {setFavicon(faviconURL)}}>
                         Save
                     </button>
@@ -58,7 +55,6 @@
                 <div class="my-1">
                     <input type="text" bind:value={websiteTitle} placeholder="Title" class="input input-bordered input-success w-full max-w-xs input-sm" />
                     <button class="btn btn-sm btn-success ml-1"
-                            class:btn-disabled={!websiteTitle}
                             on:click={() => {setWebsiteTitle(websiteTitle)}}>
                         Save
                     </button>
