@@ -60,7 +60,7 @@
                     productsLoaded = true;
                 }
 
-                if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
+                if ($fileConfiguration?.admin_pubkeys?.length > 0) {
                     let richTextForProductsConfigurationKeys = [];
 
                     Object.keys(products).forEach(productId => {

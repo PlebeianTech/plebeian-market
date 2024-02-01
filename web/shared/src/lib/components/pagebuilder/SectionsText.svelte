@@ -10,7 +10,7 @@
     let initialMinifiedLexicalContent: string | null = null;
 
     onMount(async () => {
-        if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
+        if ($fileConfiguration?.admin_pubkeys?.length > 0) {
             let receivedAt = 0;
 
             subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],

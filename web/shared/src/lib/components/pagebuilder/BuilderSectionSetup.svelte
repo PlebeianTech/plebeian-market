@@ -42,7 +42,7 @@
         maxProductsShown = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
 
         if (sectionType === 'text') {
-            if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
+            if ($fileConfiguration?.admin_pubkeys?.length > 0) {
                 let receivedAt = 0;
 
                 initialMinifiedLexicalContent = '';
@@ -59,7 +59,7 @@
 
         if (sectionType === 'products_with_slider') {
             if (product) {
-                if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
+                if ($fileConfiguration?.admin_pubkeys?.length > 0) {
                     lastProductPassed = product;
 
                     let receivedAt = 0;

@@ -99,7 +99,7 @@
 
         virtualPages = getPages();
 
-        if ($fileConfiguration && $fileConfiguration.admin_pubkeys.length > 0) {
+        if ($fileConfiguration?.admin_pubkeys?.length > 0) {
             let allPagesListReceivedAt = 0;
 
             subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('header_config')],
