@@ -96,7 +96,7 @@
 
             <div class="w-full h-fit md:p-8 md:pt-0 place-items-center place-content-center text-center text-2xl">
                 {#if product.description}
-                    <div class="mb-8 prose lg:prose-xl mx-auto">
+                    <div class="mb-8 prose lg:prose-lg mx-auto">
                         {@html getHtmlFromRichText(product.description)}
                     </div>
                 {/if}
