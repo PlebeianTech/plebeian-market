@@ -25,15 +25,64 @@
     $: if (saved && closeWhenSaved) {
         window.setup_section.close();
     }
+
+    $: if (sectionType) {
+        if (sectionType === 'text') {
+            getTextConfigFromNostr();
+        }
+
+        if (sectionType === 'products_with_slider') {
+            getProductsWithSliderConfigFromNostr();
+        }
+    }
+
+    function getTextConfigFromNostr() {
+        if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+            let receivedAt = 0;
+
+            initialMinifiedLexicalContent = '';
+
+            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
+                (initialMinifiedLexicalContentFromNostr, rcAt) => {
+                    if (rcAt > receivedAt) {
+                        receivedAt = rcAt;
+                        initialMinifiedLexicalContent = initialMinifiedLexicalContentFromNostr;
+                    }
+                });
+        }
+    }
+
+    function getProductsWithSliderConfigFromNostr() {
+        if (lastProductPassed) {
+            if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+                let receivedAt = 0;
+
+                initialMinifiedLexicalContent = (lastProductPassed.name ?? '') + ('\n\n' + lastProductPassed.description ?? '');
+
+                subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + lastProductPassed.id)],
+                    (initialMinifiedLexicalContentFromNostr, rcAt) => {
+                        if (rcAt > receivedAt) {
+                            receivedAt = rcAt;
+                            initialMinifiedLexicalContent = initialMinifiedLexicalContentFromNostr;
+                        }
+                    });
+            }
+        } else {
+            lastProductPassed = null;
+        }
+    }
+
     export async function setupSection(pageIdLoad, sectionIdLoad, product = null, closeModalWhenSaved = false) {
         // Clear
         saved = false;
 
         // Set
         closeWhenSaved = closeModalWhenSaved;
-
         pageId = pageIdLoad;
         sectionId = sectionIdLoad;
+        if (product) {
+            lastProductPassed = product;
+        }
 
         page = getPage(pageId, $NostrGlobalConfig);
 
@@ -42,41 +91,9 @@
         maxProductsShown = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
 
         if (sectionType === 'text') {
-            if ($fileConfiguration?.admin_pubkeys?.length > 0) {
-                let receivedAt = 0;
-
-                initialMinifiedLexicalContent = '';
-
-                subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('sectionText_' + pageId + '_' + sectionId)],
-                    (initialMinifiedLexicalContentFromNostr, rcAt) => {
-                        if (rcAt > receivedAt) {
-                            receivedAt = rcAt;
-                            initialMinifiedLexicalContent = initialMinifiedLexicalContentFromNostr;
-                        }
-                    });
-            }
-        }
-
-        if (sectionType === 'products_with_slider') {
-            if (product) {
-                if ($fileConfiguration?.admin_pubkeys?.length > 0) {
-                    lastProductPassed = product;
-
-                    let receivedAt = 0;
-
-                    initialMinifiedLexicalContent = (product.name ?? '') + ('\n\n' + product.description ?? '');
-
-                    subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('section_products_with_slider_' + pageId + '_' + sectionId + '_' + product.id)],
-                        (initialMinifiedLexicalContentFromNostr, rcAt) => {
-                            if (rcAt > receivedAt) {
-                                receivedAt = rcAt;
-                                initialMinifiedLexicalContent = initialMinifiedLexicalContentFromNostr;
-                            }
-                        });
-                }
-            } else {
-                lastProductPassed = null;
-            }
+            getTextConfigFromNostr()
+        } else if (sectionType === 'products_with_slider') {
+            getProductsWithSliderConfigFromNostr();
         }
 
         window.setup_section.showModal();
@@ -148,7 +165,7 @@
                         </div>
                     {/if}
 
-                    {#if browser && initialMinifiedLexicalContent && sectionType === 'text' || (sectionType === 'products_with_slider' && lastProductPassed)}
+                    {#if browser && sectionType === 'text' || (sectionType === 'products_with_slider' && lastProductPassed)}
                         <div class="mt-8">
                             {#key initialMinifiedLexicalContent}
                                 <RichTextComposer {initialMinifiedLexicalContent} bind:getLexicalContent={getLexicalContent} />
