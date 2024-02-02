@@ -353,7 +353,7 @@
 </div>
 
 <div class="flex flex-col mt-2 mb-6 pb-6 bg-cover bg-top bg-info-content-200 gap-2 overflow-x-hidden overflow-y-auto w-full"
-     style="background-size: 5px 5px; background-image: radial-gradient(hsla(var(--bc)/.2) 0.5px,hsla(var(--b2)/1) 0.5px);" id="chatScrollableDiv">
+     style="background-image: repeating-linear-gradient(45deg,var(--fallback-b1,oklch(var(--b1))),var(--fallback-b1,oklch(var(--b1))) 13px,var(--fallback-b2,oklch(var(--b2))) 13px,var(--fallback-b2,oklch(var(--b2))) 14px); background-size: 40px 40px;" id="chatScrollableDiv">
     <div>
         {#each sortedMessages as message}
             <NostrNote {message} {onReply} {onImgError} />
