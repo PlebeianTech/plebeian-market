@@ -298,7 +298,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="text-base" href="/admin/account/orders/">
+                                <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin/account/orders/">
                                     <span class="size-6 mr-1"><Cash /></span> My sales
                                 </a>
                             </li>
@@ -315,7 +315,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="text-base" href="/admin/account/settings">
+                                <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin/account/settings">
                                     <span class="size-6 mr-1"><Settings /></span> Seller Settings
                                 </a>
                             </li>
