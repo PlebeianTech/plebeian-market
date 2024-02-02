@@ -81,7 +81,7 @@
             logoURL = '/images/logo.png';
         }
 
-        if ($NostrGlobalConfig?.content?.title) {
+        if ($NostrGlobalConfig?.content && $NostrGlobalConfig?.content.hasOwnProperty('title')) {
             siteTitle = $NostrGlobalConfig.content.title;
         } else {
             siteTitle = 'Plebeian Market';
