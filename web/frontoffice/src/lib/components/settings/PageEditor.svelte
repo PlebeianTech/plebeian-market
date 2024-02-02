@@ -21,6 +21,7 @@
     import BuilderSectionSetup from "$sharedLib/components/pagebuilder/BuilderSectionSetup.svelte";
     import {onMount} from "svelte";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
+    import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
 
     // General
     let logoURL = '';
@@ -134,7 +135,14 @@
             {/if}
 
             {#if selectedPageId}
-                <a class="underline" on:click={() => selectedPageId = null} href={null}>- Back -</a>
+                <div class="flex items-start justify-start text-left align-middle ml-4 lg:ml-14 2xl:ml-28 3xl:ml-32">
+                    <div class="w-10 mr-2 cursor-pointer" on:click={() => selectedPageId = null}>
+                        <ArrowLeft />
+                    </div>
+                    <div class="w-10 cursor-pointer" on:click={() => selectedPageId = null}>
+                        <span class="inline-block align-middle text-lg mt-1">Back</span>
+                    </div>
+                </div>
                 <h2>Editing <span class="font-bold">{getPage(selectedPageId, $NostrGlobalConfig).title}</span> page content.</h2>
 
                 {#if selectedPageId && selectedPageId !== '0'}
@@ -163,7 +171,7 @@
                     <p>Add sections here, and set them up to display what you need to show in each of them.</p>
                 </div>
 
-                <div class="mt-5 2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base">
+                <div class="mt-5 mx-auto text-xs md:text-base">
                     <div class="mb-4">
                         <input type="text" bind:value={newSection} placeholder="Title of the new section" class="input input-bordered input-success w-full max-w-xs input-sm" />
                         <button class="btn btn-sm btn-success ml-1" class:btn-disabled={!newSection}
