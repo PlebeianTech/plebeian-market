@@ -13,20 +13,11 @@
         pageBuilderWidgetType,
         getPages,
         removePage,
-        setLogo,
-        setFavicon,
-        setWebsiteTitle,
         savePageParams, addPage
     } from "$sharedLib/pagebuilder";
     import BuilderSectionSetup from "$sharedLib/components/pagebuilder/BuilderSectionSetup.svelte";
-    import {onMount} from "svelte";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
-
-    // General
-    let logoURL = '';
-    let faviconURL = '';
-    let websiteTitle = '';
 
     // Pages
     let newPageTitle = '';
@@ -59,18 +50,6 @@
     }
 
     let setupSection;
-
-    onMount(async () => {
-        if ($NostrGlobalConfig.content.logo) {
-            logoURL = $NostrGlobalConfig.content.logo;
-        }
-        if ($NostrGlobalConfig.content.favicon) {
-            faviconURL = $NostrGlobalConfig.content.favicon;
-        }
-        if ($NostrGlobalConfig.content.title) {
-            websiteTitle = $NostrGlobalConfig.content.title;
-        }
-    });
 </script>
 
 <div class="w-full items-center justify-center text-center">
