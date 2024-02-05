@@ -86,14 +86,14 @@
                 </div>
 
                 <h2 class="font-bold">Pages</h2>
-                <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base mt-4 mb-16">
+                <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs aaamd:text-base mt-4 mb-16">
                     <table class="table min-w-full">
                         <thead>
                             <tr>
-                                <th class="py-2 px-4 bg-gray-100 text-center">Page Title</th>
-                                <th class="py-2 px-4 bg-gray-100 text-center">Slug</th>
-                                <th class="py-2 px-4 bg-gray-100 text-center"># Sections</th>
-                                <th class="py-2 px-4 bg-gray-100 text-center">Actions</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center">Page Title</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center">Slug</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center"># Sections</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
