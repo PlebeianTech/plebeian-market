@@ -146,7 +146,7 @@
                 <div class="editor-scroller" class:bg-[#fafafa]={editable}>
                     <div class="editor" bind:this={editorDiv}>
                         <ContentEditable/>
-                        <PlaceHolder>Write the text you want to see in this section...</PlaceHolder>
+                        <PlaceHolder>{editable ? 'Write the text you want to see in this section...' : ''}</PlaceHolder>
                     </div>
                 </div>
 

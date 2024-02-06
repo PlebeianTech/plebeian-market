@@ -13,20 +13,11 @@
         pageBuilderWidgetType,
         getPages,
         removePage,
-        setLogo,
-        setFavicon,
-        setWebsiteTitle,
         savePageParams, addPage
     } from "$sharedLib/pagebuilder";
     import BuilderSectionSetup from "$sharedLib/components/pagebuilder/BuilderSectionSetup.svelte";
-    import {onMount} from "svelte";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
     import ArrowLeft from "$sharedLib/components/icons/ArrowLeft.svelte";
-
-    // General
-    let logoURL = '';
-    let faviconURL = '';
-    let websiteTitle = '';
 
     // Pages
     let newPageTitle = '';
@@ -59,18 +50,6 @@
     }
 
     let setupSection;
-
-    onMount(async () => {
-        if ($NostrGlobalConfig.content.logo) {
-            logoURL = $NostrGlobalConfig.content.logo;
-        }
-        if ($NostrGlobalConfig.content.favicon) {
-            faviconURL = $NostrGlobalConfig.content.favicon;
-        }
-        if ($NostrGlobalConfig.content.title) {
-            websiteTitle = $NostrGlobalConfig.content.title;
-        }
-    });
 </script>
 
 <div class="w-full items-center justify-center text-center">
@@ -86,14 +65,14 @@
                 </div>
 
                 <h2 class="font-bold">Pages</h2>
-                <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base mt-4 mb-16">
+                <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs aaamd:text-base mt-4 mb-16">
                     <table class="table min-w-full">
                         <thead>
                             <tr>
-                                <th class="py-2 px-4 bg-gray-100 text-center">Page Title</th>
-                                <th class="py-2 px-4 bg-gray-100 text-center">Slug</th>
-                                <th class="py-2 px-4 bg-gray-100 text-center"># Sections</th>
-                                <th class="py-2 px-4 bg-gray-100 text-center">Actions</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center">Page Title</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center">Slug</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center"># Sections</th>
+                                <th class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
