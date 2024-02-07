@@ -13,7 +13,8 @@
         pageBuilderWidgetType,
         getPages,
         removePage,
-        savePageParams, addPage
+        savePageParams,
+        addPage
     } from "$sharedLib/pagebuilder";
     import BuilderSectionSetup from "$sharedLib/components/pagebuilder/BuilderSectionSetup.svelte";
     import AlertInfo from "$sharedLib/components/icons/AlertInfo.svelte";
@@ -29,7 +30,6 @@
     let content = null;
     let orderedSections = null;
 
-
     let selectedPageId: string | null = null;
 
     function setParamsEditPage() {
@@ -39,8 +39,10 @@
         pageSlug = content?.slug ?? '';
     }
 
-    $: if (content) {
-        if (content.sections) {
+    $: if ($NostrGlobalConfig) {
+        content = getPage(selectedPageId, $NostrGlobalConfig);
+
+        if (content?.sections) {
             orderedSections = Object.entries(content.sections).sort((a, b) => {
                 return a[1].order - b[1].order;
             });
@@ -111,9 +113,8 @@
                         </tbody>
                     </table>
                 </div>
-            {/if}
 
-            {#if selectedPageId}
+            {:else}
                 <div class="flex items-start justify-start text-left align-middle ml-4 lg:ml-14 2xl:ml-28 3xl:ml-32">
                     <div class="w-10 mr-2 cursor-pointer" on:click={() => selectedPageId = null}>
                         <ArrowLeft />
@@ -124,7 +125,7 @@
                 </div>
                 <h2>Editing <span class="font-bold">{getPage(selectedPageId, $NostrGlobalConfig).title}</span> page content.</h2>
 
-                {#if selectedPageId && selectedPageId !== '0'}
+                {#if selectedPageId !== '0'}
                     <div class="2xl:w-11/12 3xl:w-9/12 mx-auto text-xs md:text-base">
                         <div class="my-4 grid">
                             <div class="mb-4">Page Title: <input type="text" bind:value={pageTitle} placeholder="Title of the new page" class="input input-success w-full max-w-xs input-sm {!pageTitle ? 'input-error border-2' : 'input-bordered'}" /></div>
