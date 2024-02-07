@@ -192,13 +192,13 @@ export function addSectionToPage(newSectionName: string, pageId = 0) {
         } else {
             let pageContent = getPage(pageId);
 
-            let sectionIdNewElement = 0;
-            let order = 0;
+            let sectionIdNewElement: number = 0;
+            let order: number = 0;
 
             if (pageContent.sections) {
                 Object.keys(pageContent.sections).forEach(section_id => {
-                    if (section_id > sectionIdNewElement) {
-                        sectionIdNewElement = section_id;
+                    if (parseInt(section_id, 10) > sectionIdNewElement) {
+                        sectionIdNewElement = parseInt(section_id, 10);
                     }
                     if (pageContent.sections[section_id].order > order) {
                         order = pageContent.sections[section_id].order;
