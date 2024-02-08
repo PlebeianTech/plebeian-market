@@ -32,7 +32,7 @@
             <input bind:value={newCategory} type="text" name="new-category" class="input input-bordered w-full max-w-xs" />
         </div>
         <div>
-            <button class="btn btn-s btn-circle btn-ghost mx-4" on:click={addCategory}><Plus /></button>
+            <button class="btn btn-s btn-circle btn-ghost mx-4" on:click|preventDefault={addCategory}><Plus /></button>
         </div>
     </div>
 </div>
