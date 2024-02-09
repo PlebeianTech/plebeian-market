@@ -4,7 +4,7 @@
 </script>
 
 <div class="relative grid h-[40rem] max-h-48 md:max-h-[32rem] w-full max-w-[28rem] flex-col items-end justify-center overflow-hidden rounded-md md:rounded-xl bg-white bg-clip-border text-center text-gray-700">
-    <a class="cursor-pointer hover:underline" href="/admin">
+    <a class="cursor-pointer hover:underline" rel="external" href="/admin">
         <div class="absolute inset-0 m-0 h-full w-full overflow-hidden rounded-none bg-transparent bg-cover bg-clip-border bg-center text-gray-700 shadow-none">
             <span class="w-7/12 mt-4 md:mt-20 text-green-500 cursor-pointer tooltip">
                 <Plus />

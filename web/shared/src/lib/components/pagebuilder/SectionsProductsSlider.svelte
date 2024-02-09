@@ -172,7 +172,7 @@
                      data-te-carousel-item>
                     <div class="relative h-full w-auto md:flex qaaaoverflow-hidden">
                         <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
-                            <a class="flex" href="/admin">
+                            <a class="flex" rel="external" href="/admin">
                                 <span class="w-7/12 max-h-20 mt-6 md:mt-12 mx-auto text-green-500 tooltip">
                                     <Plus />
                                 </span>
@@ -185,7 +185,7 @@
                                 <p>Create your stall and start selling or auctioning your products in 5 minutes!</p>
                             </div>
 
-                            <a class="btn btn-outline btn-accent mt-6" href="/admin">Sell your products</a>
+                            <a class="btn btn-outline btn-accent mt-6" rel="external" href="/admin">Sell your products</a>
                         </div>
                     </div>
                 </div>

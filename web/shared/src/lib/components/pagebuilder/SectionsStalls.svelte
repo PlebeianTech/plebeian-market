@@ -52,7 +52,7 @@
         {#if $fileConfiguration.backend_present}
             <div class="bg-white dark:bg-black rounded-lg shadow-md">
                 <div class="p-4 md:p-8">
-                    <a href="/admin">
+                    <a rel="external" href="/admin">
                         <div class="cursor-pointer">
                             <div class="float-left h-7 w-7 mr-3"><Store /></div>
                             <h3 class="text-lg font-semibold">
