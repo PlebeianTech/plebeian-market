@@ -34,10 +34,14 @@
                 if (!(productId in products) || (productId in products && products[productId].event.created_at < newProductInfo.event.created_at)) {
                     // Calculate if ended
                     if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
-                        now = Math.floor(Date.now() / 1000);
-                        let endsAt = newProductInfo.start_date + newProductInfo.duration;
-                        newProductInfo.endsAt = endsAt;
-                        newProductInfo.ended = now > endsAt;
+                        if (newProductInfo.start_date) {
+                            now = Math.floor(Date.now() / 1000);
+                            let endsAt = newProductInfo.start_date + newProductInfo.duration;
+                            newProductInfo.endsAt = endsAt;
+                            newProductInfo.ended = now > endsAt;
+                        } else {
+                            newProductInfo.ended = false;
+                        }
                     }
 
                     products[productId] = newProductInfo;

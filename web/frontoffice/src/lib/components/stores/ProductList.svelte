@@ -30,9 +30,13 @@
                 if (newProductInfo.stall_id === stallId) {
                     // Calculate if ended
                     if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
-                        let now = Math.floor(Date.now() / 1000);
-                        let endsAt = newProductInfo.start_date + newProductInfo.duration;
-                        newProductInfo.ended = now > endsAt;
+                        if (newProductInfo.start_date) {
+                            let now = Math.floor(Date.now() / 1000);
+                            let endsAt = newProductInfo.start_date + newProductInfo.duration;
+                            newProductInfo.ended = now > endsAt;
+                        } else {
+                            newProductInfo.ended = false;
+                        }
                     }
 
                     let productId = newProductInfo.id;
