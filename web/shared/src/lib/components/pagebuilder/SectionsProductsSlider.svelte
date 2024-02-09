@@ -138,14 +138,20 @@
                             </div>
 
                             {#if product.event.kind === EVENT_KIND_AUCTION}
-                                {#if product.ended}
+                                {#if !product.start_date}
                                     <div class="flex">
-                                        <p class="pt-5 text-xl font-bold mx-auto">Auction Ended</p>
+                                        <p class="pt-5 text-xl font-bold mx-auto">Coming Soon</p>
                                     </div>
                                 {:else}
-                                    <div class="pt-4 pb-2">
-                                        <Countdown totalSeconds={product.endsAt - now} bind:ended={product.ended} />
-                                    </div>
+                                    {#if product.ended}
+                                        <div class="flex">
+                                            <p class="pt-5 text-xl font-bold mx-auto">Auction Ended</p>
+                                        </div>
+                                    {:else}
+                                        <div class="pt-4 pb-2">
+                                            <Countdown totalSeconds={product.endsAt - now} bind:ended={product.ended} />
+                                        </div>
+                                    {/if}
                                 {/if}
                             {/if}
 
