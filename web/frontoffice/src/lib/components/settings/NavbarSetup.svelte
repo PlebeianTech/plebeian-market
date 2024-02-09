@@ -142,16 +142,17 @@
 </div>
 
 {#if nostrConfigFinishedLoading && allPagesList && allPagesList.length > 0}
-    <div class="grid grid-cols-4 bg-base-300 dark:border dark:border-gray-600 rounded mt-10 p-4 mb-4 font-bold">
+    <div class="grid grid-cols-5 bg-base-300 dark:border dark:border-gray-600 rounded mt-10 p-4 mb-4 font-bold">
         <div></div>
         <div>Title</div>
+        <div>Page Type</div>
         <div>Slug</div>
         <div>Visible</div>
     </div>
 
     <section use:dndzone="{{items: allPagesList, flipDurationMs}}" on:consider="{handleDndConsider}" on:finalize="{handleDndFinalize}">
         {#each allPagesList as page(page.id)}
-            <div class="grid grid-cols-4 bg-base-300 dark:border dark:border-gray-600 rounded p-4 mb-2 items-center" animate:flip="{{duration: flipDurationMs}}">
+            <div class="grid grid-cols-5 bg-base-300 dark:border dark:border-gray-600 rounded p-4 mb-2 items-center" animate:flip="{{duration: flipDurationMs}}">
                 <div class="w-full cursor-move right-0 flex items-center justify-center">
                     <div class="w-8 mx-auto tooltip" data-tip="Change page ordering dragging up or down">
                         <DragBars />
@@ -160,10 +161,12 @@
                 {#if page.p_id.startsWith('virt-')}
                     <!-- Virtual page -->
                     <div>{virtualPages[page.p_id.substring(5)]?.title ?? ''}</div>
+                    <div class="badge badge-accent">cms</div>
                     <div>/{virtualPages[page.p_id.substring(5)]?.slug ?? ''}</div>
                 {:else}
                     <!-- Real page -->
                     <div>{pagesAndTitles[page.p_id]?.title ?? ''}</div>
+                    <div class="badge badge-primary">app</div>
                     <div>/{page.p_id}</div>
                 {/if}
                 <div>
