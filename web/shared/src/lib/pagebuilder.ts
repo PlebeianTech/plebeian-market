@@ -466,29 +466,7 @@ export function getPlacesWhereItemIsPresent(itemId, entityName) {
 }
 
 export function getAppRoutes() {
-    const modules = import.meta.glob('../../**/routes/**');
-
-    const directory = '../routes'
-        .replace(/(.*?)\/src\/routes\//, '/')
-        .replace(/(.*?)\/immutable\/pages\//, '/')
-        .replace(/(.*?)\/var\/task\//, '/') // Vercel
-        .replace(/\/([^/])*.svelte.*/, '/');
-
-    const pageRegex = /\/\+page\.svelte$/;
-
-    return Object.keys(modules)
-        // Convert relative path to absolute path
-        .map((path) => path.replace('../routes/', ''))
-        .map((path) => path.replace(/^(.\/)/, directory))
-        // Filter paths with dynamic parameters (e.g. /blog/[slug].svelte)
-        .filter((path) => !/\[.*\]/.test(path))
-        // Filter paths that end with `/+page.svelte`
-        .filter((path) => pageRegex.test(path))
-        // Remove the trailing `/+page.svelte` string
-        .map((path) => path.replace(pageRegex, ''))
-        // Set empty path string to '/' ('./index.svelte' is converted to '')
-        .map((path) => path || '/')
-        .sort();
+    return Object.keys(pagesAndTitles);
 }
 
 /*

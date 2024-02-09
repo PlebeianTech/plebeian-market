@@ -102,7 +102,7 @@
         if ($fileConfiguration?.admin_pubkeys?.length > 0) {
             let allPagesListReceivedAt = 0;
 
-            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('header_config')],
+            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('navbar_config')],
                 (navbarConfigFromNostr, rcAt) => {
                     if (rcAt > allPagesListReceivedAt) {
                         allPagesListReceivedAt = rcAt;

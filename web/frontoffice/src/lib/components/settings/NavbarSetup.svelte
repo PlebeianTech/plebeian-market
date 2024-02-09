@@ -29,7 +29,7 @@
     }
 
     function saveToNostr() {
-        publishConfiguration(allPagesList, getConfigurationKey('header_config'),
+        publishConfiguration(allPagesList, getConfigurationKey('navbar_config'),
             () => {
                 allPagesListCurrentStatus = JSON.stringify(allPagesList);
             });
@@ -45,13 +45,13 @@
         return false;
     }
 
-    function buildAllPagesList(onlyAddNewOnes: boolean = false) {
+    function buildAllPagesList(weHaveConfigurationOnlyAddNewOnes: boolean = false) {
         appPages = getAppRoutes();
         virtualPages = getPages();
 
         let i = 0;
 
-        if (onlyAddNewOnes) {
+        if (weHaveConfigurationOnlyAddNewOnes) {
             for (const page of allPagesList) {
                 if (page.id > i) {
                     i = page.id;
@@ -64,9 +64,9 @@
         if (virtualPages) {
             for (const [id, virtualPage] of Object.entries(virtualPages)) {
                 if (
-                    (!onlyAddNewOnes && allPagesListReceivedAt === 0)
+                    (!weHaveConfigurationOnlyAddNewOnes && allPagesListReceivedAt === 0)
                     ||
-                    (onlyAddNewOnes && !pageAlreadyExists('virt-'+id))
+                    (weHaveConfigurationOnlyAddNewOnes && !pageAlreadyExists('virt-'+id))
                 ) {
                     allPagesList.push({
                         id: i,
@@ -81,9 +81,9 @@
         if (appPages) {
             for (const appPage of appPages) {
                 if (
-                    (!onlyAddNewOnes && allPagesListReceivedAt === 0)
+                    (!weHaveConfigurationOnlyAddNewOnes && allPagesListReceivedAt === 0)
                     ||
-                    (onlyAddNewOnes && !pageAlreadyExists(appPage))
+                    (weHaveConfigurationOnlyAddNewOnes && !pageAlreadyExists(appPage))
                 ) {
                     allPagesList.push({
                         id: i,
@@ -95,7 +95,7 @@
             }
         }
 
-        if (onlyAddNewOnes) {
+        if (weHaveConfigurationOnlyAddNewOnes) {
             allPagesListCurrentStatus = JSON.stringify(allPagesList);
         }
 
@@ -111,7 +111,7 @@
     onMount(async () => {
         // Try to load the list from Nostr
         if ($fileConfiguration?.admin_pubkeys?.length > 0) {
-            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('header_config')],
+            subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('navbar_config')],
                 (navbarConfigFromNostr, rcAt) => {
                     if (rcAt > allPagesListReceivedAt) {
                         if (navbarConfigFromNostr.length > 0) {
