@@ -114,7 +114,7 @@
                                             <h3 class="text-lg font-semibold">
                                                 {#if stall.name}{stall.name}{/if}
                                             </h3>
-                                            <p class="mt-2 lg:mt-3 text-gray-600 dark:text-gray-400 {stall.description && stall.description.length > descriptionLength ? 'tooltip tooltip-primary text-left' : ''}" data-tip={stall.description && stall.description.length > descriptionLength ? stall.description : ''}>
+                                            <p class="mt-2 lg:mt-3 text-gray-600 dark:text-gray-400 text-ellipsis overflow-hidden {stall?.description?.length > descriptionLength ? 'text-left' : ''}">
                                                 {#if stall.description}{stall.description.substring(0,descriptionLength)}{#if stall.description.length > descriptionLength}...{/if}{/if}
                                             </p>
                                             {#if stall.shipping}
