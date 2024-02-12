@@ -170,6 +170,30 @@ services:
       - "./plebeian-market-state:/state"
     env_file: .env
     command: bash -c "flask db upgrade && flask configure-default-relays && gunicorn --preload --chdir /app main:app -w 2 --threads 2 -b 0.0.0.0:8080"
+  finalize-auctions:
+    image: ghcr.io/plebeiantech/plebeian-market-api
+    depends_on: [db]
+    restart: always
+    stop_grace_period: 1m
+    networks:
+      - db_network
+    volumes:
+      - "./plebeian-market-secrets:/secrets"
+      - "./plebeian-market-state:/state"
+    env_file: .env
+    command: flask finalize-auctions
+  settle-btc-payments:
+    image: ghcr.io/plebeiantech/plebeian-market-api
+    depends_on: [db]
+    restart: always
+    stop_grace_period: 1m
+    networks:
+      - db_network
+    volumes:
+      - "./plebeian-market-secrets:/secrets"
+      - "./plebeian-market-state:/state"
+    env_file: .env
+    command: flask settle-btc-payments
   birdwatcher:
     image: ghcr.io/plebeiantech/plebeian-market-birdwatcher
     restart: always
