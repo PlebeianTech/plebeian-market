@@ -84,7 +84,7 @@
         if ($NostrGlobalConfig?.content && $NostrGlobalConfig?.content.hasOwnProperty('title')) {
             siteTitle = $NostrGlobalConfig.content.title;
         } else {
-            siteTitle = 'Plebeian Market';
+            siteTitle = '';
         }
     }
 
