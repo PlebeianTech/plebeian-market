@@ -19,20 +19,19 @@ fi
 
 apt-get -y install git
 
-echo "------------------------"
-
-echo -n "Enter your domain name (the DNS must be already configured at this point!): "
-read DOMAIN_NAME
-
-echo -n "Enter an email address (this will be used to obtain SSL certificates on your behalf): "
-read EMAIL
-
-echo "------------------------"
-echo "Obtaining SSL certificates. This may take a while..."
-echo "------------------------"
+if [ ! -f plebeian-market-certificates/cert.pem -o ! -f plebeian-market-secrets/mail.json -o ! -f .env -o ! -f plebeian-market-nginx/app.conf ]; then
+  echo "------------------------"
+  echo -n "Enter your domain name (the DNS must be already configured at this point!): "
+  read DOMAIN_NAME
+  echo -n "Enter an email address (this will be used to obtain SSL certificates on your behalf): "
+  read EMAIL
+fi
 
 cd && mkdir -p plebeian-market-certificates
 if [ ! -f plebeian-market-certificates/cert.pem ]; then # TODO: probably better to name the certificate after the domain
+  echo "------------------------"
+  echo "Obtaining SSL certificates. This may take a while..."
+  echo "------------------------"
   docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --register-account --server letsencrypt -m $EMAIL
   docker run --rm -it -v "$(pwd)/out":/acme.sh --net=host neilpang/acme.sh --issue --server letsencrypt -d $DOMAIN_NAME --standalone
   docker run --rm -it -v "$(pwd)/out":/acme.sh -v "$(pwd)/plebeian-market-certificates":/cert --net=host neilpang/acme.sh --install-cert -d $DOMAIN_NAME --key-file /cert/key.pem --fullchain-file /cert/cert.pem
@@ -41,14 +40,23 @@ fi
 # TODO: configure SITE_NAME
 
 cd && mkdir -p plebeian-market-secrets
-tr -dc A-Za-z0-9 </dev/urandom | head -c 64 > plebeian-market-secrets/secret_key
-echo "{\"USERNAME\": \"pleb\", \"PASSWORD\": \"plebpass\"}" > plebeian-market-secrets/db.json
-echo "{\"LNDHUB_URL\": \"https://ln.getalby.com\", \"LNDHUB_USER\": \"TODO\", \"LNDHUB_PASSWORD\": \"TODO\"}" > plebeian-market-secrets/lndhub.json
-echo "{\"server\": \"TODO\", \"username\": \"TODO\", \"password\": \"TODO\", \"default_sender\": \"hello@$DOMAIN_NAME\"}" > plebeian-market-secrets/mail.json
+if [ ! -f plebeian-market-secrets/secret_key ]; then
+  tr -dc A-Za-z0-9 </dev/urandom | head -c 64 > plebeian-market-secrets/secret_key
+fi
+if [ ! -f plebeian-market-secrets/db.json ]; then
+  echo "{\"USERNAME\": \"pleb\", \"PASSWORD\": \"plebpass\"}" > plebeian-market-secrets/db.json
+fi
+if [ ! -f plebeian-market-secrets/lndhub.json ]; then
+  echo "{\"LNDHUB_URL\": \"https://ln.getalby.com\", \"LNDHUB_USER\": \"TODO\", \"LNDHUB_PASSWORD\": \"TODO\"}" > plebeian-market-secrets/lndhub.json
+fi
+if [ ! -f plebeian-market-secrets/mail.json ]; then
+  echo "{\"server\": \"TODO\", \"username\": \"TODO\", \"password\": \"TODO\", \"default_sender\": \"hello@$DOMAIN_NAME\"}" > plebeian-market-secrets/mail.json
+fi
 
 cd && mkdir -p plebeian-market-state/media
 
-cat << EOF > .env
+if [ ! -f .env ]; then
+  cat << EOF > .env
 ENV=prod
 FLASK_APP=main
 LOG_LEVEL=INFO
@@ -60,12 +68,14 @@ VERIFIED_EXTERNAL_IDENTITIES_FILENAME=/state/verified_external_identities.txt
 GECKODRIVER_BINARY=/app/geckodriver
 USER_EMAIL_VERIFICATION=0
 EOF
-echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
-echo "WWW_BASE_URL=https://$DOMAIN_NAME" >> .env
-echo "API_BASE_URL=https://$DOMAIN_NAME" >> .env
+  echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
+  echo "WWW_BASE_URL=https://$DOMAIN_NAME" >> .env
+  echo "API_BASE_URL=https://$DOMAIN_NAME" >> .env
+fi
 
 cd && mkdir -p plebeian-market-nginx
-cat << EOF > plebeian-market-nginx/app.conf
+if [ ! -f plebeian-market-nginx/app.conf ]; then
+  cat << EOF > plebeian-market-nginx/app.conf
 upstream plebeianmarketapi {
     server api:8080;
 }
@@ -124,8 +134,10 @@ server {
     }
 }
 EOF
+fi # plebeian-market-nginx/app.conf
 
-cat << EOF > docker-compose.yml
+if [ ! -f docker-compose.yml ]; then
+  cat << EOF > docker-compose.yml
 version: '3.6'
 
 services:
@@ -205,13 +217,14 @@ networks:
 volumes:
   buyer-app-static-content:
 EOF
+fi # docker-compose.yml
 
 echo "------------------------"
-echo "Installed successfully. Now starting the app!"
+echo "(RE)Starting the app!"
 echo "------------------------"
 
-docker compose up -d
+docker compose down --volumes && docker compose pull && docker compose up -d
 
 echo "------------------------"
-echo "All is well! Try going to https://$DOMAIN_NAME using your browser!"
+echo "All is well! Try navigating to https://$DOMAIN_NAME using your browser!"
 echo "------------------------"
