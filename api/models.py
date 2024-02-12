@@ -970,6 +970,7 @@ class Order(db.Model):
             'total_usd': self.total_usd,
             'total': self.total,
             'lightning_payment_logs': [lightning_payment_log.to_dict() for lightning_payment_log in self.lightning_payment_logs],
+            'order_items': [order_item.to_dict() for order_item in self.order_items],
         }
 
 class OrderItem(db.Model):
@@ -989,6 +990,23 @@ class OrderItem(db.Model):
     listing = db.relationship('Listing')
 
     quantity = db.Column(db.Integer, nullable=False)
+
+    def to_dict(self):
+        d = {
+            'order_id': self.order_id,
+            'item_id': self.item_id,
+            'auction_id': self.auction_id,
+            'listing_id': self.listing_id,
+            'quantity': self.quantity,
+        }
+
+        if self.auction_id is not None:
+            d['product'] = self.auction.to_dict()
+
+        if self.listing_id is not None:
+            d['product'] = self.listing.to_dict()
+
+        return d
 
 class SaleState(Enum):
     OLD = -1 # old sales, from before we used to settle on-chain
