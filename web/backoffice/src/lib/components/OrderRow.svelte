@@ -31,10 +31,7 @@
 
     $: if (order.lightning_payment_logs || order.txid) {
         if (order.lightning_payment_logs) {
-            console.log('  -- order.lightning_payment_logs', order.lightning_payment_logs);
-
             order.lightning_payment_logs.forEach(payment_log => {
-                console.log('     **** payment_log:', payment_log);
                 if (payment_log.type === 1) {
                     lnPaymentAt = payment_log.created_at;
                     lnPaymentAmount = payment_log.amount;
@@ -46,8 +43,6 @@
         }
     }
 </script>
-
-{(console.log(' ----- order', order), '')}
 
 <tr>
     <td class="pb-5 text-center">
@@ -64,7 +59,6 @@
     <td class="pb-5 text-center">
         {#if order.order_items}
             {#each order.order_items as order_item}
-                {(console.log('********* order_item:', order_item), '')}
                 <p>{order_item.quantity} x {order_item.product.title}</p>
             {/each}
         {/if}
