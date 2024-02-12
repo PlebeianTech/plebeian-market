@@ -62,6 +62,14 @@
         {/if}
     </td>
     <td class="pb-5 text-center">
+        {#if order.order_items}
+            {#each order.order_items as order_item}
+                {(console.log('********* order_item:', order_item), '')}
+                <p>{order_item.quantity} x {order_item.product.title}</p>
+            {/each}
+        {/if}
+    </td>
+    <td class="pb-5 text-center">
         <p>
             {order.total} sat
         </p>
