@@ -15,7 +15,7 @@ services:
       - "7777:7777"
   api:
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/healthcheck"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
       interval: 3s
       timeout: 3s
       retries: 5

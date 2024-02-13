@@ -8,7 +8,7 @@ services:
     env_file: .env.prod
   api:
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://plebeian.market/api/healthcheck"]
+      test: ["CMD", "curl", "-f", "https://plebeian.market/api/status"]
       interval: 3s
       timeout: 3s
       retries: 5

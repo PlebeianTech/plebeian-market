@@ -26,9 +26,9 @@ from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
 
 api_blueprint = Blueprint('api', __name__)
 
-@api_blueprint.route('/api/healthcheck', methods=['GET'])
-def healthcheck(): # TODO: I don't really like this, for some reason, but it is used in "dev" mode by docker-compose
-    return jsonify({'success': True})
+@api_blueprint.route('/api/status', methods=['GET'])
+def status():
+    return jsonify({'running': True, 'version': app.config['RELEASE_VERSION']})
 
 @api_blueprint.route('/api/login/lnurl', methods=['GET'])
 def auth_lnurl():

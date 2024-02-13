@@ -1,6 +1,8 @@
 import json
 import os
 
+RELEASE_VERSION = os.environ.get('RELEASE_VERSION', "")
+
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 DEBUG = bool(int(os.environ.get("DEBUG", 0)))
 PROPAGATE_EXCEPTIONS = False

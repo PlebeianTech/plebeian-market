@@ -11,6 +11,7 @@
     import Nostr from "$lib/components/settings/Nostr.svelte";
     import Login from "$lib/components/settings/Login.svelte";
     import V4V from "$lib/components/settings/V4V.svelte";
+    import Version from "$lib/components/settings/Version.svelte";
     import Wallet from "$lib/components/settings/Wallet.svelte";
     import { goto } from '$app/navigation';
 
@@ -20,7 +21,8 @@
     let NOSTR_PAGE = "Nostr";
     let LOGIN_PAGE = "Login";
     let V4V_PAGE = "Value 4 Value";
-    let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, EMAIL_PAGE, NOSTR_PAGE, V4V_PAGE];
+    let VERSION_PAGE = "Version";
+    let pages = [STALL_PAGE, LOGIN_PAGE, WALLET_PAGE, EMAIL_PAGE, NOSTR_PAGE, V4V_PAGE, VERSION_PAGE];
     let WALLET_PAGE_INDEX = pages.indexOf(WALLET_PAGE);
     let currentPage: string | null = null;
 
@@ -70,6 +72,8 @@
                     <Login />
                 {:else if currentPage === V4V_PAGE}
                     <V4V />
+                {:else if currentPage === VERSION_PAGE}
+                    <Version />
                 {/if}
             </div>
         </div>

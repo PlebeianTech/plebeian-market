@@ -66,6 +66,19 @@ async function fetchAPIAsync(path, method, tokenValue, body, contentType) {
     return await fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, body, contentType));
 }
 
+export function getStatus(successCB: (version: string) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/status", 'GET', null, null, null,
+        response => {
+            if (response.status === 200) {
+                response.json().then(data => {
+                    successCB(data['version']);
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
 export interface ILoader {
     endpoint: string;
     responseField: string;

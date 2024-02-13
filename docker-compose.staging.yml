@@ -13,7 +13,7 @@ services:
       - proxy
   api:
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://staging.plebeian.market/api/healthcheck"]
+      test: ["CMD", "curl", "-f", "https://staging.plebeian.market/api/status"]
       interval: 3s
       timeout: 3s
       retries: 5
