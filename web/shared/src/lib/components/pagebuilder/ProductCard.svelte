@@ -22,7 +22,11 @@
                 <h1 class="text-md md:text-2xl leading-4">{product.name}</h1>
                 {#if product.event.kind === EVENT_KIND_AUCTION}
                     <div class="p-5">
-                        <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
+                        {#if !product.start_date}
+                            <p class="font-bold mx-auto">Coming Soon</p>
+                        {:else}
+                            <Countdown totalSeconds={endsAt - now} bind:ended={ended} />
+                        {/if}
                     </div>
                 {:else}
                     {#if product.price && product.currency}
