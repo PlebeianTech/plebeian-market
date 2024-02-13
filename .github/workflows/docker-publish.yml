@@ -102,7 +102,7 @@ jobs:
           labels: ${{ steps.meta-api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: RELEASE_VERSION=${{ GITHUB_REF }}
+          build-args: RELEASE_VERSION=${{ github.ref }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
