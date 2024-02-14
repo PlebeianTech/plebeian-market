@@ -40,4 +40,4 @@ Instructions:
 1. Open a terminal.
 1. Wait a couple of minutes for the DNS to propagate. It shouldn't take long. You can run `ping -c 3 <domain name>` in the terminal you opened and see that the results include the correct IP address.
 1. Log in to your machine using `ssh root@<domain name>`. Respond with `yes` to any questions about trusting the host and use the root password from step 1!
-1. Run `sh -c "$(curl -sSL https://raw.githubusercontent.com/PlebeianTech/plebeian-market/master/install.sh)"` and follow the instructions
+1. Run `sh -c "$(curl -sSL plebeian.market/install.sh)"` and follow the instructions
