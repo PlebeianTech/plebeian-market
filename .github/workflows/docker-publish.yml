@@ -22,6 +22,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Extract vars
+        id: vars
+        run: echo "release_version=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
       # https://github.com/docker/setup-buildx-action
@@ -102,7 +106,7 @@ jobs:
           labels: ${{ steps.meta-api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: RELEASE_VERSION=${{ github.ref }}
+          build-args: RELEASE_VERSION=${{ steps.vars.outputs.release_version }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
