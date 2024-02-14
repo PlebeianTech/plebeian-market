@@ -10,7 +10,9 @@ from io import BytesIO
 import json
 import jwt
 import lnurl
+import os
 import pyqrcode
+import requests
 import secrets
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
@@ -28,7 +30,29 @@ api_blueprint = Blueprint('api', __name__)
 
 @api_blueprint.route('/api/status', methods=['GET'])
 def status():
-    return jsonify({'running': True, 'version': app.config['RELEASE_VERSION']})
+    github_releases = requests.get(f"https://api.github.com/repos/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}/releases").json()
+    last_release = max(github_releases, key=lambda r: r['tag_name'])
+    return jsonify({'running': True,
+                    'release_version': app.config['RELEASE_VERSION'],
+                    'last_release_version': last_release['tag_name'] if last_release else ""})
+
+@api_blueprint.route('/api/update', methods=['PUT'])
+@user_required
+def update(_user: m.User):
+    # TODO: not every user should be able to perform the update
+
+    if not app.config['RELEASE_VERSION']:
+        # this would happen if the app was not installed from a GitHub build, but in some other way,
+        # like a "git clone" and performing a local build using for example `./scripts/prod.sh`
+        return jsonify({'message': "Unknown release version. Cannot request update."}), 400
+
+    if os.path.isfile(app.config['UPDATE_REQUESTED_FILE']):
+        return jsonify({'message': "Update already requested."}), 400
+
+    with open(app.config['UPDATE_REQUESTED_FILE'], 'w') as _f:
+        pass
+
+    return jsonify({})
 
 @api_blueprint.route('/api/login/lnurl', methods=['GET'])
 def auth_lnurl():

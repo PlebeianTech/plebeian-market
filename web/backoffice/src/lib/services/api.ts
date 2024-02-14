@@ -66,12 +66,26 @@ async function fetchAPIAsync(path, method, tokenValue, body, contentType) {
     return await fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, body, contentType));
 }
 
-export function getStatus(successCB: (version: string) => void, errorHandler = new ErrorHandler()) {
+export function getStatus(successCB: (releaseVersion: string, lastReleaseVersion: string) => void, errorHandler = new ErrorHandler()) {
     fetchAPI("/status", 'GET', null, null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
-                    successCB(data['version']);
+                    successCB(data['release_version'], data['last_release_version']);
+                });
+            } else {
+                errorHandler.handle(response);
+            }
+        });
+}
+
+export function putUpdate(tokenValue, successCB: () => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/update", 'PUT', tokenValue,
+        JSON.stringify({}), "application/json",
+        response => {
+            if (response.status === 200) {
+                response.json().then(_ => {
+                    successCB();
                 });
             } else {
                 errorHandler.handle(response);

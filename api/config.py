@@ -3,6 +3,11 @@ import os
 
 RELEASE_VERSION = os.environ.get('RELEASE_VERSION', "")
 
+GITHUB_OWNER = 'PlebeianTech'
+GITHUB_REPO = 'plebeian-market'
+
+UPDATE_REQUESTED_FILE = "/state/UPDATE_REQUESTED"
+
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 DEBUG = bool(int(os.environ.get("DEBUG", 0)))
 PROPAGATE_EXCEPTIONS = False

@@ -1,20 +1,29 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { page } from "$app/stores";
-    import { getStatus } from "$lib/services/api";
+    import { ErrorHandler, getStatus, putUpdate } from "$lib/services/api";
+    import { Info, token } from "$sharedLib/stores";
 
     export let onSave: () => void = () => {};
 
-    let updateButtonActive = false;
+    let version: string | null = null;
+    let lastVersion: string | null = null;
 
-    let version;
-
-    let saving = false;
+    let inRequest = false;
     function update() {
+        inRequest = true;
+        putUpdate($token,
+            () => {
+                Info.set("Update requested!");
+                inRequest = false;
+            },
+            new ErrorHandler(true, () => inRequest = false));
     }
 
+    let updateButtonActive = version !== lastVersion && !inRequest;
+
     onMount(async () => {
-        getStatus((v) => { version = v; });
+        getStatus((v, lv) => { version = v; });
     });
 </script>
 
@@ -31,6 +40,7 @@
 
 <div class="w-full flex items-center justify-center mt-8">
     <p class="text-2xl">You are currently running Plebeian Market {version}.</p>
+    <p class="text-2xl">The last available version is {lastVersion}.</p>
 </div>
 
 <div class="flex justify-center items-center mt-4 h-15">
