@@ -136,6 +136,25 @@ server {
 EOF
 fi # plebeian-market-nginx/app.conf
 
+if [ ! -f update.sh ]; then
+  cat << EOF > update.sh
+#!/bin/sh
+
+cd
+
+if [ ! -f plebeian-market-state/UPDATE_REQUESTED ]; then
+    # TODO: we could have a command line argument to force update, so this script would be usable on its own!
+    echo "Update not requested. Exiting..."
+    exit 0
+fi
+
+rm plebeian-market-state/UPDATE_REQUESTED
+
+docker compose down --volumes && docker compose pull && docker compose up -d
+EOF
+  crontab -l | { cat; echo "* * * * * /bin/sh /root/update.sh"; } | crontab -
+fi # update.sh
+
 if [ ! -f docker-compose.yml ]; then
   cat << EOF > docker-compose.yml
 version: '3.6'
