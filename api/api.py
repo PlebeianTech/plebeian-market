@@ -34,7 +34,8 @@ def status():
     last_release = max(github_releases, key=lambda r: r['tag_name'])
     return jsonify({'running': True,
                     'release_version': app.config['RELEASE_VERSION'],
-                    'last_release_version': last_release['tag_name'] if last_release else ""})
+                    'last_release_version': last_release['tag_name'] if last_release else "",
+                    'github_repo_url': f"https://github.com/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}"})
 
 @api_blueprint.route('/api/update', methods=['PUT'])
 @user_required

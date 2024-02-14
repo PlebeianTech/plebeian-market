@@ -8,6 +8,7 @@
 
     let version: string | null = null;
     let lastVersion: string | null = null;
+    let githubRepoUrl: string | null = null;
 
     let inRequest = false;
     function update() {
@@ -23,7 +24,7 @@
     let updateButtonActive = version !== lastVersion && !inRequest;
 
     onMount(async () => {
-        getStatus((v, lv) => { version = v; lastVersion = lv; });
+        getStatus((v, lv, g) => { version = v; lastVersion = lv; githubRepoUrl = g; });
     });
 </script>
 
@@ -41,7 +42,14 @@
 {#if version !== null && lastVersion !== null}
     <div class="items-center justify-center mt-8">
         <p class="text-2xl">You are currently running<br /><strong>Plebeian Market {version}</strong>.</p>
-        <p class="text-2xl mt-4">The last available version is <strong>{lastVersion}</strong>.</p>
+        {#if version === lastVersion}
+            <p class="text-xl mt-4">This is the most recent version. All is well!</p>
+        {:else}
+            <p class="text-2xl mt-4">The last available version is <strong>{lastVersion}</strong>.</p>
+            {#if githubRepoUrl !== null}
+                <p class="text-xl mt-4">See what is new <a class="link" target="_blank" href="{githubRepoUrl}/releases/">here</a>!</p>
+            {/if}
+        {/if}
     </div>
     <div class="flex justify-center items-center mt-8 h-15">
         <button id="update-pm" class="btn btn-primary" class:btn-disabled={!updateButtonActive} on:click|preventDefault={update}>Update</button>
