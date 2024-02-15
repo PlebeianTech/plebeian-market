@@ -7,6 +7,7 @@
     import SectionsProducts from "$sharedLib/components/pagebuilder/SectionsProducts.svelte";
     import SectionsText from "$sharedLib/components/pagebuilder/SectionsText.svelte";
     import SectionsProductsSlider from "$sharedLib/components/pagebuilder/SectionsProductsSlider.svelte";
+    import SectionsImageBanner from "$sharedLib/components/pagebuilder/SectionsImageBanner.svelte";
     import BuilderSectionSetup from "$sharedLib/components/pagebuilder/BuilderSectionSetup.svelte";
     import Edit from "$sharedLib/components/icons/Edit.svelte";
 
@@ -39,16 +40,18 @@
     {#if content?.sections && Object.keys(content.sections).length > 0}
         <div class="pt-12">
             {#each orderedSections as [sectionId, section]}
-                {#if section?.params?.sectionType && (section?.values || section.params.sectionType === 'text')}
+                {#if section?.params?.sectionType && (section?.values || ['text', 'image_banner'].includes(section.params.sectionType))}
                     <div class="relative overflow-x-hidden">
-                        <h2 class="text-2xl font-bold text-center mb-2 md:mb-5">
-                            {section.title}
-                            {#if $isSuperAdmin}
-                                <button class="btn btn-square ml-2" on:click={() => setupSection(pageId, sectionId, null, true)}>
-                                    <span class="size-6"><Edit /></span>
-                                </button>
-                            {/if}
-                        </h2>
+                        {#if section.params.sectionType !== 'image_banner'}
+                            <h2 class="text-2xl font-bold text-center mb-2 md:mb-5">
+                                {section.title}
+                                {#if $isSuperAdmin}
+                                    <button class="btn btn-square ml-2" on:click={() => setupSection(pageId, sectionId, null, true)}>
+                                        <span class="size-6"><Edit /></span>
+                                    </button>
+                                {/if}
+                            </h2>
+                        {/if}
 
                         {#if section?.params?.sectionType === 'text'}
                             <SectionsText {pageId} {sectionId} />
@@ -58,6 +61,8 @@
                             <SectionsProducts {pageId} {sectionId} />
                         {:else if section?.params?.sectionType === 'products_with_slider'}
                             <SectionsProductsSlider {pageId} {sectionId} {setupSection} />
+                        {:else if section?.params?.sectionType === 'image_banner'}
+                            <SectionsImageBanner {section} />
                         {:else if section?.params?.sectionType === 'stall_products'}
                             ----- Stall Products
                         {/if}
