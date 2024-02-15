@@ -5,13 +5,51 @@
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
     import { user } from "$lib/stores";
-    import { Info, Error, token, NostrPublicKey } from "$sharedLib/stores";
+    import {
+        Info,
+        Error,
+        token,
+        NostrPublicKey,
+        fileConfiguration,
+        isSuperAdmin,
+        NostrGlobalConfig
+    } from "$sharedLib/stores";
     import type { Placement } from "$sharedLib/stores";
     import { getProfile } from "$lib/services/api";
     import Navbar from "$sharedLib/components/Navbar.svelte";
     import Footer from "$sharedLib/components/Footer.svelte";
     import LoginModalLightning from "$lib/components/auth/Modal.svelte";
     import LoginModal from "$sharedLib/components/login/Modal.svelte";
+    import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
+
+    function subscribeGlobalConf() {
+        let receivedAt = 0;
+
+        const serializedGlobalConfig = localStorage.getItem("NostrGlobalConfig");
+        if (serializedGlobalConfig) {
+            $NostrGlobalConfig = JSON.parse(serializedGlobalConfig);
+            receivedAt = parseInt(localStorage.getItem("NostrGlobalConfigReceivedAt") ?? '0');
+        }
+
+        subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('site_specific_config')],
+            (setup, rcAt) => {
+                if (rcAt > receivedAt) {
+                    receivedAt = rcAt;
+
+                    $NostrGlobalConfig = setup;
+                    localStorage.setItem('NostrGlobalConfig', JSON.stringify(setup));
+                    localStorage.setItem('NostrGlobalConfigReceivedAt', receivedAt.toString());
+                }
+            });
+    }
+
+    $: if ($fileConfiguration?.admin_pubkeys?.length > 0) {
+        subscribeGlobalConf();
+    }
+
+    $: if ($NostrPublicKey && $fileConfiguration?.admin_pubkeys?.includes($NostrPublicKey)) {
+        $isSuperAdmin = true;
+    }
 
 	const infoUnsubscribe = Info.subscribe(value => {
         if (value) {
