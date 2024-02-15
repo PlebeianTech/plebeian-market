@@ -717,7 +717,9 @@ def post_media(key, cls, singular):
         index += 1
         added_media.append(media)
 
-    if entity.started:
+    if entity.nostr_event_id:
+        # if the entity was already published, then we re-publish it here
+        # otherwise it just stays in our database and will be published when the seller hits "publish"
         entity.nostr_event_id = get_birdwatcher().publish_product(entity, added_media)
         if not entity.nostr_event_id:
             return jsonify({'message': "Error publishing product to Nostr!"}), 500
