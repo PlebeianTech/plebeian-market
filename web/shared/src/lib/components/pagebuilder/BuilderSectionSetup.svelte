@@ -12,6 +12,7 @@
 
     let sectionType;
     let maxProductsShown;
+    let imageBannerURL;
     let sectionTitle;
 
     let getLexicalContent;
@@ -89,6 +90,7 @@
         sectionTitle = page?.sections[sectionId]?.title ?? '';
         sectionType = page?.sections[sectionId]?.params?.sectionType ?? null;
         maxProductsShown = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
+        imageBannerURL = page?.sections[sectionId]?.params?.imageBannerURL ?? '';
 
         if (sectionType === 'text') {
             getTextConfigFromNostr()
@@ -110,6 +112,7 @@
             sectionTitle,
             sectionType,
             maxProductsShown,
+            imageBannerURL,
             lexicalContent,
             lastProductPassed
         });
@@ -162,6 +165,13 @@
                         <div class="mt-8">
                             Max number of products shown in the section:
                             <input type="text" placeholder="max products shown" class="mt-2 input input-bordered input-sm w-full max-w-xs" bind:value={maxProductsShown} />
+                        </div>
+                    {/if}
+
+                    {#if sectionType === 'image_banner'}
+                        <div class="mt-8">
+                            Image to show in the section:
+                            <input type="text" placeholder="Image URL to be used as banner" class="mt-2 input input-bordered input-sm w-full max-w-xs" bind:value={imageBannerURL} />
                         </div>
                     {/if}
 

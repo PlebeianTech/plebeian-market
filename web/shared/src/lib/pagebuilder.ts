@@ -31,6 +31,12 @@ export const pageBuilderWidgetType = {
         'items': ['stalls'],
         'max_num_available': false
     },
+    image_banner: {
+        'title': 'Image Banner',
+        'description': 'This widget allows you to show an image banner in a section',
+        'items': false,
+        'max_num_available': false
+    },
     /*
     stall_products: {
         'title': 'Show all Products from several stalls',
@@ -377,6 +383,10 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
     }
 
     section.params.sectionType = setupParams.sectionType;
+
+    if (setupParams.sectionType === 'image_banner') {
+        section.params.imageBannerURL = setupParams.imageBannerURL ?? '';
+    }
 
     if (setupParams.maxProductsShown && setupParams.maxProductsShown != 0) {
         section.params.maxProductsShown = setupParams.maxProductsShown;
