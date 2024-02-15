@@ -98,12 +98,13 @@
         }
 
         virtualPages = getPages();
-
+console.log(' ---- $fileConfiguration', $fileConfiguration);
         if ($fileConfiguration?.admin_pubkeys?.length > 0) {
             let allPagesListReceivedAt = 0;
 
             subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('navbar_config')],
                 (navbarConfigFromNostr, rcAt) => {
+console.log(' ---- navbarConfigFromNostr', navbarConfigFromNostr);
                     if (rcAt > allPagesListReceivedAt) {
                         allPagesListReceivedAt = rcAt;
                         allPagesNavbarList = navbarConfigFromNostr;
