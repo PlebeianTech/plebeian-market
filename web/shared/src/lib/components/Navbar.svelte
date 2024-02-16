@@ -98,13 +98,17 @@
         }
 
         virtualPages = getPages();
-console.log(' ---- $fileConfiguration', $fileConfiguration);
+
+        let retries = 5;
+        while ((!$fileConfiguration || Object.keys($fileConfiguration).length === 0) && retries-- > 0) {
+            await new Promise(resolve => setTimeout(resolve, 30));
+        }
+
         if ($fileConfiguration?.admin_pubkeys?.length > 0) {
             let allPagesListReceivedAt = 0;
 
             subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('navbar_config')],
                 (navbarConfigFromNostr, rcAt) => {
-console.log(' ---- navbarConfigFromNostr', navbarConfigFromNostr);
                     if (rcAt > allPagesListReceivedAt) {
                         allPagesListReceivedAt = rcAt;
                         allPagesNavbarList = navbarConfigFromNostr;
