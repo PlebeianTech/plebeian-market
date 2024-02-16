@@ -99,6 +99,11 @@
 
         virtualPages = getPages();
 
+        let retries = 5;
+        while ((!$fileConfiguration || Object.keys($fileConfiguration).length === 0) && retries-- > 0) {
+            await new Promise(resolve => setTimeout(resolve, 30));
+        }
+
         if ($fileConfiguration?.admin_pubkeys?.length > 0) {
             let allPagesListReceivedAt = 0;
 
