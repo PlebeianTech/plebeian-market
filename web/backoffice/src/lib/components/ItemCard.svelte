@@ -2,13 +2,14 @@
     import { onMount } from 'svelte';
     import { ErrorHandler, deleteEntity, putPublish, putStart } from "$lib/services/api";
     import { user } from "$lib/stores";
-    import { token, Info } from "$sharedLib/stores";
+    import {token, Info, isSuperAdmin, NostrGlobalConfig} from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction } from "$lib/types/auction";
     import { Listing } from "$lib/types/listing";
     import type { Item } from "$lib/types/item";
     import AmountFormatter, { AmountFormat } from "$lib/components/AmountFormatter.svelte";
     import Countdown, { CountdownStyle } from "$sharedLib/components/Countdown.svelte";
+    import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import ErrorBox from "$lib/components/notifications/ErrorBox.svelte";
     import Pencil from "$sharedLib/components/icons/Pencil.svelte";
     import Trash from "$sharedLib/components/icons/Trash2.svelte";
@@ -82,7 +83,7 @@
         </div>
     {/if}
 
-    <div class="card bg-base-300 max-w-full overflow-hidden shadow-xl my-3 mx-3">
+    <div class="card bg-base-300 max-w-full shadow-xl my-3 mx-3 z-[300]">
         <a href={url}>
             <figure class="h-auto flex justify-center">
                 {#if item.media.length !== 0}
@@ -177,6 +178,18 @@
                 {/if}
                 <button class="btn btn-primary" class:btn-disabled={inRequest} on:click|preventDefault={publish}>Publish</button>
             {/if}
+
+
         </div>
+
+        {#if $isSuperAdmin && $NostrGlobalConfig}
+            <div class="z-[500] px-8 py-2">
+                <AdminActions
+                    itemId={item.uuid}
+                    entityName="products"
+                    showAdminInfoIcon={false}
+                />
+            </div>
+        {/if}
     </div>
 </div>
