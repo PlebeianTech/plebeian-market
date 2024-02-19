@@ -50,6 +50,16 @@
                 <div class="collapse collapse-plus bg-base-300 mt-4">
                     <input type="radio" />
                     <div class="collapse-title text-xl font-medium">
+                        How can I support you?
+                    </div>
+                    <div class="collapse-content">
+                        <p>You can sell or auction your products on Plebeian Market and choose a higher contribution from each item sold/auctioned. You can also visit our <a class="link" href="/donate">Support Us</a> page and donate some sats.</p>
+                    </div>
+                </div>
+
+                <div class="collapse collapse-plus bg-base-300 mt-4">
+                    <input type="radio" />
+                    <div class="collapse-title text-xl font-medium">
                         Where can I share my question or feedback?
                     </div>
                     <div class="collapse-content">

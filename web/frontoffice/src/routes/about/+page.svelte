@@ -136,7 +136,7 @@
             </div>
         </div>
     </a>
-    <a target="_blank" rel="noreferrer" href="/contact">
+    <a rel="noreferrer" href="/contact">
         <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
             <div>
                 <div class=" w-full text-center">

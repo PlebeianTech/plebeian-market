@@ -29,6 +29,7 @@
     import Book from "$sharedLib/components/icons/Book.svelte";
     import Chat from "$sharedLib/components/icons/Chat.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
+    import Support from "$sharedLib/components/icons/Support.svelte";
     import FiatChooser from "$sharedLib/components/FiatChooser.svelte";
     import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
     import {getPages, pagesAndTitles} from "$sharedLib/pagebuilder";
@@ -364,6 +365,11 @@
                         <li>
                             <a href="/faq" rel="{isFrontOffice ? '' : 'external'}" class="modal-button cursor-pointer text-base">
                                 <span class="size-6 mr-1"><Book /></span> FAQ
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/donations" rel="{isFrontOffice ? '' : 'external'}" class="text-base">
+                                <div class="size-6 mr-1"><Support /></div> Support Us
                             </a>
                         </li>
                         <li>
