@@ -91,3 +91,8 @@ In this way, we're able to have chat rooms without polluting the chat room list 
 use this chat room in your client, you'll have to copy the channel id manually instead of searching for it.
 
 Give a look to the `getChannelIdForStall` function to know how we're generating the Channel id.
+
+## Keys used in the code
+
+* `VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID` - Nostr channel id of the Market Square for each community
+* `VITE_NOSTR_PM_STALL_PUBLIC_KEY` - Nostr public key of Plebeian Market's market stall
