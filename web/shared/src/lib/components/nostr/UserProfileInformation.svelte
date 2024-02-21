@@ -76,7 +76,7 @@
                 badgeObject.badgeFullName = badgeFullName;
                 badgeObject.eventId = badgeEvent.id;        // Event ID from the "Badge Award"
 
-                if (badgeDefinition.pubkey === pmStallPubkey) {
+                if (badgeDefinition.pubkey === pmStallPubkey || badgeDefinition.id === "4a8891b6e8b65fe93d749600a2488df1a7c0c7e43a4b6fc46c4a145b03518506") {
                     badgeObject.pm_issued = true;
                     pm_badges = true;
                 } else {
