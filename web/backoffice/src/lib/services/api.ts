@@ -66,12 +66,12 @@ async function fetchAPIAsync(path, method, tokenValue, body, contentType) {
     return await fetch(`${API_BASE}${path}`, getFetchOptions(method, tokenValue, body, contentType));
 }
 
-export function getStatus(successCB: (releaseVersion: string, lastReleaseVersion: string, githubRepoUrl: string) => void, errorHandler = new ErrorHandler()) {
-    fetchAPI("/status", 'GET', null, null, null,
+export function getStatus(checkLastRelease: boolean, successCB: (releaseVersion: string, lastReleaseVersion: string | null, githubRepoUrl: string, updateRequested: boolean, updateRunning: boolean, updateSuccess: boolean, updateFailed: boolean) => void, errorHandler = new ErrorHandler()) {
+    fetchAPI("/status" + (`?check_last_release=${+checkLastRelease}`), 'GET', null, null, null,
         response => {
             if (response.status === 200) {
                 response.json().then(data => {
-                    successCB(data['release_version'], data['last_release_version'], data['github_repo_url']);
+                    successCB(data['release_version'], data['last_release_version'], data['github_repo_url'], data['update_requested'], data['update_running'], data['update_success'], data['update_failed']);
                 });
             } else {
                 errorHandler.handle(response);

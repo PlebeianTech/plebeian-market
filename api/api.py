@@ -30,12 +30,21 @@ api_blueprint = Blueprint('api', __name__)
 
 @api_blueprint.route('/api/status', methods=['GET'])
 def status():
-    github_releases = requests.get(f"https://api.github.com/repos/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}/releases").json()
-    last_release = max(github_releases, key=lambda r: r['tag_name'])
+    if bool(int(request.args.get('check_last_release', 0))):
+        github_releases = requests.get(f"https://api.github.com/repos/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}/releases").json()
+        last_release = max(github_releases, key=lambda r: r['tag_name'])
+    else:
+        # don't hit GitHub's API every time we hit /status if we are just waiting for an update to happen!
+        last_release = None
+
     return jsonify({'running': True,
                     'release_version': app.config['RELEASE_VERSION'],
-                    'last_release_version': last_release['tag_name'] if last_release else "",
-                    'github_repo_url': f"https://github.com/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}"})
+                    'last_release_version': last_release['tag_name'] if last_release else None,
+                    'github_repo_url': f"https://github.com/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}",
+                    'update_requested': os.path.isfile(app.config['UPDATE_REQUESTED_FILE']),
+                    'update_running': os.path.isfile(app.config['UPDATE_RUNNING_FILE']),
+                    'update_success': os.path.isfile(app.config['UPDATE_SUCCESS_FILE']),
+                    'update_failed': os.path.isfile(app.config['UPDATE_FAILED_FILE'])})
 
 @api_blueprint.route('/api/update', methods=['PUT'])
 @user_required
