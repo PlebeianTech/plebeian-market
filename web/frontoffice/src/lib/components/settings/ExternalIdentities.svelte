@@ -260,7 +260,7 @@
             <ShowExternalIdentities
                 {profileFinishedLoading}
                 {externalIdentities}
-                {externalIdentitiesVerification}
+                bind:externalIdentitiesVerification={externalIdentitiesVerification}
                 nostrPublicKey={$NostrPublicKey}
                 {deleteIdentity}
             />
