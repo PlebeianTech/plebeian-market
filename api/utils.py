@@ -2,10 +2,11 @@ import base58
 from base64 import b32encode
 import hashlib
 import magic
+from os import urandom
 from pycoin.symbols.btc import network as BTC
 from pycoin.symbols.xtn import network as TESTNET
 import requests
-from os import urandom
+import semver
 
 def hash_create(length):
     return b32encode(urandom(length)).decode("ascii").replace("=", "")
@@ -73,3 +74,8 @@ def parse_xpub(xpub):
         raise UnknownKeyTypeError()
 
     return coin.parse.bip84_pub(zpub)
+
+def parse_github_tag(t):
+    if t.startswith("v"):
+        t = t[1:]
+    return semver.Version.parse(t)

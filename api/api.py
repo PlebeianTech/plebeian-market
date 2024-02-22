@@ -24,22 +24,29 @@ from main import app, get_birdwatcher, get_lndhub_client, get_file_storage
 from main import get_token_from_request, get_user_from_token, user_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
-from utils import usd2sats, sats2usd, parse_xpub, UnknownKeyTypeError
+from utils import usd2sats, sats2usd, parse_github_tag, parse_xpub, UnknownKeyTypeError
 
 api_blueprint = Blueprint('api', __name__)
+
+
+def get_last_github_release_version():
+    endpoint = f"https://api.github.com/repos/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}/releases"
+    github_versions = [parse_github_tag(r['tag_name']) for r in requests.get(endpoint).json()]
+    if not github_versions:
+        return None
+    return sorted(github_versions, reverse=True)[0]
 
 @api_blueprint.route('/api/status', methods=['GET'])
 def status():
     if bool(int(request.args.get('check_last_release', 0))):
-        github_releases = requests.get(f"https://api.github.com/repos/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}/releases").json()
-        last_release = max(github_releases, key=lambda r: r['tag_name'])
+        last_release = str(get_last_github_release_version())
     else:
         # don't hit GitHub's API every time we hit /status if we are just waiting for an update to happen!
         last_release = None
 
     return jsonify({'running': True,
-                    'release_version': app.config['RELEASE_VERSION'],
-                    'last_release_version': last_release['tag_name'] if last_release else None,
+                    'release_version': str(parse_github_tag(app.config['RELEASE_VERSION'])) if app.config['RELEASE_VERSION'] else "",
+                    'last_release_version': last_release,
                     'github_repo_url': f"https://github.com/{app.config['GITHUB_OWNER']}/{app.config['GITHUB_REPO']}",
                     'update_requested': os.path.isfile(app.config['UPDATE_REQUESTED_FILE']),
                     'update_running': os.path.isfile(app.config['UPDATE_RUNNING_FILE']),
