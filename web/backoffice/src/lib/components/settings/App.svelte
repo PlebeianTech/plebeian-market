@@ -29,7 +29,7 @@
             new ErrorHandler(true, () => inRequest = false));
     }
 
-    let updateButtonActive = lastVersion !== null && version !== lastVersion && !inRequest && !updateRequested && !updateRunning;
+    $: updateButtonActive = lastVersion !== null && version !== lastVersion && !inRequest && !updateRequested && !updateRunning;
 
     function checkStatus(checkLastRelease: boolean) {
         getStatus(checkLastRelease,
@@ -83,12 +83,12 @@
         {#if updateRunning}
             <p class="text-2xl font-bold mt-4">Update running! Please wait...</p>
         {/if}
-        {#if updateSuccess}
+        {#if updateSuccess && !updateRequested && !updateRunning}
             <InfoBox>
                 Update successful!
             </InfoBox>
         {/if}
-        {#if updateFailed}
+        {#if updateFailed && !updateRequested && !updateRunning}
             <ErrorBox>
                 Update failed!
             </ErrorBox>
