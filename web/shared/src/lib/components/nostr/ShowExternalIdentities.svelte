@@ -15,7 +15,7 @@
     export let deleteIdentity = false;
     export let compact = false;
 
-    $: externalIdentitiesVerification = {};
+    export let externalIdentitiesVerification = {};
 
     const identityTypesSupported = ['twitter', 'github', 'telegram'];
     $: verificationCanBeDone = true;
@@ -24,7 +24,7 @@
         verifyIdentities();
     }
 
-    async function verifyIdentities() {
+    export async function verifyIdentities() {
         if ($fileConfiguration.backend_present) {
             if (externalIdentities.length === 0) {
                 return;
