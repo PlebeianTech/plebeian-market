@@ -255,6 +255,7 @@
             <ShowExternalIdentities
                 {profileFinishedLoading}
                 {externalIdentities}
+                {externalIdentitiesVerification}
                 nostrPublicKey={$NostrPublicKey}
                 {deleteIdentity}
             />

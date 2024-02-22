@@ -15,7 +15,7 @@
     export let deleteIdentity = false;
     export let compact = false;
 
-    $: externalIdentitiesVerification = {};
+    export let externalIdentitiesVerification = {};
 
     const identityTypesSupported = ['twitter', 'github', 'telegram'];
     $: verificationCanBeDone = true;
