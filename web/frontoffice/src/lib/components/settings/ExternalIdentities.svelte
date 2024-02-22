@@ -21,6 +21,7 @@
         github: {verified: 'waiting', recently_added: false},
         telegram: {verified: 'waiting', recently_added: false}
     }
+    console.log('AAA - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
 
     let verifyHelpInfo: [] = []
     verifyHelpInfo['twitter'] = {
@@ -71,6 +72,7 @@
     };
 
     function addIdentity() {
+        console.log('addIdentity - 111 - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
         if (!type || !url) {
             Info.set('You must enter the URL before adding');
             return;
@@ -134,7 +136,9 @@
             newEntry = type + ':' + user + ':' + proof;
         }
 
+        console.log('addIdentity - 222 - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
         externalIdentitiesVerification[type].recently_added = true;
+        console.log('addIdentity - 333 - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
 
         externalIdentities.push(newEntry);
         externalIdentities = externalIdentities;

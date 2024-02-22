@@ -16,6 +16,7 @@
     export let compact = false;
 
     export let externalIdentitiesVerification = {};
+    console.log('ShowExternalIdentities - externalIdentitiesVerification pasado: ', JSON.stringify(externalIdentitiesVerification));
 
     const identityTypesSupported = ['twitter', 'github', 'telegram'];
     $: verificationCanBeDone = true;
@@ -24,11 +25,15 @@
         verifyIdentities();
     }
 
+    $: console.log('******************* ShowExternalIdentities - externalIdentitiesVerification: ', JSON.stringify(externalIdentitiesVerification));
+
     async function verifyIdentities() {
         if ($fileConfiguration.backend_present) {
             if (externalIdentities.length === 0) {
                 return;
             }
+
+            console.log('BBB - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
 
             externalIdentitiesVerification = {
                 twitter: {verified: 'waiting'},
@@ -36,21 +41,27 @@
                 telegram: {verified: 'waiting'}
             };
 
+            console.log('CCC - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
+
             const verifiedIdentities = await askAPIForVerification(nostrPublicKey) ?? [];
             if (!verifiedIdentities) {
+                console.log('EEE - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
                 verificationCanBeDone = false;
             } else {
+                console.log('FFF - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
                 verifiedIdentities.forEach(verifiedIdentity => {
                     externalIdentitiesVerification[verifiedIdentity.split(':')[0]].verified = 'verified-ok';
 
                     externalIdentitiesVerification[verifiedIdentity.split(':')[0]].recently_added = false;
                 });
 
+                console.log('GGG - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
                 identityTypesSupported.forEach(identityType => {
                     if (externalIdentitiesVerification[identityType].verified !== 'verified-ok') {
                         externalIdentitiesVerification[identityType].verified = 'verified-notok';
                     }
                 });
+                console.log('HHH - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
             }
         } else {
             verificationCanBeDone = false;
@@ -75,6 +86,7 @@
 
             <div class="ml-2">{identity.split(':')[1]}</div>
 
+            {(console.log('externalIdentitiesVerification[identity.split(:)[0]]', JSON.stringify(externalIdentitiesVerification[identity.split(':')[0]])), '')}
             {#if $fileConfiguration.backend_present && externalIdentitiesVerification[identity.split(':')[0]]}
                 {#if verificationCanBeDone && externalIdentitiesVerification[identity.split(':')[0]].verified === 'waiting' && !externalIdentitiesVerification[identity.split(':')[0]].recently_added}
                     <div class="size-5 mt-1 ml-2 tooltip tooltip-warning text-orange-500" data-tip="Verifying identity..."><Clock /></div>
