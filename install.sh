@@ -148,13 +148,13 @@ fi
 
 touch plebeian-market-state/UPDATE_RUNNING && rm plebeian-market-state/UPDATE_REQUESTED
 
-docker compose down --volumes >> plebeian-market-state/UPDATE_RUNNING 2>&1
+docker compose pull >> plebeian-market-state/UPDATE_RUNNING 2>&1
 if [ $? -ne 0 ]; then
     mv plebeian-market-state/UPDATE_RUNNING plebeian-market-state/UPDATE_FAILED
     exit 1
 fi
 
-docker compose pull >> plebeian-market-state/UPDATE_RUNNING 2>&1
+docker compose down --volumes >> plebeian-market-state/UPDATE_RUNNING 2>&1
 if [ $? -ne 0 ]; then
     mv plebeian-market-state/UPDATE_RUNNING plebeian-market-state/UPDATE_FAILED
     exit 1
