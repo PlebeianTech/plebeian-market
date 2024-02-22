@@ -22,3 +22,4 @@ python-dateutil
 python-magic
 requests
 secp256k1
+semver
