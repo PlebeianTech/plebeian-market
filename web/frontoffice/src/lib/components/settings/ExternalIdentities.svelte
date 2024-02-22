@@ -16,12 +16,13 @@
     let url = '';
     let user = '';
 
+    let verifyIdentities;
+
     let externalIdentitiesVerification = {
         twitter: {verified: 'waiting', recently_added: false},
         github: {verified: 'waiting', recently_added: false},
         telegram: {verified: 'waiting', recently_added: false}
     }
-    console.log('AAA - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
 
     let verifyHelpInfo = {
         twitter: {
@@ -73,7 +74,6 @@
     };
 
     function addIdentity() {
-        console.log('addIdentity - 111 - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
         if (!type || !url) {
             Info.set('You must enter the URL before adding');
             return;
@@ -137,9 +137,7 @@
             newEntry = type + ':' + user + ':' + proof;
         }
 
-        console.log('addIdentity - 222 - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
         externalIdentitiesVerification[type].recently_added = true;
-        console.log('addIdentity - 333 - externalIdentitiesVerification:', JSON.stringify(externalIdentitiesVerification));
 
         externalIdentities.push(newEntry);
         externalIdentities = externalIdentities;
@@ -196,6 +194,10 @@
         });
 
         await publishMetadata(profile, iFilteredProfileTags, () => { console.log('Metadata saved at Nostr relays') });      // Saving profile with new 'i' tags to Nostr
+
+        if (verifyIdentities) {
+            verifyIdentities();
+        }
     }
 
     function getMetadata() {
@@ -263,6 +265,7 @@
                 bind:externalIdentitiesVerification={externalIdentitiesVerification}
                 nostrPublicKey={$NostrPublicKey}
                 {deleteIdentity}
+                bind:verifyIdentities={verifyIdentities}
             />
         {/if}
 
