@@ -1143,7 +1143,7 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
 
     birdwatcher = get_birdwatcher()
 
-    if request.json['pubkey'] == merchant_pubkey:
+    if request.json['pubkey'] == merchant_pubkey or request.json['pubkey'] == merchant.nostr_public_key:
         message = "Cannot bid on one's own auction!"
         birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
         return jsonify({'message': message}), 400
