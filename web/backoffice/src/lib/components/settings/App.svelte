@@ -29,7 +29,7 @@
             new ErrorHandler(true, () => inRequest = false));
     }
 
-    $: updateButtonActive = lastVersion !== null && version !== lastVersion && !inRequest && !updateRequested && !updateRunning;
+    let updateAvailable = false;
 
     function checkStatus(checkLastRelease: boolean) {
         getStatus(checkLastRelease,
@@ -41,6 +41,8 @@
                 updateRunning = urunning;
                 updateSuccess = usuccess;
                 updateFailed = ufailed;
+
+                updateAvailable = version !== lastVersion;
 
                 if (updateRequested || updateRunning) {
                     setTimeout(() => { checkStatus(false); }, 1000);
@@ -95,7 +97,7 @@
         {/if}
     </div>
     <div class="flex justify-center items-center mt-8 h-15">
-        <button id="update-pm" class="btn btn-primary" class:btn-disabled={!updateButtonActive} on:click|preventDefault={update}>Update</button>
+        <button id="update-pm" class="btn btn-primary" class:btn-disabled={!updateAvailable || inRequest || updateRequested || updateRunning} on:click|preventDefault={update}>Update</button>
     </div>
 {:else}
     <div class="items-center justify-center mt-8">
