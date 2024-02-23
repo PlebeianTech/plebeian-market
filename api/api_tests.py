@@ -186,7 +186,7 @@ class TestApi(unittest.TestCase):
             self.assertNotEqual(code, 200)
 
     def test_listings(self):
-        token_1 = self.nostr_auth(PrivateKey(), twitter_username='fixie')
+        token_1 = self.nostr_auth(PrivateKey(), twitter_username='fixie', lightning_address="ibz@stacker.news")
         token_2 = self.nostr_auth(PrivateKey(), twitter_username='fixie_buyer')
 
         # GET listings to see there are none there
@@ -568,8 +568,8 @@ class TestApi(unittest.TestCase):
         self.assertNotEqual(identity_1, identity_2)
 
     def test_auctions(self):
-        token_1 = self.nostr_auth(PrivateKey(), twitter_username='auction_user_1', contribution_percent=1, wallet=OTHER_XPUB)
-        token_2 = self.nostr_auth(PrivateKey(), twitter_username='auction_user_2', wallet=OTHER_XPUB)
+        token_1 = self.nostr_auth(PrivateKey(), twitter_username='auction_user_1', contribution_percent=1, wallet=OTHER_XPUB, lightning_address="ibz@stacker.news")
+        token_2 = self.nostr_auth(PrivateKey(), twitter_username='auction_user_2', wallet=OTHER_XPUB, lightning_address="ibz@stacker.news")
 
         # GET user auctions if not logged in is OK
         code, response = self.get("/api/users/auction_user_1/auctions")
@@ -657,6 +657,10 @@ class TestApi(unittest.TestCase):
         self.assertEqual(response['auction']['key'], auction_key)
         self.assertIsNone(response['auction']['nostr_event_id'])
 
+        code, response = self.put(f"/api/auctions/{auction_key}/follow", {})
+        self.assertEqual(code, 401)
+        self.assertIn("missing auth header", response['message'].lower())
+
         # create a 2nd auction, this time for the 2nd user
         code, response = self.post("/api/users/me/auctions",
             {'title': "His 2st",
@@ -719,8 +723,8 @@ class TestApi(unittest.TestCase):
         code, response = self.get(f"/api/auctions/{auction_key_2}")
         self.assertEqual(code, 404)
 
-        # publish the auction
-        code, response = self.put(f"/api/auctions/{auction_key}/publish", {},
+        # publish and start the auction
+        code, response = self.put(f"/api/auctions/{auction_key}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 200)
 
@@ -838,7 +842,7 @@ class TestApi(unittest.TestCase):
         signed_lower_event_json = json.loads(lower_bid_event.to_message())[1]
         code, response = self.post(f"/api/merchants/{auction_merchant_public_key}/auctions/{auction_after_edit_nostr_event_id}/bids", signed_lower_event_json)
         self.assertEqual(code, 400)
-        self.assertIn("your bid needs to be higher", response['message'].lower())
+        self.assertIn("amount needs to be higher", response['message'].lower())
 
         # create an auction without a start date
         code, response = self.post("/api/users/me/auctions",
@@ -856,12 +860,12 @@ class TestApi(unittest.TestCase):
         auction_key_3 = response['auction']['key']
 
         # another user can't start my auction
-        code, response = self.put(f"/api/auctions/{auction_key_3}/publish", {},
+        code, response = self.put(f"/api/auctions/{auction_key_3}/start", {},
             headers=self.get_auth_headers(token_1))
         self.assertEqual(code, 401)
 
         # start the auction
-        code, response = self.put(f"/api/auctions/{auction_key_3}/publish", {},
+        code, response = self.put(f"/api/auctions/{auction_key_3}/start", {},
             headers=self.get_auth_headers(token_2))
         self.assertEqual(code, 200)
 

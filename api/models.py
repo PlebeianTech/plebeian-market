@@ -357,16 +357,7 @@ class UserRelay(db.Model):
 
     relay = db.relationship('Relay')
 
-class StateMixin:
-    @property
-    def state(self):
-        if not self.started and not self.ended:
-            return 'new'
-        elif self.started and not self.ended:
-            return 'active'
-        elif self.ended:
-            return 'past'
-
+class StateFilterMixin:
     def filter_state(self, state, for_user_id):
         is_owner = for_user_id == self.owner_id
         if state is None:
@@ -404,7 +395,7 @@ class NostrProductMixin:
             tags.append(['t', cat_tag])
         return tags
 
-class Campaign(WalletMixin, GeneratedKeyMixin, StateMixin, db.Model):
+class Campaign(WalletMixin, GeneratedKeyMixin, db.Model):
     """
     Campaigns used to exist in the old (pre-Nostr) version of Plebeian Market.
     We didn't port them to Nostr, but keeping the model definition here so we don't lose the table from the DB!
@@ -486,7 +477,7 @@ class ItemCategory(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey(Item.id), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey(Category.id), nullable=False)
 
-class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
+class Auction(GeneratedKeyMixin, StateFilterMixin, NostrProductMixin, db.Model):
     __tablename__ = 'auctions'
 
     REQUIRED_FIELDS = ['title', 'description', 'duration_hours', 'starting_bid', 'reserve_bid', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd']
@@ -513,6 +504,15 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
     @property
     def started(self):
         return self.start_date <= datetime.utcnow() if self.start_date else False
+
+    @property
+    def state(self):
+        if not self.started and not self.ended:
+            return 'new'
+        elif self.started and not self.ended:
+            return 'active'
+        elif self.ended:
+            return 'past'
 
     # duration_hours reflects the initial duration,
     # but the auction can be extended when bids come in close to the end - hence the end_date
@@ -685,7 +685,7 @@ class Auction(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
                 raise ValidationError(f"{k.replace('_', ' ')} is invalid.".capitalize())
         return validated
 
-class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
+class Listing(GeneratedKeyMixin, StateFilterMixin, NostrProductMixin, db.Model):
     __tablename__ = 'listings'
 
     REQUIRED_FIELDS = ['title', 'description', 'price_usd', 'available_quantity', 'extra_shipping_domestic_usd', 'extra_shipping_worldwide_usd']
@@ -706,16 +706,27 @@ class Listing(GeneratedKeyMixin, StateMixin, NostrProductMixin, db.Model):
 
     campaign_id = db.Column(db.Integer, db.ForeignKey(Campaign.id), nullable=True)
 
-    # TODO: we should probably retire this column since it doesn't make much sense for fixed price items
+    ##########
+    # TODO: we should probably retire `start_date`, `started` and `ended`
+    # since they don't make much sense for fixed price items!
+    ##########
     start_date = db.Column(db.DateTime, nullable=True)
-
     @property
     def started(self):
         return self.start_date <= datetime.utcnow() if self.start_date else False
-
     @property
     def ended(self):
         return self.available_quantity == 0
+    ##########
+
+    @property
+    def state(self):
+        if not self.nostr_event_id:
+            return 'new'
+        elif self.available_quantity != 0:
+            return 'active'
+        else:
+            return 'past'
 
     price_usd = db.Column(db.Float, nullable=False)
 

@@ -1,3 +1,4 @@
+import base64
 import boto3
 from botocore.config import Config
 import click
@@ -28,7 +29,7 @@ import uuid
 from lnd_hub_client import LndHubClient, MockLndHubClient
 
 from extensions import cors, db, mail
-from nostr_utils import EventValidationError, validate_event
+from nostr_utils import EventValidationError, validate_event, get_nip98_pubkey
 from utils import hash_create
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
@@ -501,6 +502,24 @@ def user_required(f):
         if not user:
             return jsonify({'success': False, 'message': "Invalid token."}), 401
         return f(user, *args, **kwargs)
+    return decorator
+
+def nip98_auth_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        auth = request.headers.get('Authorization')
+        if not auth:
+            return jsonify({'success': False, 'message': "Missing auth header."}), 401
+        parts = auth.split(' ')
+        if len(parts) != 2:
+            return jsonify({'success': False, 'message': "Invalid auth header."}), 401
+        if parts[0].lower() != 'nostr':
+            return jsonify({'success': False, 'message': "Nostr auth expected."}), 401
+        event_json = json.loads(base64.b64decode(parts[1]))
+        pubkey = get_nip98_pubkey(event_json, request.url, request.method)
+        if not pubkey:
+            return jsonify({'success': False, 'message': "NIP-98 auth failed."}), 401
+        return f(pubkey, *args, **kwargs)
     return decorator
 
 class MockBTCClient:
@@ -1070,7 +1089,7 @@ def configure_site():
     for badge_def in [badge_def_skin_in_the_game, badge_def_og]:
         badge = m.Badge.query.filter_by(badge_id=badge_def['badge_id']).first()
         if badge is None:
-            badge = m.Badge(badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
+            badge = m.Badge(owner_public_key=SITE_ADMIN_CONFIG['nostr_private_key'].public_key.hex(), badge_id=badge_def['badge_id'], name=badge_def['name'], description=badge_def['description'], image_hash=image_hash)
             badge.nostr_event_id = birdwatcher.publish_badge_definition(badge.badge_id, badge.name, badge.description, badge_def['image_url'])
             if badge.nostr_event_id is None:
                 app.logger.error("Failed to publish badge definition!")

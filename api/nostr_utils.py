@@ -1,6 +1,11 @@
+from datetime import datetime, timedelta
+from enum import IntEnum
 from hashlib import sha256
 import json
 import secp256k1
+
+class EventKind(IntEnum):
+    NIP98_AUTH = 27235
 
 class EventValidationError(Exception):
     def __init__(self, message):
@@ -22,3 +27,30 @@ def validate_event(event_json):
             raise EventValidationError("Invalid event signature!")
     except ValueError:
         raise EventValidationError("Invalid event signature!")
+
+def get_nip98_pubkey(event_json, url, method):
+    try:
+        validate_event(event_json)
+    except EventValidationError:
+        return None
+
+    if int(event_json['kind']) != EventKind.NIP98_AUTH or event_json['content'] != "":
+        return None
+
+    now = datetime.now()
+    created_at = datetime.fromtimestamp(float(event_json['created_at']))
+    if created_at < now - timedelta(minutes=1) or created_at > now + timedelta(minutes=1):
+        return None
+
+    u_tag = None
+    method_tag = None
+    for tag in event_json['tags']:
+        match tag[0]:
+            case 'u':
+                u_tag = tag[1]
+            case 'method':
+                method_tag = tag[1]
+    if u_tag != url or method_tag != method:
+        return None
+
+    return event_json['pubkey']

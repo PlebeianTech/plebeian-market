@@ -21,7 +21,7 @@ import time
 from extensions import db
 import models as m
 from main import app, get_birdwatcher, get_lndhub_client, get_file_storage
-from main import get_token_from_request, get_user_from_token, user_required
+from main import get_token_from_request, get_user_from_token, user_required, nip98_auth_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
 from utils import usd2sats, sats2usd, parse_github_tag, parse_xpub, UnknownKeyTypeError
@@ -56,7 +56,13 @@ def status():
 @api_blueprint.route('/api/update', methods=['PUT'])
 @user_required
 def update(_user: m.User):
-    # TODO: not every user should be able to perform the update
+    # TODO: not every user should be able to perform the update!
+    # But also... we don't really have the concept of "admin" user (for the back office) for now.
+    # This is not really an issue yet, because the instance at plebeian.market is not updatable anyway (since it is installed from a git clone)
+    # and for custom instances, which are more like personal websites, like chiefmonkey.art,
+    # we want to prevent new signups (after the first user). So they should really have only one user.
+    # But in the future we will want "community versions"
+    # and in that case we should have the concept of a "community admin" and only that user should be able to perform updates of the instance!
 
     if not app.config['RELEASE_VERSION']:
         # this would happen if the app was not installed from a GitHub build, but in some other way,
@@ -696,6 +702,12 @@ def get_put_delete_entity(key, cls, singular):
 
             return jsonify({})
 
+@api_blueprint.route('/api/auctions/<key>/follow', methods=['PUT'])
+@nip98_auth_required
+def follow_auction(pubkey, key):
+    # TODO
+    return jsonify({})
+
 @api_blueprint.route('/api/auctions/<key>/media',
     defaults={'cls': m.Auction, 'singular': 'auction'},
     methods=['POST'])
@@ -996,6 +1008,11 @@ def post_merchant_message(pubkey):
             # NB: we only look for listings here. auction orders are generated in finalize-auctions!
             listing = m.Listing.query.filter_by(uuid=item['product_id']).first()
             if listing:
+                if not listing.nostr_event_id:
+                    message = "Listing not active."
+                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+                        json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
+                    return jsonify({'message': message}), 403
                 if listing.available_quantity is not None and listing.available_quantity < item['quantity']:
                     message = "Not enough items in stock!"
                     get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
