@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.1",
-    "@sveltejs/kit": "^2.5.0",
+    "@sveltejs/kit": "^2.5.1",
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
     "@tailwindcss/typography": "^0.5.10",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -15,7 +15,7 @@
     "eslint-plugin-svelte": "^2.35.1",
     "npm-run-all": "4.x",
     "postcss": "^8.4.35",
-    "svelte": "^4.2.11",
+    "svelte": "^4.2.12",
     "svelte-check": "^3.6.4",
     "svelte-dnd-action": "^0.9.39",
     "svelte-meta-tags": "^3.1.0",
