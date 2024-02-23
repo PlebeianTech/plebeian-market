@@ -201,7 +201,7 @@
         {#if Object.entries(products).length > 1}
             <!-- Carousel controls - prev item-->
             <div class="absolute bottom-0 left-0 top-0 z-[1] flex w-[3%] items-center justify-center">
-                <span class="absolute -mr-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
+                <span class="absolute -mr-10 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
                             border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
                             hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
                             text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
@@ -210,7 +210,7 @@
             </div>
             <!-- Carousel controls - next item-->
             <div class="absolute bottom-0 right-0 top-0 z-[1] flex w-[3%] items-center justify-center">
-                <span class="absolute -ml-6 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
+                <span class="absolute -ml-10 bg-white rounded-full shadow-gray-500 shadow-md hover:shadow-lg h-12 w-12 text-3xl flex items-center justify-center
                             border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
                             hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
                             text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
