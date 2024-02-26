@@ -33,4 +33,6 @@ export interface Item {
     media: Media[];
     added_media: AddedMedia[];
     is_mine: boolean;
+
+    isPublished: () => boolean;
 }

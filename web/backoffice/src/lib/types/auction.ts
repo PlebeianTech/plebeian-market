@@ -51,6 +51,10 @@ export class Auction implements IEntity, Item {
         return !(this.title.length === 0 || this.description.length === 0);
     }
 
+    public isPublished() {
+        return this.nostr_event_id !== null;
+    }
+
     public topBid() {
         var top: Bid | undefined = undefined;
         for (const bid of this.bids) {
@@ -64,41 +68,6 @@ export class Auction implements IEntity, Item {
     public topAmount() {
         var top = this.topBid();
         return top === undefined ? 0 : top.amount;
-    }
-
-    public nextBid() {
-        var lastBid = this.topAmount();
-
-        if (lastBid === 0 && this.starting_bid !== 0) {
-            return Number(this.starting_bid);
-        }
-
-        var head = String(lastBid).slice(0, 2);
-        var rest = String(lastBid).slice(2);
-
-        if (head[0] === "1") {
-            head = String(Number(head) + 1);
-        } else if (head[0] === "2") {
-            head = String(Number(head) + 2);
-        } else if (head[0] === "3" || head[0] === "4") {
-            if (head[1] === "0") {
-                head = head[0] + "2";
-            } else if (head[1] === "1" || head[1] === "2" || head[1] === "3") {
-                head = head[0] + "5";
-            } else if (head[1] === "4" || head[1] === "5" || head[1] === "6" ||  head[1] === "7") {
-                head = head[0] + "8";
-            } else {
-                head = String(Number(head[0]) + 1) + "0";
-            }
-        } else {
-            if (head[1] === "0" || head[1] === "1" || head[1] === "2" || head[1] === "3") {
-                head = head[0] + "5";
-            } else {
-                head = String(Number(head[0]) + 1) + "0";
-            }
-        }
-
-        return Number(head + rest);
     }
 
     public toJson() {

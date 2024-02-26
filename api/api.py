@@ -676,15 +676,6 @@ def get_put_delete_entity(key, cls, singular):
                     item_category = m.ItemCategory.query.filter_by(item_id=entity.item.id, category_id=category.id).first()
                     db.session.delete(item_category)
 
-            if (isinstance(entity, m.Auction) or isinstance(entity, m.Listing)):
-                birdwatcher = get_birdwatcher()
-                user.ensure_merchant_key()
-                if not user.ensure_stall_published(birdwatcher):
-                    return jsonify({'message': "Error publishing stall to Nostr!"}), 500
-                entity.nostr_event_id = birdwatcher.publish_product(entity)
-                if not entity.nostr_event_id:
-                    return jsonify({'message': "Error publishing product to Nostr!"}), 500
-
             db.session.commit()
 
             return jsonify({'nostr_event_id': entity.nostr_event_id})
@@ -733,28 +724,16 @@ def post_media(key, cls, singular):
             return jsonify({'message': reason}), 403
 
     last_index = max([media.index for media in entity.item.media], default=0)
-    index = last_index + 1
 
-    added_media = []
-
-    for f in request.files.values():
-        media = m.Media(item_id=entity.item_id, index=index)
-        if not media.store(get_file_storage(), f"{singular}_{entity.key}_media_{index}", f.filename, f.read()):
-            return jsonify({'message': "Error saving picture!"}), 400
-        db.session.add(media)
-        index += 1
-        added_media.append(media)
-
-    if entity.nostr_event_id:
-        # if the entity was already published, then we re-publish it here
-        # otherwise it just stays in our database and will be published when the seller hits "publish"
-        entity.nostr_event_id = get_birdwatcher().publish_product(entity, added_media)
-        if not entity.nostr_event_id:
-            return jsonify({'message': "Error publishing product to Nostr!"}), 500
+    f = list(request.files.values())[0]
+    media = m.Media(item_id=entity.item_id, index=(last_index + 1))
+    if not media.store(get_file_storage(), f"{singular}_{entity.key}_media", f.filename, f.read()):
+        return jsonify({'message': "Error saving picture!"}), 400
+    db.session.add(media)
 
     db.session.commit()
 
-    return jsonify({'media': [media.to_dict() for media in added_media]})
+    return jsonify({'media': media.to_dict()})
 
 @api_blueprint.route('/api/auctions/<key>/media/<content_hash>',
     defaults={'cls': m.Auction},
@@ -787,11 +766,6 @@ def delete_media(key, cls, content_hash):
 
     db.session.delete(media)
 
-    user.ensure_merchant_key()
-    entity.nostr_event_id = get_birdwatcher().publish_product(entity)
-    if not entity.nostr_event_id:
-        return jsonify({'message': "Error publishing product to Nostr!"}), 500
-
     db.session.commit()
 
     return jsonify({})
@@ -822,7 +796,10 @@ def put_publish(user, key, cls, start):
         entity.end_date = entity.start_date + timedelta(hours=entity.duration_hours)
 
     user.ensure_merchant_key()
-    entity.nostr_event_id = get_birdwatcher().publish_product(entity)
+    birdwatcher = get_birdwatcher()
+    if not user.ensure_stall_published(birdwatcher):
+        return jsonify({'message': "Error publishing stall to Nostr!"}), 500
+    entity.nostr_event_id = birdwatcher.publish_product(entity)
     if not entity.nostr_event_id:
         return jsonify({'message': "Error publishing product to Nostr!"}), 500
 

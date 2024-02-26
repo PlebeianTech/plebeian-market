@@ -4,55 +4,42 @@
     import ItemCard from "$lib/components/ItemCard.svelte";
     import ListingEditor from "$lib/components/ListingEditor.svelte";
     import ListView, { ListViewStyle } from "$lib/components/ListView.svelte";
-    import { postMedia } from "$lib/services/api";
+    import { postMediaAsync, putPublish } from "$lib/services/api";
     import { user } from "$lib/stores";
-    import { Info,token } from "$sharedLib/stores";
+    import { token } from "$sharedLib/stores";
     import type { IEntity } from "$lib/types/base";
     import { Auction, fromJson as auctionFromJson } from "$lib/types/auction";
     import { Listing, fromJson as listingFromJson } from "$lib/types/listing";
+    import { type Item } from "$lib/types/item";
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
 
     let newAuctionsList, activeAuctionsList, pastAuctionsList: ListView;
     let newListingsList, activeListingsList, pastListingsList: ListView;
 
-    function onAuctionSave(key: string, entity: IEntity) {
+    function onProductSaved(key: string, entity: IEntity) {
         user.update((u) => {
             u!.hasItems = true;
             u!.hasOwnItems = true;
             return u;
         });
 
-        let auction = entity as Auction;
+        let item = entity as unknown as Item;
 
-        if (auction.added_media.length !== 0) {
-            postMedia($token, auction.endpoint, key, auction.added_media, () => onForceReload());
+        let promises: Array<Promise<string>> = [];
+        if (item.added_media.length !== 0) {
+            for (let addedMedia of item.added_media) {
+                promises.push(postMediaAsync($token, item.endpoint, key, addedMedia));
+            }
         }
 
-        if (!auction.started) {
-            Info.set("Now hit Publish!");
-        }
-
-        onForceReload();
-    }
-
-    function onListingSave(key: string, entity: IEntity) {
-        user.update((u) => {
-            u!.hasItems = true;
-            u!.hasOwnItems = true;
-            return u;
+        Promise.all(promises).then(_ => {
+            if (item.isPublished()) {
+                // re-publish to nostr if the auction was published before editing!
+                putPublish($token, item.endpoint, key, onForceReload);
+            } else {
+                onForceReload();
+            }
         });
-
-        let listing = entity as Listing;
-
-        if (listing.added_media.length !== 0) {
-            postMedia($token, listing.endpoint, key, listing.added_media, () => onForceReload());
-        }
-
-        if (!listing.started) {
-            Info.set("Now hit Publish!");
-        }
-
-        onForceReload();
     }
 
     function onForceReload() {
@@ -79,7 +66,7 @@
                 bind:this={newListingsList}
                 loader={{endpoint: "users/me/listings?filter=new", responseField: 'listings', fromJson: listingFromJson}}
                 postEndpoint={"users/me/listings"}
-                onSave={onListingSave}
+                onSave={onProductSaved}
                 {onForceReload}
                 editor={ListingEditor}
                 card={ItemCard}
@@ -94,7 +81,7 @@
                 bind:this={newAuctionsList}
                 loader={{endpoint: "users/me/auctions?filter=new", responseField: 'auctions', fromJson: auctionFromJson}}
                 postEndpoint={"users/me/auctions"}
-                onSave={onAuctionSave}
+                onSave={onProductSaved}
                 {onForceReload}
                 editor={AuctionEditor}
                 card={ItemCard}
@@ -112,7 +99,7 @@
         <ListView
             bind:this={activeListingsList}
             loader={{endpoint: "users/me/listings?filter=active", responseField: 'listings', fromJson: listingFromJson}}
-            onSave={onListingSave}
+            onSave={onProductSaved}
             {onForceReload}
             editor={ListingEditor}
             card={ItemCard}
@@ -120,7 +107,7 @@
         <ListView
             bind:this={activeAuctionsList}
             loader={{endpoint: "users/me/auctions?filter=active", responseField: 'auctions', fromJson: auctionFromJson}}
-            onSave={onAuctionSave}
+            onSave={onProductSaved}
             {onForceReload}
             editor={AuctionEditor}
             card={ItemCard}
@@ -128,7 +115,7 @@
         <ListView
             bind:this={pastListingsList}
             loader={{endpoint: "users/me/listings?filter=past", responseField: 'listings', fromJson: listingFromJson}}
-            onSave={onListingSave}
+            onSave={onProductSaved}
             {onForceReload}
             editor={ListingEditor}
             card={ItemCard}
@@ -136,7 +123,7 @@
         <ListView
             bind:this={pastAuctionsList}
             loader={{endpoint: "users/me/auctions?filter=past", responseField: 'auctions', fromJson: auctionFromJson}}
-            onSave={onAuctionSave}
+            onSave={onProductSaved}
             {onForceReload}
             editor={AuctionEditor}
             card={ItemCard}

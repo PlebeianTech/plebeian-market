@@ -135,20 +135,20 @@ export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (ke
         });
 }
 
-export function postMedia(tokenValue, entityEndpoint, entityKey, media: AddedMedia[], successCB: () => void, errorHandler = new ErrorHandler()) {
-    const data = new FormData();
-    for (const [i, m] of media.entries()) {
-        data.append(`file${i}`, m.file);
-    }
-    fetchAPI(`/${entityEndpoint}/${entityKey}/media`, "POST", tokenValue, data, null,
-        response => {
-            if (response.status === 200) {
-                successCB();
-            } else {
-                errorHandler.handle(response);
-            }
-        }
-    );
+export async function postMediaAsync(tokenValue, entityEndpoint, entityKey, media: AddedMedia) {
+    return new Promise<string>(function(resolve, reject) {
+        const formData = new FormData();
+        formData.append("file", media.file);
+        const response = fetchAPIAsync(`/${entityEndpoint}/${entityKey}/media`, 'POST', tokenValue, formData, null);
+        response.then(
+            r => {
+                if (r.status === 200) {
+                    r.json().then(data => resolve(data.media.hash));
+                } else {
+                    reject();
+                }
+            });
+    });
 }
 
 export async function postEntityAsync(endpoint, tokenValue, entity: IEntity) {

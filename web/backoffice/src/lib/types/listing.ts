@@ -33,6 +33,10 @@ export class Listing implements IEntity, Item {
             || this.available_quantity === null);
     }
 
+    public isPublished() {
+        return this.nostr_event_id !== null;
+    }
+
     public toJson() {
         var json = {} as Record<string, any>;
         for (const k in this) {

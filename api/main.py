@@ -706,8 +706,8 @@ class Birdwatcher:
         except:
             app.logger.exception(f"Error deleting stall for merchant {merchant.merchant_public_key} via birdwatcher!")
 
-    def publish_product(self, entity, extra_media=None):
-        product_json = entity.to_nostr_product(extra_media)
+    def publish_product(self, entity):
+        product_json = entity.to_nostr_product()
         try:
             event = Event(kind=entity.nostr_event_kind, content=json.dumps(product_json), tags=entity.to_nostr_tags())
             entity.item.seller.parse_merchant_private_key().sign_event(event)
@@ -808,8 +808,8 @@ class MockingBirdwatcher:
         app.logger.info(f"delete_stall {merchant.stall_nostr_event_id}")
         return hash_create(4)
 
-    def publish_product(self, entity, extra_media=None):
-        product_json = entity.to_nostr_product(extra_media)
+    def publish_product(self, entity):
+        product_json = entity.to_nostr_product()
         app.logger.info(f"publish_product name={product_json['name']}")
         return hash_create(4)
 

@@ -368,15 +368,13 @@ class StateFilterMixin:
             return self.state == state
 
 class NostrProductMixin:
-    def to_nostr_product(self, extra_media=None):
-        if extra_media is None:
-            extra_media = []
+    def to_nostr_product(self):
         return {
             'id': str(self.uuid),
             'stall_id': self.item.seller.stall_id,
             'name': self.item.title,
             'description': self.item.description,
-            'images': [media.url for media in self.item.media] + [media.url for media in extra_media],
+            'images': [media.url for media in self.item.media],
             'shipping': [
                 {
                     'id': hashlib.sha256(self.item.seller.shipping_from.encode('utf-8')).hexdigest() if self.item.seller.shipping_from else "",
@@ -572,8 +570,8 @@ class Auction(GeneratedKeyMixin, StateFilterMixin, NostrProductMixin, db.Model):
     def nostr_event_kind(self):
         return 30020
 
-    def to_nostr_product(self, extra_media=None):
-        nostr_product = super().to_nostr_product(extra_media)
+    def to_nostr_product(self):
+        nostr_product = super().to_nostr_product()
         nostr_product['starting_bid'] = self.starting_bid
         nostr_product['start_date'] = int(self.start_date.timestamp()) if self.start_date else None
         nostr_product['duration'] = self.duration_hours * 60 * 60
@@ -744,8 +742,8 @@ class Listing(GeneratedKeyMixin, StateFilterMixin, NostrProductMixin, db.Model):
     def nostr_event_kind(self):
         return 30018
 
-    def to_nostr_product(self, extra_media=None):
-        nostr_product = super().to_nostr_product(extra_media)
+    def to_nostr_product(self):
+        nostr_product = super().to_nostr_product()
         nostr_product['currency'] = 'USD'
         nostr_product['price'] = self.price_usd
         nostr_product['quantity'] = self.available_quantity
@@ -838,7 +836,7 @@ class Media(db.Model):
         }
 
     def store(self, file_storage, filename, original_filename, data):
-        self.url, self.content_hash = store_image(file_storage, filename, False, original_filename, data)
+        self.url, self.content_hash = store_image(file_storage, filename, True, original_filename, data)
         return self.url is not None
 
 class Bid(db.Model):
