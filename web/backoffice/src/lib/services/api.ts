@@ -135,9 +135,10 @@ export function postEntity(endpoint, tokenValue, entity: IEntity, successCB: (ke
         });
 }
 
-export async function postMediaAsync(tokenValue, entityEndpoint, entityKey, media: AddedMedia) {
+export async function postMediaAsync(tokenValue, entityEndpoint, entityKey, media: AddedMedia, index: number) {
     return new Promise<string>(function(resolve, reject) {
         const formData = new FormData();
+        formData.append("index", index.toString());
         formData.append("file", media.file);
         const response = fetchAPIAsync(`/${entityEndpoint}/${entityKey}/media`, 'POST', tokenValue, formData, null);
         response.then(
