@@ -30,6 +30,8 @@
     import Chat from "$sharedLib/components/icons/Chat.svelte";
     import Key from "$sharedLib/components/icons/Key.svelte";
     import Support from "$sharedLib/components/icons/Support.svelte";
+    import Identities from "$sharedLib/components/icons/Identities.svelte";
+    import Info from "$sharedLib/components/icons/Info.svelte";
     import FiatChooser from "$sharedLib/components/FiatChooser.svelte";
     import {getConfigurationKey, subscribeConfiguration} from "$sharedLib/services/nostr";
     import {getPages, pagesAndTitles} from "$sharedLib/pagebuilder";
@@ -316,13 +318,18 @@
                                 </li>
                             {/if}
                             <li>
-                                <a class="text-base" href="/settings">
-                                    <span class="size-6 mr-1"><Settings /></span> Buyer Settings
+                                <a class="text-base" href="/verification">
+                                    <span class="size-6 mr-1"><Identities /></span> Get Verified
+                                </a>
+                            </li>
+                            <li>
+                                <a class="text-base" href="/nostr">
+                                    <span class="size-6 mr-1"><Info /></span> Nostr Info
                                 </a>
                             </li>
                             <li>
                                 <a class="text-base" rel="{isFrontOffice ? 'external' : ''}" href="/admin/account/settings">
-                                    <span class="size-6 mr-1"><Settings /></span> Seller Settings
+                                    <span class="size-6 mr-1"><Settings /></span> Settings
                                 </a>
                             </li>
                             <li>

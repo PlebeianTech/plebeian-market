@@ -30,7 +30,7 @@
             description:
                 '<ol class="list-decimal list-inside mt-4">' +
                 '<li class="mb-2"><b>Create a Tweet</b> containing your npub <b><a class="underline" target="_blank"' +
-                'href="https://twitter.com/intent/tweet?text=Verifying%20that%20I%20control%20the%20following%20Nostr%20public%20key:%20' + $NostrPublicKey + '">(click here)</a></b>.' +   // encodeNpub($NostrPublicKey)
+                'href="https://twitter.com/intent/tweet?text=Verifying%20that%20I%20control%20the%20following%20Nostr%20public%20key:%20' + encodeNpub($NostrPublicKey) + '">(click here)</a></b>.' +
                 '</li>' +
                 '<li class="mb-2">Once published, <b>open the published Tweet</b>.</li>' +
                 '<li class="mb-2"><b>Copy the URL</b> and paste it in this screen.</li>' +
@@ -44,7 +44,7 @@
             description:
                 '<ol class="list-decimal list-inside mt-4">' +
                 '<li class="mb-2"><b>Login</b> to your GitHub account</li>' +
-                '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + $NostrPublicKey + '</span></li>' +      // encodeNpub($NostrPublicKey)
+                '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + encodeNpub($NostrPublicKey) + '</span></li>' +
                 '<li class="mb-2">Go to the gists page <b><a class="underline" target="_blank"\' +\n' +
                 'href="https://gist.github.com/">(click here)</a></b>.' +
                 '<li class="mb-2"><b>Paste the npub</b> into the textare in the middle.</li>' +
@@ -62,7 +62,7 @@
                 '<b><a class="underline" target="_blank" href="https://web.telegram.org/k/#@PlebeianMarket">Plebeian Market</a></b> channel.</p>' +
                 '<ol class="mt-6 list-decimal list-inside">' +
                 '<li class="mb-2">Introduce the <b>Telegram username</b> into the first field. If you don\'t know it, you can find it by opening the Telegram app/web, clicking on the hamburguer menu, and then clicking on Settings. The username is the token preceded by a @.</li>' +
-                '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + $NostrPublicKey + '</span></li>' +      // encodeNpub($NostrPublicKey)
+                '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + encodeNpub($NostrPublicKey) + '</span></li>' +
                 '<li class="mb-2">Open the <b>Telegram room</b> of your choice and <b>paste the npub</b> there.</li>' +
                 '<li class="mb-2">Right click (or tap-and-hold) over your message and select "Link to message".</li>' +
                 '<li class="mb-2"><b>Paste</b> the URL in this screen.</li>' +
@@ -231,9 +231,6 @@
 </script>
 
 {#if $NostrPublicKey}
-    <h1>Get Verified</h1>
-    <h2>External identities</h2>
-
     <div class="mt-4">
         <div class="flex space-x-2 mt-4">
             <select class="select-bordered select-info max-w-xs border rounded py-2 px-3" bind:value={type}>
