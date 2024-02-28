@@ -24,53 +24,52 @@
         telegram: {verified: 'waiting', recently_added: false}
     }
 
-    let verifyHelpInfo = {
-        twitter: {
-            title: 'How to verify your Twitter / X account',
-            description:
-                '<ol class="list-decimal list-inside mt-4">' +
-                '<li class="mb-2"><b>Create a Tweet</b> containing your npub <b><a class="underline" target="_blank"' +
-                'href="https://twitter.com/intent/tweet?text=Verifying%20that%20I%20control%20the%20following%20Nostr%20public%20key:%20' + encodeNpub($NostrPublicKey) + '">(click here)</a></b>.' +
-                '</li>' +
-                '<li class="mb-2">Once published, <b>open the published Tweet</b>.</li>' +
-                '<li class="mb-2"><b>Copy the URL</b> and paste it in this screen.</li>' +
-                '<li class="mb-2"><b>Click Add</b> to add the new identity to your Nostr profile and verify it.' +
-                '</ol>' +
-                '<p class="mt-6 mb-1 font-bold">Example of the URL you\'ll get:</p>' +
-                '<p class="mt-1">https://twitter.com/halfin/status/1110302988</p>'
-        },
-        github: {
-            title: 'How to verify your GitHub account',
-            description:
-                '<ol class="list-decimal list-inside mt-4">' +
-                '<li class="mb-2"><b>Login</b> to your GitHub account</li>' +
-                '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + encodeNpub($NostrPublicKey) + '</span></li>' +
-                '<li class="mb-2">Go to the gists page <b><a class="underline" target="_blank"\' +\n' +
-                'href="https://gist.github.com/">(click here)</a></b>.' +
-                '<li class="mb-2"><b>Paste the npub</b> into the textare in the middle.</li>' +
-                '<li class="mb-2">Click the arrow on the right side of the green button and select <b>Create public gist</b>, then click the Create public gist green button.' +
-                '<li class="mb-2"><b>Copy the URL</b> and paste it in this screen.</li>' +
-                '<li class="mb-2"><b>Click Add</b> to add the new identity to your Nostr profile and verify it.' +
-                '</ol>' +
-                '<p class="mt-6 mb-1 font-bold">Example of the URL you\'ll get:</p>' +
-                '<p class="mt-1">https://gist.github.com/your_username/a3158dcaf61a1c49485zf1c2719469af</p>'
-        },
-        telegram: {
-            title: 'How to verify your Telegram account',
-            description:
-                '<p class="mt-4">To verify your Telegram account, you need to be able to write a message to a <i>public</i> Telegram room. We suggest using the ' +
-                '<b><a class="underline" target="_blank" href="https://web.telegram.org/k/#@PlebeianMarket">Plebeian Market</a></b> channel.</p>' +
-                '<ol class="mt-6 list-decimal list-inside">' +
-                '<li class="mb-2">Introduce the <b>Telegram username</b> into the first field. If you don\'t know it, you can find it by opening the Telegram app/web, clicking on the hamburguer menu, and then clicking on Settings. The username is the token preceded by a @.</li>' +
-                '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + encodeNpub($NostrPublicKey) + '</span></li>' +
-                '<li class="mb-2">Open the <b>Telegram room</b> of your choice and <b>paste the npub</b> there.</li>' +
-                '<li class="mb-2">Right click (or tap-and-hold) over your message and select "Link to message".</li>' +
-                '<li class="mb-2"><b>Paste</b> the URL in this screen.</li>' +
-                '<li class="mb-2"><b>Click Add</b> to add the new identity to your Nostr profile and verify it.' +
-                '</ol>' +
-                '<p class="mt-6 mb-1 font-bold">Example of the URL you\'ll get:</p>' +
-                '<p class="mt-1">https://t.me/nostr_protocol/118763</p>'
-        }
+    let verifyHelpInfo: [] = [];
+    verifyHelpInfo['twitter'] = {
+        title: 'How to verify your Twitter / X account',
+        description:
+            '<ol class="list-decimal list-inside mt-4">' +
+            '<li class="mb-2"><b>Create a Tweet</b> containing your npub <b><a class="underline" target="_blank"' +
+            'href="https://twitter.com/intent/tweet?text=Verifying%20that%20I%20control%20the%20following%20Nostr%20public%20key:%20' + encodeNpub($NostrPublicKey) + '">(click here)</a></b>.' +
+            '</li>' +
+            '<li class="mb-2">Once published, <b>open the published Tweet</b>.</li>' +
+            '<li class="mb-2"><b>Copy the URL</b> and paste it in this screen.</li>' +
+            '<li class="mb-2"><b>Click Add</b> to add the new identity to your Nostr profile and verify it.' +
+            '</ol>' +
+            '<p class="mt-6 mb-1 font-bold">Example of the URL you\'ll get:</p>' +
+            '<p class="mt-1">https://twitter.com/halfin/status/1110302988</p>'
+    };
+    verifyHelpInfo['github'] = {
+        title: 'How to verify your GitHub account',
+        description:
+            '<ol class="list-decimal list-inside mt-4">' +
+            '<li class="mb-2"><b>Login</b> to your GitHub account</li>' +
+            '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + encodeNpub($NostrPublicKey) + '</span></li>' +
+            '<li class="mb-2">Go to the gists page <b><a class="underline" target="_blank"\' +\n' +
+            'href="https://gist.github.com/">(click here)</a></b>.' +
+            '<li class="mb-2"><b>Paste the npub</b> into the textare in the middle.</li>' +
+            '<li class="mb-2">Click the arrow on the right side of the green button and select <b>Create public gist</b>, then click the Create public gist green button.' +
+            '<li class="mb-2"><b>Copy the URL</b> and paste it in this screen.</li>' +
+            '<li class="mb-2"><b>Click Add</b> to add the new identity to your Nostr profile and verify it.' +
+            '</ol>' +
+            '<p class="mt-6 mb-1 font-bold">Example of the URL you\'ll get:</p>' +
+            '<p class="mt-1">https://gist.github.com/your_username/a3158dcaf61a1c49485zf1c2719469af</p>'
+    };
+    verifyHelpInfo['telegram'] = {
+        title: 'How to verify your Telegram account',
+        description:
+            '<p class="mt-4">To verify your Telegram account, you need to be able to write a message to a <i>public</i> Telegram room. We suggest using the ' +
+            '<b><a class="underline" target="_blank" href="https://web.telegram.org/k/#@PlebeianMarket">Plebeian Market</a></b> channel.</p>' +
+            '<ol class="mt-6 list-decimal list-inside">' +
+            '<li class="mb-2">Introduce the <b>Telegram username</b> into the first field. If you don\'t know it, you can find it by opening the Telegram app/web, clicking on the hamburguer menu, and then clicking on Settings. The username is the token preceded by a @.</li>' +
+            '<li class="mb-2"><b>Copy your npub</b> here: <span class="text-xs">' + encodeNpub($NostrPublicKey) + '</span></li>' +
+            '<li class="mb-2">Open the <b>Telegram room</b> of your choice and <b>paste the npub</b> there.</li>' +
+            '<li class="mb-2">Right click (or tap-and-hold) over your message and select "Link to message".</li>' +
+            '<li class="mb-2"><b>Paste</b> the URL in this screen.</li>' +
+            '<li class="mb-2"><b>Click Add</b> to add the new identity to your Nostr profile and verify it.' +
+            '</ol>' +
+            '<p class="mt-6 mb-1 font-bold">Example of the URL you\'ll get:</p>' +
+            '<p class="mt-1">https://t.me/nostr_protocol/118763</p>'
     };
 
     function addIdentity() {
