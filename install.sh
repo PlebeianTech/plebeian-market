@@ -43,6 +43,11 @@ cd && mkdir -p plebeian-market-secrets
 if [ ! -f plebeian-market-secrets/secret_key ]; then
   tr -dc A-Za-z0-9 </dev/urandom | head -c 64 > plebeian-market-secrets/secret_key
 fi
+if [ ! -f plebeian-market-secrets/nostr.json ]; then
+  NOSTR_PRIVATE_KEY=`openssl rand -hex 32`
+  NSEC=`docker run --rm ghcr.io/rot13maxi/key-convertr:main --kind nsec $NOSTR_PRIVATE_KEY`
+  echo "{\"NSEC\": \"$NSEC\"}" > plebeian-market-secrets/nostr.json
+fi
 if [ ! -f plebeian-market-secrets/db.json ]; then
   echo "{\"USERNAME\": \"pleb\", \"PASSWORD\": \"plebpass\"}" > plebeian-market-secrets/db.json
 fi
