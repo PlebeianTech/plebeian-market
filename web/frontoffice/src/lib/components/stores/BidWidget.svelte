@@ -67,7 +67,6 @@
             subscribeAuction([product.event.id],
                 (auctionEvent) => {
                     if (auctionEvent.kind === EVENT_KIND_AUCTION_BID) {
-
                         if (bids[auctionEvent.id] === undefined) {
                             bids[auctionEvent.id] = {};
                         }
@@ -89,7 +88,6 @@
                         setRecommendedBidAmount();
 
                     } else if (auctionEvent.kind === EVENT_KIND_AUCTION_BID_STATUS) {
-
                         if (auctionEvent.pubkey !== product.event.pubkey) {
                             console.error('WARNING! Someone tried to cheat on the auction, but we caught them!')
                             return;
@@ -449,13 +447,13 @@
             To take part in an auction, you must have verified you Nostr account with 2 other social ID's (X, Telegram, Github) and on some auctions, the seller may wish for you to have bought the Skin In The Game badge.
         </p>
 
-        <div class="flex mt-5 text-left"><span class="size-8 mr-2 text-[20px]">❌</span> rejected because social IDs verification is required <a class="ml-2 btn btn-xs btn-outline btn-info" href="/settings">Go</a></div>
+        <div class="flex mt-5 text-left"><span class="size-8 mr-2 text-[20px]">❌</span> rejected because social IDs verification is required <a class="ml-2 btn btn-xs btn-outline btn-info" href="/verification">Go</a></div>
         <div class="flex mt-1 text-left"><span class="size-8 mr-3 text-[20px] -mt-1 -ml-1"><Clock /></span> Skin In The Game badge needs to be bought</div>
         <div class="flex mt-3 text-left"><span class="size-8 mr-2 text-[20px]">✅</span> bid confirmed</div>
         <div class="flex mt-1 text-left"><span class="size-8 mr-3 text-[20px] -mt-1 -ml-1"><WinnerBadge /></span> winner of the auction</div>
 
         <div class="mt-4">
-            <a type="submit" class="btn btn-sm btn-outline btn-info"  href="/settings">Verify external IDs</a>
+            <a type="submit" class="btn btn-sm btn-outline btn-info"  href="/verification">Verify external IDs</a>
         </div>
     </div>
 
