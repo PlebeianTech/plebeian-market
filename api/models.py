@@ -932,6 +932,8 @@ class Order(db.Model):
         for order_item in self.order_items:
             if order_item.item.digital_item_message:
                 birdwatcher.send_dm(self.seller.parse_merchant_private_key(), self.buyer_public_key, order_item.item.digital_item_message)
+        if self.seller.nostr_public_key:
+            birdwatcher.send_dm(birdwatcher.site_admin_private_key, self.seller.nostr_public_key, f"Order {self.uuid} was paid!")
 
     @property
     def timeout_minutes(self):

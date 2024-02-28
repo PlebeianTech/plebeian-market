@@ -76,6 +76,14 @@ MINIMUM_CONTRIBUTION_AMOUNT = 21
 CONTRIBUTION_PERCENT_DEFAULT = 5.0 # NB: must be in sync with the value in V4V.svelte
 
 MOCK_NOSTR = bool(int(os.environ.get("MOCK_NOSTR", 0)))
+if not MOCK_NOSTR:
+    with open("/secrets/nostr.json") as f:
+        from nostr.key import PrivateKey
+        NOSTR_SECRETS = json.load(f)
+        NOSTR_PRIVATE_KEY = PrivateKey.from_nsec(NOSTR_SECRETS['NSEC'])
+else:
+    from nostr.key import PrivateKey
+    NOSTR_PRIVATE_KEY = PrivateKey()
 
 MOCK_S3 = bool(int(os.environ.get('MOCK_S3', 0)))
 USE_S3 = bool(int(os.environ.get('USE_S3', 0)))

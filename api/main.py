@@ -167,6 +167,9 @@ def finalize_auctions():
                 db.session.add(order)
                 db.session.commit()
 
+                if merchant.nostr_public_key:
+                    birdwatcher.send_dm(birdwatcher.site_admin_private_key, merchant.nostr_public_key, f"Auction has a winner: {auction.item.title}!")
+
                 order_item = m.OrderItem(order_id=order.id, item_id=auction.item_id, auction_id=auction.id, quantity=1)
                 db.session.add(order_item)
 
@@ -570,17 +573,7 @@ def get_btc_client():
 class Birdwatcher:
     def __init__(self, base_url):
         self.base_url = base_url
-        if app.config['MOCK_NOSTR']:
-            # NB: in test mode we just use a random private key!
-            self.site_admin_private_key = PrivateKey()
-        else:
-            if os.path.exists(app.config['SITE_ADMIN_SECRETS']):
-                with open(app.config['SITE_ADMIN_SECRETS']) as f:
-                    self.site_admin_private_key = PrivateKey.from_nsec(json.load(f)['NSEC'])
-            else:
-                # NB: a site can function without a SITE_ADMIN_SECRETS file, but it will be unable to publish or award badges!
-                self.site_admin_private_key = None
-                app.logger.warning(f"Birdwatcher functioning without a site_admin_private_key!")
+        self.site_admin_private_key = app.config['NOSTR_PRIVATE_KEY']
 
     def validate_query_response_events(self, events):
         # NB: The birdwatcher is "dumb" - it simply returns the events it got from relays without validating signatures,
@@ -749,8 +742,6 @@ class Birdwatcher:
             app.logger.exception(f"Error publishing bid status for bid {bid_event_id} via birdwatcher!")
 
     def publish_badge_definition(self, badge_id, name, description, image_url):
-        if self.site_admin_private_key is None:
-            raise ValueError("Cannot publish badges from a site without a SITE_ADMIN_SECRETS file!")
         try:
             if app.config['ENV'] == 'staging':
                 badge_id_tag = badge_id + "-staging"
@@ -766,8 +757,6 @@ class Birdwatcher:
             app.logger.exception(f"Error publishing badge definition via birdwatcher!")
 
     def publish_badge_award(self, badge_id, pubkey):
-        if self.site_admin_private_key is None:
-            raise ValueError("Cannot award badges from a site without a SITE_ADMIN_SECRETS file!")
         try:
             if app.config['ENV'] == 'staging':
                 badge_id_tag = badge_id + "-staging"

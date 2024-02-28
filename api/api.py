@@ -920,6 +920,8 @@ def post_merchant_message(pubkey):
         app.logger.info("Missing message type. Ignoring.")
         return jsonify({})
 
+    birdwatcher = get_birdwatcher()
+
     message_type = None
     try:
         message_type = int(cleartext_content['type'])
@@ -933,12 +935,12 @@ def post_merchant_message(pubkey):
 
     if 'id' not in cleartext_content:
         message = "Invalid order: missing id."
-        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'], message)
+        birdwatcher.send_dm(merchant_private_key, request.json['pubkey'], message)
         return jsonify({'message': message}), 400
 
     if 'shipping_id' not in cleartext_content:
         message = "Invalid order: missing shipping zone."
-        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+        birdwatcher.send_dm(merchant_private_key, request.json['pubkey'],
             json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
         return jsonify({'message': message}), 400
 
@@ -965,7 +967,7 @@ def post_merchant_message(pubkey):
         shipping_usd = merchant.shipping_domestic_usd
     else:
         message = "Invalid shipping zone!"
-        get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+        birdwatcher.send_dm(merchant_private_key, request.json['pubkey'],
             json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
         return jsonify({'message': message}), 400
 
@@ -988,19 +990,19 @@ def post_merchant_message(pubkey):
             if listing:
                 if not listing.nostr_event_id:
                     message = "Listing not active."
-                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+                    birdwatcher.send_dm(merchant_private_key, request.json['pubkey'],
                         json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
                     return jsonify({'message': message}), 403
                 if listing.available_quantity is not None and listing.available_quantity < item['quantity']:
                     message = "Not enough items in stock!"
-                    get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+                    birdwatcher.send_dm(merchant_private_key, request.json['pubkey'],
                         json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
                     return jsonify({'message': message}), 400
                 order_listings.append((listing, item['quantity']))
 
         if len(order_listings) == 0:
             message = "Empty order!"
-            get_birdwatcher().send_dm(merchant_private_key, request.json['pubkey'],
+            birdwatcher.send_dm(merchant_private_key, request.json['pubkey'],
                 json.dumps({'id': cleartext_content['id'], 'type': 2, 'paid': False, 'shipped': False, 'message': message}))
             return jsonify({'message': message}), 400
 
@@ -1019,12 +1021,15 @@ def post_merchant_message(pubkey):
         db.session.add(order)
         db.session.commit()
 
+        if merchant.nostr_public_key:
+            birdwatcher.send_dm(birdwatcher.site_admin_private_key, merchant.nostr_public_key, f"New order was placed: {order.uuid}!")
+
         for listing, quantity in order_listings:
             if listing.available_quantity is not None:
                 # here we "lock" the quantity. it is given back if the order expires
                 listing.available_quantity -= quantity
                 # NB: we need to update the quantity in Nostr as well!
-                listing.nostr_event_id = get_birdwatcher().publish_product(listing)
+                listing.nostr_event_id = birdwatcher.publish_product(listing)
 
             order_item = m.OrderItem(order_id=order.id, item_id=listing.item_id, listing_id=listing.id, quantity=quantity)
             db.session.add(order_item)
