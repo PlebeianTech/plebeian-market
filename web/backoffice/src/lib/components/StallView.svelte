@@ -27,8 +27,9 @@
 
         let promises: Array<Promise<string>> = [];
         if (item.added_media.length !== 0) {
-            for (let addedMedia of item.added_media) {
-                promises.push(postMediaAsync($token, item.endpoint, key, addedMedia));
+            for (let i = 0; i < item.added_media.length; i++) {
+                let addedMedia = item.added_media[i];
+                promises.push(postMediaAsync($token, item.endpoint, key, addedMedia, i));
             }
         }
 
