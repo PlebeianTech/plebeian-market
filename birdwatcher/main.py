@@ -543,7 +543,7 @@ else:
                 logging.info(f"Got {len(response['relays'])} relays!")
                 break
             except Exception:
-                logging.exception(f"Error connecting to API at {API_BASE_URL}! Waiting...")
+                logging.error(f"Error connecting to API at {API_BASE_URL}! Waiting...")
                 time.sleep(1)
     else:
         logging.error("No relays. Nothing to do. Pass a --relay or use API_BASE_URL to have BirdWatcher fetch relays to connect to!")
