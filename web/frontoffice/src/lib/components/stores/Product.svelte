@@ -3,7 +3,7 @@
     import Titleh1 from "$sharedLib/components/layout/Title-h1.svelte";
     import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT, getProducts} from "$sharedLib/services/nostr";
     import {onImgError, refreshStalls} from "$lib/shopping";
-    import {afterNavigate, goto} from "$app/navigation";
+    import {goto} from "$app/navigation";
     import {isSuperAdmin, stalls} from "$sharedLib/stores";
     import Store from "$sharedLib/components/icons/Store.svelte";
     import Quantity from "$lib/components/stores/Quantity.svelte";
