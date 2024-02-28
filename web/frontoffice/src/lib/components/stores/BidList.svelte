@@ -47,7 +47,6 @@
                 }
             }
         }
-
     }
 
     function hideUserProfilePopup() {
@@ -75,7 +74,7 @@
             </thead>
             <tbody>
             {#each sortedBids as [_, bid]}
-                {#if bid.amount && (bid.backendResponse?.status !== 'rejected' || (bid.backendResponse?.status === 'rejected' && bid.pubkey === $NostrPublicKey))}
+                {#if bid.amount && (bid.pubkey === $NostrPublicKey || bid.backendResponse?.status === 'accepted')}
                     <tr class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
                         <th class="text-center grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             <CurrencyConverter
@@ -149,8 +148,8 @@
             <tbody>
 
             {#each sortedBids as [_, bid]}
-                {#if bid.amount && ($isSuperAdmin || (bid.backendResponse?.status !== 'rejected' || (bid.backendResponse?.status === 'rejected' && bid.pubkey === $NostrPublicKey)))}
-                    <tr class:opacity-25={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
+                {#if bid.amount && ($isSuperAdmin || bid.pubkey === $NostrPublicKey || bid.backendResponse?.status === 'accepted')}
+                    <tr class:opacity-25={$isSuperAdmin && bid.backendResponse?.status !== 'accepted'}>
                         <th class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
                             <CurrencyConverter
                                 amount={bid.amount}
