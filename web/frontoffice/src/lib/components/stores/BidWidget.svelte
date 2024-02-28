@@ -249,10 +249,10 @@
     function setRecommendedBidAmount() {
         numBids = Object.entries(bids).length;
 
-        if (product.starting_bid && numBids === 0) {
+        if (product.starting_bid && numAcceptedBids === 0) {
             bidAmount = product.starting_bid;
         } else {
-            if (numBids === 0) {
+            if (numAcceptedBids === 0) {
                 bidAmount = 100;
             } else {
                 let maxBid = 0;
@@ -418,7 +418,7 @@
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">
-                            {#if product.starting_bid && numBids === 0}
+                            {#if product.starting_bid && numAcceptedBids === 0}
                                 Starting bid is {product.starting_bid}
                             {:else}
                                 Suggested bid
