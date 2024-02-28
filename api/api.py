@@ -1190,8 +1190,8 @@ def post_auction_bid(merchant_pubkey, auction_event_id):
         if auction.verified_identities_required > 0:
             buyer_metadata = birdwatcher.query_metadata(request.json['pubkey'])
             if len(buyer_metadata['verified_identities']) < auction.verified_identities_required:
-                app.logger.info(f"{message} pubkey={request.json['pubkey']} verified_identities={buyer_metadata['verified_identities']}")
                 message = f"User needs at least {auction.verified_identities_required} verified external identities in order to bid!"
+                app.logger.info(f"{message} pubkey={request.json['pubkey']} verified_identities={buyer_metadata['verified_identities']}")
                 birdwatcher.publish_bid_status(auction, request.json['id'], 'rejected', message)
                 is_settled = False
 
