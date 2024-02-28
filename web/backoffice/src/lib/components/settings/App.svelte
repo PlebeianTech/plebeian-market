@@ -47,7 +47,7 @@
                 if (updateRequested || updateRunning) {
                     setTimeout(() => { checkStatus(false); }, 1000);
                 }
-            });
+            }, new ErrorHandler(false, () => { console.log("API unreachable."); }));
     }
 
     onMount(async () => {
