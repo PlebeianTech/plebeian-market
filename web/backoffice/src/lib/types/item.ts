@@ -1,6 +1,7 @@
 import type { ILoader } from "$lib/services/api";
 
 export interface Media {
+    index: number;
     url: string;
 }
 

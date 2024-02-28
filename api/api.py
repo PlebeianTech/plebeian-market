@@ -723,11 +723,9 @@ def post_media(key, cls, singular):
         if reason:
             return jsonify({'message': reason}), 403
 
-    last_index = max([media.index for media in entity.item.media], default=0)
-
     index = int(request.form['index'])
     f = list(request.files.values())[0]
-    media = m.Media(item_id=entity.item_id, index=(last_index + index + 1))
+    media = m.Media(item_id=entity.item_id, index=index)
     if not media.store(get_file_storage(), f"{singular}_{entity.key}_media", f.filename, f.read()):
         return jsonify({'message': "Error saving picture!"}), 400
     db.session.add(media)
