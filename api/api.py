@@ -1094,6 +1094,7 @@ def post_merchant_message(pubkey):
 
     if order.on_chain_address:
         payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
+        birdwatcher.send_dm(merchant_private_key, order.buyer_public_key, f"Please go to {app.config['WWW_BASE_URL']}/donations and make your contribution for the community!")
 
     if order.lightning_address:
         lndhub_client = get_lndhub_client()
@@ -1121,7 +1122,7 @@ def post_merchant_message(pubkey):
         else:
             return jsonify({'message': "Error sending the payment options back to the buyer (couldn't create a new LN invoice)"}), 500
 
-    if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
+    if not birdwatcher.send_dm(merchant_private_key, order.buyer_public_key,
         json.dumps({
             'id': order.uuid,
             'type': 1,
