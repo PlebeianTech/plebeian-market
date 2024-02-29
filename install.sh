@@ -55,7 +55,7 @@ if [ ! -f plebeian-market-secrets/lndhub.json ]; then
   echo "{\"LNDHUB_URL\": \"https://ln.getalby.com\", \"LNDHUB_USER\": \"TODO\", \"LNDHUB_PASSWORD\": \"TODO\"}" > plebeian-market-secrets/lndhub.json
 fi
 if [ ! -f plebeian-market-secrets/mail.json ]; then
-  echo "{\"server\": \"TODO\", \"username\": \"TODO\", \"password\": \"TODO\", \"default_sender\": \"hello@$DOMAIN_NAME\"}" > plebeian-market-secrets/mail.json
+  echo "{\"server\": \"smtp\", \"username\": \"\", \"password\": \"\", \"default_sender\": \"hello@$DOMAIN_NAME\"}" > plebeian-market-secrets/mail.json
 fi
 
 cd && mkdir -p plebeian-market-state/media
@@ -76,6 +76,7 @@ EOF
   echo "DOMAIN_NAME=$DOMAIN_NAME" >> .env
   echo "WWW_BASE_URL=https://$DOMAIN_NAME" >> .env
   echo "API_BASE_URL=https://$DOMAIN_NAME" >> .env
+  echo "ALLOWED_SENDER_DOMAINS=$DOMAIN_NAME" >> .env
 fi
 
 cd && mkdir -p plebeian-market-nginx
@@ -197,6 +198,14 @@ services:
       - "7777:7777"
     volumes:
       - "./plebeian-market-relaydata:/app/strfry-db"
+  smtp:
+    image: ghcr.io/plebeiantech/plebeian-market-smtp
+    restart: always
+    networks:
+      - smtp_network
+    ports:
+      - "1587:587"
+    env_file: .env
   api:
     image: ghcr.io/plebeiantech/plebeian-market-api
     depends_on: [db]
@@ -204,6 +213,7 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
+      - smtp_network
       - web_network
     volumes:
       - "./plebeian-market-secrets:/secrets"
@@ -229,6 +239,7 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
+      - smtp_network
     volumes:
       - "./plebeian-market-secrets:/secrets"
       - "./plebeian-market-state:/state"
@@ -274,6 +285,8 @@ services:
 
 networks:
   db_network:
+    driver: bridge
+  smtp_network:
     driver: bridge
   web_network:
     driver: bridge

@@ -14,6 +14,8 @@ services:
   smtp:
     ports:
       - "1587:587"
+    environment:
+      - ALLOWED_SENDER_DOMAINS=staging.plebeian.market
   api:
     healthcheck:
       test: ["CMD", "curl", "-f", "https://staging.plebeian.market/api/status"]

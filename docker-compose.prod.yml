@@ -1,6 +1,9 @@
 version: '3.6'
 
 services:
+  smtp:
+    environment:
+      - ALLOWED_SENDER_DOMAINS=plebeian.market
   web:
     build:
       args:
