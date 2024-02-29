@@ -102,8 +102,8 @@ jobs:
           context: ./
           file: ./services/postfix/Dockerfile
           push: true
-          tags: ${{ steps.meta-relay.outputs.tags }}
-          labels: ${{ steps.meta-relay.outputs.labels }}
+          tags: ${{ steps.meta-smtp.outputs.tags }}
+          labels: ${{ steps.meta-smtp.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
