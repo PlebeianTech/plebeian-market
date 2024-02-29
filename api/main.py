@@ -279,27 +279,40 @@ def award_badge_skin_in_the_game(order):
 
 def check_expire_order(order):
     if not order.paid_at and order.requested_at < datetime.utcnow() - timedelta(minutes=order.timeout_minutes):
-        app.logger.warning(f"Order too old. Marking as expired. {order.id=}")
-        order.expired_at = datetime.utcnow()
+        expire_order = True
 
-        birdwatcher = get_birdwatcher()
+        ln_payment_logs_util = m.LightningPaymentLog
 
-        if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
-            json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
-            db.session.rollback()
-            return
+        if order.lightning_invoices:
+            for invoice in order.lightning_invoices:
+                app.logger.debug(f"    ------ Checking if incoming payment has been received for this invoice: {invoice.id} - {invoice.invoice}")
 
-        for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
-            # expired orders increment the stock with the quantity that was decremented when the order was created
-            # (for Listings, not for Auctions - auctions with expired orders are taken care of in finalize-auctions,
-            # where we detect the expired order and pick the next highest bidder as the new winner!)
-            if order_item.listing_id:
-                listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
-                if listing.available_quantity is not None:
-                    listing.available_quantity += order_item.quantity
-                    birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
+                if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
+                    app.logger.info(f"Order too old, but payment ongoing, so not marking as expired. {order.id=}")
+                    expire_order = False
 
-        db.session.commit()
+        if expire_order:
+            app.logger.warning(f"Order too old. Marking as expired. {order.id=}")
+            order.expired_at = datetime.utcnow()
+
+            birdwatcher = get_birdwatcher()
+
+            if not birdwatcher.send_dm(order.seller.parse_merchant_private_key(), order.buyer_public_key,
+                json.dumps({'id': order.uuid, 'type': 2, 'paid': False, 'shipped': False, 'message': "Order expired."})):
+                db.session.rollback()
+                return
+
+            for order_item in db.session.query(m.OrderItem).filter_by(order_id=order.id):
+                # expired orders increment the stock with the quantity that was decremented when the order was created
+                # (for Listings, not for Auctions - auctions with expired orders are taken care of in finalize-auctions,
+                # where we detect the expired order and pick the next highest bidder as the new winner!)
+                if order_item.listing_id:
+                    listing = db.session.query(m.Listing).filter_by(id=order_item.listing_id).first()
+                    if listing.available_quantity is not None:
+                        listing.available_quantity += order_item.quantity
+                        birdwatcher.publish_product(listing) # TODO: what could we do here if this fails?
+
+            db.session.commit()
 
 @app.cli.command("settle-lightning-payments")
 @with_appcontext
