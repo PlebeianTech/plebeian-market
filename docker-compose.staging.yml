@@ -11,6 +11,9 @@ services:
       - "7777:7777"
     networks:
       - proxy
+  smtp:
+    ports:
+      - "1587:587"
   api:
     healthcheck:
       test: ["CMD", "curl", "-f", "https://staging.plebeian.market/api/status"]

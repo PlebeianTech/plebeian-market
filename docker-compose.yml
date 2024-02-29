@@ -15,6 +15,13 @@ services:
     restart: always
     networks:
       - relay_network
+  smtp:
+    build:
+      context: ./
+      dockerfile: ./services/postfix/Dockerfile
+    restart: always
+    networks:
+      - smtp_network
   api:
     build:
       context: ./
@@ -26,6 +33,7 @@ services:
     networks:
       - db_network
       - proxy
+      - smtp_network
   finalize-auctions:
     build:
       context: ./
@@ -46,6 +54,7 @@ services:
     stop_grace_period: 1m
     networks:
       - db_network
+      - smtp_network
   settle-lightning-payments:
     build:
       context: ./
@@ -56,6 +65,7 @@ services:
     stop_grace_period: 30s
     networks:
       - db_network
+      - smtp_network
   birdwatcher:
     build:
       context: ./
@@ -69,6 +79,8 @@ networks:
   db_network:
     driver: bridge
   relay_network:
+    driver: bridge
+  smtp_network:
     driver: bridge
   proxy:
     driver: bridge
