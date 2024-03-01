@@ -138,53 +138,52 @@
                     {#if !isProduction()}
                         <span class="indicator-item badge badge-error">{getEnvironmentInfo().substring(0,3)}</span>
                     {/if}
-                    <h1 class="w-52 2xl:w-64 3xl:w-72 text-base lg:text-lg 2xl:text-xl font-bold hover:text-blue-400 duration-300">
-                        {siteTitle}
-                    </h1>
-
+                    {#if siteTitle}
+                        <h1 class="w-52 2xl:w-64 3xl:w-72 text-base lg:text-lg 2xl:text-xl font-bold hover:text-blue-400 duration-300">
+                            {siteTitle}
+                        </h1>
+                    {/if}
                 </div>
             </a>
 
             <!-- LINKS -->
-            <div class="lg:flex items-right w-full">
-                <div class="hidden lg:flex">
-                    {#if allPagesNavbarList.length === 0}
-                        <p class="ml-24 mr-8">
-                            <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
-                        </p>
-                        <!--
+            <div class="hidden lg:flex items-right w-full">
+                {#if allPagesNavbarList.length === 0}
+                    <p class="ml-24 mr-8">
+                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
+                    </p>
+                    <!--
+                    <p class="mr-8">
+                        <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
+                    </p>
+                    -->
+                    <p class="mr-8">
+                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
+                    </p>
+                    <p class="mr-8">
+                        <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
+                    </p>
+                    {#if $isSuperAdmin}
                         <p class="mr-8">
-                            <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
+                            <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
                         </p>
-                        -->
-                        <p class="mr-8">
-                            <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
-                        </p>
-                        <p class="mr-8">
-                            <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
-                        </p>
-                        {#if $isSuperAdmin}
+                    {/if}
+                {:else}
+                    <p class="ml-24"></p>
+                    {#each allPagesNavbarList as page}
+                        {#if page.enabled}
                             <p class="mr-8">
-                                <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
+                                {#if page.p_id.startsWith('virt-') && virtualPages}
+                                    <!-- Virtual page -->
+                                    <a href="/{virtualPages[page.p_id.substring(5)]?.slug ?? ''}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{virtualPages[page.p_id.substring(5)]?.title ?? ''}</a>
+                                {:else}
+                                    <!-- Real page -->
+                                    <a href="/{page.p_id}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{pagesAndTitles[page.p_id]?.title ?? '------'}</a>
+                                {/if}
                             </p>
                         {/if}
-                    {:else}
-                        <p class="ml-24"></p>
-                        {#each allPagesNavbarList as page}
-                            {#if page.enabled}
-                                <p class="mr-8">
-                                    {#if page.p_id.startsWith('virt-') && virtualPages}
-                                        <!-- Virtual page -->
-                                        <a href="/{virtualPages[page.p_id.substring(5)]?.slug ?? ''}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{virtualPages[page.p_id.substring(5)]?.title ?? ''}</a>
-                                    {:else}
-                                        <!-- Real page -->
-                                        <a href="/{page.p_id}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{pagesAndTitles[page.p_id]?.title ?? '------'}</a>
-                                    {/if}
-                                </p>
-                            {/if}
-                        {/each}
-                    {/if}
-                </div>
+                    {/each}
+                {/if}
             </div>
 
             <!-- Mobile menu button -->
