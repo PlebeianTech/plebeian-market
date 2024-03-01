@@ -20,7 +20,7 @@ import time
 
 from extensions import db
 import models as m
-from main import app, get_birdwatcher, get_lndhub_client, get_file_storage
+from main import app, get_birdwatcher, get_lndhub_client, get_file_storage, get_mail
 from main import get_token_from_request, get_user_from_token, user_required, nip98_auth_required
 from main import MempoolSpaceError
 from nostr_utils import EventValidationError, validate_event
@@ -1021,6 +1021,8 @@ def post_merchant_message(pubkey):
 
         if merchant.nostr_public_key:
             birdwatcher.send_dm(birdwatcher.site_admin_private_key, merchant.nostr_public_key, f"New order was placed: {order.uuid}!")
+        if merchant.email and merchant.email_verified:
+            get_mail().send(merchant.email, "New order", f"New order was placed: {order.uuid}!", f"New order was placed: <a href=\"{app.config['WWW_BASE_URL']}/admin/account/orders/\">{order.uuid}</a>!")
 
         for listing, quantity in order_listings:
             if listing.available_quantity is not None:
@@ -1092,6 +1094,7 @@ def post_merchant_message(pubkey):
 
     if order.on_chain_address:
         payment_options.append({'type': 'btc', 'link': order.on_chain_address, 'amount_sats': order.total})
+        birdwatcher.send_dm(merchant_private_key, order.buyer_public_key, f"Please go to {app.config['WWW_BASE_URL']}/donations and make your contribution for the community!")
 
     if order.lightning_address:
         lndhub_client = get_lndhub_client()
@@ -1119,7 +1122,7 @@ def post_merchant_message(pubkey):
         else:
             return jsonify({'message': "Error sending the payment options back to the buyer (couldn't create a new LN invoice)"}), 500
 
-    if not get_birdwatcher().send_dm(merchant_private_key, order.buyer_public_key,
+    if not birdwatcher.send_dm(merchant_private_key, order.buyer_public_key,
         json.dumps({
             'id': order.uuid,
             'type': 1,

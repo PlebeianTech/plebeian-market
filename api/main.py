@@ -169,6 +169,8 @@ def finalize_auctions():
 
                 if merchant.nostr_public_key:
                     birdwatcher.send_dm(birdwatcher.site_admin_private_key, merchant.nostr_public_key, f"Auction has a winner: {auction.item.title}!")
+                if merchant.email and merchant.email_verified:
+                    get_mail().send(merchant.email, "Auction has winner", f"Auction has a winner: {auction.item.title}!", f"Auction has a winner: {auction.item.title}!")
 
                 order_item = m.OrderItem(order_id=order.id, item_id=auction.item_id, auction_id=auction.id, quantity=1)
                 db.session.add(order_item)
