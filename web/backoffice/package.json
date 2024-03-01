@@ -14,7 +14,7 @@
     "npm-run-all": "4.x",
     "postcss": "^8.4.35",
     "svelte": "^4.2.12",
-    "svelte-check": "^3.6.4",
+    "svelte-check": "^3.6.6",
     "svelte-toasts": "1.x",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.0.0",

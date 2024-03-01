@@ -4,10 +4,10 @@
     import {
         getProducts,
         EVENT_KIND_AUCTION,
-        EVENT_KIND_PRODUCT,
-        subscribeConfiguration, getConfigurationKey
+        subscribeConfiguration,
+        getConfigurationKey
     } from "$sharedLib/services/nostr";
-    import {filterTags, getFirstTagValue} from "$sharedLib/nostr/utils";
+    import {filterTags} from "$sharedLib/nostr/utils";
     import productImageFallback from "$lib/images/product_image_fallback.svg";
     import {fileConfiguration, isSuperAdmin} from "$sharedLib/stores";
     import Countdown from "$sharedLib/components/Countdown.svelte";
@@ -95,7 +95,7 @@
     });
 </script>
 
-<main class="p-4 md:container mx-auto">
+<main class="p-4 mx-auto">
     {#if !productsLoaded}
         <div class="p-12 flex flex-wrap items-center justify-center">
             <span class="loading loading-bars w-24"></span>
@@ -118,13 +118,13 @@
                     <div class="relative h-full w-auto md:flex overflow-hidden">
                         <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
                             <a href="/product/{product.id}">
-                                <img class="h-full w-auto mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
+                                <img class="w-auto max-h-full mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
                                      src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
                             </a>
                         </div>
 
                         <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
-                            <div class="z-[300] prose aalg:prose-xl prose-p:my-2 md:prose-p:my-0">
+                            <div class="z-[300] prose prose-p:my-2 md:prose-p:my-0">
                                 {#if product.richText}
                                     <RichTextComposer initialMinifiedLexicalContent={product.richText} editable={false} />
                                 {:else}
