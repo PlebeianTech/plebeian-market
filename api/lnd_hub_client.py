@@ -74,7 +74,7 @@ class LndHubClient:
         )
 
         if (response_invoices_status.status_code == 200):
-            app.logger.info(f"get_incoming_invoices - 200 OK")
+            app.logger.debug(f"get_incoming_invoices - 200 OK")
             return {record['payment_request']: record for record in response_invoices_status.json()}
 
         elif (response_invoices_status.status_code == 401):
