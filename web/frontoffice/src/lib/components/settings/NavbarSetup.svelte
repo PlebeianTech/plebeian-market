@@ -136,7 +136,7 @@
 
 <div>
     <p>Configure what items appear on the <b>Navigation Bar</b> and the order of those items.</p>
-    <p class="mt-6">The navigation bar is shown only while viewing the website in desktop computers. To configure what appears on the menu that is also shown in mobile devices, you can click <a class="underline" href={null}>here</a>.</p>
+    <p class="mt-6">The navigation bar is not shown in mobile devices. It's only shown while viewing the website in desktop computers.</p>
     <p class="mt-6">- To enable or disable showing an element on the navigation bar, <b>click the "Visible" checkbox</b>.</p>
     <p>- To change the order in which links appear on the Navigation Bar, <b>drag and drop to reorder</b> the items on the list.</p>
 </div>
