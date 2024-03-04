@@ -53,8 +53,8 @@ dictConfig({
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': LOG_FILENAME,
             'mode': 'a',
-            'maxBytes': 1048576,
-            'backupCount': 10,
+            'maxBytes': 10485760,
+            'backupCount': 100,
         },
     },
     'root': {
@@ -352,29 +352,29 @@ def settle_lightning_payments():
                 birdwatcher = get_birdwatcher()
 
                 for order in active_orders_with_lightning.all():
-                    app.logger.info(f"  -------- Processing order {order.id}...")
+                    app.logger.debug(f"Processing order {order.id}...")
 
                     incoming_payment_received = False
                     outgoing_payments_sent = False
 
                     for invoice in order.lightning_invoices:
-                        app.logger.info(f"    ------ Invoice: {invoice.id} - {invoice.invoice}")
+                        app.logger.debug(f"Invoice: {invoice.id} - {invoice.invoice}")
 
                         # INCOMING PAYMENT
                         if ln_payment_logs_util.check_incoming_payment(order.id, invoice.id, order.total):
                             incoming_payment_received = True
-                            app.logger.info(f"      ---- Payment for order.id={order.id}, invoice.id={invoice.id} WAS already recorded as received...")
+                            app.logger.info(f"Payment for order.id={order.id}, invoice.id={invoice.id} WAS already recorded as received...")
 
                         else:
-                            app.logger.info(f"      ---- Checking if payment for order.id={order.id}, invoice.id={invoice.id} is received...")
+                            app.logger.debug(f"Checking if payment for order.id={order.id}, invoice.id={invoice.id} is received...")
 
                             incoming_invoice = incoming_invoices.get(invoice.invoice)
 
                             if incoming_invoice:
-                                app.logger.info(f"        -- Incoming invoice found: {incoming_invoice}")
+                                app.logger.debug(f"Incoming invoice found: {incoming_invoice}")
 
                                 if incoming_invoice['is_paid']:
-                                    app.logger.info(f"        - AND IT'S PAID!")
+                                    app.logger.info(f"Found incoming invoice that was paid for order.id={order.id}: {incoming_invoice}!")
 
                                     ln_payment_logs_util.add_incoming_payment(order.id, invoice.id, order.total)
 
@@ -387,7 +387,7 @@ def settle_lightning_payments():
                                         app.logger.info(f"        -  ERROR SENDING DM WITH TYPE=2, PAID=TRUE: {incoming_invoice}")
 
                                 else:
-                                    app.logger.info(f"        - But not yet paid ****")
+                                    app.logger.debug(f"But not yet paid ****")
 
                             else:
                                 app.logger.info(f"        -- Payment for order.id={order.id}, invoice.id={invoice.id} not received yet.")
