@@ -149,36 +149,36 @@
             <!-- LINKS -->
             <div class="hidden lg:flex items-right w-full">
                 {#if allPagesNavbarList.length === 0}
-                    <p class="ml-24 mr-8">
-                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
+                    <p class="ml-4 xl:ml-14 2xl:ml-24 mr-3 xl:mr-8 2xl:mr-12">
+                        <a href="/stalls" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case px-2 xl:px-4 {$page.url.pathname === '/stalls' ? 'underline' : ''}">Stall Browser</a>
                     </p>
                     <!--
                     <p class="mr-8">
                         <a href="/skills" class="btn btn-ghost normal-case">Skills Market</a>
                     </p>
                     -->
-                    <p class="mr-8">
-                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
+                    <p class="mr-3 xl:mr-8 2xl:mr-12">
+                        <a href="/marketsquare" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case px-2 xl:px-4 {$page.url.pathname === '/marketsquare' ? 'underline' : ''}">Market Square</a>
                     </p>
-                    <p class="mr-8">
-                        <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
+                    <p class="mr-3 xl:mr-8 2xl:mr-12">
+                        <a href="/planet" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case px-2 xl:px-4 {$page.url.pathname === '/planet' ? 'underline' : ''}">Plebeian Planet</a>
                     </p>
                     {#if $isSuperAdmin}
-                        <p class="mr-8">
-                            <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
+                        <p class="mr-3 xl:mr-8 2xl:mr-12">
+                            <a href="/universe" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case px-2 xl:px-4 {$page.url.pathname === '/universe' ? 'underline' : ''}">Nostr Universe</a>
                         </p>
                     {/if}
                 {:else}
-                    <p class="ml-24"></p>
+                    <p class="mr-3 xl:mr-8 2xl:mr-12"></p>
                     {#each allPagesNavbarList as page}
                         {#if page.enabled}
-                            <p class="mr-8">
+                            <p class="mr-2 xl:mr-6 2xl:mr-10">
                                 {#if page.p_id.startsWith('virt-') && virtualPages}
                                     <!-- Virtual page -->
-                                    <a href="/{virtualPages[page.p_id.substring(5)]?.slug ?? ''}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{virtualPages[page.p_id.substring(5)]?.title ?? ''}</a>
+                                    <a href="/{virtualPages[page.p_id.substring(5)]?.slug ?? ''}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case px-2 xl:px-4">{virtualPages[page.p_id.substring(5)]?.title ?? ''}</a>
                                 {:else}
                                     <!-- Real page -->
-                                    <a href="/{page.p_id}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case ">{pagesAndTitles[page.p_id]?.title ?? '------'}</a>
+                                    <a href="/{page.p_id}" rel="{isFrontOffice ? '' : 'external'}" class="btn btn-ghost normal-case px-2 xl:px-4">{pagesAndTitles[page.p_id]?.title ?? '------'}</a>
                                 {/if}
                             </p>
                         {/if}
