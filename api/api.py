@@ -834,6 +834,14 @@ def get_user_entities(nym, plural):
 
     return jsonify({plural: [e.to_dict(for_user=for_user_id) for e in sorted_entities]})
 
+@api_blueprint.route("/api/users/<nostr_pubkey>/stalls", methods=['GET'])
+def get_user_stalls(nostr_pubkey):
+    user = m.User.query.filter_by(nostr_public_key=nostr_pubkey).first()
+    if not user:
+        return jsonify({'message': "User not found."}), 404
+
+    return jsonify({'stalls': [{'id': user.stall_id}]})
+
 @api_blueprint.route("/api/relays", methods=['GET'])
 def get_relays():
     if app.config['ENV'] in ('test', 'dev'):
