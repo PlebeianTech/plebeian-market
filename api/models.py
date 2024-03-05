@@ -1124,8 +1124,8 @@ class LightningPaymentLog(db.Model):
         return cls.check_payment_log(order_id, lightning_invoice_id, '', amount, LightningPaymentLogType.RECEIVED.value)
 
     @classmethod
-    def check_outgoing_payment(cls, order_id, lightning_invoice_id, paid_to, amount):
-        return cls.check_payment_log(order_id, lightning_invoice_id, paid_to, amount, LightningPaymentLogType.SENT.value)
+    def check_outgoing_payment(cls, order_id, paid_to, amount):
+        return cls.check_payment_log(order_id, None, paid_to, amount, LightningPaymentLogType.SENT.value)
 
     @classmethod
     def add_incoming_payment(cls, order_id, lightning_invoice_id, amount):
@@ -1137,12 +1137,15 @@ class LightningPaymentLog(db.Model):
 
     @classmethod
     def check_payment_log(cls, order_id, lightning_invoice_id, paid_to, amount, type):
+        if lightning_invoice_id is not None:
+            extra_params['lightning_invoice_id'] = lightning_invoice_id
+
         payment_log = LightningPaymentLog.query.filter_by(
             order_id = order_id,
-            lightning_invoice_id = lightning_invoice_id,
             paid_to = paid_to,
             amount = amount,
-            type = type
+            type = type,
+            **extra_params
         ).one_or_none()
 
         return bool(payment_log)
