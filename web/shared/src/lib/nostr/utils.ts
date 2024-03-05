@@ -327,6 +327,36 @@ export async function getMerchantKey() {
     }
 }
 
+export async function getStallIDsForThisMerchantPubkey(merchantPubkey: string) {
+    if (!merchantPubkey) {
+        console.error("getStallIDsForThisMerchantPubkey called without merchantPubkey");
+        return;
+    }
+
+    const apiHost = getApiBaseUrl();
+    const apiUrl = 'api/users/' + merchantPubkey + '/stalls';
+
+    try {
+        const response = await fetch(apiHost + apiUrl);
+
+        if (!response.ok) {
+            console.debug("getStallIDsForThisMerchantPubkey - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the merchant keys");
+            return false;
+        }
+
+        const responseJson = await response.json();
+
+        if (responseJson) {
+            return responseJson;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.debug("getStallIDsForThisMerchantPubkey - Could not contact with a backend, or maybe there isn't a backend, so I cannot get the merchant keys");
+        return false;
+    }
+}
+
 export async function getMerchantIDs() {
     const apiHost = getApiBaseUrl();
     const apiUrl = 'api/merchants';
