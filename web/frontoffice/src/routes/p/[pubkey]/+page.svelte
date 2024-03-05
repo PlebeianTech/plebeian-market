@@ -7,7 +7,7 @@
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
-    import {decodeNpub,filterTags} from "$sharedLib/nostr/utils";
+    import {decodeNpub, getStallIDsForThisMerchantPubkey} from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
     import ShowExternalIdentities from "$sharedLib/components/nostr/ShowExternalIdentities.svelte";
     import Copy from "$sharedLib/components/icons/Copy.svelte";
@@ -32,6 +32,8 @@
     // External identities
     $: externalIdentities = [];
 
+    let stallIDs: string[] = [];
+
     export function onImgError(image) {
         image.onerror = "";
         image.src = badgeImageFallback;
@@ -42,6 +44,9 @@
             if (data.pubkey.startsWith('npub')) {
                 data.pubkey = decodeNpub(data.pubkey);
             }
+
+            stallIDs = getStallIDsForThisMerchantPubkey(data.pubkey);
+            console.log('stallIDs', stallIDs);
         }
     });
 </script>
@@ -199,7 +204,7 @@
 </div>
 
 {#if data.pubkey && !data.pubkey.startsWith('npub')}
-    <StallsBrowser merchantPubkey={data.pubkey} />
+    <StallsBrowser stallIDs={stallIDs} />
 
     <BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {profileBadgesLastEvent} {onImgError} myBadge={data.pubkey === $NostrPublicKey}  />
 
