@@ -60,7 +60,7 @@ services:
       context: ./
       dockerfile: ./ln_payments_processor/Dockerfile
     image: plebeianmarket-lightning-payments
-    depends_on: [db]
+    depends_on: [db, birdwatcher]
     restart: always
     stop_grace_period: 30s
     networks:
