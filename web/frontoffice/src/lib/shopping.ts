@@ -115,7 +115,7 @@ export function restoreShoppingCartProductsFromLocalStorage() {
 // =============================== Stalls ====================================
 
 export function refreshStalls() {
-    let now: number = Math.floor(Date.now());
+    const now: number = Math.floor(Date.now());
 
     let currentStallsValue = get(stalls);
 
@@ -196,7 +196,7 @@ export function getStallsByMerchant(merchantPubkey: string) {
 }
 
 export function refreshProducts() {
-    let now: number = Math.floor(Date.now());
+    const now: number = Math.floor(Date.now());
 
     let currentProductsValue = get(products);
 
@@ -215,7 +215,6 @@ export function refreshProducts() {
         }
 
         products.set(currentProductsValue);
-
 
         getProducts(null, null,
             (product) => {

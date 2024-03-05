@@ -7,12 +7,11 @@
     import badgeImageFallback from "$sharedLib/images/badge_placeholder.svg";
     import {onMount} from "svelte";
     import {nip19} from "nostr-tools";
-    import {decodeNpub,filterTags} from "$sharedLib/nostr/utils";
+    import {decodeNpub, getStallIDsForThisMerchantPubkey} from "$sharedLib/nostr/utils";
     import BadgeModal from "$lib/components/nostr/BadgeModal.svelte";
     import ShowExternalIdentities from "$sharedLib/components/nostr/ShowExternalIdentities.svelte";
     import Copy from "$sharedLib/components/icons/Copy.svelte";
     import UserProfileInformation from "$sharedLib/components/nostr/UserProfileInformation.svelte";
-
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -32,6 +31,10 @@
     // External identities
     $: externalIdentities = [];
 
+    // Stalls
+    let stallIDs: string[] = [];
+    let showStalls: boolean = false;
+
     export function onImgError(image) {
         image.onerror = "";
         image.src = badgeImageFallback;
@@ -41,6 +44,16 @@
         if (data && data.pubkey) {
             if (data.pubkey.startsWith('npub')) {
                 data.pubkey = decodeNpub(data.pubkey);
+            }
+
+            let stallIDsResponse = await getStallIDsForThisMerchantPubkey(data.pubkey);
+            if (stallIDsResponse?.stalls) {
+                stallIDsResponse?.stalls.forEach(stall => {
+                    stallIDs.push(stall.id);
+                    showStalls = true;
+                });
+
+                stallIDs = stallIDs;
             }
         }
     });
@@ -199,7 +212,9 @@
 </div>
 
 {#if data.pubkey && !data.pubkey.startsWith('npub')}
-    <StallsBrowser merchantPubkey={data.pubkey} />
+    {#if showStalls}
+        <StallsBrowser stallIDs={stallIDs} />
+    {/if}
 
     <BadgeModal badgeInfo={currentBadge ? badgeDefinitions.get(currentBadge) : null} {profileBadgesLastEvent} {onImgError} myBadge={data.pubkey === $NostrPublicKey}  />
 

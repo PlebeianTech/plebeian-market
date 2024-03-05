@@ -8,7 +8,7 @@
     import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
     import {EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT} from "$sharedLib/services/nostr";
 
-    export let merchantPubkey: string | null = null;
+    export let stallIDs: string[] | null = null;
     export let showStallFilter: boolean = true;
 
     let sortedStalls = [];
@@ -19,10 +19,10 @@
     let descriptionLength = 125;
 
     $: if ($stalls && $stalls.stalls && !$stalls.fetching) {
-            if (merchantPubkey) {
+            if (stallIDs) {
                 sortedStalls = Object.entries($stalls.stalls)
                     .filter(([, stall]) => {
-                        return stall.merchantPubkey === merchantPubkey;
+                        return stallIDs.includes(stall.id);
                     })
                     .sort((a, b) => {
                         return b[1].createdAt - a[1].createdAt;
@@ -66,12 +66,12 @@
     }
 
     onMount(async () => {
-        refreshStalls();
         refreshProducts();
+        refreshStalls();
     });
 </script>
 
-{#if showStallFilter && !merchantPubkey}
+{#if showStallFilter && !stallIDs}
     <div class="flex flex-col sm:flex-row md:my-2 mb-6 sm:mb-3">
         <div class="relative">
             <span class="h-full absolute inset-y-0 left-0 flex items-center pl-2">
@@ -83,9 +83,9 @@
     </div>
 {/if}
 
-{#if !merchantPubkey || (merchantPubkey && sortedStalls.length !== 0)}
-    {#if merchantPubkey}
-        <h2 class="font-bold">Market stalls:</h2>
+{#if !stallIDs || (stallIDs && sortedStalls.length !== 0)}
+    {#if stallIDs}
+        <h2 class="text-xl font-bold mb-4">User market stalls:</h2>
     {/if}
 
     <div class="relative overflow-x-hidden shadow-md rounded border border-gray-400">
