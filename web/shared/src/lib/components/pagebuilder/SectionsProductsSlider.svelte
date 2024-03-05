@@ -104,17 +104,17 @@
 
     <div id="slider_{pageId}_{sectionId}"
          class="w-full" class:hidden={!productsLoaded}
-         data-te-carousel-init
-         data-te-ride="carousel">
+         data-twe-carousel-init
+         data-twe-ride="carousel">
 
         <!-- Carousel items -->
         <div class="w-full h-[36rem] overflow-hidden">
             {#each Object.entries(products) as [_, product], i}
                 <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
                      class:hidden={i > 0}
-                     data-te-carousel-fade
-                     data-te-carousel-item
-                     data-te-carousel-active={i === 0 ? true : null}>
+                     data-twe-carousel-fade
+                     data-twe-carousel-item
+                     data-twe-carousel-active={i === 0 ? true : null}>
                     <div class="relative h-full w-auto md:flex overflow-hidden">
                         <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
                             <a href="/product/{product.id}">
@@ -174,8 +174,8 @@
             <!-- CTA Slider -->
             {#if Object.entries(products).length > 1 && $fileConfiguration.backend_present}
                 <div class="hidden h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
-                     data-te-carousel-fade
-                     data-te-carousel-item>
+                     data-twe-carousel-fade
+                     data-twe-carousel-item>
                     <div class="relative h-full w-auto md:flex qaaaoverflow-hidden">
                         <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
                             <a class="flex" rel="external" href="/admin">
@@ -205,8 +205,8 @@
                             border-0 opacity-70 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] hover:no-underline
                             hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
                             text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
-                      data-te-target="#slider_{pageId}_{sectionId}"
-                      data-te-slide="prev"><span style="transform: scale(-1);">&#x279c;</span></span>
+                      data-twe-target="#slider_{pageId}_{sectionId}"
+                      data-twe-slide="prev"><span style="transform: scale(-1);">&#x279c;</span></span>
             </div>
             <!-- Carousel controls - next item-->
             <div class="absolute bottom-0 right-0 top-0 z-[1] flex w-[3%] items-center justify-center">
@@ -215,15 +215,15 @@
                             hover:opacity-90 hover:outline-none focus:no-underline focus:opacity-90 motion-reduce:transition-none
                             text-indigo-600 hover:text-indigo-400 focus:text-indigo-400 focus:outline-none focus:shadow-outline cursor-pointer"
                       style="transform: scale(1);"
-                      data-te-target="#slider_{pageId}_{sectionId}"
-                      data-te-slide="next">&#x279c;</span>
+                      data-twe-target="#slider_{pageId}_{sectionId}"
+                      data-twe-slide="next">&#x279c;</span>
             </div>
 
-            <div class="inset-x-0 p-0 mt-3 mx-[5%] md:mx-[15%] md:mt-6 mb-4 z-[2] flex list-none justify-center" data-te-carousel-indicators>
+            <div class="inset-x-0 p-0 mt-3 mx-[5%] md:mx-[15%] md:mt-6 mb-4 z-[2] flex list-none justify-center" data-twe-carousel-indicators>
                 {#each Object.entries(products) as [_, product], i}
-                    <button data-te-target="#slider_{pageId}_{sectionId}"
-                            data-te-slide-to="{i}"
-                            data-te-carousel-active={i === 0 ? true : null}
+                    <button data-twe-target="#slider_{pageId}_{sectionId}"
+                            data-twe-slide-to="{i}"
+                            data-twe-carousel-active={i === 0 ? true : null}
                             class="px-2 md:px-12 opacity-50 hover:opacity-100">
                         <img class="w-full max-h-16" src="{product.images ? product.images[0] : product.image ?? productImageFallback}" alt="">
                     </button>
@@ -231,8 +231,8 @@
 
                 <!-- CTA Slider -->
                 {#if Object.entries(products).length > 1 && $fileConfiguration.backend_present}
-                    <button data-te-target="#slider_{pageId}_{sectionId}"
-                            data-te-slide-to="{Object.entries(products).length}"
+                    <button data-twe-target="#slider_{pageId}_{sectionId}"
+                            data-twe-slide-to="{Object.entries(products).length}"
                             class="mx-1 md:mx-8 w-16 opacity-50 hover:opacity-100 text-green-500 tooltip">
                         <Plus />
                     </button>

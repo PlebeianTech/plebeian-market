@@ -3,7 +3,7 @@ module.exports = {
     "./src/lib/components/**/*.svelte",
     "./src/routes/**/*.svelte",
     "./../shared/src/lib/components/**/*.svelte",
-    "./node_modules/tw-elements/dist/js/**/*.js",
+    "./node_modules/tw-elements/js/**/*.js",
   ],
   theme: {
     extend: {
@@ -16,7 +16,7 @@ module.exports = {
     },
   },
   plugins: [
-      require("tw-elements/dist/plugin.cjs"),
+      require("tw-elements/plugin.cjs"),
       require("@tailwindcss/typography"),
       require("daisyui"),
       function ({ addVariant }) {

@@ -51,7 +51,7 @@
 		"lexical-minifier": "^1.0.0",
 		"light-bolt11-decoder": "^3.0.0",
 		"nostr-tools": "^1.13.1",
-		"tw-elements": "^1.1.0",
+		"tw-elements": "^2.0.0",
 		"uuid": "^9.0.1"
 	}
 }
