@@ -1137,6 +1137,7 @@ class LightningPaymentLog(db.Model):
 
     @classmethod
     def check_payment_log(cls, order_id, lightning_invoice_id, paid_to, amount, type):
+        extra_params = {}
         if lightning_invoice_id is not None:
             extra_params['lightning_invoice_id'] = lightning_invoice_id
 
