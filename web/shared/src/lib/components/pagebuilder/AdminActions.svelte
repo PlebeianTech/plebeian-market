@@ -48,9 +48,9 @@
         {/if}
     </div>
 
-    {#if getPlacesWhereItemIsPresent(itemId, entityName, $NostrGlobalConfig).length > 0}
+    {#if Object.entries(getPlacesWhereItemIsPresent(itemId, entityName)).length > 0}
         <div class="mt-1 md:mt-3 items-start text-left text-sm md:text-md {classOverride}">
-            {#each Object.entries(getPlacesWhereItemIsPresent(itemId, entityName, $NostrGlobalConfig)) as [placeId, placeTitle]}
+            {#each Object.entries(getPlacesWhereItemIsPresent(itemId, entityName)) as [placeId, placeTitle]}
                 <div class="w-max flow mb-0 opacity-75">
                     <span class="w-5 md:w-6 text-rose-500 cursor-pointer tooltip tooltip-primary tooltip-right"
                           data-tip="Remove this from section"
