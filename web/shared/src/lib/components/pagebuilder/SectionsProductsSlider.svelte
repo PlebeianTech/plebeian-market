@@ -51,14 +51,7 @@
                 // EOSE: all products loaded
                 if (browser) {
                     const {Carousel} = await import('tw-elements');
-
-                    // First: destroy
-                    const myCarouselEl = document.getElementById('slider_'+pageId+'_'+sectionId);
-                    let myCarousel = new Carousel(myCarouselEl);
-                    myCarousel.dispose();
-
-                    // Second: create
-                    myCarousel = new Carousel(myCarouselEl);
+                    let myCarousel = new Carousel(document.getElementById('slider_'+pageId+'_'+sectionId));
                     myCarousel.cycle();
 
                     productsLoaded = true;
@@ -156,6 +149,7 @@
                             {/if}
 
                             <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
+
                             {#if $isSuperAdmin}
                                 <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product, true)}>Edit text</button>
 
