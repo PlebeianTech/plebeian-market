@@ -21,7 +21,7 @@ RUN cd /web/backoffice \
 
 FROM node:18-alpine
 
-WORKDIR /buyer-app
+WORKDIR /front-office-app
 COPY --from=builder /web/frontoffice/build .
 
 WORKDIR /app
