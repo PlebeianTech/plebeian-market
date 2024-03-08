@@ -5,6 +5,7 @@ import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, stalls, token, Error}
 import {getApiBaseUrl, isStaging, getConfigurationFromFile} from "$sharedLib/utils";
 import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
+import { isDevelopment } from "$sharedLib/utils.js";
 
 export async function getMarketSquareChannelId() {
     let configJson = await getConfigurationFromFile();
