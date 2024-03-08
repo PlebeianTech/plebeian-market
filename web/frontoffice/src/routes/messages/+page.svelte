@@ -152,7 +152,7 @@
 {#if $NostrPublicKey}
     {#if newConversationPubkey || sortedConversations.length > 0}
         <!-- Desktop -->
-        <div class="hidden lg:flex h-[46rem]">
+        <div class="hidden lg:flex h-full">
             <div class="block w-1/3 p-1 menu card h-auto max-h-full gap-2 rounded-box bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden
                         scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300
                         scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 hover:scrollbar-thumb:!bg-slate-400/80 lg:supports-scrollbars:pr-2">
@@ -173,7 +173,7 @@
                         </div>
                     </li>
                 {/if}
-
+                <!-- <button on:click={() => console.log("Mark all as read")}>Mark all as read</button> -->
                 {#each sortedConversations as [publicKey, conversation]}
                     <li class="rounded-lg w-full"
                         class:bg-accent={selectedConversationPubkey === publicKey}
@@ -187,12 +187,13 @@
                                         {conversation.unreadMessages}
                                     </span>
                                 {/if}
-                                <div class="w-16 rounded-full">
+                                <div class="w-12 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
+                            <div>
                             <div class="flex ml-1">
-                                <span class="text-lg truncate">{conversation.name ?? nip19.npubEncode(publicKey)}</span>
+                                <span class="text-lg truncate">{conversation.name ?? `${nip19.npubEncode(publicKey).substring(0, 12)}...`}</span>
                                 {#if conversation.nip05VerifiedAddress}
                                     <span class="ml-2 mt-1">
                                         <Nip05Checkmark address={conversation.nip05VerifiedAddress} verificationMarkSize="5" />
@@ -206,6 +207,7 @@
                                         Received on the stall
                                     </span>
                                 {/if}
+                            </div>
                             </div>
                         </div>
                     </li>

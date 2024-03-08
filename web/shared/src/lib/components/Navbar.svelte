@@ -129,7 +129,7 @@
     });
 </script>
 
-<nav class="fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50" data-sveltekit-preload-data="hover">
+<nav class="lg:fixed top-0 w-full backdrop-blur-3xl border-b border-gray-400/70 z-50" data-sveltekit-preload-data="hover">
     <div class="3xl:w-11/12 p-2 mx-auto lg:flex lg:flex-row flex-col md:justify-between md:items-center">
         <div class="flex items-center justify-between">
             <a href="/" rel="{isFrontOffice ? '' : 'external'}" class="flex items-center mr-2 indicator">
@@ -210,7 +210,7 @@
 
         <div class:flex={showMobileMenu} class:hidden={!showMobileMenu} class="lg:flex lg:flex-row flex-col justify-center space-y-0">
             <div class="lg:flex items-center justify-start 3xl:space-x-2">
-                <div class="float-right">
+                <div class="float-right inline-flex items-center gap-2">
                     {#if isFrontOffice}
                         <div class="right-0 lg:hidden">
                             <FiatChooser />

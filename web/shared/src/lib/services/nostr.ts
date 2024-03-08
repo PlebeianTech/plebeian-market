@@ -474,7 +474,7 @@ export function subscribeConfiguration(pubkeys: string[], configKeys: string[], 
             }
         ]
     );
-    sub.on('event', e => receivedCB(JSON.parse(e.content), e.created_at, e));
+    sub.on('event', e => {receivedCB(JSON.parse(e.content), e.created_at)});
     if (eoseCB) {
         sub.on('eose', eoseCB);
     }
