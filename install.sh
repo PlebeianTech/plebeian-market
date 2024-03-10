@@ -134,7 +134,7 @@ server {
     }
     location / {
         add_header Access-Control-Allow-Origin *;
-        root /buyer-app;
+        root /front-office-app;
         index index.html;
         try_files \$uri \$uri/ /index.html;
     }
@@ -265,7 +265,7 @@ services:
       - api
     env_file: .env
     volumes:
-      - "buyer-app-static-content:/buyer-app"
+      - "front-office-app:/front-office-app"
   nginx:
     image: nginx:1.25-alpine-slim
     restart: always
@@ -281,7 +281,7 @@ services:
       - "./plebeian-market-nginx:/etc/nginx/conf.d"
       - "./plebeian-market-certificates:/cert"
       - "./plebeian-market-state/media:/media"
-      - "buyer-app-static-content:/buyer-app"
+      - "front-office-app:/front-office-app"
 
 networks:
   db_network:
@@ -292,7 +292,7 @@ networks:
     driver: bridge
 
 volumes:
-  buyer-app-static-content:
+  front-office-app:
 EOF
 fi # docker-compose.yml
 

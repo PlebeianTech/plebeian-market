@@ -1,6 +1,4 @@
-import {browser} from "$app/environment";
-import {goto} from "$app/navigation";
-import { AuthRequired, AuthBehavior, Info } from "$lib/stores";
+import { AuthRequired, AuthBehavior } from "$lib/stores";
 
 export let SATS_IN_BTC = 100000000;
 export let SHORT_TITLE_LIMIT = 70;

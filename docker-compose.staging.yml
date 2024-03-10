@@ -42,7 +42,7 @@ services:
     networks:
       - proxy
     volumes:
-      - "buyer-app-static-content:/buyer-app"
+      - "front-office-app:/front-office-app"
   nginx:
     build:
       context: ./
@@ -57,7 +57,7 @@ services:
     networks:
       - proxy
     volumes:
-      - "buyer-app-static-content:/buyer-app"
+      - "front-office-app:/front-office-app"
       - "/home/www/plebeian-market-state/media:/media"
   finalize-auctions:
     env_file: .env.staging
@@ -90,4 +90,4 @@ networks:
     external: true
 
 volumes:
-  buyer-app-static-content:
+  front-office-app:

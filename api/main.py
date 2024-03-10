@@ -444,7 +444,7 @@ def settle_lightning_payments():
                 app.logger.exception("Error while getting information about Lightning Network payments.")
 
         else:
-            app.logger.info(f"There aren't active orders with Lightning Network payments pending. Sleeping for a while.")
+            app.logger.debug(f"There aren't active orders with Lightning Network payments pending. Sleeping for a while.")
 
         time.sleep(5)
 
