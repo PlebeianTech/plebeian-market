@@ -94,5 +94,4 @@ Give a look to the `getChannelIdForStall` function to know how we're generating 
 
 ## Keys used in the code
 
-* `VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID` - Nostr channel id of the Market Square for each community
 * `VITE_NOSTR_PM_STALL_PUBLIC_KEY` - Nostr public key of Plebeian Market's market stall
