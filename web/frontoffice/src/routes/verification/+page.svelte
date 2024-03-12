@@ -18,7 +18,7 @@
 <Titleh1>External Identities</Titleh1>
 
 <div class="flex">
-    <div class="8/12 mx-auto">
+    <div class="w-8/12 mx-auto">
         <ExternalIdentities />
     </div>
 </div>
@@ -26,7 +26,7 @@
 <!-- <Titleh1>Skin In The Game badge</Titleh1> -->
 
 <div class="flex mt-20">
-    <div class="8/12 mx-auto">
+    <div class="w-8/12 mx-auto">
         <Product product_id={"04cafe6e-d1f0-4cce-9d0d-7af1a0f71953"} />
     </div>
 </div>
