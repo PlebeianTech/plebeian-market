@@ -74,7 +74,7 @@
             </thead>
             <tbody>
             {#each sortedBids as [_, bid]}
-                {#if bid.amount && (bid.pubkey === $NostrPublicKey || bid.backendResponse?.status === 'accepted')}
+                {#if bid.amount && (bid.pubkey === $NostrPublicKey || ['accepted', 'winner'].includes(bid.backendResponse?.status))}
                     <tr class:bg-success={bid.backendResponse && bid.backendResponse.status === 'winner'}>
                         <th class="text-center grid {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}">
                             <CurrencyConverter
@@ -148,8 +148,8 @@
             <tbody>
 
             {#each sortedBids as [_, bid]}
-                {#if bid.amount && ($isSuperAdmin || bid.pubkey === $NostrPublicKey || bid.backendResponse?.status === 'accepted')}
-                    <tr class:opacity-25={$isSuperAdmin && bid.backendResponse?.status !== 'accepted'}>
+                {#if bid.amount && ($isSuperAdmin || bid.pubkey === $NostrPublicKey || ['accepted', 'winner'].includes(bid.backendResponse?.status))}
+                    <tr class:opacity-25={$isSuperAdmin && !['accepted', 'winner'].includes(bid.backendResponse?.status)}>
                         <th class="text-center {bid.backendResponse && bid.backendResponse.status === 'winner' ? winnerColor + ' font-bold' : 'font-normal'}" class:py-0={$isSuperAdmin && bid.backendResponse?.status === 'rejected'}>
                             <CurrencyConverter
                                 amount={bid.amount}

@@ -133,16 +133,10 @@ export function getMonthName(month: number) {
 }
 
 export async function getConfigurationFromFile() {
-    // TODO Improve this
-    // return {
-    //     "admin_pubkeys": [
-    //       "6e8f172de9b5f21b45c80f4bbd6989110914a816517e7d09eb2ddcef050b014b"
-    //     ],
-    //     "homepage_banner_image": "",
-    //     "backend_present": false
-    //   }
-      
+
     let response = await fetch('/config.json')
+
+    let response = await fetch('/front-office-config/config.json')
 
     if (!response.ok) {
         return false;
