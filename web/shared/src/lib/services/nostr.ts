@@ -3,7 +3,8 @@ import {
     type Event,
     type Sub,
     type Filter,
-    nip04
+    nip04,
+    SimplePool
 } from 'nostr-tools';
 import {get} from "svelte/store";
 import { UserResume } from "$sharedLib/types/user";
@@ -143,7 +144,7 @@ export async function sendReaction(noteId: string, notePubkey: string, reaction:
  *              This is used to reply to messages as a merchant, and not with the logged-in personal account.
  * @param successCB
  */
-export async function sendPrivateMessage(recipientPubkey: string, message: string, merchantPrivateKey: string | boolean, successCB) {
+export async function sendPrivateMessage(recipientPubkey: string, message: string, merchantPrivateKey: string | boolean, successCB):Promise<boolean> {
     let cipheredMessage;
 
     if (loggedIn()) {
@@ -164,11 +165,20 @@ export async function sendPrivateMessage(recipientPubkey: string, message: strin
     }
 
     const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', recipientPubkey]], merchantPrivateKey);
-    get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
+    try {
+        const pool: SimplePool = get(NostrPool)
+        pool.publish(relayUrlList, event);
+        successCB;
+        return true;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
 }
 
 export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:string | boolean = false, receivedCB, eoseCB = () => {}) {
-    const sub = get(NostrPool).sub(relayUrlList, [
+    const pool: SimplePool = get(NostrPool)
+    const sub = pool.sub(relayUrlList, [
         {
             kinds: [EVENT_KIND_PM],
             authors: [userPubkey]       // My messages (output)
@@ -186,13 +196,13 @@ export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:
         let my_message_replying_to_this_pubkey: string | null = null;
         if (messagePubkey === userPubkey) {
             // Message sent by the userPubkey owner
-            my_message_replying_to_this_pubkey = e.tags.find(([k, v]) => k === 'p' && v && v !== '')[1];
+            my_message_replying_to_this_pubkey = e.tags.find(([k, v]) => k === 'p' && v && v !== '')![1];
             decryptPubkey = my_message_replying_to_this_pubkey;         // My messages (output)
         } else {
             // Message received by the userPubkey owner
             decryptPubkey = messagePubkey;  // Replies
         }
-
+        // TODO: Dont decrypt the content automatically, do it on demand. More private and faster
         let decryptedContent;
         if (!merchantPrivateKey) {
             if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
