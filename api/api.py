@@ -258,6 +258,8 @@ def put_me(user: m.User):
         if request.json.get('wallet'):
             try:
                 k = parse_xpub(request.json['wallet'])
+            except ValueError as e:
+                return jsonify({'message': "Invalid xpub/zpub."}), 400
             except UnknownKeyTypeError as e:
                 return jsonify({'message': "Invalid wallet."}), 400
             try:

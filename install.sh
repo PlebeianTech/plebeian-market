@@ -58,7 +58,12 @@ if [ ! -f plebeian-market-secrets/mail.json ]; then
   echo "{\"server\": \"smtp\", \"username\": \"\", \"password\": \"\", \"default_sender\": \"hello@$DOMAIN_NAME\"}" > plebeian-market-secrets/mail.json
 fi
 
-cd && mkdir -p plebeian-market-state/media
+cd && mkdir -p plebeian-market-state/media && mkdir -p plebeian-market-state/front-office-config
+
+if [ ! -f plebeian-market-state/front-office-config/config.json ]; then
+  MARKET_SQUARE_CHANNEL_ID=`openssl rand -hex 32`
+  echo "{\"admin_pubkeys\": [\"TODO\"], \"homepage_banner_image\": \"\", \"backend_present\": true, \"market_square_channel_id\": \"$MARKET_SQUARE_CHANNEL_ID\" }" > plebeian-market-state/front-office-config/config.json
+fi
 
 if [ ! -f .env ]; then
   cat << EOF > .env
@@ -131,6 +136,9 @@ server {
     }
     location /media {
         alias /media/;
+    }
+    location /front-office-config {
+        alias /front-office-config/;
     }
     location / {
         add_header Access-Control-Allow-Origin *;
@@ -281,6 +289,7 @@ services:
       - "./plebeian-market-nginx:/etc/nginx/conf.d"
       - "./plebeian-market-certificates:/cert"
       - "./plebeian-market-state/media:/media"
+      - "./plebeian-market-state/front-office-config:/front-office-config"
       - "front-office-app:/front-office-app"
 
 networks:

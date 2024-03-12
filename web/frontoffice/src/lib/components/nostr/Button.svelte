@@ -1,27 +1,23 @@
 <script lang="ts">
     import { sendMessage } from "$sharedLib/services/nostr";
-    import { getChannelIdForStallOwner, pmChannelNostrRoomId } from '$sharedLib/nostr/utils'
+    import { getMarketSquareChannelId } from '$sharedLib/nostr/utils'
     import { Info } from "$lib/stores";
 
     export let pmURL: string | null;
 
-    let nostrRoomId;
+    let nostrRoomId: string | null;
     let message: string;
     let textConfirmationVisible: boolean;
 
-    function getNostrTextModal(location: 'stall' | 'mktSquare' | 'nostrFeed') {
+    async function getNostrTextModal(location: 'mktSquare' | 'nostrFeed') {
         switch (location) {
-            case 'stall':
-                message = 'Hi people! I just listed a new product. Give it a look:';
-//                nostrRoomId = getChannelIdForStallOwner($user);
-                break;
             case 'mktSquare':
                 message = 'Hey! Check the new product I just listed!';
-                nostrRoomId = pmChannelNostrRoomId;
+                nostrRoomId = await getMarketSquareChannelId();
                 break;
             case 'nostrFeed':
                 message = 'Check the product I just published at Plebeian Market!';
-                nostrRoomId = false;
+                nostrRoomId = null;
                 break;
         }
 
@@ -86,9 +82,8 @@
         Share on Nostr
     </label>
     <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-secondary rounded-box w-72">
-        <li><a href="#anchorId" on:click|preventDefault={() => getNostrTextModal("stall")}>My Stall</a></li>
-        <li><a href="#anchorId" on:click|preventDefault={() => getNostrTextModal("mktSquare")}>Market Square</a></li>
-        <li><a href="#anchorId" on:click|preventDefault={() => getNostrTextModal("nostrFeed")}>Public Nostr</a></li>
+        <li><a href="#anchorId" on:click|preventDefault={async () => await getNostrTextModal("mktSquare")}>Market Square</a></li>
+        <li><a href="#anchorId" on:click|preventDefault={async () => await getNostrTextModal("nostrFeed")}>Public Nostr</a></li>
     </ul>
 </div>
 
