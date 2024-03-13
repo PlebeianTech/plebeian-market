@@ -64,7 +64,7 @@ class LndHubClient:
             return False
 
         else:
-            app.logger.error(f"create_invoice - Another thing happened status_code: {response_invoice.status_code}")
+            app.logger.error(f"create_invoice - status_code: {response_invoice.status_code} response: {response_invoice.text}")
             return False
 
     def get_incoming_invoices(self):
