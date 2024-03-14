@@ -19,6 +19,7 @@ import requests
 import sys
 import time
 import websockets
+from websockets.exceptions import ConnectionClosedOK
 
 BIRDWATCHER_PORT = 6000
 
@@ -396,6 +397,9 @@ async def main(relays: list[Relay]):
         for relay in relays:
             try:
                 await relay.send_event(event_json)
+            except ConnectionClosedOK:
+                relay.ws = None
+                logging.error(f"Lost connection while trying to forward event {event_json['id']} to {relay.url}!")
             except Exception:
                 logging.exception(f"Error forwarding event {event_json['id']} to {relay.url}!")
         return web.json_response({})
@@ -417,6 +421,9 @@ async def main(relays: list[Relay]):
             for relay in relays:
                 try:
                     await relay.send_query(subscription_id, filters)
+                except ConnectionClosedOK:
+                    relay.ws = None
+                    logging.error(f"Lost connection while trying to query {relay.url}!")
                 except Exception:
                     logging.exception(f"Error sending query to {relay.url}!")
 
