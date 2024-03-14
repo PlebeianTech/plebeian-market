@@ -136,6 +136,19 @@
             </div>
         </div>
     </a>
+    <a target="_blank" rel="noreferrer" href="/p/npub1gzuushllat7pet0ccv9yuhygvc8ldeyhrgxuwg744dn5khnpk3gs3ea5ds">
+        <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
+            <div class="avatar mask mask-circle h-40 w-40">
+                <img src="/team/gzuuus.webp" alt=""/>
+            </div>
+            <div>
+                <div class="w-full text-center">
+                    <div class="text-xl font-extrabold">gzuuus</div>
+                    <div class="uppercase my-2 font-bold text-sm">Senior Developer</div>
+                </div>
+            </div>
+        </div>
+    </a>
     <a rel="noreferrer" href="/contact">
         <div class="card rounded-box max-w-full xl:w-full h-full gap-4 px-4 pt-4 pb-1 mb-3 flex-shrink-0 place-items-center items-center shadow-xl bg-base-300 text-white-content rounded hover:scale-125 duration-300">
             <div>
