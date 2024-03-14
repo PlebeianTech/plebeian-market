@@ -202,7 +202,6 @@ export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:
             // Message received by the userPubkey owner
             decryptPubkey = messagePubkey;  // Replies
         }
-        // TODO: Dont decrypt the content automatically, do it on demand. More private and faster
         let decryptedContent;
         if (!merchantPrivateKey) {
             if (get(NostrLoginMethod) === 'extension' && hasExtension()) {
