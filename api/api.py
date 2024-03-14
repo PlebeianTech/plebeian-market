@@ -1110,12 +1110,6 @@ def post_merchant_message(pubkey):
         lndhub_client = get_lndhub_client()
         invoice_information = lndhub_client.create_invoice(order.uuid, order.total)
 
-        if not invoice_information:
-            app.logger.info(f"Error while trying to create_invoice. Retrying...")
-            time.sleep(5)
-            lndhub_client.get_login_token()
-            invoice_information = lndhub_client.create_invoice(order.uuid, order.total)
-
         if invoice_information and invoice_information['payment_request']:
             lightning_invoice = m.LightningInvoice(
                 order_id=order.id,
@@ -1128,7 +1122,6 @@ def post_merchant_message(pubkey):
             db.session.commit()
 
             payment_options.append({'type': 'ln', 'link': invoice_information['payment_request'], 'amount_sats': order.total})
-
         else:
             return jsonify({'message': "Error sending the payment options back to the buyer (couldn't create a new LN invoice)"}), 500
 

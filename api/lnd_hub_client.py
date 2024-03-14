@@ -9,13 +9,7 @@ class LndHubClient:
     def __init__(self):
         self.lndhub_url = app.config['LNDHUB_URL']
         app.logger.debug(f"init - LNDHUB_URL={self.lndhub_url}")
-        login_token = self.get_login_token()
-
-        if not login_token:
-            app.logger.error(f"__init__ - Couldn't get the login_token ({self.lndhub_url})...")
-            return false
-
-        self.auth_header = login_token
+        self.auth_header = self.get_login_token()
 
     def get_login_token(self):
         app.logger.info(f"get_login_token - Trying login to LndHub API ({self.lndhub_url})...")
@@ -49,23 +43,27 @@ class LndHubClient:
         }
         app.logger.debug(f"create_invoice - Creating invoice for order: {payload}")
 
-        response_invoice = requests.post(
-            self.lndhub_url + '/v2/invoices',
-            headers = self.auth_header,
-            json=payload
-        )
+        response_invoice = requests.post(f"{self.lndhub_url}/v2/invoices",
+            headers=self.auth_header,
+            json=payload)
 
-        if (response_invoice.status_code == 200):
+        if response_invoice.status_code == 200:
             app.logger.info(f"create_invoice - The request to create a new LN invoice was a great success!")
             return response_invoice.json()
-
-        elif (response_invoice.status_code == 401):
-            app.logger.info(f"create_invoice - LndHub API error 401. Probably the token expired!")
-            return False
-
+        elif response_invoice.status_code == 401:
+            app.logger.info(f"create_invoice - LndHub API error 401. Probably the token expired. Retrying...")
+            self.auth_header = self.get_login_token()
+            response_invoice = requests.post(f"{self.lndhub_url}/v2/invoices",
+                headers=self.auth_header,
+                json=payload)
+            if response_invoice.status_code == 200:
+                app.logger.info(f"create_invoice - Retry was a great success!")
+                return response_invoice.json()
+            else:
+                app.logger.error(f"create_invoice - Still failed after retry. status_code: {response_invoice.status_code} response: {response_invoice.text}")
         else:
-            app.logger.error(f"create_invoice - Another thing happened status_code: {response_invoice.status_code}")
-            return False
+            app.logger.error(f"create_invoice - status_code: {response_invoice.status_code} response: {response_invoice.text}")
+            return None
 
     def get_incoming_invoices(self):
         response_invoices_status = requests.get(

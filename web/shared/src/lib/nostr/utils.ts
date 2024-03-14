@@ -2,11 +2,18 @@ import {getEventHash, nip05, nip19, Kind, getSignature, getPublicKey} from "nost
 import {goto} from "$app/navigation";
 import {get} from "svelte/store";
 import {NostrPrivateKey, NostrPublicKey, NostrLoginMethod, stalls, token, Error} from "$sharedLib/stores";
-import {getApiBaseUrl, isStaging, isDevelopment} from "$sharedLib/utils";
+import {getApiBaseUrl, isStaging, getConfigurationFromFile} from "$sharedLib/utils";
 import {sendPrivateMessage} from "$sharedLib/services/nostr";
 import { v4 as uuidv4 } from "uuid";
+import { isDevelopment } from "$sharedLib/utils.js";
 
-export const pmChannelNostrRoomId = import.meta.env.VITE_NOSTR_MARKET_SQUARE_CHANNEL_ID;
+export async function getMarketSquareChannelId() {
+    let configJson = await getConfigurationFromFile();
+    if (configJson) {
+        return configJson['market_square_channel_id'];
+    }
+}
+
 export const pmStallPubkey = import.meta.env.VITE_NOSTR_PM_STALL_PUBLIC_KEY;
 
 // NB: keep in sync with `api/config.py`
