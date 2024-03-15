@@ -2,12 +2,14 @@
     import {onMount} from "svelte";
     import {fileConfiguration} from "$sharedLib/stores";
     import {getProducts, EVENT_KIND_AUCTION, EVENT_KIND_PRODUCT} from "$sharedLib/services/nostr";
-    import {getItemsFromSection} from "$sharedLib/pagebuilder";
+    import {getItemsFromSection, getSection} from "$sharedLib/pagebuilder";
     import ProductCard from "$sharedLib/components/pagebuilder/ProductCard.svelte";
     import ProductCardCTA from "$sharedLib/components/pagebuilder/ProductCardCTA.svelte";
 
     export let pageId;
     export let sectionId;
+
+    const sectionConfiguration = getSection(pageId, sectionId);
 
     let products: {[productId: string]: {}} = {};
     let productsLoaded = false;
@@ -17,8 +19,8 @@
 
         getProducts(null, productIDs,
             (newProductInfo) => {
-                // Calculate if ended
                 if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
+                    // Calculate if ended
                     if (newProductInfo.start_date) {
                         let now = Math.floor(Date.now() / 1000);
                         let endsAt = newProductInfo.start_date + newProductInfo.duration;
@@ -47,7 +49,14 @@
     {:else}
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8 z-[300] mt-2 mb-2">
             {#each Object.entries(products) as [_, product]}
-                {#if product.event.kind === EVENT_KIND_PRODUCT || (product.event.kind === EVENT_KIND_AUCTION && product.ended === false)}
+                {#if (product.event.kind === EVENT_KIND_PRODUCT &&
+                    (product.quantity !== 0 || (product.quantity === 0 && sectionConfiguration.params?.showProductsWithoutStock))
+                ) ||
+                (product.event.kind === EVENT_KIND_AUCTION &&
+                    (!product.ended || (product.ended && sectionConfiguration.params?.showEndedAuctions)) &&
+                    (product.start_date || (!product.start_date && sectionConfiguration.params?.showUnstartedAuctions))
+                )
+                }
                     <ProductCard {product} />
                 {/if}
             {/each}

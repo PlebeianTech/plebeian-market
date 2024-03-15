@@ -10,10 +10,14 @@
 
     let page = null;
 
-    let sectionType;
+    let sectionType: string;
     let maxProductsShown;
-    let imageBannerURL;
-    let sectionTitle;
+    let imageBannerURL: string;
+    let sectionTitle: string;
+
+    let showProductsWithoutStock: boolean = false;
+    let showUnstartedAuctions: boolean = false;
+    let showEndedAuctions: boolean = false;
 
     let getLexicalContent;
     let initialMinifiedLexicalContent = '';
@@ -92,6 +96,10 @@
         maxProductsShown = page?.sections[sectionId]?.params?.maxProductsShown ?? 0;
         imageBannerURL = page?.sections[sectionId]?.params?.imageBannerURL ?? '';
 
+        showProductsWithoutStock = page?.sections[sectionId]?.params?.showProductsWithoutStock ?? false;
+        showUnstartedAuctions = page?.sections[sectionId]?.params?.showUnstartedAuctions ?? false;
+        showEndedAuctions = page?.sections[sectionId]?.params?.showEndedAuctions ?? false;
+
         if (sectionType === 'text') {
             getTextConfigFromNostr()
         } else if (sectionType === 'products_with_slider') {
@@ -114,7 +122,10 @@
             maxProductsShown,
             imageBannerURL,
             lexicalContent,
-            lastProductPassed
+            lastProductPassed,
+            showProductsWithoutStock,
+            showUnstartedAuctions,
+            showEndedAuctions
         });
 
         saved = true;
@@ -172,6 +183,23 @@
                         <div class="mt-8">
                             Image to show in the section:
                             <input type="text" placeholder="Image URL to be used as banner" class="mt-2 input input-bordered input-sm w-full max-w-xs" bind:value={imageBannerURL} />
+                        </div>
+                    {/if}
+
+                    {#if ['products_with_slider', 'products'].includes(sectionType)}
+                        <div class="form-control mt-6 w-1/2 max-w-0 min-w-fit">
+                            <label class="label justify-start cursor-pointer">
+                                <input type="checkbox" class="checkbox mr-2" bind:checked={showProductsWithoutStock} />
+                                <span class="text-lg">Show products without stock</span>
+                            </label>
+                            <label class="label justify-start cursor-pointer">
+                                <input type="checkbox" class="checkbox mr-2" bind:checked={showUnstartedAuctions} />
+                                <span class="text-lg">Show unstarted auctions</span>
+                            </label>
+                            <label class="label justify-start cursor-pointer">
+                                <input type="checkbox" class="checkbox mr-2" bind:checked={showEndedAuctions} />
+                                <span class="text-lg">Show ended auctions</span>
+                            </label>
                         </div>
                     {/if}
 
