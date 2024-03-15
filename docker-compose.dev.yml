@@ -56,7 +56,7 @@ services:
     command: flask settle-lightning-payments
   birdwatcher:
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://birdwatcher/status"]
+      test: ["CMD", "wget", "http://localhost:6000/status"]
       interval: 3s
       timeout: 3s
       retries: 5
