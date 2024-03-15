@@ -390,6 +390,10 @@ async def main(relays: list[Relay]):
     else:
         logging.warning("Verified external identities will not be persisted!")
 
+    @routes.get("/status")
+    async def get_status(request):
+        return web.json_response({'running': True})
+
     @routes.post("/events")
     async def post_event(request):
         event_json = await request.json()

@@ -55,6 +55,11 @@ services:
       - "./api:/app"
     command: flask settle-lightning-payments
   birdwatcher:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://birdwatcher/status"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
     env_file: .env.dev
     ports:
       - "6000:6000"
