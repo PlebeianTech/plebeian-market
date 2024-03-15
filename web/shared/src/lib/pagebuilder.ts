@@ -392,6 +392,12 @@ export function saveSectionSetup(pageId, sectionId, setupParams) {
         section.params.maxProductsShown = setupParams.maxProductsShown;
     }
 
+    if (['products_with_slider', 'products'].includes(setupParams.sectionType)) {
+        section.params.showProductsWithoutStock = setupParams.showProductsWithoutStock;
+        section.params.showUnstartedAuctions = setupParams.showUnstartedAuctions;
+        section.params.showEndedAuctions = setupParams.showEndedAuctions;
+    }
+
     if (setupParams.lexicalContent) {
         let configurationKey;
 

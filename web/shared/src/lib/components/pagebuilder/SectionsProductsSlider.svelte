@@ -3,6 +3,7 @@
     import { browser } from '$app/environment'
     import {
         getProducts,
+        EVENT_KIND_PRODUCT,
         EVENT_KIND_AUCTION,
         subscribeConfiguration,
         getConfigurationKey
@@ -13,12 +14,14 @@
     import Countdown from "$sharedLib/components/Countdown.svelte";
     import Plus from "$sharedLib/components/icons/Plus.svelte";
     import AdminActions from "$sharedLib/components/pagebuilder/AdminActions.svelte";
-    import {getItemsFromSection, getHtmlFromRichText} from "$sharedLib/pagebuilder";
+    import {getItemsFromSection, getHtmlFromRichText, getSection} from "$sharedLib/pagebuilder";
     import RichTextComposer from "$sharedLib/components/pagebuilder/lexical-editor/RichTextComposer.svelte";
 
     export let pageId;
     export let sectionId;
     export let setupSection;
+
+    const sectionConfiguration = getSection(pageId, sectionId);
 
     let now = Math.floor(Date.now() / 1000);
 
@@ -26,14 +29,14 @@
     let productsLoaded = false;
 
     onMount(async () => {
-        let productIDs = getItemsFromSection(pageId, sectionId, 'products');
+        const productIDs = getItemsFromSection(pageId, sectionId, 'products');
 
         getProducts(null, productIDs,
             (newProductInfo) => {
                 let productId = newProductInfo.id;
                 if (!(productId in products) || (productId in products && products[productId].event.created_at < newProductInfo.event.created_at)) {
-                    // Calculate if ended
                     if (newProductInfo.event.kind === EVENT_KIND_AUCTION) {
+                        // Calculate if ended
                         if (newProductInfo.start_date) {
                             now = Math.floor(Date.now() / 1000);
                             let endsAt = newProductInfo.start_date + newProductInfo.duration;
@@ -103,66 +106,75 @@
         <!-- Carousel items -->
         <div class="w-full h-[36rem] overflow-hidden">
             {#each Object.entries(products) as [_, product], i}
-                <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
-                     class:hidden={i > 0}
-                     data-twe-carousel-fade
-                     data-twe-carousel-item
-                     data-twe-carousel-active={i === 0 ? true : null}>
-                    <div class="relative h-full w-auto md:flex overflow-hidden">
-                        <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
-                            <a href="/product/{product.id}">
-                                <img class="w-auto max-h-full mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
-                                     src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
-                            </a>
-                        </div>
-
-                        <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
-                            <div class="z-[300] prose prose-p:my-2 md:prose-p:my-0">
-                                {#if product.richText}
-                                    <RichTextComposer initialMinifiedLexicalContent={product.richText} editable={false} />
-                                {:else}
-                                    {#if product.name}
-                                        <h2 class="md:text-3xl mb-1 md:mb-2">{product.name}</h2>
-                                    {/if}
-                                    {#if product.description}
-                                        {@html getHtmlFromRichText(product.description)}
-                                    {/if}
-                                {/if}
+                {#if (product.event.kind === EVENT_KIND_PRODUCT &&
+                        (product.quantity !== 0 || (product.quantity === 0 && sectionConfiguration.params?.showProductsWithoutStock))
+                     ) ||
+                     (product.event.kind === EVENT_KIND_AUCTION &&
+                        (!product.ended || (product.ended && sectionConfiguration.params?.showEndedAuctions)) &&
+                        (product.start_date || (!product.start_date && sectionConfiguration.params?.showUnstartedAuctions))
+                     )
+                }
+                    <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
+                         class:hidden={i > 0}
+                         data-twe-carousel-fade
+                         data-twe-carousel-item
+                         data-twe-carousel-active={i === 0 ? true : null}>
+                        <div class="relative h-full w-auto md:flex overflow-hidden">
+                            <div class="h-full max-h-[20rem] md:max-h-[36rem] w-auto md:w-6/12 overflow-hidden">
+                                <a href="/product/{product.id}">
+                                    <img class="w-auto max-h-full mx-auto p-4 md:p-6" alt="{product.name ?? 'Product #' + i}"
+                                         src="{product.images ? product.images[0] : product.image ?? productImageFallback}"/>
+                                </a>
                             </div>
 
-                            {#if product.event.kind === EVENT_KIND_AUCTION}
-                                {#if !product.start_date}
-                                    <div class="flex">
-                                        <p class="pt-5 text-xl font-bold mx-auto">Coming Soon</p>
-                                    </div>
-                                {:else}
-                                    {#if product.ended}
+                            <div class="w-full md:w-6/12 overflow-hidden p-4 pt-0 md:p-16 md:pt-4 md:pl-12 md:text-lg">
+                                <div class="z-[300] prose prose-p:my-2 md:prose-p:my-0">
+                                    {#if product.richText}
+                                        <RichTextComposer initialMinifiedLexicalContent={product.richText} editable={false} />
+                                    {:else}
+                                        {#if product.name}
+                                            <h2 class="md:text-3xl mb-1 md:mb-2">{product.name}</h2>
+                                        {/if}
+                                        {#if product.description}
+                                            {@html getHtmlFromRichText(product.description)}
+                                        {/if}
+                                    {/if}
+                                </div>
+
+                                {#if product.event.kind === EVENT_KIND_AUCTION}
+                                    {#if !product.start_date}
                                         <div class="flex">
-                                            <p class="pt-5 text-xl font-bold mx-auto">Auction Ended</p>
+                                            <p class="pt-5 text-xl font-bold mx-auto">Coming Soon</p>
                                         </div>
                                     {:else}
-                                        <div class="pt-4 pb-2">
-                                            <Countdown totalSeconds={product.endsAt - now} bind:ended={product.ended} />
-                                        </div>
+                                        {#if product.ended}
+                                            <div class="flex">
+                                                <p class="pt-5 text-xl font-bold mx-auto">Auction Ended</p>
+                                            </div>
+                                        {:else}
+                                            <div class="pt-4 pb-2">
+                                                <Countdown totalSeconds={product.endsAt - now} bind:ended={product.ended} />
+                                            </div>
+                                        {/if}
                                     {/if}
                                 {/if}
-                            {/if}
 
-                            <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
+                                <a class="btn btn-outline btn-accent mt-6" href="/product/{product.id}">View product</a>
 
-                            {#if $isSuperAdmin}
-                                <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product, true)}>Edit text</button>
+                                {#if $isSuperAdmin}
+                                    <button class="btn btn-outline btn-primary mt-6 ml-4" on:click={() => setupSection(pageId, sectionId, product, true)}>Edit text</button>
 
-                                <div class="p-0 md:p-4 md:pb-0">
-                                    <AdminActions
-                                        itemId={product.id}
-                                        entityName="products"
-                                    />
-                                </div>
-                            {/if}
+                                    <div class="p-0 md:p-4 md:pb-0">
+                                        <AdminActions
+                                            itemId={product.id}
+                                            entityName="products"
+                                        />
+                                    </div>
+                                {/if}
+                            </div>
                         </div>
                     </div>
-                </div>
+                {/if}
             {/each}
 
             <!-- CTA Slider -->
