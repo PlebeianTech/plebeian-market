@@ -74,10 +74,16 @@ export const products: Writable<{
 
 // Human messages are indexed by publicKey
 // Automatic messages (orders) are indexed by orderId
+interface Message {
+    publicKey: string,
+    maxTimestamp: number,
+}
 export const privateMessages: Writable<{
-    human: [],
-    automatic: []
+    human: Message[],
+    automatic: [],
+    unreadConversations: number
 }> = writable({
     human: [],
-    automatic: []
+    automatic: [],
+    unreadConversations: 0
 });

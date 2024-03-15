@@ -4,7 +4,7 @@
     import { page } from '$app/stores'
     import {nip19} from "nostr-tools";
     import {sendPrivateMessage} from "$sharedLib/services/nostr";
-    import {NostrPublicKey, privateMessages} from "$sharedLib/stores";
+    import {NostrPublicKey, privateMessages } from "$sharedLib/stores";
     import SimpleNote from "$lib/components/nostr/SimpleNote.svelte";
     import profilePicturePlaceHolder from "$sharedLib/images/profile_picture_placeholder.svg";
     import SendMessage from "$sharedLib/components/icons/SendMessage.svelte";
@@ -13,39 +13,50 @@
     import {requestLoginModal, waitAndShowLoginIfNotLoggedAlready} from "$sharedLib/utils";
     import Nip05Checkmark from "$lib/components/nostr/Nip05Checkmark.svelte";
 
-    let selectedConversationPubkey = null;
-    let sortedConversations;
-    let sortedMessages = [];
-    let chatTextareaMobile;
-    let chatTextareaDesktop;
-    let newConversationPubkey;
+    let selectedConversationPubkey: string
+    let sortedConversations: object[] = [];
+    let sortedMessages: object[] = [];
+    let chatTextarea:string="";
+    let newConversationPubkey: string;
 
     // Messages
     $: {
         if (selectedConversationPubkey && $privateMessages.human && $privateMessages.human[selectedConversationPubkey]) {
-            sortedMessages = Object.entries($privateMessages.human[selectedConversationPubkey].messages).sort((a, b) => {
+            sortedMessages = Object.entries($privateMessages.human[selectedConversationPubkey].messages).sort((a:object, b:object) => {
                 return a[1].created_at - b[1].created_at;
             });
 
             scrollToBottom();
 
             const maxTimestampConversation = $privateMessages.human[selectedConversationPubkey].maxTimestamp;
-            let messagesStorage = localStorage.getItem('readMessages');
-            let messages = JSON.parse(messagesStorage) ?? {};
+            let messages = getMsgFromStorage();
 
             if (maxTimestampConversation > (messages[selectedConversationPubkey] ?? 0)) {
                 messages[selectedConversationPubkey] = maxTimestampConversation;
 
-                localStorage.setItem('readMessages', JSON.stringify(messages));
-
-                // Fire private messages reactivity manually
-                $privateMessages.human[selectedConversationPubkey].maxTimestamp = $privateMessages.human[selectedConversationPubkey].maxTimestamp;
+                markMsgAsRead(messages, selectedConversationPubkey);
             }
         } else {
             sortedMessages = [];
         }
     }
-
+    function getMsgFromStorage(): Record<string, number> {
+        // Bug: Ensure stores before this, if not cannot read properties of null 
+        let messagesStorage: string | null = localStorage.getItem('readMessages');
+        return messagesStorage && JSON.parse(messagesStorage);
+    }
+    function markMsgAsRead(messages: Record<string, number>, conversationPubKey:string) {
+        localStorage.setItem('readMessages', JSON.stringify(messages));
+        $privateMessages.human[conversationPubKey].maxTimestamp = $privateMessages.human[conversationPubKey].maxTimestamp;
+    }
+    function markAllMsgAsRead() {
+        let msgsObj: object = {};
+        for (const [key, value] of Object.entries($privateMessages.human)) {
+            msgsObj = {...msgsObj, [key]: value.maxTimestamp};
+            $privateMessages.human[key].maxTimestamp = $privateMessages.human[key].maxTimestamp;
+        }
+        localStorage.setItem('readMessages', JSON.stringify(msgsObj));
+    }
     // Conversations
     $: {
         if ($privateMessages.human) {
@@ -57,38 +68,29 @@
         }
     }
 
-    const onKeyPress = e => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+    function onKeyPress (e:KeyboardEvent): void {
+        if (['Enter'].includes(e.code)) {
             e.preventDefault();
             send();
         }
     }
 
     async function send() {
-        const contentMobile = chatTextareaMobile.value.trim();
-        const contentDesktop = chatTextareaDesktop.value.trim();
-        let content = '';
+        let content: string = chatTextarea.trim();
 
-        if (contentMobile && contentMobile.length > 0) {
-            content += contentMobile;
-        } else if (contentDesktop && contentDesktop.length > 0) {
-            content += contentDesktop;
-        }
-
-        if (content.length > 0) {
-            let merchantPrivateKey;
+        if (content.length) {
+            let merchantPrivateKey: string;
             if ($privateMessages.human[selectedConversationPubkey] && $privateMessages.human[selectedConversationPubkey].merchantPrivateKey) {
                 merchantPrivateKey = $privateMessages.human[selectedConversationPubkey].merchantPrivateKey;
             }
-
-            await sendPrivateMessage(selectedConversationPubkey, content, merchantPrivateKey,
+            let send = await sendPrivateMessage(selectedConversationPubkey, content, merchantPrivateKey!,
                 async (relay) => {
-                    chatTextareaMobile.value = '';
-                    chatTextareaDesktop.value = '';
+                    chatTextarea = ''
                     console.debug('-------- Private message accepted by relay:', relay);
                 }
             );
-        }
+            if (send) chatTextarea = '';
+        }  
     }
 
     function selectConversation(publicKey) {
@@ -152,12 +154,14 @@
 {#if $NostrPublicKey}
     {#if newConversationPubkey || sortedConversations.length > 0}
         <!-- Desktop -->
-        <div class="hidden lg:flex h-[46rem]">
+        <div class="hidden lg:flex h-full">
             <div class="block w-1/3 p-1 menu card h-auto max-h-full gap-2 rounded-box bg-cover bg-top bg-base-300 bg-info-content-200 overflow-y-auto overflow-x-hidden
                         scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300
                         scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 hover:scrollbar-thumb:!bg-slate-400/80 lg:supports-scrollbars:pr-2">
+                <button class="btn btn-xs btn-info mb-1" class:hidden={$privateMessages.unreadConversations == 0} on:click={() => console.log(markAllMsgAsRead())}>Mark all as read</button>
                 {#if newConversationPubkey && !$privateMessages.human[newConversationPubkey]}
-                    <li class="rounded-lg w-full"
+                    
+                <li class="rounded-lg w-full"
                         class:bg-accent={selectedConversationPubkey === newConversationPubkey}
                         on:click={() => selectConversation(newConversationPubkey)}
                     >
@@ -173,7 +177,7 @@
                         </div>
                     </li>
                 {/if}
-
+                
                 {#each sortedConversations as [publicKey, conversation]}
                     <li class="rounded-lg w-full"
                         class:bg-accent={selectedConversationPubkey === publicKey}
@@ -187,12 +191,13 @@
                                         {conversation.unreadMessages}
                                     </span>
                                 {/if}
-                                <div class="w-16 rounded-full">
+                                <div class="w-12 rounded-full">
                                     <img src="{conversation.picture ?? profilePicturePlaceHolder}" on:error={(event) => onImgError(event.srcElement)} />
                                 </div>
                             </div>
+                            <div>
                             <div class="flex ml-1">
-                                <span class="text-lg truncate">{conversation.name ?? nip19.npubEncode(publicKey)}</span>
+                                <span class="text-lg truncate">{conversation.name ?? `${nip19.npubEncode(publicKey).substring(0, 12)}...`}</span>
                                 {#if conversation.nip05VerifiedAddress}
                                     <span class="ml-2 mt-1">
                                         <Nip05Checkmark address={conversation.nip05VerifiedAddress} verificationMarkSize="5" />
@@ -207,11 +212,11 @@
                                     </span>
                                 {/if}
                             </div>
+                            </div>
                         </div>
                     </li>
                 {/each}
             </div>
-
             <div class="divider lg:divider-horizontal"></div>
 
             <div class="flex flex-col flex-grow w-full p-4 gap-2 card bg-base-300 rounded-box bg-cover bg-top bg-info-content-200 overflow-x-hidden overflow-y-auto            scrollbar:!w-1.5 scrollbar:!h-1.5 scrollbar:bg-transparent scrollbar-track:!bg-slate-100 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 scrollbar-track:!rounded dark:scrollbar-track:!bg-slate-500/[0.16] dark:scrollbar-thumb:!bg-slate-500/50 lg:supports-scrollbars:pr-2 hover:scrollbar-thumb:!bg-slate-400/80"
@@ -229,7 +234,7 @@
                                 rows="1"
                                 autofocus
                                 placeholder="Type your message"
-                                bind:this={chatTextareaDesktop}
+                                bind:value={chatTextarea}
                                 on:keypress={onKeyPress}
                                 class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 
@@ -353,7 +358,7 @@
                             rows="1"
                             autofocus
                             placeholder="Type your message"
-                            bind:this={chatTextareaMobile}
+                            bind:value={chatTextarea}
                             on:keypress={onKeyPress}
                             class="p-2 w-full bg-medium placeholder:text-light outline-0 resize-none"></textarea>
 

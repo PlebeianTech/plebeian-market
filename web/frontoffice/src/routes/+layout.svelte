@@ -17,19 +17,17 @@
 
     function subscribeGlobalConf() {
         let receivedAt = 0;
-
         const serializedGlobalConfig = localStorage.getItem("NostrGlobalConfig");
         if (serializedGlobalConfig) {
             $NostrGlobalConfig = JSON.parse(serializedGlobalConfig);
             receivedAt = parseInt(localStorage.getItem("NostrGlobalConfigReceivedAt") ?? '0');
         }
-
         subscribeConfiguration($fileConfiguration.admin_pubkeys, [getConfigurationKey('site_specific_config')],
             (setup, rcAt) => {
                 if (rcAt > receivedAt) {
                     receivedAt = rcAt;
-
                     $NostrGlobalConfig = setup;
+                    // 'NostrGlobalConfig' and 'NostrGlobalConfigReceivedAt' never sets so its missing
                     localStorage.setItem('NostrGlobalConfig', JSON.stringify(setup));
                     localStorage.setItem('NostrGlobalConfigReceivedAt', receivedAt.toString());
                 }
@@ -116,7 +114,7 @@
     {/if}
 </svelte:head>
 
-<div class="h-screen pt-12 lg:pt-20 pb-20 { $page.url.pathname === '/messages' ? '' : 'mt-2' }">
+<div class="h-screen lg:pt-20 pb-20 { $page.url.pathname === '/messages' ? '' : 'mt-2' }">
     <Navbar />
 
     <div class="mx-auto mb-6 min-h-[80%] { $page.url.pathname === '/messages' ? 'h-full' : '' } { $page.url.pathname === '/' ? 'w-screen' : 'w-11/12 xl:w-10/12' }">

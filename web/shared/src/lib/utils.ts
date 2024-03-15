@@ -133,6 +133,7 @@ export function getMonthName(month: number) {
 }
 
 export async function getConfigurationFromFile() {
+
     let response = await fetch('/front-office-config/config.json')
 
     if (!response.ok) {
