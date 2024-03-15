@@ -50,7 +50,7 @@ dictConfig({
             'filename': LOG_FILENAME,
             'mode': 'a',
             'maxBytes': 10485760,
-            'backupCount': 100,
+            'backupCount': 100 if ENV == 'prod' else 0,
         },
     },
     'root': {'level': LOG_LEVEL, 'handlers': ['default', 'info_rotating_file_handler']},
