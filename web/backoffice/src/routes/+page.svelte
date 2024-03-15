@@ -4,7 +4,6 @@
 
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { login } from "$lib/utils";
     import { getBadges } from "$lib/services/api";
     import { user } from "$lib/stores";
     import { token } from "$sharedLib/stores";
@@ -39,7 +38,6 @@
         <h2 class="text-4xl text-center my-8">Stall Manager</h2>
         <div class="flex justify-center items-center mt-12 gap-4 flex-col">
             <a href={null} class="btn btn-primary btn-lg normal-case" on:click={async () => requestLoginModal(() => {}, onLogin)} on:keypress={async () => requestLoginModal(() => {}, onLogin)}><b>Login using Nostr</b></a>
-            <a href={null} class="btn btn-primary btn-lg normal-case" on:click={() => login()} on:keypress={() => login()}><b>Login using Lightning</b></a>
         </div>
     {/if}
 {/if}
