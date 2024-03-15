@@ -102,11 +102,9 @@
          class="w-full" class:hidden={!productsLoaded}
          data-twe-carousel-init
          data-twe-ride="carousel">
-        {(console.log('* sectionConfiguration.params:', sectionConfiguration.params), '')}
         <!-- Carousel items -->
         <div class="w-full h-[36rem] overflow-hidden">
             {#each Object.entries(products) as [_, product], i}
-                {(console.log(' *** product:', product), '')}
                 {#if (product.event.kind === EVENT_KIND_PRODUCT &&
                         (product.quantity !== 0 || (product.quantity === 0 && sectionConfiguration.params?.showProductsWithoutStock))
                      ) ||
@@ -115,7 +113,6 @@
                         (product.start_date || (!product.start_date && sectionConfiguration.params?.showUnstartedAuctions))
                      )
                 }
-                    {(console.log('   * inside if'), '')}
                     <div class="h-[36rem] max-h-full w-full relative float-left -mr-[100%] bg-base-200/40 rounded-xl !transform-none opacity-0 transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none"
                          class:hidden={i > 0}
                          data-twe-carousel-fade
