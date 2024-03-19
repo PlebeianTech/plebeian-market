@@ -165,15 +165,7 @@ export async function sendPrivateMessage(recipientPubkey: string, message: strin
     }
 
     const event = await createEvent(EVENT_KIND_PM, cipheredMessage, [['p', recipientPubkey]], merchantPrivateKey);
-    try {
-        const pool: SimplePool = get(NostrPool)
-        pool.publish(relayUrlList, event);
-        successCB;
-        return true;
-    } catch (e) {
-        console.error(e);
-        return false;
-    }
+    get(NostrPool).publish(relayUrlList, event).on('ok', successCB);
 }
 
 export async function getPrivateMessages(userPubkey: string, merchantPrivateKey:string | boolean = false, receivedCB, eoseCB = () => {}) {
@@ -490,7 +482,7 @@ export function subscribeConfiguration(pubkeys: string[], configKeys: string[], 
 }
 
 export function getConfigurationKey(key:string, version = 'v1'): string | null {
-    const domainName = getDomainName();
+    const domainName = getDomainName() + '777';
 
     if (domainName && version && key) {
         return 'plebeian_market/' + domainName+ '/' + version + '/' + key;
