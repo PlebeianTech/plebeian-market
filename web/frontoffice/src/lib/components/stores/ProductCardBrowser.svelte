@@ -23,20 +23,6 @@
 
     let merchantIDs = [];
 
-    if (browser && $fileConfiguration.backend_present) {
-        getMerchantIDs()
-            .then(merchantIDsFromAPI => {
-                console.log('merchantIDsFromAPI', merchantIDsFromAPI);
-
-                merchantIDsFromAPI.forEach(merchantIDFromAPI => {
-                    if (merchantIDFromAPI && merchantIDFromAPI.public_key) {
-                        merchantIDs.push(merchantIDFromAPI.public_key);
-                    }
-                });
-            })
-            .catch(error => console.log('Error loading merchant IDs from the community:', error));
-    }
-
     /*
     interface CategoriesAssociativeArray {
         [key: string]: {
@@ -61,6 +47,20 @@
     }
     let products: ProductsAssociativeArray[] = [];
     let filteredProducts = [];
+
+    $: if (browser && $fileConfiguration.backend_present) {
+        getMerchantIDs()
+            .then(merchantIDsFromAPI => {
+                console.log('merchantIDsFromAPI', merchantIDsFromAPI);
+
+                merchantIDsFromAPI.forEach(merchantIDFromAPI => {
+                    if (merchantIDFromAPI && merchantIDFromAPI.public_key) {
+                        merchantIDs.push(merchantIDFromAPI.public_key);
+                    }
+                });
+            })
+            .catch(error => console.log('Error loading merchant IDs from the community:', error));
+    }
 
     $: if (products) {
         numProductsLoaded = 0;
