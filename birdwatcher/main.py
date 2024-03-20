@@ -221,7 +221,8 @@ class Relay:
                     auction = json.loads(event['content'])
                 except:
                     auction = None
-                if isinstance(auction, dict) and 'start_date' in auction and 'duration' in auction:
+
+                if isinstance(auction, dict) and 'start_date' in auction and auction['start_date'] and 'duration' in auction and auction['duration']:
                     if datetime.fromtimestamp(auction['start_date']) + timedelta(seconds=auction['duration']) > datetime.utcnow():
                         await self.check_ours(event, self.subscribe_bids)
             case EventKind.STALL:
