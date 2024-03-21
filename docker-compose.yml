@@ -71,6 +71,7 @@ services:
       context: ./
       dockerfile: ./birdwatcher/Dockerfile
     image: plebeianmarket-birdwatcher
+    depends_on: [api]
     restart: always
     stop_grace_period: 15s
     networks:
