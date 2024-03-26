@@ -925,7 +925,7 @@ class Order(db.Model):
     lightning_invoices = db.relationship('LightningInvoice', back_populates="order",  order_by="desc(LightningInvoice.created_at)")
     lightning_payment_logs = db.relationship('LightningPaymentLog', back_populates="order", order_by="desc(LightningPaymentLog.created_at)")
 
-    def set_paid(self):
+    def set_paid(self, method):
         from main import get_birdwatcher, get_mail
         birdwatcher = get_birdwatcher()
         self.paid_at = datetime.utcnow()
@@ -935,7 +935,7 @@ class Order(db.Model):
         if self.seller.nostr_public_key:
             birdwatcher.send_dm(birdwatcher.site_admin_private_key, self.seller.nostr_public_key, f"Order {self.uuid} was paid!")
         if self.seller.email and self.seller.email_verified:
-            get_mail().send(self.seller.email, f"Order was paid!", f"Order {self.uuid} was paid!", f"Order {self.uuid} was paid!")
+            get_mail().send(self.seller.email, f"Order was paid!", f"Order {self.uuid} was paid! {method}.", f"Order {self.uuid} was paid! {method}.")
 
     @property
     def timeout_minutes(self):

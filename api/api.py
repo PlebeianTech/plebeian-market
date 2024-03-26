@@ -518,7 +518,7 @@ def put_order(user, uuid):
 
     if request.json.get('paid'):
         message = "The seller accepted your payment!"
-        order.set_paid()
+        order.set_paid("Payment accepted manually by the seller")
 
     if request.json.get('shipped'):
         message = "Your order was shipped!"
